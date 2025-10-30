@@ -3,19 +3,20 @@ import bcrypt from 'bcryptjs';
 
 export interface User {
   id?: number;
+  firebase_uid: string;
   email: string;
   password_hash: string;
   nombre?: string;
   fecha_creacion?: Date;
 }
 
-export const createUser = async (email: string, password: string, nombre: string): Promise<boolean> => {
+export const createUser = async (email: string, password: string, nombre: string, firebase_uid: string): Promise<boolean> => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const [result]: any = await pool.execute(
-      'INSERT INTO usuarios (email, password_hash, nombre) VALUES (?, ?, ?)',
-      [email, hashedPassword, nombre]
+      'INSERT INTO usuarios (email, password_hash, nombre, firebase_uid) VALUES (?, ?, ?, ?)',
+      [email, hashedPassword, nombre, firebase_uid]
     );
     
     return result.affectedRows > 0;

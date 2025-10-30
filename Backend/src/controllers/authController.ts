@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as userModel from '../models/userModel';
+import admin from '../config/firebase';
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -27,7 +28,15 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    const success = await userModel.createUser(email, password, nombre);
+    // Crear usuario en Firebase
+    const userRecord = await admin.auth().createUser({
+      email,
+      password,
+      displayName: nombre
+    });
+
+    // Crear usuario en la base de datos local
+    const success = await userModel.createUser(email, password, nombre, userRecord.uid);
     
     if (success) {
       res.status(201).json({

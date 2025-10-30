@@ -1,0 +1,1 @@
+ALTER TABLE usuarios ADD COLUMN firebase_uid VARCHAR(128) UNIQUE AFTER id;
