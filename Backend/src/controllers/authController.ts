@@ -123,16 +123,18 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 
     try {
-      // Configurar la URL de redirección
+      // ✅ ACTUALIZAR: URL de redirección para producción
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       const actionCodeSettings = {
-        url: 'http://localhost:3000/login?reset=success',
+        url: `${frontendUrl}/login?reset=success`,
         handleCodeInApp: false
       };
 
-      // ✅ CORRECTO: Enviar email de recuperación
+      // Enviar email de recuperación
       await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
       
       console.log('📧 Email de recuperación enviado a:', email);
+      console.log('🔗 URL de redirección:', actionCodeSettings.url);
       
       res.json({
         success: true,
@@ -157,7 +159,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
         });
       }
 
-      // Para desarrollo: mostrar el error real
       return res.status(400).json({
         success: false,
         message: `Error al enviar email: ${firebaseError.message}`
