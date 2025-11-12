@@ -1,6 +1,7 @@
 {
   "name": "diana-laura-backend",
   "version": "1.0.0",
+  "description": "Backend para Joyería Diana Laura",
   "type": "commonjs",
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts",
@@ -28,5 +29,8 @@
     "nodemon": "^2.0.22",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
