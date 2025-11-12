@@ -11,14 +11,12 @@ const ResetPasswordScreen: React.FC = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<string | null>(null);
   const [oobCode, setOobCode] = useState<string | null>(null);
 
   useEffect(() => {
     const urlMode = searchParams.get('mode');
     const urlOobCode = searchParams.get('oobCode');
-    
-    setMode(urlMode);
+  
     setOobCode(urlOobCode);
 
     // Verificar que sea el modo correcto y tenga código
