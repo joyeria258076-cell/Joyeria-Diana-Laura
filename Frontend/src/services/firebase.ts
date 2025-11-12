@@ -4,7 +4,6 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Configuración desde variables de entorno
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
@@ -14,7 +13,7 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
-// Verificar que todas las variables estén definidas
+// Verificar configuración
 const missingVars = Object.entries(firebaseConfig)
   .filter(([_, value]) => !value)
   .map(([key]) => key);

@@ -1,21 +1,63 @@
+/* Ruta: Joyeria-Diana-Laura/Frontend/src/styles/OlvideContraseniaScreen.css */
+
 .olvide-contrasenia-container {
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  font-family: 'Arial', sans-serif;
+  background: #000000;
+  padding: 2rem;
+  font-family: 'Montserrat', sans-serif;
+  position: relative;
 }
 
-.olvide-contrasenia-form {
-  background: white;
-  padding: 2.5rem;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+/* Efecto de partículas sutiles en el fondo */
+.olvide-contrasenia-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+      radial-gradient(circle at 20% 80%, rgba(236, 178, 195, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(236, 178, 195, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.01) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.olvide-contrasenia-card {
+  background: linear-gradient(145deg, #0a0a0a, #000000);
+  padding: 3rem;
+  border-radius: 20px;
   width: 100%;
-  max-width: 450px;
+  max-width: 480px;
+  border: 1px solid rgba(236, 178, 195, 0.15);
+  position: relative;
+  box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.8),
+      0 0 0 1px rgba(255, 255, 255, 0.03),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
   animation: fadeIn 0.5s ease-in;
+}
+
+/* Efecto de borde superior */
+.olvide-contrasenia-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 4px;
+  background: linear-gradient(90deg, 
+      transparent, 
+      #ECB2C3, 
+      #FFFFFF, 
+      #ECB2C3, 
+      transparent);
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 0 20px rgba(236, 178, 195, 0.3);
 }
 
 @keyframes fadeIn {
@@ -29,175 +71,167 @@
   }
 }
 
-.olvide-contrasenia-form h2 {
+.olvide-contrasenia-header {
   text-align: center;
-  margin-bottom: 1rem;
-  color: #333;
-  font-size: 1.8rem;
-  font-weight: 600;
+  margin-bottom: 2.5rem;
+  position: relative;
 }
 
-.olvide-contrasenia-form p {
-  text-align: center;
-  color: #666;
-  margin-bottom: 2rem;
-  line-height: 1.5;
-  font-size: 0.95rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #555;
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.85rem;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
-  font-size: 1rem;
-  box-sizing: border-box;
-  transition: all 0.3s ease;
-  background-color: #f8f9fa;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #667eea;
-  background-color: white;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.form-group input::placeholder {
-  color: #aaa;
-}
-
-button[type="submit"] {
-  width: 100%;
-  padding: 0.85rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 0.5rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-button[type="submit"]:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-button[type="submit"]:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-button[type="submit"]:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.success-message {
-  background: #d4edda;
-  color: #155724;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-top: 1.5rem;
-  text-align: center;
-  border-left: 4px solid #28a745;
-  animation: slideIn 0.3s ease-out;
-}
-
-.error-message {
-  background: #f8d7da;
-  color: #721c24;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-top: 1.5rem;
-  text-align: center;
-  border-left: 4px solid #dc3545;
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.development-note {
-  background: #fff3cd;
-  color: #856404;
-  padding: 0.75rem;
-  border-radius: 6px;
-  margin-top: 1rem;
-  font-size: 0.8rem;
-  text-align: center;
-  border-left: 4px solid #ffc107;
-}
-
-.development-note strong {
-  display: block;
-  margin-bottom: 0.25rem;
-}
-
-.back-to-login {
-  margin-top: 2rem;
-  text-align: center;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.back-button {
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
+.olvide-contrasenia-header h2 {
+  color: #FFFFFF;
+  font-size: 2.2rem;
+  margin-bottom: 0.8rem;
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  position: relative;
   display: inline-block;
 }
 
-.back-button:hover {
-  background: #5a6268;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.olvide-contrasenia-header h2::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 25%;
+  right: 25%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ECB2C3, transparent);
 }
 
-/* Responsive Design */
-@media (max-width: 480px) {
-  .olvide-contrasenia-container {
-    padding: 15px;
-  }
-  
-  .olvide-contrasenia-form {
-    padding: 2rem 1.5rem;
-  }
-  
-  .olvide-contrasenia-form h2 {
-    font-size: 1.5rem;
-  }
+.olvide-contrasenia-header p {
+  color: #ECB2C3;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  opacity: 0.95;
+  font-weight: 500;
+}
+
+.olvide-contrasenia-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.form-group label {
+  color: #FFFFFF;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-family: 'Montserrat', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Icono sutil para labels */
+.form-group label::before {
+  content: '✦';
+  color: #ECB2C3;
+  font-size: 0.8rem;
+}
+
+.olvide-input {
+  padding: 1rem 1.25rem;
+  border: 1.5px solid rgba(207, 207, 207, 0.2);
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+  font-family: 'Montserrat', sans-serif;
+  backdrop-filter: blur(10px);
+  position: relative;
+  height: 52px;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+.olvide-input::placeholder {
+  color: #D9D9D9;
+  opacity: 0.6;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.olvide-input:focus {
+  outline: none;
+  border-color: #ECB2C3;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 
+      0 0 0 4px rgba(236, 178, 195, 0.15),
+      0 8px 25px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.olvide-input:focus::placeholder {
+  opacity: 0.4;
+  transform: translateX(5px);
+}
+
+.olvide-input:hover {
+  border-color: rgba(236, 178, 195, 0.4);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.submit-button {
+  background: linear-gradient(135deg, #ECB2C3 0%, #e0a5b8 50%, #d89aad 100%);
+  color: #000000;
+  border: none;
+  padding: 1.2rem 2rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  margin-top: 0.5rem;
+  font-family: 'Montserrat', sans-serif;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+      0 6px 20px rgba(236, 178, 195, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.submit-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 
+      0 12px 30px rgba(236, 178, 195, 0.5),
+      0 4px 15px rgba(236, 178, 195, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  background: linear-gradient(135deg, #f0b8c9 0%, #e8b0c2 50%, #e0a5b8 100%);
+}
+
+.submit-button:hover::before {
+  left: 100%;
+}
+
+.submit-button:active {
+  transform: translateY(-1px);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: #666;
 }
 
 /* Loading animation */
@@ -213,66 +247,180 @@ button[type="submit"]:disabled {
   }
 }
 
-button[type="submit"]:disabled {
+.submit-button:disabled {
   animation: pulse 1.5s infinite;
 }
 
-/* Agrega al final del archivo CSS existente */
-
-.token-section {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-top: 1rem;
-}
-
-.token-section h4 {
-  margin: 0 0 0.75rem 0;
-  color: #333;
-  font-size: 0.9rem;
-}
-
-.token-box {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.token-box code {
-  flex: 1;
-  background: white;
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  font-size: 0.8rem;
-  word-break: break-all;
-  color: #e83e8c;
-}
-
-.copy-button {
-  background: #28a745;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  white-space: nowrap;
-}
-
-.copy-button:hover {
-  background: #218838;
-}
-
-/* Mejorar el success message para contenido largo */
 .success-message {
-  background: #d4edda;
-  color: #155724;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  color: #4CAF50;
   padding: 1.5rem;
-  border-radius: 8px;
-  margin-top: 1.5rem;
+  border-radius: 12px;
+  margin-top: 2rem;
   text-align: left;
-  border-left: 4px solid #28a745;
+  font-family: 'Montserrat', sans-serif;
+  backdrop-filter: blur(10px);
+  border-left: 4px solid #4CAF50;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.1);
   animation: slideIn 0.3s ease-out;
+}
+
+.success-message p {
+  margin-bottom: 1rem;
+  line-height: 1.5;
+  color: #4CAF50;
+}
+
+.email-tips h4 {
+  color: #4CAF50;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.email-tips ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.email-tips li {
+  color: #4CAF50;
+  padding: 0.25rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+  line-height: 1.4;
+}
+
+.email-tips li::before {
+  content: '•';
+  color: #4CAF50;
+  position: absolute;
+  left: 0.5rem;
+  font-weight: bold;
+}
+
+.error-message {
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(244, 67, 54, 0.05));
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  color: #F44336;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.95rem;
+  font-family: 'Montserrat', sans-serif;
+  backdrop-filter: blur(10px);
+  border-left: 4px solid #F44336;
+  box-shadow: 0 4px 20px rgba(244, 67, 54, 0.1);
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+}
+
+.error-message::before {
+  content: '⚠';
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.back-to-login {
+  margin-top: 2.5rem;
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(207, 207, 207, 0.15);
+  position: relative;
+}
+
+.back-button {
+  color: #ECB2C3;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  font-size: 1.1rem;
+  font-family: 'Montserrat', sans-serif;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  position: relative;
+  background: rgba(236, 178, 195, 0.05);
+  border: 1px solid transparent;
+  letter-spacing: 0.4px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  background: rgba(236, 178, 195, 0.15);
+  border-color: rgba(236, 178, 195, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(236, 178, 195, 0.2);
+  color: #ECB2C3;
+}
+
+.back-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .olvide-contrasenia-container {
+    padding: 1rem;
+  }
+  
+  .olvide-contrasenia-card {
+    padding: 2.5rem 2rem;
+  }
+  
+  .olvide-contrasenia-header h2 {
+    font-size: 2rem;
+  }
+  
+  .olvide-contrasenia-header p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .olvide-contrasenia-card {
+    padding: 2rem 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .olvide-contrasenia-header h2 {
+    font-size: 1.8rem;
+  }
+  
+  .olvide-input {
+    padding: 0.9rem 1.1rem;
+    height: 48px;
+  }
+  
+  .submit-button {
+    font-size: 1rem;
+    padding: 1.1rem 1.5rem;
+  }
+  
+  .back-button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+  
+  .success-message,
+  .error-message {
+    padding: 1.25rem;
+  }
 }

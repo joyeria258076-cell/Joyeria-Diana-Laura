@@ -1,6 +1,7 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/screens/ReiniciarContraseniaScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { authAPI } from '../services/api';
 import '../styles/ReiniciarContraseniaScreen.css';
 
 const ResetPasswordScreen: React.FC = () => {
@@ -11,16 +12,11 @@ const ResetPasswordScreen: React.FC = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [oobCode, setOobCode] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
 
   useEffect(() => {
-    const urlOobCode = searchParams.get('oobCode');
-    setOobCode(urlOobCode);
-
-    // Verificar que tenga código
-    if (!urlOobCode) {
-      setError('Enlace inválido o expirado');
-    }
+    // En esta versión simplificada, pedimos el email directamente
+    // ya que el backend desplegado no maneja códigos OOB de Firebase
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,8 +24,8 @@ const ResetPasswordScreen: React.FC = () => {
     setError('');
     setMessage('');
 
-    if (!oobCode) {
-      setError('Código de recuperación no válido');
+    if (!email) {
+      setError('Por favor ingresa tu email');
       return;
     }
 
@@ -46,61 +42,38 @@ const ResetPasswordScreen: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://joyeria-diana-laura.onrender.com/api'}/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          oobCode,
-          newPassword 
-        })
-      });
+      const response = await authAPI.resetPassword(email, newPassword);
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.success) {
         setMessage('✅ Contraseña actualizada correctamente. Redirigiendo al login...');
         setTimeout(() => navigate('/login'), 3000);
       } else {
-        setError(data.message);
+        setError(response.message);
       }
-    } catch (error) {
-      setError('Error al conectar con el servidor');
+    } catch (error: any) {
+      setError(error.message || 'Error al conectar con el servidor');
     } finally {
       setLoading(false);
     }
   };
 
-  if (error && !oobCode) {
-    return (
-      <div className="reset-password-container">
-        <div className="reset-password-form">
-          <div className="error-message">
-            ❌ {error}
-          </div>
-          <button 
-            onClick={() => navigate('/olvide')} 
-            className="back-button"
-          >
-            Solicitar nuevo enlace
-          </button>
-          <button 
-            onClick={() => navigate('/login')} 
-            className="back-button secondary"
-          >
-            Volver al Login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="reset-password-container">
       <div className="reset-password-form">
         <h2>Establecer Nueva Contraseña</h2>
-        <p>Crea una nueva contraseña para tu cuenta.</p>
+        <p>Ingresa tu email y crea una nueva contraseña para tu cuenta.</p>
         
         <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Email:</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="tu@email.com"
+            />
+          </div>
           <div className="form-group">
             <label>Nueva Contraseña:</label>
             <input
@@ -129,6 +102,12 @@ const ResetPasswordScreen: React.FC = () => {
         
         {message && <div className="success-message">{message}</div>}
         {error && <div className="error-message">{error}</div>}
+        
+        <div className="back-to-login">
+          <button onClick={() => navigate('/login')} className="back-button">
+            Volver al Login
+          </button>
+        </div>
       </div>
     </div>
   );

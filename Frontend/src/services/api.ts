@@ -10,16 +10,14 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
       ...options,
     });
 
-    // Si la respuesta no es OK, lanzar error
+    const data = await response.json();
+    
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+      throw new Error(data.message || 'Error en la petición');
     }
 
-    const data = await response.json();
     return data;
   } catch (error) {
-    console.error('API Request Error:', error);
     throw error;
   }
 };
