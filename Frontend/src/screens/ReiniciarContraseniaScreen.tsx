@@ -14,13 +14,11 @@ const ResetPasswordScreen: React.FC = () => {
   const [oobCode, setOobCode] = useState<string | null>(null);
 
   useEffect(() => {
-    const urlMode = searchParams.get('mode');
     const urlOobCode = searchParams.get('oobCode');
-  
     setOobCode(urlOobCode);
 
-    // Verificar que sea el modo correcto y tenga código
-    if (urlMode !== 'resetPassword' || !urlOobCode) {
+    // Verificar que tenga código
+    if (!urlOobCode) {
       setError('Enlace inválido o expirado');
     }
   }, [searchParams]);
@@ -48,8 +46,6 @@ const ResetPasswordScreen: React.FC = () => {
     setLoading(true);
 
     try {
-      // En este punto, Firebase ya ha verificado el código
-      // Solo necesitamos actualizar la contraseña en nuestro backend
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://joyeria-diana-laura.onrender.com/api'}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
