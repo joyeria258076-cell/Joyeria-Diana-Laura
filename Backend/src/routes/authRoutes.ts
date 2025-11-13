@@ -7,9 +7,10 @@ import {
     checkUserExists,
     checkEmailCredits,
     checkEmailConfig,
-    validateEmail,          // 🎯 NUEVA
-    syncUserToPostgreSQL,   // 🎯 NUEVA
-    checkFirebaseUser       // 🎯 NUEVA
+    validateEmail,
+    syncUserToPostgreSQL,
+    checkFirebaseUser,
+    testEmailDelivery // 🎯 NUEVO
 } from '../controllers/authController';
 
 const router = express.Router();
@@ -20,8 +21,9 @@ router.post('/reset-password', resetPassword);
 router.post('/check-user', checkUserExists); 
 router.get('/email-credits', checkEmailCredits);
 router.get('/check-email-config', checkEmailConfig);
-router.post('/validate-email', validateEmail);        // 🎯 NUEVA RUTA
-router.post('/sync-user', syncUserToPostgreSQL);      // 🎯 NUEVA RUTA
-router.post('/check-firebase-user', checkFirebaseUser); // 🎯 NUEVA RUTA
+router.post('/validate-email', validateEmail);
+router.post('/sync-user', syncUserToPostgreSQL);
+router.post('/check-firebase-user', checkFirebaseUser);
+router.post('/test-email', testEmailDelivery); // 🎯 NUEVA RUTA
 
 export default router;

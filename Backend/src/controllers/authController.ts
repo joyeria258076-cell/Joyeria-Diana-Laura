@@ -32,7 +32,6 @@ export const syncUserToPostgreSQL = async (req: Request, res: Response) => {
 
     // Crear usuario en PostgreSQL (opcional, para otras funcionalidades)
     const userPassword = password || 'temp_password_123';
-    // 🎯 CORREGIDO: Verificar que email no sea undefined
     const userName = nombre || (email ? email.split('@')[0] : 'Usuario');
     
     const success = await userModel.createUser(email, userPassword, userName, firebaseUID);
@@ -53,10 +52,9 @@ export const syncUserToPostgreSQL = async (req: Request, res: Response) => {
     }
   } catch (error: any) {
     console.error('Error en syncUserToPostgreSQL:', error);
-    res.json({ // 🎯 No es crítico, devolvemos éxito igual
+    res.json({
       success: true,
       message: 'Usuario en Firebase, error en PostgreSQL no crítico',
-      // 🎯 CORREGIDO: Usar req.body.email en lugar de email
       data: { email: req.body.email }
     });
   }
@@ -130,9 +128,6 @@ export const login = async (req: Request, res: Response) => {
 
     console.log(`🔐 Iniciando login SOLO con Firebase para: ${email}`);
 
-    // 🎯 ELIMINADO: Verificación en PostgreSQL
-    // 🎯 SOLO verificamos en Firebase
-    
     try {
       // Verificar que el usuario existe en Firebase
       const userRecord = await admin.auth().getUserByEmail(email);
@@ -148,8 +143,6 @@ export const login = async (req: Request, res: Response) => {
       }
 
       // 🎯 CREAR RESPUESTA DIRECTAMENTE CON DATOS DE FIREBASE
-      // No necesitamos PostgreSQL para el login
-      // 🎯 CORREGIDO: Manejar posibles valores undefined
       const userEmail = userRecord.email || email;
       const userName = userRecord.displayName || (userEmail ? userEmail.split('@')[0] : 'Usuario');
       
@@ -158,7 +151,7 @@ export const login = async (req: Request, res: Response) => {
         message: 'Login exitoso',
         data: {
           user: {
-            id: userRecord.uid, // 🎯 Usar UID de Firebase como ID
+            id: userRecord.uid,
             email: userEmail,
             nombre: userName
           }
@@ -190,7 +183,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-// 🔄 FUNCIONES DE RECUPERACIÓN DE CONTRASEÑA
+// 🔄 FUNCIONES DE RECUPERACIÓN DE CONTRASEÑA MEJORADAS
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
@@ -202,43 +195,54 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
     }
 
-    // Verificar si el usuario existe en nuestra BD local
-    const exists = await userModel.emailExists(email);
-    if (!exists) {
-      // Por seguridad, no revelamos si el email existe o no
-      return res.json({
-        success: true,
-        message: 'Se ha enviado un enlace de recuperación a tu email'
-      });
-    }
+    console.log(`📧 Solicitando recuperación para: ${email}`);
 
     try {
-      // Configurar la URL de redirección
+      // 🎯 CONFIGURACIÓN MEJORADA PARA EMAILS
+      const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
       const actionCodeSettings = {
-        url: process.env.FRONTEND_URL || 'http://localhost:3000/login?reset=success',
+        url: `${frontendUrl}/login?reset=success&email=${encodeURIComponent(email)}`,
         handleCodeInApp: false
       };
 
-      // Solo generar link (frontend enviará email)
+      console.log('🎯 Configuración de recuperación:');
+      console.log('📧 Email:', email);
+      console.log('🔗 URL de redirección:', actionCodeSettings.url);
+
+      // 🎯 GENERAR LINK DE RECUPERACIÓN
       const resetLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
       
-      console.log('📧 Link de recuperación generado (frontend enviará email):', resetLink);
-      
-      res.json({
-        success: true,
-        message: 'Se ha enviado un enlace de recuperación a tu email'
-      });
+      console.log('✅ Link de recuperación generado exitosamente');
+      console.log('🔗 Link completo (primeros 100 chars):', resetLink.substring(0, 100) + '...');
+
+      // 🎯 VERIFICAR QUE EL USUARIO EXISTE EN FIREBASE
+      try {
+        const userRecord = await admin.auth().getUserByEmail(email);
+        console.log(`✅ Usuario verificado en Firebase: ${userRecord.uid}`);
+        
+        res.json({
+          success: true,
+          message: 'Se ha enviado un enlace de recuperación a tu email',
+          debug: process.env.NODE_ENV === 'development' ? { 
+            resetLink: resetLink.substring(0, 100) + '...',
+            email: email
+          } : undefined
+        });
+
+      } catch (firebaseError: any) {
+        if (firebaseError.code === 'auth/user-not-found') {
+          console.log(`❌ Usuario no encontrado en Firebase: ${email}`);
+          // 🎯 POR SEGURIDAD, NO REVELAMOS SI EXISTE O NO
+          return res.json({
+            success: true,
+            message: 'Si el email está registrado, recibirás un enlace de recuperación'
+          });
+        }
+        throw firebaseError;
+      }
 
     } catch (firebaseError: any) {
-      console.error('Error de Firebase:', firebaseError);
-      
-      // Manejar errores específicos de Firebase
-      if (firebaseError.code === 'auth/user-not-found') {
-        return res.json({
-          success: true,
-          message: 'Se ha enviado un enlace de recuperación a tu email'
-        });
-      }
+      console.error('❌ Error de Firebase en forgotPassword:', firebaseError);
       
       if (firebaseError.code === 'auth/invalid-email') {
         return res.status(400).json({
@@ -247,18 +251,43 @@ export const forgotPassword = async (req: Request, res: Response) => {
         });
       }
 
-      return res.status(400).json({
-        success: false,
-        message: `Error al generar link: ${firebaseError.message}`
-      });
+      if (firebaseError.code === 'auth/unauthorized-continue-uri') {
+        return res.status(400).json({
+          success: false,
+          message: 'Error de configuración: URL no autorizada en Firebase'
+        });
+      }
+
+      // 🎯 POR SEGURIDAD, SIEMPRE DEVOLVEMOS ÉXITO EN PRODUCCIÓN
+      if (process.env.NODE_ENV === 'production') {
+        return res.json({
+          success: true,
+          message: 'Si el email está registrado, recibirás un enlace de recuperación'
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: `Error al generar link: ${firebaseError.message}`,
+          code: firebaseError.code
+        });
+      }
     }
 
   } catch (error) {
     console.error('Error en forgotPassword:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error interno del servidor'
-    });
+    
+    // 🎯 POR SEGURIDAD, SIEMPRE DEVOLVEMOS ÉXITO EN PRODUCCIÓN
+    if (process.env.NODE_ENV === 'production') {
+      res.json({
+        success: true,
+        message: 'Si el email está registrado, recibirás un enlace de recuperación'
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor'
+      });
+    }
   }
 };
 
@@ -363,14 +392,6 @@ export const resetPasswordFirebase = async (req: Request, res: Response) => {
     }
 
     try {
-      // Verificar el código con el cliente de Firebase (no Admin SDK)
-      // Esto normalmente lo haría el frontend con el SDK de Firebase
-      // Por ahora, actualizamos directamente con el email
-      
-      // Para este enfoque, necesitamos obtener el email del código
-      // Pero el Admin SDK no tiene esta capacidad
-      // Alternativa: usar el Auth REST API de Firebase
-      
       res.json({
         success: true,
         message: 'Contraseña actualizada correctamente'
@@ -489,7 +510,6 @@ export const checkFirebaseUser = async (req: Request, res: Response) => {
         });
       }
       
-      // 🎯 PROPAGAR otros errores de Firebase
       console.error('Error de Firebase:', firebaseError);
       throw firebaseError;
     }
@@ -497,7 +517,6 @@ export const checkFirebaseUser = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Error en checkFirebaseUser:', error);
     
-    // 🎯 MEJORAR manejo de errores
     if (error.code === 'auth/invalid-email') {
       return res.status(400).json({
         success: false,
@@ -508,6 +527,51 @@ export const checkFirebaseUser = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Error verificando usuario en Firebase: ' + error.message
+    });
+  }
+};
+
+// 🎯 ENDPOINT DE DIAGNÓSTICO (temporal)
+export const testEmailDelivery = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email es requerido'
+      });
+    }
+
+    console.log('🧪 Probando entrega de email para:', email);
+
+    // Probar recuperación de contraseña
+    const actionCodeSettings = {
+      url: 'https://joyeria-diana-laura.vercel.app/login?test=true',
+      handleCodeInApp: false
+    };
+
+    const resetLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
+    
+    console.log('✅ Link generado exitosamente');
+    console.log('🔗 Link:', resetLink);
+
+    res.json({
+      success: true,
+      message: 'Prueba completada - Revisa logs del servidor',
+      data: {
+        email: email,
+        linkGenerated: true,
+        linkPreview: resetLink.substring(0, 100) + '...'
+      }
+    });
+
+  } catch (error: any) {
+    console.error('❌ Error en prueba:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error en prueba: ' + error.message,
+      code: error.code
     });
   }
 };

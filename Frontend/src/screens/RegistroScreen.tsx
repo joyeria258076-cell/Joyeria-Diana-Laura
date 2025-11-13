@@ -59,20 +59,16 @@ export default function RegistroScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // Función para validar el nombre en tiempo real
     const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        // Remover símbolos especiales y números
         const cleanedValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
         if (value !== cleanedValue) {
             e.target.value = cleanedValue;
         }
     };
 
-    // Función para validar la contraseña en tiempo real
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        // Remover espacios
         const cleanedValue = value.replace(/\s/g, '');
         if (value !== cleanedValue) {
             e.target.value = cleanedValue;
@@ -82,7 +78,7 @@ export default function RegistroScreen() {
     const onSubmit = async (data: FormData) => {
         try {
             await register(data.email, data.password, data.nombre);
-            alert("Usuario registrado correctamente. Revisa tu email para verificar tu cuenta antes de iniciar sesión.");
+            alert("✅ Usuario registrado correctamente. Revisa tu email para verificar tu cuenta antes de iniciar sesión.");
             navigate("/login");
         } catch (error: any) {
             setError('root', { 

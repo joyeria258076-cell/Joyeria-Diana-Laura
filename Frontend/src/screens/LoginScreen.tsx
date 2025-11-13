@@ -1,10 +1,10 @@
 // Ruta:Joyeria-Diana-Laura/Frontend/src/screens/LoginScreen.tsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import "../styles/LoginScreen.css";
 
@@ -24,36 +24,114 @@ type FormData = z.infer<typeof schema>;
 
 export default function LoginScreen() {
     const navigate = useNavigate();
-    const { login } = useAuth();
-    const { register, handleSubmit, formState: { errors }, setError } = useForm<FormData>({ 
+    const [searchParams] = useSearchParams();
+    const { login, verifyEmail } = useAuth();
+    const { register, handleSubmit, formState: { errors }, setError, setValue } = useForm<FormData>({ 
         resolver: zodResolver(schema)
     });
     
-    // Estado para mostrar/ocultar contraseña
     const [showPassword, setShowPassword] = useState(false);
+    const [isVerifying, setIsVerifying] = useState(false);
+
+    useEffect(() => {
+        const oobCode = searchParams.get('oobCode');
+        const mode = searchParams.get('mode');
+        const verified = searchParams.get('verified');
+        const email = searchParams.get('email');
+        const apiKey = searchParams.get('apiKey');
+        const continueUrl = searchParams.get('continueUrl');
+
+        console.log('🔗 Parámetros en Login:', { mode, oobCode: oobCode ? 'PRESENTE' : 'FALTANTE' });
+
+        // 🎯 DETECTAR SI ES UN LINK DE RESET PASSWORD Y REDIRIGIR
+        if (mode === 'resetPassword' && oobCode) {
+            console.log('🔄 Redirigiendo a pantalla de reset password...');
+            navigate(`/reiniciar?oobCode=${oobCode}${apiKey ? `&apiKey=${apiKey}` : ''}${continueUrl ? `&continueUrl=${continueUrl}` : ''}`);
+            return;
+        }
+
+        // 🎯 MANEJAR VERIFICACIÓN DE EMAIL
+        if (oobCode && mode === 'verifyEmail' && !isVerifying) {
+            handleEmailVerification(oobCode);
+        }
+
+        // 🎯 MOSTRAR MENSAJE DE VERIFICACIÓN EXITOSA
+        if (verified === 'true' && !sessionStorage.getItem('verificationShown')) {
+            sessionStorage.setItem('verificationShown', 'true');
+            alert('✅ ¡Email verificado correctamente! Ahora puedes iniciar sesión.');
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+
+        if (email) {
+            setValue('email', email);
+        }
+    }, [searchParams, setValue, navigate, isVerifying]);
+
+    const handleEmailVerification = async (oobCode: string) => {
+        try {
+            setIsVerifying(true);
+            await verifyEmail(oobCode);
+            
+            const email = searchParams.get('email');
+            const redirectUrl = email 
+                ? `/login?verified=true&email=${encodeURIComponent(email)}`
+                : '/login?verified=true';
+            
+            window.location.href = redirectUrl;
+        } catch (error: any) {
+            console.error('Error en verificación:', error);
+            setError('root', { 
+                type: 'manual', 
+                message: error.message || 'Error al verificar el email. El enlace puede haber expirado.'
+            });
+        } finally {
+            setIsVerifying(false);
+        }
+    };
 
     const onSubmit = async (data: FormData) => {
         try {
             await login(data.email, data.password);
             navigate("/inicio");
         } catch (error: any) {
-            // Verificación de existencia del usuario
-            if (error.message.includes("no existe") || error.message.includes("not found") || 
-                error.message.includes("usuario") || error.message.includes("user")) {
+            if (error.message.includes("Esta cuenta no existe") || 
+                error.message.includes("no existe") || 
+                error.message.includes("not found") || 
+                error.message.includes("user-not-found")) {
                 setError('root', { 
                     type: 'manual', 
-                    message: "El usuario no existe. Por favor, verifica tu correo electrónico." 
+                    message: "❌ Esta cuenta no existe. Por favor, regístrate primero." 
                 });
-            } else if (error.message.includes("contraseña") || error.message.includes("password") || 
-                       error.message.includes("incorrecta")) {
+            } else if (error.message.includes("contraseña incorrecta") || 
+                    error.message.includes("wrong-password") ||
+                    error.message.includes("invalid-credential")) {
                 setError('root', { 
                     type: 'manual', 
-                    message: "Contraseña incorrecta. Por favor, intenta nuevamente." 
+                    message: "❌ Email o contraseña incorrectos. Si no tienes cuenta, regístrate primero." 
+                });
+            } else if (error.message.includes("verificado") || 
+                    error.message.includes("verified")) {
+                setError('root', { 
+                    type: 'manual', 
+                    message: "📧 " + error.message 
+                });
+            } else if (error.message.includes("bloqueada") || 
+                    error.message.includes("too many")) {
+                setError('root', { 
+                    type: 'manual', 
+                    message: "⏳ " + error.message 
+                });
+            } else if (error.message.includes("conexión") || 
+                    error.message.includes("connection") || 
+                    error.message.includes("network")) {
+                setError('root', { 
+                    type: 'manual', 
+                    message: "🌐 Error de conexión. Verifica tu internet e intenta nuevamente." 
                 });
             } else {
                 setError('root', { 
                     type: 'manual', 
-                    message: error.message || "Error al iniciar sesión. Por favor, intenta nuevamente." 
+                    message: "❌ " + (error.message || "Error al iniciar sesión. Por favor, intenta nuevamente.") 
                 });
             }
         }
@@ -75,6 +153,12 @@ export default function LoginScreen() {
                         <p>Ingresa a tu cuenta de Joyería Diana Laura</p>
                     </div>
                     
+                    {isVerifying && (
+                        <div className="verification-message">
+                            <p>🔄 Verificando tu email...</p>
+                        </div>
+                    )}
+
                     {errors.root && (
                         <div className="error-message">
                             {errors.root.message}
@@ -121,8 +205,12 @@ export default function LoginScreen() {
                             )}
                         </div>
 
-                        <button type="submit" className="login-button">
-                            Entrar
+                        <button 
+                            type="submit" 
+                            className="login-button"
+                            disabled={isVerifying}
+                        >
+                            {isVerifying ? "Verificando..." : "Entrar"}
                         </button>
                     </form>
 

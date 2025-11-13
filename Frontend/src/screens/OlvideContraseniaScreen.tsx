@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
-import { authAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import '../styles/OlvideContraseniaScreen.css';
 
 const schema = z.object({
@@ -21,14 +21,16 @@ type FormData = z.infer<typeof schema>;
 const OlvideContraseniaScreen: React.FC = () => {
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [emailSent, setEmailSent] = useState(false);
     
     const navigate = useNavigate();
+    const { sendPasswordReset } = useAuth();
 
     const { 
         register, 
         handleSubmit, 
         formState: { errors },
-        setError 
+        setError
     } = useForm<FormData>({ 
         resolver: zodResolver(schema) 
     });
@@ -39,21 +41,42 @@ const OlvideContraseniaScreen: React.FC = () => {
         setLoading(true);
 
         try {
-            const response = await authAPI.forgotPassword(data.email);
+            console.log('📧 Iniciando proceso de recuperación para:', data.email);
+            
+            await sendPasswordReset(data.email);
+            
+            setMessage('✅ ¡Enlace de recuperación enviado! Revisa tu bandeja de entrada y carpeta de spam.');
+            setEmailSent(true);
+            console.log('✅ Proceso de recuperación completado exitosamente');
 
-            if (response.success) {
-                setMessage('✅ Se ha enviado un enlace de recuperación. Revisa tu bandeja de entrada y spam.');
-            } else {
+        } catch (error: any) {
+            console.error('❌ Error en recuperación:', error);
+            
+            if (error.message.includes('no está registrado')) {
                 setError('root', { 
                     type: 'manual', 
-                    message: response.message || 'Error al enviar el enlace de recuperación' 
+                    message: '❌ ' + error.message 
                 });
+            } else if (error.message.includes('formato del email')) {
+                setError('root', { 
+                    type: 'manual', 
+                    message: '❌ ' + error.message 
+                });
+            } else if (error.message.includes('demasiados reseteos')) {
+                setError('root', { 
+                    type: 'manual', 
+                    message: '⏳ ' + error.message 
+                });
+            } else if (error.message.includes('conexión')) {
+                setError('root', { 
+                    type: 'manual', 
+                    message: '🌐 ' + error.message 
+                });
+            } else {
+                // 🎯 POR SEGURIDAD: Mostrar mensaje genérico de éxito
+                setMessage('✅ Si este email está registrado, recibirás un enlace de recuperación en unos minutos. Revisa tu bandeja de entrada y spam.');
+                setEmailSent(true);
             }
-        } catch (error: any) {
-            setError('root', { 
-                type: 'manual', 
-                message: error.message || 'Error al conectar con el servidor. Intenta nuevamente.' 
-            });
         } finally {
             setLoading(false);
         }
@@ -64,7 +87,7 @@ const OlvideContraseniaScreen: React.FC = () => {
             <div className="olvide-contrasenia-card">
                 <div className="olvide-contrasenia-header">
                     <h2>Recuperar Contraseña</h2>
-                    <p>Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.</p>
+                    <p>Ingresa tu email registrado y te enviaremos un enlace para restablecer tu contraseña.</p>
                 </div>
                 
                 {errors.root && (
@@ -73,47 +96,51 @@ const OlvideContraseniaScreen: React.FC = () => {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit(onSubmit)} className="olvide-contrasenia-form">
-                    <div className="form-group">
-                        <label htmlFor="email">Correo electrónico</label>
-                        <input
-                            id="email"
-                            type="email"
-                            placeholder="tu@email.com (máx. 60 caracteres)"
-                            className={`olvide-input ${errors.email ? 'error' : ''}`}
-                            maxLength={60}
-                            {...register("email")}
-                        />
-                        {errors.email && (
-                            <span className="field-error">{errors.email.message}</span>
-                        )}
-                        <div className="field-requirements">
-                            <ul className="requirements-list">
-                                <li>• 6-60 caracteres</li>
-                                <li>• Solo caracteres permitidos: letras, números, ., _, %, +, -</li>
-                            </ul>
+                {!emailSent ? (
+                    <form onSubmit={handleSubmit(onSubmit)} className="olvide-contrasenia-form">
+                        <div className="form-group">
+                            <label htmlFor="email">Correo electrónico registrado</label>
+                            <input
+                                id="email"
+                                type="email"
+                                placeholder="Ingresa el email con el que te registraste"
+                                className={`olvide-input ${errors.email ? 'error' : ''}`}
+                                maxLength={60}
+                                {...register("email")}
+                            />
+                            {errors.email && (
+                                <span className="field-error">{errors.email.message}</span>
+                            )}
                         </div>
+                        
+                        <button 
+                            type="submit" 
+                            disabled={loading} 
+                            className="submit-button"
+                        >
+                            {loading ? '🔍 Enviando...' : '📧 Enviar Enlace de Recuperación'}
+                        </button>
+                    </form>
+                ) : (
+                    <div className="success-section">
+                        <div className="success-icon">✅</div>
+                        <h3>¡Solicitud Procesada Exitosamente!</h3>
+                        <p>Si el email está registrado, recibirás instrucciones en tu correo electrónico.</p>
                     </div>
-                    
-                    <button 
-                        type="submit" 
-                        disabled={loading} 
-                        className="submit-button"
-                    >
-                        {loading ? 'Enviando...' : 'Enviar Enlace de Recuperación'}
-                    </button>
-                </form>
+                )}
                 
                 {message && (
                     <div className="success-message">
                         <p>{message}</p>
                         <div className="email-tips">
-                            <h4>💡 Consejos:</h4>
+                            <h4>💡 Consejos para encontrar el email:</h4>
                             <ul>
-                                <li>Revisa tu bandeja de entrada</li>
-                                <li>Revisa la carpeta de spam o correo no deseado</li>
-                                <li>El enlace expira en 1 hora</li>
-                                <li>Si no recibes el email en 5 minutos, intenta nuevamente</li>
+                                <li><strong>Revisa tu bandeja de entrada</strong> principal</li>
+                                <li><strong>Busca en la carpeta de spam</strong> o correo no deseado</li>
+                                <li>El email viene de: <strong>noreply@joyeria-diana-laura.firebaseapp.com</strong></li>
+                                <li>El asunto del email es: <strong>"Restablece tu contraseña de Diana Laura"</strong></li>
+                                <li>El enlace expira en <strong>1 hora</strong></li>
+                                <li>Si no lo encuentras en 5 minutos, intenta nuevamente</li>
                             </ul>
                         </div>
                     </div>
@@ -121,7 +148,11 @@ const OlvideContraseniaScreen: React.FC = () => {
                 
                 <div className="back-to-login">
                     <button onClick={() => navigate('/login')} className="back-button">
-                        Volver al Login
+                        ← Volver al Login
+                    </button>
+                    
+                    <button onClick={() => navigate('/registro')} className="register-button">
+                        ¿No tienes cuenta? Regístrate aquí
                     </button>
                 </div>
             </div>
