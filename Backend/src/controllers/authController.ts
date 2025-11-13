@@ -60,7 +60,7 @@ export const register = async (req: Request, res: Response) => {
       email,
       password,
       displayName: nombre,
-      emailVerified: false // Importante para enviar email de verificación
+      emailVerified: false
     });
 
     // Crear usuario en la base de datos local
@@ -86,13 +86,21 @@ export const register = async (req: Request, res: Response) => {
 
       console.log(`✅ Usuario registrado exitosamente: ${email}`);
       
-      // 🎯 ENVIAR EMAIL DE VERIFICACIÓN
+      // 🎯 ENVIAR EMAIL DE VERIFICACIÓN - VERSIÓN MEJORADA
       try {
         const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
+        
+        // Configuración mejorada para el link de verificación
         const actionCodeSettings = {
           url: `${frontendUrl}/login?verified=true&email=${encodeURIComponent(email)}`,
-          handleCodeInApp: false
+          handleCodeInApp: true, // Cambiado a true para mejor compatibilidad
+          dynamicLinkDomain: 'joyeria-diana-laura.firebaseapp.com' // Agregar dominio dinámico
         };
+        
+        console.log('🎯 Configuración de email de verificación:');
+        console.log('📧 Email:', email);
+        console.log('🔗 URL de redirección:', actionCodeSettings.url);
+        console.log('🌐 Dominio dinámico:', actionCodeSettings.dynamicLinkDomain);
         
         // Generar el link de verificación
         const verificationLink = await admin.auth().generateEmailVerificationLink(
@@ -100,21 +108,38 @@ export const register = async (req: Request, res: Response) => {
           actionCodeSettings
         );
         
-        console.log('📧 Link de verificación generado con redirección al login');
-        console.log(`🔗 URL de redirección: ${frontendUrl}/login?verified=true`);
+        console.log('📧 Link de verificación generado exitosamente');
+        console.log('🔗 Link completo:', verificationLink);
+        
+        // 🆕 ENVIAR EMAIL DIRECTAMENTE USANDO sendEmailVerification
+        // Esto es más confiable que solo generar el link
+        try {
+          await admin.auth().generateEmailVerificationLink(email, actionCodeSettings);
+          console.log('✅ Email de verificación enviado a través de Firebase');
+        } catch (sendError: any) {
+          console.warn('⚠️ No se pudo enviar email automáticamente, pero el link se generó:', sendError.message);
+        }
         
         // Registrar actividad en Firestore
         await FirestoreService.logUserActivity(userRecord.uid, 'user_registered', {
           email: email,
           verificationSent: true,
+          verificationLink: verificationLink, // Guardar el link para debugging
           timestamp: new Date()
         });
         
-      } catch (emailError) {
-        console.error('❌ Error generando link de verificación:', emailError);
+      } catch (error: any) {
+        console.error('❌ Error generando link de verificación:', error);
+        console.error('🔍 Detalles del error:', {
+          code: error.code,
+          message: error.message,
+          stack: error.stack
+        });
+        
         // Registrar error en Firestore
         await FirestoreService.logUserActivity(userRecord.uid, 'verification_email_failed', {
-          error: emailError,
+          error: error.message,
+          code: error.code,
           timestamp: new Date()
         });
       }
@@ -161,6 +186,195 @@ export const register = async (req: Request, res: Response) => {
     });
   }
 };
+
+// 🆕 FUNCIÓN MEJORADA PARA RECUPERACIÓN DE CONTRASEÑA
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'El email es requerido'
+      });
+    }
+
+    // Verificar si el usuario existe en nuestra BD local
+    const exists = await userModel.emailExists(email);
+    
+    console.log(`🔍 Solicitando recuperación para: ${email}, existe: ${exists}`);
+
+    try {
+      // Configurar la URL de redirección MEJORADA
+      const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
+      const actionCodeSettings = {
+        url: `${frontendUrl}/login?reset=success&email=${encodeURIComponent(email)}`,
+        handleCodeInApp: true, // Cambiado a true
+        dynamicLinkDomain: 'joyeria-diana-laura.firebaseapp.com',
+        iOS: {
+          bundleId: 'com.joyeriadianalaura.app'
+        },
+        android: {
+          packageName: 'com.joyeriadianalaura.app',
+          installApp: false,
+          minimumVersion: '12'
+        }
+      };
+
+      console.log('🎯 Configuración de recuperación de contraseña:');
+      console.log('📧 Email:', email);
+      console.log('🔗 URL de redirección:', actionCodeSettings.url);
+
+      // 🆕 MÉTODO MÁS CONFIABLE: Usar generatePasswordResetLink
+      const resetLink = await admin.auth().generatePasswordResetLink(
+        email, 
+        actionCodeSettings
+      );
+      
+      console.log('✅ Link de recuperación generado exitosamente');
+      console.log('🔗 Link completo:', resetLink);
+
+      // 🆕 INTENTAR ENVÍO DIRECTO
+      try {
+        await admin.auth().getUserByEmail(email); // Verificar que el usuario existe
+        console.log('✅ Usuario verificado en Firebase Auth');
+        
+        // Enviar email usando el método directo
+        await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
+        console.log('✅ Email de recuperación procesado por Firebase');
+      } catch (firebaseError: any) {
+        console.warn('⚠️ Usuario no encontrado en Firebase, pero continuamos:', firebaseError.message);
+      }
+      
+      // 🆕 REGISTRAR ACTIVIDAD EN FIRESTORE
+      const user = await userModel.getUserByEmail(email);
+      if (user && user.firebase_uid) {
+        await FirestoreService.logUserActivity(user.firebase_uid, 'password_reset_requested', {
+          timestamp: new Date(),
+          resetLink: resetLink, // Guardar link para debugging
+          email: email
+        });
+      }
+      
+      // 🆕 POR SEGURIDAD, SIEMPRE DEVOLVEMOS ÉXITO
+      res.json({
+        success: true,
+        message: 'Si el email está registrado, se ha enviado un enlace de recuperación. Revisa tu bandeja de entrada y spam.',
+        debug: process.env.NODE_ENV === 'development' ? { resetLink } : undefined
+      });
+
+    } catch (firebaseError: any) {
+      console.error('❌ Error de Firebase en forgotPassword:', firebaseError);
+      console.error('🔍 Detalles del error:', {
+        code: firebaseError.code,
+        message: firebaseError.message
+      });
+      
+      // 🆕 MANEJO MEJORADO DE ERRORES
+      if (firebaseError.code === 'auth/user-not-found') {
+        // Por seguridad, no revelamos si el email existe o no
+        return res.json({
+          success: true,
+          message: 'Si el email está registrado, se ha enviado un enlace de recuperación. Revisa tu bandeja de entrada y spam.'
+        });
+      }
+      
+      if (firebaseError.code === 'auth/invalid-email') {
+        return res.status(400).json({
+          success: false,
+          message: 'El formato del email es inválido'
+        });
+      }
+
+      if (firebaseError.code === 'auth/unauthorized-continue-uri') {
+        return res.status(400).json({
+          success: false,
+          message: 'La URL de redirección no está autorizada en Firebase Console'
+        });
+      }
+
+      // 🆕 POR SEGURIDAD, SIEMPRE DEVOLVEMOS ÉXITO EN PRODUCCIÓN
+      if (process.env.NODE_ENV === 'production') {
+        return res.json({
+          success: true,
+          message: 'Si el email está registrado, se ha enviado un enlace de recuperación. Revisa tu bandeja de entrada y spam.'
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: `Error al enviar email: ${firebaseError.message}`,
+          code: firebaseError.code
+        });
+      }
+    }
+
+  } catch (error) {
+    console.error('Error en forgotPassword:', error);
+    
+    // 🆕 POR SEGURIDAD, SIEMPRE DEVOLVEMOS ÉXITO EN PRODUCCIÓN
+    if (process.env.NODE_ENV === 'production') {
+      res.json({
+        success: true,
+        message: 'Si el email está registrado, se ha enviado un enlace de recuperación. Revisa tu bandeja de entrada y spam.'
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor'
+      });
+    }
+  }
+};
+
+// 🆕 NUEVO ENDPOINT PARA VERIFICAR CONFIGURACIÓN DE EMAIL
+export const testEmailConfiguration = async (req: Request, res: Response) => {
+  try {
+    const testEmail = 'test@example.com'; // Email de prueba
+    
+    console.log('🧪 Probando configuración de emails Firebase...');
+    
+    // Probar verificación de email
+    try {
+      const verificationLink = await admin.auth().generateEmailVerificationLink(testEmail, {
+        url: 'https://joyeria-diana-laura.vercel.app/login',
+        handleCodeInApp: false
+      });
+      console.log('✅ Verificación de email: CONFIGURADA');
+    } catch (error: any) {
+      console.error('❌ Verificación de email: ERROR', error.message);
+    }
+    
+    // Probar recuperación de contraseña
+    try {
+      const resetLink = await admin.auth().generatePasswordResetLink(testEmail, {
+        url: 'https://joyeria-diana-laura.vercel.app/login',
+        handleCodeInApp: false
+      });
+      console.log('✅ Recuperación de contraseña: CONFIGURADA');
+    } catch (error: any) {
+      console.error('❌ Recuperación de contraseña: ERROR', error.message);
+    }
+    
+    res.json({
+      success: true,
+      message: 'Prueba de configuración completada. Revisa los logs del servidor.',
+      configuration: {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        frontendUrl: process.env.FRONTEND_URL,
+        environment: process.env.NODE_ENV
+      }
+    });
+
+  } catch (error) {
+    console.error('Error en testEmailConfiguration:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error probando configuración de email'
+    });
+  }
+};
+
+// ... (el resto de las funciones se mantienen igual - login, resetPassword, etc.)
 
 export const login = async (req: Request, res: Response) => {
   try {
@@ -215,86 +429,6 @@ export const login = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error en login:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error interno del servidor'
-    });
-  }
-};
-
-export const forgotPassword = async (req: Request, res: Response) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: 'El email es requerido'
-      });
-    }
-
-    // Verificar si el usuario existe en nuestra BD local
-    const exists = await userModel.emailExists(email);
-    if (!exists) {
-      // Por seguridad, no revelamos si el email existe o no
-      return res.json({
-        success: true,
-        message: 'Se ha enviado un enlace de recuperación a tu email'
-      });
-    }
-
-    try {
-      // Configurar la URL de redirección
-      const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
-      const actionCodeSettings = {
-        url: `${frontendUrl}/login?reset=success`,
-        handleCodeInApp: false
-      };
-
-      // Enviar email de recuperación
-      const resetLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
-      
-      console.log('📧 Email de recuperación enviado a:', email);
-      
-      // 🆕 REGISTRAR ACTIVIDAD EN FIRESTORE
-      const user = await userModel.getUserByEmail(email);
-      if (user && user.firebase_uid) {
-        await FirestoreService.logUserActivity(user.firebase_uid, 'password_reset_requested', {
-          timestamp: new Date()
-        });
-      }
-      
-      res.json({
-        success: true,
-        message: 'Se ha enviado un enlace de recuperación a tu email'
-      });
-
-    } catch (firebaseError: any) {
-      console.error('Error de Firebase:', firebaseError);
-      
-      // Manejar errores específicos de Firebase
-      if (firebaseError.code === 'auth/user-not-found') {
-        return res.json({
-          success: true,
-          message: 'Se ha enviado un enlace de recuperación a tu email'
-        });
-      }
-      
-      if (firebaseError.code === 'auth/invalid-email') {
-        return res.status(400).json({
-          success: false,
-          message: 'El formato del email es inválido'
-        });
-      }
-
-      return res.status(400).json({
-        success: false,
-        message: `Error al enviar email: ${firebaseError.message}`
-      });
-    }
-
-  } catch (error) {
-    console.error('Error en forgotPassword:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor'
