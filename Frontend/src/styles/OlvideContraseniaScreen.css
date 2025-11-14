@@ -426,10 +426,30 @@
   }
 }
 
-.success-message {
-    color: #FFFFFF !important; /* Cambia el texto a blanco */
+/* CAMBIA EL COLOR DEL TEXTO EN LA SECCIÓN DE ÉXITO */
+.success-section {
+    color: #FFFFFF !important;
+    text-align: center;
 }
 
-.success-message p {
-    color: #FFFFFF !important; /* Asegura que los párrafos también sean blancos */
+.success-section h3 {
+    color: #FFFFFF !important;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.3rem;
+    margin: 1rem 0 0.5rem 0;
+    font-weight: 600;
+}
+
+.success-section p {
+    color: #FFFFFF !important;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    opacity: 0.9;
+}
+
+.success-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
 }
