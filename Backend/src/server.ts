@@ -14,6 +14,19 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+app.use(cors({
+  origin: [
+    'https://joyeria-diana-laura.vercel.app',
+    'http://localhost:3000',
+    'https://joyeria-diana-laura-nqnq.onrender.com'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json());
+
 // ✅ Usar las rutas de autenticación
 app.use('/api/auth', authRoutes);
 
