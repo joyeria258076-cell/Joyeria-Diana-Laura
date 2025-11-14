@@ -1,20 +1,17 @@
-.change-password-container {
+/* Ruta: Joyeria-Diana-Laura/Frontend/src/styles/ReiniciarContraseniaScreen.css */
+.reset-password-container {
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Montserrat', sans-serif;
     background: #000000;
     padding: 2rem;
+    font-family: 'Montserrat', sans-serif;
     position: relative;
-    /* Añadido para prevenir zoom automático en móviles */
-    touch-action: manipulation;
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
 }
 
 /* Efecto de partículas sutiles en el fondo */
-.change-password-container::before {
+.reset-password-container::before {
     content: '';
     position: absolute;
     top: 0;
@@ -28,9 +25,9 @@
     pointer-events: none;
 }
 
-.change-password-card {
+.reset-password-card {
     background: linear-gradient(145deg, #0a0a0a, #000000);
-    padding: 3.5rem 3rem;
+    padding: 3rem;
     border-radius: 20px;
     width: 100%;
     max-width: 480px;
@@ -44,8 +41,8 @@
     animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Efecto de borde superior mejorado */
-.change-password-card::before {
+/* Efecto de borde superior */
+.reset-password-card::before {
     content: '';
     position: absolute;
     top: 0;
@@ -62,139 +59,95 @@
     box-shadow: 0 0 20px rgba(236, 178, 195, 0.3);
 }
 
-/* Efecto de brillo en esquinas */
-.change-password-card::after {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    border-radius: 22px;
-    background: linear-gradient(145deg, 
-        rgba(236, 178, 195, 0.1), 
-        rgba(255, 255, 255, 0.02), 
-        rgba(236, 178, 195, 0.08));
-    z-index: -1;
-    opacity: 0.7;
-    animation: borderGlow 4s ease-in-out infinite alternate;
-}
-
-@keyframes borderGlow {
-    0% { opacity: 0.5; }
-    100% { opacity: 0.8; }
-}
-
-.change-password-header {
+.reset-password-header {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: 2.5rem;
     position: relative;
 }
 
-/* FORMATO DE LETRA MEJORADO - TÍTULO PRINCIPAL */
-.change-password-header h2 {
+.reset-password-header h2 {
     color: #FFFFFF;
-    font-size: 2.5rem;
-    margin-bottom: 1.2rem;
+    font-size: 2.2rem;
+    margin-bottom: 0.8rem;
     font-weight: 700;
     font-family: 'Playfair Display', serif;
-    letter-spacing: 1.2px;
     position: relative;
     display: inline-block;
-    line-height: 1.3;
 }
 
-.change-password-header h2::after {
+.reset-password-header h2::after {
     content: '';
     position: absolute;
-    bottom: -10px;
-    left: 20%;
-    right: 20%;
-    height: 3px;
+    bottom: -8px;
+    left: 25%;
+    right: 25%;
+    height: 2px;
     background: linear-gradient(90deg, transparent, #ECB2C3, transparent);
 }
 
-/* FORMATO DE LETRA MEJORADO - SUBTÍTULO */
-.change-password-header p {
+.reset-password-header p {
     color: #ECB2C3;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     line-height: 1.5;
     opacity: 0.95;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
 }
 
-/* FORMULARIO MEJORADO */
-.change-password-form {
+.reset-password-form {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.8rem;
 }
 
-.change-password-form-group {
+.reset-password-form-group {
     display: flex;
     flex-direction: column;
     position: relative;
 }
 
-/* FORMATO DE LETRA MEJORADO - LABELS */
-.change-password-form-group label {
+.reset-password-form-group label {
     color: #FFFFFF;
     font-weight: 600;
     margin-bottom: 0.75rem;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-family: 'Montserrat', sans-serif;
-    letter-spacing: 0.6px;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
 /* Icono sutil para labels */
-.change-password-form-group label::before {
+.reset-password-form-group label::before {
     content: '✦';
     color: #ECB2C3;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 
-/* CAJAS DE TEXTO MEJORADAS - TAMAÑO CORREGIDO */
-.change-password-input {
-    padding: 1rem 1.25rem;
+.reset-password-input {
+    padding: 0.875rem 1.25rem;
     border: 1.5px solid rgba(207, 207, 207, 0.2);
     border-radius: 12px;
-    font-size: 16px;
+    font-size: 1rem;
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     background: rgba(255, 255, 255, 0.05);
     color: #FFFFFF;
     font-family: 'Montserrat', sans-serif;
     backdrop-filter: blur(10px);
     position: relative;
-    letter-spacing: 0.3px;
-    min-height: 52px;
-    width: 100%;
+    height: 48px;
     box-sizing: border-box;
-    animation: inputSlideIn 0.6s ease-out;
+    line-height: 1.5;
 }
 
-/* Prevenir zoom en iOS para inputs */
-@media screen and (max-width: 768px) {
-    .change-password-input {
-        font-size: 16px !important;
-    }
-}
-
-.change-password-input::placeholder {
+.reset-password-input::placeholder {
     color: #D9D9D9;
     opacity: 0.6;
     font-weight: 400;
     transition: all 0.3s ease;
     font-size: 0.95rem;
-    letter-spacing: 0.2px;
 }
 
-/* Efecto de focus mejorado */
-.change-password-input:focus {
+.reset-password-input:focus {
     outline: none;
     border-color: #ECB2C3;
     background: rgba(255, 255, 255, 0.08);
@@ -205,61 +158,42 @@
     transform: translateY(-2px);
 }
 
-.change-password-input:focus::placeholder {
+.reset-password-input:focus::placeholder {
     opacity: 0.4;
     transform: translateX(5px);
 }
 
-/* Efecto hover suave */
-.change-password-input:hover {
+.reset-password-input:hover {
     border-color: rgba(236, 178, 195, 0.4);
     background: rgba(255, 255, 255, 0.07);
 }
 
-/* Estado error mejorado */
-.change-password-input.error {
+.reset-password-input.error {
     border-color: #ECB2C3;
     background: rgba(236, 178, 195, 0.08);
     box-shadow: 0 0 0 3px rgba(236, 178, 195, 0.1);
 }
 
-.change-password-error {
-    color: #ECB2C3;
-    font-size: 0.95rem;
-    margin-top: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 500;
-    padding-left: 0.5rem;
-    border-left: 2px solid #ECB2C3;
-    letter-spacing: 0.2px;
-}
-
-/* BOTÓN MEJORADO */
-.change-password-button {
+.reset-password-button {
     background: linear-gradient(135deg, #ECB2C3 0%, #e0a5b8 50%, #d89aad 100%);
     color: #000000;
     border: none;
-    padding: 1.25rem 2rem;
+    padding: 1.2rem 2rem;
     border-radius: 12px;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    margin-top: 1.5rem;
+    margin-top: 1rem;
     font-family: 'Montserrat', sans-serif;
-    letter-spacing: 1px;
     position: relative;
     overflow: hidden;
     box-shadow: 
         0 6px 20px rgba(236, 178, 195, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    min-height: 60px;
 }
 
-.change-password-button::before {
+.reset-password-button::before {
     content: '';
     position: absolute;
     top: 0;
@@ -270,7 +204,7 @@
     transition: left 0.6s;
 }
 
-.change-password-button:hover:not(:disabled) {
+.reset-password-button:hover:not(:disabled) {
     transform: translateY(-3px);
     box-shadow: 
         0 12px 30px rgba(236, 178, 195, 0.5),
@@ -279,42 +213,102 @@
     background: linear-gradient(135deg, #f0b8c9 0%, #e8b0c2 50%, #e0a5b8 100%);
 }
 
-.change-password-button:hover::before {
+.reset-password-button:hover::before {
     left: 100%;
 }
 
-.change-password-button:active {
+.reset-password-button:active {
     transform: translateY(-1px);
 }
 
-.change-password-button:disabled {
+.reset-password-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
 }
 
-/* MENSAJE DE ÉXITO MEJORADO */
-.success-message {
+.reset-password-links {
+    margin-top: 2.5rem;
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(207, 207, 207, 0.15);
+    position: relative;
+}
+
+.reset-password-link {
+    color: #ECB2C3;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.4s ease;
+    font-size: 1rem;
+    font-family: 'Montserrat', sans-serif;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    position: relative;
+    background: rgba(236, 178, 195, 0.05);
+    border: 1px solid transparent;
+    cursor: pointer;
+    border: none;
+}
+
+.reset-password-link:hover {
+    color: #FFFFFF;
+    background: rgba(236, 178, 195, 0.12);
+    border-color: rgba(236, 178, 195, 0.3);
+    transform: translateX(8px) scale(1.02);
+    box-shadow: 0 4px 15px rgba(236, 178, 195, 0.2);
+}
+
+.password-requirements {
+    font-size: 0.75rem;
+    color: #D9D9D9;
+    margin-top: 0.5rem;
+    font-style: italic;
+    opacity: 0.7;
+    line-height: 1.4;
+}
+
+/* Mensaje de error */
+.error-message {
     background: linear-gradient(135deg, rgba(236, 178, 195, 0.1), rgba(236, 178, 195, 0.05));
     border: 1px solid rgba(236, 178, 195, 0.3);
     color: #ECB2C3;
-    padding: 1.25rem 1.5rem 1.25rem 3.5rem;
+    padding: 1rem 1.5rem 1rem 3.5rem;
     border-radius: 12px;
     text-align: left;
     margin-bottom: 2rem;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-family: 'Montserrat', sans-serif;
     backdrop-filter: blur(10px);
     border-left: 4px solid #ECB2C3;
     box-shadow: 0 4px 20px rgba(236, 178, 195, 0.1);
     position: relative;
-    letter-spacing: 0.3px;
-    line-height: 1.5;
-    min-height: 60px;
-    display: flex;
-    align-items: flex-start;
-    word-wrap: break-word;
-    overflow: hidden;
+}
+
+.error-message::before {
+    content: '⚠';
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.1rem;
+}
+
+/* Mensaje de éxito */
+.success-message {
+    background: linear-gradient(135deg, rgba(236, 178, 195, 0.1), rgba(236, 178, 195, 0.05));
+    border: 1px solid rgba(236, 178, 195, 0.3);
+    color: #ECB2C3;
+    padding: 1rem 1.5rem 1rem 3.5rem;
+    border-radius: 12px;
+    text-align: left;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    font-family: 'Montserrat', sans-serif;
+    backdrop-filter: blur(10px);
+    border-left: 4px solid #ECB2C3;
+    box-shadow: 0 4px 20px rgba(236, 178, 195, 0.1);
+    position: relative;
 }
 
 .success-message::before {
@@ -323,7 +317,7 @@
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     width: 24px;
     height: 24px;
     display: flex;
@@ -335,60 +329,16 @@
     font-weight: bold;
 }
 
-/* INDICADOR DE FUERZA DE CONTRASEÑA */
-.password-strength {
-    margin-top: 1rem;
-}
-
-.strength-bar {
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-top: 0.5rem;
-    position: relative;
-}
-
-.strength-fill {
-    height: 100%;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    border-radius: 3px;
-}
-
-.strength-weak {
-    background: linear-gradient(90deg, #ECB2C3, #e67e7e);
-    width: 33%;
-}
-
-.strength-medium {
-    background: linear-gradient(90deg, #ECB2C3, #e0a5b8);
-    width: 66%;
-}
-
-.strength-strong {
-    background: linear-gradient(90deg, #ECB2C3, #48bb78);
-    width: 100%;
-}
-
-/* Texto descriptivo de fuerza */
-.strength-text {
-    color: #ECB2C3;
-    font-size: 0.85rem;
-    margin-top: 0.25rem;
-    font-weight: 500;
-    text-align: right;
-}
-
 /* CONTENEDOR PARA INPUT DE CONTRASEÑA CON BOTÓN */
 .password-input-container {
     position: relative;
-    display: flex;
-    align-items: center;
+    display: block;
 }
 
 /* Input de contraseña con padding extra para el botón */
 .password-input {
     padding-right: 3.5rem !important;
+    width: 100%;
 }
 
 /* BOTÓN PARA VER CONTRASEÑA */
@@ -410,6 +360,7 @@
     justify-content: center;
     width: 2.5rem;
     height: 2.5rem;
+    z-index: 2;
 }
 
 .password-toggle:hover {
@@ -419,6 +370,26 @@
 
 .password-toggle:active {
     transform: translateY(-50%) scale(0.95);
+}
+
+/* Estilos para los requisitos */
+.password-requirements {
+    margin-top: 8px;
+    padding: 12px;
+    background: rgba(236, 178, 195, 0.12);
+    border-radius: 8px;
+    border-left: 3px solid #ECB2C3;
+}
+
+.requirements-list {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.requirements-list li {
+    margin: 4px 0;
+    font-size: 0.85rem;
+    color: #CFCFCF;
 }
 
 /* Animaciones */
@@ -433,41 +404,22 @@
     }
 }
 
-@keyframes inputSlideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
 /* Responsive */
 @media (max-width: 768px) {
-    .change-password-container {
-        padding: 1.5rem;
+    .reset-password-container {
+        padding: 1rem;
     }
     
-    .change-password-card {
+    .reset-password-card {
         padding: 2.5rem 2rem;
-        margin: 0;
-        border-radius: 16px;
     }
     
-    .change-password-header h2 {
+    .reset-password-header h2 {
         font-size: 2rem;
     }
     
-    .change-password-header p {
+    .reset-password-header p {
         font-size: 1rem;
-    }
-    
-    .change-password-input {
-        padding: 0.9rem 1.1rem;
-        font-size: 16px;
-        min-height: 48px;
     }
     
     .password-input {
@@ -481,24 +433,23 @@
 }
 
 @media (max-width: 480px) {
-    .change-password-card {
+    .reset-password-card {
         padding: 2rem 1.5rem;
-        border-radius: 14px;
+        border-radius: 16px;
     }
     
-    .change-password-header h2 {
+    .reset-password-header h2 {
         font-size: 1.8rem;
     }
     
-    .change-password-input {
-        padding: 0.8rem 1rem;
-        min-height: 46px;
+    .reset-password-input {
+        padding: 0.8rem 1.1rem;
+        height: 46px;
     }
     
-    .change-password-button {
-        font-size: 1.1rem;
-        padding: 1rem 1.5rem;
-        min-height: 54px;
+    .reset-password-button {
+        font-size: 1rem;
+        padding: 1.1rem 1.5rem;
     }
     
     .password-input {
@@ -512,24 +463,20 @@
         height: 2.2rem;
     }
     
-    .success-message {
-        padding: 1rem 1.25rem 1rem 3rem;
-        font-size: 0.95rem;
-        margin-bottom: 1.5rem;
-        min-height: 55px;
+    .reset-password-link {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
     }
     
-    .success-message::before {
-        left: 0.8rem;
-        font-size: 1.1rem;
+    .success-message,
+    .error-message {
+        padding: 1rem 1.25rem 1rem 3rem;
+        font-size: 0.9rem;
     }
-}
-
-/* Reglas adicionales para prevenir zoom automático */
-@viewport {
-    width: device-width;
-    zoom: 1.0;
-    min-zoom: 1.0;
-    max-zoom: 1.0;
-    user-zoom: fixed;
+    
+    .success-message::before,
+    .error-message::before {
+        left: 0.8rem;
+        font-size: 1rem;
+    }
 }

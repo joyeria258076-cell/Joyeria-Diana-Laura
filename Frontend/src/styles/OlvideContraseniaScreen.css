@@ -1,4 +1,6 @@
 /* Ruta: Joyeria-Diana-Laura/Frontend/src/styles/OlvideContraseniaScreen.css */
+/* Ruta: Joyeria-Diana-Laura/Frontend/src/styles/OlvideContraseniaScreen.css */
+
 .olvide-contrasenia-container {
   min-height: 100vh;
   display: flex;
@@ -300,11 +302,30 @@
   font-weight: bold;
 }
 
-.field-error {
+.error-message {
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(244, 67, 54, 0.05));
+  border: 1px solid rgba(244, 67, 54, 0.3);
   color: #F44336;
-  font-size: 0.85rem;
-  margin-top: 0.5rem;
-  font-weight: 500;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.95rem;
+  font-family: 'Montserrat', sans-serif;
+  backdrop-filter: blur(10px);
+  border-left: 4px solid #F44336;
+  box-shadow: 0 4px 20px rgba(244, 67, 54, 0.1);
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+}
+
+.error-message::before {
+  content: '⚠';
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
 }
 
 @keyframes slideIn {
@@ -355,28 +376,6 @@
   transform: translateY(0);
 }
 
-.register-button {
-  color: #FFFFFF;
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.4s ease;
-  font-size: 1rem;
-  font-family: 'Montserrat', sans-serif;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid transparent;
-  margin-top: 1rem;
-  cursor: pointer;
-  width: 100%;
-}
-
-.register-button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .olvide-contrasenia-container {
@@ -421,7 +420,8 @@
     font-size: 0.9rem;
   }
   
-  .success-message {
+  .success-message,
+  .error-message {
     padding: 1.25rem;
   }
 }
