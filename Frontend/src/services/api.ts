@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com';
+// Ruta: Joyeria-Diana-Laura/Frontend/src/services/api.ts
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
 
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   try {
