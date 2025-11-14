@@ -29,14 +29,12 @@ const OlvideContraseniaScreen: React.FC = () => {
     const { 
         register, 
         handleSubmit, 
-        formState: { errors },
-        setError
+        formState: { errors }
     } = useForm<FormData>({ 
         resolver: zodResolver(schema) 
     });
 
     const onSubmit = async (data: FormData) => {
-        setError('root', { message: '' });
         setMessage('');
         setLoading(true);
 
@@ -52,31 +50,9 @@ const OlvideContraseniaScreen: React.FC = () => {
         } catch (error: any) {
             console.error('❌ Error en recuperación:', error);
             
-            if (error.message.includes('no está registrado')) {
-                setError('root', { 
-                    type: 'manual', 
-                    message: '❌ ' + error.message 
-                });
-            } else if (error.message.includes('formato del email')) {
-                setError('root', { 
-                    type: 'manual', 
-                    message: '❌ ' + error.message 
-                });
-            } else if (error.message.includes('demasiados reseteos')) {
-                setError('root', { 
-                    type: 'manual', 
-                    message: '⏳ ' + error.message 
-                });
-            } else if (error.message.includes('conexión')) {
-                setError('root', { 
-                    type: 'manual', 
-                    message: '🌐 ' + error.message 
-                });
-            } else {
-                // 🎯 POR SEGURIDAD: Mostrar mensaje genérico de éxito
-                setMessage('✅ Si este email está registrado, recibirás un enlace de recuperación en unos minutos. Revisa tu bandeja de entrada y spam.');
-                setEmailSent(true);
-            }
+            // 🎯 POR SEGURIDAD: Mostrar mensaje genérico de éxito
+            setMessage('✅ Si este email está registrado, recibirás un enlace de recuperación en unos minutos. Revisa tu bandeja de entrada y spam.');
+            setEmailSent(true);
         } finally {
             setLoading(false);
         }
@@ -89,12 +65,6 @@ const OlvideContraseniaScreen: React.FC = () => {
                     <h2>Recuperar Contraseña</h2>
                     <p>Ingresa tu email registrado y te enviaremos un enlace para restablecer tu contraseña.</p>
                 </div>
-                
-                {errors.root && (
-                    <div className="error-message">
-                        {errors.root.message}
-                    </div>
-                )}
 
                 {!emailSent ? (
                     <form onSubmit={handleSubmit(onSubmit)} className="olvide-contrasenia-form">
