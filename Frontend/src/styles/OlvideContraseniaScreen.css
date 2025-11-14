@@ -425,3 +425,11 @@
     padding: 1.25rem;
   }
 }
+
+.success-message {
+    color: #FFFFFF !important; /* Cambia el texto a blanco */
+}
+
+.success-message p {
+    color: #FFFFFF !important; /* Asegura que los párrafos también sean blancos */
+}
