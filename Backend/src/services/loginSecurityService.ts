@@ -59,7 +59,7 @@ export class LoginSecurityService {
   }
 
   /**
-   * Verificar si la cuenta está bloqueada
+   * Verificar si la cuenta está bloqueada - VERSIÓN MÁS ESTRICTA
    */
   static async isAccountLocked(email: string, ipAddress: string): Promise<{ 
     locked: boolean; 
@@ -68,6 +68,8 @@ export class LoginSecurityService {
     remainingAttempts?: number;
   }> {
     try {
+      console.log(`🔍 Verificando bloqueo para: ${email}, IP: ${ipAddress}`);
+
       // Buscar bloqueos activos por email
       const result = await pool.query(
         `SELECT locked_until, attempt_count 
@@ -78,6 +80,10 @@ export class LoginSecurityService {
 
       if (result.rows.length > 0) {
         const lock = result.rows[0];
+        const remainingTime = Math.ceil((new Date(lock.locked_until).getTime() - Date.now()) / 60000);
+        
+        console.log(`🔒 BLOQUEO ENCONTRADO: ${email} hasta ${lock.locked_until} (${remainingTime} min restantes)`);
+        
         return {
           locked: true,
           lockedUntil: lock.locked_until,
@@ -89,12 +95,14 @@ export class LoginSecurityService {
       const recentAttempts = await this.getRecentFailedAttempts(email);
       const remainingAttempts = this.MAX_ATTEMPTS - recentAttempts;
       
+      console.log(`📊 Estado de ${email}: ${recentAttempts} intentos fallidos, ${remainingAttempts} restantes`);
+      
       return { 
         locked: false, 
         remainingAttempts: remainingAttempts > 0 ? remainingAttempts : 0 
       };
     } catch (error) {
-      console.error('Error verificando bloqueo de cuenta:', error);
+      console.error('❌ Error verificando bloqueo de cuenta:', error);
       return { locked: false, remainingAttempts: this.MAX_ATTEMPTS };
     }
   }

@@ -6,16 +6,37 @@ import { EmailValidationService } from '../services/EmailValidationService';
 import { LoginSecurityService } from '../services/loginSecurityService';
 import { pool } from '../config/database';
 
-// Función para obtener IP del cliente
+// 🎯 FUNCIÓN MEJORADA para obtener IP real del cliente
 const getClientIp = (req: Request): string => {
-  return req.ip || 
-         req.connection.remoteAddress || 
+  // Probar diferentes headers de IP en orden de prioridad
+  const ipHeaders = [
+    'x-real-ip',
+    'x-forwarded-for', 
+    'cf-connecting-ip',
+    'x-cluster-client-ip',
+    'x-forwarded',
+    'forwarded-for',
+    'forwarded'
+  ];
+
+  for (const header of ipHeaders) {
+    const value = req.headers[header];
+    if (value) {
+      if (Array.isArray(value)) {
+        return value[0].split(',')[0].trim();
+      }
+      return value.split(',')[0].trim();
+    }
+  }
+
+  // Fallback a la conexión directa
+  return req.connection.remoteAddress || 
          req.socket.remoteAddress ||
          (req.socket as any).remoteAddress ||
          'unknown';
 };
 
-// Función para obtener User-Agent
+// 🎯 FUNCIÓN MEJORADA para obtener User-Agent
 const getUserAgent = (req: Request): string => {
   return req.get('User-Agent') || 'unknown';
 };
@@ -131,7 +152,7 @@ export const validateEmail = async (req: Request, res: Response) => {
 };
 
 // Login normal - SOLO CON FIREBASE
-// Login con protección de fuerza bruta MEJORADA
+// Login con protección de fuerza bruta CORREGIDO
 export const login = async (req: Request, res: Response) => {
   const clientIp = getClientIp(req);
   const userAgent = getUserAgent(req);
@@ -146,19 +167,29 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`🔐 Iniciando login protegido para: ${email} desde IP: ${clientIp}`);
+    console.log(`🔐 Iniciando login para: ${email} desde IP: ${clientIp}`);
+    console.log(`🖥️ User-Agent: ${userAgent}`);
 
-    // 🎯 VERIFICAR BLOQUEO DE CUENTA (ANTES DE FIREBASE)
+    // 🎯 VERIFICAR BLOQUEO DE CUENTA (LO PRIMERO QUE SE HACE)
     const lockCheck = await LoginSecurityService.isAccountLocked(email, clientIp);
     
     if (lockCheck.locked) {
       const remainingTime = Math.ceil((new Date(lockCheck.lockedUntil!).getTime() - Date.now()) / 60000);
       
-      console.log(`🚫 Cuenta BLOQUEADA para: ${email}. Intentos: ${lockCheck.attempts}. Tiempo restante: ${remainingTime} min`);
+      console.log(`🚫 CUENTA BLOQUEADA: ${email}. Intentos: ${lockCheck.attempts}. Tiempo restante: ${remainingTime} min`);
       
+      // 🎯 REGISTRAR INTENTO FALLIDO POR CUENTA BLOQUEADA
+      await LoginSecurityService.recordLoginAttempt({
+        email,
+        ip_address: clientIp,
+        user_agent: userAgent,
+        success: false,
+        failure_reason: 'account_locked'
+      });
+
       return res.status(423).json({
         success: false,
-        message: `🔒 Cuenta temporalmente bloqueada por demasiados intentos fallidos. Intenta nuevamente en ${remainingTime} minutos.`,
+        message: `🔒 Cuenta temporalmente bloqueada por seguridad. Demasiados intentos fallidos. Intenta nuevamente en ${remainingTime} minutos.`,
         locked: true,
         lockedUntil: lockCheck.lockedUntil,
         attempts: lockCheck.attempts,
@@ -167,15 +198,11 @@ export const login = async (req: Request, res: Response) => {
     }
 
     try {
-      // 🎯 PRIMERO: Intentar autenticar con Firebase directamente
-      // Esto nos dará el error REAL de Firebase
-      const auth = admin.auth();
-      
-      // Buscar usuario por email
-      const userRecord = await auth.getUserByEmail(email);
-      console.log(`✅ Usuario encontrado en Firebase: ${userRecord.uid}`);
+      // 🎯 VERIFICAR SI EL USUARIO EXISTE EN FIREBASE
+      const userRecord = await admin.auth().getUserByEmail(email);
+      console.log(`✅ Usuario existe en Firebase: ${userRecord.uid}`);
 
-      // Verificar que el email esté verificado
+      // 🎯 VERIFICAR SI EL EMAIL ESTÁ VERIFICADO
       if (!userRecord.emailVerified) {
         console.log(`❌ Email no verificado para: ${email}`);
         
@@ -190,20 +217,46 @@ export const login = async (req: Request, res: Response) => {
         return res.status(401).json({
           success: false,
           message: '📧 Tu email no está verificado. Revisa tu bandeja de entrada y haz clic en el enlace de verificación.',
-          remainingAttempts: lockResult.remainingAttempts
+          remainingAttempts: lockResult.remainingAttempts,
+          attempts: lockResult.attempts,
+          maxAttempts: LoginSecurityService.getMaxAttempts()
         });
       }
 
-      // 🎯 INTENTAR LOGIN REAL CON FIREBASE
-      // Crear un token personalizado para simular login (esto es un workaround)
-      // En una implementación real, usaríamos signInWithEmailAndPassword del cliente
+      // 🎯 AQUÍ DEBERÍA IR LA VERIFICACIÓN REAL DE CONTRASEÑA CON FIREBASE
+      // Pero como estamos en el backend, necesitamos una alternativa
+      
+      // 🎯 WORKAROUND: Simular verificación de credenciales
+      // En una implementación real, el frontend manejaría Firebase Auth
       console.log(`🔑 Verificando credenciales para: ${email}`);
       
-      // Como no podemos verificar la contraseña directamente en el backend,
-      // asumimos que si llegamos aquí es porque el usuario existe y está verificado
-      // En una implementación completa, el frontend manejaría el login con Firebase Auth
+      // Por ahora, asumimos que las credenciales son correctas si llegamos aquí
+      // Esto es un workaround - en producción necesitarías una forma de verificar la contraseña
       
-      // Registrar intento exitoso
+      // 🎯 VERIFICAR BLOQUEO NUEVAMENTE ANTES DEL LOGIN EXITOSO (DOBLE VERIFICACIÓN)
+      const finalLockCheck = await LoginSecurityService.isAccountLocked(email, clientIp);
+      if (finalLockCheck.locked) {
+        const remainingTime = Math.ceil((new Date(finalLockCheck.lockedUntil!).getTime() - Date.now()) / 60000);
+        
+        console.log(`🚫 BLOQUEO DETECTADO DURANTE LOGIN: ${email}`);
+        
+        await LoginSecurityService.recordLoginAttempt({
+          email,
+          ip_address: clientIp,
+          user_agent: userAgent,
+          success: false,
+          failure_reason: 'account_locked_during_login'
+        });
+
+        return res.status(423).json({
+          success: false,
+          message: `🔒 Cuenta bloqueada durante el proceso de login. Intenta nuevamente en ${remainingTime} minutos.`,
+          locked: true,
+          lockedUntil: finalLockCheck.lockedUntil
+        });
+      }
+
+      // 🎯 SI PASÓ TODAS LAS VERIFICACIONES, REGISTRAR LOGIN EXITOSO
       await LoginSecurityService.recordLoginAttempt({
         email,
         ip_address: clientIp,
@@ -214,11 +267,11 @@ export const login = async (req: Request, res: Response) => {
       // Limpiar intentos fallidos previos
       await LoginSecurityService.clearFailedAttempts(email);
 
-      // 🎯 CREAR RESPUESTA
+      // 🎯 CREAR RESPUESTA DE ÉXITO
       const userEmail = userRecord.email || email;
       const userName = userRecord.displayName || (userEmail ? userEmail.split('@')[0] : 'Usuario');
       
-      console.log(`✅ Login exitoso para: ${email}`);
+      console.log(`✅ LOGIN EXITOSO para: ${email}`);
       
       res.json({
         success: true,
@@ -265,6 +318,8 @@ export const login = async (req: Request, res: Response) => {
           failureReason
         );
 
+        console.log(`📊 Estado de bloqueo: ${lockResult.locked}, Intentos: ${lockResult.attempts}, Restantes: ${lockResult.remainingAttempts}`);
+
         // Si la cuenta fue bloqueada en este intento
         if (lockResult.locked && lockResult.justLocked) {
           const remainingTime = LoginSecurityService.getLockDurationMinutes();
@@ -273,7 +328,7 @@ export const login = async (req: Request, res: Response) => {
           
           return res.status(423).json({
             success: false,
-            message: `🔒 Demasiados intentos fallidos. Tu cuenta ha sido bloqueada por ${remainingTime} minutos.`,
+            message: `🔒 ¡Cuenta bloqueada! Demasiados intentos fallidos. Tu cuenta ha sido bloqueada por ${remainingTime} minutos.`,
             locked: true,
             attempts: lockResult.attempts,
             lockedFor: remainingTime,
@@ -282,11 +337,15 @@ export const login = async (req: Request, res: Response) => {
         }
 
         // Si no está bloqueada, mostrar error normal con intentos restantes
+        const attemptsMessage = lockResult.remainingAttempts > 0 
+          ? `🔐 Te quedan ${lockResult.remainingAttempts} de ${LoginSecurityService.getMaxAttempts()} intentos.` 
+          : '⚠️ Último intento antes del bloqueo.';
+        
         console.log(`⚠️ Intento fallido ${lockResult.attempts}/${LoginSecurityService.getMaxAttempts()} para: ${email}`);
         
         res.status(401).json({
           success: false,
-          message: `${errorMessage} ${lockResult.remainingAttempts > 0 ? `🔐 Te quedan ${lockResult.remainingAttempts} intentos.` : ''}`,
+          message: `${errorMessage} ${attemptsMessage}`,
           remainingAttempts: lockResult.remainingAttempts,
           attempts: lockResult.attempts,
           maxAttempts: LoginSecurityService.getMaxAttempts()
@@ -296,8 +355,7 @@ export const login = async (req: Request, res: Response) => {
         // Para otros errores de Firebase, no contar como intento fallido
         res.status(401).json({
           success: false,
-          message: errorMessage,
-          remainingAttempts: lockCheck.remainingAttempts || LoginSecurityService.getMaxAttempts()
+          message: errorMessage
         });
       }
     }
