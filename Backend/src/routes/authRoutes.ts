@@ -10,7 +10,9 @@ import {
     validateEmail,
     syncUserToPostgreSQL,
     checkFirebaseUser,
-    testEmailDelivery // 🎯 NUEVO
+    testEmailDelivery,
+    checkAccountLock,
+    unlockAccount
 } from '../controllers/authController';
 
 const router = express.Router();
@@ -24,6 +26,10 @@ router.get('/check-email-config', checkEmailConfig);
 router.post('/validate-email', validateEmail);
 router.post('/sync-user', syncUserToPostgreSQL);
 router.post('/check-firebase-user', checkFirebaseUser);
-router.post('/test-email', testEmailDelivery); // 🎯 NUEVA RUTA
+router.post('/test-email', testEmailDelivery);
+
+// 🎯 NUEVAS RUTAS DE SEGURIDAD
+router.post('/check-account-lock', checkAccountLock);
+router.post('/unlock-account', unlockAccount);
 
 export default router;
