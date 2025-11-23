@@ -434,7 +434,6 @@ export const unlockAccount = async (req: Request, res: Response) => {
   }
 };
 
-// 🔄 FUNCIONES DE RECUPERACIÓN DE CONTRASEÑA MEJORADAS
 // 🔄 FUNCIONES DE RECUPERACIÓN DE CONTRASEÑA MEJORADAS - CON ENVÍO DE EMAIL
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
@@ -480,18 +479,34 @@ export const forgotPassword = async (req: Request, res: Response) => {
       console.log('📧 Email:', email);
       console.log('🛡️ Intentos restantes:', limitCheck.remainingAttempts - 1);
 
+      // 🎯 **SOLUCIÓN: USAR CLIENT SDK CON REQUIRE (sin imports)**
+      const { initializeApp } = require('firebase/app');
+      const { getAuth, sendPasswordResetEmail } = require('firebase/auth');
+
+      // Configuración de Firebase Client
+      const firebaseConfig = {
+        apiKey: process.env.FIREBASE_API_KEY,
+        authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.FIREBASE_APP_ID
+      };
+
+      // Inicializar app de Firebase
+      const firebaseApp = initializeApp(firebaseConfig, 'PasswordReset');
+      const auth = getAuth(firebaseApp);
+      
       const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
       
-      // 🎯 **USAR generatePasswordResetLink - FIREBASE ENVÍA EL EMAIL AUTOMÁTICAMENTE**
-      // Cuando usas generatePasswordResetLink, Firebase automáticamente envía el email
-      // si tienes configurado el template en Firebase Console
-      const resetLink = await admin.auth().generatePasswordResetLink(email, {
+      // 🎯 **ESTA FUNCIÓN SÍ ENVÍA EL EMAIL AUTOMÁTICAMENTE**
+      console.log('📤 Enviando email de recuperación...');
+      await sendPasswordResetEmail(auth, email, {
         url: `${frontendUrl}/login?reset=success&email=${encodeURIComponent(email)}`,
         handleCodeInApp: false
       });
       
-      console.log('✅ Email de recuperación enviado exitosamente por Firebase');
-      console.log('🔗 Link generado:', resetLink.substring(0, 100) + '...');
+      console.log('✅ Email de recuperación ENVIADO exitosamente');
 
       // ✅ **DEVOLVER LOS INTENTOS REALES RESTANTES**
       const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
