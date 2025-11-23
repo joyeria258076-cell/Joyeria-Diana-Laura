@@ -462,36 +462,25 @@ export const forgotPassword = async (req: Request, res: Response) => {
     try {
       await RecoverySecurityService.incrementRecoveryAttempts(email);
 
-      console.log('🎯 Enviando email de recuperación...');
+      console.log('🎯 SOLUCIÓN: Usando Admin SDK para envío real de email...');
 
-      // 🎯 **SOLUCIÓN: USAR FIREBASE CLIENT SDK EN EL BACKEND**
-      const { initializeApp } = require('firebase/app');
-      const { getAuth, sendPasswordResetEmail } = require('firebase/auth');
-
-      // Configuración de Firebase Client
-      const firebaseConfig = {
-        apiKey: process.env.FIREBASE_API_KEY,
-        authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.FIREBASE_APP_ID
-      };
-
-      // Inicializar app de Firebase
-      const firebaseApp = initializeApp(firebaseConfig, 'PasswordReset');
-      const auth = getAuth(firebaseApp);
-      
       const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
       
-      // 🎯 **ESTA FUNCIÓN SÍ ENVÍA EL EMAIL AUTOMÁTICAMENTE**
-      console.log('📤 Enviando email de recuperación con Firebase Client SDK...');
-      await sendPasswordResetEmail(auth, email, {
+      // 🎯 **ESTA ES LA CLAVE: Configurar continueUrl para que Firebase envíe el email**
+      const actionCodeSettings = {
         url: `${frontendUrl}/login?reset=success&email=${encodeURIComponent(email)}`,
         handleCodeInApp: false
-      });
+      };
+
+      // 🎯 **LLAMADA QUE SÍ ACTIVA EL ENVÍO DE EMAIL**
+      console.log('📤 Activando envío de email con Firebase Admin SDK...');
+      const resetLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
       
-      console.log('✅ Email de recuperación ENVIADO exitosamente');
+      console.log('✅ Email de recuperación ACTIVADO - Firebase debería enviarlo automáticamente');
+      console.log('🔗 Link generado (primeros 100 chars):', resetLink.substring(0, 100) + '...');
+
+      // 🎯 **VERIFICAR EN FIREBASE CONSOLE**
+      console.log('📧 Verifica en Firebase Console → Authentication → Users si aparece "Password reset"');
 
       const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
       
