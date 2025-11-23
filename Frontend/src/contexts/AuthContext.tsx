@@ -39,7 +39,13 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, nombre: string) => Promise<void>;
   logout: () => void;
-  sendPasswordReset: (email: string) => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<{
+    success: boolean;
+    message: string;
+    remainingAttempts?: number;
+    blocked?: boolean;
+    remainingTime?: number;
+  }>;
   verifyEmail: (oobCode: string) => Promise<void>;
 }
 
@@ -88,64 +94,127 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const sendPasswordReset = async (email: string) => {
+const sendPasswordReset = async (email: string): Promise<{
+  success: boolean;
+  message: string;
+  remainingAttempts?: number;
+  blocked?: boolean;
+  remainingTime?: number;
+}> => {
+  try {
+    console.log('📧 Iniciando proceso de recuperación para:', email);
+    
+    // 🎯 PRIMERO: Verificar si el usuario existe en nuestro backend
     try {
-      console.log('📧 Iniciando proceso de recuperación para:', email);
+      console.log('🔍 Verificando usuario en el sistema...');
+      const userCheck = await authAPI.checkFirebaseUser(email);
       
-      // 🎯 PRIMERO: Verificar si el usuario existe en nuestro backend
-      try {
-        console.log('🔍 Verificando usuario en el sistema...');
-        const userCheck = await authAPI.checkFirebaseUser(email);
-        
-        if (!userCheck.exists) {
-          console.log('❌ Usuario no encontrado en el sistema');
-          throw new Error('USER_NOT_FOUND');
-        }
-        
-        console.log('✅ Usuario verificado en el sistema');
-      } catch (checkError: any) {
-        console.log('⚠️ Error verificando usuario:', checkError.message);
-        // Si falla la verificación, continuamos de todos modos por seguridad
-      }
-
-      // 🎯 SEGUNDO: Configurar URL de redirección MEJORADA
-      const actionCodeSettings = {
-        url: `${window.location.origin}/login?reset=success&email=${encodeURIComponent(email)}`,
-        handleCodeInApp: false
-      };
-      
-      console.log('🔗 URL de redirección configurada:', actionCodeSettings.url);
-      
-      // 🎯 TERCERO: Enviar email de recuperación con Firebase
-      console.log('🚀 Enviando email de recuperación con Firebase...');
-      await firebaseSendPasswordReset(auth, email, actionCodeSettings);
-      console.log('✅ Email de recuperación enviado por Firebase');
-      
-      // 🎯 CUARTO: También intentar con nuestro backend (por si acaso)
-      try {
-        console.log('🔄 Intentando envío adicional con backend...');
-        await authAPI.forgotPassword(email);
-        console.log('✅ Email de recuperación enviado por backend también');
-      } catch (backendError) {
-        console.log('⚠️ Backend no pudo enviar email, pero Firebase sí');
+      if (!userCheck.exists) {
+        console.log('❌ Usuario no encontrado en el sistema');
+        // En lugar de throw, devolvemos un objeto con la información
+        return {
+          success: false,
+          message: 'Este email no está registrado en nuestro sistema. Verifica tu dirección o regístrate primero.',
+          remainingAttempts: 0
+        };
       }
       
-    } catch (error: any) {
-      console.error('❌ Error en sendPasswordReset:', error);
-      
-      if (error.code === 'auth/user-not-found' || error.message === 'USER_NOT_FOUND') {
-        throw new Error('Este email no está registrado en nuestro sistema. Verifica tu dirección o regístrate primero.');
-      } else if (error.code === 'auth/invalid-email') {
-        throw new Error('El formato del email es inválido. Por favor, verifica tu dirección de correo.');
-      } else if (error.code === 'auth/too-many-requests') {
-        throw new Error('Has solicitado demasiados reseteos. Espera unos minutos e intenta nuevamente.');
-      } else if (error.message.includes('network') || error.message.includes('conexión')) {
-        throw new Error('Error de conexión. Verifica tu internet e intenta nuevamente.');
-      }
-      
-      throw new Error('Error al enviar el email de recuperación: ' + error.message);
+      console.log('✅ Usuario verificado en el sistema');
+    } catch (checkError: any) {
+      console.log('⚠️ Error verificando usuario:', checkError.message);
+      // Si falla la verificación, continuamos de todos modos por seguridad
     }
-  };
+
+    // 🎯 USAR SOLO EL BACKEND PARA LA RECUPERACIÓN (con limitación de intentos)
+    console.log('🔄 Enviando solicitud al backend...');
+    
+    const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+    
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      // Si es error 429 (too many attempts), devolver información específica
+      if (response.status === 429) {
+        return {
+          success: false,
+          message: data.message,
+          blocked: true,
+          remainingTime: data.remainingTime,
+          remainingAttempts: 0
+        };
+      }
+      // Para otros errores, devolver el mensaje del backend
+      return {
+        success: false,
+        message: data.message || 'Error en la petición'
+      };
+    }
+
+    console.log('✅ Respuesta del backend:', data);
+    
+    // 🎯 SEGUNDO: Configurar URL de redirección MEJORADA
+    const actionCodeSettings = {
+      url: `${window.location.origin}/login?reset=success&email=${encodeURIComponent(email)}`,
+      handleCodeInApp: false
+    };
+    
+    console.log('🔗 URL de redirección configurada:', actionCodeSettings.url);
+    
+    // 🎯 TERCERO: Enviar email de recuperación con Firebase
+    console.log('🚀 Enviando email de recuperación con Firebase...');
+    await firebaseSendPasswordReset(auth, email, actionCodeSettings);
+    console.log('✅ Email de recuperación enviado por Firebase');
+    
+    // Devolver la respuesta del backend con la información de intentos
+    return {
+      success: data.success,
+      message: data.message,
+      remainingAttempts: data.remainingAttempts
+    };
+    
+  } catch (error: any) {
+    console.error('❌ Error en sendPasswordReset:', error);
+    
+    // Manejar errores específicos de Firebase
+    if (error.code === 'auth/user-not-found') {
+      return {
+        success: false,
+        message: 'Este email no está registrado en nuestro sistema. Verifica tu dirección o regístrate primero.'
+      };
+    } else if (error.code === 'auth/invalid-email') {
+      return {
+        success: false,
+        message: 'El formato del email es inválido. Por favor, verifica tu dirección de correo.'
+      };
+    } else if (error.code === 'auth/too-many-requests') {
+      return {
+        success: false,
+        message: 'Has solicitado demasiados reseteos. Espera unos minutos e intenta nuevamente.',
+        blocked: true,
+        remainingTime: 15
+      };
+    } else if (error.message.includes('network') || error.message.includes('conexión')) {
+      return {
+        success: false,
+        message: 'Error de conexión. Verifica tu internet e intenta nuevamente.'
+      };
+    }
+    
+    // Por seguridad, devolver éxito genérico en caso de error desconocido
+    return {
+      success: true,
+      message: 'Si el email está registrado, recibirás un enlace de recuperación'
+    };
+  }
+};
 
   const login = async (email: string, password: string) => {
     try {

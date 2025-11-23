@@ -1,5 +1,4 @@
-// Ruta: Joyeria-Diana-Laura/Frontend/src/screens/OlvideContraseniaScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,8 +19,12 @@ type FormData = z.infer<typeof schema>;
 
 const OlvideContraseniaScreen: React.FC = () => {
     const [message, setMessage] = useState('');
+    const [messageType, setMessageType] = useState<'success' | 'error'>('success');
     const [loading, setLoading] = useState(false);
     const [emailSent, setEmailSent] = useState(false);
+    const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
+    const [blockedUntil, setBlockedUntil] = useState<Date | null>(null);
+    const [countdown, setCountdown] = useState<number | null>(null);
     
     const navigate = useNavigate();
     const { sendPasswordReset } = useAuth();
@@ -29,30 +32,117 @@ const OlvideContraseniaScreen: React.FC = () => {
     const { 
         register, 
         handleSubmit, 
-        formState: { errors }
+        formState: { errors },
+        watch
     } = useForm<FormData>({ 
         resolver: zodResolver(schema) 
     });
 
+    const emailValue = watch('email');
+
+    // Efecto para el contador de bloqueo
+    useEffect(() => {
+        if (!blockedUntil) return;
+
+        const interval = setInterval(() => {
+            const now = new Date().getTime();
+            const blockedTime = blockedUntil.getTime();
+            const remaining = Math.ceil((blockedTime - now) / (1000 * 60)); // minutos restantes
+            
+            if (remaining <= 0) {
+                setBlockedUntil(null);
+                setCountdown(null);
+                setRemainingAttempts(3);
+                clearInterval(interval);
+            } else {
+                setCountdown(remaining);
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [blockedUntil]);
+
+    const getAttemptsMessage = () => {
+        if (remainingAttempts === null) return null;
+        
+        if (remainingAttempts === 0 && blockedUntil) {
+            return {
+                type: 'blocked' as const,
+                message: `🚨 Demasiados intentos. Cuenta bloqueada por ${countdown} minutos.`,
+                className: 'attempts-warning blocked'
+            };
+        }
+        
+        if (remainingAttempts === 1) {
+            return {
+                type: 'warning' as const,
+                message: '🚨 ¡ÚLTIMO INTENTO disponible!',
+                className: 'attempts-warning danger'
+            };
+        }
+        
+        if (remainingAttempts === 2) {
+            return {
+                type: 'info' as const,
+                message: `⚠️ Te quedan ${remainingAttempts} intentos`,
+                className: 'attempts-warning warning'
+            };
+        }
+        
+        if (remainingAttempts === 3) {
+            return {
+                type: 'info' as const, 
+                message: `✅ Tienes ${remainingAttempts} intentos disponibles`,
+                className: 'attempts-warning info'
+            };
+        }
+        
+        return null;
+    };
+
+    const attemptsMessage = getAttemptsMessage();
+    const isBlocked = blockedUntil && blockedUntil > new Date();
+
     const onSubmit = async (data: FormData) => {
         setMessage('');
         setLoading(true);
+        setMessageType('success');
 
         try {
             console.log('📧 Iniciando proceso de recuperación para:', data.email);
             
-            await sendPasswordReset(data.email);
+            const response = await sendPasswordReset(data.email);
             
-            setMessage('✅ ¡Enlace de recuperación enviado! Revisa tu bandeja de entrada y carpeta de spam.');
-            setEmailSent(true);
-            console.log('✅ Proceso de recuperación completado exitosamente');
+            // Manejar respuesta del backend
+            if (response.remainingAttempts !== undefined) {
+                setRemainingAttempts(response.remainingAttempts);
+            }
+            
+            if (response.blocked) {
+                const blockedTime = new Date();
+                blockedTime.setMinutes(blockedTime.getMinutes() + (response.remainingTime || 15));
+                setBlockedUntil(blockedTime);
+                setMessage(`❌ ${response.message}`);
+                setMessageType('error');
+            } else if (response.success) {
+                setMessage('✅ ¡Enlace de recuperación enviado! Revisa tu bandeja de entrada y carpeta de spam.');
+                setMessageType('success');
+                setEmailSent(true);
+                
+                if (response.remainingAttempts !== undefined) {
+                    setRemainingAttempts(response.remainingAttempts);
+                }
+            } else {
+                setMessage(`❌ ${response.message}`);
+                setMessageType('error');
+            }
+            
+            console.log('✅ Proceso de recuperación completado');
 
         } catch (error: any) {
             console.error('❌ Error en recuperación:', error);
-            
-            // 🎯 POR SEGURIDAD: Mostrar mensaje genérico de éxito
-            setMessage('✅ Si este email está registrado, recibirás un enlace de recuperación en unos minutos. Revisa tu bandeja de entrada y spam.');
-            setEmailSent(true);
+            setMessage(`❌ ${error.message}`);
+            setMessageType('error');
         } finally {
             setLoading(false);
         }
@@ -64,7 +154,18 @@ const OlvideContraseniaScreen: React.FC = () => {
                 <div className="olvide-contrasenia-header">
                     <h2>Recuperar Contraseña</h2>
                     <p>Ingresa tu email registrado y te enviaremos un enlace para restablecer tu contraseña.</p>
+                    
+                    {/* Información sobre el sistema de seguridad */}
+                    <div className="security-info">
+                        <p><strong>🔒 Sistema de seguridad:</strong> Máximo 3 intentos cada 15 minutos</p>
+                    </div>
                 </div>
+
+                {attemptsMessage && (
+                    <div className={attemptsMessage.className}>
+                        {attemptsMessage.message}
+                    </div>
+                )}
 
                 {!emailSent ? (
                     <form onSubmit={handleSubmit(onSubmit)} className="olvide-contrasenia-form">
@@ -74,8 +175,9 @@ const OlvideContraseniaScreen: React.FC = () => {
                                 id="email"
                                 type="email"
                                 placeholder="Ingresa el email con el que te registraste"
-                                className={`olvide-input ${errors.email ? 'error' : ''}`}
+                                className={`olvide-input ${errors.email ? 'error' : ''} ${isBlocked ? 'blocked' : ''}`}
                                 maxLength={60}
+                                disabled={isBlocked || loading}
                                 {...register("email")}
                             />
                             {errors.email && (
@@ -85,10 +187,12 @@ const OlvideContraseniaScreen: React.FC = () => {
                         
                         <button 
                             type="submit" 
-                            disabled={loading} 
-                            className="submit-button"
+                            disabled={isBlocked || loading} 
+                            className={`submit-button ${isBlocked ? 'blocked' : ''}`}
                         >
-                            {loading ? '🔍 Enviando...' : '📧 Enviar Enlace de Recuperación'}
+                            {loading ? '🔍 Enviando...' : 
+                             isBlocked ? `⏳ Bloqueado (${countdown}m)` : 
+                             '📧 Enviar Enlace de Recuperación'}
                         </button>
                     </form>
                 ) : (
@@ -100,19 +204,21 @@ const OlvideContraseniaScreen: React.FC = () => {
                 )}
                 
                 {message && (
-                    <div className="success-message">
+                    <div className={messageType === 'success' ? 'success-message' : 'error-message'}>
                         <p>{message}</p>
-                        <div className="email-tips">
-                            <h4>💡 Consejos para encontrar el email:</h4>
-                            <ul>
-                                <li><strong>Revisa tu bandeja de entrada</strong> principal</li>
-                                <li><strong>Busca en la carpeta de spam</strong> o correo no deseado</li>
-                                <li>El email viene de: <strong>noreply@joyeria-diana-laura.firebaseapp.com</strong></li>
-                                <li>El asunto del email es: <strong>"Restablece tu contraseña de Diana Laura"</strong></li>
-                                <li>El enlace expira en <strong>1 hora</strong></li>
-                                <li>Si no lo encuentras en 5 minutos, intenta nuevamente</li>
-                            </ul>
-                        </div>
+                        {messageType === 'success' && (
+                            <div className="email-tips">
+                                <h4>💡 Consejos para encontrar el email:</h4>
+                                <ul>
+                                    <li><strong>Revisa tu bandeja de entrada</strong> principal</li>
+                                    <li><strong>Busca en la carpeta de spam</strong> o correo no deseado</li>
+                                    <li>El email viene de: <strong>noreply@joyeria-diana-laura.firebaseapp.com</strong></li>
+                                    <li>El asunto del email es: <strong>"Restablece tu contraseña de Diana Laura"</strong></li>
+                                    <li>El enlace expira en <strong>1 hora</strong></li>
+                                    <li>Si no lo encuentras en 5 minutos, intenta nuevamente</li>
+                                </ul>
+                            </div>
+                        )}
                     </div>
                 )}
                 

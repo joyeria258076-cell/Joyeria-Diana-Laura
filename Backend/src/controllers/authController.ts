@@ -5,6 +5,7 @@ import admin from '../config/firebase';
 import { EmailValidationService } from '../services/EmailValidationService';
 import { LoginSecurityService } from '../services/loginSecurityService';
 import { pool } from '../config/database';
+import { RecoverySecurityService } from '../services/recoverySecurityService';
 
 // 🎯 FUNCIÓN MEJORADA para obtener IP real del cliente
 const getClientIp = (req: Request): string => {
@@ -447,8 +448,22 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     console.log(`📧 Solicitando recuperación para: ${email}`);
 
+    // 🛡️ VERIFICAR LÍMITES DE RECUPERACIÓN (NUEVO)
+    const limitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
+    if (!limitCheck.allowed) {
+      return res.status(429).json({
+        success: false,
+        message: `Demasiados intentos de recuperación. Intente nuevamente en ${limitCheck.remainingTime} minutos.`,
+        blocked: true,
+        remainingTime: limitCheck.remainingTime,
+        remainingAttempts: 0
+      });
+    }
+
     try {
-      // 🎯 CONFIGURACIÓN MEJORADA PARA EMAILS
+      // 🛡️ REGISTRAR EL INTENTO (NUEVO)
+      await RecoverySecurityService.incrementRecoveryAttempts(email);
+
       const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
       const actionCodeSettings = {
         url: `${frontendUrl}/login?reset=success&email=${encodeURIComponent(email)}`,
@@ -457,15 +472,12 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
       console.log('🎯 Configuración de recuperación:');
       console.log('📧 Email:', email);
-      console.log('🔗 URL de redirección:', actionCodeSettings.url);
+      console.log('🛡️ Intentos restantes:', limitCheck.remainingAttempts - 1);
 
-      // 🎯 GENERAR LINK DE RECUPERACIÓN
       const resetLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
       
       console.log('✅ Link de recuperación generado exitosamente');
-      console.log('🔗 Link completo (primeros 100 chars):', resetLink.substring(0, 100) + '...');
 
-      // 🎯 VERIFICAR QUE EL USUARIO EXISTE EN FIREBASE
       try {
         const userRecord = await admin.auth().getUserByEmail(email);
         console.log(`✅ Usuario verificado en Firebase: ${userRecord.uid}`);
@@ -473,10 +485,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         res.json({
           success: true,
           message: 'Se ha enviado un enlace de recuperación a tu email',
-          debug: process.env.NODE_ENV === 'development' ? { 
-            resetLink: resetLink.substring(0, 100) + '...',
-            email: email
-          } : undefined
+          remainingAttempts: limitCheck.remainingAttempts - 1
         });
 
       } catch (firebaseError: any) {
@@ -485,7 +494,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
           // 🎯 POR SEGURIDAD, NO REVELAMOS SI EXISTE O NO
           return res.json({
             success: true,
-            message: 'Si el email está registrado, recibirás un enlace de recuperación'
+            message: 'Si el email está registrado, recibirás un enlace de recuperación',
+            remainingAttempts: limitCheck.remainingAttempts - 1
           });
         }
         throw firebaseError;
@@ -494,25 +504,12 @@ export const forgotPassword = async (req: Request, res: Response) => {
     } catch (firebaseError: any) {
       console.error('❌ Error de Firebase en forgotPassword:', firebaseError);
       
-      if (firebaseError.code === 'auth/invalid-email') {
-        return res.status(400).json({
-          success: false,
-          message: 'El formato del email es inválido'
-        });
-      }
-
-      if (firebaseError.code === 'auth/unauthorized-continue-uri') {
-        return res.status(400).json({
-          success: false,
-          message: 'Error de configuración: URL no autorizada en Firebase'
-        });
-      }
-
       // 🎯 POR SEGURIDAD, SIEMPRE DEVOLVEMOS ÉXITO EN PRODUCCIÓN
       if (process.env.NODE_ENV === 'production') {
         return res.json({
           success: true,
-          message: 'Si el email está registrado, recibirás un enlace de recuperación'
+          message: 'Si el email está registrado, recibirás un enlace de recuperación',
+          remainingAttempts: limitCheck.remainingAttempts - 1
         });
       } else {
         return res.status(400).json({
@@ -540,7 +537,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
   }
 };
-
 export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { email, newPassword } = req.body;
