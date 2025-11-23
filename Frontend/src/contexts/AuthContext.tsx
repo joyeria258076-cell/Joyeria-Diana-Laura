@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // 🎯 CONFIGURACIÓN OPTIMIZADA de inactividad
   const INACTIVITY_TIMEOUT = 1 * 60 * 1000; // 1 minuto para pruebas
 
-  // 🎯 FUNCIÓN: Manejar logout automático (SIN useCallback para evitar dependencias circulares)
+  // 🎯 FUNCIÓN: Manejar logout automático
   const handleAutoLogout = async () => {
     console.log('🔒 🔥 🔥 🔥 SESIÓN EXPIRADA - INACTIVIDAD DE 1 MINUTO 🔥 🔥 🔥');
     console.log('🎯 TIMEOUT CONFIGURADO:', INACTIVITY_TIMEOUT / 60000 + ' minutos');
@@ -158,11 +158,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     console.log('🎯 Configurando listeners optimizados para actividad');
 
+    // Función local para manejar actividad
+    const handleActivity = () => {
+      console.log('🎯 Actividad detectada - procesando...');
+      handleUserActivity();
+    };
+
+    // Agregar event listeners
     activityEvents.forEach(event => {
-      document.addEventListener(event, handleUserActivity, { passive: true });
+      document.addEventListener(event, handleActivity, { passive: true });
     });
 
-    // Iniciar timers
+    // Iniciar timer inicial
     resetInactivityTimer();
     
     // Hacer primer update de actividad después de 1 segundo
@@ -174,7 +181,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🧹 Limpiando listeners de actividad');
       // Limpiar event listeners
       activityEvents.forEach(event => {
-        document.removeEventListener(event, handleUserActivity);
+        document.removeEventListener(event, handleActivity);
       });
       
       // Limpiar timers
@@ -186,7 +193,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       clearTimeout(initialTimer);
     };
-  }, [user, handleUserActivity, resetInactivityTimer, inactivityTimer, updateBackendActivity, INACTIVITY_TIMEOUT]);
+  }, [user, handleUserActivity, resetInactivityTimer, updateBackendActivity, INACTIVITY_TIMEOUT, inactivityTimer]); // 🎯 TODAS las dependencias necesarias
 
   // 🎯 Cargar usuario desde localStorage
   useEffect(() => {
