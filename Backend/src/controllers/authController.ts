@@ -862,3 +862,40 @@ export const resetRecoveryAttempts = async (req: Request, res: Response) => {
     });
   }
 };
+
+// 🎯 NUEVO ENDPOINT: Actualizar actividad del usuario
+export const updateUserActivity = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email es requerido'
+      });
+    }
+
+    console.log(`🔄 Actualizando actividad para: ${email}`);
+    
+    const success = await userModel.updateUserActivity(email);
+    
+    if (success) {
+      res.json({
+        success: true,
+        message: 'Actividad actualizada'
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Error actualizando actividad'
+      });
+    }
+
+  } catch (error) {
+    console.error('Error en updateUserActivity:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+};

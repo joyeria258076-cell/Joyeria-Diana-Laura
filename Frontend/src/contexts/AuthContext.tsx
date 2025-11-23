@@ -1,6 +1,6 @@
 // Ruta:Joyeria-Diana-Laura/Frontend/src/contexts/AuthContext.tsx
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { authAPI } from '../services/api';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -66,6 +66,85 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
+
+  // 🎯 NUEVO: Configuración de inactividad (1 minuto para pruebas)
+  const INACTIVITY_TIMEOUT = 1 * 60 * 1000; // 1 minuto para pruebas
+
+  // 🎯 NUEVO: Función para actualizar actividad en el backend
+  const updateBackendActivity = useCallback(async () => {
+    if (user && user.email) {
+      try {
+        await authAPI.updateActivity(user.email);
+        console.log('✅ Actividad actualizada en backend para:', user.email);
+      } catch (error) {
+        console.log('⚠️ Error actualizando actividad en backend:', error);
+      }
+    }
+  }, [user]);
+
+  // 🎯 NUEVO: Función para resetear el timer de inactividad
+  const resetInactivityTimer = useCallback(() => {
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer);
+    }
+
+    if (user) {
+      const timer = setTimeout(() => {
+        console.log('🕒 Sesión expirada por inactividad automáticamente');
+        handleAutoLogout();
+      }, INACTIVITY_TIMEOUT);
+      
+      setInactivityTimer(timer);
+    }
+  }, [user, inactivityTimer]);
+
+  // 🎯 NUEVO: Manejar actividad del usuario
+  const handleUserActivity = useCallback(() => {
+    resetInactivityTimer();
+    updateBackendActivity();
+  }, [resetInactivityTimer, updateBackendActivity]);
+
+  // 🎯 NUEVO: Manejar logout automático
+  const handleAutoLogout = useCallback(async () => {
+    console.log('🔒 Cerrando sesión automáticamente por inactividad');
+    
+    alert('Tu sesión ha expirado por inactividad. Por favor, inicia sesión nuevamente.');
+    
+    await auth.signOut();
+    setUser(null);
+    localStorage.removeItem('diana_laura_user');
+    
+    window.location.href = '/login';
+  }, []);
+
+  // 🎯 NUEVO: Efecto para detectar actividad del usuario
+  useEffect(() => {
+    if (!user) return;
+
+    const activityEvents = [
+      'mousedown', 'mousemove', 'keypress', 
+      'scroll', 'touchstart', 'click',
+      'keydown', 'input', 'focus'
+    ];
+
+    activityEvents.forEach(event => {
+      document.addEventListener(event, handleUserActivity, true);
+    });
+
+    resetInactivityTimer();
+    updateBackendActivity();
+
+    return () => {
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, handleUserActivity, true);
+      });
+      
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+    };
+  }, [user, handleUserActivity, resetInactivityTimer, inactivityTimer, updateBackendActivity]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('diana_laura_user');
@@ -247,6 +326,9 @@ const sendPasswordReset = async (email: string): Promise<{
         setUser(userData);
         localStorage.setItem('diana_laura_user', JSON.stringify(userData));
         console.log('✅ Login completo exitoso - SESIÓN INICIADA');
+        
+        // 🎯 NUEVO: Iniciar sistema de actividad después del login
+        handleUserActivity();
       } else {
         throw new Error(response.message);
       }
@@ -345,6 +427,11 @@ const sendPasswordReset = async (email: string): Promise<{
   };
 
   const logout = async () => {
+    // 🎯 NUEVO: Limpiar timer al hacer logout manual
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer);
+    }
+    
     await auth.signOut();
     setUser(null);
     localStorage.removeItem('diana_laura_user');

@@ -13,7 +13,8 @@ import {
     testEmailDelivery,
     checkAccountLock,
     unlockAccount,
-    resetRecoveryAttempts  
+    resetRecoveryAttempts,
+    updateUserActivity    
 } from '../controllers/authController';
 
 const router = express.Router();
@@ -33,5 +34,6 @@ router.post('/test-email', testEmailDelivery);
 router.post('/check-account-lock', checkAccountLock);
 router.post('/unlock-account', unlockAccount);
 router.post('/reset-recovery-attempts', resetRecoveryAttempts);
+router.post('/update-activity', updateUserActivity); 
 
 export default router;

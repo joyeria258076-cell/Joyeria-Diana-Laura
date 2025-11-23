@@ -67,6 +67,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     setLoading(false);
   }
 };
+
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const cleanedValue = value.replace(/\s/g, '');

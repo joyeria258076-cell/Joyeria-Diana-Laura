@@ -199,3 +199,51 @@ export const getUserByResetToken = async (token: string): Promise<User | null> =
     return null;
   }
 };*/
+
+// 🎯 NUEVO: Actualizar timestamp de última actividad
+export const updateUserActivity = async (email: string): Promise<boolean> => {
+  try {
+    const result = await pool.query(
+      'UPDATE usuarios SET last_activity = CURRENT_TIMESTAMP WHERE email = $1',
+      [email]
+    );
+    
+    return result.rowCount ? result.rowCount > 0 : false;
+  } catch (error) {
+    console.error('Error actualizando actividad:', error);
+    return false;
+  }
+};
+
+// 🎯 NUEVO: Obtener usuario por email con last_activity
+export const getUserByEmailWithActivity = async (email: string): Promise<(User & { last_activity: Date }) | null> => {
+  try {
+    const result = await pool.query(
+      'SELECT *, last_activity FROM usuarios WHERE email = $1 AND activo = true',
+      [email]
+    );
+    
+    return result.rows.length > 0 ? result.rows[0] : null;
+  } catch (error) {
+    console.error('Error obteniendo usuario con actividad:', error);
+    return null;
+  }
+};
+
+// 🎯 NUEVO: Verificar si usuario está inactivo
+export const isUserInactive = async (email: string, maxInactivityMinutes: number = 15): Promise<boolean> => {
+  try {
+    const user = await getUserByEmailWithActivity(email);
+    if (!user || !user.last_activity) return true;
+
+    const lastActivity = new Date(user.last_activity).getTime();
+    const now = new Date().getTime();
+    const inactivityTime = now - lastActivity;
+    const maxInactivityMs = maxInactivityMinutes * 60 * 1000;
+
+    return inactivityTime > maxInactivityMs;
+  } catch (error) {
+    console.error('Error verificando inactividad:', error);
+    return true; // Por seguridad, considerar inactivo si hay error
+  }
+};

@@ -87,4 +87,11 @@ export const authAPI = {
       body: JSON.stringify({ email }),
     });
   },
+
+   updateActivity: async (email: string) => {
+    return apiRequest('/auth/update-activity', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
 };
