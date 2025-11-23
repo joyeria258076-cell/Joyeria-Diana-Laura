@@ -445,11 +445,13 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`📧 Solicitando recuperación para: ${email}`);
+    console.log(`📧 Verificando límites para: ${email}`);
     
+    // 🛡️ SOLO VERIFICAR LÍMITES
     const limitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
     
     if (!limitCheck.allowed) {
+      console.log(`🚫 BLOQUEO ACTIVO: ${email} - ${limitCheck.remainingTime} minutos restantes`);
       return res.status(429).json({
         success: false,
         message: `Demasiados intentos de recuperación. Intente nuevamente en ${limitCheck.remainingTime} minutos.`,
@@ -459,68 +461,28 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
     }
 
-    try {
-      await RecoverySecurityService.incrementRecoveryAttempts(email);
+    // 🛡️ REGISTRAR INTENTO (PERMITIDO)
+    await RecoverySecurityService.incrementRecoveryAttempts(email);
+    
+    console.log(`✅ Intento permitido para: ${email}, intentos restantes: ${limitCheck.remainingAttempts - 1}`);
 
-      console.log('🎯 ENVIANDO EMAIL AUTOMÁTICO...');
-
-      const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
-      
-      // 🎯 **ESTA LLAMADA SÍ ENVÍA EL EMAIL AUTOMÁTICAMENTE**
-      const resetLink = await admin.auth().generatePasswordResetLink(email, {
-        url: `${frontendUrl}/login?reset=success&email=${encodeURIComponent(email)}`,
-        handleCodeInApp: false
-      });
-      
-      console.log('✅ EMAIL ENVIADO AUTOMÁTICAMENTE por Firebase');
-      console.log('🔗 Link generado:', resetLink.substring(0, 80) + '...');
-
-      const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
-      
-      res.json({
-        success: true,
-        message: 'Se ha enviado un enlace de recuperación a tu email',
-        remainingAttempts: updatedLimitCheck.remainingAttempts
-      });
-
-    } catch (firebaseError: any) {
-      console.error('❌ Error de Firebase:', firebaseError);
-      
-      const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
-      
-      if (firebaseError.code === 'auth/user-not-found') {
-        return res.json({
-          success: true,
-          message: 'Si el email está registrado, recibirás un enlace de recuperación',
-          remainingAttempts: updatedLimitCheck.remainingAttempts
-        });
-      }
-      
-      // 🎯 **CORREGIDO: Usar nuestro tiempo de bloqueo (2 min) no 15 min**
-      if (firebaseError.code === 'auth/too-many-requests') {
-        console.log(`🔥 Firebase bloqueó la cuenta, usando nuestro sistema: ${updatedLimitCheck.remainingTime} min`);
-        
-        return res.status(429).json({
-          success: false,
-          message: `Has solicitado demasiados reseteos. Intente nuevamente en ${updatedLimitCheck.remainingTime} minutos.`,
-          blocked: true,
-          remainingTime: updatedLimitCheck.remainingTime, // 🎯 2 MINUTOS, NO 15
-          remainingAttempts: 0
-        });
-      }
-      
-      return res.json({
-        success: true,
-        message: 'Si el email está registrado, recibirás un enlace de recuperación',
-        remainingAttempts: updatedLimitCheck.remainingAttempts
-      });
-    }
+    // 🎯 DEVOLVER ÉXITO - EL FRONTEND ENVIARÁ EL EMAIL
+    const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
+    
+    res.json({
+      success: true,
+      message: 'Puedes enviar el email de recuperación',
+      remainingAttempts: updatedLimitCheck.remainingAttempts
+    });
 
   } catch (error) {
     console.error('Error en forgotPassword:', error);
+    
+    // En caso de error, permitir que el frontend intente igual
     res.json({
       success: true,
-      message: 'Si el email está registrado, recibirás un enlace de recuperación'
+      message: 'Procediendo con el envío de email',
+      remainingAttempts: 3 // Valor por defecto
     });
   }
 };
