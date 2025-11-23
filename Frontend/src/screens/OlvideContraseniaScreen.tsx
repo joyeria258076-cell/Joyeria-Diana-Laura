@@ -121,14 +121,14 @@ const onSubmit = async (data: FormData) => {
             setRemainingAttempts(response.remainingAttempts);
         }
         
-        if (response.blocked) {
+            if (response.blocked) {
             const blockedTime = new Date();
-            // 🔧 CAMBIO: Cambiar 15 por 2 minutos (línea 107)
-            blockedTime.setMinutes(blockedTime.getMinutes() + (response.remainingTime || 2)); // ← CAMBIAR 15 por 2
+            // 🎯 USAR EL TIEMPO QUE VIENE DEL BACKEND (2 min nuestro o 15 min de Firebase)
+            blockedTime.setMinutes(blockedTime.getMinutes() + (response.remainingTime || 2));
             setBlockedUntil(blockedTime);
             setMessage(`❌ ${response.message}`);
             setMessageType('error');
-        } else if (response.success) {
+            } else if (response.success) {
             // ✅ CORRECTO: NO resetear aquí - solo mostrar éxito
             setMessage('✅ ¡Enlace de recuperación enviado! Revisa tu bandeja de entrada y carpeta de spam.');
             setMessageType('success');

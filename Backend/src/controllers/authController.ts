@@ -522,25 +522,49 @@ export const forgotPassword = async (req: Request, res: Response) => {
       }
 
     } catch (firebaseError: any) {
-      console.error('❌ Error de Firebase en forgotPassword:', firebaseError);
-      
-      // ✅ **DEVOLVER INTENTOS ACTUALIZADOS**
-      const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
-      
-      if (process.env.NODE_ENV === 'production') {
-        return res.json({
-          success: true,
-          message: 'Si el email está registrado, recibirás un enlace de recuperación',
-          remainingAttempts: updatedLimitCheck.remainingAttempts
-        });
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: `Error al generar link: ${firebaseError.message}`,
-          code: firebaseError.code
-        });
-      }
-    }
+  console.error('❌ Error de Firebase en forgotPassword:', firebaseError);
+  
+  // ✅ **DEVOLVER INTENTOS ACTUALIZADOS**
+  const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
+  
+  if (firebaseError.code === 'auth/user-not-found') {
+    console.log(`❌ Usuario no encontrado en Firebase: ${email}`);
+    
+    return res.json({
+      success: true,
+      message: 'Si el email está registrado, recibirás un enlace de recuperación',
+      remainingAttempts: updatedLimitCheck.remainingAttempts
+    });
+  }
+  
+  // 🚨 **AGREGAR ESTE MANEJO PARA ERROR DE FIREBASE**
+  if (firebaseError.code === 'auth/too-many-requests') {
+    console.log(`🔥 FIREBASE BLOQUEÓ la cuenta: ${email} - Usando tiempo de Firebase (15 min)`);
+    
+    return res.status(429).json({
+      success: false,
+      message: 'Has solicitado demasiados reseteos. Espera 15 minutos e intenta nuevamente.',
+      blocked: true,
+      remainingTime: 15, // 🎯 15 minutos de Firebase
+      remainingAttempts: 0
+    });
+  }
+  
+  // Para otros errores de Firebase
+  if (process.env.NODE_ENV === 'production') {
+    return res.json({
+      success: true,
+      message: 'Si el email está registrado, recibirás un enlace de recuperación',
+      remainingAttempts: updatedLimitCheck.remainingAttempts
+    });
+  } else {
+    return res.status(400).json({
+      success: false,
+      message: `Error al generar link: ${firebaseError.message}`,
+      code: firebaseError.code
+    });
+  }
+}
 
   } catch (error) {
     console.error('Error en forgotPassword:', error);
