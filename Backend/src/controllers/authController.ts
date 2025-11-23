@@ -464,21 +464,34 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
       console.log('🎯 Enviando email de recuperación...');
 
-      // 🎯 **SOLUCIÓN: Configurar la URL de continuación**
-      const actionCodeSettings = {
-        url: `${process.env.FRONTEND_URL}/login?reset=success&email=${encodeURIComponent(email)}`,
-        handleCodeInApp: false
+      // 🎯 **SOLUCIÓN: USAR FIREBASE CLIENT SDK EN EL BACKEND**
+      const { initializeApp } = require('firebase/app');
+      const { getAuth, sendPasswordResetEmail } = require('firebase/auth');
+
+      // Configuración de Firebase Client
+      const firebaseConfig = {
+        apiKey: process.env.FIREBASE_API_KEY,
+        authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.FIREBASE_APP_ID
       };
 
-      // 🎯 **ESTA FUNCIÓN SÍ DEBERÍA ENVIAR EL EMAIL**
-      // Firebase Admin SDK debería usar tu template configurado
-      const resetLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
+      // Inicializar app de Firebase
+      const firebaseApp = initializeApp(firebaseConfig, 'PasswordReset');
+      const auth = getAuth(firebaseApp);
       
-      console.log('✅ Solicitud de recuperación procesada por Firebase');
-      console.log('🔗 Link generado (primeros 80 chars):', resetLink.substring(0, 80) + '...');
-
-      // 🎯 **VERIFICAR EN FIREBASE CONSOLE SI SE ENVIÓ**
-      console.log('📧 Revisa en Firebase Console → Authentication → Users si el email se envió');
+      const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
+      
+      // 🎯 **ESTA FUNCIÓN SÍ ENVÍA EL EMAIL AUTOMÁTICAMENTE**
+      console.log('📤 Enviando email de recuperación con Firebase Client SDK...');
+      await sendPasswordResetEmail(auth, email, {
+        url: `${frontendUrl}/login?reset=success&email=${encodeURIComponent(email)}`,
+        handleCodeInApp: false
+      });
+      
+      console.log('✅ Email de recuperación ENVIADO exitosamente');
 
       const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
       
@@ -511,7 +524,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
         });
       }
       
-      // En producción, siempre devolver éxito por seguridad
       return res.json({
         success: true,
         message: 'Si el email está registrado, recibirás un enlace de recuperación',
@@ -521,8 +533,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('Error en forgotPassword:', error);
-    
-    // En producción, siempre devolver éxito por seguridad
     res.json({
       success: true,
       message: 'Si el email está registrado, recibirás un enlace de recuperación'
