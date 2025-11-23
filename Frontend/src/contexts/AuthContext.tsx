@@ -163,30 +163,47 @@ useEffect(() => {
 
   console.log('🎯 Configurando listeners optimizados para actividad');
 
-  // 🎯 NUEVO: Listener para eventos de navegación (flechas back/forward)
-  const handlePopState = () => {
-    console.log('🔄 Evento de navegación detectado (flechas del navegador)');
+// 🎯 NUEVO: Listener para eventos de navegación (flechas back/forward)
+const handlePopState = () => {
+  console.log('🔄 Evento de navegación detectado (flechas del navegador)');
+  
+  // Verificar si estamos en una ruta no autenticada
+  const currentPath = window.location.pathname;
+  const publicRoutes = ['/login', '/registro', '/olvide', '/reiniciar'];
+  
+  if (publicRoutes.includes(currentPath) && user) {
+    console.log('🚨 Usuario navegó a ruta pública con sesión activa - DESACTIVANDO SISTEMA DE INACTIVIDAD');
     
-    // Verificar si estamos en una ruta no autenticada
-    const currentPath = window.location.pathname;
-    const publicRoutes = ['/login', '/registro', '/olvide', '/reiniciar'];
-    
-    if (publicRoutes.includes(currentPath) && user) {
-      console.log('🚨 Usuario navegó a ruta pública con sesión activa - Limpiando timers');
-      
-      // Limpiar timers de inactividad
-      if (inactivityTimerRef.current) {
-        clearTimeout(inactivityTimerRef.current);
-        inactivityTimerRef.current = null;
-      }
-      if (activityUpdateTimeout) {
-        clearTimeout(activityUpdateTimeout);
-        activityUpdateTimeout = null;
-      }
-      
-      console.log('✅ Timers de inactividad limpiados por navegación');
+    // 🎯 LIMPIAR TODO EL SISTEMA DE INACTIVIDAD
+    // 1. Limpiar timers
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
     }
-  };
+    if (activityUpdateTimeout) {
+      clearTimeout(activityUpdateTimeout);
+      activityUpdateTimeout = null;
+    }
+    
+    // 2. Limpiar event listeners de actividad
+    const activityEvents = [
+      'click', 'keydown', 'scroll', 'mousedown', 
+      'touchstart', 'focus'
+    ];
+    
+    activityEvents.forEach(event => {
+      document.removeEventListener(event, handleUserActivity);
+    });
+    
+    // 3. Limpiar listener de navegación
+    window.removeEventListener('popstate', handlePopState);
+    
+    // 4. Marcar como desactivado
+    isSettingUpRef.current = false;
+    
+    console.log('✅ SISTEMA DE INACTIVIDAD COMPLETAMENTE DESACTIVADO POR NAVEGACIÓN');
+  }
+};
 
   // Agregar event listeners de actividad
   activityEvents.forEach(event => {
