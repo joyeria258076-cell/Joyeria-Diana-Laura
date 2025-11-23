@@ -435,6 +435,7 @@ export const unlockAccount = async (req: Request, res: Response) => {
 };
 
 // 🔄 FUNCIONES DE RECUPERACIÓN DE CONTRASEÑA MEJORADAS
+// 🔄 FUNCIONES DE RECUPERACIÓN DE CONTRASEÑA MEJORADAS - CON ENVÍO DE EMAIL
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
@@ -472,99 +473,79 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 
     try {
-      // 🛡️ REGISTRAR EL INTENTO (ANTES de generar el link)
+      // 🛡️ REGISTRAR EL INTENTO (ANTES de enviar el email)
       await RecoverySecurityService.incrementRecoveryAttempts(email);
-
-      const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
-      const actionCodeSettings = {
-        url: `${frontendUrl}/login?reset=success&email=${encodeURIComponent(email)}`,
-        handleCodeInApp: false
-      };
 
       console.log('🎯 Configuración de recuperación:');
       console.log('📧 Email:', email);
       console.log('🛡️ Intentos restantes:', limitCheck.remainingAttempts - 1);
 
-      const resetLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
+      const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
       
-      console.log('✅ Link de recuperación generado exitosamente');
+      // 🎯 **USAR generatePasswordResetLink - FIREBASE ENVÍA EL EMAIL AUTOMÁTICAMENTE**
+      // Cuando usas generatePasswordResetLink, Firebase automáticamente envía el email
+      // si tienes configurado el template en Firebase Console
+      const resetLink = await admin.auth().generatePasswordResetLink(email, {
+        url: `${frontendUrl}/login?reset=success&email=${encodeURIComponent(email)}`,
+        handleCodeInApp: false
+      });
+      
+      console.log('✅ Email de recuperación enviado exitosamente por Firebase');
+      console.log('🔗 Link generado:', resetLink.substring(0, 100) + '...');
 
-      try {
-        const userRecord = await admin.auth().getUserByEmail(email);
-        console.log(`✅ Usuario verificado en Firebase: ${userRecord.uid}`);
-        
-        // 🛑 **QUITAR ESTO - NO resetear aquí**
-        // await RecoverySecurityService.resetAfterSuccessfulRecovery(email);
-        
-        // ✅ **DEVOLVER LOS INTENTOS REALES RESTANTES**
-        const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
-        
-        res.json({
-          success: true,
-          message: 'Se ha enviado un enlace de recuperación a tu email',
-          remainingAttempts: updatedLimitCheck.remainingAttempts  // 🎯 INTENTOS REALES
-        });
-
-      } catch (firebaseError: any) {
-        if (firebaseError.code === 'auth/user-not-found') {
-          console.log(`❌ Usuario no encontrado en Firebase: ${email}`);
-          
-          // ✅ **DEVOLVER INTENTOS ACTUALIZADOS**
-          const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
-          
-          return res.json({
-            success: true,
-            message: 'Si el email está registrado, recibirás un enlace de recuperación',
-            remainingAttempts: updatedLimitCheck.remainingAttempts
-          });
-        }
-        throw firebaseError;
-      }
+      // ✅ **DEVOLVER LOS INTENTOS REALES RESTANTES**
+      const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
+      
+      res.json({
+        success: true,
+        message: 'Se ha enviado un enlace de recuperación a tu email',
+        remainingAttempts: updatedLimitCheck.remainingAttempts
+      });
 
     } catch (firebaseError: any) {
-  console.error('❌ Error de Firebase en forgotPassword:', firebaseError);
-  
-  // ✅ **DEVOLVER INTENTOS ACTUALIZADOS**
-  const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
-  
-  if (firebaseError.code === 'auth/user-not-found') {
-    console.log(`❌ Usuario no encontrado en Firebase: ${email}`);
-    
-    return res.json({
-      success: true,
-      message: 'Si el email está registrado, recibirás un enlace de recuperación',
-      remainingAttempts: updatedLimitCheck.remainingAttempts
-    });
-  }
-  
-  // 🚨 **AGREGAR ESTE MANEJO PARA ERROR DE FIREBASE**
-  if (firebaseError.code === 'auth/too-many-requests') {
-    console.log(`🔥 FIREBASE BLOQUEÓ la cuenta: ${email} - Usando tiempo de Firebase (15 min)`);
-    
-    return res.status(429).json({
-      success: false,
-      message: 'Has solicitado demasiados reseteos. Espera 15 minutos e intenta nuevamente.',
-      blocked: true,
-      remainingTime: 15, // 🎯 15 minutos de Firebase
-      remainingAttempts: 0
-    });
-  }
-  
-  // Para otros errores de Firebase
-  if (process.env.NODE_ENV === 'production') {
-    return res.json({
-      success: true,
-      message: 'Si el email está registrado, recibirás un enlace de recuperación',
-      remainingAttempts: updatedLimitCheck.remainingAttempts
-    });
-  } else {
-    return res.status(400).json({
-      success: false,
-      message: `Error al generar link: ${firebaseError.message}`,
-      code: firebaseError.code
-    });
-  }
-}
+      console.error('❌ Error de Firebase en forgotPassword:', firebaseError);
+      
+      // ✅ **DEVOLVER INTENTOS ACTUALIZADOS**
+      const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
+      
+      if (firebaseError.code === 'auth/user-not-found') {
+        console.log(`❌ Usuario no encontrado en Firebase: ${email}`);
+        
+        return res.json({
+          success: true,
+          message: 'Si el email está registrado, recibirás un enlace de recuperación',
+          remainingAttempts: updatedLimitCheck.remainingAttempts
+        });
+      }
+      
+      // 🚨 **MANEJO PARA ERROR DE FIREBASE**
+      if (firebaseError.code === 'auth/too-many-requests') {
+        console.log(`🔥 FIREBASE BLOQUEÓ la cuenta: ${email} - Usando tiempo de Firebase (15 min)`);
+        
+        return res.status(429).json({
+          success: false,
+          message: 'Has solicitado demasiados reseteos. Espera 15 minutos e intenta nuevamente.',
+          blocked: true,
+          remainingTime: 15, // 🎯 15 minutos de Firebase
+          remainingAttempts: 0
+        });
+      }
+      
+      // Para otros errores de Firebase
+      if (process.env.NODE_ENV === 'production') {
+        return res.json({
+          success: true,
+          message: 'Si el email está registrado, recibirás un enlace de recuperación',
+          remainingAttempts: updatedLimitCheck.remainingAttempts
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: `Error al enviar email: ${firebaseError.message}`,
+          code: firebaseError.code
+        });
+      }
+    }
 
   } catch (error) {
     console.error('Error en forgotPassword:', error);
