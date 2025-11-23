@@ -302,4 +302,20 @@ export class LoginSecurityService {
       console.error('Error en limpieza de registros:', error);
     }
   }
+  /**
+   * Limpiar bloqueos expirados automáticamente
+   */
+  static async cleanupExpiredLocks(): Promise<void> {
+    try {
+      const result = await pool.query(
+        'DELETE FROM account_locks WHERE locked_until < NOW()'
+      );
+      
+      if (result.rowCount && result.rowCount > 0) {
+        console.log(`🧹 Limpiados ${result.rowCount} bloqueos expirados`);
+      }
+    } catch (error) {
+      console.error('Error limpiando bloqueos expirados:', error);
+    }
+  }
 }

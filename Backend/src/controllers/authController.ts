@@ -169,17 +169,16 @@ export const login = async (req: Request, res: Response) => {
     }
 
     console.log(`🔐 Iniciando login para: ${email} desde IP: ${clientIp}`);
-    console.log(`🖥️ User-Agent: ${userAgent}`);
 
-    // 🎯 VERIFICAR BLOQUEO DE CUENTA (LO PRIMERO QUE SE HACE)
+    // 🎯 PRIMERO: Verificar bloqueo ANTES de cualquier cosa
     const lockCheck = await LoginSecurityService.isAccountLocked(email, clientIp);
     
     if (lockCheck.locked) {
       const remainingTime = Math.ceil((new Date(lockCheck.lockedUntil!).getTime() - Date.now()) / 60000);
       
-      console.log(`🚫 CUENTA BLOQUEADA: ${email}. Intentos: ${lockCheck.attempts}. Tiempo restante: ${remainingTime} min`);
+      console.log(`🚫 CUENTA BLOQUEADA: ${email}. Tiempo restante: ${remainingTime} min`);
       
-      // 🎯 REGISTRAR INTENTO FALLIDO POR CUENTA BLOQUEADA
+      // Registrar intento fallido por cuenta bloqueada
       await LoginSecurityService.recordLoginAttempt({
         email,
         ip_address: clientIp,
@@ -224,17 +223,16 @@ export const login = async (req: Request, res: Response) => {
         });
       }
 
-      // 🎯 AQUÍ DEBERÍA IR LA VERIFICACIÓN REAL DE CONTRASEÑA CON FIREBASE
-      // Pero como estamos en el backend, necesitamos una alternativa
-      
-      // 🎯 WORKAROUND: Simular verificación de credenciales
-      // En una implementación real, el frontend manejaría Firebase Auth
+      // 🎯 VERIFICACIÓN DE CREDENCIALES CON FIREBASE
       console.log(`🔑 Verificando credenciales para: ${email}`);
       
-      // Por ahora, asumimos que las credenciales son correctas si llegamos aquí
-      // Esto es un workaround - en producción necesitarías una forma de verificar la contraseña
+      // Aquí debería ir la verificación real con Firebase
+      // Pero como estamos en backend, necesitamos una alternativa
       
-      // 🎯 VERIFICAR BLOQUEO NUEVAMENTE ANTES DEL LOGIN EXITOSO (DOBLE VERIFICACIÓN)
+      // Por ahora, asumimos éxito si llegamos aquí
+      // En producción necesitarías verificar la contraseña
+      
+      // 🎯 VERIFICAR BLOQUEO NUEVAMENTE ANTES DEL LOGIN EXITOSO
       const finalLockCheck = await LoginSecurityService.isAccountLocked(email, clientIp);
       if (finalLockCheck.locked) {
         const remainingTime = Math.ceil((new Date(finalLockCheck.lockedUntil!).getTime() - Date.now()) / 60000);
@@ -257,7 +255,7 @@ export const login = async (req: Request, res: Response) => {
         });
       }
 
-      // 🎯 SI PASÓ TODAS LAS VERIFICACIONES, REGISTRAR LOGIN EXITOSO
+      // 🎯 REGISTRAR LOGIN EXITOSO
       await LoginSecurityService.recordLoginAttempt({
         email,
         ip_address: clientIp,
@@ -293,24 +291,34 @@ export const login = async (req: Request, res: Response) => {
       let failureReason = 'firebase_error';
       let isCredentialError = false;
 
-      if (firebaseError.code === 'auth/user-not-found') {
-        errorMessage = 'El usuario no existe. Por favor, verifica tu correo electrónico.';
-        failureReason = 'user_not_found';
+      // 🎯 DETECTAR TODOS LOS POSIBLES ERRORES DE CREDENCIALES
+      if (firebaseError.code === 'auth/user-not-found' || 
+          firebaseError.code === 'auth/wrong-password' || 
+          firebaseError.code === 'auth/invalid-credential' ||
+          firebaseError.message.includes('invalid-credential') ||
+          firebaseError.message.includes('wrong-password') ||
+          firebaseError.message.includes('user-not-found')) {
+        
         isCredentialError = true;
-      } else if (firebaseError.code === 'auth/wrong-password') {
-        errorMessage = 'Contraseña incorrecta.';
-        failureReason = 'wrong_password';
-        isCredentialError = true;
-      } else if (firebaseError.code === 'auth/invalid-credential') {
-        errorMessage = 'Credenciales inválidas.';
         failureReason = 'invalid_credentials';
-        isCredentialError = true;
+        
+        if (firebaseError.code === 'auth/user-not-found') {
+          errorMessage = 'El usuario no existe. Por favor, verifica tu correo electrónico.';
+          failureReason = 'user_not_found';
+        } else if (firebaseError.code === 'auth/wrong-password') {
+          errorMessage = 'Contraseña incorrecta.';
+          failureReason = 'wrong_password';
+        } else {
+          errorMessage = 'Email o contraseña incorrectos.';
+          failureReason = 'invalid_credentials';
+        }
       } else if (firebaseError.code === 'auth/too-many-requests') {
         errorMessage = 'Demasiados intentos fallidos. Tu cuenta ha sido temporalmente bloqueada por seguridad.';
         failureReason = 'too_many_requests';
+        isCredentialError = true; // 🎯 IMPORTANTE: Contar como intento fallido
       }
 
-      // 🎯 MODIFICADO: Mostrar mensajes más claros con intentos restantes
+      // 🎯 SIEMPRE REGISTRAR INTENTOS FALLIDOS (incluso errores de Firebase)
       if (isCredentialError) {
         const lockResult = await LoginSecurityService.handleFailedAttempt(
           email, 
@@ -337,7 +345,21 @@ export const login = async (req: Request, res: Response) => {
           });
         }
 
-        // 🎯 CORREGIDO: Mostrar intentos restantes correctamente
+        // 🎯 SI ESTÁ BLOQUEADO PERO NO FUE JUSTO AHORA (ya estaba bloqueado)
+        if (lockResult.locked) {
+          const lockCheck = await LoginSecurityService.isAccountLocked(email, clientIp);
+          const remainingTime = Math.ceil((new Date(lockCheck.lockedUntil!).getTime() - Date.now()) / 60000);
+          
+          return res.status(423).json({
+            success: false,
+            message: `🔒 Cuenta temporalmente bloqueada. Intenta nuevamente en ${remainingTime} minutos.`,
+            locked: true,
+            lockedFor: remainingTime,
+            remainingAttempts: 0
+          });
+        }
+
+        // Si no está bloqueada, mostrar error normal con intentos restantes
         let attemptsMessage = '';
         if (lockResult.remainingAttempts === 1) {
           attemptsMessage = '🚨 ¡ÚLTIMO INTENTO!';
@@ -356,8 +378,10 @@ export const login = async (req: Request, res: Response) => {
           attempts: lockResult.attempts,
           maxAttempts: LoginSecurityService.getMaxAttempts()
         });
+
       } else {
         // Para otros errores de Firebase, no contar como intento fallido
+        console.log(`⚠️ Error de Firebase no relacionado con credenciales: ${firebaseError.code}`);
         res.status(401).json({
           success: false,
           message: errorMessage

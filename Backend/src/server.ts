@@ -1,10 +1,11 @@
-// Ruta:Joyeria-Diana-Laura/Backend/src/server.ts
+// Ruta: Joyeria-Diana-Laura/Backend/src/server.ts
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { testConnection } from './config/database';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
+import { LoginSecurityService } from './services/loginSecurityService';
 
 dotenv.config();
 
@@ -54,5 +55,20 @@ app.listen(PORT, async () => {
   console.log(`   ❤️  Health: http://localhost:${PORT}/api/health`);
   console.log(`   🗄️  DB Test: http://localhost:${PORT}/api/db-test`);
   
-  await testConnection();
+  // 🎯 CONEXIÓN Y LIMPIEZA INICIAL
+  try {
+    const dbOk = await testConnection();
+    if (dbOk) {
+      console.log('✅ Base de datos conectada correctamente');
+      
+      // 🎯 AQUÍ VA LA LÍNEA QUE MENCIONASTE - después de testConnection()
+      // Limpiar bloqueos expirados al iniciar
+      await LoginSecurityService.cleanupExpiredLocks();
+      
+    } else {
+      console.log('❌ Error conectando a la base de datos');
+    }
+  } catch (error) {
+    console.error('❌ Error en inicialización:', error);
+  }
 });
