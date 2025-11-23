@@ -254,8 +254,8 @@ const sendPasswordReset = async (email: string): Promise<{
       console.log('⚠️ Error verificando usuario:', checkError.message);
     }
 
-    // 🎯 USAR SOLO EL BACKEND PARA LA RECUPERACIÓN
-    console.log('🔄 Enviando solicitud al backend...');
+    // 🎯 VERIFICAR LÍMITES CON BACKEND
+    console.log('🔄 Verificando límites de recuperación...');
     
     const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
     
@@ -267,44 +267,47 @@ const sendPasswordReset = async (email: string): Promise<{
       body: JSON.stringify({ email }),
     });
 
-    const data = await response.json();
-    
-    if (!response.ok) {
-      if (response.status === 429) {
-        return {
-          success: false,
-          message: data.message,
-          blocked: true,
-          remainingTime: data.remainingTime,
-          remainingAttempts: 0
-        };
-      }
+    // 🚫 SI ESTÁ BLOQUEADO POR NUESTRO SISTEMA
+    if (response.status === 429) {
+      const data = await response.json();
+      console.log('🚫 Bloqueado por nuestro sistema:', data);
       return {
         success: false,
-        message: data.message || 'Error en la petición'
+        message: data.message,
+        blocked: true,
+        remainingTime: data.remainingTime, // 🎯 SOLO 2 MINUTOS (TU SISTEMA)
+        remainingAttempts: 0
       };
     }
 
-    console.log('✅ Respuesta del backend:', data);
+    const data = await response.json();
     
-    // 🎯 Configurar URL de redirección
+    if (!response.ok) {
+      console.log('❌ Error del backend:', data);
+      return {
+        success: false,
+        message: data.message || 'Error en la verificación de límites'
+      };
+    }
+
+    console.log('✅ Límites verificados:', data);
+    
+    // 🎯 ENVIAR EMAIL CON FIREBASE (SE MANTIENE)
     const actionCodeSettings = {
       url: `${window.location.origin}/login?reset=success&email=${encodeURIComponent(email)}`,
       handleCodeInApp: false
     };
     
     console.log('🔗 URL de redirección configurada:', actionCodeSettings.url);
-    
-    // ❌❌❌ COMENTAR ESTAS 3 LÍNEAS ❌❌❌
-    
-    // 🎯 Enviar email de recuperación con Firebase
     console.log('🚀 Enviando email de recuperación con Firebase...');
+    
     await firebaseSendPasswordReset(auth, email, actionCodeSettings);
+    
     console.log('✅ Email de recuperación enviado por Firebase');
     
     return {
-      success: data.success,
-      message: data.message,
+      success: true,
+      message: 'Se ha enviado un enlace de recuperación a tu email',
       remainingAttempts: data.remainingAttempts
     };
     
@@ -322,11 +325,12 @@ const sendPasswordReset = async (email: string): Promise<{
         message: 'El formato del email es inválido. Por favor, verifica tu dirección de correo.'
       };
     } else if (error.code === 'auth/too-many-requests') {
+      // 🎯 **ELIMINADO COMPLETAMENTE: BLOQUEO DE FIREBASE**
+      // Simplemente mostrar mensaje genérico sin tiempo específico
       return {
         success: false,
-        message: 'Has solicitado demasiados reseteos. Espera unos minutos e intenta nuevamente.',
-        blocked: true,
-        remainingTime: 15
+        message: 'No se pudo enviar el email en este momento. Por favor, intenta nuevamente.',
+        blocked: false // 🎯 NO marcar como bloqueado para que pueda reintentar
       };
     } else if (error.message.includes('network') || error.message.includes('conexión')) {
       return {
@@ -336,8 +340,8 @@ const sendPasswordReset = async (email: string): Promise<{
     }
     
     return {
-      success: true,
-      message: 'Si el email está registrado, recibirás un enlace de recuperación'
+      success: false,
+      message: 'Error al enviar el email de recuperación: ' + error.message
     };
   }
 };
@@ -392,7 +396,7 @@ const sendPasswordReset = async (email: string): Promise<{
         throw new Error('❌ Contraseña incorrecta. Por favor, intenta nuevamente.');
       }
       if (error.code === 'auth/too-many-requests') {
-        throw new Error('⏳ Cuenta temporalmente bloqueada. Espera 15 minutos e intenta nuevamente.');
+        throw new Error('⏳ Cuenta temporalmente bloqueada. Espera unos minutos e intenta nuevamente.');
       }
       if (error.code === 'auth/network-request-failed') {
         throw new Error('🌐 Error de conexión. Verifica tu internet.');
