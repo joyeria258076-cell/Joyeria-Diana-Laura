@@ -9,6 +9,27 @@ import ReiniciarContraseniaScreen from "../screens/ReiniciarContraseniaScreen";
 import InicioScreen from "../screens/InicioScreen";
 import { useAuth } from "../contexts/AuthContext";
 
+// 🎯 NUEVO: Componente para rutas públicas que redirige si está autenticado
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-lg font-semibold">
+        Cargando...
+      </div>
+    );
+  }
+
+  // 🎯 Si ya está autenticado, redirigir a inicio
+  if (user) {
+    console.log('🔄 Usuario autenticado detectado en ruta pública - Redirigiendo a /inicio');
+    return <Navigate to="/inicio" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
 
@@ -31,13 +52,41 @@ export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Rutas públicas */}
-        <Route path="/login" element={<LoginScreen />} />
-        <Route path="/registro" element={<RegistroScreen />} />
-        <Route path="/olvide" element={<OlvideContraseniaScreen />} />
-        <Route path="/reiniciar" element={<ReiniciarContraseniaScreen />} />
+        {/* 🎯 RUTAS PÚBLICAS MODIFICADAS - Ahora usan PublicRoute */}
+        <Route 
+          path="/login" 
+          element={
+            <PublicRoute>
+              <LoginScreen />
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="/registro" 
+          element={
+            <PublicRoute>
+              <RegistroScreen />
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="/olvide" 
+          element={
+            <PublicRoute>
+              <OlvideContraseniaScreen />
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="/reiniciar" 
+          element={
+            <PublicRoute>
+              <ReiniciarContraseniaScreen />
+            </PublicRoute>
+          } 
+        />
 
-        {/* Rutas protegidas */}
+        {/* Rutas protegidas (se mantienen igual) */}
         <Route
           path="/inicio"
           element={
