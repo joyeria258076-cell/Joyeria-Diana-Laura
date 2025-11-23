@@ -21,9 +21,9 @@ export interface AccountLock {
 }
 
 export class LoginSecurityService {
-  // 🎯 AUMENTAR A 7 INTENTOS como pidió tu compañero
-  public static readonly MAX_ATTEMPTS = 7;
-  public static readonly LOCK_DURATION_MINUTES = 15;
+  // 🎯 MODIFICADO: 3 intentos y 5 minutos de bloqueo
+  public static readonly MAX_ATTEMPTS = 3;
+  public static readonly LOCK_DURATION_MINUTES = 5;
 
   /**
    * Obtener duración del bloqueo (para uso externo)
@@ -59,7 +59,7 @@ export class LoginSecurityService {
   }
 
   /**
-   * Verificar si la cuenta está bloqueada - VERSIÓN MÁS ESTRICTA
+   * Verificar si la cuenta está bloqueada - VERSIÓN CORREGIDA
    */
   static async isAccountLocked(email: string, ipAddress: string): Promise<{ 
     locked: boolean; 
@@ -70,7 +70,7 @@ export class LoginSecurityService {
     try {
       console.log(`🔍 Verificando bloqueo para: ${email}, IP: ${ipAddress}`);
 
-      // Buscar bloqueos activos por email
+      // 🎯 CORREGIDO: Buscar bloqueos activos por email
       const result = await pool.query(
         `SELECT locked_until, attempt_count 
          FROM account_locks 
@@ -91,15 +91,16 @@ export class LoginSecurityService {
         };
       }
 
-      // Si no está bloqueado, calcular intentos restantes
+      // 🎯 CORREGIDO: Si no está bloqueado, calcular intentos fallidos recientes
       const recentAttempts = await this.getRecentFailedAttempts(email);
-      const remainingAttempts = this.MAX_ATTEMPTS - recentAttempts;
+      const remainingAttempts = Math.max(0, this.MAX_ATTEMPTS - recentAttempts);
       
       console.log(`📊 Estado de ${email}: ${recentAttempts} intentos fallidos, ${remainingAttempts} restantes`);
       
       return { 
         locked: false, 
-        remainingAttempts: remainingAttempts > 0 ? remainingAttempts : 0 
+        attempts: recentAttempts,
+        remainingAttempts: remainingAttempts
       };
     } catch (error) {
       console.error('❌ Error verificando bloqueo de cuenta:', error);
@@ -108,7 +109,7 @@ export class LoginSecurityService {
   }
 
   /**
-   * Obtener número de intentos fallidos recientes
+   * Obtener número de intentos fallidos recientes - VERSIÓN CORREGIDA
    */
   static async getRecentFailedAttempts(email: string): Promise<number> {
     try {
@@ -127,7 +128,7 @@ export class LoginSecurityService {
   }
 
   /**
-   * Incrementar contador de intentos fallidos y bloquear si es necesario
+   * Incrementar contador de intentos fallidos y bloquear si es necesario - VERSIÓN CORREGIDA
    */
   static async handleFailedAttempt(
     email: string, 
@@ -150,19 +151,19 @@ export class LoginSecurityService {
         failure_reason: reason
       });
 
-      // Obtener intentos fallidos recientes
+      // 🎯 CORREGIDO: Obtener intentos fallidos recientes
       const attemptCount = await this.getRecentFailedAttempts(email);
-      const remainingAttempts = this.MAX_ATTEMPTS - attemptCount;
+      const remainingAttempts = Math.max(0, this.MAX_ATTEMPTS - attemptCount);
 
       console.log(`🔐 Intentos fallidos para ${email}: ${attemptCount}/${this.MAX_ATTEMPTS}, Restantes: ${remainingAttempts}`);
 
-      // Si supera el límite, bloquear cuenta
+      // 🎯 CORREGIDO: Si supera el límite, bloquear cuenta
       if (attemptCount >= this.MAX_ATTEMPTS) {
         const lockUntil = new Date(Date.now() + this.LOCK_DURATION_MINUTES * 60 * 1000);
         
         console.log(`🔒 Bloqueando cuenta ${email} por ${this.LOCK_DURATION_MINUTES} minutos`);
         
-        // Insertar o actualizar bloqueo
+        // 🎯 CORREGIDO: Insertar o actualizar bloqueo
         await pool.query(
           `INSERT INTO account_locks (email, ip_address, attempt_count, locked_until, lock_reason) 
            VALUES ($1, $2, $3, $4, $5) 
@@ -185,7 +186,7 @@ export class LoginSecurityService {
       return { 
         locked: false, 
         attempts: attemptCount, 
-        remainingAttempts: remainingAttempts > 0 ? remainingAttempts : 0 
+        remainingAttempts: remainingAttempts
       };
     } catch (error) {
       console.error('Error manejando intento fallido:', error);
