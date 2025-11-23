@@ -63,27 +63,50 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
+// 🎯 VARIABLES GLOBALES PARA DEBOUNCING
+let activityUpdateTimeout: NodeJS.Timeout | null = null;
+let lastActivityUpdate = 0;
+const UPDATE_INTERVAL = 30000; // 30 segundos entre updates reales
+const DEBOUNCE_DELAY = 1000; // 1 segundo de debounce
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
 
-  // 🎯 NUEVO: Configuración de inactividad (1 minuto para pruebas)
-  const INACTIVITY_TIMEOUT = 1 * 60 * 1000; // 1 minuto para pruebas
+  // 🎯 CONFIGURACIÓN OPTIMIZADA de inactividad
+  const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutos para producción
 
-  // 🎯 NUEVO: Función para actualizar actividad en el backend
+  // 🎯 FUNCIÓN OPTIMIZADA: Actualizar actividad en backend con debouncing
   const updateBackendActivity = useCallback(async () => {
-    if (user && user.email) {
-      try {
-        await authAPI.updateActivity(user.email);
-        console.log('✅ Actividad actualizada en backend para:', user.email);
-      } catch (error) {
-        console.log('⚠️ Error actualizando actividad en backend:', error);
-      }
+    const now = Date.now();
+    
+    // 🚫 Si ya actualizamos hace menos de 30 segundos, IGNORAR
+    if (now - lastActivityUpdate < UPDATE_INTERVAL) {
+      return;
     }
+
+    // 🧹 Limpiar timeout anterior si existe
+    if (activityUpdateTimeout) {
+      clearTimeout(activityUpdateTimeout);
+    }
+
+    // ⏰ Programar nuevo update con debounce
+    activityUpdateTimeout = setTimeout(async () => {
+      if (user && user.email) {
+        try {
+          await authAPI.updateActivity(user.email);
+          lastActivityUpdate = Date.now();
+          console.log('✅ Actividad actualizada en backend');
+        } catch (error) {
+          console.log('⚠️ Error silencioso en actividad:', error);
+          // No reintentar - fallo silencioso
+        }
+      }
+    }, DEBOUNCE_DELAY);
   }, [user]);
 
-  // 🎯 NUEVO: Función para resetear el timer de inactividad
+  // 🎯 FUNCIÓN: Resetear timer de inactividad (SOLO FRONTEND - RÁPIDO)
   const resetInactivityTimer = useCallback(() => {
     if (inactivityTimer) {
       clearTimeout(inactivityTimer);
@@ -99,13 +122,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [user, inactivityTimer]);
 
-  // 🎯 NUEVO: Manejar actividad del usuario
+  // 🎯 FUNCIÓN OPTIMIZADA: Manejar actividad del usuario
   const handleUserActivity = useCallback(() => {
-    resetInactivityTimer();
-    updateBackendActivity();
+    resetInactivityTimer(); // Esto sigue siendo rápido (solo frontend)
+    updateBackendActivity(); // Esto tiene debouncing de 30 segundos
   }, [resetInactivityTimer, updateBackendActivity]);
 
-  // 🎯 NUEVO: Manejar logout automático
+  // 🎯 FUNCIÓN: Manejar logout automático
   const handleAutoLogout = useCallback(async () => {
     console.log('🔒 Cerrando sesión automáticamente por inactividad');
     
@@ -118,34 +141,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     window.location.href = '/login';
   }, []);
 
-  // 🎯 NUEVO: Efecto para detectar actividad del usuario
+  // 🎯 EFECTO OPTIMIZADO: Detectar actividad del usuario
   useEffect(() => {
     if (!user) return;
 
+    // ✅ SOLO eventos significativos - 🚫 EXCLUIR mousemove
     const activityEvents = [
-      'mousedown', 'mousemove', 'keypress', 
-      'scroll', 'touchstart', 'click',
-      'keydown', 'input', 'focus'
+      'click', 'keydown', 'scroll', 'mousedown', 
+      'touchstart', 'focus'
     ];
 
+    console.log('🎯 Configurando listeners optimizados para actividad');
+
     activityEvents.forEach(event => {
-      document.addEventListener(event, handleUserActivity, true);
+      document.addEventListener(event, handleUserActivity, { passive: true });
     });
 
+    // Iniciar timers
     resetInactivityTimer();
-    updateBackendActivity();
+    
+    // Hacer primer update de actividad después de 1 segundo
+    const initialTimer = setTimeout(() => {
+      updateBackendActivity();
+    }, 1000);
 
     return () => {
+      // Limpiar event listeners
       activityEvents.forEach(event => {
-        document.removeEventListener(event, handleUserActivity, true);
+        document.removeEventListener(event, handleUserActivity);
       });
       
+      // Limpiar timers
       if (inactivityTimer) {
         clearTimeout(inactivityTimer);
       }
+      if (activityUpdateTimeout) {
+        clearTimeout(activityUpdateTimeout);
+      }
+      clearTimeout(initialTimer);
     };
   }, [user, handleUserActivity, resetInactivityTimer, inactivityTimer, updateBackendActivity]);
 
+  // 🎯 Cargar usuario desde localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem('diana_laura_user');
     if (savedUser) {
@@ -173,127 +210,120 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-const sendPasswordReset = async (email: string): Promise<{
-  success: boolean;
-  message: string;
-  remainingAttempts?: number;
-  blocked?: boolean;
-  remainingTime?: number;
-}> => {
-  try {
-    console.log('📧 Iniciando proceso de recuperación para:', email);
-    
-    // 🎯 PRIMERO: Verificar si el usuario existe en nuestro backend
+  const sendPasswordReset = async (email: string): Promise<{
+    success: boolean;
+    message: string;
+    remainingAttempts?: number;
+    blocked?: boolean;
+    remainingTime?: number;
+  }> => {
     try {
-      console.log('🔍 Verificando usuario en el sistema...');
-      const userCheck = await authAPI.checkFirebaseUser(email);
+      console.log('📧 Iniciando proceso de recuperación para:', email);
       
-      if (!userCheck.exists) {
-        console.log('❌ Usuario no encontrado en el sistema');
-        // En lugar de throw, devolvemos un objeto con la información
+      // 🎯 PRIMERO: Verificar si el usuario existe en nuestro backend
+      try {
+        console.log('🔍 Verificando usuario en el sistema...');
+        const userCheck = await authAPI.checkFirebaseUser(email);
+        
+        if (!userCheck.exists) {
+          console.log('❌ Usuario no encontrado en el sistema');
+          return {
+            success: false,
+            message: 'Este email no está registrado en nuestro sistema. Verifica tu dirección o regístrate primero.',
+            remainingAttempts: 0
+          };
+        }
+        
+        console.log('✅ Usuario verificado en el sistema');
+      } catch (checkError: any) {
+        console.log('⚠️ Error verificando usuario:', checkError.message);
+      }
+
+      // 🎯 USAR SOLO EL BACKEND PARA LA RECUPERACIÓN
+      console.log('🔄 Enviando solicitud al backend...');
+      
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+      
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        if (response.status === 429) {
+          return {
+            success: false,
+            message: data.message,
+            blocked: true,
+            remainingTime: data.remainingTime,
+            remainingAttempts: 0
+          };
+        }
         return {
           success: false,
-          message: 'Este email no está registrado en nuestro sistema. Verifica tu dirección o regístrate primero.',
-          remainingAttempts: 0
+          message: data.message || 'Error en la petición'
         };
       }
+
+      console.log('✅ Respuesta del backend:', data);
       
-      console.log('✅ Usuario verificado en el sistema');
-    } catch (checkError: any) {
-      console.log('⚠️ Error verificando usuario:', checkError.message);
-      // Si falla la verificación, continuamos de todos modos por seguridad
-    }
-
-    // 🎯 USAR SOLO EL BACKEND PARA LA RECUPERACIÓN (con limitación de intentos)
-    console.log('🔄 Enviando solicitud al backend...');
-    
-    const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
-    
-    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email }),
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      // Si es error 429 (too many attempts), devolver información específica
-      if (response.status === 429) {
+      // 🎯 Configurar URL de redirección
+      const actionCodeSettings = {
+        url: `${window.location.origin}/login?reset=success&email=${encodeURIComponent(email)}`,
+        handleCodeInApp: false
+      };
+      
+      console.log('🔗 URL de redirección configurada:', actionCodeSettings.url);
+      
+      // 🎯 Enviar email de recuperación con Firebase
+      console.log('🚀 Enviando email de recuperación con Firebase...');
+      await firebaseSendPasswordReset(auth, email, actionCodeSettings);
+      console.log('✅ Email de recuperación enviado por Firebase');
+      
+      return {
+        success: data.success,
+        message: data.message,
+        remainingAttempts: data.remainingAttempts
+      };
+      
+    } catch (error: any) {
+      console.error('❌ Error en sendPasswordReset:', error);
+      
+      if (error.code === 'auth/user-not-found') {
         return {
           success: false,
-          message: data.message,
+          message: 'Este email no está registrado en nuestro sistema. Verifica tu dirección o regístrate primero.'
+        };
+      } else if (error.code === 'auth/invalid-email') {
+        return {
+          success: false,
+          message: 'El formato del email es inválido. Por favor, verifica tu dirección de correo.'
+        };
+      } else if (error.code === 'auth/too-many-requests') {
+        return {
+          success: false,
+          message: 'Has solicitado demasiados reseteos. Espera unos minutos e intenta nuevamente.',
           blocked: true,
-          remainingTime: data.remainingTime,
-          remainingAttempts: 0
+          remainingTime: 15
+        };
+      } else if (error.message.includes('network') || error.message.includes('conexión')) {
+        return {
+          success: false,
+          message: 'Error de conexión. Verifica tu internet e intenta nuevamente.'
         };
       }
-      // Para otros errores, devolver el mensaje del backend
+      
       return {
-        success: false,
-        message: data.message || 'Error en la petición'
+        success: true,
+        message: 'Si el email está registrado, recibirás un enlace de recuperación'
       };
     }
-
-    console.log('✅ Respuesta del backend:', data);
-    
-    // 🎯 SEGUNDO: Configurar URL de redirección MEJORADA
-    const actionCodeSettings = {
-      url: `${window.location.origin}/login?reset=success&email=${encodeURIComponent(email)}`,
-      handleCodeInApp: false
-    };
-    
-    console.log('🔗 URL de redirección configurada:', actionCodeSettings.url);
-    
-    // 🎯 TERCERO: Enviar email de recuperación con Firebase
-    console.log('🚀 Enviando email de recuperación con Firebase...');
-    await firebaseSendPasswordReset(auth, email, actionCodeSettings);
-    console.log('✅ Email de recuperación enviado por Firebase');
-    
-    // Devolver la respuesta del backend con la información de intentos
-    return {
-      success: data.success,
-      message: data.message,
-      remainingAttempts: data.remainingAttempts
-    };
-    
-  } catch (error: any) {
-    console.error('❌ Error en sendPasswordReset:', error);
-    
-    // Manejar errores específicos de Firebase
-    if (error.code === 'auth/user-not-found') {
-      return {
-        success: false,
-        message: 'Este email no está registrado en nuestro sistema. Verifica tu dirección o regístrate primero.'
-      };
-    } else if (error.code === 'auth/invalid-email') {
-      return {
-        success: false,
-        message: 'El formato del email es inválido. Por favor, verifica tu dirección de correo.'
-      };
-    } else if (error.code === 'auth/too-many-requests') {
-      return {
-        success: false,
-        message: 'Has solicitado demasiados reseteos. Espera unos minutos e intenta nuevamente.',
-        blocked: true,
-        remainingTime: 15
-      };
-    } else if (error.message.includes('network') || error.message.includes('conexión')) {
-      return {
-        success: false,
-        message: 'Error de conexión. Verifica tu internet e intenta nuevamente.'
-      };
-    }
-    
-    // Por seguridad, devolver éxito genérico en caso de error desconocido
-    return {
-      success: true,
-      message: 'Si el email está registrado, recibirás un enlace de recuperación'
-    };
-  }
-};
+  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -318,7 +348,6 @@ const sendPasswordReset = async (email: string): Promise<{
 
       console.log('✅ Email verificado, creando sesión...');
       
-      // 🎯 USAR BACKEND PARA LOGIN (compatibilidad)
       const response = await authAPI.login(email, password);
       
       if (response.success) {
@@ -327,7 +356,7 @@ const sendPasswordReset = async (email: string): Promise<{
         localStorage.setItem('diana_laura_user', JSON.stringify(userData));
         console.log('✅ Login completo exitoso - SESIÓN INICIADA');
         
-        // 🎯 NUEVO: Iniciar sistema de actividad después del login
+        // 🎯 INICIAR sistema de actividad después del login
         handleUserActivity();
       } else {
         throw new Error(response.message);
@@ -363,14 +392,11 @@ const sendPasswordReset = async (email: string): Promise<{
     try {
       console.log('🚀 Iniciando proceso de registro...');
 
-      // 🎯 PASO 1: Crear usuario en Firebase Client SDK
-      console.log('🔥 Creando usuario en Firebase...');
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
       
       console.log('✅ Usuario creado en Firebase');
 
-      // 🎯 PASO 2: Actualizar perfil con el nombre
       try {
         console.log('👤 Actualizando perfil con nombre...');
         await updateProfile(firebaseUser, {
@@ -381,7 +407,6 @@ const sendPasswordReset = async (email: string): Promise<{
         console.log('⚠️ Error actualizando perfil:', profileError.message);
       }
 
-      // 🎯 PASO 3: Enviar email de verificación
       console.log('📧 Enviando email de verificación...');
       const verificationActionCodeSettings = {
         url: `${window.location.origin}/login?verified=true&email=${encodeURIComponent(email)}`,
@@ -391,7 +416,6 @@ const sendPasswordReset = async (email: string): Promise<{
       await sendEmailVerification(firebaseUser, verificationActionCodeSettings);
       console.log('✅ Email de verificación enviado por Firebase');
 
-      // 🎯 PASO 4: Sincronizar con PostgreSQL (OPCIONAL)
       try {
         console.log('💾 Intentando sincronizar con PostgreSQL...');
         await authAPI.syncUser(email, firebaseUser.uid, nombre);
@@ -400,7 +424,6 @@ const sendPasswordReset = async (email: string): Promise<{
         console.log('⚠️ Usuario en Firebase pero no en PostgreSQL:', syncError.message);
       }
 
-      // 🎯 PASO 5: Cerrar sesión para forzar verificación
       console.log('🔒 Cerrando sesión...');
       await auth.signOut();
       console.log('✅ Sesión cerrada exitosamente');
@@ -427,9 +450,12 @@ const sendPasswordReset = async (email: string): Promise<{
   };
 
   const logout = async () => {
-    // 🎯 NUEVO: Limpiar timer al hacer logout manual
+    // 🎯 Limpiar timers al hacer logout manual
     if (inactivityTimer) {
       clearTimeout(inactivityTimer);
+    }
+    if (activityUpdateTimeout) {
+      clearTimeout(activityUpdateTimeout);
     }
     
     await auth.signOut();

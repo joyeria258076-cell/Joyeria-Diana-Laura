@@ -88,10 +88,27 @@ export const authAPI = {
     });
   },
 
-   updateActivity: async (email: string) => {
-    return apiRequest('/auth/update-activity', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    });
+  // 🎯 FUNCIÓN OPTIMIZADA: Update activity con manejo silencioso de errores
+  updateActivity: async (email: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/update-activity`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        // 🚫 No lanzar error - fallo silencioso
+        console.log('⚠️ Activity update failed silently');
+        return;
+      }
+      
+      return await response.json();
+    } catch (error) {
+      // 🚫 No lanzar error - fallo silencioso
+      console.log('🌐 Network error in activity update - failing silently');
+    }
   },
 };
