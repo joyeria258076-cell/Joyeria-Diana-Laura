@@ -75,7 +75,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
 
   // 🎯 CONFIGURACIÓN OPTIMIZADA de inactividad
-  const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutos para producción
+  const INACTIVITY_TIMEOUT = 1 * 60 * 1000; // 1 minutos para producción
 
   // 🎯 FUNCIÓN OPTIMIZADA: Actualizar actividad en backend con debouncing
   const updateBackendActivity = useCallback(async () => {
