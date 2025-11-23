@@ -104,58 +104,52 @@ const OlvideContraseniaScreen: React.FC = () => {
     const attemptsMessage = getAttemptsMessage();
     const isBlocked = blockedUntil && blockedUntil > new Date();
 
-    const onSubmit = async (data: FormData) => {
-        setMessage('');
-        setLoading(true);
-        setMessageType('success');
+const onSubmit = async (data: FormData) => {
+    setMessage('');
+    setLoading(true);
+    setMessageType('success');
 
-        try {
-            console.log('📧 Iniciando proceso de recuperación para:', data.email);
+    try {
+        console.log('📧 Iniciando proceso de recuperación para:', data.email);
+        
+        const response = await sendPasswordReset(data.email);
+        
+        // Manejar respuesta del backend
+        if (response.remainingAttempts !== undefined) {
+            setRemainingAttempts(response.remainingAttempts);
+        }
+        
+        if (response.blocked) {
+            const blockedTime = new Date();
+            blockedTime.setMinutes(blockedTime.getMinutes() + (response.remainingTime || 15));
+            setBlockedUntil(blockedTime);
+            setMessage(`❌ ${response.message}`);
+            setMessageType('error');
+        } else if (response.success) {
+            // ✅ CORRECTO: NO resetear aquí - solo mostrar éxito
+            setMessage('✅ ¡Enlace de recuperación enviado! Revisa tu bandeja de entrada y carpeta de spam.');
+            setMessageType('success');
+            setEmailSent(true);
             
-            const response = await sendPasswordReset(data.email);
-            
-            // Manejar respuesta del backend
+            // ✅ CORRECTO: Mantener los intentos REALES del backend
             if (response.remainingAttempts !== undefined) {
                 setRemainingAttempts(response.remainingAttempts);
             }
-            
-            if (response.blocked) {
-                const blockedTime = new Date();
-                blockedTime.setMinutes(blockedTime.getMinutes() + (response.remainingTime || 15));
-                setBlockedUntil(blockedTime);
-                setMessage(`❌ ${response.message}`);
-                setMessageType('error');
-            } else if (response.success) {
-                // 🎯 **NUEVO: RESETEAR INTENTOS CUANDO EL CORREO SE ENVÍA EXITOSAMENTE**
-                try {
-                    await authAPI.resetRecoveryAttempts(data.email);
-                    console.log('✅ Intentos de recuperación reseteados para:', data.email);
-                } catch (resetError) {
-                    console.log('⚠️ Error reseteando intentos (no crítico):', resetError);
-                    // No bloqueamos el flujo si falla el reset
-                }
-                
-                setMessage('✅ ¡Enlace de recuperación enviado! Revisa tu bandeja de entrada y carpeta de spam.');
-                setMessageType('success');
-                setEmailSent(true);
-                
-                // 🎯 **ACTUALIZAR VISUALMENTE A 3 INTENTOS**
-                setRemainingAttempts(3);
-            } else {
-                setMessage(`❌ ${response.message}`);
-                setMessageType('error');
-            }
-            
-            console.log('✅ Proceso de recuperación completado');
-
-        } catch (error: any) {
-            console.error('❌ Error en recuperación:', error);
-            setMessage(`❌ ${error.message}`);
+        } else {
+            setMessage(`❌ ${response.message}`);
             setMessageType('error');
-        } finally {
-            setLoading(false);
         }
-    };
+        
+        console.log('✅ Proceso de recuperación completado');
+
+    } catch (error: any) {
+        console.error('❌ Error en recuperación:', error);
+        setMessage(`❌ ${error.message}`);
+        setMessageType('error');
+    } finally {
+        setLoading(false);
+    }
+};
 
     return (
         <div className="olvide-contrasenia-container">

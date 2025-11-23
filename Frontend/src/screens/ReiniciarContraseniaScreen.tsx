@@ -21,44 +21,52 @@ const ResetPasswordScreen: React.FC = () => {
     // ya que el backend desplegado no maneja códigos OOB de Firebase
   }, [searchParams]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setMessage('');
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
+  setMessage('');
 
-    if (!email) {
-      setError('Por favor ingresa tu email');
-      return;
-    }
+  if (!email) {
+    setError('Por favor ingresa tu email');
+    return;
+  }
 
-    if (newPassword !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
-      return;
-    }
+  if (newPassword !== confirmPassword) {
+    setError('Las contraseñas no coinciden');
+    return;
+  }
 
-    if (newPassword.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
-      return;
-    }
+  if (newPassword.length < 6) {
+    setError('La contraseña debe tener al menos 6 caracteres');
+    return;
+  }
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const response = await authAPI.resetPassword(email, newPassword);
+  try {
+    const response = await authAPI.resetPassword(email, newPassword);
 
-      if (response.success) {
-        setMessage('✅ Contraseña actualizada correctamente. Redirigiendo al login...');
-        setTimeout(() => navigate('/login'), 3000);
-      } else {
-        setError(response.message);
+    if (response.success) {
+      // 🎯 NUEVO: Resetear intentos de recuperación cuando la contraseña se cambia exitosamente
+      try {
+        await authAPI.resetRecoveryAttempts(email);
+        console.log('✅ Intentos de recuperación reseteados para:', email);
+      } catch (resetError) {
+        console.log('⚠️ Error reseteando intentos (no crítico):', resetError);
+        // No bloqueamos el flujo si falla el reset de intentos
       }
-    } catch (error: any) {
-      setError(error.message || 'Error al conectar con el servidor');
-    } finally {
-      setLoading(false);
+      
+      setMessage('✅ Contraseña actualizada correctamente. Redirigiendo al login...');
+      setTimeout(() => navigate('/login'), 3000);
+    } else {
+      setError(response.message);
     }
-  };
-
+  } catch (error: any) {
+    setError(error.message || 'Error al conectar con el servidor');
+  } finally {
+    setLoading(false);
+  }
+};
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const cleanedValue = value.replace(/\s/g, '');
