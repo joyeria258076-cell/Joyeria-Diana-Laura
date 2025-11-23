@@ -17,7 +17,7 @@ const schema = z.object({
     password: z.string()
         .min(1, "La contraseña es requerida")
         .min(6, "La contraseña debe tener al menos 6 caracteres")
-        .max(8, "La contraseña debe tener como máximo 8 caracteres")
+        .max(6, "La contraseña debe tener como máximo 6 caracteres")
 });
 
 type FormData = z.infer<typeof schema>;
@@ -220,10 +220,10 @@ const onSubmit = async (data: FormData) => {
                                 <input 
                                     id="password"
                                     type={showPassword ? "text" : "password"}
-                                    placeholder="Tu contraseña"
+                                    placeholder="Tu contraseña (caracteres exactos)"
                                     className={`login-input password-input ${errors.password ? 'error' : ''}`}
                                     {...register("password")} 
-                                    maxLength={8}
+                                    maxLength={6}
                                 />
                                 <button 
                                     type="button"
