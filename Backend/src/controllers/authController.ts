@@ -310,7 +310,7 @@ export const login = async (req: Request, res: Response) => {
         failureReason = 'too_many_requests';
       }
 
-      // 🎯 SOLO REGISTRAR INTENTOS FALLIDOS SI ES ERROR DE CREDENCIALES
+      // 🎯 MODIFICADO: Mostrar mensajes más claros con intentos restantes
       if (isCredentialError) {
         const lockResult = await LoginSecurityService.handleFailedAttempt(
           email, 
@@ -337,10 +337,15 @@ export const login = async (req: Request, res: Response) => {
           });
         }
 
-        // Si no está bloqueada, mostrar error normal con intentos restantes
-        const attemptsMessage = lockResult.remainingAttempts > 0 
-          ? `🔐 Te quedan ${lockResult.remainingAttempts} de ${LoginSecurityService.getMaxAttempts()} intentos.` 
-          : '⚠️ Último intento antes del bloqueo.';
+        // 🎯 CORREGIDO: Mostrar intentos restantes correctamente
+        let attemptsMessage = '';
+        if (lockResult.remainingAttempts === 1) {
+          attemptsMessage = '🚨 ¡ÚLTIMO INTENTO!';
+        } else if (lockResult.remainingAttempts > 0) {
+          attemptsMessage = `🔐 Te quedan ${lockResult.remainingAttempts} de ${LoginSecurityService.getMaxAttempts()} intentos.`;
+        } else {
+          attemptsMessage = '⚠️ Último intento antes del bloqueo.';
+        }
         
         console.log(`⚠️ Intento fallido ${lockResult.attempts}/${LoginSecurityService.getMaxAttempts()} para: ${email}`);
         
@@ -351,7 +356,6 @@ export const login = async (req: Request, res: Response) => {
           attempts: lockResult.attempts,
           maxAttempts: LoginSecurityService.getMaxAttempts()
         });
-
       } else {
         // Para otros errores de Firebase, no contar como intento fallido
         res.status(401).json({
