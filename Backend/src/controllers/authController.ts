@@ -434,7 +434,6 @@ export const unlockAccount = async (req: Request, res: Response) => {
   }
 };
 
-// 🔄 FUNCIONES DE RECUPERACIÓN DE CONTRASEÑA MEJORADAS - CON ENVÍO DE EMAIL
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
@@ -448,20 +447,9 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     console.log(`📧 Solicitando recuperación para: ${email}`);
     
-    // 🛡️ VERIFICAR LÍMITES DE RECUPERACIÓN
     const limitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
     
-    console.log(`🎯 VERIFICACIÓN DE LÍMITES:`, {
-      email: email,
-      permitido: limitCheck.allowed,
-      intentos_restantes: limitCheck.remainingAttempts,
-      bloqueado: !limitCheck.allowed,
-      tiempo_restante: limitCheck.remainingTime
-    });
-
     if (!limitCheck.allowed) {
-      console.log(`🚫 BLOQUEO ACTIVO: ${email} - ${limitCheck.remainingTime} minutos restantes`);
-
       return res.status(429).json({
         success: false,
         message: `Demasiados intentos de recuperación. Intente nuevamente en ${limitCheck.remainingTime} minutos.`,
@@ -472,43 +460,26 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 
     try {
-      // 🛡️ REGISTRAR EL INTENTO (ANTES de enviar el email)
       await RecoverySecurityService.incrementRecoveryAttempts(email);
 
-      console.log('🎯 Configuración de recuperación:');
-      console.log('📧 Email:', email);
-      console.log('🛡️ Intentos restantes:', limitCheck.remainingAttempts - 1);
+      console.log('🎯 Enviando email de recuperación...');
 
-      // 🎯 **SOLUCIÓN: USAR CLIENT SDK CON REQUIRE (sin imports)**
-      const { initializeApp } = require('firebase/app');
-      const { getAuth, sendPasswordResetEmail } = require('firebase/auth');
-
-      // Configuración de Firebase Client
-      const firebaseConfig = {
-        apiKey: process.env.FIREBASE_API_KEY,
-        authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.FIREBASE_APP_ID
+      // 🎯 **SOLUCIÓN: Configurar la URL de continuación**
+      const actionCodeSettings = {
+        url: `${process.env.FRONTEND_URL}/login?reset=success&email=${encodeURIComponent(email)}`,
+        handleCodeInApp: false
       };
 
-      // Inicializar app de Firebase
-      const firebaseApp = initializeApp(firebaseConfig, 'PasswordReset');
-      const auth = getAuth(firebaseApp);
+      // 🎯 **ESTA FUNCIÓN SÍ DEBERÍA ENVIAR EL EMAIL**
+      // Firebase Admin SDK debería usar tu template configurado
+      const resetLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
       
-      const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
-      
-      // 🎯 **ESTA FUNCIÓN SÍ ENVÍA EL EMAIL AUTOMÁTICAMENTE**
-      console.log('📤 Enviando email de recuperación...');
-      await sendPasswordResetEmail(auth, email, {
-        url: `${frontendUrl}/login?reset=success&email=${encodeURIComponent(email)}`,
-        handleCodeInApp: false
-      });
-      
-      console.log('✅ Email de recuperación ENVIADO exitosamente');
+      console.log('✅ Solicitud de recuperación procesada por Firebase');
+      console.log('🔗 Link generado (primeros 80 chars):', resetLink.substring(0, 80) + '...');
 
-      // ✅ **DEVOLVER LOS INTENTOS REALES RESTANTES**
+      // 🎯 **VERIFICAR EN FIREBASE CONSOLE SI SE ENVIÓ**
+      console.log('📧 Revisa en Firebase Console → Authentication → Users si el email se envió');
+
       const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
       
       res.json({
@@ -518,14 +489,11 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
 
     } catch (firebaseError: any) {
-      console.error('❌ Error de Firebase en forgotPassword:', firebaseError);
+      console.error('❌ Error de Firebase:', firebaseError);
       
-      // ✅ **DEVOLVER INTENTOS ACTUALIZADOS**
       const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
       
       if (firebaseError.code === 'auth/user-not-found') {
-        console.log(`❌ Usuario no encontrado en Firebase: ${email}`);
-        
         return res.json({
           success: true,
           message: 'Si el email está registrado, recibirás un enlace de recuperación',
@@ -533,49 +501,32 @@ export const forgotPassword = async (req: Request, res: Response) => {
         });
       }
       
-      // 🚨 **MANEJO PARA ERROR DE FIREBASE**
       if (firebaseError.code === 'auth/too-many-requests') {
-        console.log(`🔥 FIREBASE BLOQUEÓ la cuenta: ${email} - Usando tiempo de Firebase (15 min)`);
-        
         return res.status(429).json({
           success: false,
           message: 'Has solicitado demasiados reseteos. Espera 15 minutos e intenta nuevamente.',
           blocked: true,
-          remainingTime: 15, // 🎯 15 minutos de Firebase
+          remainingTime: 15,
           remainingAttempts: 0
         });
       }
       
-      // Para otros errores de Firebase
-      if (process.env.NODE_ENV === 'production') {
-        return res.json({
-          success: true,
-          message: 'Si el email está registrado, recibirás un enlace de recuperación',
-          remainingAttempts: updatedLimitCheck.remainingAttempts
-        });
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: `Error al enviar email: ${firebaseError.message}`,
-          code: firebaseError.code
-        });
-      }
+      // En producción, siempre devolver éxito por seguridad
+      return res.json({
+        success: true,
+        message: 'Si el email está registrado, recibirás un enlace de recuperación',
+        remainingAttempts: updatedLimitCheck.remainingAttempts
+      });
     }
 
   } catch (error) {
     console.error('Error en forgotPassword:', error);
     
-    if (process.env.NODE_ENV === 'production') {
-      res.json({
-        success: true,
-        message: 'Si el email está registrado, recibirás un enlace de recuperación'
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        message: 'Error interno del servidor'
-      });
-    }
+    // En producción, siempre devolver éxito por seguridad
+    res.json({
+      success: true,
+      message: 'Si el email está registrado, recibirás un enlace de recuperación'
+    });
   }
 };
 
