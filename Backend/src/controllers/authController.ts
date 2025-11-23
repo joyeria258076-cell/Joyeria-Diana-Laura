@@ -467,7 +467,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
       const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
       
       // 🎯 **ESTA LLAMADA SÍ ENVÍA EL EMAIL AUTOMÁTICAMENTE**
-      // (como te funcionaba antes)
       const resetLink = await admin.auth().generatePasswordResetLink(email, {
         url: `${frontendUrl}/login?reset=success&email=${encodeURIComponent(email)}`,
         handleCodeInApp: false
@@ -497,12 +496,15 @@ export const forgotPassword = async (req: Request, res: Response) => {
         });
       }
       
+      // 🎯 **CORREGIDO: Usar nuestro tiempo de bloqueo (2 min) no 15 min**
       if (firebaseError.code === 'auth/too-many-requests') {
+        console.log(`🔥 Firebase bloqueó la cuenta, usando nuestro sistema: ${updatedLimitCheck.remainingTime} min`);
+        
         return res.status(429).json({
           success: false,
-          message: 'Has solicitado demasiados reseteos. Espera 15 minutos e intenta nuevamente.',
+          message: `Has solicitado demasiados reseteos. Intente nuevamente en ${updatedLimitCheck.remainingTime} minutos.`,
           blocked: true,
-          remainingTime: 15,
+          remainingTime: updatedLimitCheck.remainingTime, // 🎯 2 MINUTOS, NO 15
           remainingAttempts: 0
         });
       }
