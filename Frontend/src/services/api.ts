@@ -24,6 +24,14 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
 };
 
 export const authAPI = {
+  // 🎯 NUEVA FUNCIÓN: Verificar estado de bloqueo
+  checkAccountLock: async (data: { email: string }) => {
+    return apiRequest('/auth/check-account-lock', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
   // 🎯 LOGIN CON BACKEND
   login: async (email: string, password: string) => {
     return apiRequest('/auth/login', {

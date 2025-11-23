@@ -37,5 +37,6 @@ router.post('/unlock-account', unlockAccount);
 router.post('/reset-recovery-attempts', resetRecoveryAttempts);
 router.post('/update-activity', updateUserActivity); 
 router.post('/check-login-security', checkLoginSecurity);
+router.post('/check-account-lock', checkAccountLock);
 
 export default router;

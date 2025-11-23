@@ -14,7 +14,7 @@ export interface LoginAttempt {
 export class LoginSecurityService {
   // 🎯 MISMOS PARÁMETROS QUE RECUPERACIÓN: 3 intentos, 2 minutos
   public static readonly MAX_ATTEMPTS = 3;
-  public static readonly LOCK_DURATION_MINUTES = 2;
+  public static readonly LOCK_DURATION_MINUTES = 5; // 🎯 CAMBIADO A 5 MINUTOS
 
   /**
    * Obtener duración del bloqueo

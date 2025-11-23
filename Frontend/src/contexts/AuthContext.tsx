@@ -396,7 +396,22 @@ const sendPasswordReset = async (email: string): Promise<{
 
 const login = async (email: string, password: string) => {
   try {
-    console.log('🔐 Iniciando login con Firebase...');
+    console.log('🔐 Iniciando proceso de login...');
+
+    // 🎯 PRIMERO: Verificar con nuestro backend si la cuenta está bloqueada
+    console.log('🛡️ Verificando estado de bloqueo en nuestro backend...');
+    const lockCheckResponse = await authAPI.checkAccountLock({ email });
+    
+    if (lockCheckResponse.data.locked) {
+      const lockedUntil = new Date(lockCheckResponse.data.lockedUntil);
+      const remainingTime = Math.ceil((lockedUntil.getTime() - Date.now()) / 60000);
+      
+      console.log(`🚫 Cuenta bloqueada. Tiempo restante: ${remainingTime} minutos`);
+      throw new Error(`🔒 Cuenta temporalmente bloqueada. Demasiados intentos fallidos. Intenta nuevamente en ${remainingTime} minutos.`);
+    }
+
+    // 🎯 SEGUNDO: Si no está bloqueada, intentar login con Firebase
+    console.log('🔥 Intentando login con Firebase...');
     await auth.signOut();
     
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -411,73 +426,67 @@ const login = async (email: string, password: string) => {
       const updatedUser = auth.currentUser;
       
       if (updatedUser && !updatedUser.emailVerified) {
-        throw new Error('Tu email no está verificado. Revisa tu bandeja de entrada y haz clic en el enlace de verificación.');
+        // 🎯 Registrar intento fallido por email no verificado
+        await authAPI.login(email, 'wrong_password_to_trigger_failure');
+        throw new Error('📧 Tu email no está verificado. Revisa tu bandeja de entrada y haz clic en el enlace de verificación.');
       }
     }
 
-    console.log('✅ Email verificado, creando sesión...');
+    console.log('✅ Email verificado, completando login...');
     
-    // 🎯 LLAMAR AL BACKEND PARA LOGIN
-    const response = await authAPI.login(email, password);
+    // 🎯 TERCERO: Login exitoso en nuestro backend
+    const backendResponse = await authAPI.login(email, password);
     
-    if (response.success) {
-      const userData = response.data.user;
+    if (backendResponse.success) {
+      const userData = backendResponse.data.user;
       setUser(userData);
       localStorage.setItem('diana_laura_user', JSON.stringify(userData));
       console.log('✅ Login completo exitoso - SESIÓN INICIADA');
       
       handleUserActivity();
     } else {
-      // 🎯 PROPAGAR LA RESPUESTA COMPLETA DEL BACKEND
-      const errorWithData = new Error(response.message);
-      (errorWithData as any).remainingAttempts = response.remainingAttempts;
-      (errorWithData as any).attempts = response.attempts;
-      (errorWithData as any).maxAttempts = response.maxAttempts;
-      (errorWithData as any).locked = response.locked;
-      (errorWithData as any).lockedFor = response.lockedFor;
-      throw errorWithData;
+      throw new Error(backendResponse.message);
     }
     
   } catch (error: any) {
     console.error('❌ Error en login:', error);
     
-    // 🎯 SI ES ERROR DE FIREBASE, LLAMAR AL BACKEND PARA REGISTRAR INTENTO FALLIDO
+    // 🎯 MANEJAR ERRORES DE CREDENCIALES - Registrar intento fallido
     if (error.code === 'auth/invalid-credential' || 
         error.code === 'auth/wrong-password' ||
         error.code === 'auth/user-not-found') {
       
       try {
-        console.log('🔄 Registrando intento fallido en backend...');
+        console.log('📝 Registrando intento fallido en nuestro sistema...');
         // Llamar al backend para registrar el intento fallido
-        const backendResponse = await authAPI.login(email, 'wrong_password_to_trigger_failure');
+        const failureResponse = await authAPI.login(email, 'wrong_password_to_trigger_failure');
         
-        // Si el backend responde con información de bloqueo, usarla
-        if (!backendResponse.success) {
-          const errorWithData = new Error(backendResponse.message);
-          (errorWithData as any).remainingAttempts = backendResponse.remainingAttempts;
-          (errorWithData as any).attempts = backendResponse.attempts;
-          (errorWithData as any).maxAttempts = backendResponse.maxAttempts;
-          (errorWithData as any).locked = backendResponse.locked;
-          (errorWithData as any).lockedFor = backendResponse.lockedFor;
-          throw errorWithData;
+        // Si el backend responde con información de intentos, usarla
+        if (!failureResponse.success && failureResponse.remainingAttempts !== undefined) {
+          const errorWithAttempts = new Error('Email o contraseña incorrectos.');
+          (errorWithAttempts as any).remainingAttempts = failureResponse.remainingAttempts;
+          (errorWithAttempts as any).attempts = failureResponse.attempts;
+          (errorWithAttempts as any).maxAttempts = failureResponse.maxAttempts;
+          throw errorWithAttempts;
         }
       } catch (backendError: any) {
-        // Usar la respuesta del backend si está disponible
-        if (backendError.remainingAttempts !== undefined) {
-          throw backendError;
-        }
+        console.log('⚠️ Error registrando intento fallido:', backendError);
       }
       
-      // Si el backend no responde, usar mensaje por defecto
-      if (error.code === 'auth/invalid-credential') {
-        throw new Error('Email o contraseña incorrectos. Si no tienes cuenta, regístrate primero.');
-      }
+      // Mensaje por defecto si no hay información de intentos
       if (error.code === 'auth/user-not-found') {
         throw new Error('Esta cuenta no existe. Por favor, regístrate primero.');
+      } else {
+        throw new Error('Email o contraseña incorrectos.');
       }
-      if (error.code === 'auth/wrong-password') {
-        throw new Error('Contraseña incorrecta. Por favor, intenta nuevamente.');
-      }
+    }
+    
+    // 🎯 PROPAGAR ERRORES DE BLOQUEO E INTENTOS
+    if (error.message.includes('bloqueada') || error.locked) {
+      throw error;
+    }
+    if (error.remainingAttempts !== undefined) {
+      throw error;
     }
     
     if (error.code === 'auth/too-many-requests') {
@@ -488,11 +497,6 @@ const login = async (email: string, password: string) => {
     }
     if (error.code === 'auth/invalid-email') {
       throw new Error('📧 El formato del email es inválido.');
-    }
-    
-    // 🎯 PROPAGAR ERRORES DEL BACKEND CON INTENTOS
-    if (error.remainingAttempts !== undefined) {
-      throw error;
     }
     
     throw new Error(error.message || 'Error al iniciar sesión');

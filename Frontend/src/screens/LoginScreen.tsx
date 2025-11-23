@@ -89,75 +89,73 @@ export default function LoginScreen() {
         }
     };
 
-    const onSubmit = async (data: FormData) => {
-    try {
-        await login(data.email, data.password);
-        navigate("/inicio");
-    } catch (error: any) {
-        console.log('🔍 Error recibido en LoginScreen:', error);
-        
-        // 🎯 MANEJAR BLOQUEOS E INTENTOS DEL BACKEND
-        if (error.locked) {
-        const minutes = error.lockedFor || 2;
-        setError('root', { 
-            type: 'manual', 
-            message: `🔒 Cuenta temporalmente bloqueada. Demasiados intentos fallidos. Intenta nuevamente en ${minutes} minutos.` 
-        });
-        }
-        else if (error.remainingAttempts !== undefined) {
-        // 🎯 MOSTRAR INTENTOS RESTANTES COMO EN RECUPERACIÓN
-        const attemptsMessage = getLoginAttemptsMessage(error.remainingAttempts, error.maxAttempts);
-        setError('root', { 
-            type: 'manual', 
-            message: `${error.message} ${attemptsMessage}` 
-        });
-        }
-        else if (error.message.includes("bloqueada")) {
-        setError('root', { 
-            type: 'manual', 
-            message: error.message
-        });
-        }
-        else if (error.message.includes("Esta cuenta no existe") || 
-            error.message.includes("no existe") || 
-            error.message.includes("not found") || 
-            error.message.includes("user-not-found")) {
-        setError('root', { 
-            type: 'manual', 
-            message: "❌ Esta cuenta no existe. Por favor, regístrate primero." 
-        });
-        }
-        else if (error.message.includes("contraseña incorrecta") || 
-            error.message.includes("wrong-password") ||
-            error.message.includes("invalid-credential")) {
-        setError('root', { 
-            type: 'manual', 
-            message: "❌ Email o contraseña incorrectos. Si no tienes cuenta, regístrate primero." 
-        });
-        }
-        else if (error.message.includes("verificado") || 
-            error.message.includes("verified")) {
-        setError('root', { 
-            type: 'manual', 
-            message: "📧 " + error.message 
-        });
-        }
-        else if (error.message.includes("conexión") || 
-            error.message.includes("connection") || 
-            error.message.includes("network")) {
-        setError('root', { 
-            type: 'manual', 
-            message: "🌐 Error de conexión. Verifica tu internet e intenta nuevamente." 
-        });
-        }
-        else {
-        setError('root', { 
-            type: 'manual', 
-            message: "❌ " + (error.message || "Error al iniciar sesión. Por favor, intenta nuevamente.") 
-        });
-        }
+const onSubmit = async (data: FormData) => {
+  try {
+    await login(data.email, data.password);
+    navigate("/inicio");
+  } catch (error: any) {
+    console.log('🔍 Error en login:', error);
+    
+    // 🎯 MANEJAR BLOQUEOS
+    if (error.message.includes('bloqueada')) {
+      setError('root', { 
+        type: 'manual', 
+        message: error.message
+      });
     }
-    };
+    // 🎯 MANEJAR INTENTOS RESTANTES
+    else if (error.remainingAttempts !== undefined) {
+      let attemptsMessage = '';
+      
+      if (error.remainingAttempts === 0) {
+        attemptsMessage = '🔒 Cuenta bloqueada. Espera 5 minutos.';
+      } else if (error.remainingAttempts === 1) {
+        attemptsMessage = '🚨 ¡ÚLTIMO INTENTO!';
+      } else if (error.remainingAttempts === 2) {
+        attemptsMessage = `⚠️ Te quedan ${error.remainingAttempts} intentos`;
+      } else {
+        attemptsMessage = `✅ Tienes ${error.remainingAttempts} intentos disponibles`;
+      }
+      
+      setError('root', { 
+        type: 'manual', 
+        message: `${error.message} ${attemptsMessage}`
+      });
+    }
+    // 🎯 MANEJAR OTROS ERRORES
+    else if (error.message.includes("Esta cuenta no existe")) {
+      setError('root', { 
+        type: 'manual', 
+        message: "❌ Esta cuenta no existe. Por favor, regístrate primero." 
+      });
+    }
+    else if (error.message.includes("contraseña incorrecta") || 
+             error.message.includes("Email o contraseña incorrectos")) {
+      setError('root', { 
+        type: 'manual', 
+        message: "❌ Email o contraseña incorrectos. Si no tienes cuenta, regístrate primero." 
+      });
+    }
+    else if (error.message.includes("verificado")) {
+      setError('root', { 
+        type: 'manual', 
+        message: "📧 " + error.message 
+      });
+    }
+    else if (error.message.includes("conexión")) {
+      setError('root', { 
+        type: 'manual', 
+        message: "🌐 Error de conexión. Verifica tu internet e intenta nuevamente." 
+      });
+    }
+    else {
+      setError('root', { 
+        type: 'manual', 
+        message: "❌ " + (error.message || "Error al iniciar sesión. Por favor, intenta nuevamente.") 
+      });
+    }
+  }
+};
 
     // 🎯 NUEVA FUNCIÓN: Mostrar mensajes de intentos igual que recuperación
     const getLoginAttemptsMessage = (remainingAttempts: number, maxAttempts: number = 3): string => {
