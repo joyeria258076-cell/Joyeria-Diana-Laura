@@ -462,25 +462,19 @@ export const forgotPassword = async (req: Request, res: Response) => {
     try {
       await RecoverySecurityService.incrementRecoveryAttempts(email);
 
-      console.log('🎯 SOLUCIÓN: Usando Admin SDK para envío real de email...');
+      console.log('🎯 ENVIANDO EMAIL AUTOMÁTICO...');
 
       const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
       
-      // 🎯 **ESTA ES LA CLAVE: Configurar continueUrl para que Firebase envíe el email**
-      const actionCodeSettings = {
+      // 🎯 **ESTA LLAMADA SÍ ENVÍA EL EMAIL AUTOMÁTICAMENTE**
+      // (como te funcionaba antes)
+      const resetLink = await admin.auth().generatePasswordResetLink(email, {
         url: `${frontendUrl}/login?reset=success&email=${encodeURIComponent(email)}`,
         handleCodeInApp: false
-      };
-
-      // 🎯 **LLAMADA QUE SÍ ACTIVA EL ENVÍO DE EMAIL**
-      console.log('📤 Activando envío de email con Firebase Admin SDK...');
-      const resetLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
+      });
       
-      console.log('✅ Email de recuperación ACTIVADO - Firebase debería enviarlo automáticamente');
-      console.log('🔗 Link generado (primeros 100 chars):', resetLink.substring(0, 100) + '...');
-
-      // 🎯 **VERIFICAR EN FIREBASE CONSOLE**
-      console.log('📧 Verifica en Firebase Console → Authentication → Users si aparece "Password reset"');
+      console.log('✅ EMAIL ENVIADO AUTOMÁTICAMENTE por Firebase');
+      console.log('🔗 Link generado:', resetLink.substring(0, 80) + '...');
 
       const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
       
