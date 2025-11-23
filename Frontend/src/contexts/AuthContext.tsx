@@ -1,6 +1,6 @@
 // Ruta:Joyeria-Diana-Laura/Frontend/src/contexts/AuthContext.tsx
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { authAPI } from '../services/api';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -72,7 +72,10 @@ const DEBOUNCE_DELAY = 1000; // 1 segundo de debounce
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
+  
+  // 🎯 USAR useRef PARA TIMERS (no causan re-renders)
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isSettingUpRef = useRef<boolean>(false);
 
   // 🎯 CONFIGURACIÓN OPTIMIZADA de inactividad
   const INACTIVITY_TIMEOUT = 1 * 60 * 1000; // 1 minuto para pruebas
@@ -80,7 +83,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // 🎯 FUNCIÓN: Manejar logout automático
   const handleAutoLogout = async () => {
     console.log('🔒 🔥 🔥 🔥 SESIÓN EXPIRADA - INACTIVIDAD DE 1 MINUTO 🔥 🔥 🔥');
-    console.log('🎯 TIMEOUT CONFIGURADO:', INACTIVITY_TIMEOUT / 60000 + ' minutos');
     
     alert('Tu sesión ha expirada por inactividad. Por favor, inicia sesión nuevamente.');
     
@@ -91,8 +93,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     window.location.href = '/login';
   };
 
-  // 🎯 FUNCIÓN OPTIMIZADA: Actualizar actividad en backend con debouncing
-  const updateBackendActivity = useCallback(async () => {
+  // 🎯 FUNCIÓN: Actualizar actividad en backend con debouncing
+  const updateBackendActivity = async () => {
     const now = Date.now();
     
     // 🚫 Si ya actualizamos hace menos de 30 segundos, IGNORAR
@@ -118,35 +120,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
     }, DEBOUNCE_DELAY);
-  }, [user]);
+  };
 
   // 🎯 FUNCIÓN: Resetear timer de inactividad
-  const resetInactivityTimer = useCallback(() => {
-    if (inactivityTimer) {
-      clearTimeout(inactivityTimer);
+  const resetInactivityTimer = () => {
+    // Limpiar timer anterior
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
     }
 
     if (user) {
       console.log('🔄 Reseteando timer de inactividad');
-      const timer = setTimeout(() => {
+      inactivityTimerRef.current = setTimeout(() => {
         console.log('⏰ ⏰ ⏰ TIMER ACTIVADO - EJECUTANDO LOGOUT AUTOMÁTICO');
         handleAutoLogout();
       }, INACTIVITY_TIMEOUT);
-      
-      setInactivityTimer(timer);
     }
-  }, [user, inactivityTimer, INACTIVITY_TIMEOUT]);
+  };
 
-  // 🎯 FUNCIÓN OPTIMIZADA: Manejar actividad del usuario
-  const handleUserActivity = useCallback(() => {
+  // 🎯 FUNCIÓN: Manejar actividad del usuario
+  const handleUserActivity = () => {
     resetInactivityTimer();
     updateBackendActivity();
-  }, [resetInactivityTimer, updateBackendActivity]);
+  };
 
-  // 🎯 EFECTO OPTIMIZADO: Detectar actividad del usuario
+  // 🎯 EFECTO OPTIMIZADO: Configurar sistema de inactividad (SOLO cuando user cambia)
   useEffect(() => {
+    // Evitar configurar múltiples veces
+    if (isSettingUpRef.current) return;
     if (!user) return;
 
+    isSettingUpRef.current = true;
+    
     console.log('🎯 🎯 🎯 INICIANDO SISTEMA DE INACTIVIDAD - 1 MINUTO 🎯 🎯 🎯');
     console.log('⏰ Timeout configurado:', INACTIVITY_TIMEOUT / 60000 + ' minutos');
 
@@ -158,42 +163,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     console.log('🎯 Configurando listeners optimizados para actividad');
 
-    // Función local para manejar actividad
-    const handleActivity = () => {
-      console.log('🎯 Actividad detectada - procesando...');
-      handleUserActivity();
-    };
-
     // Agregar event listeners
     activityEvents.forEach(event => {
-      document.addEventListener(event, handleActivity, { passive: true });
+      document.addEventListener(event, handleUserActivity, { passive: true });
     });
 
     // Iniciar timer inicial
     resetInactivityTimer();
     
     // Hacer primer update de actividad después de 1 segundo
-    const initialTimer = setTimeout(() => {
+    setTimeout(() => {
       updateBackendActivity();
     }, 1000);
 
     return () => {
-      console.log('🧹 Limpiando listeners de actividad');
+      console.log('🧹 Limpiando sistema de inactividad');
+      isSettingUpRef.current = false;
+      
       // Limpiar event listeners
       activityEvents.forEach(event => {
-        document.removeEventListener(event, handleActivity);
+        document.removeEventListener(event, handleUserActivity);
       });
       
       // Limpiar timers
-      if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = null;
       }
       if (activityUpdateTimeout) {
         clearTimeout(activityUpdateTimeout);
+        activityUpdateTimeout = null;
       }
-      clearTimeout(initialTimer);
     };
-  }, [user, handleUserActivity, resetInactivityTimer, updateBackendActivity, INACTIVITY_TIMEOUT, inactivityTimer]); // 🎯 TODAS las dependencias necesarias
+  }, [user]); // 🎯 SOLO depende de user
 
   // 🎯 Cargar usuario desde localStorage
   useEffect(() => {
@@ -464,11 +466,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     // 🎯 Limpiar timers al hacer logout manual
-    if (inactivityTimer) {
-      clearTimeout(inactivityTimer);
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
     }
     if (activityUpdateTimeout) {
       clearTimeout(activityUpdateTimeout);
+      activityUpdateTimeout = null;
     }
     
     await auth.signOut();
