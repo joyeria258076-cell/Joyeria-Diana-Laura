@@ -6,7 +6,7 @@ dotenv.config();
 export class RecoverySecurityService {
   // Límites para recuperación de contraseña
   public static readonly MAX_RECOVERY_ATTEMPTS = 3;
-  public static readonly LOCK_DURATION_MINUTES = 15;
+  public static readonly LOCK_DURATION_MINUTES = 2;
 
   private static async getClient(): Promise<Client> {
     return new Client({
@@ -47,6 +47,12 @@ static async checkRecoveryLimits(email: string): Promise<{
     const user = result.rows[0];
     const now = new Date();
     
+    console.log(`🔍 Estado actual de ${email}:`, {
+      intentos: user.recovery_attempts,
+      bloqueado_hasta: user.recovery_blocked_until,
+      ahora: now
+    });
+
     // 🛑 **CORRECCIÓN 1: Verificar bloqueo existente primero**
     if (user.recovery_blocked_until) {
       const blockedUntil = new Date(user.recovery_blocked_until);
@@ -60,6 +66,7 @@ static async checkRecoveryLimits(email: string): Promise<{
         };
       } else {
         // Resetear si ya pasó el bloqueo
+        console.log(`🔄 Bloqueo expirado, liberando automáticamente: ${email}`);
         await this.resetRecoveryAttempts(email);
         return { allowed: true, remainingAttempts: this.MAX_RECOVERY_ATTEMPTS };
       }
@@ -68,14 +75,16 @@ static async checkRecoveryLimits(email: string): Promise<{
     // 🛑 **CORRECCIÓN 2: Calcular intentos restantes CORRECTAMENTE**
     const remainingAttempts = Math.max(0, this.MAX_RECOVERY_ATTEMPTS - user.recovery_attempts);
     
-    // 🛑 **CORRECCIÓN 3: Solo bloquear si se alcanzó el máximo**
-    if (user.recovery_attempts >= this.MAX_RECOVERY_ATTEMPTS) {
+    // 🛑 **CORRECCIÓN 3: Solo bloquear si se alcanzó el máximo Y NO está ya bloqueado**
+    if (user.recovery_attempts >= this.MAX_RECOVERY_ATTEMPTS && !user.recovery_blocked_until) {
       const blockedUntil = new Date(now.getTime() + this.LOCK_DURATION_MINUTES * 60 * 1000);
       
       await client.query(
         'UPDATE usuarios SET recovery_blocked_until = $1 WHERE email = $2',
         [blockedUntil, email]
       );
+      
+      console.log(`🔒 NUEVO BLOQUEO aplicado para: ${email} por ${this.LOCK_DURATION_MINUTES} minutos`);
       
       return { 
         allowed: false, 
@@ -84,6 +93,7 @@ static async checkRecoveryLimits(email: string): Promise<{
         blockedUntil 
       };
     }
+
 
     // 🛑 **CORRECCIÓN 4: Devolver los intentos reales restantes**
     return { 

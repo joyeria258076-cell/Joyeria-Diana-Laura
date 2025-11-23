@@ -114,6 +114,8 @@ const onSubmit = async (data: FormData) => {
         
         const response = await sendPasswordReset(data.email);
         
+        console.log('📊 RESPUESTA DEL BACKEND:', response);
+
         // Manejar respuesta del backend
         if (response.remainingAttempts !== undefined) {
             setRemainingAttempts(response.remainingAttempts);
@@ -121,7 +123,8 @@ const onSubmit = async (data: FormData) => {
         
         if (response.blocked) {
             const blockedTime = new Date();
-            blockedTime.setMinutes(blockedTime.getMinutes() + (response.remainingTime || 15));
+            // 🔧 CAMBIO: Cambiar 15 por 2 minutos (línea 107)
+            blockedTime.setMinutes(blockedTime.getMinutes() + (response.remainingTime || 2)); // ← CAMBIAR 15 por 2
             setBlockedUntil(blockedTime);
             setMessage(`❌ ${response.message}`);
             setMessageType('error');
@@ -160,7 +163,7 @@ const onSubmit = async (data: FormData) => {
                     
                     {/* Información sobre el sistema de seguridad */}
                     <div className="security-info">
-                        <p><strong>🔒 Sistema de seguridad:</strong> Máximo 3 intentos cada 15 minutos</p>
+                        <p><strong>🔒 Sistema de seguridad:</strong> Máximo 3 intentos cada 2 minutos</p>
                     </div>
                 </div>
 

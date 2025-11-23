@@ -447,10 +447,21 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 
     console.log(`📧 Solicitando recuperación para: ${email}`);
-
+    
     // 🛡️ VERIFICAR LÍMITES DE RECUPERACIÓN
     const limitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
+    
+    console.log(`🎯 VERIFICACIÓN DE LÍMITES:`, {
+      email: email,
+      permitido: limitCheck.allowed,
+      intentos_restantes: limitCheck.remainingAttempts,
+      bloqueado: !limitCheck.allowed,
+      tiempo_restante: limitCheck.remainingTime
+    });
+
     if (!limitCheck.allowed) {
+      console.log(`🚫 BLOQUEO ACTIVO: ${email} - ${limitCheck.remainingTime} minutos restantes`);
+
       return res.status(429).json({
         success: false,
         message: `Demasiados intentos de recuperación. Intente nuevamente en ${limitCheck.remainingTime} minutos.`,
