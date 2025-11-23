@@ -28,7 +28,7 @@ const schema = z.object({
     password: z.string()
         .min(1, "La contraseña es requerida")
         .min(6, "La contraseña debe tener al menos 6 caracteres")
-        .max(8, "La contraseña no puede tener más de 8 caracteres")
+        .max(6, "La contraseña no puede tener más de 6 caracteres")
         .regex(/[A-Z]/, "La contraseña debe contener al menos una letra mayúscula")
         .regex(/[a-z]/, "La contraseña debe contener al menos una letra minúscula")
         .regex(/\d/, "La contraseña debe contener al menos un número")
@@ -149,10 +149,10 @@ export default function RegistroScreen() {
                             <input 
                                 id="password"
                                 type={showPassword ? "text" : "password"}
-                                placeholder="Ej: Pass123 (6-8 caracteres, sin espacios)"
+                                placeholder="Ej: Pass123 (6 caracteres, sin espacios)"
                                 className={`register-input password-input ${errors.password ? 'error' : ''}`}
                                 {...formRegister("password")} 
-                                maxLength={8}
+                                maxLength={6}
                                 onChange={handlePasswordChange}
                             />
                             <button 
@@ -169,7 +169,7 @@ export default function RegistroScreen() {
                         <div className="password-requirements">
                             <strong>DEBE CUMPLIR TODOS ESTOS REQUISITOS:</strong>
                             <ul className="requirements-list">
-                                <li>6-8 caracteres exactamente</li>
+                                <li>6 caracteres exactamente</li>
                                 <li>Al menos 1 letra MAYÚSCULA (A-Z)</li>
                                 <li>Al menos 1 letra minúscula (a-z)</li>
                                 <li>Al menos 1 número (0-9)</li>
@@ -188,7 +188,7 @@ export default function RegistroScreen() {
                                 placeholder="Repite tu contraseña"
                                 className={`register-input password-input ${errors.confirmPassword ? 'error' : ''}`}
                                 {...formRegister("confirmPassword")} 
-                                maxLength={8}
+                                maxLength={6}
                                 onChange={handlePasswordChange}
                             />
                             <button 
