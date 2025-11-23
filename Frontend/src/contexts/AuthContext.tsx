@@ -144,48 +144,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updateBackendActivity();
   };
 
-  // 🎯 EFECTO OPTIMIZADO: Configurar sistema de inactividad (SOLO cuando user cambia)
-  useEffect(() => {
-    // Evitar configurar múltiples veces
-    if (isSettingUpRef.current) return;
-    if (!user) return;
+// 🎯 EFECTO OPTIMIZADO: Configurar sistema de inactividad (SOLO cuando user cambia)
+useEffect(() => {
+  // Evitar configurar múltiples veces
+  if (isSettingUpRef.current) return;
+  if (!user) return;
 
-    isSettingUpRef.current = true;
+  isSettingUpRef.current = true;
+  
+  console.log('🎯 🎯 🎯 INICIANDO SISTEMA DE INACTIVIDAD - 1 MINUTO 🎯 🎯 🎯');
+  console.log('⏰ Timeout configurado:', INACTIVITY_TIMEOUT / 60000 + ' minutos');
+
+  // ✅ SOLO eventos significativos - 🚫 EXCLUIR mousemove
+  const activityEvents = [
+    'click', 'keydown', 'scroll', 'mousedown', 
+    'touchstart', 'focus'
+  ];
+
+  console.log('🎯 Configurando listeners optimizados para actividad');
+
+  // 🎯 NUEVO: Listener para eventos de navegación (flechas back/forward)
+  const handlePopState = () => {
+    console.log('🔄 Evento de navegación detectado (flechas del navegador)');
     
-    console.log('🎯 🎯 🎯 INICIANDO SISTEMA DE INACTIVIDAD - 1 MINUTO 🎯 🎯 🎯');
-    console.log('⏰ Timeout configurado:', INACTIVITY_TIMEOUT / 60000 + ' minutos');
-
-    // ✅ SOLO eventos significativos - 🚫 EXCLUIR mousemove
-    const activityEvents = [
-      'click', 'keydown', 'scroll', 'mousedown', 
-      'touchstart', 'focus'
-    ];
-
-    console.log('🎯 Configurando listeners optimizados para actividad');
-
-    // Agregar event listeners
-    activityEvents.forEach(event => {
-      document.addEventListener(event, handleUserActivity, { passive: true });
-    });
-
-    // Iniciar timer inicial
-    resetInactivityTimer();
+    // Verificar si estamos en una ruta no autenticada
+    const currentPath = window.location.pathname;
+    const publicRoutes = ['/login', '/registro', '/olvide', '/reiniciar'];
     
-    // Hacer primer update de actividad después de 1 segundo
-    setTimeout(() => {
-      updateBackendActivity();
-    }, 1000);
-
-    return () => {
-      console.log('🧹 Limpiando sistema de inactividad');
-      isSettingUpRef.current = false;
+    if (publicRoutes.includes(currentPath) && user) {
+      console.log('🚨 Usuario navegó a ruta pública con sesión activa - Limpiando timers');
       
-      // Limpiar event listeners
-      activityEvents.forEach(event => {
-        document.removeEventListener(event, handleUserActivity);
-      });
-      
-      // Limpiar timers
+      // Limpiar timers de inactividad
       if (inactivityTimerRef.current) {
         clearTimeout(inactivityTimerRef.current);
         inactivityTimerRef.current = null;
@@ -194,8 +183,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         clearTimeout(activityUpdateTimeout);
         activityUpdateTimeout = null;
       }
-    };
-  }, [user]); // 🎯 SOLO depende de user
+      
+      console.log('✅ Timers de inactividad limpiados por navegación');
+    }
+  };
+
+  // Agregar event listeners de actividad
+  activityEvents.forEach(event => {
+    document.addEventListener(event, handleUserActivity, { passive: true });
+  });
+
+  // 🎯 NUEVO: Agregar listener de navegación
+  window.addEventListener('popstate', handlePopState);
+
+  // Iniciar timer inicial
+  resetInactivityTimer();
+  
+  // Hacer primer update de actividad después de 1 segundo
+  setTimeout(() => {
+    updateBackendActivity();
+  }, 1000);
+
+  return () => {
+    console.log('🧹 Limpiando sistema de inactividad');
+    isSettingUpRef.current = false;
+    
+    // Limpiar event listeners de actividad
+    activityEvents.forEach(event => {
+      document.removeEventListener(event, handleUserActivity);
+    });
+    
+    // 🎯 NUEVO: Remover listener de navegación
+    window.removeEventListener('popstate', handlePopState);
+    
+    // Limpiar timers
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+    if (activityUpdateTimeout) {
+      clearTimeout(activityUpdateTimeout);
+      activityUpdateTimeout = null;
+    }
+  };
+}, [user]); // 🎯 SOLO depende de user
 
   // 🎯 Cargar usuario desde localStorage
   useEffect(() => {

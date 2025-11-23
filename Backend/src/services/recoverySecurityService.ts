@@ -94,8 +94,22 @@ static async checkRecoveryLimits(email: string): Promise<{
       };
     }
 
+    // 🛑 ** Si ya está bloqueado pero no en la verificación inicial**
+    if (user.recovery_attempts >= this.MAX_RECOVERY_ATTEMPTS && user.recovery_blocked_until) {
+      const blockedUntil = new Date(user.recovery_blocked_until);
+      const remainingTime = Math.ceil((blockedUntil.getTime() - now.getTime()) / (1000 * 60));
+      
+      return { 
+        allowed: false, 
+        remainingAttempts: 0, 
+        remainingTime,
+        blockedUntil 
+      };
+    }
 
-    // 🛑 **CORRECCIÓN 4: Devolver los intentos reales restantes**
+
+
+    // 🛑 **CORRECCIÓN 5: Devolver los intentos reales restantes**
     return { 
       allowed: true, 
       remainingAttempts: remainingAttempts 
@@ -107,7 +121,9 @@ static async checkRecoveryLimits(email: string): Promise<{
   } finally {
     await client.end();
   }
+  
 }
+
 
   /**
    * Incrementar intentos de recuperación
