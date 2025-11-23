@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const createLoginSecurityTable = async () => {
-  console.log('🔧 Iniciando creación de tabla de seguridad...');
+  console.log('🔧 Iniciando creación de tabla de seguridad de login...');
   
   const client = new Client({
     host: process.env.DB_HOST,
@@ -24,47 +24,28 @@ const createLoginSecurityTable = async () => {
     await client.connect();
     console.log('✅ ¡Conectado a PostgreSQL!');
 
-    // Crear tabla de intentos de login
-    console.log('🏗️ Creando tabla login_attempts...');
+    // Crear tabla de seguridad de login
+    console.log('🏗️ Creando tabla login_security...');
     await client.query(`
-      CREATE TABLE IF NOT EXISTS login_attempts (
-        id SERIAL PRIMARY KEY,
-        email VARCHAR(255) NOT NULL,
-        ip_address VARCHAR(45) NOT NULL,
-        user_agent TEXT,
-        attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        success BOOLEAN DEFAULT false,
-        failure_reason VARCHAR(100),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    console.log('✅ Tabla login_attempts creada');
-
-    // Crear tabla de bloqueos
-    console.log('🏗️ Creando tabla account_locks...');
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS account_locks (
+      CREATE TABLE IF NOT EXISTS login_security (
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
-        ip_address VARCHAR(45) NOT NULL,
-        attempt_count INTEGER DEFAULT 1,
-        locked_until TIMESTAMP NOT NULL,
-        lock_reason VARCHAR(100) DEFAULT 'too_many_attempts',
+        login_attempts INTEGER DEFAULT 0,
+        last_login_attempt TIMESTAMP,
+        login_blocked_until TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('✅ Tabla account_locks creada');
+    console.log('✅ Tabla login_security creada');
 
     // Crear índices
     console.log('📊 Creando índices...');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_login_attempts_email ON login_attempts(email)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_login_attempts_time ON login_attempts(attempt_time)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_account_locks_email ON account_locks(email)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_account_locks_locked_until ON account_locks(locked_until)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_login_security_email ON login_security(email)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_login_security_blocked ON login_security(login_blocked_until)');
     console.log('✅ Índices creados');
 
-    console.log('🎉 ¡TABLAS DE SEGURIDAD CREADAS EXITOSAMENTE!');
+    console.log('🎉 ¡TABLA DE SEGURIDAD DE LOGIN CREADA EXITOSAMENTE!');
 
   } catch (error: any) {
     console.error('❌ Error:', error.message);

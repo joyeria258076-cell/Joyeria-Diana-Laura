@@ -11,97 +11,90 @@ export interface LoginAttempt {
   failure_reason?: string;
 }
 
-export interface AccountLock {
-  id?: number;
-  email: string;
-  ip_address: string;
-  attempt_count: number;
-  locked_until: Date;
-  lock_reason: string;
-}
-
 export class LoginSecurityService {
-  // 🎯 MODIFICADO: 3 intentos y 5 minutos de bloqueo
+  // 🎯 MISMOS PARÁMETROS QUE RECUPERACIÓN: 3 intentos, 2 minutos
   public static readonly MAX_ATTEMPTS = 3;
-  public static readonly LOCK_DURATION_MINUTES = 5;
+  public static readonly LOCK_DURATION_MINUTES = 2;
 
   /**
-   * Obtener duración del bloqueo (para uso externo)
+   * Obtener duración del bloqueo
    */
   static getLockDurationMinutes(): number {
     return this.LOCK_DURATION_MINUTES;
   }
 
   /**
-   * Obtener máximo de intentos (para uso externo)
+   * Obtener máximo de intentos
    */
   static getMaxAttempts(): number {
     return this.MAX_ATTEMPTS;
   }
 
   /**
-   * Registrar intento de login
+   * Registrar intento de login (solo para auditoría)
    */
   static async recordLoginAttempt(attempt: LoginAttempt): Promise<void> {
     try {
-      console.log(`📝 Registrando intento de login: ${attempt.email}, éxito: ${attempt.success}, razón: ${attempt.failure_reason}`);
-      
       await pool.query(
         `INSERT INTO login_attempts (email, ip_address, user_agent, success, failure_reason) 
          VALUES ($1, $2, $3, $4, $5)`,
         [attempt.email, attempt.ip_address, attempt.user_agent, attempt.success, attempt.failure_reason]
       );
-      
-      console.log(`✅ Intento registrado en BD para: ${attempt.email}`);
     } catch (error) {
       console.error('❌ Error registrando intento de login:', error);
     }
   }
 
   /**
-   * Verificar si la cuenta está bloqueada - VERSIÓN CORREGIDA
+   * Verificar si la cuenta está bloqueada - NUEVO ENFOQUE
    */
-  static async isAccountLocked(email: string, ipAddress: string): Promise<{ 
+  static async isAccountLocked(email: string): Promise<{ 
     locked: boolean; 
     lockedUntil?: Date; 
     attempts?: number;
     remainingAttempts?: number;
   }> {
     try {
-      console.log(`🔍 Verificando bloqueo para: ${email}, IP: ${ipAddress}`);
-
-      // 🎯 CORREGIDO: Buscar bloqueos activos por email
+      // Buscar en la tabla login_security
       const result = await pool.query(
-        `SELECT locked_until, attempt_count 
-         FROM account_locks 
-         WHERE email = $1 AND locked_until > NOW()`,
+        `SELECT login_attempts, login_blocked_until 
+         FROM login_security 
+         WHERE email = $1`,
         [email]
       );
 
-      if (result.rows.length > 0) {
-        const lock = result.rows[0];
-        const remainingTime = Math.ceil((new Date(lock.locked_until).getTime() - Date.now()) / 60000);
-        
-        console.log(`🔒 BLOQUEO ENCONTRADO: ${email} hasta ${lock.locked_until} (${remainingTime} min restantes)`);
-        
-        return {
-          locked: true,
-          lockedUntil: lock.locked_until,
-          attempts: lock.attempt_count
+      if (result.rows.length === 0) {
+        return { 
+          locked: false, 
+          attempts: 0,
+          remainingAttempts: this.MAX_ATTEMPTS 
         };
       }
 
-      // 🎯 CORREGIDO: Si no está bloqueado, calcular intentos fallidos recientes
-      const recentAttempts = await this.getRecentFailedAttempts(email);
-      const remainingAttempts = Math.max(0, this.MAX_ATTEMPTS - recentAttempts);
-      
-      console.log(`📊 Estado de ${email}: ${recentAttempts} intentos fallidos, ${remainingAttempts} restantes`);
+      const security = result.rows[0];
+      const now = new Date();
+
+      // Verificar si está bloqueado
+      if (security.login_blocked_until && new Date(security.login_blocked_until) > now) {
+        const remainingTime = Math.ceil((new Date(security.login_blocked_until).getTime() - now.getTime()) / 60000);
+        
+        return {
+          locked: true,
+          lockedUntil: security.login_blocked_until,
+          attempts: security.login_attempts,
+          remainingAttempts: 0
+        };
+      }
+
+      // Si no está bloqueado, calcular intentos restantes
+      const remainingAttempts = Math.max(0, this.MAX_ATTEMPTS - security.login_attempts);
       
       return { 
         locked: false, 
-        attempts: recentAttempts,
+        attempts: security.login_attempts,
         remainingAttempts: remainingAttempts
       };
+
     } catch (error) {
       console.error('❌ Error verificando bloqueo de cuenta:', error);
       return { locked: false, remainingAttempts: this.MAX_ATTEMPTS };
@@ -109,32 +102,10 @@ export class LoginSecurityService {
   }
 
   /**
-   * Obtener número de intentos fallidos recientes - VERSIÓN CORREGIDA
-   */
-  static async getRecentFailedAttempts(email: string): Promise<number> {
-    try {
-      const recentAttempts = await pool.query(
-        `SELECT COUNT(*) as count 
-         FROM login_attempts 
-         WHERE email = $1 AND success = false AND attempt_time > NOW() - INTERVAL '15 minutes'`,
-        [email]
-      );
-
-      return parseInt(recentAttempts.rows[0].count);
-    } catch (error) {
-      console.error('Error obteniendo intentos recientes:', error);
-      return 0;
-    }
-  }
-
-  /**
-   * Incrementar contador de intentos fallidos y bloquear si es necesario - VERSIÓN CORREGIDA
+   * Incrementar intentos fallidos y bloquear si es necesario
    */
   static async handleFailedAttempt(
-    email: string, 
-    ipAddress: string, 
-    userAgent?: string, 
-    reason?: string
+    email: string
   ): Promise<{ 
     locked: boolean; 
     attempts: number; 
@@ -142,52 +113,66 @@ export class LoginSecurityService {
     justLocked?: boolean;
   }> {
     try {
-      // Registrar intento fallido
-      await this.recordLoginAttempt({
-        email,
-        ip_address: ipAddress,
-        user_agent: userAgent,
-        success: false,
-        failure_reason: reason
-      });
-
-      // 🎯 CORREGIDO: Obtener intentos fallidos recientes
-      const attemptCount = await this.getRecentFailedAttempts(email);
-      const remainingAttempts = Math.max(0, this.MAX_ATTEMPTS - attemptCount);
-
-      console.log(`🔐 Intentos fallidos para ${email}: ${attemptCount}/${this.MAX_ATTEMPTS}, Restantes: ${remainingAttempts}`);
-
-      // 🎯 CORREGIDO: Si supera el límite, bloquear cuenta
-      if (attemptCount >= this.MAX_ATTEMPTS) {
-        const lockUntil = new Date(Date.now() + this.LOCK_DURATION_MINUTES * 60 * 1000);
-        
-        console.log(`🔒 Bloqueando cuenta ${email} por ${this.LOCK_DURATION_MINUTES} minutos`);
-        
-        // 🎯 CORREGIDO: Insertar o actualizar bloqueo
-        await pool.query(
-          `INSERT INTO account_locks (email, ip_address, attempt_count, locked_until, lock_reason) 
-           VALUES ($1, $2, $3, $4, $5) 
-           ON CONFLICT (email) 
-           DO UPDATE SET 
-             attempt_count = $3, 
-             locked_until = $4, 
-             updated_at = CURRENT_TIMESTAMP`,
-          [email, ipAddress, attemptCount, lockUntil, 'too_many_attempts']
-        );
-
+      // Obtener estado actual
+      const currentState = await this.isAccountLocked(email);
+      
+      // Si ya está bloqueado, retornar estado actual
+      if (currentState.locked) {
         return { 
           locked: true, 
-          attempts: attemptCount, 
-          remainingAttempts: 0,
-          justLocked: true 
+          attempts: currentState.attempts || 0, 
+          remainingAttempts: 0 
         };
       }
 
+      // Incrementar intentos
+      const newAttempts = (currentState.attempts || 0) + 1;
+      let locked = false;
+      let justLocked = false;
+
+      // Si supera el límite, bloquear cuenta
+      if (newAttempts >= this.MAX_ATTEMPTS) {
+        const lockUntil = new Date(Date.now() + this.LOCK_DURATION_MINUTES * 60 * 1000);
+        locked = true;
+        justLocked = true;
+        
+        // Insertar o actualizar en login_security
+        await pool.query(
+          `INSERT INTO login_security (email, login_attempts, last_login_attempt, login_blocked_until) 
+           VALUES ($1, $2, $3, $4) 
+           ON CONFLICT (email) 
+           DO UPDATE SET 
+             login_attempts = $2, 
+             last_login_attempt = $3, 
+             login_blocked_until = $4,
+             updated_at = CURRENT_TIMESTAMP`,
+          [email, newAttempts, new Date(), lockUntil]
+        );
+
+        console.log(`🔒 CUENTA BLOQUEADA: ${email} por ${this.LOCK_DURATION_MINUTES} minutos`);
+      } else {
+        // Solo incrementar intentos
+        await pool.query(
+          `INSERT INTO login_security (email, login_attempts, last_login_attempt) 
+           VALUES ($1, $2, $3) 
+           ON CONFLICT (email) 
+           DO UPDATE SET 
+             login_attempts = $2, 
+             last_login_attempt = $3,
+             updated_at = CURRENT_TIMESTAMP`,
+          [email, newAttempts, new Date()]
+        );
+      }
+
+      const remainingAttempts = Math.max(0, this.MAX_ATTEMPTS - newAttempts);
+
       return { 
-        locked: false, 
-        attempts: attemptCount, 
-        remainingAttempts: remainingAttempts
+        locked, 
+        attempts: newAttempts, 
+        remainingAttempts: remainingAttempts,
+        justLocked 
       };
+
     } catch (error) {
       console.error('Error manejando intento fallido:', error);
       return { 
@@ -203,119 +188,74 @@ export class LoginSecurityService {
    */
   static async clearFailedAttempts(email: string): Promise<void> {
     try {
-      console.log(`🧹 Limpiando intentos fallidos para: ${email}`);
-      
-      // Eliminar bloqueos existentes
       await pool.query(
-        'DELETE FROM account_locks WHERE email = $1',
+        'DELETE FROM login_security WHERE email = $1',
         [email]
       );
-
-      // También limpiar intentos fallidos antiguos
-      await pool.query(
-        `DELETE FROM login_attempts 
-         WHERE email = $1 AND success = false AND attempt_time < NOW() - INTERVAL '1 hour'`,
-        [email]
-      );
-      
-      console.log(`✅ Intentos limpiados para: ${email}`);
     } catch (error) {
       console.error('Error limpiando intentos fallidos:', error);
     }
   }
 
   /**
-   * Obtener estadísticas de seguridad para un email
-   */
-  static async getSecurityStats(email: string): Promise<{
-    totalAttempts: number;
-    failedAttempts: number;
-    recentFailedAttempts: number;
-    lastAttempt?: Date;
-    isLocked: boolean;
-    lockedUntil?: Date;
-    remainingAttempts: number;
-  }> {
-    try {
-      const totalResult = await pool.query(
-        'SELECT COUNT(*) as count FROM login_attempts WHERE email = $1',
-        [email]
-      );
-
-      const failedResult = await pool.query(
-        'SELECT COUNT(*) as count FROM login_attempts WHERE email = $1 AND success = false',
-        [email]
-      );
-
-      const recentFailed = await this.getRecentFailedAttempts(email);
-
-      const lastResult = await pool.query(
-        'SELECT MAX(attempt_time) as last_attempt FROM login_attempts WHERE email = $1',
-        [email]
-      );
-
-      const lockResult = await pool.query(
-        'SELECT locked_until FROM account_locks WHERE email = $1 AND locked_until > NOW()',
-        [email]
-      );
-
-      const remainingAttempts = this.MAX_ATTEMPTS - recentFailed;
-
-      return {
-        totalAttempts: parseInt(totalResult.rows[0].count),
-        failedAttempts: parseInt(failedResult.rows[0].count),
-        recentFailedAttempts: recentFailed,
-        lastAttempt: lastResult.rows[0].last_attempt,
-        isLocked: lockResult.rows.length > 0,
-        lockedUntil: lockResult.rows[0]?.locked_until,
-        remainingAttempts: remainingAttempts > 0 ? remainingAttempts : 0
-      };
-    } catch (error) {
-      console.error('Error obteniendo estadísticas de seguridad:', error);
-      return {
-        totalAttempts: 0,
-        failedAttempts: 0,
-        recentFailedAttempts: 0,
-        isLocked: false,
-        remainingAttempts: this.MAX_ATTEMPTS
-      };
-    }
-  }
-
-  /**
-   * Limpieza automática de registros antiguos
-   */
-  static async cleanupOldRecords(): Promise<void> {
-    try {
-      // Eliminar intentos de login con más de 30 días
-      await pool.query(
-        'DELETE FROM login_attempts WHERE attempt_time < NOW() - INTERVAL \'30 days\''
-      );
-
-      // Eliminar bloqueos expirados
-      await pool.query(
-        'DELETE FROM account_locks WHERE locked_until < NOW() - INTERVAL \'7 days\''
-      );
-
-      console.log('🧹 Limpieza de registros de seguridad completada');
-    } catch (error) {
-      console.error('Error en limpieza de registros:', error);
-    }
-  }
-  /**
    * Limpiar bloqueos expirados automáticamente
    */
   static async cleanupExpiredLocks(): Promise<void> {
     try {
       const result = await pool.query(
-        'DELETE FROM account_locks WHERE locked_until < NOW()'
+        'DELETE FROM login_security WHERE login_blocked_until < NOW()'
       );
       
       if (result.rowCount && result.rowCount > 0) {
-        console.log(`🧹 Limpiados ${result.rowCount} bloqueos expirados`);
+        console.log(`🧹 Limpiados ${result.rowCount} bloqueos de login expirados`);
       }
     } catch (error) {
       console.error('Error limpiando bloqueos expirados:', error);
+    }
+  }
+
+  /**
+   * Obtener estadísticas de seguridad
+   */
+  static async getSecurityStats(email: string): Promise<{
+    attempts: number;
+    remainingAttempts: number;
+    isLocked: boolean;
+    lockedUntil?: Date;
+    lastAttempt?: Date;
+  }> {
+    try {
+      const result = await pool.query(
+        'SELECT login_attempts, last_login_attempt, login_blocked_until FROM login_security WHERE email = $1',
+        [email]
+      );
+
+      if (result.rows.length === 0) {
+        return {
+          attempts: 0,
+          remainingAttempts: this.MAX_ATTEMPTS,
+          isLocked: false
+        };
+      }
+
+      const security = result.rows[0];
+      const isLocked = security.login_blocked_until && new Date(security.login_blocked_until) > new Date();
+      const remainingAttempts = Math.max(0, this.MAX_ATTEMPTS - security.login_attempts);
+
+      return {
+        attempts: security.login_attempts,
+        remainingAttempts: remainingAttempts,
+        isLocked: isLocked,
+        lockedUntil: security.login_blocked_until,
+        lastAttempt: security.last_login_attempt
+      };
+    } catch (error) {
+      console.error('Error obteniendo estadísticas de seguridad:', error);
+      return {
+        attempts: 0,
+        remainingAttempts: this.MAX_ATTEMPTS,
+        isLocked: false
+      };
     }
   }
 }

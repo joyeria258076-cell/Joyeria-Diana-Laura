@@ -428,11 +428,21 @@ const sendPasswordReset = async (email: string): Promise<{
         // 🎯 INICIAR sistema de actividad después del login
         handleUserActivity();
       } else {
-        throw new Error(response.message);
+        // 🎯 PROPAGAR LOS INTENTOS RESTANTES DEL BACKEND
+        const errorWithAttempts = new Error(response.message);
+        (errorWithAttempts as any).remainingAttempts = response.remainingAttempts;
+        (errorWithAttempts as any).attempts = response.attempts;
+        (errorWithAttempts as any).maxAttempts = response.maxAttempts;
+        throw errorWithAttempts;
       }
       
     } catch (error: any) {
       console.error('❌ Error en login:', error);
+      
+      // 🎯 PROPAGAR LOS INTENTOS RESTANTES SI VIENEN DEL BACKEND
+      if (error.remainingAttempts !== undefined) {
+        throw error;
+      }
       
       if (error.code === 'auth/invalid-credential') {
         throw new Error('Email o contraseña incorrectos. Si no tienes cuenta, regístrate primero.');
@@ -444,7 +454,7 @@ const sendPasswordReset = async (email: string): Promise<{
         throw new Error('❌ Contraseña incorrecta. Por favor, intenta nuevamente.');
       }
       if (error.code === 'auth/too-many-requests') {
-        throw new Error('⏳ Cuenta temporalmente bloqueada. Espera unos minutos e intenta nuevamente.');
+        throw new Error('⏳ Cuenta temporalmente bloqueada. Espera 15 minutos e intenta nuevamente.');
       }
       if (error.code === 'auth/network-request-failed') {
         throw new Error('🌐 Error de conexión. Verifica tu internet.');
