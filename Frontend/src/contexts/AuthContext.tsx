@@ -75,7 +75,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
 
   // 🎯 CONFIGURACIÓN OPTIMIZADA de inactividad
-  const INACTIVITY_TIMEOUT = 1 * 60 * 1000; // 1 minutos para no esperar tanto en frontend
+  const INACTIVITY_TIMEOUT = 1 * 60 * 1000; // 1 minuto para pruebas
+
+  // 🎯 FUNCIÓN: Manejar logout automático (SIN useCallback para evitar dependencias circulares)
+  const handleAutoLogout = async () => {
+    console.log('🔒 🔥 🔥 🔥 SESIÓN EXPIRADA - INACTIVIDAD DE 1 MINUTO 🔥 🔥 🔥');
+    console.log('🎯 TIMEOUT CONFIGURADO:', INACTIVITY_TIMEOUT / 60000 + ' minutos');
+    
+    alert('Tu sesión ha expirada por inactividad. Por favor, inicia sesión nuevamente.');
+    
+    await auth.signOut();
+    setUser(null);
+    localStorage.removeItem('diana_laura_user');
+    
+    window.location.href = '/login';
+  };
 
   // 🎯 FUNCIÓN OPTIMIZADA: Actualizar actividad en backend con debouncing
   const updateBackendActivity = useCallback(async () => {
@@ -106,44 +120,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, DEBOUNCE_DELAY);
   }, [user]);
 
-  // 🎯 FUNCIÓN: Resetear timer de inactividad (SOLO FRONTEND - RÁPIDO)
+  // 🎯 FUNCIÓN: Resetear timer de inactividad
   const resetInactivityTimer = useCallback(() => {
     if (inactivityTimer) {
       clearTimeout(inactivityTimer);
     }
 
     if (user) {
+      console.log('🔄 Reseteando timer de inactividad');
       const timer = setTimeout(() => {
-        console.log('🕒 Sesión expirada por inactividad automáticamente');
+        console.log('⏰ ⏰ ⏰ TIMER ACTIVADO - EJECUTANDO LOGOUT AUTOMÁTICO');
         handleAutoLogout();
       }, INACTIVITY_TIMEOUT);
       
       setInactivityTimer(timer);
     }
-  }, [user, inactivityTimer]);
+  }, [user, inactivityTimer, INACTIVITY_TIMEOUT]);
 
   // 🎯 FUNCIÓN OPTIMIZADA: Manejar actividad del usuario
   const handleUserActivity = useCallback(() => {
-    resetInactivityTimer(); // Esto sigue siendo rápido (solo frontend)
-    updateBackendActivity(); // Esto tiene debouncing de 30 segundos
+    resetInactivityTimer();
+    updateBackendActivity();
   }, [resetInactivityTimer, updateBackendActivity]);
-
-  // 🎯 FUNCIÓN: Manejar logout automático
-  const handleAutoLogout = useCallback(async () => {
-    console.log('🔒 Cerrando sesión automáticamente por inactividad');
-    
-    alert('Tu sesión ha expirado por inactividad. Por favor, inicia sesión nuevamente.');
-    
-    await auth.signOut();
-    setUser(null);
-    localStorage.removeItem('diana_laura_user');
-    
-    window.location.href = '/login';
-  }, []);
 
   // 🎯 EFECTO OPTIMIZADO: Detectar actividad del usuario
   useEffect(() => {
     if (!user) return;
+
+    console.log('🎯 🎯 🎯 INICIANDO SISTEMA DE INACTIVIDAD - 1 MINUTO 🎯 🎯 🎯');
+    console.log('⏰ Timeout configurado:', INACTIVITY_TIMEOUT / 60000 + ' minutos');
 
     // ✅ SOLO eventos significativos - 🚫 EXCLUIR mousemove
     const activityEvents = [
@@ -166,6 +171,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, 1000);
 
     return () => {
+      console.log('🧹 Limpiando listeners de actividad');
       // Limpiar event listeners
       activityEvents.forEach(event => {
         document.removeEventListener(event, handleUserActivity);
@@ -180,7 +186,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       clearTimeout(initialTimer);
     };
-  }, [user, handleUserActivity, resetInactivityTimer, inactivityTimer, updateBackendActivity]);
+  }, [user, handleUserActivity, resetInactivityTimer, inactivityTimer, updateBackendActivity, INACTIVITY_TIMEOUT]);
 
   // 🎯 Cargar usuario desde localStorage
   useEffect(() => {
