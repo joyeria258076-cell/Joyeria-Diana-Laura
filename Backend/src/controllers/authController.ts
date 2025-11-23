@@ -482,10 +482,14 @@ export const forgotPassword = async (req: Request, res: Response) => {
         const userRecord = await admin.auth().getUserByEmail(email);
         console.log(`✅ Usuario verificado en Firebase: ${userRecord.uid}`);
         
+        // 🎯 **NUEVO: RESETEAR INTENTOS DESPUÉS DE RECUPERACIÓN EXITOSA**
+        await RecoverySecurityService.resetAfterSuccessfulRecovery(email);
+        console.log(`✅ Intentos reseteados para: ${email}`);
+        
         res.json({
           success: true,
           message: 'Se ha enviado un enlace de recuperación a tu email',
-          remainingAttempts: limitCheck.remainingAttempts - 1
+          remainingAttempts: 3  // 🎯 **SIEMPRE 3 DESPUÉS DE ÉXITO**
         });
 
       } catch (firebaseError: any) {
@@ -537,6 +541,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
   }
 };
+
 export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { email, newPassword } = req.body;
