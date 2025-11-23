@@ -457,10 +457,10 @@ export const resetPassword = async (req: Request, res: Response) => {
       });
     }
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       return res.status(400).json({
         success: false,
-        message: 'La contraseña debe tener al menos 6 caracteres'
+        message: 'La contraseña debe tener al menos 8 caracteres'
       });
     }
 
