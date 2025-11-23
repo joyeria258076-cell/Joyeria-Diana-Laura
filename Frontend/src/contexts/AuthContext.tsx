@@ -296,12 +296,11 @@ const sendPasswordReset = async (email: string): Promise<{
     console.log('🔗 URL de redirección configurada:', actionCodeSettings.url);
     
     // ❌❌❌ COMENTAR ESTAS 3 LÍNEAS ❌❌❌
-    /*
+    
     // 🎯 Enviar email de recuperación con Firebase
     console.log('🚀 Enviando email de recuperación con Firebase...');
     await firebaseSendPasswordReset(auth, email, actionCodeSettings);
     console.log('✅ Email de recuperación enviado por Firebase');
-    */
     
     return {
       success: data.success,
