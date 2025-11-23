@@ -842,3 +842,43 @@ export const updateUserActivity = async (req: Request, res: Response) => {
     });
   }
 };
+
+// 🎯 ENDPOINT DE DIAGNÓSTICO: Verificar estado del sistema de login
+export const checkLoginSecurity = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email es requerido'
+      });
+    }
+
+    const lockStatus = await LoginSecurityService.isAccountLocked(email);
+    const securityStats = await LoginSecurityService.getSecurityStats(email);
+
+    // Verificar si existe en la tabla login_security
+    const result = await pool.query(
+      'SELECT * FROM login_security WHERE email = $1',
+      [email]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        lockStatus,
+        securityStats,
+        existsInTable: result.rows.length > 0,
+        tableData: result.rows[0] || null
+      }
+    });
+
+  } catch (error) {
+    console.error('Error en checkLoginSecurity:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error verificando seguridad de login'
+    });
+  }
+};

@@ -94,20 +94,31 @@ export default function LoginScreen() {
         await login(data.email, data.password);
         navigate("/inicio");
     } catch (error: any) {
-        // 🎯 NUEVO: Manejar bloqueos e intentos restantes del login
-        if (error.message.includes("bloqueada") || error.message.includes("bloqueada")) {
+        console.log('🔍 Error recibido en LoginScreen:', error);
+        
+        // 🎯 MANEJAR BLOQUEOS E INTENTOS DEL BACKEND
+        if (error.locked) {
+        const minutes = error.lockedFor || 2;
         setError('root', { 
             type: 'manual', 
-            message: error.message
+            message: `🔒 Cuenta temporalmente bloqueada. Demasiados intentos fallidos. Intenta nuevamente en ${minutes} minutos.` 
         });
-        } else if (error.remainingAttempts !== undefined) {
-        // 🎯 MOSTRAR INTENTOS RESTANTES IGUAL QUE RECUPERACIÓN
-        const attemptsMessage = getLoginAttemptsMessage(error.remainingAttempts);
+        }
+        else if (error.remainingAttempts !== undefined) {
+        // 🎯 MOSTRAR INTENTOS RESTANTES COMO EN RECUPERACIÓN
+        const attemptsMessage = getLoginAttemptsMessage(error.remainingAttempts, error.maxAttempts);
         setError('root', { 
             type: 'manual', 
             message: `${error.message} ${attemptsMessage}` 
         });
-        } else if (error.message.includes("Esta cuenta no existe") || 
+        }
+        else if (error.message.includes("bloqueada")) {
+        setError('root', { 
+            type: 'manual', 
+            message: error.message
+        });
+        }
+        else if (error.message.includes("Esta cuenta no existe") || 
             error.message.includes("no existe") || 
             error.message.includes("not found") || 
             error.message.includes("user-not-found")) {
@@ -115,27 +126,31 @@ export default function LoginScreen() {
             type: 'manual', 
             message: "❌ Esta cuenta no existe. Por favor, regístrate primero." 
         });
-        } else if (error.message.includes("contraseña incorrecta") || 
+        }
+        else if (error.message.includes("contraseña incorrecta") || 
             error.message.includes("wrong-password") ||
             error.message.includes("invalid-credential")) {
         setError('root', { 
             type: 'manual', 
             message: "❌ Email o contraseña incorrectos. Si no tienes cuenta, regístrate primero." 
         });
-        } else if (error.message.includes("verificado") || 
+        }
+        else if (error.message.includes("verificado") || 
             error.message.includes("verified")) {
         setError('root', { 
             type: 'manual', 
             message: "📧 " + error.message 
         });
-        } else if (error.message.includes("conexión") || 
+        }
+        else if (error.message.includes("conexión") || 
             error.message.includes("connection") || 
             error.message.includes("network")) {
         setError('root', { 
             type: 'manual', 
             message: "🌐 Error de conexión. Verifica tu internet e intenta nuevamente." 
         });
-        } else {
+        }
+        else {
         setError('root', { 
             type: 'manual', 
             message: "❌ " + (error.message || "Error al iniciar sesión. Por favor, intenta nuevamente.") 
@@ -145,15 +160,15 @@ export default function LoginScreen() {
     };
 
     // 🎯 NUEVA FUNCIÓN: Mostrar mensajes de intentos igual que recuperación
-    const getLoginAttemptsMessage = (remainingAttempts: number): string => {
+    const getLoginAttemptsMessage = (remainingAttempts: number, maxAttempts: number = 3): string => {
     if (remainingAttempts === 0) {
-        return '🚨 ¡CUENTA BLOQUEADA!';
+        return '🚨 ¡CUENTA BLOQUEADA! Espera 2 minutos.';
     } else if (remainingAttempts === 1) {
         return '🚨 ¡ÚLTIMO INTENTO disponible!';
     } else if (remainingAttempts === 2) {
         return `⚠️ Te quedan ${remainingAttempts} intentos`;
     } else {
-        return `✅ Tienes ${remainingAttempts} intentos disponibles`;
+        return `✅ Tienes ${remainingAttempts} de ${maxAttempts} intentos disponibles`;
     }
     };
 

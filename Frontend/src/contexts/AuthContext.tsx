@@ -394,78 +394,110 @@ const sendPasswordReset = async (email: string): Promise<{
   }
 };
 
-  const login = async (email: string, password: string) => {
-    try {
-      console.log('🔐 Iniciando login con Firebase...');
-      await auth.signOut();
+const login = async (email: string, password: string) => {
+  try {
+    console.log('🔐 Iniciando login con Firebase...');
+    await auth.signOut();
+    
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const firebaseUser = userCredential.user;
+    
+    console.log('✅ Login Firebase exitoso');
+    console.log('📧 Estado de verificación:', firebaseUser.emailVerified);
+    
+    if (!firebaseUser.emailVerified) {
+      console.log('❌ Email no verificado');
+      await firebaseUser.reload();
+      const updatedUser = auth.currentUser;
       
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const firebaseUser = userCredential.user;
+      if (updatedUser && !updatedUser.emailVerified) {
+        throw new Error('Tu email no está verificado. Revisa tu bandeja de entrada y haz clic en el enlace de verificación.');
+      }
+    }
+
+    console.log('✅ Email verificado, creando sesión...');
+    
+    // 🎯 LLAMAR AL BACKEND PARA LOGIN
+    const response = await authAPI.login(email, password);
+    
+    if (response.success) {
+      const userData = response.data.user;
+      setUser(userData);
+      localStorage.setItem('diana_laura_user', JSON.stringify(userData));
+      console.log('✅ Login completo exitoso - SESIÓN INICIADA');
       
-      console.log('✅ Login Firebase exitoso');
-      console.log('📧 Estado de verificación:', firebaseUser.emailVerified);
+      handleUserActivity();
+    } else {
+      // 🎯 PROPAGAR LA RESPUESTA COMPLETA DEL BACKEND
+      const errorWithData = new Error(response.message);
+      (errorWithData as any).remainingAttempts = response.remainingAttempts;
+      (errorWithData as any).attempts = response.attempts;
+      (errorWithData as any).maxAttempts = response.maxAttempts;
+      (errorWithData as any).locked = response.locked;
+      (errorWithData as any).lockedFor = response.lockedFor;
+      throw errorWithData;
+    }
+    
+  } catch (error: any) {
+    console.error('❌ Error en login:', error);
+    
+    // 🎯 SI ES ERROR DE FIREBASE, LLAMAR AL BACKEND PARA REGISTRAR INTENTO FALLIDO
+    if (error.code === 'auth/invalid-credential' || 
+        error.code === 'auth/wrong-password' ||
+        error.code === 'auth/user-not-found') {
       
-      if (!firebaseUser.emailVerified) {
-        console.log('❌ Email no verificado');
-        await firebaseUser.reload();
-        const updatedUser = auth.currentUser;
+      try {
+        console.log('🔄 Registrando intento fallido en backend...');
+        // Llamar al backend para registrar el intento fallido
+        const backendResponse = await authAPI.login(email, 'wrong_password_to_trigger_failure');
         
-        if (updatedUser && !updatedUser.emailVerified) {
-          throw new Error('Tu email no está verificado. Revisa tu bandeja de entrada y haz clic en el enlace de verificación.');
+        // Si el backend responde con información de bloqueo, usarla
+        if (!backendResponse.success) {
+          const errorWithData = new Error(backendResponse.message);
+          (errorWithData as any).remainingAttempts = backendResponse.remainingAttempts;
+          (errorWithData as any).attempts = backendResponse.attempts;
+          (errorWithData as any).maxAttempts = backendResponse.maxAttempts;
+          (errorWithData as any).locked = backendResponse.locked;
+          (errorWithData as any).lockedFor = backendResponse.lockedFor;
+          throw errorWithData;
+        }
+      } catch (backendError: any) {
+        // Usar la respuesta del backend si está disponible
+        if (backendError.remainingAttempts !== undefined) {
+          throw backendError;
         }
       }
-
-      console.log('✅ Email verificado, creando sesión...');
       
-      const response = await authAPI.login(email, password);
-      
-      if (response.success) {
-        const userData = response.data.user;
-        setUser(userData);
-        localStorage.setItem('diana_laura_user', JSON.stringify(userData));
-        console.log('✅ Login completo exitoso - SESIÓN INICIADA');
-        
-        // 🎯 INICIAR sistema de actividad después del login
-        handleUserActivity();
-      } else {
-        // 🎯 PROPAGAR LOS INTENTOS RESTANTES DEL BACKEND
-        const errorWithAttempts = new Error(response.message);
-        (errorWithAttempts as any).remainingAttempts = response.remainingAttempts;
-        (errorWithAttempts as any).attempts = response.attempts;
-        (errorWithAttempts as any).maxAttempts = response.maxAttempts;
-        throw errorWithAttempts;
-      }
-      
-    } catch (error: any) {
-      console.error('❌ Error en login:', error);
-      
-      // 🎯 PROPAGAR LOS INTENTOS RESTANTES SI VIENEN DEL BACKEND
-      if (error.remainingAttempts !== undefined) {
-        throw error;
-      }
-      
+      // Si el backend no responde, usar mensaje por defecto
       if (error.code === 'auth/invalid-credential') {
         throw new Error('Email o contraseña incorrectos. Si no tienes cuenta, regístrate primero.');
       }
       if (error.code === 'auth/user-not-found') {
-        throw new Error('❌ Esta cuenta no existe. Por favor, regístrate primero.');
+        throw new Error('Esta cuenta no existe. Por favor, regístrate primero.');
       }
       if (error.code === 'auth/wrong-password') {
-        throw new Error('❌ Contraseña incorrecta. Por favor, intenta nuevamente.');
+        throw new Error('Contraseña incorrecta. Por favor, intenta nuevamente.');
       }
-      if (error.code === 'auth/too-many-requests') {
-        throw new Error('⏳ Cuenta temporalmente bloqueada. Espera 15 minutos e intenta nuevamente.');
-      }
-      if (error.code === 'auth/network-request-failed') {
-        throw new Error('🌐 Error de conexión. Verifica tu internet.');
-      }
-      if (error.code === 'auth/invalid-email') {
-        throw new Error('📧 El formato del email es inválido.');
-      }
-      
-      throw new Error(error.message || 'Error al iniciar sesión');
     }
-  };
+    
+    if (error.code === 'auth/too-many-requests') {
+      throw new Error('⏳ Cuenta temporalmente bloqueada por Firebase. Espera 15 minutos e intenta nuevamente.');
+    }
+    if (error.code === 'auth/network-request-failed') {
+      throw new Error('🌐 Error de conexión. Verifica tu internet.');
+    }
+    if (error.code === 'auth/invalid-email') {
+      throw new Error('📧 El formato del email es inválido.');
+    }
+    
+    // 🎯 PROPAGAR ERRORES DEL BACKEND CON INTENTOS
+    if (error.remainingAttempts !== undefined) {
+      throw error;
+    }
+    
+    throw new Error(error.message || 'Error al iniciar sesión');
+  }
+};
 
   const register = async (email: string, password: string, nombre: string) => {
     try {
