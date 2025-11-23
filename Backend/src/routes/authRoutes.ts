@@ -12,7 +12,8 @@ import {
     checkFirebaseUser,
     testEmailDelivery,
     checkAccountLock,
-    unlockAccount
+    unlockAccount,
+    resetRecoveryAttempts  
 } from '../controllers/authController';
 
 const router = express.Router();
@@ -31,5 +32,6 @@ router.post('/test-email', testEmailDelivery);
 // 🎯 NUEVAS RUTAS DE SEGURIDAD
 router.post('/check-account-lock', checkAccountLock);
 router.post('/unlock-account', unlockAccount);
+router.post('/reset-recovery-attempts', resetRecoveryAttempts);
 
 export default router;

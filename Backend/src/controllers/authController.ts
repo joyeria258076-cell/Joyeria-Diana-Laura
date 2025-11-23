@@ -448,7 +448,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     console.log(`📧 Solicitando recuperación para: ${email}`);
 
-    // 🛡️ VERIFICAR LÍMITES DE RECUPERACIÓN (NUEVO)
+    // 🛡️ VERIFICAR LÍMITES DE RECUPERACIÓN
     const limitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
     if (!limitCheck.allowed) {
       return res.status(429).json({
@@ -461,7 +461,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 
     try {
-      // 🛡️ REGISTRAR EL INTENTO (NUEVO)
+      // 🛡️ REGISTRAR EL INTENTO (ANTES de generar el link)
       await RecoverySecurityService.incrementRecoveryAttempts(email);
 
       const frontendUrl = process.env.FRONTEND_URL || 'https://joyeria-diana-laura.vercel.app';
@@ -482,24 +482,29 @@ export const forgotPassword = async (req: Request, res: Response) => {
         const userRecord = await admin.auth().getUserByEmail(email);
         console.log(`✅ Usuario verificado en Firebase: ${userRecord.uid}`);
         
-        // 🎯 **NUEVO: RESETEAR INTENTOS DESPUÉS DE RECUPERACIÓN EXITOSA**
-        await RecoverySecurityService.resetAfterSuccessfulRecovery(email);
-        console.log(`✅ Intentos reseteados para: ${email}`);
+        // 🛑 **QUITAR ESTO - NO resetear aquí**
+        // await RecoverySecurityService.resetAfterSuccessfulRecovery(email);
+        
+        // ✅ **DEVOLVER LOS INTENTOS REALES RESTANTES**
+        const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
         
         res.json({
           success: true,
           message: 'Se ha enviado un enlace de recuperación a tu email',
-          remainingAttempts: 3  // 🎯 **SIEMPRE 3 DESPUÉS DE ÉXITO**
+          remainingAttempts: updatedLimitCheck.remainingAttempts  // 🎯 INTENTOS REALES
         });
 
       } catch (firebaseError: any) {
         if (firebaseError.code === 'auth/user-not-found') {
           console.log(`❌ Usuario no encontrado en Firebase: ${email}`);
-          // 🎯 POR SEGURIDAD, NO REVELAMOS SI EXISTE O NO
+          
+          // ✅ **DEVOLVER INTENTOS ACTUALIZADOS**
+          const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
+          
           return res.json({
             success: true,
             message: 'Si el email está registrado, recibirás un enlace de recuperación',
-            remainingAttempts: limitCheck.remainingAttempts - 1
+            remainingAttempts: updatedLimitCheck.remainingAttempts
           });
         }
         throw firebaseError;
@@ -508,12 +513,14 @@ export const forgotPassword = async (req: Request, res: Response) => {
     } catch (firebaseError: any) {
       console.error('❌ Error de Firebase en forgotPassword:', firebaseError);
       
-      // 🎯 POR SEGURIDAD, SIEMPRE DEVOLVEMOS ÉXITO EN PRODUCCIÓN
+      // ✅ **DEVOLVER INTENTOS ACTUALIZADOS**
+      const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
+      
       if (process.env.NODE_ENV === 'production') {
         return res.json({
           success: true,
           message: 'Si el email está registrado, recibirás un enlace de recuperación',
-          remainingAttempts: limitCheck.remainingAttempts - 1
+          remainingAttempts: updatedLimitCheck.remainingAttempts
         });
       } else {
         return res.status(400).json({
@@ -527,7 +534,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error en forgotPassword:', error);
     
-    // 🎯 POR SEGURIDAD, SIEMPRE DEVOLVEMOS ÉXITO EN PRODUCCIÓN
     if (process.env.NODE_ENV === 'production') {
       res.json({
         success: true,
@@ -823,6 +829,36 @@ export const testEmailDelivery = async (req: Request, res: Response) => {
       success: false,
       message: 'Error en prueba: ' + error.message,
       code: error.code
+    });
+  }
+};
+
+// 🎯 NUEVO ENDPOINT: Resetear intentos después de cambio exitoso
+export const resetRecoveryAttempts = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email es requerido'
+      });
+    }
+
+    await RecoverySecurityService.resetAfterSuccessfulRecovery(email);
+    
+    console.log(`✅ Intentos reseteados manualmente para: ${email}`);
+    
+    res.json({
+      success: true,
+      message: 'Contador de intentos reseteado'
+    });
+
+  } catch (error) {
+    console.error('Error en resetRecoveryAttempts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error reseteando intentos'
     });
   }
 };

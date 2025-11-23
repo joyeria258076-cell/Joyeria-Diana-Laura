@@ -78,5 +78,13 @@ export const authAPI = {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
-  }
+  },
+
+  // 🎯 NUEVA FUNCIÓN para resetear intentos después de cambio exitoso
+  resetRecoveryAttempts: async (email: string) => {
+    return apiRequest('/auth/reset-recovery-attempts', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
 };

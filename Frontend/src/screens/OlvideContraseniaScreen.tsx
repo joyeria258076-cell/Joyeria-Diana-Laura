@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { authAPI } from '../services/api'; // 🎯 NUEVO IMPORT
 import '../styles/OlvideContraseniaScreen.css';
 
 const schema = z.object({
@@ -125,13 +126,21 @@ const OlvideContraseniaScreen: React.FC = () => {
                 setMessage(`❌ ${response.message}`);
                 setMessageType('error');
             } else if (response.success) {
+                // 🎯 **NUEVO: RESETEAR INTENTOS CUANDO EL CORREO SE ENVÍA EXITOSAMENTE**
+                try {
+                    await authAPI.resetRecoveryAttempts(data.email);
+                    console.log('✅ Intentos de recuperación reseteados para:', data.email);
+                } catch (resetError) {
+                    console.log('⚠️ Error reseteando intentos (no crítico):', resetError);
+                    // No bloqueamos el flujo si falla el reset
+                }
+                
                 setMessage('✅ ¡Enlace de recuperación enviado! Revisa tu bandeja de entrada y carpeta de spam.');
                 setMessageType('success');
                 setEmailSent(true);
                 
-                if (response.remainingAttempts !== undefined) {
-                    setRemainingAttempts(response.remainingAttempts);
-                }
+                // 🎯 **ACTUALIZAR VISUALMENTE A 3 INTENTOS**
+                setRemainingAttempts(3);
             } else {
                 setMessage(`❌ ${response.message}`);
                 setMessageType('error');
