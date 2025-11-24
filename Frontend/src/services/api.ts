@@ -119,4 +119,38 @@ export const authAPI = {
       console.log('🌐 Network error in activity update - failing silently');
     }
   },
+
+  // 🆕 NUEVAS FUNCIONES PARA GESTIÓN DE SESIONES
+
+  // Obtener sesiones activas del usuario
+  getActiveSessions: async (userId: number) => {
+    return apiRequest('/auth/sessions/active', {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+    });
+  },
+
+  // Revocar una sesión específica
+  revokeSession: async (sessionId: number, userId: number) => {
+    return apiRequest('/auth/sessions/revoke', {
+      method: 'POST',
+      body: JSON.stringify({ sessionId, userId }),
+    });
+  },
+
+  // Revocar todas las sesiones excepto la actual
+  revokeAllOtherSessions: async (userId: number, currentSessionToken: string) => {
+    return apiRequest('/auth/sessions/revoke-others', {
+      method: 'POST',
+      body: JSON.stringify({ userId, currentSessionToken }),
+    });
+  },
+
+  // Revocar TODAS las sesiones (incluyendo actual)
+  revokeAllSessions: async (userId: number) => {
+    return apiRequest('/auth/sessions/revoke-all', {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+    });
+  },
 };

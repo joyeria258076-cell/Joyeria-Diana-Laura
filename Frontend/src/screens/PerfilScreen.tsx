@@ -5,73 +5,139 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "../styles/PerfilScreen.css";
 
-// Tipo para las sesiones activas
+// 🆕 TIPO ACTUALIZADO para sesiones activas (según backend)
 interface SesionActiva {
-  id: string;
-  dispositivo: string;
-  ubicacion: string;
-  fechaInicio: string;
-  ultimaActividad: string;
-  esDispositivoActual: boolean;
+  id: number; // 🆕 Cambiar a number
+  device_name: string;
+  browser: string;
+  os: string;
+  ip_address: string;
+  location: string;
+  created_at: string;
+  last_activity: string;
+  is_current?: boolean; // 🆕 Para marcar sesión actual
 }
 
 export default function PerfilScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, getActiveSessions, revokeSession, revokeAllOtherSessions, revokeAllSessions } = useAuth();
   const navigate = useNavigate();
   const [sesionesActivas, setSesionesActivas] = useState<SesionActiva[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [mensaje, setMensaje] = useState<string>("");
+  const [tipoMensaje, setTipoMensaje] = useState<"success" | "error">("success");
 
-  // Datos de ejemplo para las sesiones activas
+  // 🆕 CARGAR SESIONES REALES DEL BACKEND
   useEffect(() => {
-    // Simular carga de sesiones activas
-    const sesionesEjemplo: SesionActiva[] = [
-      {
-        id: "1",
-        dispositivo: "Chrome en Windows",
-        ubicacion: "Ciudad de México, MX",
-        fechaInicio: "2024-01-15T10:30:00Z",
-        ultimaActividad: "Hace 5 minutos",
-        esDispositivoActual: true
-      },
-      {
-        id: "2", 
-        dispositivo: "Safari en iPhone",
-        ubicacion: "Ciudad de México, MX",
-        fechaInicio: "2024-01-14T15:20:00Z",
-        ultimaActividad: "Hace 2 horas",
-        esDispositivoActual: false
-      },
-      {
-        id: "3",
-        dispositivo: "Firefox en Mac",
-        ubicacion: "Guadalajara, MX",
-        fechaInicio: "2024-01-13T09:15:00Z",
-        ultimaActividad: "Hace 1 día",
-        esDispositivoActual: false
-      }
-    ];
-
-    setTimeout(() => {
-      setSesionesActivas(sesionesEjemplo);
-      setCargando(false);
-    }, 1000);
+    cargarSesionesActivas();
   }, []);
 
-  const handleCerrarSesionDispositivo = (sesionId: string) => {
-    // Lógica para cerrar sesión en dispositivo específico
-    console.log("Cerrando sesión en dispositivo:", sesionId);
-    setSesionesActivas(prev => prev.filter(sesion => sesion.id !== sesionId));
+  const cargarSesionesActivas = async () => {
+    try {
+      setCargando(true);
+      const sesiones = await getActiveSessions();
+      
+      // 🆕 MARCAR SESIÓN ACTUAL (podemos usar IP o dispositivo similar)
+      const sesionesConActual = sesiones.map(sesion => ({
+        ...sesion,
+        is_current: determinarSiEsActual(sesion)
+      }));
+      
+      setSesionesActivas(sesionesConActual);
+    } catch (error: any) {
+      console.error("❌ Error cargando sesiones:", error);
+      mostrarMensaje("Error al cargar las sesiones activas: " + error.message, "error");
+    } finally {
+      setCargando(false);
+    }
   };
 
+  // 🆕 FUNCIÓN PARA DETERMINAR SI ES LA SESIÓN ACTUAL (simplificado)
+  const determinarSiEsActual = (sesion: SesionActiva): boolean => {
+    // En una implementación real, compararías con la sesión actual
+    // Por ahora, marcamos la más reciente como actual
+    const sesionesOrdenadas = [...sesionesActivas].sort((a, b) => 
+      new Date(b.last_activity).getTime() - new Date(a.last_activity).getTime()
+    );
+    return sesionesOrdenadas[0]?.id === sesion.id;
+  };
+
+  // 🆕 FUNCIÓN PARA MOSTRAR MENSAJES
+  const mostrarMensaje = (texto: string, tipo: "success" | "error") => {
+    setMensaje(texto);
+    setTipoMensaje(tipo);
+    setTimeout(() => setMensaje(""), 5000);
+  };
+
+  // 🆕 1. CERRAR SESIÓN EN DISPOSITIVO ESPECÍFICO
+  const handleCerrarSesionDispositivo = async (sesionId: number) => {
+    try {
+      console.log("Cerrando sesión en dispositivo:", sesionId);
+      await revokeSession(sesionId);
+      
+      // Actualizar lista local
+      setSesionesActivas(prev => prev.filter(sesion => sesion.id !== sesionId));
+      mostrarMensaje("Sesión cerrada exitosamente", "success");
+    } catch (error: any) {
+      console.error("❌ Error cerrando sesión:", error);
+      mostrarMensaje("Error al cerrar la sesión: " + error.message, "error");
+    }
+  };
+
+  // 🆕 2. CERRAR TODAS LAS OTRAS SESIONES (excepto actual)
+  const handleCerrarOtrasSesiones = async () => {
+    try {
+      console.log("Cerrando todas las otras sesiones...");
+      const result = await revokeAllOtherSessions();
+      
+      // Recargar sesiones para mostrar solo la actual
+      await cargarSesionesActivas();
+      mostrarMensaje(`Se cerraron ${result.revokedCount} sesiones en otros dispositivos`, "success");
+    } catch (error: any) {
+      console.error("❌ Error cerrando otras sesiones:", error);
+      mostrarMensaje("Error al cerrar otras sesiones: " + error.message, "error");
+    }
+  };
+
+  // 🆕 3. CERRAR TODAS LAS SESIONES (incluyendo actual)
   const handleCerrarTodasLasSesiones = async () => {
-    // Lógica para cerrar todas las sesiones
-    console.log("Cerrando todas las sesiones...");
-    // Aquí llamaremos al backend para revocar todos los tokens
-    await logout(); // Por ahora usamos el logout normal
+    if (window.confirm("¿Estás seguro de que quieres cerrar todas las sesiones? Esto te cerrará la sesión en todos los dispositivos incluyendo este.")) {
+      try {
+        console.log("Cerrando TODAS las sesiones...");
+        const result = await revokeAllSessions();
+        
+        // 🆕 El logout se ejecuta automáticamente en revokeAllSessions
+        mostrarMensaje(`Se cerraron todas las sesiones (${result.revokedCount} dispositivos)`, "success");
+        
+        // Redirigir al login (ya que se hizo logout)
+        navigate("/login");
+      } catch (error: any) {
+        console.error("❌ Error cerrando todas las sesiones:", error);
+        mostrarMensaje("Error al cerrar todas las sesiones: " + error.message, "error");
+      }
+    }
   };
 
+  // 🆕 4. CERRAR SOLO SESIÓN ACTUAL
   const handleCerrarSesionActual = async () => {
-    await logout();
+    if (window.confirm("¿Estás seguro de que quieres cerrar sesión en este dispositivo?")) {
+      await logout();
+      navigate("/login");
+    }
+  };
+
+  // 🆕 FUNCIÓN PARA FORMATEAR FECHAS
+  const formatearFecha = (fecha: string) => {
+    const ahora = new Date();
+    const fechaSesion = new Date(fecha);
+    const diffMs = ahora.getTime() - fechaSesion.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return "Hace unos segundos";
+    if (diffMins < 60) return `Hace ${diffMins} minuto${diffMins > 1 ? 's' : ''}`;
+    if (diffHours < 24) return `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+    return `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
   };
 
   return (
@@ -119,6 +185,13 @@ export default function PerfilScreen() {
             </div>
           </section>
 
+          {/* 🆕 MENSAJES */}
+          {mensaje && (
+            <div className={`mensaje-alerta ${tipoMensaje}`}>
+              {mensaje}
+            </div>
+          )}
+
           {/* Gestión de sesiones activas */}
           <section className="sesiones-section">
             <div className="section-header">
@@ -126,31 +199,45 @@ export default function PerfilScreen() {
               <p className="section-subtitle">
                 Gestiona tus sesiones iniciadas en diferentes dispositivos
               </p>
+              
+              {/* 🆕 BOTÓN ACTUALIZAR */}
+              <button 
+                className="btn-actualizar"
+                onClick={cargarSesionesActivas}
+                disabled={cargando}
+              >
+                🔄 Actualizar
+              </button>
             </div>
 
             {cargando ? (
               <div className="loading-sesiones">
                 <p>Cargando sesiones activas...</p>
               </div>
+            ) : sesionesActivas.length === 0 ? (
+              <div className="sin-sesiones">
+                <p>No hay sesiones activas</p>
+              </div>
             ) : (
               <div className="sesiones-list">
                 {sesionesActivas.map((sesion) => (
-                  <div key={sesion.id} className={`sesion-card ${sesion.esDispositivoActual ? 'sesion-actual' : ''}`}>
+                  <div key={sesion.id} className={`sesion-card ${sesion.is_current ? 'sesion-actual' : ''}`}>
                     <div className="sesion-info">
                       <div className="sesion-dispositivo">
                         <span className="dispositivo-icon">💻</span>
                         <div>
-                          <h3 className="dispositivo-nombre">{sesion.dispositivo}</h3>
+                          <h3 className="dispositivo-nombre">{sesion.device_name}</h3>
                           <p className="sesion-detalles">
-                            {sesion.ubicacion} • {sesion.ultimaActividad}
-                            {sesion.esDispositivoActual && (
+                            {sesion.location} • {formatearFecha(sesion.last_activity)}
+                            {sesion.is_current && (
                               <span className="badge-actual">Este dispositivo</span>
                             )}
                           </p>
+                          <p className="sesion-ip">IP: {sesion.ip_address}</p>
                         </div>
                       </div>
                       <div className="sesion-actions">
-                        {!sesion.esDispositivoActual && (
+                        {!sesion.is_current && (
                           <button 
                             className="btn-cerrar-sesion"
                             onClick={() => handleCerrarSesionDispositivo(sesion.id)}
@@ -165,17 +252,33 @@ export default function PerfilScreen() {
               </div>
             )}
 
-            {/* Botón para cerrar todas las sesiones */}
+            {/* 🆕 BOTONES PARA LOS 3 TIPOS DE CIERRE */}
             <div className="acciones-globales">
-              <button 
-                className="btn-cerrar-todas"
-                onClick={handleCerrarTodasLasSesiones}
-              >
-                🔒 Cerrar Todas las Sesiones
-              </button>
-              <p className="advertencia">
-                Esto cerrará tu sesión en todos los dispositivos excepto en este.
-              </p>
+              <div className="botones-accion">
+                <button 
+                  className="btn-cerrar-otras"
+                  onClick={handleCerrarOtrasSesiones}
+                  disabled={sesionesActivas.filter(s => !s.is_current).length === 0}
+                >
+                  🔒 Cerrar Otras Sesiones
+                </button>
+                
+                <button 
+                  className="btn-cerrar-todas"
+                  onClick={handleCerrarTodasLasSesiones}
+                >
+                  🚫 Cerrar Todas las Sesiones
+                </button>
+              </div>
+              
+              <div className="advertencias">
+                <p className="advertencia">
+                  <strong>Cerrar Otras Sesiones:</strong> Cierra sesión en todos los dispositivos excepto en este.
+                </p>
+                <p className="advertencia peligro">
+                  <strong>Cerrar Todas las Sesiones:</strong> Cierra sesión en TODOS los dispositivos incluyendo este.
+                </p>
+              </div>
             </div>
           </section>
         </div>

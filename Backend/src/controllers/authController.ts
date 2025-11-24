@@ -1,4 +1,4 @@
-// En Joyeria-Diana-Laura/Backend/src/controllers/authController.ts
+// Ruta: Joyeria-Diana-Laura/Backend/src/controllers/authController.ts
 import { Request, Response } from 'express';
 import * as userModel from '../models/userModel';
 import admin from '../config/firebase';
@@ -6,6 +6,9 @@ import { EmailValidationService } from '../services/EmailValidationService';
 import { LoginSecurityService } from '../services/loginSecurityService';
 import { pool } from '../config/database';
 import { RecoverySecurityService } from '../services/recoverySecurityService';
+import { SessionService } from '../services/SessionService';
+import { getUserByEmail } from '../models/userModel';
+
 
 // 🎯 FUNCIÓN MEJORADA para obtener IP real del cliente
 const getClientIp = (req: Request): string => {
@@ -276,6 +279,37 @@ export const login = async (req: Request, res: Response) => {
 
       const userEmail = userRecord.email || email;
       const userName = userRecord.displayName || (userEmail ? userEmail.split('@')[0] : 'Usuario');
+      
+      // 🆕 🎯 CREACIÓN DE SESIÓN (AGREGAR ESTO)
+      try {
+        // Obtener usuario de PostgreSQL para el ID
+        const dbUser = await userModel.getUserByEmail(userEmail); // ← ÚNICO CAMBIO: userModel.getUserByEmail
+        
+        if (dbUser && dbUser.id) {
+          const deviceInfo = SessionService.parseUserAgent(userAgent);
+          
+          // Crear sesión en la base de datos
+          const sessionResult = await SessionService.createSession(
+            dbUser.id,
+            userRecord.uid,
+            deviceInfo,
+            clientIp,
+            userAgent
+          );
+          
+          if (sessionResult.success) {
+            console.log(`✅ Sesión registrada para: ${userEmail}, Session ID: ${sessionResult.sessionId}`);
+          } else {
+            console.warn(`⚠️ Sesión no registrada para: ${userEmail}, Error: ${sessionResult.error}`);
+          }
+        } else {
+          console.warn(`⚠️ Usuario no encontrado en PostgreSQL para crear sesión: ${userEmail}`);
+        }
+      } catch (sessionError) {
+        console.error('❌ Error creando sesión (no crítico):', sessionError);
+        // NO AFECTA EL LOGIN - solo log del error
+      }
+      // 🆕 FIN DE CREACIÓN DE SESIÓN
       
       console.log(`✅ LOGIN EXITOSO para: ${email}`);
       
@@ -834,6 +868,156 @@ export const checkLoginSecurity = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Error verificando seguridad de login'
+    });
+  }
+};
+
+// 🆕 NUEVOS ENDPOINTS PARA GESTIÓN DE SESIONES
+
+// Obtener sesiones activas del usuario
+export const getActiveSessions = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.body; // Podemos obtenerlo del token también
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID es requerido'
+      });
+    }
+
+    const sessionsResult = await SessionService.getActiveSessionsByUserId(userId);
+    
+    if (sessionsResult.success) {
+      res.json({
+        success: true,
+        data: {
+          sessions: sessionsResult.sessions
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: sessionsResult.error
+      });
+    }
+
+  } catch (error) {
+    console.error('Error en getActiveSessions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
+// Cerrar sesión en un dispositivo específico
+export const revokeSession = async (req: Request, res: Response) => {
+  try {
+    const { sessionId, userId } = req.body;
+    
+    if (!sessionId || !userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Session ID y User ID son requeridos'
+      });
+    }
+
+    const revokeResult = await SessionService.revokeSessionById(sessionId);
+    
+    if (revokeResult.success) {
+      res.json({
+        success: true,
+        message: 'Sesión revocada correctamente'
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: revokeResult.error
+      });
+    }
+
+  } catch (error) {
+    console.error('Error en revokeSession:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
+// Cerrar todas las sesiones excepto la actual
+export const revokeAllOtherSessions = async (req: Request, res: Response) => {
+  try {
+    const { userId, currentSessionToken } = req.body;
+    
+    if (!userId || !currentSessionToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID y Current Session Token son requeridos'
+      });
+    }
+
+    const revokeResult = await SessionService.revokeAllOtherSessions(userId, currentSessionToken);
+    
+    if (revokeResult.success) {
+      res.json({
+        success: true,
+        message: `Se revocaron ${revokeResult.revokedCount} sesiones`,
+        data: {
+          revokedCount: revokeResult.revokedCount
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: revokeResult.error
+      });
+    }
+
+  } catch (error) {
+    console.error('Error en revokeAllOtherSessions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
+// Cerrar TODAS las sesiones (incluyendo actual)
+export const revokeAllSessions = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID es requerido'
+      });
+    }
+
+    const revokeResult = await SessionService.revokeAllSessions(userId);
+    
+    if (revokeResult.success) {
+      res.json({
+        success: true,
+        message: `Se revocaron todas las sesiones (${revokeResult.revokedCount})`,
+        data: {
+          revokedCount: revokeResult.revokedCount
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: revokeResult.error
+      });
+    }
+
+  } catch (error) {
+    console.error('Error en revokeAllSessions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
     });
   }
 };

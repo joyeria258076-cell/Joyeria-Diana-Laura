@@ -15,7 +15,11 @@ import {
     unlockAccount,
     resetRecoveryAttempts,
     updateUserActivity,
-    checkLoginSecurity    
+    checkLoginSecurity,
+    getActiveSessions,
+    revokeSession,
+    revokeAllOtherSessions,
+    revokeAllSessions    
 } from '../controllers/authController';
 
 const router = express.Router();
@@ -39,4 +43,9 @@ router.post('/update-activity', updateUserActivity);
 router.post('/check-login-security', checkLoginSecurity);
 router.post('/check-account-lock', checkAccountLock);
 
+// 🆕 NUEVAS RUTAS PARA GESTIÓN DE SESIONES
+router.post('/sessions/active', getActiveSessions);
+router.post('/sessions/revoke', revokeSession);
+router.post('/sessions/revoke-others', revokeAllOtherSessions);
+router.post('/sessions/revoke-all', revokeAllSessions);
 export default router;

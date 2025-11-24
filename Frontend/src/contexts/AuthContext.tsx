@@ -28,9 +28,23 @@ const auth = getAuth(app);
 auth.languageCode = 'es';
 
 interface User {
-  id: string;
+  id: string; // Firebase UID
   email: string;
   nombre: string;
+  dbId?: number; // 🆕 ID numérico de PostgreSQL
+}
+
+// 🆕 INTERFAZ para sesiones activas
+interface ActiveSession {
+  id: number;
+  device_name: string;
+  browser: string;
+  os: string;
+  ip_address: string;
+  location: string;
+  created_at: string;
+  last_activity: string;
+  is_current?: boolean;
 }
 
 interface AuthContextType {
@@ -47,6 +61,12 @@ interface AuthContextType {
     remainingTime?: number;
   }>;
   verifyEmail: (oobCode: string) => Promise<void>;
+  // 🆕 NUEVAS FUNCIONES PARA GESTIÓN DE SESIONES
+  getActiveSessions: () => Promise<ActiveSession[]>;
+  revokeSession: (sessionId: number) => Promise<void>;
+  revokeAllOtherSessions: () => Promise<{ revokedCount: number }>;
+  revokeAllSessions: () => Promise<{ revokedCount: number }>;
+  currentSessionToken: string | null; // 🆕 Token de sesión actual
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,6 +92,7 @@ const DEBOUNCE_DELAY = 1000; // 1 segundo de debounce
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentSessionToken, setCurrentSessionToken] = useState<string | null>(null); // 🆕 Token de sesión actual
   
   // 🎯 USAR useRef PARA TIMERS (no causan re-renders)
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -88,7 +109,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     await auth.signOut();
     setUser(null);
+    setCurrentSessionToken(null); // 🆕 Limpiar session token
     localStorage.removeItem('diana_laura_user');
+    localStorage.removeItem('diana_laura_session_token'); // 🆕 Limpiar session token del localStorage
     
     window.location.href = '/login';
   };
@@ -248,11 +271,81 @@ const handlePopState = () => {
   // 🎯 Cargar usuario desde localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem('diana_laura_user');
+    const savedSessionToken = localStorage.getItem('diana_laura_session_token'); // 🆕 Cargar session token
+    
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
+    if (savedSessionToken) {
+      setCurrentSessionToken(savedSessionToken);
+    }
     setLoading(false);
   }, []);
+
+  // 🆕 FUNCIONES PARA GESTIÓN DE SESIONES
+  const getActiveSessions = async (): Promise<ActiveSession[]> => {
+    if (!user || !user.dbId) throw new Error('Usuario no autenticado o sin ID de base de datos');
+    
+    try {
+      const response = await authAPI.getActiveSessions(user.dbId);
+      if (response.success) {
+        return response.data.sessions;
+      } else {
+        throw new Error(response.message || 'Error obteniendo sesiones activas');
+      }
+    } catch (error: any) {
+      console.error('❌ Error obteniendo sesiones activas:', error);
+      throw new Error('No se pudieron cargar las sesiones activas: ' + error.message);
+    }
+  };
+
+  const revokeSession = async (sessionId: number): Promise<void> => {
+    if (!user || !user.dbId) throw new Error('Usuario no autenticado o sin ID de base de datos');
+    
+    try {
+      const response = await authAPI.revokeSession(sessionId, user.dbId);
+      if (!response.success) {
+        throw new Error(response.message || 'Error revocando sesión');
+      }
+    } catch (error: any) {
+      console.error('❌ Error revocando sesión:', error);
+      throw new Error('No se pudo cerrar la sesión: ' + error.message);
+    }
+  };
+
+  const revokeAllOtherSessions = async (): Promise<{ revokedCount: number }> => {
+    if (!user || !user.dbId || !currentSessionToken) throw new Error('Usuario no autenticado o sin ID de base de datos');
+    
+    try {
+      const response = await authAPI.revokeAllOtherSessions(user.dbId, currentSessionToken);
+      if (response.success) {
+        return { revokedCount: response.data.revokedCount };
+      } else {
+        throw new Error(response.message || 'Error revocando otras sesiones');
+      }
+    } catch (error: any) {
+      console.error('❌ Error revocando otras sesiones:', error);
+      throw new Error('No se pudieron cerrar las otras sesiones: ' + error.message);
+    }
+  };
+
+  const revokeAllSessions = async (): Promise<{ revokedCount: number }> => {
+    if (!user || !user.dbId) throw new Error('Usuario no autenticado o sin ID de base de datos');
+    
+    try {
+      const response = await authAPI.revokeAllSessions(user.dbId);
+      if (response.success) {
+        // 🆕 Forzar logout local ya que se revocó la sesión actual
+        await logout();
+        return { revokedCount: response.data.revokedCount };
+      } else {
+        throw new Error(response.message || 'Error revocando todas las sesiones');
+      }
+    } catch (error: any) {
+      console.error('❌ Error revocando todas las sesiones:', error);
+      throw new Error('No se pudieron cerrar todas las sesiones: ' + error.message);
+    }
+  };
 
   const verifyEmail = async (oobCode: string) => {
     try {
@@ -440,8 +533,25 @@ const login = async (email: string, password: string) => {
     
     if (backendResponse.success) {
       const userData = backendResponse.data.user;
+      
+      // 🆕 OBTENER EL USUARIO DE POSTGRESQL PARA EL ID NUMÉRICO
+      try {
+        console.log('🔍 Obteniendo ID numérico de PostgreSQL...');
+        const dbUserResponse = await authAPI.checkFirebaseUser(email);
+        if (dbUserResponse.exists && dbUserResponse.data) {
+          // 🆕 AGREGAR EL ID NUMÉRICO AL USER DATA
+          userData.dbId = dbUserResponse.data.id; // Asumiendo que la respuesta tiene un campo 'id'
+          console.log(`✅ ID numérico obtenido: ${userData.dbId}`);
+        }
+      } catch (dbError) {
+        console.warn('⚠️ No se pudo obtener el ID numérico:', dbError);
+      }
+      
       setUser(userData);
+      
+      // 🆕 GUARDAR EN LOCALSTORAGE
       localStorage.setItem('diana_laura_user', JSON.stringify(userData));
+      
       console.log('✅ Login completo exitoso - SESIÓN INICIADA');
       
       handleUserActivity();
@@ -578,7 +688,9 @@ const login = async (email: string, password: string) => {
     
     await auth.signOut();
     setUser(null);
+    setCurrentSessionToken(null); // 🆕 Limpiar session token
     localStorage.removeItem('diana_laura_user');
+    localStorage.removeItem('diana_laura_session_token'); // 🆕 Limpiar session token
   };
 
   const value: AuthContextType = {
@@ -589,6 +701,12 @@ const login = async (email: string, password: string) => {
     logout,
     sendPasswordReset,
     verifyEmail,
+    // 🆕 AGREGAR LAS NUEVAS FUNCIONES
+    getActiveSessions,
+    revokeSession,
+    revokeAllOtherSessions,
+    revokeAllSessions,
+    currentSessionToken
   };
 
   return (
