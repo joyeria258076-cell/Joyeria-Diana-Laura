@@ -20,6 +20,28 @@ const ResetPasswordScreen: React.FC = () => {
   const [validCode, setValidCode] = useState(false);
   const [verifying, setVerifying] = useState(true);
 
+  const validatePassword = (password: string): string | null => {
+    if (password.length < 8 || password.length > 16) {
+      return 'La contraseña debe tener entre 8 y 16 caracteres';
+    }
+    if (!/[A-Z]/.test(password)) {
+      return 'La contraseña debe contener al menos una letra MAYÚSCULA (A-Z)';
+    }
+    if (!/[a-z]/.test(password)) {
+      return 'La contraseña debe contener al menos una letra minúscula (a-z)';
+    }
+    if (!/\d/.test(password)) {
+      return 'La contraseña debe contener al menos un número (0-9)';
+    }
+    if (/\s/.test(password)) {
+      return 'La contraseña no puede contener espacios en blanco';
+    }
+    if (/[^a-zA-Z0-9]/.test(password)) {
+      return 'La contraseña no puede contener símbolos especiales (#, @, $, %, etc.)';
+    }
+    return null;
+  };
+
   useEffect(() => {
     const verifyResetCode = async () => {
       try {
@@ -124,6 +146,11 @@ const ResetPasswordScreen: React.FC = () => {
       return;
     }
 
+  const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+  }
     setLoading(true);
 
     try {
