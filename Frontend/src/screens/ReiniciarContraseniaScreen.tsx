@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { getAuth, verifyPasswordResetCode, confirmPasswordReset } from 'firebase/auth';
 import '../styles/ReiniciarContraseniaScreen.css';
 
 const ResetPasswordScreen: React.FC = () => {
@@ -15,58 +16,116 @@ const ResetPasswordScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [oobCode, setOobCode] = useState<string | null>(null);
+  const [validCode, setValidCode] = useState(false);
+  const [verifying, setVerifying] = useState(true);
 
   useEffect(() => {
-    // En esta versión simplificada, pedimos el email directamente
-    // ya que el backend desplegado no maneja códigos OOB de Firebase
+    const verifyResetCode = async () => {
+      try {
+        const code = searchParams.get('oobCode');
+        const mode = searchParams.get('mode');
+        
+        console.log('🔍 Parámetros en reset:', { mode, oobCode: code ? 'PRESENTE' : 'FALTANTE' });
+
+        if (mode === 'resetPassword' && code) {
+          setOobCode(code);
+          
+          // 🎯 NUEVO: Verificar el código de reset con Firebase
+          const auth = getAuth();
+          const verifiedEmail = await verifyPasswordResetCode(auth, code);
+          
+          console.log('✅ Código válido para email:', verifiedEmail);
+          setEmail(verifiedEmail);
+          setValidCode(true);
+        } else {
+          setError('❌ Enlace inválido o faltante. Por favor, solicita un nuevo enlace de recuperación.');
+          setValidCode(false);
+        }
+      } catch (error: any) {
+        console.error('❌ Error verificando código:', error);
+        setError('❌ El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.');
+        setValidCode(false);
+      } finally {
+        setVerifying(false);
+      }
+    };
+
+    verifyResetCode();
   }, [searchParams]);
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError('');
-  setMessage('');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
 
-  if (!email) {
-    setError('Por favor ingresa tu email');
-    return;
-  }
-
-  if (newPassword !== confirmPassword) {
-    setError('Las contraseñas no coinciden');
-    return;
-  }
-
-  if (newPassword.length < 6) {
-    setError('La contraseña debe tener al menos 6 caracteres');
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const response = await authAPI.resetPassword(email, newPassword);
-
-    if (response.success) {
-      // 🎯 NUEVO: Resetear intentos de recuperación cuando la contraseña se cambia exitosamente
-      try {
-        await authAPI.resetRecoveryAttempts(email);
-        console.log('✅ Intentos de recuperación reseteados para:', email);
-      } catch (resetError) {
-        console.log('⚠️ Error reseteando intentos (no crítico):', resetError);
-        // No bloqueamos el flujo si falla el reset de intentos
-      }
-      
-      setMessage('✅ Contraseña actualizada correctamente. Redirigiendo al login...');
-      setTimeout(() => navigate('/login'), 3000);
-    } else {
-      setError(response.message);
+    if (!validCode || !oobCode) {
+      setError('Enlace de recuperación no válido');
+      return;
     }
-  } catch (error: any) {
-    setError(error.message || 'Error al conectar con el servidor');
-  } finally {
-    setLoading(false);
-  }
-};
+
+    if (newPassword !== confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // 🎯 NUEVO: Usar Firebase para resetear la contraseña
+      const auth = getAuth();
+      
+      // 1. Confirmar el reset con Firebase
+      await confirmPasswordReset(auth, oobCode, newPassword);
+      
+      console.log('✅ Contraseña actualizada en Firebase para:', email);
+
+      // 2. Actualizar también en nuestro backend
+      try {
+        const response = await authAPI.resetPassword(email, newPassword);
+        
+        if (response.success) {
+          // 🎯 Resetear intentos de recuperación
+          try {
+            await authAPI.resetRecoveryAttempts(email);
+            console.log('✅ Intentos de recuperación reseteados para:', email);
+          } catch (resetError) {
+            console.log('⚠️ Error reseteando intentos (no crítico):', resetError);
+          }
+          
+          setMessage('✅ Contraseña actualizada correctamente. Redirigiendo al login...');
+          setTimeout(() => navigate('/login'), 3000);
+        } else {
+          setError(response.message);
+        }
+      } catch (backendError: any) {
+        // Si falla el backend pero Firebase sí funcionó, mostrar éxito parcial
+        console.log('⚠️ Firebase OK pero error en backend:', backendError);
+        setMessage('✅ Contraseña actualizada. Redirigiendo al login...');
+        setTimeout(() => navigate('/login'), 3000);
+      }
+
+    } catch (firebaseError: any) {
+      console.error('❌ Error en Firebase:', firebaseError);
+      
+      if (firebaseError.code === 'auth/expired-action-code') {
+        setError('❌ El enlace ha expirado. Por favor, solicita uno nuevo.');
+      } else if (firebaseError.code === 'auth/invalid-action-code') {
+        setError('❌ Enlace inválido. Por favor, solicita uno nuevo.');
+      } else if (firebaseError.code === 'auth/user-disabled') {
+        setError('❌ Esta cuenta ha sido deshabilitada.');
+      } else {
+        setError('❌ Error al actualizar la contraseña: ' + firebaseError.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -86,12 +145,45 @@ const handleSubmit = async (e: React.FormEvent) => {
     setConfirmPassword(cleanedValue);
   };
 
+  if (verifying) {
+    return (
+      <div className="reset-password-container">
+        <div className="reset-password-card">
+          <div className="verifying-message">
+            <p>🔍 Verificando enlace de recuperación...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!validCode) {
+    return (
+      <div className="reset-password-container">
+        <div className="reset-password-card">
+          <div className="error-message">
+            <p>{error}</p>
+            <button 
+              onClick={() => navigate('/olvide')} 
+              className="back-button"
+            >
+              ← Solicitar nuevo enlace
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="reset-password-container">
       <div className="reset-password-card">
         <div className="reset-password-header">
           <h2>Establecer Nueva Contraseña</h2>
-          <p>Ingresa tu email y crea una nueva contraseña para tu cuenta.</p>
+          <p>Creando nueva contraseña para: <strong>{email}</strong></p>
+          <div className="security-notice">
+            <small>🔒 Solo puedes cambiar la contraseña de esta cuenta</small>
+          </div>
         </div>
         
         {error && (
@@ -107,19 +199,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         )}
 
         <form onSubmit={handleSubmit} className="reset-password-form">
-          <div className="reset-password-form-group">
-            <label htmlFor="email">Correo electrónico</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="tu@email.com"
-              className="reset-password-input"
-              maxLength={60}
-            />
-          </div>
+          {/* 🎯 ELIMINADO: Campo de email - ahora viene automáticamente */}
 
           <div className="reset-password-form-group">
             <label htmlFor="newPassword">Nueva Contraseña</label>

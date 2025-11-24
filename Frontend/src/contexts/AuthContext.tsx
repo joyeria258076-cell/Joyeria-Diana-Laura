@@ -340,9 +340,9 @@ const sendPasswordReset = async (email: string): Promise<{
 
     console.log('✅ Límites verificados:', data);
     
-    // 🎯 ENVIAR EMAIL CON FIREBASE (SE MANTIENE)
+    // En la función sendPasswordReset del AuthContext
     const actionCodeSettings = {
-      url: `${window.location.origin}/login?reset=success&email=${encodeURIComponent(email)}`,
+      url: `${window.location.origin}/reiniciar`, // 🎯 IMPORTANTE: Sin parámetros extras
       handleCodeInApp: false
     };
     
