@@ -273,6 +273,8 @@ const handlePopState = () => {
     }
   };
 
+// En AuthContext.tsx - REEMPLAZAR la función sendPasswordReset completa:
+
 const sendPasswordReset = async (email: string): Promise<{
   success: boolean;
   message: string;
@@ -323,7 +325,7 @@ const sendPasswordReset = async (email: string): Promise<{
         success: false,
         message: data.message,
         blocked: true,
-        remainingTime: data.remainingTime, // 🎯 SOLO 2 MINUTOS (TU SISTEMA)
+        remainingTime: data.remainingTime,
         remainingAttempts: 0
       };
     }
@@ -340,14 +342,15 @@ const sendPasswordReset = async (email: string): Promise<{
 
     console.log('✅ Límites verificados:', data);
     
-    // En la función sendPasswordReset del AuthContext
+    // 🎯 CORRECCIÓN: Usar sendPasswordResetEmail normal pero con URL personalizada
+    console.log('🚀 Enviando email de recuperación con Firebase...');
+    
     const actionCodeSettings = {
-      url: `${window.location.origin}/reiniciar`, // 🎯 IMPORTANTE: Sin parámetros extras
+      url: `${window.location.origin}/reiniciar`,
       handleCodeInApp: false
     };
     
-    console.log('🔗 URL de redirección configurada:', actionCodeSettings.url);
-    console.log('🚀 Enviando email de recuperación con Firebase...');
+    console.log('🔗 URL de redirección:', actionCodeSettings.url);
     
     await firebaseSendPasswordReset(auth, email, actionCodeSettings);
     
@@ -355,7 +358,7 @@ const sendPasswordReset = async (email: string): Promise<{
     
     return {
       success: true,
-      message: 'Se ha enviado un enlace de recuperación a tu email',
+      message: 'Se ha enviado un enlace de recuperación a tu email. Revisa tu bandeja de entrada y carpeta de spam.',
       remainingAttempts: data.remainingAttempts
     };
     
@@ -373,12 +376,10 @@ const sendPasswordReset = async (email: string): Promise<{
         message: 'El formato del email es inválido. Por favor, verifica tu dirección de correo.'
       };
     } else if (error.code === 'auth/too-many-requests') {
-      // 🎯 **ELIMINADO COMPLETAMENTE: BLOQUEO DE FIREBASE**
-      // Simplemente mostrar mensaje genérico sin tiempo específico
       return {
         success: false,
         message: 'No se pudo enviar el email en este momento. Por favor, intenta nuevamente.',
-        blocked: false // 🎯 NO marcar como bloqueado para que pueda reintentar
+        blocked: false
       };
     } else if (error.message.includes('network') || error.message.includes('conexión')) {
       return {

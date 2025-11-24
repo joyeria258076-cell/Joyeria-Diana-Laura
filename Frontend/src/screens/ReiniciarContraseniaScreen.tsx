@@ -23,28 +23,64 @@ const ResetPasswordScreen: React.FC = () => {
   useEffect(() => {
     const verifyResetCode = async () => {
       try {
+        // 🎯 OBTENER TODOS LOS PARÁMETROS POSIBLES DE FIREBASE
         const code = searchParams.get('oobCode');
+        const apiKey = searchParams.get('apiKey');
         const mode = searchParams.get('mode');
+        const continueUrl = searchParams.get('continueUrl');
+        const lang = searchParams.get('lang');
         
-        console.log('🔍 Parámetros en reset:', { mode, oobCode: code ? 'PRESENTE' : 'FALTANTE' });
+        console.log('🔍 Todos los parámetros de Firebase:', { 
+          mode, 
+          oobCode: code ? 'PRESENTE' : 'FALTANTE',
+          apiKey: apiKey ? 'PRESENTE' : 'FALTANTE',
+          continueUrl,
+          lang
+        });
 
+        // 🎯 FIREBASE ENVÍA DIFERENTES FORMATOS DE URL
         if (mode === 'resetPassword' && code) {
+          // 🎯 FORMATO IDEAL: Con mode y oobCode
           setOobCode(code);
           
-          // 🎯 NUEVO: Verificar el código de reset con Firebase
+          console.log('🔐 Verificando código con Firebase...');
           const auth = getAuth();
           const verifiedEmail = await verifyPasswordResetCode(auth, code);
           
           console.log('✅ Código válido para email:', verifiedEmail);
           setEmail(verifiedEmail);
           setValidCode(true);
+          
+        } else if (code) {
+          // 🎯 FORMATO ALTERNATIVO: Solo oobCode sin mode
+          setOobCode(code);
+          
+          console.log('🔐 Verificando código con Firebase (sin mode)...');
+          const auth = getAuth();
+          const verifiedEmail = await verifyPasswordResetCode(auth, code);
+          
+          console.log('✅ Código válido para email:', verifiedEmail);
+          setEmail(verifiedEmail);
+          setValidCode(true);
+          
         } else {
-          setError('❌ Enlace inválido o faltante. Por favor, solicita un nuevo enlace de recuperación.');
+          // 🎯 FORMATO NO COMPATIBLE
+          console.log('❌ Formato de URL no reconocido');
+          setError('❌ Enlace de recuperación inválido. Por favor, solicita un nuevo enlace.');
           setValidCode(false);
         }
       } catch (error: any) {
         console.error('❌ Error verificando código:', error);
-        setError('❌ El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.');
+        
+        if (error.code === 'auth/expired-action-code') {
+          setError('❌ El enlace ha expirado. Por favor, solicita uno nuevo.');
+        } else if (error.code === 'auth/invalid-action-code') {
+          setError('❌ Enlace inválido. Por favor, solicita uno nuevo.');
+        } else if (error.code === 'auth/user-disabled') {
+          setError('❌ Esta cuenta ha sido deshabilitada.');
+        } else {
+          setError('❌ Error al verificar el enlace: ' + error.message);
+        }
         setValidCode(false);
       } finally {
         setVerifying(false);
@@ -53,6 +89,20 @@ const ResetPasswordScreen: React.FC = () => {
 
     verifyResetCode();
   }, [searchParams]);
+
+    // Agregar esta función TEMPORAL en ReiniciarContraseniaScreen.tsx antes del return
+    const logAllParams = () => {
+      const allParams: { [key: string]: string | null } = {};
+      searchParams.forEach((value, key) => {
+        allParams[key] = value;
+      });
+      console.log('🔍 TODOS los parámetros de la URL:', allParams);
+    };
+
+    // Llamar esta función temporalmente
+    useEffect(() => {
+      logAllParams();
+    }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,20 +127,20 @@ const ResetPasswordScreen: React.FC = () => {
     setLoading(true);
 
     try {
-      // 🎯 NUEVO: Usar Firebase para resetear la contraseña
+      // 🎯 USAR FIREBASE PARA RESETEAR LA CONTRASEÑA
       const auth = getAuth();
       
-      // 1. Confirmar el reset con Firebase
+      console.log('🔄 Confirmando reset de contraseña...');
       await confirmPasswordReset(auth, oobCode, newPassword);
       
       console.log('✅ Contraseña actualizada en Firebase para:', email);
 
-      // 2. Actualizar también en nuestro backend
+      // 🎯 ACTUALIZAR TAMBIÉN EN NUESTRO BACKEND
       try {
         const response = await authAPI.resetPassword(email, newPassword);
         
         if (response.success) {
-          // 🎯 Resetear intentos de recuperación
+          // 🎯 RESETEAR INTENTOS DE RECUPERACIÓN
           try {
             await authAPI.resetRecoveryAttempts(email);
             console.log('✅ Intentos de recuperación reseteados para:', email);
@@ -104,7 +154,7 @@ const ResetPasswordScreen: React.FC = () => {
           setError(response.message);
         }
       } catch (backendError: any) {
-        // Si falla el backend pero Firebase sí funcionó, mostrar éxito parcial
+        // SI FALLA EL BACKEND PERO FIREBASE SÍ FUNCIONÓ, MOSTRAR ÉXITO PARCIAL
         console.log('⚠️ Firebase OK pero error en backend:', backendError);
         setMessage('✅ Contraseña actualizada. Redirigiendo al login...');
         setTimeout(() => navigate('/login'), 3000);
@@ -119,6 +169,8 @@ const ResetPasswordScreen: React.FC = () => {
         setError('❌ Enlace inválido. Por favor, solicita uno nuevo.');
       } else if (firebaseError.code === 'auth/user-disabled') {
         setError('❌ Esta cuenta ha sido deshabilitada.');
+      } else if (firebaseError.code === 'auth/weak-password') {
+        setError('❌ La contraseña es demasiado débil. Debe tener al menos 6 caracteres.');
       } else {
         setError('❌ Error al actualizar la contraseña: ' + firebaseError.message);
       }
@@ -163,12 +215,20 @@ const ResetPasswordScreen: React.FC = () => {
         <div className="reset-password-card">
           <div className="error-message">
             <p>{error}</p>
-            <button 
-              onClick={() => navigate('/olvide')} 
-              className="back-button"
-            >
-              ← Solicitar nuevo enlace
-            </button>
+            <div className="action-buttons">
+              <button 
+                onClick={() => navigate('/olvide')} 
+                className="back-button"
+              >
+                ← Solicitar nuevo enlace
+              </button>
+              <button 
+                onClick={() => navigate('/login')} 
+                className="secondary-button"
+              >
+                Volver al Login
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -199,8 +259,6 @@ const ResetPasswordScreen: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit} className="reset-password-form">
-          {/* 🎯 ELIMINADO: Campo de email - ahora viene automáticamente */}
-
           <div className="reset-password-form-group">
             <label htmlFor="newPassword">Nueva Contraseña</label>
             <div className="password-input-container">
