@@ -119,8 +119,8 @@ const ResetPasswordScreen: React.FC = () => {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+    if (newPassword.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres');
       return;
     }
 
@@ -268,10 +268,10 @@ const ResetPasswordScreen: React.FC = () => {
                 value={newPassword}
                 onChange={handlePasswordChange}
                 required
-                minLength={6}
-                placeholder="Mínimo 6 caracteres"
+                minLength={8}
+                placeholder="8-16 caracteres, sin espacios"
                 className="reset-password-input password-input"
-                maxLength={20}
+                maxLength={16}
               />
               <button 
                 type="button"
@@ -284,9 +284,12 @@ const ResetPasswordScreen: React.FC = () => {
             <div className="password-requirements">
               <strong>Requisitos de la contraseña:</strong>
               <ul className="requirements-list">
-                <li>Mínimo 6 caracteres</li>
-                <li>Sin espacios en blanco</li>
-                <li>Se recomienda usar mayúsculas, minúsculas y números</li>
+                <li>8-16 caracteres</li>
+                <li>Al menos 1 letra MAYÚSCULA (A-Z)</li>
+                <li>Al menos 1 letra minúscula (a-z)</li>
+                <li>Al menos 1 número (0-9)</li>
+                <li>SIN espacios en blanco</li>
+                <li>SIN símbolos especiales (#, @, $, %, etc.)</li>
               </ul>
             </div>
           </div>
@@ -300,9 +303,10 @@ const ResetPasswordScreen: React.FC = () => {
                 value={confirmPassword}
                 onChange={handleConfirmPasswordChange}
                 required
+                minLength={8}
                 placeholder="Repite tu contraseña"
                 className="reset-password-input password-input"
-                maxLength={20}
+                maxLength={16}
               />
               <button 
                 type="button"
