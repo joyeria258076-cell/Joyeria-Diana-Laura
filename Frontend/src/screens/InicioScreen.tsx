@@ -3,9 +3,11 @@
 import React from "react";
 import { useAuth } from "../contexts/AuthContext";
 import "../styles/InicioScreen.css";
+import { useNavigate } from "react-router-dom"; // Agregar esta importación
 
 export default function InicioScreen() {
     const { user, logout } = useAuth();
+    const navigate = useNavigate(); // Agregar esta línea
     
     return (
         <div className="inicio-container">
@@ -24,6 +26,13 @@ export default function InicioScreen() {
                         <a href="#contacto" className="nav-link">Contacto</a>
                     </nav>
                     <div className="user-actions">
+                        <button 
+                            className="profile-icon-btn"
+                            onClick={() => navigate("/perfil")}
+                            title="Mi Perfil"
+                        >
+                            👤
+                        </button>
                         <span className="user-welcome">Hola, {user?.nombre}</span>
                         <button className="logout-btn" onClick={logout}>
                             Cerrar Sesión

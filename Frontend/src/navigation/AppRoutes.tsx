@@ -7,6 +7,7 @@ import RegistroScreen from "../screens/RegistroScreen";
 import OlvideContraseniaScreen from "../screens/OlvideContraseniaScreen";
 import ReiniciarContraseniaScreen from "../screens/ReiniciarContraseniaScreen";
 import InicioScreen from "../screens/InicioScreen";
+import PerfilScreen from "../screens/PerfilScreen";
 import { useAuth } from "../contexts/AuthContext";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -43,6 +44,17 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <InicioScreen />
+            </ProtectedRoute>
+          }
+        />
+
+            
+        {/* Ruta de perfil */}
+        <Route
+          path="/perfil"
+          element={
+            <ProtectedRoute>
+              <PerfilScreen />
             </ProtectedRoute>
           }
         />

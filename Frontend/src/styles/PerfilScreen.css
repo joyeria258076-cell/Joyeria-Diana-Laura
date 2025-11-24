@@ -1,0 +1,243 @@
+/* Ruta: Joyeria-Diana-Laura/Frontend/src/styles/PerfilScreen.css */
+
+.perfil-container {
+    min-height: 100vh;
+    background: #000000;
+    font-family: 'Montserrat', sans-serif;
+    color: #FFFFFF;
+}
+
+/* Header (mismo estilo que InicioScreen) */
+.perfil-header {
+    background: #000000;
+    border-bottom: 1px solid rgba(236, 178, 195, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+/* Contenido principal */
+.perfil-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.perfil-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+/* Información del usuario */
+.user-info-section {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    background: linear-gradient(145deg, #0a0a0a, #000000);
+    border: 1px solid rgba(236, 178, 195, 0.15);
+    border-radius: 16px;
+}
+
+.user-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ECB2C3 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.user-details {
+    flex: 1;
+}
+
+.user-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 0.5rem;
+}
+
+.user-email {
+    color: #ECB2C3;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.user-member {
+    color: #D9D9D9;
+    font-size: 0.9rem;
+}
+
+/* Sección de sesiones */
+.sesiones-section {
+    background: linear-gradient(145deg, #0a0a0a, #000000);
+    border: 1px solid rgba(236, 178, 195, 0.15);
+    border-radius: 16px;
+    padding: 2rem;
+}
+
+.section-header {
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+    color: #D9D9D9;
+    font-size: 1rem;
+}
+
+/* Lista de sesiones */
+.sesiones-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.sesion-card {
+    background: rgba(236, 178, 195, 0.05);
+    border: 1px solid rgba(236, 178, 195, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.sesion-card.sesion-actual {
+    border-color: rgba(236, 178, 195, 0.4);
+    background: rgba(236, 178, 195, 0.08);
+}
+
+.sesion-card:hover {
+    border-color: rgba(236, 178, 195, 0.3);
+    transform: translateY(-2px);
+}
+
+.sesion-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sesion-dispositivo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.dispositivo-icon {
+    font-size: 1.5rem;
+}
+
+.dispositivo-nombre {
+    font-weight: 600;
+    color: #FFFFFF;
+    margin-bottom: 0.25rem;
+}
+
+.sesion-detalles {
+    color: #D9D9D9;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge-actual {
+    background: rgba(236, 178, 195, 0.2);
+    color: #ECB2C3;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Botones */
+.btn-cerrar-sesion {
+    background: transparent;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-cerrar-sesion:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-cerrar-todas {
+    background: transparent;
+    color: #c0392b;
+    border: 2px solid #c0392b;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.btn-cerrar-todas:hover {
+    background: #c0392b;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.acciones-globales {
+    text-align: center;
+}
+
+.advertencia {
+    color: #D9D9D9;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.loading-sesiones {
+    text-align: center;
+    padding: 2rem;
+    color: #D9D9D9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .perfil-main {
+        padding: 1rem;
+    }
+
+    .user-info-section {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .sesion-info {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .sesion-actions {
+        align-self: flex-end;
+    }
+}
