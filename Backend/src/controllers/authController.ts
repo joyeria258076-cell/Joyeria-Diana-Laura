@@ -678,6 +678,9 @@ export const checkFirebaseUser = async (req: Request, res: Response) => {
       
       console.log(`✅ Usuario encontrado en Firebase: ${userRecord.uid}`);
       
+      // 🆕 OBTENER USUARIO DE POSTGRESQL PARA EL ID NUMÉRICO
+      const dbUser = await getUserByEmail(email);
+      
       res.json({
         success: true,
         exists: true,
@@ -686,7 +689,9 @@ export const checkFirebaseUser = async (req: Request, res: Response) => {
           uid: userRecord.uid,
           email: userRecord.email,
           displayName: userRecord.displayName,
-          emailVerified: userRecord.emailVerified
+          emailVerified: userRecord.emailVerified,
+          // 🆕 AGREGAR EL ID NUMÉRICO
+          id: dbUser?.id || null
         }
       });
 
