@@ -488,4 +488,40 @@ export class SessionService {
       os
     };
   }
+
+  static async getCurrentSessionTokenByUserAndDevice(
+  userId: number, 
+  userAgent: string, 
+  ipAddress: string
+): Promise<{ success: boolean; sessionToken?: string; error?: string }> {
+  try {
+    const deviceFingerprint = this.generateDeviceFingerprint(userAgent, ipAddress);
+    
+    const result = await pool.query(
+      `SELECT session_token FROM user_sessions 
+       WHERE user_id = $1 AND device_fingerprint = $2 
+       AND is_revoked = false AND expires_at > NOW()
+       ORDER BY created_at DESC LIMIT 1`,
+      [userId, deviceFingerprint]
+    );
+
+    if (result.rows.length > 0) {
+      return { 
+        success: true, 
+        sessionToken: result.rows[0].session_token 
+      };
+    } else {
+      return { 
+        success: false, 
+        error: 'Sesión actual no encontrada' 
+      };
+    }
+  } catch (error: any) {
+    console.error('❌ Error obteniendo sessionToken actual:', error);
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
+}
 }

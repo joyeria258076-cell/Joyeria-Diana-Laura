@@ -34,31 +34,22 @@ export default function PerfilScreen() {
   const cargarSesionesActivas = async () => {
     try {
       setCargando(true);
+      console.log('📋 Cargando sesiones activas del backend...');
+      
       const sesiones = await getActiveSessions();
       
-      // 🆕 MARCAR SESIÓN ACTUAL (podemos usar IP o dispositivo similar)
-      const sesionesConActual = sesiones.map(sesion => ({
-        ...sesion,
-        is_current: determinarSiEsActual(sesion)
-      }));
+      console.log('✅ Sesiones cargadas:', sesiones.length);
+      console.log('🎯 Sesión actual ya marcada por backend:', sesiones.some(s => s.is_current));
       
-      setSesionesActivas(sesionesConActual);
+      // 🆕 YA NO necesitamos mapear ni marcar - el backend ya lo hace
+      setSesionesActivas(sesiones);
+      
     } catch (error: any) {
       console.error("❌ Error cargando sesiones:", error);
       mostrarMensaje("Error al cargar las sesiones activas: " + error.message, "error");
     } finally {
       setCargando(false);
     }
-  };
-
-  // 🆕 FUNCIÓN PARA DETERMINAR SI ES LA SESIÓN ACTUAL (simplificado)
-  const determinarSiEsActual = (sesion: SesionActiva): boolean => {
-    // En una implementación real, compararías con la sesión actual
-    // Por ahora, marcamos la más reciente como actual
-    const sesionesOrdenadas = [...sesionesActivas].sort((a, b) => 
-      new Date(b.last_activity).getTime() - new Date(a.last_activity).getTime()
-    );
-    return sesionesOrdenadas[0]?.id === sesion.id;
   };
 
   // 🆕 FUNCIÓN PARA MOSTRAR MENSAJES
