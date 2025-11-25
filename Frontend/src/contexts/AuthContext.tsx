@@ -50,7 +50,7 @@ interface ActiveSession {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<any>;
   register: (email: string, password: string, nombre: string) => Promise<void>;
   logout: () => void;
   sendPasswordReset: (email: string) => Promise<{
@@ -614,45 +614,49 @@ const login = async (email: string, password: string) => {
 
     console.log('✅ Email verificado, completando login...');
     
-// 🎯 TERCERO: Login exitoso en nuestro backend
-const backendResponse = await authAPI.login(email, password);
+    // 🎯 TERCERO: Login exitoso en nuestro backend
+    const backendResponse = await authAPI.login(email, password);
 
-if (backendResponse.success) {
-  const userData = backendResponse.data.user;
-  // 🆕 AGREGAR ESTAS 2 LÍNEAS:
-  const token = backendResponse.data.token; // OBTENER JWT
-  const sessionToken = backendResponse.data.sessionToken; // OBTENER SESSION TOKEN
-  
-  // 🆕 OBTENER EL USUARIO DE POSTGRESQL PARA EL ID NUMÉRICO
-  try {
-    console.log('🔍 Obteniendo ID numérico de PostgreSQL...');
-    const dbUserResponse = await authAPI.checkFirebaseUser(email);
-    if (dbUserResponse.exists && dbUserResponse.data) {
-      // 🆕 AGREGAR EL ID NUMÉRICO AL USER DATA
-      userData.dbId = dbUserResponse.data.id;
-      console.log(`✅ ID numérico obtenido: ${userData.dbId}`);
-    }
-  } catch (dbError) {
-    console.warn('⚠️ No se pudo obtener el ID numérico:', dbError);
-  }
-  
-  // 🆕 MODIFICAR: CREAR USER CON TOKEN
-  const userWithToken = {
-    ...userData,
-    token: token // 🆕 INCLUIR TOKEN JWT
-  };
-  
-  setUser(userWithToken);
-  setCurrentSessionToken(sessionToken);
-  
-  // 🆕 MODIFICAR: GUARDAR CON TOKEN
-  localStorage.setItem('diana_laura_user', JSON.stringify(userWithToken));
-  localStorage.setItem('diana_laura_session_token', sessionToken);
-  
-  console.log('✅ Login completo exitoso - SESIÓN INICIADA CON JWT');
-  
-  handleUserActivity();
-} else {
+    // 🆕 CAMBIO CLAVE: RETORNAR LA RESPUESTA COMPLETA
+    if (backendResponse.success) {
+      const userData = backendResponse.data.user;
+      const token = backendResponse.data.token;
+      const sessionToken = backendResponse.data.sessionToken;
+      
+      // 🆕 OBTENER EL USUARIO DE POSTGRESQL PARA EL ID NUMÉRICO
+      try {
+        console.log('🔍 Obteniendo ID numérico de PostgreSQL...');
+        const dbUserResponse = await authAPI.checkFirebaseUser(email);
+        if (dbUserResponse.exists && dbUserResponse.data) {
+          userData.dbId = dbUserResponse.data.id;
+          console.log(`✅ ID numérico obtenido: ${userData.dbId}`);
+        }
+      } catch (dbError) {
+        console.warn('⚠️ No se pudo obtener el ID numérico:', dbError);
+      }
+      
+      const userWithToken = {
+        ...userData,
+        token: token
+      };
+      
+      setUser(userWithToken);
+      setCurrentSessionToken(sessionToken);
+      
+      localStorage.setItem('diana_laura_user', JSON.stringify(userWithToken));
+      localStorage.setItem('diana_laura_session_token', sessionToken);
+      
+      console.log('✅ Login completo exitoso - SESIÓN INICIADA CON JWT');
+      
+      handleUserActivity();
+
+      // 🆕 RETORNAR LA RESPUESTA COMPLETA PARA MFA
+      return backendResponse;
+    } else {
+      // 🆕 SI HAY MFA REQUERIDO, RETORNAR LA RESPUESTA
+      if (backendResponse.mfaRequired) {
+        return backendResponse;
+      }
       throw new Error(backendResponse.message);
     }
     
@@ -666,10 +670,8 @@ if (backendResponse.success) {
       
       try {
         console.log('📝 Registrando intento fallido en nuestro sistema...');
-        // Llamar al backend para registrar el intento fallido
         const failureResponse = await authAPI.login(email, 'wrong_password_to_trigger_failure');
         
-        // Si el backend responde con información de intentos, usarla
         if (!failureResponse.success && failureResponse.remainingAttempts !== undefined) {
           const errorWithAttempts = new Error('Email o contraseña incorrectos.');
           (errorWithAttempts as any).remainingAttempts = failureResponse.remainingAttempts;

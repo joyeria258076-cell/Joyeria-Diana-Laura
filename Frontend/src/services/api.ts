@@ -250,6 +250,26 @@ export const authAPI = {
   logout: async () => {
     return enhancedApi.post('/auth/logout', {});
   },
+
+  setupMFA: async (userId: number, email: string) => {
+    return enhancedApi.post('/auth/mfa/setup', { userId, email });
+  },
+
+  verifyAndEnableMFA: async (userId: number, token: string) => {
+    return enhancedApi.post('/auth/mfa/verify-enable', { userId, token });
+  },
+
+  verifyLoginMFA: async (userId: number, token: string) => {
+    return enhancedApi.post('/auth/mfa/verify-login', { userId, token });
+  },
+
+  disableMFA: async (userId: number) => {
+    return enhancedApi.post('/auth/mfa/disable', { userId });
+  },
+
+  checkMFAStatus: async (userId: number) => {
+    return enhancedApi.post('/auth/mfa/status', { userId });
+  }
 };
 
 // 🆕 EXPORTAR enhancedApi POR SI SE NECESITA EN OTROS LUGARES

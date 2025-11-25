@@ -32,6 +32,7 @@ export default function LoginScreen() {
     
     const [showPassword, setShowPassword] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
+    const [loading, setLoading] = useState(false); // 🆕 Estado para loading del login
 
     useEffect(() => {
         const oobCode = searchParams.get('oobCode');
@@ -91,10 +92,44 @@ export default function LoginScreen() {
 
 const onSubmit = async (data: FormData) => {
   try {
-    await login(data.email, data.password);
+    setLoading(true);
+    setError('root', { message: '' }); // Limpiar errores previos
+    
+    console.log('🔐 Iniciando proceso de login...');
+    const response = await login(data.email, data.password);
+    
+    // 🆕 DETECTAR SI SE REQUIERE MFA (AGREGAR ESTO)
+    if (response && response.mfaRequired) {
+      console.log('🔐 MFA requerido - redirigiendo a verificación');
+      
+      // Redirigir a pantalla MFA con los datos necesarios
+      navigate('/verify-mfa', { 
+        state: { 
+          userId: response.userId,
+          email: data.email 
+        } 
+      });
+      return;
+    }
+    
+    // 🆕 SI NO HAY MFA, CONTINUAR CON LOGIN NORMAL
+    console.log('✅ Login exitoso (sin MFA) - redirigiendo a inicio');
     navigate("/inicio");
+    
   } catch (error: any) {
     console.log('🔍 Error en login:', error);
+    
+    // 🆕 MANEJAR REDIRECCIÓN MFA (AGREGAR ESTO)
+    if (error.message?.includes('Se requiere código MFA') || error.mfaRequired) {
+      console.log('🔐 MFA detectado en error - redirigiendo');
+      navigate('/verify-mfa', { 
+        state: { 
+          userId: error.userId,
+          email: data.email 
+        } 
+      });
+      return;
+    }
     
     // 🎯 MANEJAR BLOQUEOS
     if (error.message.includes('bloqueada')) {
@@ -154,6 +189,8 @@ const onSubmit = async (data: FormData) => {
         message: "❌ " + (error.message || "Error al iniciar sesión. Por favor, intenta nuevamente.") 
       });
     }
+  } finally {
+    setLoading(false);
   }
 };
 
@@ -241,9 +278,9 @@ const onSubmit = async (data: FormData) => {
                         <button 
                             type="submit" 
                             className="login-button"
-                            disabled={isVerifying}
+                            disabled={isVerifying || loading} // 🆕 Agregar loading al disable
                         >
-                            {isVerifying ? "Verificando..." : "Entrar"}
+                            {isVerifying ? "Verificando..." : loading ? "Iniciando sesión..." : "Entrar"}
                         </button>
                     </form>
 

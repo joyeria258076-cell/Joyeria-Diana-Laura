@@ -24,6 +24,7 @@ import {
     logout 
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/authMiddleware'; 
+import { mfaController } from '../controllers/mfaController';
 
 const router = express.Router();
 
@@ -54,5 +55,12 @@ router.post('/sessions/revoke-all', authenticateToken, revokeAllSessions);
 // 🆕 RUTAS PROTEGIDAS (con autenticación)
 router.get('/validate-session', authenticateToken, validateSession);
 router.post('/logout', authenticateToken, logout);
+
+// 🆕 RUTAS MFA (agregar al final)
+router.post('/mfa/setup', authenticateToken, mfaController.setupMFA);
+router.post('/mfa/verify-enable', authenticateToken, mfaController.verifyAndEnableMFA);
+router.post('/mfa/verify-login', mfaController.verifyLoginMFA); // 🚫 SIN autenticación (para login)
+router.post('/mfa/disable', authenticateToken, mfaController.disableMFA);
+router.post('/mfa/status', authenticateToken, mfaController.checkMFAStatus);
 
 export default router;

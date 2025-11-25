@@ -8,6 +8,9 @@ import OlvideContraseniaScreen from "../screens/OlvideContraseniaScreen";
 import ReiniciarContraseniaScreen from "../screens/ReiniciarContraseniaScreen";
 import InicioScreen from "../screens/InicioScreen";
 import PerfilScreen from "../screens/PerfilScreen";
+// 🆕 PANTALLAS MFA
+import MFAVerifyScreen from "../screens/MFAVerifyScreen";
+import MFASetupScreen from "../screens/MFASetupScreen";
 import { useAuth } from "../contexts/AuthContext";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -28,17 +31,74 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
+// 🆕 COMPONENTE PARA RUTAS PÚBLICAS (cuando NO hay usuario)
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-lg font-semibold">
+        Cargando...
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/inicio" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Rutas públicas */}
-        <Route path="/login" element={<LoginScreen />} />
-        <Route path="/registro" element={<RegistroScreen />} />
-        <Route path="/olvide" element={<OlvideContraseniaScreen />} />
-        <Route path="/reiniciar" element={<ReiniciarContraseniaScreen />} />
+        {/* 🆕 RUTAS PÚBLICAS (solo para usuarios NO autenticados) */}
+        <Route 
+          path="/login" 
+          element={
+            <PublicRoute>
+              <LoginScreen />
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="/registro" 
+          element={
+            <PublicRoute>
+              <RegistroScreen />
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="/olvide" 
+          element={
+            <PublicRoute>
+              <OlvideContraseniaScreen />
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="/reiniciar" 
+          element={
+            <PublicRoute>
+              <ReiniciarContraseniaScreen />
+            </PublicRoute>
+          } 
+        />
+        
+        {/* 🆕 RUTA MFA VERIFICACIÓN (pública - para completar login) */}
+        <Route 
+          path="/verify-mfa" 
+          element={
+            <PublicRoute>
+              <MFAVerifyScreen />
+            </PublicRoute>
+          } 
+        />
 
-        {/* Rutas protegidas */}
+        {/* 🆕 RUTAS PROTEGIDAS (solo para usuarios autenticados) */}
         <Route
           path="/inicio"
           element={
@@ -48,8 +108,6 @@ export default function AppRoutes() {
           }
         />
 
-            
-        {/* Ruta de perfil */}
         <Route
           path="/perfil"
           element={
@@ -59,8 +117,21 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Ruta por defecto */}
-        <Route path="*" element={<Navigate to="/inicio" replace />} />
+        {/* 🆕 RUTA MFA SETUP (protegida - para configurar MFA) */}
+        <Route
+          path="/mfa-setup"
+          element={
+            <ProtectedRoute>
+              <MFASetupScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 🆕 RUTA POR DEFECTO */}
+        <Route path="/" element={<Navigate to="/inicio" replace />} />
+        
+        {/* 🆕 RUTA 404 */}
+        <Route path="*" element={<div>Página no encontrada</div>} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,0 +1,256 @@
+.mfa-setup-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.mfa-setup-card {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+}
+
+.step-intro h2 {
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.step-intro p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+.benefits {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+}
+
+.benefits h3 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.benefits ul {
+  list-style: none;
+  padding: 0;
+}
+
+.benefits li {
+  padding: 8px 0;
+  color: #555;
+  line-height: 1.4;
+}
+
+.benefits li:before {
+  content: "✅";
+  margin-right: 10px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.primary-button {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.primary-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.primary-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.secondary-button {
+  padding: 12px 24px;
+  background: transparent;
+  border: 2px solid #667eea;
+  color: #667eea;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: #667eea;
+  color: white;
+}
+
+/* QR Code Step */
+.step-qr h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.qr-container {
+  display: flex;
+  justify-content: center;
+  margin: 25px 0;
+}
+
+.qr-code {
+  width: 200px;
+  height: 200px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 10px;
+  background: white;
+}
+
+.manual-setup {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+}
+
+.manual-setup h4 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.secret-code {
+  display: block;
+  background: #333;
+  color: #fff;
+  padding: 12px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 14px;
+  text-align: center;
+  margin: 10px 0;
+  word-break: break-all;
+}
+
+/* Verification Step */
+.step-verify h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.step-verify p {
+  text-align: center;
+  color: #666;
+  margin-bottom: 25px;
+}
+
+.step-verify .form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 16px;
+  text-align: center;
+  letter-spacing: 8px;
+  transition: border-color 0.3s;
+}
+
+.step-verify .form-group input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+/* Complete Step */
+.step-complete h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.step-complete p {
+  text-align: center;
+  color: #666;
+  margin-bottom: 25px;
+}
+
+.backup-codes {
+  background: #f8f9fa;
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+}
+
+.backup-codes h3 {
+  text-align: center;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.backup-codes p {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.codes-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.backup-code {
+  background: #333;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  text-align: center;
+}
+
+.backup-codes small {
+  display: block;
+  text-align: center;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.error-message {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.success-message {
+  background: #efe;
+  border: 1px solid #cfc;
+  color: #363;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: center;
+}

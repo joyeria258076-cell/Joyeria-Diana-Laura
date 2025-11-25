@@ -264,7 +264,40 @@ export const login = async (req: Request, res: Response) => {
         });
       }
 
-      // 🎯 LOGIN EXITOSO
+      // 🆕 🎯 VERIFICAR MFA ANTES DE PERMITIR ACCESO (AGREGAR ESTO)
+      console.log('🔐 Verificando estado MFA para:', email);
+      
+      const userCheck = await pool.query(
+        'SELECT id, mfa_enabled FROM usuarios WHERE email = $1',
+        [email]
+      );
+      
+      if (userCheck.rows.length > 0) {
+        const user = userCheck.rows[0];
+        
+        if (user.mfa_enabled) {
+          console.log('🚫 Usuario tiene MFA activado - requerir código');
+          
+          // 🎯 LOGIN EXITOSO PERO CON MFA REQUERIDO
+          await LoginSecurityService.recordLoginAttempt({
+            email,
+            ip_address: clientIp,
+            user_agent: userAgent,
+            success: true, // ✅ Login exitoso, pero requiere MFA
+            failure_reason: 'mfa_required'
+          });
+
+          return res.status(200).json({
+            success: false, // 🚫 Cambiar a false para indicar login incompleto
+            message: 'Se requiere código MFA',
+            mfaRequired: true,
+            userId: user.id,
+            email: email
+          });
+        }
+      }
+
+      // 🎯 LOGIN EXITOSO (sin MFA o MFA no activado)
       await LoginSecurityService.recordLoginAttempt({
         email,
         ip_address: clientIp,
@@ -278,44 +311,72 @@ export const login = async (req: Request, res: Response) => {
       const userEmail = userRecord.email || email;
       const userName = userRecord.displayName || (userEmail ? userEmail.split('@')[0] : 'Usuario');
       
-      // 🆕 🎯 CREACIÓN DE SESIÓN (CÓDIGO EXISTENTE - SIN CAMBIOS)
-// 🆕 🎯 CREACIÓN DE SESIÓN Y GENERACIÓN DE JWT
-try {
-  // Obtener usuario de PostgreSQL para el ID
-  const dbUser = await userModel.getUserByEmail(userEmail);
-  
-  if (dbUser && dbUser.id) {
-    const deviceInfo = SessionService.parseUserAgent(userAgent);
-    
-    // Crear sesión en la base de datos
-    const sessionResult = await SessionService.createSession(
-      dbUser.id,
-      userRecord.uid,
-      deviceInfo,
-      clientIp,
-      userAgent
-    );
-    
-    if (sessionResult.success && sessionResult.sessionToken) { // 🆕 VERIFICAR sessionToken
-      console.log(`✅ Sesión registrada para: ${userEmail}, Session Token: ${sessionResult.sessionToken.substring(0, 10)}...`);
-      
-      // 🆕 GENERAR JWT CON sessionId
-      const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_2024_joyeria_diana_laura';
-      const token = jwt.sign(
-        { 
-          userId: dbUser.id,
-          firebaseUid: userRecord.uid,
-          email: userEmail,
-          nombre: userName,
-          sessionId: sessionResult.sessionToken // 🆕 USAR sessionToken, NO sessionId
-        },
-        JWT_SECRET,
-        { expiresIn: '30d' }
-      );
+      // 🆕 🎯 CREACIÓN DE SESIÓN Y GENERACIÓN DE JWT
+      try {
+        // Obtener usuario de PostgreSQL para el ID
+        const dbUser = await userModel.getUserByEmail(userEmail);
+        
+        if (dbUser && dbUser.id) {
+          const deviceInfo = SessionService.parseUserAgent(userAgent);
+          
+          // Crear sesión en la base de datos
+          const sessionResult = await SessionService.createSession(
+            dbUser.id,
+            userRecord.uid,
+            deviceInfo,
+            clientIp,
+            userAgent
+          );
+          
+          if (sessionResult.success && sessionResult.sessionToken) {
+            console.log(`✅ Sesión registrada para: ${userEmail}, Session Token: ${sessionResult.sessionToken.substring(0, 10)}...`);
+            
+            // 🆕 GENERAR JWT CON sessionId
+            const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_2024_joyeria_diana_laura';
+            const token = jwt.sign(
+              { 
+                userId: dbUser.id,
+                firebaseUid: userRecord.uid,
+                email: userEmail,
+                nombre: userName,
+                sessionId: sessionResult.sessionToken
+              },
+              JWT_SECRET,
+              { expiresIn: '30d' }
+            );
 
-      console.log(`✅ LOGIN EXITOSO para: ${email}`);
-      console.log(`🔐 JWT generado con sessionId: ${sessionResult.sessionToken.substring(0, 10)}...`);
-      
+            console.log(`✅ LOGIN EXITOSO para: ${email}`);
+            console.log(`🔐 JWT generado con sessionId: ${sessionResult.sessionToken.substring(0, 10)}...`);
+            
+            res.json({
+              success: true,
+              message: 'Login exitoso',
+              data: {
+                user: {
+                  id: userRecord.uid,
+                  email: userEmail,
+                  nombre: userName,
+                  dbId: dbUser.id
+                },
+                token: token,
+                sessionToken: sessionResult.sessionToken
+              }
+            });
+            return;
+            
+          } else {
+            console.warn(`⚠️ Sesión no registrada o sin token para: ${userEmail}, Error: ${sessionResult.error}`);
+          }
+        } else {
+          console.warn(`⚠️ Usuario no encontrado en PostgreSQL para crear sesión: ${userEmail}`);
+        }
+      } catch (sessionError) {
+        console.error('❌ Error creando sesión (no crítico):', sessionError);
+      }
+
+      // 🆕 SI NO SE PUDO CREAR SESIÓN, ENVIAR RESPUESTA SIN TOKEN
+      console.log(`✅ LOGIN EXITOSO (sin sesión) para: ${email}`);
+
       res.json({
         success: true,
         message: 'Login exitoso',
@@ -323,40 +384,10 @@ try {
           user: {
             id: userRecord.uid,
             email: userEmail,
-            nombre: userName,
-            dbId: dbUser.id
-          },
-          token: token, // 🆕 ENVIAR JWT AL FRONTEND
-          sessionToken: sessionResult.sessionToken // 🆕 ENVIAR SESSION TOKEN
+            nombre: userName
+          }
         }
       });
-      return; // 🆕 IMPORTANTE: Salir de la función después de enviar response
-      
-    } else {
-      console.warn(`⚠️ Sesión no registrada o sin token para: ${userEmail}, Error: ${sessionResult.error}`);
-    }
-  } else {
-    console.warn(`⚠️ Usuario no encontrado en PostgreSQL para crear sesión: ${userEmail}`);
-  }
-} catch (sessionError) {
-  console.error('❌ Error creando sesión (no crítico):', sessionError);
-}
-
-// 🆕 SI NO SE PUDO CREAR SESIÓN, ENVIAR RESPUESTA SIN TOKEN
-console.log(`✅ LOGIN EXITOSO (sin sesión) para: ${email}`);
-
-res.json({
-  success: true,
-  message: 'Login exitoso',
-  data: {
-    user: {
-      id: userRecord.uid,
-      email: userEmail,
-      nombre: userName
-    }
-    // 🆕 NO hay token ni sessionToken
-  }
-});
 
     } catch (firebaseError: any) {
       console.error('❌ Error de Firebase:', firebaseError);
