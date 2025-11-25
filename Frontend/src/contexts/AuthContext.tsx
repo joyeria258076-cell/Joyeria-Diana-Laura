@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { authAPI } from '../services/api';
 import { initializeApp } from 'firebase/app';
+import { securityQuestionAPI } from '../services/securityQuestionAPI';
+
 import { 
   getAuth, 
   createUserWithEmailAndPassword, 
@@ -51,7 +53,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, nombre: string) => Promise<void>;
+  register: (email: string, password: string, nombre: string, questionType: string, customQuestion: string, securityAnswer: string) => Promise<void>; // 🆕 Actualizado
   logout: () => void;
   sendPasswordReset: (email: string) => Promise<{
     success: boolean;
@@ -711,66 +713,82 @@ if (backendResponse.success) {
   }
 };
 
-  const register = async (email: string, password: string, nombre: string) => {
+const register = async (email: string, password: string, nombre: string, questionType: string, customQuestion: string, securityAnswer: string) => {
     try {
-      console.log('🚀 Iniciando proceso de registro...');
+        console.log('🚀 Iniciando proceso de registro...');
 
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const firebaseUser = userCredential.user;
-      
-      console.log('✅ Usuario creado en Firebase');
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const firebaseUser = userCredential.user;
+        
+        console.log('✅ Usuario creado en Firebase');
 
-      try {
-        console.log('👤 Actualizando perfil con nombre...');
-        await updateProfile(firebaseUser, {
-          displayName: nombre
-        });
-        console.log('✅ Nombre actualizado en Firebase');
-      } catch (profileError: any) {
-        console.log('⚠️ Error actualizando perfil:', profileError.message);
-      }
+        try {
+            console.log('👤 Actualizando perfil con nombre...');
+            await updateProfile(firebaseUser, {
+                displayName: nombre
+            });
+            console.log('✅ Nombre actualizado en Firebase');
+        } catch (profileError: any) {
+            console.log('⚠️ Error actualizando perfil:', profileError.message);
+        }
 
-      console.log('📧 Enviando email de verificación...');
-      const verificationActionCodeSettings = {
-        url: `${window.location.origin}/login?verified=true&email=${encodeURIComponent(email)}`,
-        handleCodeInApp: false
-      };
-      
-      await sendEmailVerification(firebaseUser, verificationActionCodeSettings);
-      console.log('✅ Email de verificación enviado por Firebase');
+        console.log('📧 Enviando email de verificación...');
+        const verificationActionCodeSettings = {
+            url: `${window.location.origin}/login?verified=true&email=${encodeURIComponent(email)}`,
+            handleCodeInApp: false
+        };
+        
+        await sendEmailVerification(firebaseUser, verificationActionCodeSettings);
+        console.log('✅ Email de verificación enviado por Firebase');
 
-      try {
-        console.log('💾 Intentando sincronizar con PostgreSQL...');
-        await authAPI.syncUser(email, firebaseUser.uid, nombre);
-        console.log('✅ Usuario sincronizado con PostgreSQL');
-      } catch (syncError: any) {
-        console.log('⚠️ Usuario en Firebase pero no en PostgreSQL:', syncError.message);
-      }
+        try {
+            console.log('💾 Intentando sincronizar con PostgreSQL...');
+            await authAPI.syncUser(email, firebaseUser.uid, nombre);
+            console.log('✅ Usuario sincronizado con PostgreSQL');
 
-      console.log('🔒 Cerrando sesión...');
-      await auth.signOut();
-      console.log('✅ Sesión cerrada exitosamente');
+            // 🆕 CONFIGURAR PREGUNTA SECRETA
+            console.log('🔐 Configurando pregunta secreta...');
+            const questionResponse = await securityQuestionAPI.setSecurityQuestion(
+                email,
+                questionType,
+                customQuestion,
+                securityAnswer
+            );
 
-      console.log('🎉 REGISTRO COMPLETADO EXITOSAMENTE');
+            if (questionResponse.success) {
+                console.log('✅ Pregunta secreta configurada correctamente');
+            } else {
+                console.log('⚠️ Usuario registrado pero pregunta secreta no configurada:', questionResponse.message);
+            }
+
+        } catch (syncError: any) {
+            console.log('⚠️ Usuario en Firebase pero error en PostgreSQL/pregunta secreta:', syncError.message);
+        }
+
+        console.log('🔒 Cerrando sesión...');
+        await auth.signOut();
+        console.log('✅ Sesión cerrada exitosamente');
+
+        console.log('🎉 REGISTRO COMPLETADO EXITOSAMENTE');
 
     } catch (error: any) {
-      console.error('❌ ERROR EN REGISTRO:', error);
-      
-      if (error.code === 'auth/email-already-in-use') {
-        throw new Error('El email ya está registrado en el sistema. Si es tu cuenta, intenta recuperar tu contraseña.');
-      }
-      
-      if (error.code === 'auth/invalid-email') {
-        throw new Error('El formato del email es inválido. Por favor, verifica tu dirección de correo.');
-      }
-      
-      if (error.code === 'auth/weak-password') {
-        throw new Error('La contraseña es demasiado débil. Debe tener al menos 6 caracteres.');
-      }
-      
-      throw new Error(error.message || 'Error inesperado al registrar usuario. Por favor, intenta nuevamente.');
+        console.error('❌ ERROR EN REGISTRO:', error);
+        
+        if (error.code === 'auth/email-already-in-use') {
+            throw new Error('El email ya está registrado en el sistema. Si es tu cuenta, intenta recuperar tu contraseña.');
+        }
+        
+        if (error.code === 'auth/invalid-email') {
+            throw new Error('El formato del email es inválido. Por favor, verifica tu dirección de correo.');
+        }
+        
+        if (error.code === 'auth/weak-password') {
+            throw new Error('La contraseña es demasiado débil. Debe tener al menos 6 caracteres.');
+        }
+        
+        throw new Error(error.message || 'Error inesperado al registrar usuario. Por favor, intenta nuevamente.');
     }
-  };
+};
 
   const logout = async () => {
     // 🎯 Limpiar timers al hacer logout manual - CÓDIGO EXISTENTE
