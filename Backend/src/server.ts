@@ -6,6 +6,7 @@ import { testConnection } from './config/database';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import { LoginSecurityService } from './services/loginSecurityService';
+import securityQuestionRoutes from './routes/securityQuestionRoutes';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use(express.json());
 // ✅ Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/security', securityQuestionRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -62,7 +64,7 @@ app.listen(PORT, async () => {
   console.log(`   ❤️  Health: http://localhost:${PORT}/api/health`);
   console.log(`   🗄️  DB Test: http://localhost:${PORT}/api/db-test`);
   console.log(`🔐 CORS Headers permitidos: Content-Type, Authorization, X-Session-Token`); // 🆕 LOG
-  
+
   // 🎯 CONEXIÓN Y LIMPIEZA INICIAL
   try {
     const dbOk = await testConnection();
