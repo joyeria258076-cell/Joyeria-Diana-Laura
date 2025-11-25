@@ -32,45 +32,73 @@ class EnhancedApiService {
   }
 
   private async request(endpoint: string, options: RequestInit = {}) {
-    // 🆕 MEJORAR: Obtener token de localStorage directamente
-    let token = null;
+    // 🆕 OBTENER TOKEN JWT Y SESSION TOKEN
+    let jwtToken = null;
+    let sessionToken = null;
+    
     try {
+      // 1. Intentar obtener JWT del user
       const userData = localStorage.getItem('diana_laura_user');
       if (userData) {
         const user = JSON.parse(userData);
-        token = user.token || null;
+        jwtToken = user.token || null;
       }
+      
+      // 2. SIEMPRE obtener sessionToken directamente
+      sessionToken = localStorage.getItem('diana_laura_session_token');
+      
+      console.log('🔐 Tokens disponibles:', {
+        jwt: jwtToken ? jwtToken.substring(0, 15) + '...' : 'NO',
+        session: sessionToken ? sessionToken.substring(0, 15) + '...' : 'NO'
+      });
+      
     } catch (error) {
-      token = null;
+      console.error('❌ Error obteniendo tokens:', error);
+    }
+
+    // 🆕 CONSTRUIR HEADERS CON AMBOS TOKENS
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Agregar JWT si existe (Authorization Bearer)
+    if (jwtToken) {
+      headers['Authorization'] = `Bearer ${jwtToken}`;
+    }
+    
+    // Agregar sessionToken si existe (X-Session-Token)
+    if (sessionToken) {
+      headers['X-Session-Token'] = sessionToken;
     }
 
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...headers,
         ...options.headers,
       },
       ...options,
     };
 
     try {
+      console.log(`📡 Enviando ${options.method || 'GET'} a ${endpoint}`);
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
       
-      // 🆕 MEJORAR: Manejar respuesta antes de parsear JSON
       if (!response.ok) {
-        // Si es error 401/403, intentar parsear el error
         try {
           const errorData = await response.json();
-          throw new Error(errorData.message || 'Error en la petición');
+          console.error('❌ Error del servidor:', errorData);
+          throw new Error(errorData.message || `Error ${response.status}`);
         } catch {
           throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
       }
       
       const data = await response.json();
+      console.log('✅ Respuesta exitosa:', endpoint);
       return data;
       
     } catch (error) {
+      console.error('❌ Error en request:', error);
       throw error;
     }
   }

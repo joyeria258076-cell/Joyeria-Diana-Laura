@@ -270,6 +270,70 @@ const handlePopState = () => {
   };
 }, [user]); // 🎯 SOLO depende de user
 
+useEffect(() => {
+  if (!user || !currentSessionToken) {
+    console.log('⏸️ Validación de sesión desactivada (no hay usuario o token)');
+    return;
+  }
+
+  console.log('🔄 Iniciando verificación periódica de sesión revocada (cada 15 seg)');
+
+  const checkSessionInterval = setInterval(async () => {
+    try {
+      console.log('🔍 [Validación] Verificando estado de sesión...');
+      
+      const response = await authAPI.validateSession();
+      
+      if (!response.success) {
+        console.error('❌ [Validación] SESIÓN REVOCADA REMOTAMENTE');
+        
+        clearInterval(checkSessionInterval);
+        
+        alert('⚠️ Tu sesión ha sido cerrada desde otro dispositivo. Serás redirigido al inicio de sesión.');
+        
+        await auth.signOut();
+        setUser(null);
+        setCurrentSessionToken(null);
+        localStorage.removeItem('diana_laura_user');
+        localStorage.removeItem('diana_laura_session_token');
+        
+        window.location.href = '/login';
+      } else {
+        console.log('✅ [Validación] Sesión válida');
+      }
+      
+    } catch (error: any) {
+      console.log('⚠️ [Validación] Error verificando sesión:', error.message);
+      
+      if (error.message && (
+        error.message.includes('Sesión revocada') || 
+        error.message.includes('Sesión expirada') ||
+        error.message.includes('SESSION_EXPIRED') ||
+        error.message.includes('403')
+      )) {
+        console.error('❌ [Validación] SESIÓN REVOCADA/EXPIRADA DETECTADA');
+        
+        clearInterval(checkSessionInterval);
+        
+        alert('⚠️ Tu sesión ha sido cerrada. Serás redirigido al inicio de sesión.');
+        
+        await auth.signOut();
+        setUser(null);
+        setCurrentSessionToken(null);
+        localStorage.removeItem('diana_laura_user');
+        localStorage.removeItem('diana_laura_session_token');
+        
+        window.location.href = '/login';
+      }
+    }
+  }, 15000); // 15 segundos
+
+  return () => {
+    console.log('🧹 Limpiando verificación de sesión periódica');
+    clearInterval(checkSessionInterval);
+  };
+}, [user, currentSessionToken]);
+
   // 🎯 Cargar usuario desde localStorage - CÓDIGO EXISTENTE
   useEffect(() => {
     const savedUser = localStorage.getItem('diana_laura_user');
