@@ -1137,3 +1137,86 @@ export const logout = async (req: any, res: Response) => {
     });
   }
 };
+
+// 🆕 NUEVO ENDPOINT: Completar login después de MFA
+export const completeLoginAfterMFA = async (req: Request, res: Response) => {
+  try {
+    const { userId, email } = req.body;
+
+    console.log(`🔐 Completando login post-MFA para usuario: ${userId}`);
+
+    // Verificar que el usuario existe y tiene MFA activado
+    const userResult = await pool.query(
+      'SELECT id, email FROM usuarios WHERE id = $1 AND mfa_enabled = true',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Usuario no encontrado o MFA no activado'
+      });
+    }
+
+    const user = userResult.rows[0];
+    
+    // Obtener usuario de Firebase
+    const userRecord = await admin.auth().getUserByEmail(user.email);
+    
+    // Obtener información del dispositivo desde la request
+    const clientIp = getClientIp(req);
+    const userAgent = getUserAgent(req);
+    const deviceInfo = SessionService.parseUserAgent(userAgent);
+
+    // 🎯 CREAR SESIÓN después de MFA verificado
+    const sessionResult = await SessionService.createSession(
+      userId,
+      userRecord.uid,
+      deviceInfo,
+      clientIp,
+      userAgent
+    );
+
+    if (sessionResult.success && sessionResult.sessionToken) {
+      // Generar JWT
+      const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_2024_joyeria_diana_laura';
+      const token = jwt.sign(
+        { 
+          userId: userId,
+          firebaseUid: userRecord.uid,
+          email: user.email,
+          nombre: userRecord.displayName || user.email.split('@')[0],
+          sessionId: sessionResult.sessionToken
+        },
+        JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+
+      console.log(`✅ Login post-MFA exitoso para: ${user.email}`);
+
+      res.json({
+        success: true,
+        message: 'Login completado exitosamente',
+        data: {
+          user: {
+            id: userRecord.uid,
+            email: user.email,
+            nombre: userRecord.displayName || user.email.split('@')[0],
+            dbId: userId
+          },
+          token: token,
+          sessionToken: sessionResult.sessionToken
+        }
+      });
+    } else {
+      throw new Error('Error creando sesión post-MFA');
+    }
+
+  } catch (error: any) {
+    console.error('❌ Error en completeLoginAfterMFA:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error completando login después de MFA: ' + error.message
+    });
+  }
+};

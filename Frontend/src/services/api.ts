@@ -269,6 +269,9 @@ export const authAPI = {
 
   checkMFAStatus: async (userId: number) => {
     return enhancedApi.post('/auth/mfa/status', { userId });
+  },
+    completeLoginAfterMFA: async (userId: number, email: string) => {
+    return enhancedApi.post('/auth/complete-login-mfa', { userId, email });
   }
 };
 
