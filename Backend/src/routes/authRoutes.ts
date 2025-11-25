@@ -21,8 +21,7 @@ import {
     revokeAllOtherSessions,
     revokeAllSessions ,
     validateSession, 
-    logout,
-    completeLoginAfterMFA  
+    logout 
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/authMiddleware'; 
 import { mfaController } from '../controllers/mfaController';
@@ -64,6 +63,4 @@ router.post('/mfa/verify-login', mfaController.verifyLoginMFA); // 🚫 SIN aute
 router.post('/mfa/disable', authenticateToken, mfaController.disableMFA);
 router.post('/mfa/status', authenticateToken, mfaController.checkMFAStatus);
 
-// 🆕 NUEVA RUTA: Completar login después de MFA
-router.post('/complete-login-mfa', completeLoginAfterMFA); // 🚫 SIN autenticación
 export default router;

@@ -26,65 +26,43 @@ export default function MFAVerifyScreen() {
     }
   }, [location, navigate]);
 
-// En MFAVerifyScreen.tsx - REEMPLAZAR la función handleVerifyMFA completa
-const handleVerifyMFA = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  if (!mfaCode || mfaCode.length !== 6) {
-    setError('Por favor ingresa un código de 6 dígitos');
-    return;
-  }
-
-  if (!userId || !email) {
-    setError('Error: No se pudo identificar el usuario');
-    return;
-  }
-
-  setLoading(true);
-  setError('');
-
-  try {
-    console.log('🔐 Verificando código MFA para usuario:', userId);
+  const handleVerifyMFA = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    // 1. Primero verificar el código MFA
-    const mfaResponse = await authAPI.verifyLoginMFA(userId, mfaCode);
-    
-    if (mfaResponse.success && mfaResponse.verified) {
-      console.log('✅ MFA verificado correctamente');
-      
-      // 2. 🆕 CREAR UNA SESIÓN TEMPORAL O COMPLETAR EL LOGIN
-      // Necesitamos que el backend cree una sesión después de MFA
-      
-      try {
-        console.log('🔄 Creando sesión después de MFA...');
-        
-        // 🆕 LLAMAR A UN NUEVO ENDPOINT QUE COMPLETE EL LOGIN POST-MFA
-        const loginResponse = await authAPI.completeLoginAfterMFA(userId, email);
-        
-        if (loginResponse.success) {
-          console.log('✅ Sesión creada después de MFA');
-          
-          // 🆕 NAVEGAR AL INICIO
-          navigate('/inicio');
-        } else {
-          throw new Error('Error creando sesión después de MFA');
-        }
-        
-      } catch (loginError: any) {
-        console.error('❌ Error completando login:', loginError);
-        setError('Error completando el proceso de login. Intenta nuevamente.');
-      }
-      
-    } else {
-      setError('Código MFA inválido');
+    if (!mfaCode || mfaCode.length !== 6) {
+      setError('Por favor ingresa un código de 6 dígitos');
+      return;
     }
-  } catch (error: any) {
-    console.error('❌ Error verificando MFA:', error);
-    setError(error.message || 'Error verificando el código MFA');
-  } finally {
-    setLoading(false);
-  }
-};
+
+    if (!userId) {
+      setError('Error: No se pudo identificar el usuario');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      console.log('🔐 Verificando código MFA para usuario:', userId);
+      
+      const response = await authAPI.verifyLoginMFA(userId, mfaCode);
+      
+      if (response.success && response.verified) {
+        console.log('✅ MFA verificado correctamente');
+        
+        // 🎯 Aquí necesitaremos completar el login
+        // Por ahora redirigimos al inicio
+        navigate('/inicio');
+      } else {
+        setError('Código MFA inválido');
+      }
+    } catch (error: any) {
+      console.error('❌ Error verificando MFA:', error);
+      setError(error.message || 'Error verificando el código MFA');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBackToLogin = () => {
     navigate('/login');
