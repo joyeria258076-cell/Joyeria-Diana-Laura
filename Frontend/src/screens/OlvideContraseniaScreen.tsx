@@ -1,10 +1,11 @@
+// Ruta: Joyeria-Diana-Laura/Frontend/src/screens/OlvideContraseniaScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { authAPI } from '../services/api'; // 🎯 NUEVO IMPORT
+import { authAPI } from '../services/api';
 import '../styles/OlvideContraseniaScreen.css';
 
 const schema = z.object({
@@ -102,57 +103,59 @@ const OlvideContraseniaScreen: React.FC = () => {
     };
 
     const attemptsMessage = getAttemptsMessage();
-    const isBlocked = blockedUntil && blockedUntil > new Date();
+    
+    // 🎯 CORRECCIÓN: Convertir a boolean explícitamente
+    const isBlocked = Boolean(blockedUntil && blockedUntil > new Date());
 
-const onSubmit = async (data: FormData) => {
-    setMessage('');
-    setLoading(true);
-    setMessageType('success');
+    const onSubmit = async (data: FormData) => {
+        setMessage('');
+        setLoading(true);
+        setMessageType('success');
 
-    try {
-        console.log('📧 Iniciando proceso de recuperación para:', data.email);
-        
-        const response = await sendPasswordReset(data.email);
-        
-        console.log('📊 RESPUESTA DEL BACKEND:', response);
-
-        // Manejar respuesta del backend
-        if (response.remainingAttempts !== undefined) {
-            setRemainingAttempts(response.remainingAttempts);
-        }
-        
-            if (response.blocked) {
-            const blockedTime = new Date();
-            // 🎯 USAR EL TIEMPO QUE VIENE DEL BACKEND (2 min nuestro o 15 min de Firebase)
-            blockedTime.setMinutes(blockedTime.getMinutes() + (response.remainingTime || 2));
-            setBlockedUntil(blockedTime);
-            setMessage(`❌ ${response.message}`);
-            setMessageType('error');
-            } else if (response.success) {
-            // ✅ CORRECTO: NO resetear aquí - solo mostrar éxito
-            setMessage('✅ ¡Enlace de recuperación enviado! Revisa tu bandeja de entrada y carpeta de spam.');
-            setMessageType('success');
-            setEmailSent(true);
+        try {
+            console.log('📧 Iniciando proceso de recuperación para:', data.email);
             
-            // ✅ CORRECTO: Mantener los intentos REALES del backend
+            const response = await sendPasswordReset(data.email);
+            
+            console.log('📊 RESPUESTA DEL BACKEND:', response);
+
+            // Manejar respuesta del backend
             if (response.remainingAttempts !== undefined) {
                 setRemainingAttempts(response.remainingAttempts);
             }
-        } else {
-            setMessage(`❌ ${response.message}`);
-            setMessageType('error');
-        }
-        
-        console.log('✅ Proceso de recuperación completado');
+            
+            if (response.blocked) {
+                const blockedTime = new Date();
+                // 🎯 USAR EL TIEMPO QUE VIENE DEL BACKEND (2 min nuestro o 15 min de Firebase)
+                blockedTime.setMinutes(blockedTime.getMinutes() + (response.remainingTime || 2));
+                setBlockedUntil(blockedTime);
+                setMessage(`❌ ${response.message}`);
+                setMessageType('error');
+            } else if (response.success) {
+                // ✅ CORRECTO: NO resetear aquí - solo mostrar éxito
+                setMessage('✅ ¡Enlace de recuperación enviado! Revisa tu bandeja de entrada y carpeta de spam.');
+                setMessageType('success');
+                setEmailSent(true);
+                
+                // ✅ CORRECTO: Mantener los intentos REALES del backend
+                if (response.remainingAttempts !== undefined) {
+                    setRemainingAttempts(response.remainingAttempts);
+                }
+            } else {
+                setMessage(`❌ ${response.message}`);
+                setMessageType('error');
+            }
+            
+            console.log('✅ Proceso de recuperación completado');
 
-    } catch (error: any) {
-        console.error('❌ Error en recuperación:', error);
-        setMessage(`❌ ${error.message}`);
-        setMessageType('error');
-    } finally {
-        setLoading(false);
-    }
-};
+        } catch (error: any) {
+            console.error('❌ Error en recuperación:', error);
+            setMessage(`❌ ${error.message}`);
+            setMessageType('error');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="olvide-contrasenia-container">
@@ -227,6 +230,21 @@ const onSubmit = async (data: FormData) => {
                         )}
                     </div>
                 )}
+
+                <div className="recovery-methods">
+                    <div className="methods-separator">
+                        <span>O elige otro método</span>
+                    </div>
+                    
+                    <button 
+                        type="button"
+                        onClick={() => navigate(`/recuperar-con-pregunta?email=${encodeURIComponent(emailValue || '')}`)}
+                        className="security-question-button"
+                        disabled={!emailValue || isBlocked}
+                    >
+                        🔒 Usar Pregunta Secreta
+                    </button>
+                </div>
                 
                 <div className="back-to-login">
                     <button onClick={() => navigate('/login')} className="back-button">

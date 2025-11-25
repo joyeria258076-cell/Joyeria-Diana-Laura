@@ -1,0 +1,290 @@
+/* Ruta: Joyeria-Diana-Laura/Frontend/src/styles/RecuperarConPreguntaScreen.css */
+.recuperar-pregunta-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000000;
+    padding: 2rem;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.recuperar-pregunta-card {
+    background: linear-gradient(145deg, #0a0a0a, #000000);
+    padding: 3rem;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 500px;
+    border: 1px solid rgba(236, 178, 195, 0.15);
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+}
+
+.recuperar-pregunta-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 15%;
+    right: 15%;
+    height: 4px;
+    background: linear-gradient(90deg, 
+        transparent, 
+        #ECB2C3, 
+        #FFFFFF, 
+        #ECB2C3, 
+        transparent);
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 0 20px rgba(236, 178, 195, 0.3);
+}
+
+.recuperar-pregunta-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.recuperar-pregunta-header h2 {
+    color: #FFFFFF;
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.recuperar-pregunta-header p {
+    color: #ECB2C3;
+    font-size: 1rem;
+}
+
+.security-question-display {
+    background: rgba(236, 178, 195, 0.1);
+    border: 1px solid rgba(236, 178, 195, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.security-question-display h3 {
+    color: #ECB2C3;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.question-text {
+    color: #FFFFFF;
+    font-size: 1.1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.recuperar-pregunta-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    color: #FFFFFF;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.pregunta-input {
+    padding: 0.875rem 1.25rem;
+    border: 1.5px solid rgba(207, 207, 207, 0.2);
+    border-radius: 12px;
+    font-size: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: #FFFFFF;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.pregunta-input:focus {
+    outline: none;
+    border-color: #ECB2C3;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(236, 178, 195, 0.15);
+}
+
+.pregunta-input.error {
+    border-color: #ECB2C3;
+    background: rgba(236, 178, 195, 0.08);
+}
+
+.field-error {
+    color: #ECB2C3;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.verify-button, .submit-button {
+    background: linear-gradient(135deg, #ECB2C3 0%, #e0a5b8 50%, #d89aad 100%);
+    color: #000000;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.verify-button:hover:not(:disabled), 
+.submit-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(236, 178, 195, 0.4);
+}
+
+.verify-button:disabled, 
+.submit-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.success-verification {
+    text-align: center;
+    background: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.success-verification .success-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.success-verification h3 {
+    color: #4CAF50;
+    margin-bottom: 0.5rem;
+}
+
+.success-verification p {
+    color: #FFFFFF;
+}
+
+.password-requirements {
+    background: rgba(236, 178, 195, 0.1);
+    border: 1px solid rgba(236, 178, 195, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.password-requirements strong {
+    color: #ECB2C3;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.password-requirements ul {
+    color: #FFFFFF;
+    padding-left: 1.5rem;
+    margin: 0;
+}
+
+.password-requirements li {
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.message {
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+}
+
+.message.success {
+    background: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    color: #4CAF50;
+}
+
+.message.error {
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    color: #F44336;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(207, 207, 207, 0.15);
+}
+
+.back-button, .login-button {
+    background: transparent;
+    border: 1px solid rgba(236, 178, 195, 0.3);
+    color: #ECB2C3;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+}
+
+.back-button:hover, .login-button:hover {
+    background: rgba(236, 178, 195, 0.1);
+    border-color: rgba(236, 178, 195, 0.5);
+    color: #FFFFFF;
+}
+
+.loading-message {
+    text-align: center;
+    padding: 2rem;
+    color: #ECB2C3;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .recuperar-pregunta-container {
+        padding: 1rem;
+    }
+    
+    .recuperar-pregunta-card {
+        padding: 2rem;
+    }
+    
+    .recuperar-pregunta-header h2 {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .recuperar-pregunta-card {
+        padding: 1.5rem;
+    }
+    
+    .recuperar-pregunta-header h2 {
+        font-size: 1.4rem;
+    }
+    
+    .security-question-display {
+        padding: 1rem;
+    }
+    
+    .question-text {
+        font-size: 1rem;
+    }
+}

@@ -8,6 +8,7 @@ import OlvideContraseniaScreen from "../screens/OlvideContraseniaScreen";
 import ReiniciarContraseniaScreen from "../screens/ReiniciarContraseniaScreen";
 import InicioScreen from "../screens/InicioScreen";
 import PerfilScreen from "../screens/PerfilScreen";
+import RecuperarConPreguntaScreen from '../screens/RecuperarConPreguntaScreen';
 // 🆕 PANTALLAS MFA
 import MFAVerifyScreen from "../screens/MFAVerifyScreen";
 import MFASetupScreen from "../screens/MFASetupScreen";
@@ -126,6 +127,8 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/recuperar-con-pregunta" element={<RecuperarConPreguntaScreen />} />
 
         {/* 🆕 RUTA POR DEFECTO */}
         <Route path="/" element={<Navigate to="/inicio" replace />} />
