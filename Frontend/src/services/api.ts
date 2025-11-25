@@ -1,6 +1,7 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/services/api.ts
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
 
+// 🎯 MANTENER TU FUNCIÓN ORIGINAL EXACTA
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -23,6 +24,85 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
   }
 };
 
+// 🆕 CLASE MEJORADA PARA NUEVAS FUNCIONALIDADES (NO AFECTA LO EXISTENTE)
+class EnhancedApiService {
+  private baseURL: string;
+
+  constructor(baseURL: string) {
+    this.baseURL = baseURL;
+  }
+
+  private async request(endpoint: string, options: RequestInit = {}) {
+    // 🆕 OBTENER TOKEN DEL LOCALSTORAGE (si existe)
+    const userData = localStorage.getItem('diana_laura_user');
+    let token = null;
+    
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        token = user.token || null;
+      } catch (error) {
+        token = null;
+      }
+    }
+
+    const config: RequestInit = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    try {
+      const response = await fetch(`${this.baseURL}${endpoint}`, config);
+      const data = await response.json();
+      
+      // 🆕 INTERCEPTOR: Manejar sesiones revocadas (SOLO para rutas protegidas)
+      if (response.status === 403 && 
+          (data.message === 'Sesión revocada o expirada' || 
+           data.message === 'Token inválido' ||
+           data.message === 'Token expirado')) {
+        
+        console.log('🔐 Sesión revocada detectada - limpiando datos locales');
+        
+        // Limpiar datos locales PERO NO REDIRIGIR AUTOMÁTICAMENTE
+        localStorage.removeItem('diana_laura_user');
+        localStorage.removeItem('diana_laura_session_token');
+        
+        // Lanzar error específico para que cada componente maneje como quiera
+        throw new Error('SESSION_EXPIRED: ' + data.message);
+      }
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Error en la petición');
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async post(endpoint: string, data: any) {
+    return this.request(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async get(endpoint: string) {
+    return this.request(endpoint, {
+      method: 'GET',
+    });
+  }
+}
+
+// 🆕 CREAR INSTANCIA MEJORADA
+const enhancedApi = new EnhancedApiService(API_BASE_URL);
+
+// 🎯 MANTENER TU authAPI EXISTENTE EXACTA
 export const authAPI = {
   // 🎯 NUEVA FUNCIÓN: Verificar estado de bloqueo
   checkAccountLock: async (data: { email: string }) => {
@@ -33,10 +113,10 @@ export const authAPI = {
   },
 
   // 🎯 LOGIN CON BACKEND
-  login: async (email: string, password: string) => {
+  login: async (email: string, password: string, deviceInfo?: string) => {
     return apiRequest('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, deviceInfo }),
     });
   },
 
@@ -121,36 +201,38 @@ export const authAPI = {
   },
 
   // 🆕 NUEVAS FUNCIONES PARA GESTIÓN DE SESIONES
+  // Estas USAN enhancedApi para tener interceptors
 
   // Obtener sesiones activas del usuario
   getActiveSessions: async (userId: number) => {
-    return apiRequest('/auth/sessions/active', {
-      method: 'POST',
-      body: JSON.stringify({ userId }),
-    });
+    return enhancedApi.post('/auth/sessions/active', { userId });
   },
 
   // Revocar una sesión específica
   revokeSession: async (sessionId: number, userId: number) => {
-    return apiRequest('/auth/sessions/revoke', {
-      method: 'POST',
-      body: JSON.stringify({ sessionId, userId }),
-    });
+    return enhancedApi.post('/auth/sessions/revoke', { sessionId, userId });
   },
 
   // Revocar todas las sesiones excepto la actual
   revokeAllOtherSessions: async (userId: number, currentSessionToken: string) => {
-    return apiRequest('/auth/sessions/revoke-others', {
-      method: 'POST',
-      body: JSON.stringify({ userId, currentSessionToken }),
-    });
+    return enhancedApi.post('/auth/sessions/revoke-others', { userId, currentSessionToken });
   },
 
   // Revocar TODAS las sesiones (incluyendo actual)
   revokeAllSessions: async (userId: number) => {
-    return apiRequest('/auth/sessions/revoke-all', {
-      method: 'POST',
-      body: JSON.stringify({ userId }),
-    });
+    return enhancedApi.post('/auth/sessions/revoke-all', { userId });
+  },
+
+  // 🆕 VALIDAR SESIÓN
+  validateSession: async () => {
+    return enhancedApi.get('/auth/validate-session');
+  },
+
+  // 🆕 LOGOUT MEJORADO
+  logout: async () => {
+    return enhancedApi.post('/auth/logout', {});
   },
 };
+
+// 🆕 EXPORTAR enhancedApi POR SI SE NECESITA EN OTROS LUGARES
+export { enhancedApi };

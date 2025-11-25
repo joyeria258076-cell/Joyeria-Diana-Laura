@@ -19,8 +19,11 @@ import {
     getActiveSessions,
     revokeSession,
     revokeAllOtherSessions,
-    revokeAllSessions    
+    revokeAllSessions ,
+    validateSession, 
+    logout 
 } from '../controllers/authController';
+import { authenticateToken } from '../middleware/authMiddleware'; 
 
 const router = express.Router();
 
@@ -35,17 +38,21 @@ router.post('/sync-user', syncUserToPostgreSQL);
 router.post('/check-firebase-user', checkFirebaseUser);
 router.post('/test-email', testEmailDelivery);
 
-// 🎯 NUEVAS RUTAS DE SEGURIDAD
+// 🎯 RUTAS DE SEGURIDAD
 router.post('/check-account-lock', checkAccountLock);
 router.post('/unlock-account', unlockAccount);
 router.post('/reset-recovery-attempts', resetRecoveryAttempts);
 router.post('/update-activity', updateUserActivity); 
 router.post('/check-login-security', checkLoginSecurity);
-router.post('/check-account-lock', checkAccountLock);
 
-// 🆕 NUEVAS RUTAS PARA GESTIÓN DE SESIONES
-router.post('/sessions/active', getActiveSessions);
-router.post('/sessions/revoke', revokeSession);
-router.post('/sessions/revoke-others', revokeAllOtherSessions);
-router.post('/sessions/revoke-all', revokeAllSessions);
+// 🆕 RUTAS PROTEGIDAS PARA GESTIÓN DE SESIONES (con autenticación)
+router.post('/sessions/active', authenticateToken, getActiveSessions);
+router.post('/sessions/revoke', authenticateToken, revokeSession);
+router.post('/sessions/revoke-others', authenticateToken, revokeAllOtherSessions);
+router.post('/sessions/revoke-all', authenticateToken, revokeAllSessions);
+
+// 🆕 RUTAS PROTEGIDAS (con autenticación)
+router.get('/validate-session', authenticateToken, validateSession);
+router.post('/logout', authenticateToken, logout);
+
 export default router;

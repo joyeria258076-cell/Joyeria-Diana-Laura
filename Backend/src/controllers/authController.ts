@@ -9,7 +9,6 @@ import { RecoverySecurityService } from '../services/recoverySecurityService';
 import { SessionService } from '../services/SessionService';
 import { getUserByEmail } from '../models/userModel';
 
-
 // 🎯 FUNCIÓN MEJORADA para obtener IP real del cliente
 const getClientIp = (req: Request): string => {
   // Probar diferentes headers de IP en orden de prioridad
@@ -44,7 +43,6 @@ const getClientIp = (req: Request): string => {
 const getUserAgent = (req: Request): string => {
   return req.get('User-Agent') || 'unknown';
 };
-
 
 // 🎯 SOLO para copiar datos de Firebase a PostgreSQL
 export const syncUserToPostgreSQL = async (req: Request, res: Response) => {
@@ -154,7 +152,6 @@ export const validateEmail = async (req: Request, res: Response) => {
     });
   }
 };
-
 
 export const login = async (req: Request, res: Response) => {
   const clientIp = getClientIp(req);
@@ -280,10 +277,10 @@ export const login = async (req: Request, res: Response) => {
       const userEmail = userRecord.email || email;
       const userName = userRecord.displayName || (userEmail ? userEmail.split('@')[0] : 'Usuario');
       
-      // 🆕 🎯 CREACIÓN DE SESIÓN (AGREGAR ESTO)
+      // 🆕 🎯 CREACIÓN DE SESIÓN (CÓDIGO EXISTENTE - SIN CAMBIOS)
       try {
         // Obtener usuario de PostgreSQL para el ID
-        const dbUser = await userModel.getUserByEmail(userEmail); // ← ÚNICO CAMBIO: userModel.getUserByEmail
+        const dbUser = await userModel.getUserByEmail(userEmail);
         
         if (dbUser && dbUser.id) {
           const deviceInfo = SessionService.parseUserAgent(userAgent);
@@ -1023,6 +1020,53 @@ export const revokeAllSessions = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor'
+    });
+  }
+};
+
+// 🆕 NUEVO ENDPOINT: Validar sesión actual
+export const validateSession = async (req: any, res: Response) => {
+  try {
+    // Este endpoint usa el middleware de autenticación existente
+    // Si llegó aquí, la sesión es válida
+    res.json({
+      success: true,
+      message: 'Sesión válida',
+      data: {
+        user: req.user,
+        sessionId: req.sessionId
+      }
+    });
+  } catch (error) {
+    console.error('Error en validateSession:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error validando sesión'
+    });
+  }
+};
+
+// 🆕 NUEVO ENDPOINT: Logout que revoca sesión
+export const logout = async (req: any, res: Response) => {
+  try {
+    const sessionToken = req.headers['x-session-token'] as string;
+    
+    if (sessionToken) {
+      // Revocar sesión en BD
+      await SessionService.revokeSessionByToken(sessionToken);
+      console.log(`✅ Sesión revocada en logout: ${sessionToken.substring(0, 10)}...`);
+    }
+
+    res.json({
+      success: true,
+      message: 'Sesión cerrada exitosamente'
+    });
+  } catch (error: any) {
+    console.error('❌ Error en logout:', error);
+    // Aún así respondemos éxito aunque falle la revocación
+    res.json({
+      success: true,
+      message: 'Sesión cerrada (error revocando sesión en BD)'
     });
   }
 };

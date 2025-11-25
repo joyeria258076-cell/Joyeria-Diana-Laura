@@ -3,54 +3,286 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { SessionService } from '../services/SessionService';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secret_fallback';
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_2024_joyeria_diana_laura';
 
 export interface AuthRequest extends Request {
   user?: any;
+  sessionId?: string;
 }
 
 export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
-  if (!token) {
+  // 🆕 VERIFICACIÓN MÁS FLEXIBLE: También aceptar sessionToken en header
+  const sessionToken = req.headers['x-session-token'] as string;
+
+  if (!token && !sessionToken) {
     return res.status(401).json({
       success: false,
       message: 'Token de acceso requerido'
     });
   }
 
-  // 🆕 VERIFICAR SI EXISTE SESSION_TOKEN EN HEADER (OPCIONAL)
-  const sessionToken = req.headers['x-session-token'] as string;
+  try {
+    // 🆕 ESTRATEGIA DUAL: Intentar con JWT primero, luego con sessionToken
+    let decoded: any;
+    let sessionIdToVerify: string = ''; // 🆕 INICIALIZAR LA VARIABLE
 
-  jwt.verify(token, JWT_SECRET, async (err, user) => {
-    if (err) {
-      return res.status(403).json({
+    if (token) {
+      console.log('🔐 Verificando token JWT...');
+      decoded = jwt.verify(token, JWT_SECRET) as any;
+      
+      if (!decoded.sessionId) {
+        console.error('❌ Token JWT inválido: falta sessionId');
+        return res.status(403).json({
+          success: false,
+          message: 'Token inválido: falta sessionId'
+        });
+      }
+      sessionIdToVerify = decoded.sessionId;
+      console.log(`✅ JWT válido para usuario: ${decoded.email}, sessionId: ${sessionIdToVerify.substring(0, 10)}...`);
+    } else if (sessionToken) {
+      console.log('🔐 Verificando sessionToken directo...');
+      // Si solo viene sessionToken, buscar la sesión para obtener datos del usuario
+      const sessionResult = await SessionService.getSessionByToken(sessionToken);
+      if (!sessionResult.success || !sessionResult.session) {
+        return res.status(403).json({
+          success: false,
+          message: 'SessionToken inválido'
+        });
+      }
+      
+      // Crear objeto decoded básico con información de la sesión
+      decoded = {
+        userId: sessionResult.session.user_id,
+        sessionId: sessionToken,
+        email: 'user@example.com' // Placeholder, podrías obtener el email de la BD si es necesario
+      };
+      sessionIdToVerify = sessionToken;
+      console.log(`✅ SessionToken válido para usuario ID: ${decoded.userId}`);
+    } else {
+      return res.status(401).json({
         success: false,
-        message: 'Token inválido o expirado'
+        message: 'Formato de autenticación no válido'
       });
     }
 
-    // 🆕 VERIFICACIÓN OPCIONAL DE SESIÓN ACTIVA
-    if (sessionToken) {
-      try {
-        const sessionResult = await SessionService.getSessionByToken(sessionToken);
-        if (!sessionResult.success) {
-          return res.status(403).json({
-            success: false,
-            message: 'Sesión revocada o expirada'
-          });
-        }
-        
-        // Actualizar última actividad
-        await SessionService.updateLastActivity(sessionToken);
-      } catch (sessionError) {
-        console.error('Error verificando sesión:', sessionError);
-        // NO BLOQUEAMOS - solo log del error
+    // 🆕 VERIFICAR QUE sessionIdToVerify ESTÉ ASIGNADA
+    if (!sessionIdToVerify) {
+      return res.status(401).json({
+        success: false,
+        message: 'Error en autenticación: sessionId no disponible'
+      });
+    }
+
+    // 🆕 VERIFICACIÓN OBLIGATORIA DE SESIÓN ACTIVA EN BD
+    console.log('🔍 Verificando sesión en base de datos...');
+    const sessionResult = await SessionService.getSessionByToken(sessionIdToVerify);
+    
+    if (!sessionResult.success || !sessionResult.session) {
+      console.error('❌ Sesión no encontrada en BD:', sessionIdToVerify);
+      return res.status(403).json({
+        success: false,
+        message: 'Sesión revocada o expirada'
+      });
+    }
+
+    // Verificar si la sesión está revocada o expirada
+    const session = sessionResult.session;
+    const now = new Date();
+    const expiresAt = new Date(session.expires_at);
+
+    if (session.is_revoked) {
+      console.error('❌ Sesión revocada:', sessionIdToVerify);
+      return res.status(403).json({
+        success: false,
+        message: 'Sesión revocada'
+      });
+    }
+
+    if (expiresAt < now) {
+      console.error('❌ Sesión expirada:', sessionIdToVerify);
+      // Marcar como revocada automáticamente
+      await SessionService.revokeSessionByToken(sessionIdToVerify);
+      return res.status(403).json({
+        success: false,
+        message: 'Sesión expirada'
+      });
+    }
+
+    // 🆕 Actualizar última actividad
+    console.log('🔄 Actualizando última actividad de la sesión...');
+    await SessionService.updateLastActivity(sessionIdToVerify);
+
+    // Agregar información al request
+    req.user = decoded;
+    req.sessionId = sessionIdToVerify;
+    
+    console.log(`✅ Autenticación exitosa para sesión: ${sessionIdToVerify.substring(0, 10)}...`);
+    next();
+
+  } catch (error: any) {
+    console.error('❌ Error en autenticación:', error);
+    
+    if (error instanceof jwt.JsonWebTokenError) {
+      console.error('❌ Token JWT inválido:', error.message);
+      return res.status(403).json({
+        success: false,
+        message: 'Token inválido'
+      });
+    }
+    
+    if (error instanceof jwt.TokenExpiredError) {
+      console.error('❌ Token JWT expirado:', error.message);
+      return res.status(403).json({
+        success: false,
+        message: 'Token expirado'
+      });
+    }
+    
+    console.error('❌ Error interno del servidor en middleware:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor en autenticación'
+    });
+  }
+};
+
+// 🆕 Middleware opcional para rutas que pueden ser públicas/privadas
+export const optionalAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  const sessionToken = req.headers['x-session-token'] as string;
+
+  if (!token && !sessionToken) {
+    return next();
+  }
+
+  try {
+    let decoded: any = null;
+    let sessionIdToVerify: string | null = null; // 🆕 INICIALIZAR COMO NULL
+
+    if (token) {
+      decoded = jwt.verify(token, JWT_SECRET) as any;
+      sessionIdToVerify = decoded.sessionId;
+    } else if (sessionToken) {
+      // Verificar sessionToken directo
+      const sessionResult = await SessionService.getSessionByToken(sessionToken);
+      if (sessionResult.success && sessionResult.session) {
+        decoded = {
+          userId: sessionResult.session.user_id,
+          sessionId: sessionToken
+        };
+        sessionIdToVerify = sessionToken;
       }
     }
 
-    req.user = user;
+    if (decoded && sessionIdToVerify) {
+      const sessionResult = await SessionService.getSessionByToken(sessionIdToVerify);
+      
+      if (sessionResult.success && sessionResult.session && 
+          !sessionResult.session.is_revoked && 
+          new Date(sessionResult.session.expires_at) > new Date()) {
+        
+        // Actualizar actividad y establecer datos de usuario
+        await SessionService.updateLastActivity(sessionIdToVerify);
+        req.user = decoded;
+        req.sessionId = sessionIdToVerify;
+        
+        console.log(`✅ Autenticación opcional exitosa`);
+      }
+    }
+    
     next();
-  });
+  } catch (error) {
+    // Si hay error, continuamos sin autenticación (ruta opcional)
+    console.log('⚠️ Error en autenticación opcional - continuando sin autenticación');
+    next();
+  }
+};
+
+// 🆕 Middleware SIMPLIFICADO para verificación básica de sesión
+export const verifySession = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  const sessionToken = req.headers['x-session-token'] as string;
+
+  if (!sessionToken) {
+    return res.status(401).json({
+      success: false,
+      message: 'Session token requerido'
+    });
+  }
+
+  try {
+    const sessionResult = await SessionService.getSessionByToken(sessionToken);
+    
+    if (!sessionResult.success || !sessionResult.session) {
+      return res.status(403).json({
+        success: false,
+        message: 'Sesión no válida'
+      });
+    }
+
+    const session = sessionResult.session;
+    
+    // Verificaciones básicas
+    if (session.is_revoked) {
+      return res.status(403).json({
+        success: false,
+        message: 'Sesión revocada'
+      });
+    }
+
+    if (new Date(session.expires_at) < new Date()) {
+      await SessionService.revokeSessionByToken(sessionToken);
+      return res.status(403).json({
+        success: false,
+        message: 'Sesión expirada'
+      });
+    }
+
+    // Actualizar actividad
+    await SessionService.updateLastActivity(sessionToken);
+    
+    // Agregar información básica al request
+    req.user = { userId: session.user_id };
+    req.sessionId = sessionToken;
+    
+    next();
+  } catch (error: any) {
+    console.error('❌ Error verificando sesión:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error verificando sesión'
+    });
+  }
+};
+
+// 🆕 Middleware para rutas que NO requieren autenticación estricta
+export const softAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  const sessionToken = req.headers['x-session-token'] as string;
+
+  if (!sessionToken) {
+    return next(); // Continuar sin autenticación
+  }
+
+  try {
+    const sessionResult = await SessionService.getSessionByToken(sessionToken);
+    
+    if (sessionResult.success && sessionResult.session && 
+        !sessionResult.session.is_revoked && 
+        new Date(sessionResult.session.expires_at) > new Date()) {
+      
+      // Sesión válida - actualizar actividad y establecer datos
+      await SessionService.updateLastActivity(sessionToken);
+      req.user = { userId: sessionResult.session.user_id };
+      req.sessionId = sessionToken;
+    }
+    
+    next();
+  } catch (error) {
+    // En caso de error, continuar sin autenticación
+    console.log('⚠️ Error en softAuth - continuando sin autenticación');
+    next();
+  }
 };

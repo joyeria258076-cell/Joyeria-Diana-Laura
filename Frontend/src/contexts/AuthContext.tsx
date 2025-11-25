@@ -61,12 +61,14 @@ interface AuthContextType {
     remainingTime?: number;
   }>;
   verifyEmail: (oobCode: string) => Promise<void>;
-  // 🆕 NUEVAS FUNCIONES PARA GESTIÓN DE SESIONES
+  // 🆕 NUEVAS FUNCIONES PARA GESTIÓN DE SESIONES (YA EXISTENTES - SIN CAMBIOS)
   getActiveSessions: () => Promise<ActiveSession[]>;
   revokeSession: (sessionId: number) => Promise<void>;
   revokeAllOtherSessions: () => Promise<{ revokedCount: number }>;
   revokeAllSessions: () => Promise<{ revokedCount: number }>;
   currentSessionToken: string | null; // 🆕 Token de sesión actual
+  // 🆕 NUEVA FUNCIÓN OPCIONAL: Validar sesión
+  validateSession?: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -83,7 +85,7 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-// 🎯 VARIABLES GLOBALES PARA DEBOUNCING
+// 🎯 VARIABLES GLOBALES PARA DEBOUNCING (CÓDIGO EXISTENTE)
 let activityUpdateTimeout: NodeJS.Timeout | null = null;
 let lastActivityUpdate = 0;
 const UPDATE_INTERVAL = 30000; // 30 segundos entre updates reales
@@ -94,14 +96,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [currentSessionToken, setCurrentSessionToken] = useState<string | null>(null); // 🆕 Token de sesión actual
   
-  // 🎯 USAR useRef PARA TIMERS (no causan re-renders)
+  // 🎯 USAR useRef PARA TIMERS (no causan re-renders) - CÓDIGO EXISTENTE
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isSettingUpRef = useRef<boolean>(false);
 
-  // 🎯 CONFIGURACIÓN OPTIMIZADA de inactividad
+  // 🎯 CONFIGURACIÓN OPTIMIZADA de inactividad - CÓDIGO EXISTENTE
   const INACTIVITY_TIMEOUT = 1 * 60 * 1000; // 1 minuto para pruebas
 
-  // 🎯 FUNCIÓN: Manejar logout automático
+  // 🎯 FUNCIÓN: Manejar logout automático - CÓDIGO EXISTENTE
   const handleAutoLogout = async () => {
     console.log('🔒 🔥 🔥 🔥 SESIÓN EXPIRADA - INACTIVIDAD DE 1 MINUTO 🔥 🔥 🔥');
     
@@ -116,7 +118,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     window.location.href = '/login';
   };
 
-  // 🎯 FUNCIÓN: Actualizar actividad en backend con debouncing
+  // 🎯 FUNCIÓN: Actualizar actividad en backend con debouncing - CÓDIGO EXISTENTE
   const updateBackendActivity = async () => {
     const now = Date.now();
     
@@ -145,7 +147,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, DEBOUNCE_DELAY);
   };
 
-  // 🎯 FUNCIÓN: Resetear timer de inactividad
+  // 🎯 FUNCIÓN: Resetear timer de inactividad - CÓDIGO EXISTENTE
   const resetInactivityTimer = () => {
     // Limpiar timer anterior
     if (inactivityTimerRef.current) {
@@ -161,13 +163,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // 🎯 FUNCIÓN: Manejar actividad del usuario
+  // 🎯 FUNCIÓN: Manejar actividad del usuario - CÓDIGO EXISTENTE
   const handleUserActivity = () => {
     resetInactivityTimer();
     updateBackendActivity();
   };
 
-// 🎯 EFECTO OPTIMIZADO: Configurar sistema de inactividad (SOLO cuando user cambia)
+// 🎯 EFECTO OPTIMIZADO: Configurar sistema de inactividad (SOLO cuando user cambia) - CÓDIGO EXISTENTE
 useEffect(() => {
   // Evitar configurar múltiples veces
   if (isSettingUpRef.current) return;
@@ -268,7 +270,7 @@ const handlePopState = () => {
   };
 }, [user]); // 🎯 SOLO depende de user
 
-  // 🎯 Cargar usuario desde localStorage
+  // 🎯 Cargar usuario desde localStorage - CÓDIGO EXISTENTE
   useEffect(() => {
     const savedUser = localStorage.getItem('diana_laura_user');
     const savedSessionToken = localStorage.getItem('diana_laura_session_token'); // 🆕 Cargar session token
@@ -282,7 +284,7 @@ const handlePopState = () => {
     setLoading(false);
   }, []);
 
-  // 🆕 FUNCIONES PARA GESTIÓN DE SESIONES
+  // 🆕 FUNCIONES PARA GESTIÓN DE SESIONES - CÓDIGO EXISTENTE (SIN CAMBIOS)
   const getActiveSessions = async (): Promise<ActiveSession[]> => {
     if (!user || !user.dbId) throw new Error('Usuario no autenticado o sin ID de base de datos');
     
@@ -347,6 +349,26 @@ const handlePopState = () => {
     }
   };
 
+  // 🆕 FUNCIÓN OPCIONAL: Validar sesión (NUEVA - PERO OPCIONAL)
+  const validateSession = async (): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const response = await authAPI.validateSession();
+      return response.success;
+    } catch (error: any) {
+      console.log('❌ Sesión inválida:', error.message);
+      
+      // Si es error de sesión expirada, hacer logout automático
+      if (error.message.includes('SESSION_EXPIRED') || error.message.includes('Sesión revocada')) {
+        console.log('🔐 Sesión expirada - haciendo logout automático');
+        await logout();
+      }
+      
+      return false;
+    }
+  };
+
   const verifyEmail = async (oobCode: string) => {
     try {
       console.log('📧 Verificando email con código...');
@@ -366,7 +388,7 @@ const handlePopState = () => {
     }
   };
 
-// En AuthContext.tsx - REEMPLAZAR la función sendPasswordReset completa:
+// En AuthContext.tsx - REEMPLAZAR la función sendPasswordReset completa: - CÓDIGO EXISTENTE
 
 const sendPasswordReset = async (email: string): Promise<{
   success: boolean;
@@ -528,34 +550,45 @@ const login = async (email: string, password: string) => {
 
     console.log('✅ Email verificado, completando login...');
     
-    // 🎯 TERCERO: Login exitoso en nuestro backend
-    const backendResponse = await authAPI.login(email, password);
-    
-    if (backendResponse.success) {
-      const userData = backendResponse.data.user;
-      
-      // 🆕 OBTENER EL USUARIO DE POSTGRESQL PARA EL ID NUMÉRICO
-      try {
-        console.log('🔍 Obteniendo ID numérico de PostgreSQL...');
-        const dbUserResponse = await authAPI.checkFirebaseUser(email);
-        if (dbUserResponse.exists && dbUserResponse.data) {
-          // 🆕 AGREGAR EL ID NUMÉRICO AL USER DATA
-          userData.dbId = dbUserResponse.data.id; // Asumiendo que la respuesta tiene un campo 'id'
-          console.log(`✅ ID numérico obtenido: ${userData.dbId}`);
-        }
-      } catch (dbError) {
-        console.warn('⚠️ No se pudo obtener el ID numérico:', dbError);
-      }
-      
-      setUser(userData);
-      
-      // 🆕 GUARDAR EN LOCALSTORAGE
-      localStorage.setItem('diana_laura_user', JSON.stringify(userData));
-      
-      console.log('✅ Login completo exitoso - SESIÓN INICIADA');
-      
-      handleUserActivity();
-    } else {
+// 🎯 TERCERO: Login exitoso en nuestro backend
+const backendResponse = await authAPI.login(email, password);
+
+if (backendResponse.success) {
+  const userData = backendResponse.data.user;
+  // 🆕 AGREGAR ESTAS 2 LÍNEAS:
+  const token = backendResponse.data.token; // OBTENER JWT
+  const sessionToken = backendResponse.data.sessionToken; // OBTENER SESSION TOKEN
+  
+  // 🆕 OBTENER EL USUARIO DE POSTGRESQL PARA EL ID NUMÉRICO
+  try {
+    console.log('🔍 Obteniendo ID numérico de PostgreSQL...');
+    const dbUserResponse = await authAPI.checkFirebaseUser(email);
+    if (dbUserResponse.exists && dbUserResponse.data) {
+      // 🆕 AGREGAR EL ID NUMÉRICO AL USER DATA
+      userData.dbId = dbUserResponse.data.id;
+      console.log(`✅ ID numérico obtenido: ${userData.dbId}`);
+    }
+  } catch (dbError) {
+    console.warn('⚠️ No se pudo obtener el ID numérico:', dbError);
+  }
+  
+  // 🆕 MODIFICAR: CREAR USER CON TOKEN
+  const userWithToken = {
+    ...userData,
+    token: token // 🆕 INCLUIR TOKEN JWT
+  };
+  
+  setUser(userWithToken);
+  setCurrentSessionToken(sessionToken);
+  
+  // 🆕 MODIFICAR: GUARDAR CON TOKEN
+  localStorage.setItem('diana_laura_user', JSON.stringify(userWithToken));
+  localStorage.setItem('diana_laura_session_token', sessionToken);
+  
+  console.log('✅ Login completo exitoso - SESIÓN INICIADA CON JWT');
+  
+  handleUserActivity();
+} else {
       throw new Error(backendResponse.message);
     }
     
@@ -676,7 +709,7 @@ const login = async (email: string, password: string) => {
   };
 
   const logout = async () => {
-    // 🎯 Limpiar timers al hacer logout manual
+    // 🎯 Limpiar timers al hacer logout manual - CÓDIGO EXISTENTE
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
       inactivityTimerRef.current = null;
@@ -684,6 +717,13 @@ const login = async (email: string, password: string) => {
     if (activityUpdateTimeout) {
       clearTimeout(activityUpdateTimeout);
       activityUpdateTimeout = null;
+    }
+    
+    // 🆕 OPCIONAL: Llamar al endpoint de logout del backend
+    try {
+      await authAPI.logout(); // Esto es opcional, no afecta si falla
+    } catch (error) {
+      console.log('⚠️ Error en logout del backend (no crítico):', error);
     }
     
     await auth.signOut();
@@ -701,12 +741,14 @@ const login = async (email: string, password: string) => {
     logout,
     sendPasswordReset,
     verifyEmail,
-    // 🆕 AGREGAR LAS NUEVAS FUNCIONES
+    // 🆕 AGREGAR LAS NUEVAS FUNCIONES (TODAS EXISTENTES)
     getActiveSessions,
     revokeSession,
     revokeAllOtherSessions,
     revokeAllSessions,
-    currentSessionToken
+    currentSessionToken,
+    // 🆕 AGREGAR FUNCIÓN OPCIONAL
+    validateSession
   };
 
   return (
