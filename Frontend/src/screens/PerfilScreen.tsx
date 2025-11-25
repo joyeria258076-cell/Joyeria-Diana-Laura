@@ -62,10 +62,12 @@ export default function PerfilScreen() {
 const handleCerrarSesionDispositivo = async (sesionId: number) => {
   const sesion = sesionesActivas.find(s => s.id === sesionId);
   
-  // 🆕 MENSAJES DIFERENCIADOS
+  // 🆕 USAR is_current QUE VIENE DEL BACKEND (ya está marcado correctamente)
+  const esSesionActual = sesion?.is_current === true;
+  
   let mensajeConfirmacion = '';
   
-  if (sesion?.is_current) {
+  if (esSesionActual) {
     mensajeConfirmacion = '⚠️ ¿Cerrar tu SESIÓN ACTUAL? Serás redirigido al login.';
   } else {
     mensajeConfirmacion = `¿Cerrar sesión en ${sesion?.device_name} (${sesion?.location})?`;
@@ -79,12 +81,17 @@ const handleCerrarSesionDispositivo = async (sesionId: number) => {
     console.log("🔐 Cerrando sesión en dispositivo:", sesionId);
     await revokeSession(sesionId);
     
-    // 🆕 SI ES LA SESIÓN ACTUAL, HACER LOGOUT COMPLETO
-    if (sesion?.is_current) {
-      await logout();
-      navigate("/login");
+    if (esSesionActual) {
+      // 🆕 MENSAJE PARA SESIÓN ACTUAL
+      mostrarMensaje("✅ Tu sesión actual se ha cerrado. Serás redirigido al login...", "success");
+      
+      // Pequeño delay para ver el mensaje
+      setTimeout(async () => {
+        await logout();
+        navigate("/login");
+      }, 1000);
     } else {
-      // 🆕 SI ES OTRA SESIÓN, SOLO ACTUALIZAR LISTA
+      // 🆕 MENSAJE PARA OTRAS SESIONES
       setSesionesActivas(prev => prev.filter(s => s.id !== sesionId));
       mostrarMensaje("✅ Sesión cerrada exitosamente. El otro dispositivo será desconectado en 15 segundos.", "success");
     }
