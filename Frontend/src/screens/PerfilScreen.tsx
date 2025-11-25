@@ -3,12 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { authAPI } from "../services/api";
 import "../styles/PerfilScreen.css";
 
 // 🆕 TIPO ACTUALIZADO para sesiones activas (según backend)
 interface SesionActiva {
-  id: number;
+  id: number; // 🆕 Cambiar a number
   device_name: string;
   browser: string;
   os: string;
@@ -16,12 +15,7 @@ interface SesionActiva {
   location: string;
   created_at: string;
   last_activity: string;
-  is_current?: boolean;
-}
-
-// 🆕 INTERFAZ para estado MFA
-interface MFAStatus {
-  mfaEnabled: boolean;
+  is_current?: boolean; // 🆕 Para marcar sesión actual
 }
 
 export default function PerfilScreen() {
@@ -31,38 +25,11 @@ export default function PerfilScreen() {
   const [cargando, setCargando] = useState(true);
   const [mensaje, setMensaje] = useState<string>("");
   const [tipoMensaje, setTipoMensaje] = useState<"success" | "error">("success");
-  const [mfaStatus, setMfaStatus] = useState<MFAStatus>({ mfaEnabled: false }); // 🆕 ESTADO MFA
-  const [cargandoMFA, setCargandoMFA] = useState(true); // 🆕 LOADING MFA
 
-  // 🆕 CARGAR SESIONES Y ESTADO MFA DEL BACKEND
+  // 🆕 CARGAR SESIONES REALES DEL BACKEND
   useEffect(() => {
     cargarSesionesActivas();
-    cargarEstadoMFA(); // 🆕 Cargar estado MFA real
   }, []);
-
-  // 🆕 FUNCIÓN PARA CARGAR ESTADO MFA REAL
-  const cargarEstadoMFA = async () => {
-    if (!user?.dbId) {
-      setCargandoMFA(false);
-      return;
-    }
-
-    try {
-      console.log('🔍 Cargando estado MFA real para usuario:', user.dbId);
-      const response = await authAPI.checkMFAStatus(user.dbId);
-      
-      if (response.success) {
-        setMfaStatus(response.data);
-        console.log('✅ Estado MFA cargado:', response.data.mfaEnabled);
-      } else {
-        console.warn('⚠️ No se pudo cargar estado MFA:', response.message);
-      }
-    } catch (error: any) {
-      console.error('❌ Error cargando estado MFA:', error);
-    } finally {
-      setCargandoMFA(false);
-    }
-  };
 
   const cargarSesionesActivas = async () => {
     try {
@@ -74,6 +41,7 @@ export default function PerfilScreen() {
       console.log('✅ Sesiones cargadas:', sesiones.length);
       console.log('🎯 Sesión actual ya marcada por backend:', sesiones.some(s => s.is_current));
       
+      // 🆕 YA NO necesitamos mapear ni marcar - el backend ya lo hace
       setSesionesActivas(sesiones);
       
     } catch (error: any) {
@@ -91,41 +59,10 @@ export default function PerfilScreen() {
     setTimeout(() => setMensaje(""), 5000);
   };
 
-  // 🆕 FUNCIÓN PARA DESACTIVAR MFA
-  const handleDesactivarMFA = async () => {
-    if (!user?.dbId) return;
-
-    if (window.confirm('¿Estás seguro de que quieres desactivar la autenticación en dos pasos?')) {
-      try {
-        setCargandoMFA(true);
-        console.log('🚫 Desactivando MFA para usuario:', user.dbId);
-        
-        const response = await authAPI.disableMFA(user.dbId);
-        
-        if (response.success) {
-          setMfaStatus({ mfaEnabled: false });
-          mostrarMensaje("MFA desactivado correctamente", "success");
-          console.log('✅ MFA desactivado');
-        } else {
-          throw new Error(response.message || 'Error desactivando MFA');
-        }
-      } catch (error: any) {
-        console.error('❌ Error desactivando MFA:', error);
-        mostrarMensaje("Error al desactivar MFA: " + error.message, "error");
-      } finally {
-        setCargandoMFA(false);
-      }
-    }
-  };
-
-  // 🆕 FUNCIÓN PARA ACTUALIZAR ESTADO MFA (cuando vuelve de mfa-setup)
-  const actualizarEstadoMFA = () => {
-    cargarEstadoMFA();
-  };
-
 const handleCerrarSesionDispositivo = async (sesionId: number) => {
   const sesion = sesionesActivas.find(s => s.id === sesionId);
   
+  // 🆕 USAR is_current QUE VIENE DEL BACKEND (ya está marcado correctamente)
   const esSesionActual = sesion?.is_current === true;
   
   let mensajeConfirmacion = '';
@@ -145,13 +82,16 @@ const handleCerrarSesionDispositivo = async (sesionId: number) => {
     await revokeSession(sesionId);
     
     if (esSesionActual) {
+      // 🆕 MENSAJE PARA SESIÓN ACTUAL
       mostrarMensaje("✅ Tu sesión actual se ha cerrado. Serás redirigido al login...", "success");
       
+      // Pequeño delay para ver el mensaje
       setTimeout(async () => {
         await logout();
         navigate("/login");
       }, 1000);
     } else {
+      // 🆕 MENSAJE PARA OTRAS SESIONES
       setSesionesActivas(prev => prev.filter(s => s.id !== sesionId));
       mostrarMensaje("✅ Sesión cerrada exitosamente. El otro dispositivo será desconectado en 15 segundos.", "success");
     }
@@ -161,6 +101,7 @@ const handleCerrarSesionDispositivo = async (sesionId: number) => {
   }
 };
 
+// 🆕 REEMPLAZAR handleCerrarOtrasSesiones en PerfilScreen.tsx
 const handleCerrarOtrasSesiones = async () => {
   if (!window.confirm('¿Estás seguro de que quieres cerrar sesión en todos los otros dispositivos?')) {
     return;
@@ -170,6 +111,7 @@ const handleCerrarOtrasSesiones = async () => {
     console.log("🔐 Cerrando todas las otras sesiones...");
     const result = await revokeAllOtherSessions();
     
+    // Recargar sesiones para mostrar solo la actual
     await cargarSesionesActivas();
     mostrarMensaje(`✅ Se cerraron ${result.revokedCount} sesiones. Los dispositivos serán desconectados en 15 segundos.`, "success");
   } catch (error: any) {
@@ -178,14 +120,17 @@ const handleCerrarOtrasSesiones = async () => {
   }
 };
 
+  // 🆕 3. CERRAR TODAS LAS SESIONES (incluyendo actual)
   const handleCerrarTodasLasSesiones = async () => {
     if (window.confirm("¿Estás seguro de que quieres cerrar todas las sesiones? Esto te cerrará la sesión en todos los dispositivos incluyendo este.")) {
       try {
         console.log("Cerrando TODAS las sesiones...");
         const result = await revokeAllSessions();
         
+        // 🆕 El logout se ejecuta automáticamente en revokeAllSessions
         mostrarMensaje(`Se cerraron todas las sesiones (${result.revokedCount} dispositivos)`, "success");
         
+        // Redirigir al login (ya que se hizo logout)
         navigate("/login");
       } catch (error: any) {
         console.error("❌ Error cerrando todas las sesiones:", error);
@@ -194,6 +139,7 @@ const handleCerrarOtrasSesiones = async () => {
     }
   };
 
+  // 🆕 4. CERRAR SOLO SESIÓN ACTUAL
   const handleCerrarSesionActual = async () => {
     if (window.confirm("¿Estás seguro de que quieres cerrar sesión en este dispositivo?")) {
       await logout();
@@ -201,6 +147,7 @@ const handleCerrarOtrasSesiones = async () => {
     }
   };
 
+  // 🆕 FUNCIÓN PARA FORMATEAR FECHAS
   const formatearFecha = (fecha: string) => {
     const ahora = new Date();
     const fechaSesion = new Date(fecha);
@@ -217,6 +164,7 @@ const handleCerrarOtrasSesiones = async () => {
 
   return (
     <div className="perfil-container">
+      {/* Header igual al InicioScreen */}
       <header className="perfil-header">
         <div className="header-content">
           <div className="logo">
@@ -244,8 +192,10 @@ const handleCerrarOtrasSesiones = async () => {
         </div>
       </header>
 
+      {/* Contenido principal del perfil */}
       <main className="perfil-main">
         <div className="perfil-content">
+          {/* Información del usuario */}
           <section className="user-info-section">
             <div className="user-avatar-large">
               {user?.nombre?.charAt(0) || 'U'}
@@ -257,87 +207,50 @@ const handleCerrarOtrasSesiones = async () => {
             </div>
           </section>
 
+          {/* 🆕 MENSAJES */}
           {mensaje && (
             <div className={`mensaje-alerta ${tipoMensaje}`}>
               {mensaje}
             </div>
           )}
 
-          {/* 🆕 SECCIÓN MFA MEJORADA */}
+          {/* 🆕 SECCIÓN MFA - AGREGADA CORRECTAMENTE */}
           <section className="sesiones-section">
             <div className="section-header">
               <h2 className="section-title">🔒 Autenticación en Dos Pasos (MFA)</h2>
               <p className="section-subtitle">
                 Protege tu cuenta con una capa adicional de seguridad
               </p>
-              
-              {/* 🆕 BOTÓN ACTUALIZAR MFA */}
-              <button 
-                className="btn-actualizar"
-                onClick={actualizarEstadoMFA}
-                disabled={cargandoMFA}
-              >
-                {cargandoMFA ? '🔄' : '🔄'} Actualizar Estado
-              </button>
             </div>
 
             <div className="mfa-status-card">
               <div className="mfa-status-content">
                 <div className="mfa-status-info">
-                  {cargandoMFA ? (
-                    <h3>Cargando estado MFA...</h3>
-                  ) : (
-                    <>
-                      <h3>
-                        Estado actual: 
-                        <span className={`mfa-badge ${mfaStatus.mfaEnabled ? 'mfa-enabled' : 'mfa-disabled'}`}>
-                          {mfaStatus.mfaEnabled ? " ✅ ACTIVADA" : " ❌ NO ACTIVADA"}
-                        </span>
-                      </h3>
-                      <p>
-                        {mfaStatus.mfaEnabled 
-                          ? "Tu cuenta está protegida con autenticación en dos pasos. Necesitarás un código de verificación cada vez que inicies sesión."
-                          : "La autenticación en dos pasos añade una capa extra de seguridad a tu cuenta. Además de tu contraseña, necesitarás un código de verificación de tu aplicación móvil."
-                        }
-                      </p>
-                      
-                      <div className="mfa-benefits">
-                        <h4>Beneficios:</h4>
-                        <ul>
-                          <li>✅ Protección contra accesos no autorizados</li>
-                          <li>✅ Seguridad incluso si tu contraseña es comprometida</li>
-                          <li>✅ Códigos que cambian cada 30 segundos</li>
-                          <li>✅ Compatible con Google Authenticator, Authy, etc.</li>
-                        </ul>
-                      </div>
-                    </>
-                  )}
+                  <h3>Estado actual: <span className="mfa-badge mfa-disabled">No activada</span></h3>
+                  <p>
+                    La autenticación en dos pasos añade una capa extra de seguridad a tu cuenta. 
+                    Además de tu contraseña, necesitarás un código de verificación de tu aplicación móvil.
+                  </p>
+                  
+                  <div className="mfa-benefits">
+                    <h4>Beneficios:</h4>
+                    <ul>
+                      <li>✅ Protección contra accesos no autorizados</li>
+                      <li>✅ Seguridad incluso si tu contraseña es comprometida</li>
+                      <li>✅ Códigos que cambian cada 30 segundos</li>
+                      <li>✅ Compatible con Google Authenticator, Authy, etc.</li>
+                    </ul>
+                  </div>
                 </div>
                 
                 <div className="mfa-action">
-                  {!mfaStatus.mfaEnabled ? (
-                    <>
-                      <button 
-                        className="btn-activar-mfa"
-                        onClick={() => navigate('/mfa-setup')}
-                        disabled={cargandoMFA}
-                      >
-                        🔐 Activar Autenticación en Dos Pasos
-                      </button>
-                      <small>Puedes desactivarla en cualquier momento</small>
-                    </>
-                  ) : (
-                    <>
-                      <button 
-                        className="btn-desactivar-mfa"
-                        onClick={handleDesactivarMFA}
-                        disabled={cargandoMFA}
-                      >
-                        🚫 Desactivar MFA
-                      </button>
-                      <small>Tu cuenta está actualmente protegida</small>
-                    </>
-                  )}
+                  <button 
+                    className="btn-activar-mfa"
+                    onClick={() => navigate('/mfa-setup')}
+                  >
+                    🔐 Activar Autenticación en Dos Pasos
+                  </button>
+                  <small>Puedes desactivarla en cualquier momento</small>
                 </div>
               </div>
             </div>
@@ -351,6 +264,7 @@ const handleCerrarOtrasSesiones = async () => {
                 Gestiona tus sesiones iniciadas en diferentes dispositivos
               </p>
               
+              {/* 🆕 BOTÓN ACTUALIZAR */}
               <button 
                 className="btn-actualizar"
                 onClick={cargarSesionesActivas}
@@ -402,6 +316,7 @@ const handleCerrarOtrasSesiones = async () => {
               </div>
             )}
 
+            {/* 🆕 BOTONES PARA LOS 3 TIPOS DE CIERRE */}
             <div className="acciones-globales">
               <div className="botones-accion">
                 <button 
