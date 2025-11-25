@@ -24,7 +24,6 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
   }
 };
 
-// 🆕 CLASE MEJORADA PARA NUEVAS FUNCIONALIDADES (NO AFECTA LO EXISTENTE)
 class EnhancedApiService {
   private baseURL: string;
 
@@ -33,17 +32,16 @@ class EnhancedApiService {
   }
 
   private async request(endpoint: string, options: RequestInit = {}) {
-    // 🆕 OBTENER TOKEN DEL LOCALSTORAGE (si existe)
-    const userData = localStorage.getItem('diana_laura_user');
+    // 🆕 MEJORAR: Obtener token de localStorage directamente
     let token = null;
-    
-    if (userData) {
-      try {
+    try {
+      const userData = localStorage.getItem('diana_laura_user');
+      if (userData) {
         const user = JSON.parse(userData);
         token = user.token || null;
-      } catch (error) {
-        token = null;
       }
+    } catch (error) {
+      token = null;
     }
 
     const config: RequestInit = {
@@ -57,29 +55,21 @@ class EnhancedApiService {
 
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
-      const data = await response.json();
       
-      // 🆕 INTERCEPTOR: Manejar sesiones revocadas (SOLO para rutas protegidas)
-      if (response.status === 403 && 
-          (data.message === 'Sesión revocada o expirada' || 
-           data.message === 'Token inválido' ||
-           data.message === 'Token expirado')) {
-        
-        console.log('🔐 Sesión revocada detectada - limpiando datos locales');
-        
-        // Limpiar datos locales PERO NO REDIRIGIR AUTOMÁTICAMENTE
-        localStorage.removeItem('diana_laura_user');
-        localStorage.removeItem('diana_laura_session_token');
-        
-        // Lanzar error específico para que cada componente maneje como quiera
-        throw new Error('SESSION_EXPIRED: ' + data.message);
-      }
-      
+      // 🆕 MEJORAR: Manejar respuesta antes de parsear JSON
       if (!response.ok) {
-        throw new Error(data.message || 'Error en la petición');
+        // Si es error 401/403, intentar parsear el error
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Error en la petición');
+        } catch {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
       }
-
+      
+      const data = await response.json();
       return data;
+      
     } catch (error) {
       throw error;
     }

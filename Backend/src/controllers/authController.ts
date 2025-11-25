@@ -8,6 +8,7 @@ import { pool } from '../config/database';
 import { RecoverySecurityService } from '../services/recoverySecurityService';
 import { SessionService } from '../services/SessionService';
 import { getUserByEmail } from '../models/userModel';
+import jwt from 'jsonwebtoken';
 
 // 🎯 FUNCIÓN MEJORADA para obtener IP real del cliente
 const getClientIp = (req: Request): string => {
@@ -278,37 +279,42 @@ export const login = async (req: Request, res: Response) => {
       const userName = userRecord.displayName || (userEmail ? userEmail.split('@')[0] : 'Usuario');
       
       // 🆕 🎯 CREACIÓN DE SESIÓN (CÓDIGO EXISTENTE - SIN CAMBIOS)
-      try {
-        // Obtener usuario de PostgreSQL para el ID
-        const dbUser = await userModel.getUserByEmail(userEmail);
-        
-        if (dbUser && dbUser.id) {
-          const deviceInfo = SessionService.parseUserAgent(userAgent);
-          
-          // Crear sesión en la base de datos
-          const sessionResult = await SessionService.createSession(
-            dbUser.id,
-            userRecord.uid,
-            deviceInfo,
-            clientIp,
-            userAgent
-          );
-          
-          if (sessionResult.success) {
-            console.log(`✅ Sesión registrada para: ${userEmail}, Session ID: ${sessionResult.sessionId}`);
-          } else {
-            console.warn(`⚠️ Sesión no registrada para: ${userEmail}, Error: ${sessionResult.error}`);
-          }
-        } else {
-          console.warn(`⚠️ Usuario no encontrado en PostgreSQL para crear sesión: ${userEmail}`);
-        }
-      } catch (sessionError) {
-        console.error('❌ Error creando sesión (no crítico):', sessionError);
-        // NO AFECTA EL LOGIN - solo log del error
-      }
-      // 🆕 FIN DE CREACIÓN DE SESIÓN
+// 🆕 🎯 CREACIÓN DE SESIÓN Y GENERACIÓN DE JWT
+try {
+  // Obtener usuario de PostgreSQL para el ID
+  const dbUser = await userModel.getUserByEmail(userEmail);
+  
+  if (dbUser && dbUser.id) {
+    const deviceInfo = SessionService.parseUserAgent(userAgent);
+    
+    // Crear sesión en la base de datos
+    const sessionResult = await SessionService.createSession(
+      dbUser.id,
+      userRecord.uid,
+      deviceInfo,
+      clientIp,
+      userAgent
+    );
+    
+    if (sessionResult.success && sessionResult.sessionToken) { // 🆕 VERIFICAR sessionToken
+      console.log(`✅ Sesión registrada para: ${userEmail}, Session Token: ${sessionResult.sessionToken.substring(0, 10)}...`);
       
+      // 🆕 GENERAR JWT CON sessionId
+      const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_2024_joyeria_diana_laura';
+      const token = jwt.sign(
+        { 
+          userId: dbUser.id,
+          firebaseUid: userRecord.uid,
+          email: userEmail,
+          nombre: userName,
+          sessionId: sessionResult.sessionToken // 🆕 USAR sessionToken, NO sessionId
+        },
+        JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+
       console.log(`✅ LOGIN EXITOSO para: ${email}`);
+      console.log(`🔐 JWT generado con sessionId: ${sessionResult.sessionToken.substring(0, 10)}...`);
       
       res.json({
         success: true,
@@ -317,10 +323,40 @@ export const login = async (req: Request, res: Response) => {
           user: {
             id: userRecord.uid,
             email: userEmail,
-            nombre: userName
-          }
+            nombre: userName,
+            dbId: dbUser.id
+          },
+          token: token, // 🆕 ENVIAR JWT AL FRONTEND
+          sessionToken: sessionResult.sessionToken // 🆕 ENVIAR SESSION TOKEN
         }
       });
+      return; // 🆕 IMPORTANTE: Salir de la función después de enviar response
+      
+    } else {
+      console.warn(`⚠️ Sesión no registrada o sin token para: ${userEmail}, Error: ${sessionResult.error}`);
+    }
+  } else {
+    console.warn(`⚠️ Usuario no encontrado en PostgreSQL para crear sesión: ${userEmail}`);
+  }
+} catch (sessionError) {
+  console.error('❌ Error creando sesión (no crítico):', sessionError);
+}
+
+// 🆕 SI NO SE PUDO CREAR SESIÓN, ENVIAR RESPUESTA SIN TOKEN
+console.log(`✅ LOGIN EXITOSO (sin sesión) para: ${email}`);
+
+res.json({
+  success: true,
+  message: 'Login exitoso',
+  data: {
+    user: {
+      id: userRecord.uid,
+      email: userEmail,
+      nombre: userName
+    }
+    // 🆕 NO hay token ni sessionToken
+  }
+});
 
     } catch (firebaseError: any) {
       console.error('❌ Error de Firebase:', firebaseError);
