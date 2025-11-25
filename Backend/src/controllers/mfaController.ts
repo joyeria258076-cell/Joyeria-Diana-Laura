@@ -6,50 +6,55 @@ export const mfaController = {
   /**
    * Iniciar configuración de MFA para un usuario
    */
-  setupMFA: async (req: Request, res: Response) => {
-    try {
-      const { userId, email } = req.body;
-      
-      if (!userId || !email) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'UserId y email son requeridos' 
-        });
-      }
-
-      console.log(`🔐 Iniciando configuración MFA para usuario: ${userId}, email: ${email}`);
-      
-      // Generar secreto y códigos de respaldo
-      const secret = MFAService.generateSecret(email);
-      const backupCodes = MFAService.generateBackupCodes();
-      const qrCodeUrl = await MFAService.generateQRCode(secret.otpauth_url!);
-
-      // Guardar en BD (sin activar MFA aún)
-      await pool.query(
-        `UPDATE usuarios SET mfa_secret = $1, mfa_backup_codes = $2 WHERE id = $3`,
-        [secret.base32, JSON.stringify(backupCodes), userId]
-      );
-
-      console.log(`✅ MFA configurado para usuario ${userId}`);
-
-      res.json({
-        success: true,
-        data: {
-          secret: secret.base32,
-          qrCodeUrl: qrCodeUrl,
-          backupCodes,
-          otpauthUrl: secret.otpauth_url
-        },
-        message: 'MFA configurado correctamente. Escanea el QR code con tu app authenticator.'
-      });
-    } catch (error: any) {
-      console.error('❌ Error configurando MFA:', error);
-      res.status(500).json({ 
+setupMFA: async (req: Request, res: Response) => {
+  try {
+    const { userId, email } = req.body;
+    
+    if (!userId || !email) {
+      return res.status(400).json({ 
         success: false, 
-        message: 'Error configurando MFA: ' + error.message 
+        message: 'UserId y email son requeridos' 
       });
     }
-  },
+
+    console.log(`🔐 Iniciando configuración MFA para usuario: ${userId}, email: ${email}`);
+    
+    // Generar secreto y códigos de respaldo
+    const secret = MFAService.generateSecret(email);
+    const backupCodes = MFAService.generateBackupCodes();
+    const qrCodeUrl = await MFAService.generateQRCode(secret.otpauth_url!);
+
+    // 🆕 FORMATO CORRECTO para PostgreSQL arrays
+    const backupCodesFormatted = `{${backupCodes.map(code => `"${code}"`).join(',')}}`;
+    
+    console.log(`📦 Backup codes formateados: ${backupCodesFormatted}`);
+
+    // Guardar en BD (sin activar MFA aún)
+    await pool.query(
+      `UPDATE usuarios SET mfa_secret = $1, mfa_backup_codes = $2 WHERE id = $3`,
+      [secret.base32, backupCodesFormatted, userId]
+    );
+
+    console.log(`✅ MFA configurado para usuario ${userId}`);
+
+    res.json({
+      success: true,
+      data: {
+        secret: secret.base32,
+        qrCodeUrl: qrCodeUrl,
+        backupCodes,
+        otpauthUrl: secret.otpauth_url
+      },
+      message: 'MFA configurado correctamente. Escanea el QR code con tu app authenticator.'
+    });
+  } catch (error: any) {
+    console.error('❌ Error configurando MFA:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error configurando MFA: ' + error.message 
+    });
+  }
+},
 
   /**
    * Verificar código MFA y activar la protección
