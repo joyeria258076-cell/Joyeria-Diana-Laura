@@ -60,8 +60,18 @@ export default function PerfilScreen() {
   };
 
 const handleCerrarSesionDispositivo = async (sesionId: number) => {
-  // 🆕 Agregar confirmación
-  if (!window.confirm('¿Estás seguro de que quieres cerrar la sesión en este dispositivo?')) {
+  const sesion = sesionesActivas.find(s => s.id === sesionId);
+  
+  // 🆕 MENSAJES DIFERENCIADOS
+  let mensajeConfirmacion = '';
+  
+  if (sesion?.is_current) {
+    mensajeConfirmacion = '⚠️ ¿Cerrar tu SESIÓN ACTUAL? Serás redirigido al login.';
+  } else {
+    mensajeConfirmacion = `¿Cerrar sesión en ${sesion?.device_name} (${sesion?.location})?`;
+  }
+
+  if (!window.confirm(mensajeConfirmacion)) {
     return;
   }
   
@@ -69,9 +79,15 @@ const handleCerrarSesionDispositivo = async (sesionId: number) => {
     console.log("🔐 Cerrando sesión en dispositivo:", sesionId);
     await revokeSession(sesionId);
     
-    // Actualizar lista local
-    setSesionesActivas(prev => prev.filter(sesion => sesion.id !== sesionId));
-    mostrarMensaje("✅ Sesión cerrada exitosamente. El otro dispositivo será desconectado en 15 segundos.", "success");
+    // 🆕 SI ES LA SESIÓN ACTUAL, HACER LOGOUT COMPLETO
+    if (sesion?.is_current) {
+      await logout();
+      navigate("/login");
+    } else {
+      // 🆕 SI ES OTRA SESIÓN, SOLO ACTUALIZAR LISTA
+      setSesionesActivas(prev => prev.filter(s => s.id !== sesionId));
+      mostrarMensaje("✅ Sesión cerrada exitosamente. El otro dispositivo será desconectado en 15 segundos.", "success");
+    }
   } catch (error: any) {
     console.error("❌ Error cerrando sesión:", error);
     mostrarMensaje("Error al cerrar la sesión: " + error.message, "error");
