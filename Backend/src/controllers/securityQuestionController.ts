@@ -1,7 +1,9 @@
 // Ruta: Joyeria-Diana-Laura/Backend/src/controllers/securityQuestionController.ts
 import { Request, Response } from 'express';
 import { SecurityQuestionModel } from '../models/securityQuestionModel';
-import { getUserByEmail } from '../models/userModel';
+import { getUserByEmail, updatePassword } from '../models/userModel'; // 🆕 Agregar updatePassword
+import admin from '../config/firebase'; // 🆕 Agregar import de Firebase
+import { RecoverySecurityService } from '../services/recoverySecurityService'; // 🆕 Agregar import
 
 // Lista de 5 preguntas seguras predefinidas
 const SECURE_QUESTIONS = [
@@ -193,6 +195,90 @@ export const getSecureQuestionsList = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor'
+    });
+  }
+};
+
+export const resetPasswordWithSecurityQuestion = async (req: Request, res: Response) => {
+  try {
+    const { email, securityAnswer, newPassword } = req.body;
+
+    if (!email || !securityAnswer || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email, respuesta secreta y nueva contraseña son requeridos'
+      });
+    }
+
+    // Validar nueva contraseña
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'La contraseña debe tener al menos 8 caracteres'
+      });
+    }
+
+    // Obtener usuario
+    const user = await getUserByEmail(email);
+    if (!user || !user.id) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    // Verificar respuesta secreta
+    const verification = await SecurityQuestionModel.verifySecurityAnswer(user.id, securityAnswer);
+    
+    if (!verification.valid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Respuesta secreta incorrecta'
+      });
+    }
+
+    // Actualizar contraseña en Firebase
+    try {
+      console.log('🔄 Actualizando contraseña en Firebase para:', email);
+      const userRecord = await admin.auth().getUserByEmail(email);
+      await admin.auth().updateUser(userRecord.uid, {
+        password: newPassword
+      });
+      console.log('✅ Contraseña actualizada en Firebase');
+    } catch (firebaseError: any) {
+      console.error('Error actualizando contraseña en Firebase:', firebaseError);
+      return res.status(400).json({
+        success: false,
+        message: 'Error al actualizar la contraseña en Firebase: ' + firebaseError.message
+      });
+    }
+
+    // Actualizar contraseña en PostgreSQL
+    console.log('🔄 Actualizando contraseña en PostgreSQL para usuario ID:', user.id);
+    const passwordUpdated = await updatePassword(user.id, newPassword);
+    
+    if (!passwordUpdated) {
+      console.error('❌ Error actualizando contraseña en PostgreSQL');
+      // No retornamos error porque Firebase ya se actualizó
+    } else {
+      console.log('✅ Contraseña actualizada en PostgreSQL');
+    }
+
+    // Resetear intentos de recuperación
+    console.log('🔄 Reseteando intentos de recuperación para:', email);
+    await RecoverySecurityService.resetAfterSuccessfulRecovery(email);
+    console.log('✅ Intentos de recuperación reseteados');
+
+    res.json({
+      success: true,
+      message: 'Contraseña actualizada correctamente'
+    });
+
+  } catch (error: any) {
+    console.error('Error en resetPasswordWithSecurityQuestion:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor: ' + error.message
     });
   }
 };

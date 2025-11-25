@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { securityQuestionAPI } from '../services/securityQuestionAPI';
-import { authAPI } from '../services/api';
 import '../styles/RecuperarConPreguntaScreen.css';
 
 const schema = z.object({
@@ -51,7 +50,8 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         handleSubmit, 
         formState: { errors },
         watch,
-        setError
+        setError,
+        reset
     } = useForm<FormData>({ 
         resolver: zodResolver(schema) 
     });
@@ -78,6 +78,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
             if (response.success && response.data.question) {
                 setSecurityQuestion(response.data.question);
                 setUserId(response.data.userId);
+                setMessage('');
             } else {
                 setMessage('❌ No se encontró pregunta secreta para este usuario');
                 setMessageType('error');
@@ -94,9 +95,12 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         if (!userId) return false;
 
         try {
+            console.log('🔍 Verificando respuesta para usuario:', userId);
             const response = await securityQuestionAPI.verifySecurityAnswer(userId, answer);
+            console.log('📊 Respuesta de verificación:', response);
             return response.success;
-        } catch (error) {
+        } catch (error: any) {
+            console.error('❌ Error verificando respuesta:', error);
             return false;
         }
     };
@@ -108,6 +112,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         try {
             // Verificar respuesta si aún no está verificada
             if (!answerVerified) {
+                console.log('🔍 Verificando respuesta secreta...');
                 const isAnswerCorrect = await verifyAnswer(data.securityAnswer);
                 
                 if (!isAnswerCorrect) {
@@ -125,16 +130,14 @@ const RecuperarConPreguntaScreen: React.FC = () => {
             }
 
             // Si la respuesta ya está verificada, cambiar la contraseña
-            const resetResponse = await authAPI.resetPassword(email, data.newPassword);
+            console.log('🔄 Cambiando contraseña...');
+            const resetResponse = await securityQuestionAPI.resetPasswordWithQuestion(
+                email, 
+                data.securityAnswer, 
+                data.newPassword
+            );
             
             if (resetResponse.success) {
-                // Resetear intentos de recuperación
-                try {
-                    await authAPI.resetRecoveryAttempts(email);
-                } catch (error) {
-                    console.log('⚠️ Error reseteando intentos (no crítico):', error);
-                }
-                
                 setMessage('✅ Contraseña actualizada correctamente. Redirigiendo al login...');
                 setMessageType('success');
                 
@@ -147,6 +150,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
             }
 
         } catch (error: any) {
+            console.error('❌ Error:', error);
             setMessage(`❌ Error: ${error.message}`);
             setMessageType('error');
         } finally {
@@ -162,6 +166,12 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         }
     };
 
+    const handleTryAgain = () => {
+        setAnswerVerified(false);
+        setMessage('');
+        reset();
+    };
+
     if (loading && !securityQuestion) {
         return (
             <div className="recuperar-pregunta-container">
@@ -174,7 +184,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         );
     }
 
-    if (!securityQuestion) {
+    if (!securityQuestion && !loading) {
         return (
             <div className="recuperar-pregunta-container">
                 <div className="recuperar-pregunta-card">
@@ -224,6 +234,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                                     className={`pregunta-input ${errors.securityAnswer ? 'error' : ''}`}
                                     {...register("securityAnswer")}
                                     maxLength={100}
+                                    disabled={loading}
                                 />
                                 {errors.securityAnswer && (
                                     <span className="field-error">{errors.securityAnswer.message}</span>
@@ -240,6 +251,14 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                                 <div className="success-icon">✅</div>
                                 <h3>Respuesta Verificada Correctamente</h3>
                                 <p>Ahora establece tu nueva contraseña</p>
+                                
+                                <button 
+                                    type="button" 
+                                    onClick={handleTryAgain}
+                                    className="try-again-button"
+                                >
+                                    🔄 Usar otra respuesta
+                                </button>
                             </div>
 
                             <div className="form-group">
@@ -253,6 +272,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                                         {...register("newPassword")}
                                         maxLength={16}
                                         onChange={handlePasswordChange}
+                                        disabled={loading}
                                     />
                                     <button
                                         type="button"
@@ -278,6 +298,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                                         {...register("confirmPassword")}
                                         maxLength={16}
                                         onChange={handlePasswordChange}
+                                        disabled={loading}
                                     />
                                     <button
                                         type="button"

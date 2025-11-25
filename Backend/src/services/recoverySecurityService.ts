@@ -183,10 +183,10 @@ static async resetAfterSuccessfulRecovery(email: string): Promise<void> {
     
     await client.query(
       `UPDATE usuarios 
-       SET recovery_attempts = 0, 
-           recovery_blocked_until = NULL,
-           last_recovery_attempt = NULL 
-       WHERE email = $1`,
+        SET recovery_attempts = 0, 
+            recovery_blocked_until = NULL,
+            last_recovery_attempt = NULL 
+        WHERE email = $1`,
       [email]
     );
     

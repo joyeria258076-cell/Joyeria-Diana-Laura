@@ -47,5 +47,20 @@ export const securityQuestionAPI = {
       body: JSON.stringify({ userId, answer }),
     });
     return await response.json();
+  },
+  // Resetear contraseña usando pregunta secreta
+  resetPasswordWithQuestion: async (email: string, securityAnswer: string, newPassword: string) => {
+    const response = await fetch(`${API_BASE_URL}/security/reset-password-with-question`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        email, 
+        securityAnswer, 
+        newPassword 
+      }),
+    });
+    return await response.json();
   }
 };
