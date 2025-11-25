@@ -761,3 +761,166 @@
         transform: translateX(0);
     }
 }
+
+.security-question-section {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.security-question-section h3 {
+    color: #FFFFFF !important; /* 🆕 Cambiado a blanco */
+    margin-bottom: 8px;
+    font-size: 1.3rem;
+}
+
+.security-question-section > p {
+    color: #FFFFFF !important; /* 🆕 Cambiado a blanco */
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+.character-count {
+    text-align: right;
+    font-size: 0.8rem;
+    color: #FFFFFF !important; /* 🆕 Cambiado a blanco */
+    margin-top: 4px;
+}
+
+.security-tips {
+    background: #e8f4fd;
+    border: 1px solid #b8daff;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 12px;
+    font-size: 0.85rem;
+}
+
+.security-tips p {
+    color: #FFFFFF !important; /* 🆕 Cambiado a blanco */
+}
+
+.security-tips strong {
+    color: #FFFFFF !important; /* 🆕 Cambiado a blanco */
+}
+
+.security-tips ul {
+    margin: 8px 0 0 0;
+    padding-left: 20px;
+}
+
+.security-tips li {
+    margin-bottom: 4px;
+    color: #FFFFFF !important; /* 🆕 Cambiado a blanco */
+}
+
+/* 🆕 ESTILOS PARA EL SELECT CON FONDO NEGRO Y TEXTO BLANCO */
+select.register-input {
+    appearance: menulist;
+    background: #000000 !important; /* 🆕 Fondo negro */
+    color: #FFFFFF !important; /* 🆕 Texto blanco */
+    padding-right: 40px;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 16px !important;
+    border: 1.5px solid rgba(207, 207, 207, 0.2) !important;
+}
+
+/* 🆕 ESTILOS PARA LAS OPCIONES DEL SELECT */
+select.register-input option {
+    background: #000000 !important; /* 🆕 Fondo negro para opciones */
+    color: #FFFFFF !important; /* 🆕 Texto blanco para opciones */
+    padding: 10px !important;
+}
+
+/* 🆕 ESTILOS PARA EL SELECT EN FOCO */
+select.register-input:focus {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+    border-color: #ECB2C3 !important;
+}
+
+/* 🆕 ESTILOS PARA EL SELECT AL PASAR EL MOUSE */
+select.register-input:hover {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+    border-color: rgba(236, 178, 195, 0.4) !important;
+}
+
+/* 🆕 ESTILOS ESPECÍFICOS PARA EL SELECT DE PREGUNTAS */
+#questionType {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+}
+
+#questionType option {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+}
+
+/* 🆕 ASEGURAR QUE LAS ETIQUETAS SEAN BLANCAS */
+.security-question-section .register-form-group label {
+    color: #FFFFFF !important;
+}
+
+/* 🆕 ASEGURAR QUE LOS MENSAJES DE ERROR SEAN VISIBLES */
+.security-question-section .register-error {
+    color: #ECB2C3 !important;
+    background: rgba(236, 178, 195, 0.1);
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 5px;
+    border-left: 3px solid #ECB2C3;
+}
+
+/* 🆕 ESTILOS PARA LOS INPUTS DENTRO DE LA SECCIÓN DE PREGUNTA SECRETA */
+.security-question-section .register-input {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #FFFFFF !important;
+    border: 1.5px solid rgba(207, 207, 207, 0.2) !important;
+}
+
+.security-question-section .register-input::placeholder {
+    color: #D9D9D9 !important;
+    opacity: 0.6;
+}
+
+.security-question-section .register-input:focus {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important;
+    border-color: #ECB2C3 !important;
+}
+
+/* 🆕 ESTILOS ESPECÍFICOS PARA EL CONTENEDOR DE CONSEJOS */
+.security-tips {
+    background: rgba(236, 178, 195, 0.1) !important; /* 🆕 Fondo rosa suave */
+    border: 1px solid rgba(236, 178, 195, 0.3) !important; /* 🆕 Borde rosa */
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.security-tips p,
+.security-tips strong,
+.security-tips li {
+    color: #FFFFFF !important; /* 🆕 Texto blanco */
+}
+
+.security-tips ul {
+    margin-top: 10px;
+}
+
+.security-tips li {
+    margin-bottom: 8px;
+    padding-left: 5px;
+}
+
+/* 🆕 ESTILOS PARA EL CONTADOR DE CARACTERES */
+.security-question-section .character-count {
+    color: #ECB2C3 !important; /* 🆕 Color rosa para mejor contraste */
+    font-size: 0.75rem;
+    font-weight: 500;
+}
