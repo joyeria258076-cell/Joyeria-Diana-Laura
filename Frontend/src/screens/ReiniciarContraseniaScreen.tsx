@@ -126,85 +126,86 @@ const ResetPasswordScreen: React.FC = () => {
       logAllParams();
     }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setMessage('');
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
+  setMessage('');
 
-    if (!validCode || !oobCode) {
-      setError('Enlace de recuperación no válido');
-      return;
-    }
+  if (!validCode || !oobCode) {
+    setError('Enlace de recuperación no válido');
+    return;
+  }
 
-    if (newPassword !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
-      return;
-    }
+  if (newPassword !== confirmPassword) {
+    setError('Las contraseñas no coinciden');
+    return;
+  }
 
-    if (newPassword.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres');
-      return;
-    }
+  if (newPassword.length < 8) {
+    setError('La contraseña debe tener al menos 8 caracteres');
+    return;
+  }
 
   const passwordError = validatePassword(newPassword);
-    if (passwordError) {
-      setError(passwordError);
-      return;
+  if (passwordError) {
+    setError(passwordError);
+    return;
   }
-    setLoading(true);
 
+  setLoading(true);
+
+  try {
+    // 🎯 PRIMERO: Actualizar en Firebase usando el código OOB
+    console.log('🔄 Confirmando reset de contraseña con Firebase...');
+    const auth = getAuth();
+    await confirmPasswordReset(auth, oobCode, newPassword);
+    
+    console.log('✅ Contraseña actualizada en Firebase para:', email);
+
+    // 🎯 SEGUNDO: Actualizar también en nuestro backend
     try {
-      // 🎯 USAR FIREBASE PARA RESETEAR LA CONTRASEÑA
-      const auth = getAuth();
+      console.log('🔄 Actualizando contraseña en nuestro backend...');
+      const response = await authAPI.resetPassword(email, newPassword);
       
-      console.log('🔄 Confirmando reset de contraseña...');
-      await confirmPasswordReset(auth, oobCode, newPassword);
-      
-      console.log('✅ Contraseña actualizada en Firebase para:', email);
-
-      // 🎯 ACTUALIZAR TAMBIÉN EN NUESTRO BACKEND
-      try {
-        const response = await authAPI.resetPassword(email, newPassword);
-        
-        if (response.success) {
-          // 🎯 RESETEAR INTENTOS DE RECUPERACIÓN
-          try {
-            await authAPI.resetRecoveryAttempts(email);
-            console.log('✅ Intentos de recuperación reseteados para:', email);
-          } catch (resetError) {
-            console.log('⚠️ Error reseteando intentos (no crítico):', resetError);
-          }
-          
-          setMessage('✅ Contraseña actualizada correctamente. Redirigiendo al login...');
-          setTimeout(() => navigate('/login'), 3000);
-        } else {
-          setError(response.message);
+      if (response.success) {
+        // 🎯 RESETEAR INTENTOS DE RECUPERACIÓN
+        try {
+          await authAPI.resetRecoveryAttempts(email);
+          console.log('✅ Intentos de recuperación reseteados para:', email);
+        } catch (resetError) {
+          console.log('⚠️ Error reseteando intentos (no crítico):', resetError);
         }
-      } catch (backendError: any) {
-        // SI FALLA EL BACKEND PERO FIREBASE SÍ FUNCIONÓ, MOSTRAR ÉXITO PARCIAL
-        console.log('⚠️ Firebase OK pero error en backend:', backendError);
-        setMessage('✅ Contraseña actualizada. Redirigiendo al login...');
+        
+        setMessage('✅ Contraseña actualizada correctamente. Redirigiendo al login...');
         setTimeout(() => navigate('/login'), 3000);
-      }
-
-    } catch (firebaseError: any) {
-      console.error('❌ Error en Firebase:', firebaseError);
-      
-      if (firebaseError.code === 'auth/expired-action-code') {
-        setError('❌ El enlace ha expirado. Por favor, solicita uno nuevo.');
-      } else if (firebaseError.code === 'auth/invalid-action-code') {
-        setError('❌ Enlace inválido. Por favor, solicita uno nuevo.');
-      } else if (firebaseError.code === 'auth/user-disabled') {
-        setError('❌ Esta cuenta ha sido deshabilitada.');
-      } else if (firebaseError.code === 'auth/weak-password') {
-        setError('❌ La contraseña es demasiado débil. Debe tener al menos 6 caracteres.');
       } else {
-        setError('❌ Error al actualizar la contraseña: ' + firebaseError.message);
+        setError(response.message);
       }
-    } finally {
-      setLoading(false);
+    } catch (backendError: any) {
+      // SI FALLA EL BACKEND PERO FIREBASE SÍ FUNCIONÓ, MOSTRAR ÉXITO PARCIAL
+      console.log('⚠️ Firebase OK pero error en backend:', backendError);
+      setMessage('✅ Contraseña actualizada. Redirigiendo al login...');
+      setTimeout(() => navigate('/login'), 3000);
     }
-  };
+
+  } catch (firebaseError: any) {
+    console.error('❌ Error en Firebase:', firebaseError);
+    
+    if (firebaseError.code === 'auth/expired-action-code') {
+      setError('❌ El enlace ha expirado. Por favor, solicita uno nuevo.');
+    } else if (firebaseError.code === 'auth/invalid-action-code') {
+      setError('❌ Enlace inválido. Por favor, solicita uno nuevo.');
+    } else if (firebaseError.code === 'auth/user-disabled') {
+      setError('❌ Esta cuenta ha sido deshabilitada.');
+    } else if (firebaseError.code === 'auth/weak-password') {
+      setError('❌ La contraseña es demasiado débil. Debe tener al menos 6 caracteres.');
+    } else {
+      setError('❌ Error al actualizar la contraseña: ' + firebaseError.message);
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;

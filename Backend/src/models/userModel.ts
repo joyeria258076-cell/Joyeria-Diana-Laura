@@ -165,9 +165,10 @@ export const updatePassword = async (userId: number, newPassword: string): Promi
       [hashedPassword, userId]
     );
     
+    console.log(`✅ Contraseña actualizada para usuario ID: ${userId}`);
     return result.rowCount ? result.rowCount > 0 : false;
   } catch (error) {
-    console.error('Error updating password:', error);
+    console.error('❌ Error updating password:', error);
     return false;
   }
 };

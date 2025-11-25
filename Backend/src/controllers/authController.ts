@@ -548,6 +548,8 @@ export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { email, newPassword } = req.body;
 
+    console.log('🔄 Iniciando proceso de reset de contraseña para:', email);
+
     if (!email || !newPassword) {
       return res.status(400).json({
         success: false,
@@ -563,44 +565,73 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
     try {
-      // Actualizar contraseña directamente en Firebase
+      // 🎯 PASO 1: Actualizar en Firebase
+      console.log('🔐 Buscando usuario en Firebase...');
       const userRecord = await admin.auth().getUserByEmail(email);
+      console.log('✅ Usuario encontrado en Firebase:', userRecord.uid);
+      
+      console.log('🔄 Actualizando contraseña en Firebase...');
       await admin.auth().updateUser(userRecord.uid, {
         password: newPassword
       });
+      console.log('✅ Contraseña actualizada en Firebase');
 
-      // También actualizar en nuestra base de datos local
+      // 🎯 PASO 2: Actualizar en PostgreSQL
+      console.log('🗄️ Buscando usuario en PostgreSQL...');
       const user = await userModel.getUserByEmail(email);
-      if (user && user.id) {
-        await userModel.updatePassword(user.id, newPassword);
-      }
       
+      if (user && user.id) {
+        console.log('✅ Usuario encontrado en PostgreSQL, ID:', user.id);
+        console.log('🔄 Actualizando contraseña en PostgreSQL...');
+        const dbUpdated = await userModel.updatePassword(user.id, newPassword);
+        
+        if (dbUpdated) {
+          console.log('✅ Contraseña actualizada en PostgreSQL');
+        } else {
+          console.log('⚠️ No se pudo actualizar contraseña en PostgreSQL');
+        }
+      } else {
+        console.log('⚠️ Usuario no encontrado en PostgreSQL, pero Firebase se actualizó');
+      }
+
+      // 🎯 PASO 3: Resetear intentos de recuperación
+      console.log('🔄 Reseteando intentos de recuperación...');
+      await RecoverySecurityService.resetAfterSuccessfulRecovery(email);
+      console.log('✅ Intentos de recuperación reseteados');
+
       res.json({
         success: true,
-        message: 'Contraseña actualizada correctamente'
+        message: 'Contraseña actualizada correctamente en ambos sistemas'
       });
 
     } catch (firebaseError: any) {
-      console.error('Error de Firebase en resetPassword:', firebaseError);
+      console.error('❌ Error de Firebase en resetPassword:', firebaseError);
       
       if (firebaseError.code === 'auth/user-not-found') {
         return res.status(400).json({
           success: false,
-          message: 'Usuario no encontrado'
+          message: 'Usuario no encontrado en Firebase'
+        });
+      }
+      
+      if (firebaseError.code === 'auth/invalid-email') {
+        return res.status(400).json({
+          success: false,
+          message: 'Email inválido'
         });
       }
       
       return res.status(400).json({
         success: false,
-        message: 'Error al actualizar la contraseña en Firebase'
+        message: 'Error al actualizar la contraseña: ' + firebaseError.message
       });
     }
 
-  } catch (error) {
-    console.error('Error en resetPassword:', error);
+  } catch (error: any) {
+    console.error('❌ Error general en resetPassword:', error);
     res.status(500).json({
       success: false,
-      message: 'Error interno del servidor'
+      message: 'Error interno del servidor: ' + error.message
     });
   }
 };

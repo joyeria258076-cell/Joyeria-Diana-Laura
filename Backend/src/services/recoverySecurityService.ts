@@ -173,29 +173,29 @@ static async checkRecoveryLimits(email: string): Promise<{
   }
 
   /**
- * Resetear intentos después de recuperación exitosa
- */
-static async resetAfterSuccessfulRecovery(email: string): Promise<void> {
-  const client = await this.getClient();
-  
-  try {
-    await client.connect();
+   * Resetear intentos después de recuperación exitosa
+   */
+  static async resetAfterSuccessfulRecovery(email: string): Promise<void> {
+    const client = await this.getClient();
     
-    await client.query(
-      `UPDATE usuarios 
-        SET recovery_attempts = 0, 
-            recovery_blocked_until = NULL,
-            last_recovery_attempt = NULL 
-        WHERE email = $1`,
-      [email]
-    );
-    
-    console.log(`✅ Intentos de recuperación reseteados para: ${email}`);
-  } catch (error) {
-    console.error('Error reseteando intentos después de recuperación exitosa:', error);
-  } finally {
-    await client.end();
+    try {
+      await client.connect();
+      
+      await client.query(
+        `UPDATE usuarios 
+          SET recovery_attempts = 0, 
+              recovery_blocked_until = NULL,
+              last_recovery_attempt = NULL 
+          WHERE email = $1`,
+        [email]
+      );
+      
+      console.log(`✅ Intentos de recuperación reseteados para: ${email}`);
+    } catch (error) {
+      console.error('Error reseteando intentos después de recuperación exitosa:', error);
+    } finally {
+      await client.end();
+    }
   }
-}
 }
 
