@@ -59,35 +59,43 @@ export default function PerfilScreen() {
     setTimeout(() => setMensaje(""), 5000);
   };
 
-  // 🆕 1. CERRAR SESIÓN EN DISPOSITIVO ESPECÍFICO
-  const handleCerrarSesionDispositivo = async (sesionId: number) => {
-    try {
-      console.log("Cerrando sesión en dispositivo:", sesionId);
-      await revokeSession(sesionId);
-      
-      // Actualizar lista local
-      setSesionesActivas(prev => prev.filter(sesion => sesion.id !== sesionId));
-      mostrarMensaje("Sesión cerrada exitosamente", "success");
-    } catch (error: any) {
-      console.error("❌ Error cerrando sesión:", error);
-      mostrarMensaje("Error al cerrar la sesión: " + error.message, "error");
-    }
-  };
+const handleCerrarSesionDispositivo = async (sesionId: number) => {
+  // 🆕 Agregar confirmación
+  if (!window.confirm('¿Estás seguro de que quieres cerrar la sesión en este dispositivo?')) {
+    return;
+  }
+  
+  try {
+    console.log("🔐 Cerrando sesión en dispositivo:", sesionId);
+    await revokeSession(sesionId);
+    
+    // Actualizar lista local
+    setSesionesActivas(prev => prev.filter(sesion => sesion.id !== sesionId));
+    mostrarMensaje("✅ Sesión cerrada exitosamente. El otro dispositivo será desconectado en 15 segundos.", "success");
+  } catch (error: any) {
+    console.error("❌ Error cerrando sesión:", error);
+    mostrarMensaje("Error al cerrar la sesión: " + error.message, "error");
+  }
+};
 
-  // 🆕 2. CERRAR TODAS LAS OTRAS SESIONES (excepto actual)
-  const handleCerrarOtrasSesiones = async () => {
-    try {
-      console.log("Cerrando todas las otras sesiones...");
-      const result = await revokeAllOtherSessions();
-      
-      // Recargar sesiones para mostrar solo la actual
-      await cargarSesionesActivas();
-      mostrarMensaje(`Se cerraron ${result.revokedCount} sesiones en otros dispositivos`, "success");
-    } catch (error: any) {
-      console.error("❌ Error cerrando otras sesiones:", error);
-      mostrarMensaje("Error al cerrar otras sesiones: " + error.message, "error");
-    }
-  };
+// 🆕 REEMPLAZAR handleCerrarOtrasSesiones en PerfilScreen.tsx
+const handleCerrarOtrasSesiones = async () => {
+  if (!window.confirm('¿Estás seguro de que quieres cerrar sesión en todos los otros dispositivos?')) {
+    return;
+  }
+  
+  try {
+    console.log("🔐 Cerrando todas las otras sesiones...");
+    const result = await revokeAllOtherSessions();
+    
+    // Recargar sesiones para mostrar solo la actual
+    await cargarSesionesActivas();
+    mostrarMensaje(`✅ Se cerraron ${result.revokedCount} sesiones. Los dispositivos serán desconectados en 15 segundos.`, "success");
+  } catch (error: any) {
+    console.error("❌ Error cerrando otras sesiones:", error);
+    mostrarMensaje("Error al cerrar otras sesiones: " + error.message, "error");
+  }
+};
 
   // 🆕 3. CERRAR TODAS LAS SESIONES (incluyendo actual)
   const handleCerrarTodasLasSesiones = async () => {

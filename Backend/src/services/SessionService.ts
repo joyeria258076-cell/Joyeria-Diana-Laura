@@ -106,94 +106,133 @@ export class SessionService {
   /**
    * Crear nueva sesión de usuario con fingerprint
    */
-  static async createSession(
-    userId: number,
-    firebaseUid: string,
-    deviceInfo: DeviceInfo,
-    ipAddress: string,
-    userAgent: string
-  ): Promise<{ success: boolean; sessionId?: number; sessionToken?: string; error?: string }> {
-    try {
-      // Validar parámetros requeridos
-      if (!userId || !firebaseUid) {
-        return { 
-          success: false, 
-          error: 'Parámetros requeridos faltantes' 
-        };
-      }
 
-      const sessionToken = this.generateSessionToken();
-      const deviceFingerprint = this.generateDeviceFingerprint(userAgent, ipAddress);
-
-      // Obtener ubicación real (no bloqueante)
-      let location = 'Obteniendo ubicación...';
-      this.getLocationFromIp(ipAddress)
-        .then(realLocation => {
-          if (realLocation !== 'Obteniendo ubicación...') {
-            pool.query(
-              `UPDATE user_sessions SET location = $1 WHERE session_token = $2`,
-              [realLocation, sessionToken]
-            ).catch(updateError => {
-              console.error('❌ Error actualizando ubicación:', updateError);
-            });
-          }
-        })
-        .catch(locationError => {
-          console.error('❌ Error obteniendo ubicación:', locationError);
-        });
-
-      // La sesión expira en 30 días
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 30);
-
-      const result = await pool.query(
-        `INSERT INTO user_sessions 
-         (user_id, session_token, device_fingerprint, firebase_uid, device_name, browser, os, ip_address, user_agent, location, expires_at) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
-         RETURNING id`,
-        [
-          userId,
-          sessionToken,
-          deviceFingerprint,
-          firebaseUid,
-          deviceInfo.deviceName,
-          deviceInfo.browser,
-          deviceInfo.os,
-          ipAddress,
-          userAgent,
-          location,
-          expiresAt
-        ]
-      );
-
-      if (result.rows.length > 0) {
-        console.log(`✅ Sesión creada para usuario ${userId}, fingerprint: ${deviceFingerprint}`);
-        return { 
-          success: true, 
-          sessionId: result.rows[0].id,
-          sessionToken: sessionToken
-        };
-      } else {
-        return { 
-          success: false, 
-          error: 'No se pudo crear la sesión' 
-        };
-      }
-
-    } catch (error: any) {
-      console.error('❌ Error creando sesión:', error);
-      
-      if (error.code === '23505') { // unique_violation
-        console.warn('⚠️ Token duplicado, generando nuevo...');
-        return this.createSession(userId, firebaseUid, deviceInfo, ipAddress, userAgent);
-      }
-      
+static async createSession(
+  userId: number,
+  firebaseUid: string,
+  deviceInfo: DeviceInfo,
+  ipAddress: string,
+  userAgent: string
+): Promise<{ success: boolean; sessionId?: number; sessionToken?: string; error?: string }> {
+  try {
+    if (!userId || !firebaseUid) {
       return { 
         success: false, 
-        error: error.message 
+        error: 'Parámetros requeridos faltantes' 
       };
     }
+
+    const deviceFingerprint = this.generateDeviceFingerprint(userAgent, ipAddress);
+
+    // 🆕 PASO 1: VERIFICAR SI YA EXISTE UNA SESIÓN ACTIVA PARA ESTE DISPOSITIVO
+    console.log(`🔍 Verificando sesión existente para dispositivo: ${deviceFingerprint}`);
+    
+    const existingSession = await pool.query(
+      `SELECT id, session_token, expires_at FROM user_sessions 
+       WHERE user_id = $1 AND device_fingerprint = $2 
+       AND is_revoked = false AND expires_at > NOW()
+       ORDER BY created_at DESC LIMIT 1`,
+      [userId, deviceFingerprint]
+    );
+
+    // 🆕 SI YA EXISTE UNA SESIÓN ACTIVA, REUTILIZARLA (actualizar last_activity)
+    if (existingSession.rows.length > 0) {
+      const existingToken = existingSession.rows[0].session_token;
+      const existingId = existingSession.rows[0].id;
+      
+      console.log(`♻️ REUTILIZANDO sesión existente ID: ${existingId}, Token: ${existingToken.substring(0, 10)}...`);
+      
+      // Actualizar last_activity y expires_at
+      const newExpiresAt = new Date();
+      newExpiresAt.setDate(newExpiresAt.getDate() + 30);
+      
+      await pool.query(
+        `UPDATE user_sessions 
+         SET last_activity = CURRENT_TIMESTAMP, expires_at = $1 
+         WHERE id = $2`,
+        [newExpiresAt, existingId]
+      );
+      
+      return {
+        success: true,
+        sessionId: existingId,
+        sessionToken: existingToken
+      };
+    }
+
+    // 🆕 PASO 2: SI NO EXISTE, CREAR NUEVA SESIÓN
+    console.log(`🆕 Creando nueva sesión para dispositivo: ${deviceFingerprint}`);
+    
+    const sessionToken = this.generateSessionToken();
+
+    // Obtener ubicación (no bloqueante)
+    let location = 'Obteniendo ubicación...';
+    this.getLocationFromIp(ipAddress)
+      .then(realLocation => {
+        if (realLocation !== 'Obteniendo ubicación...') {
+          pool.query(
+            `UPDATE user_sessions SET location = $1 WHERE session_token = $2`,
+            [realLocation, sessionToken]
+          ).catch(updateError => {
+            console.error('❌ Error actualizando ubicación:', updateError);
+          });
+        }
+      })
+      .catch(locationError => {
+        console.error('❌ Error obteniendo ubicación:', locationError);
+      });
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
+    const result = await pool.query(
+      `INSERT INTO user_sessions 
+       (user_id, session_token, device_fingerprint, firebase_uid, device_name, browser, os, ip_address, user_agent, location, expires_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
+       RETURNING id`,
+      [
+        userId,
+        sessionToken,
+        deviceFingerprint,
+        firebaseUid,
+        deviceInfo.deviceName,
+        deviceInfo.browser,
+        deviceInfo.os,
+        ipAddress,
+        userAgent,
+        location,
+        expiresAt
+      ]
+    );
+
+    if (result.rows.length > 0) {
+      console.log(`✅ Nueva sesión creada ID: ${result.rows[0].id}, fingerprint: ${deviceFingerprint}`);
+      return { 
+        success: true, 
+        sessionId: result.rows[0].id,
+        sessionToken: sessionToken
+      };
+    } else {
+      return { 
+        success: false, 
+        error: 'No se pudo crear la sesión' 
+      };
+    }
+
+  } catch (error: any) {
+    console.error('❌ Error creando sesión:', error);
+    
+    if (error.code === '23505') { // unique_violation
+      console.warn('⚠️ Token duplicado, generando nuevo...');
+      return this.createSession(userId, firebaseUid, deviceInfo, ipAddress, userAgent);
+    }
+    
+    return { 
+      success: false, 
+      error: error.message 
+    };
   }
+}
 
   /**
    * Obtener sesión por token
