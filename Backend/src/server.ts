@@ -12,7 +12,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ SOLO UNA CONFIGURACIÓN CORS
+// ✅ CONFIGURACIÓN CORS CORREGIDA (agregado X-Session-Token)
 app.use(cors({
   origin: [
     'https://joyeria-diana-laura.vercel.app',
@@ -21,8 +21,15 @@ app.use(cors({
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization',
+    'X-Session-Token'  // 🆕 AGREGADO PARA REVOCACIÓN DE SESIONES
+  ]
 }));
+
+// 🆕 AGREGAR HANDLER EXPLÍCITO PARA PREFLIGHT (IMPORTANTE PARA CORS)
+app.options('*', cors());
 
 // ✅ SOLO UN express.json()
 app.use(express.json());
@@ -54,6 +61,7 @@ app.listen(PORT, async () => {
   console.log(`   👥 Users: http://localhost:${PORT}/api/users`);
   console.log(`   ❤️  Health: http://localhost:${PORT}/api/health`);
   console.log(`   🗄️  DB Test: http://localhost:${PORT}/api/db-test`);
+  console.log(`🔐 CORS Headers permitidos: Content-Type, Authorization, X-Session-Token`); // 🆕 LOG
   
   // 🎯 CONEXIÓN Y LIMPIEZA INICIAL
   try {
@@ -61,7 +69,6 @@ app.listen(PORT, async () => {
     if (dbOk) {
       console.log('✅ Base de datos conectada correctamente');
       
-      // 🎯 AQUÍ VA LA LÍNEA QUE MENCIONASTE - después de testConnection()
       // Limpiar bloqueos expirados al iniciar
       await LoginSecurityService.cleanupExpiredLocks();
       
