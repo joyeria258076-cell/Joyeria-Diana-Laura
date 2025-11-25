@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
 import "../styles/MFASetupScreen.css";
+const { user} = useAuth();
+
 
 interface MFASetupData {
   secret: string;
@@ -92,14 +94,17 @@ export default function MFASetupScreen() {
     }
   };
 
-  const handleCancel = () => {
+    const handleCancel = () => {
     navigate('/perfil');
   };
 
-  const handleComplete = () => {
-    navigate('/perfil');
-  };
-
+const handleComplete = () => {
+  // 🆕 FORZAR ACTUALIZACIÓN DEL ESTADO
+  if (window.location.reload) {
+    window.location.reload(); // ✅ Fuerza recarga del estado
+  }
+  navigate('/perfil');
+};
   // Render por pasos
   const renderStep = () => {
     switch (step) {

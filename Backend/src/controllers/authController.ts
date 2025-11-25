@@ -1138,37 +1138,54 @@ export const logout = async (req: any, res: Response) => {
   }
 };
 
-// 🆕 NUEVO ENDPOINT: Completar login después de MFA
+// 🆕 ENDPOINT PERMANENTE: Completar login después de MFA
 export const completeLoginAfterMFA = async (req: Request, res: Response) => {
+  const clientIp = getClientIp(req);
+  const userAgent = getUserAgent(req);
+  
   try {
     const { userId, email } = req.body;
 
-    console.log(`🔐 Completando login post-MFA para usuario: ${userId}`);
+    if (!userId || !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'UserId y email son requeridos'
+      });
+    }
 
-    // Verificar que el usuario existe y tiene MFA activado
-    const userResult = await pool.query(
+    console.log(`🔐 Completando login post-MFA para usuario: ${userId}, email: ${email}`);
+
+    // 1. Verificar que el usuario existe y tiene MFA activado
+    const userCheck = await pool.query(
       'SELECT id, email FROM usuarios WHERE id = $1 AND mfa_enabled = true',
       [userId]
     );
 
-    if (userResult.rows.length === 0) {
+    if (userCheck.rows.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'Usuario no encontrado o MFA no activado'
       });
     }
 
-    const user = userResult.rows[0];
+    const user = userCheck.rows[0];
     
-    // Obtener usuario de Firebase
-    const userRecord = await admin.auth().getUserByEmail(user.email);
-    
-    // Obtener información del dispositivo desde la request
-    const clientIp = getClientIp(req);
-    const userAgent = getUserAgent(req);
+    // 2. Obtener usuario de Firebase
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUserByEmail(user.email);
+    } catch (firebaseError: any) {
+      console.error('❌ Error obteniendo usuario de Firebase:', firebaseError);
+      return res.status(400).json({
+        success: false,
+        message: 'Usuario no encontrado en Firebase'
+      });
+    }
+
+    // 3. Parsear información del dispositivo
     const deviceInfo = SessionService.parseUserAgent(userAgent);
 
-    // 🎯 CREAR SESIÓN después de MFA verificado
+    // 4. 🎯 CREAR SESIÓN después de MFA verificado
     const sessionResult = await SessionService.createSession(
       userId,
       userRecord.uid,
@@ -1178,7 +1195,7 @@ export const completeLoginAfterMFA = async (req: Request, res: Response) => {
     );
 
     if (sessionResult.success && sessionResult.sessionToken) {
-      // Generar JWT
+      // 5. Generar JWT
       const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_2024_joyeria_diana_laura';
       const token = jwt.sign(
         { 
@@ -1193,6 +1210,19 @@ export const completeLoginAfterMFA = async (req: Request, res: Response) => {
       );
 
       console.log(`✅ Login post-MFA exitoso para: ${user.email}`);
+      console.log(`🔐 Sesión creada: ${sessionResult.sessionToken.substring(0, 10)}...`);
+
+      // 6. Registrar intento de login exitoso
+      await LoginSecurityService.recordLoginAttempt({
+        email: user.email,
+        ip_address: clientIp,
+        user_agent: userAgent,
+        success: true,
+        failure_reason: 'mfa_verified'
+      });
+
+      // 7. Limpiar intentos fallidos
+      await LoginSecurityService.clearFailedAttempts(user.email);
 
       res.json({
         success: true,
@@ -1209,7 +1239,7 @@ export const completeLoginAfterMFA = async (req: Request, res: Response) => {
         }
       });
     } else {
-      throw new Error('Error creando sesión post-MFA');
+      throw new Error('Error creando sesión post-MFA: ' + (sessionResult.error || 'Unknown error'));
     }
 
   } catch (error: any) {
