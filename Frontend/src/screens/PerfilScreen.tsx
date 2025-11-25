@@ -214,6 +214,48 @@ const handleCerrarOtrasSesiones = async () => {
             </div>
           )}
 
+          {/* 🆕 SECCIÓN MFA - AGREGADA CORRECTAMENTE */}
+          <section className="sesiones-section">
+            <div className="section-header">
+              <h2 className="section-title">🔒 Autenticación en Dos Pasos (MFA)</h2>
+              <p className="section-subtitle">
+                Protege tu cuenta con una capa adicional de seguridad
+              </p>
+            </div>
+
+            <div className="mfa-status-card">
+              <div className="mfa-status-content">
+                <div className="mfa-status-info">
+                  <h3>Estado actual: <span className="mfa-badge mfa-disabled">No activada</span></h3>
+                  <p>
+                    La autenticación en dos pasos añade una capa extra de seguridad a tu cuenta. 
+                    Además de tu contraseña, necesitarás un código de verificación de tu aplicación móvil.
+                  </p>
+                  
+                  <div className="mfa-benefits">
+                    <h4>Beneficios:</h4>
+                    <ul>
+                      <li>✅ Protección contra accesos no autorizados</li>
+                      <li>✅ Seguridad incluso si tu contraseña es comprometida</li>
+                      <li>✅ Códigos que cambian cada 30 segundos</li>
+                      <li>✅ Compatible con Google Authenticator, Authy, etc.</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="mfa-action">
+                  <button 
+                    className="btn-activar-mfa"
+                    onClick={() => navigate('/mfa-setup')}
+                  >
+                    🔐 Activar Autenticación en Dos Pasos
+                  </button>
+                  <small>Puedes desactivarla en cualquier momento</small>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Gestión de sesiones activas */}
           <section className="sesiones-section">
             <div className="section-header">
