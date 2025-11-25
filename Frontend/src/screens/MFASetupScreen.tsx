@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
-import './MFASetupScreen.css';
+import "../styles/MFASetupScreen.css";
 
 interface MFASetupData {
   secret: string;

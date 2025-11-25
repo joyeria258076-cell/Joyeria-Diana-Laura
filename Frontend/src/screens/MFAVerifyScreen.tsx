@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
-import './MFAVerifyScreen.css';
+import "../styles/MFAVerifyScreen.css";
 
 export default function MFAVerifyScreen() {
   const navigate = useNavigate();
