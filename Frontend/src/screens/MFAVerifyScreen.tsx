@@ -1,14 +1,12 @@
-// En Joyeria-Diana-Laura/Frontend/src/screens/MFAVerifyScreen.tsx - COMPLETO
+// En Joyeria-Diana-Laura/Frontend/src/screens/MFAVerifyScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
 import "../styles/MFAVerifyScreen.css";
 
 export default function MFAVerifyScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, login } = useAuth(); // 🆕 AGREGAR login del contexto
   
   const [mfaCode, setMfaCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,8 +19,9 @@ export default function MFAVerifyScreen() {
     if (location.state) {
       setUserId(location.state.userId);
       setEmail(location.state.email);
+      console.log('📧 Datos MFA recibidos:', { userId: location.state.userId, email: location.state.email });
     } else {
-      // Si no hay datos, redirigir al login
+      console.log('❌ No hay datos de navegación, redirigiendo al login');
       navigate('/login');
     }
   }, [location, navigate]);
@@ -51,40 +50,37 @@ export default function MFAVerifyScreen() {
       if (response.success && response.verified) {
         console.log('✅ MFA verificado correctamente');
         
-        // 🆕 CORRECCIÓN: MANEJAR LA RESPUESTA COMPLETA DEL BACKEND
+        // 🆕 CORRECCIÓN: MANEJAR LA RESPUESTA COMPLETA
         if (response.data) {
-          console.log('✅ Datos de sesión recibidos después de MFA');
+          console.log('✅ Datos de sesión recibidos:', response.data);
           
-          // 🆕 ACTUALIZAR EL CONTEXTO DE AUTENTICACIÓN
           const userData = response.data.user;
           const token = response.data.token;
           const sessionToken = response.data.sessionToken;
           
+          // 🆕 GUARDAR DIRECTAMENTE EN LOCALSTORAGE
           const userWithToken = {
             ...userData,
             token: token
           };
           
-          // 🆕 GUARDAR EN LOCALSTORAGE
           localStorage.setItem('diana_laura_user', JSON.stringify(userWithToken));
           localStorage.setItem('diana_laura_session_token', sessionToken);
           
-          console.log('✅ Login completado después de MFA - redirigiendo a inicio');
-          navigate('/inicio');
+          console.log('✅ Usuario guardado en localStorage:', userData.email);
+          
+          // 🆕 FORZAR REDIRECCIÓN CON TIMEOUT
+          setTimeout(() => {
+            console.log('🔄 Redirigiendo a /inicio...');
+            window.location.href = '/inicio'; // 🆕 USAR window.location PARA FORZAR
+          }, 100);
           
         } else {
-          // 🆕 FALLBACK: Si no vienen datos de sesión, intentar login normal
-          console.log('⚠️ No hay datos de sesión, intentando login normal...');
-          try {
-            await login(email, 'dummy_password'); // 🆕 Usar la función login del contexto
-            navigate('/inicio');
-          } catch (loginError: any) {
-            console.error('❌ Error en login después de MFA:', loginError);
-            setError('Error completando el login. Por favor, intenta iniciar sesión nuevamente.');
-          }
+          console.error('❌ No hay datos de sesión en la respuesta');
+          setError('Error: No se recibieron datos de sesión. Intenta nuevamente.');
         }
       } else {
-        setError('Código MFA inválido');
+        setError(response.message || 'Código MFA inválido');
       }
     } catch (error: any) {
       console.error('❌ Error verificando MFA:', error);
@@ -96,11 +92,6 @@ export default function MFAVerifyScreen() {
 
   const handleBackToLogin = () => {
     navigate('/login');
-  };
-
-  // 🆕 FUNCIÓN: Usar código de respaldo
-  const handleUseBackupCode = () => {
-    setError('Función de códigos de respaldo no implementada aún');
   };
 
   if (!userId) {
@@ -136,7 +127,6 @@ export default function MFAVerifyScreen() {
               id="mfaCode"
               value={mfaCode}
               onChange={(e) => {
-                // Permitir solo números y máximo 6 dígitos
                 const value = e.target.value.replace(/\D/g, '').slice(0, 6);
                 setMfaCode(value);
                 setError('');
@@ -146,11 +136,8 @@ export default function MFAVerifyScreen() {
               disabled={loading}
               autoComplete="one-time-code"
               autoFocus
+              className="mfa-code-input"
             />
-            <small>
-              Abre tu aplicación authenticator (Google Authenticator, Authy, etc.) 
-              y ingresa el código de 6 dígitos
-            </small>
           </div>
 
           <button 
@@ -163,19 +150,11 @@ export default function MFAVerifyScreen() {
         </form>
 
         <div className="mfa-help">
-          <h3>¿Problemas con tu código?</h3>
+          <p><strong>¿Problemas?</strong></p>
           <ul>
             <li>Asegúrate de que la hora de tu dispositivo sea correcta</li>
             <li>El código cambia cada 30 segundos</li>
-            <li>Usa códigos de respaldo si los configuraste</li>
           </ul>
-          
-          <button 
-            onClick={handleUseBackupCode}
-            className="backup-code-button"
-          >
-            🔑 Usar código de respaldo
-          </button>
         </div>
 
         <button 

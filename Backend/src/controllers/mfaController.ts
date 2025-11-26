@@ -1,62 +1,63 @@
+// En Joyeria-Diana-Laura/Backend/src/controllers/mfaController.ts
 import { Request, Response } from 'express';
 import { MFAService } from '../services/MFAService';
 import { pool } from '../config/database';
-import { SessionService } from '../services/SessionService'; 
+import { SessionService } from '../services/SessionService';
 import jwt from 'jsonwebtoken';
 
 export const mfaController = {
   /**
    * Iniciar configuración de MFA para un usuario
    */
-setupMFA: async (req: Request, res: Response) => {
-  try {
-    const { userId, email } = req.body;
-    
-    if (!userId || !email) {
-      return res.status(400).json({ 
+  setupMFA: async (req: Request, res: Response) => {
+    try {
+      const { userId, email } = req.body;
+      
+      if (!userId || !email) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'UserId y email son requeridos' 
+        });
+      }
+
+      console.log(`🔐 Iniciando configuración MFA para usuario: ${userId}, email: ${email}`);
+      
+      // Generar secreto y códigos de respaldo
+      const secret = MFAService.generateSecret(email);
+      const backupCodes = MFAService.generateBackupCodes();
+      const qrCodeUrl = await MFAService.generateQRCode(secret.otpauth_url!);
+
+      // 🆕 FORMATO CORRECTO para PostgreSQL arrays
+      const backupCodesFormatted = `{${backupCodes.map(code => `"${code}"`).join(',')}}`;
+      
+      console.log(`📦 Backup codes formateados: ${backupCodesFormatted}`);
+
+      // Guardar en BD (sin activar MFA aún)
+      await pool.query(
+        `UPDATE usuarios SET mfa_secret = $1, mfa_backup_codes = $2 WHERE id = $3`,
+        [secret.base32, backupCodesFormatted, userId]
+      );
+
+      console.log(`✅ MFA configurado para usuario ${userId}`);
+
+      res.json({
+        success: true,
+        data: {
+          secret: secret.base32,
+          qrCodeUrl: qrCodeUrl,
+          backupCodes,
+          otpauthUrl: secret.otpauth_url
+        },
+        message: 'MFA configurado correctamente. Escanea el QR code con tu app authenticator.'
+      });
+    } catch (error: any) {
+      console.error('❌ Error configurando MFA:', error);
+      res.status(500).json({ 
         success: false, 
-        message: 'UserId y email son requeridos' 
+        message: 'Error configurando MFA: ' + error.message 
       });
     }
-
-    console.log(`🔐 Iniciando configuración MFA para usuario: ${userId}, email: ${email}`);
-    
-    // Generar secreto y códigos de respaldo
-    const secret = MFAService.generateSecret(email);
-    const backupCodes = MFAService.generateBackupCodes();
-    const qrCodeUrl = await MFAService.generateQRCode(secret.otpauth_url!);
-
-    // 🆕 FORMATO CORRECTO para PostgreSQL arrays
-    const backupCodesFormatted = `{${backupCodes.map(code => `"${code}"`).join(',')}}`;
-    
-    console.log(`📦 Backup codes formateados: ${backupCodesFormatted}`);
-
-    // Guardar en BD (sin activar MFA aún)
-    await pool.query(
-      `UPDATE usuarios SET mfa_secret = $1, mfa_backup_codes = $2 WHERE id = $3`,
-      [secret.base32, backupCodesFormatted, userId]
-    );
-
-    console.log(`✅ MFA configurado para usuario ${userId}`);
-
-    res.json({
-      success: true,
-      data: {
-        secret: secret.base32,
-        qrCodeUrl: qrCodeUrl,
-        backupCodes,
-        otpauthUrl: secret.otpauth_url
-      },
-      message: 'MFA configurado correctamente. Escanea el QR code con tu app authenticator.'
-    });
-  } catch (error: any) {
-    console.error('❌ Error configurando MFA:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error configurando MFA: ' + error.message 
-    });
-  }
-},
+  },
 
   /**
    * Verificar código MFA y activar la protección
@@ -127,7 +128,7 @@ setupMFA: async (req: Request, res: Response) => {
   },
 
   /**
-   * Verificar código MFA durante el login
+   * Verificar código MFA durante el login - CORREGIDA COMPLETAMENTE
    */
   verifyLoginMFA: async (req: Request, res: Response) => {
     try {
@@ -150,7 +151,9 @@ setupMFA: async (req: Request, res: Response) => {
       console.log(`🔐 Verificando MFA para login usuario: ${userId}`);
 
       const userResult = await pool.query(
-        'SELECT mfa_secret, mfa_enabled, email, firebase_uid FROM usuarios WHERE id = $1',
+        `SELECT u.id, u.email, u.nombre, u.mfa_secret, u.mfa_enabled, u.firebase_uid 
+         FROM usuarios u 
+         WHERE u.id = $1`,
         [userId]
       );
 
@@ -165,6 +168,7 @@ setupMFA: async (req: Request, res: Response) => {
       
       // Si el usuario no tiene MFA activado, permitir acceso
       if (!user.mfa_enabled) {
+        console.log(`⚠️ MFA no activado para usuario: ${userId}`);
         return res.json({ 
           success: true, 
           mfaRequired: false,
@@ -184,64 +188,68 @@ setupMFA: async (req: Request, res: Response) => {
 
       console.log(`✅ MFA verificado para login usuario: ${userId}`);
 
-      // 🆕 CORRECCIÓN: CREAR SESIÓN Y TOKEN DESPUÉS DE MFA EXITOSO
+      // 🆕 CORRECCIÓN COMPLETA: CREAR SESIÓN DESPUÉS DE MFA
       try {
-        const deviceInfo = SessionService.parseUserAgent(req.get('User-Agent') || 'unknown');
-        const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+        const clientIp = req.headers['x-forwarded-for'] || 
+                        req.connection.remoteAddress || 
+                        req.socket.remoteAddress ||
+                        'unknown';
+        
+        const userAgent = req.get('User-Agent') || 'unknown';
+        const deviceInfo = SessionService.parseUserAgent(userAgent);
+        
+        console.log(`🔄 Creando sesión para usuario después de MFA: ${userId}`);
         
         const sessionResult = await SessionService.createSession(
           userId,
           user.firebase_uid,
           deviceInfo,
           clientIp as string,
-          req.get('User-Agent') || 'unknown'
+          userAgent
         );
 
         if (sessionResult.success && sessionResult.sessionToken) {
-          // 🆕 GENERAR JWT
+          // 🆕 GENERAR JWT COMPLETO
           const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_2024_joyeria_diana_laura';
-          const token = jwt.sign(
+          const jwtToken = jwt.sign(
             { 
               userId: userId,
               firebaseUid: user.firebase_uid,
               email: user.email,
+              nombre: user.nombre,
               sessionId: sessionResult.sessionToken
             },
             JWT_SECRET,
             { expiresIn: '30d' }
           );
 
-          console.log(`✅ Sesión creada después de MFA para usuario: ${userId}`);
+          console.log(`✅ Sesión y JWT creados después de MFA para: ${user.email}`);
 
           return res.json({ 
             success: true, 
             mfaRequired: true, 
             verified: true,
             message: 'MFA verificado correctamente',
-            // 🆕 DATOS PARA COMPLETAR EL LOGIN
+            // 🆕 DATOS COMPLETOS PARA EL FRONTEND
             data: {
               user: {
                 id: user.firebase_uid,
                 email: user.email,
+                nombre: user.nombre,
                 dbId: userId
               },
-              token: token,
+              token: jwtToken,
               sessionToken: sessionResult.sessionToken
             }
           });
+        } else {
+          console.error('❌ Error creando sesión después de MFA:', sessionResult.error);
+          throw new Error('No se pudo crear la sesión');
         }
       } catch (sessionError: any) {
-        console.error('❌ Error creando sesión después de MFA:', sessionError);
-        // Continuar sin sesión como fallback
+        console.error('❌ Error en proceso de sesión después de MFA:', sessionError);
+        throw new Error('Error completando el login después de MFA');
       }
-
-      // 🆕 FALLBACK: Retornar éxito sin datos de sesión
-      return res.json({ 
-        success: true, 
-        mfaRequired: true, 
-        verified: true,
-        message: 'MFA verificado correctamente'
-      });
 
     } catch (error: any) {
       console.error('❌ Error verificando MFA en login:', error);

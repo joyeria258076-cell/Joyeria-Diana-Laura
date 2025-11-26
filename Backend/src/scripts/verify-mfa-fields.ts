@@ -121,7 +121,7 @@ async function fixMFAFields() {
   }
 }
 
-fixMFAFields();*/
+fixMFAFields();
 
 // Backend/src/scripts/check-mfa-status.ts
 import { pool } from '../config/database';
@@ -151,6 +151,54 @@ async function checkMFAStatus() {
       console.log(`   - Tiene secreto: ${user.has_secret ? '✅ SI' : '❌ NO'}`);
       console.log(`   - Tiene códigos: ${user.has_backup_codes ? '✅ SI' : '❌ NO'}`);
       console.log(`   - Creado: ${user.created_at}`);
+      console.log('--------------------------------');
+    });
+    
+    const total = result.rows.length;
+    const withMFA = result.rows.filter((u: any) => u.mfa_enabled).length;
+    
+    console.log(`📈 Resumen:`);
+    console.log(`   - Total usuarios: ${total}`);
+    console.log(`   - Con MFA activado: ${withMFA}`);
+    console.log(`   - Sin MFA: ${total - withMFA}`);
+    
+  } catch (error) {
+    console.error('❌ Error verificando estado MFA:', error);
+  } finally {
+    await pool.end();
+  }
+}
+
+checkMFAStatus();*/
+
+// Backend/src/scripts/check-mfa-status.ts
+import { pool } from '../config/database';
+
+async function checkMFAStatus() {
+  try {
+    console.log('🔍 Verificando estado MFA de todos los usuarios...');
+    
+    const result = await pool.query(`
+      SELECT 
+        id,
+        email,
+        mfa_enabled,
+        mfa_secret IS NOT NULL as has_secret,
+        mfa_backup_codes IS NOT NULL as has_backup_codes,
+        fecha_creacion
+      FROM usuarios 
+      ORDER BY id
+    `);
+    
+    console.log('📊 Estado MFA de usuarios:');
+    console.log('================================');
+    
+    result.rows.forEach((user: any) => {
+      console.log(`👤 Usuario: ${user.email} (ID: ${user.id})`);
+      console.log(`   - MFA Activado: ${user.mfa_enabled ? '✅ SI' : '❌ NO'}`);
+      console.log(`   - Tiene secreto: ${user.has_secret ? '✅ SI' : '❌ NO'}`);
+      console.log(`   - Tiene códigos: ${user.has_backup_codes ? '✅ SI' : '❌ NO'}`);
+      console.log(`   - Creado: ${user.fecha_creacion}`);
       console.log('--------------------------------');
     });
     
