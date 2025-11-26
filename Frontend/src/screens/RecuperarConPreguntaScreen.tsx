@@ -48,18 +48,22 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     const { 
         register, 
         handleSubmit, 
-        formState: { errors },
+        formState: { errors, isValid },
         watch,
-        setError,
-        reset
+        trigger
     } = useForm<FormData>({ 
-        resolver: zodResolver(schema) 
+        resolver: zodResolver(schema),
+        mode: 'onChange' // 🆕 Para validar en tiempo real
     });
+
+    const securityAnswerValue = watch('securityAnswer');
 
     // Obtener email de los parámetros de la URL
     useEffect(() => {
         const searchParams = new URLSearchParams(location.search);
         const emailParam = searchParams.get('email');
+        
+        console.log('📧 Email de parámetros:', emailParam);
         
         if (emailParam) {
             setEmail(emailParam);
@@ -73,17 +77,22 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     const loadSecurityQuestion = async (userEmail: string) => {
         try {
             setLoading(true);
+            console.log('🔍 Cargando pregunta secreta para:', userEmail);
             const response = await securityQuestionAPI.getSecurityQuestion(userEmail);
+            console.log('📊 Respuesta de pregunta secreta:', response);
             
             if (response.success && response.data.question) {
                 setSecurityQuestion(response.data.question);
                 setUserId(response.data.userId);
                 setMessage('');
+                console.log('✅ Pregunta cargada:', response.data.question);
             } else {
                 setMessage('❌ No se encontró pregunta secreta para este usuario');
                 setMessageType('error');
+                console.log('❌ No se encontró pregunta secreta');
             }
         } catch (error: any) {
+            console.error('❌ Error cargando pregunta secreta:', error);
             setMessage(`❌ Error cargando pregunta secreta: ${error.message}`);
             setMessageType('error');
         } finally {
@@ -92,10 +101,13 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     };
 
     const verifyAnswer = async (answer: string) => {
-        if (!userId) return false;
+        if (!userId) {
+            console.log('❌ No hay userId para verificar');
+            return false;
+        }
 
         try {
-            console.log('🔍 Verificando respuesta para usuario:', userId);
+            console.log('🔍 Verificando respuesta para usuario:', userId, 'Respuesta:', answer);
             const response = await securityQuestionAPI.verifySecurityAnswer(userId, answer);
             console.log('📊 Respuesta de verificación:', response);
             return response.success;
@@ -106,6 +118,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     };
 
     const onSubmit = async (data: FormData) => {
+        console.log('🎯 onSubmit ejecutado con datos:', data);
         setLoading(true);
         setMessage('');
 
@@ -137,6 +150,8 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                 data.newPassword
             );
             
+            console.log('📊 Respuesta de cambio de contraseña:', resetResponse);
+            
             if (resetResponse.success) {
                 setMessage('✅ Contraseña actualizada correctamente. Redirigiendo al login...');
                 setMessageType('success');
@@ -150,7 +165,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
             }
 
         } catch (error: any) {
-            console.error('❌ Error:', error);
+            console.error('❌ Error en onSubmit:', error);
             setMessage(`❌ Error: ${error.message}`);
             setMessageType('error');
         } finally {
@@ -169,7 +184,29 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     const handleTryAgain = () => {
         setAnswerVerified(false);
         setMessage('');
-        reset();
+    };
+
+    const handleVerifyClick = async () => {
+        console.log('🖱️ Botón verificar clickeado');
+        
+        // Validar el campo de respuesta primero
+        const isAnswerValid = await trigger('securityAnswer');
+        console.log('✅ Validación de respuesta:', isAnswerValid);
+        
+        if (!isAnswerValid) {
+            setMessage('❌ Por favor, ingresa una respuesta válida');
+            setMessageType('error');
+            return;
+        }
+
+        // Si la validación pasa, ejecutar el onSubmit
+        const formData = {
+            securityAnswer: securityAnswerValue,
+            newPassword: '', // Valores vacíos para la primera fase
+            confirmPassword: ''
+        };
+        
+        await onSubmit(formData as FormData);
     };
 
     if (loading && !securityQuestion) {
@@ -215,122 +252,125 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit(onSubmit)} className="recuperar-pregunta-form">
-                    {!answerVerified ? (
-                        <>
-                            <div className="security-question-display">
-                                <h3>🔒 Tu Pregunta Secreta:</h3>
-                                <div className="question-text">
-                                    {securityQuestion}
-                                </div>
+                {!answerVerified ? (
+                    <div className="recuperar-pregunta-form">
+                        <div className="security-question-display">
+                            <h3>🔒 Tu Pregunta Secreta:</h3>
+                            <div className="question-text">
+                                {securityQuestion}
                             </div>
+                        </div>
 
-                            <div className="form-group">
-                                <label htmlFor="securityAnswer">Tu respuesta:</label>
+                        <div className="form-group">
+                            <label htmlFor="securityAnswer">Tu respuesta:</label>
+                            <input
+                                id="securityAnswer"
+                                type="text"
+                                placeholder="Escribe tu respuesta secreta"
+                                className={`pregunta-input ${errors.securityAnswer ? 'error' : ''}`}
+                                {...register("securityAnswer")}
+                                maxLength={100}
+                                disabled={loading}
+                            />
+                            {errors.securityAnswer && (
+                                <span className="field-error">{errors.securityAnswer.message}</span>
+                            )}
+                        </div>
+
+                        <button 
+                            type="button" // 🆕 Cambiado a type="button"
+                            onClick={handleVerifyClick} // 🆕 Usar función separada
+                            disabled={loading || !securityAnswerValue}
+                            className="verify-button"
+                        >
+                            {loading ? 'Verificando...' : '✅ Verificar Respuesta'}
+                        </button>
+                    </div>
+                ) : (
+                    <form onSubmit={handleSubmit(onSubmit)} className="recuperar-pregunta-form">
+                        <div className="success-verification">
+                            <div className="success-icon">✅</div>
+                            <h3>Respuesta Verificada Correctamente</h3>
+                            <p>Ahora establece tu nueva contraseña</p>
+                            
+                            <button 
+                                type="button" 
+                                onClick={handleTryAgain}
+                                className="try-again-button"
+                            >
+                                🔄 Usar otra respuesta
+                            </button>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="newPassword">Nueva Contraseña:</label>
+                            <div className="password-input-container">
                                 <input
-                                    id="securityAnswer"
-                                    type="text"
-                                    placeholder="Escribe tu respuesta secreta"
-                                    className={`pregunta-input ${errors.securityAnswer ? 'error' : ''}`}
-                                    {...register("securityAnswer")}
-                                    maxLength={100}
+                                    id="newPassword"
+                                    type={showNewPassword ? "text" : "password"}
+                                    placeholder="Nueva contraseña (8-16 caracteres)"
+                                    className={`pregunta-input password-input ${errors.newPassword ? 'error' : ''}`}
+                                    {...register("newPassword")}
+                                    maxLength={16}
+                                    onChange={handlePasswordChange}
                                     disabled={loading}
                                 />
-                                {errors.securityAnswer && (
-                                    <span className="field-error">{errors.securityAnswer.message}</span>
-                                )}
-                            </div>
-
-                            <button type="submit" disabled={loading} className="verify-button">
-                                {loading ? 'Verificando...' : '✅ Verificar Respuesta'}
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <div className="success-verification">
-                                <div className="success-icon">✅</div>
-                                <h3>Respuesta Verificada Correctamente</h3>
-                                <p>Ahora establece tu nueva contraseña</p>
-                                
-                                <button 
-                                    type="button" 
-                                    onClick={handleTryAgain}
-                                    className="try-again-button"
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
                                 >
-                                    🔄 Usar otra respuesta
+                                    {showNewPassword ? "🙈" : "👁️"}
                                 </button>
                             </div>
+                            {errors.newPassword && (
+                                <span className="field-error">{errors.newPassword.message}</span>
+                            )}
+                        </div>
 
-                            <div className="form-group">
-                                <label htmlFor="newPassword">Nueva Contraseña:</label>
-                                <div className="password-input-container">
-                                    <input
-                                        id="newPassword"
-                                        type={showNewPassword ? "text" : "password"}
-                                        placeholder="Nueva contraseña (8-16 caracteres)"
-                                        className={`pregunta-input password-input ${errors.newPassword ? 'error' : ''}`}
-                                        {...register("newPassword")}
-                                        maxLength={16}
-                                        onChange={handlePasswordChange}
-                                        disabled={loading}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="password-toggle"
-                                        onClick={() => setShowNewPassword(!showNewPassword)}
-                                    >
-                                        {showNewPassword ? "🙈" : "👁️"}
-                                    </button>
-                                </div>
-                                {errors.newPassword && (
-                                    <span className="field-error">{errors.newPassword.message}</span>
-                                )}
+                        <div className="form-group">
+                            <label htmlFor="confirmPassword">Confirmar Contraseña:</label>
+                            <div className="password-input-container">
+                                <input
+                                    id="confirmPassword"
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    placeholder="Repite tu nueva contraseña"
+                                    className={`pregunta-input password-input ${errors.confirmPassword ? 'error' : ''}`}
+                                    {...register("confirmPassword")}
+                                    maxLength={16}
+                                    onChange={handlePasswordChange}
+                                    disabled={loading}
+                                />
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                >
+                                    {showConfirmPassword ? "🙈" : "👁️"}
+                                </button>
                             </div>
+                            {errors.confirmPassword && (
+                                <span className="field-error">{errors.confirmPassword.message}</span>
+                            )}
+                        </div>
 
-                            <div className="form-group">
-                                <label htmlFor="confirmPassword">Confirmar Contraseña:</label>
-                                <div className="password-input-container">
-                                    <input
-                                        id="confirmPassword"
-                                        type={showConfirmPassword ? "text" : "password"}
-                                        placeholder="Repite tu nueva contraseña"
-                                        className={`pregunta-input password-input ${errors.confirmPassword ? 'error' : ''}`}
-                                        {...register("confirmPassword")}
-                                        maxLength={16}
-                                        onChange={handlePasswordChange}
-                                        disabled={loading}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="password-toggle"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    >
-                                        {showConfirmPassword ? "🙈" : "👁️"}
-                                    </button>
-                                </div>
-                                {errors.confirmPassword && (
-                                    <span className="field-error">{errors.confirmPassword.message}</span>
-                                )}
-                            </div>
+                        <div className="password-requirements">
+                            <strong>Requisitos de la contraseña:</strong>
+                            <ul>
+                                <li>8-16 caracteres</li>
+                                <li>Al menos 1 letra MAYÚSCULA (A-Z)</li>
+                                <li>Al menos 1 letra minúscula (a-z)</li>
+                                <li>Al menos 1 número (0-9)</li>
+                                <li>SIN espacios en blanco</li>
+                                <li>SIN símbolos especiales (#, @, $, %, etc.)</li>
+                            </ul>
+                        </div>
 
-                            <div className="password-requirements">
-                                <strong>Requisitos de la contraseña:</strong>
-                                <ul>
-                                    <li>8-16 caracteres</li>
-                                    <li>Al menos 1 letra MAYÚSCULA (A-Z)</li>
-                                    <li>Al menos 1 letra minúscula (a-z)</li>
-                                    <li>Al menos 1 número (0-9)</li>
-                                    <li>SIN espacios en blanco</li>
-                                    <li>SIN símbolos especiales (#, @, $, %, etc.)</li>
-                                </ul>
-                            </div>
-
-                            <button type="submit" disabled={loading} className="submit-button">
-                                {loading ? 'Actualizando...' : '🔄 Actualizar Contraseña'}
-                            </button>
-                        </>
-                    )}
-                </form>
+                        <button type="submit" disabled={loading} className="submit-button">
+                            {loading ? 'Actualizando...' : '🔄 Actualizar Contraseña'}
+                        </button>
+                    </form>
+                )}
 
                 <div className="action-buttons">
                     <button onClick={() => navigate('/olvide')} className="back-button">
