@@ -264,7 +264,7 @@ export const login = async (req: Request, res: Response) => {
         });
       }
 
-      // 🆕 🎯 VERIFICAR MFA ANTES DE PERMITIR ACCESO (AGREGAR ESTO)
+      // 🆕 🎯 VERIFICAR MFA ANTES DE PERMITIR ACCESO - CORREGIDO
       console.log('🔐 Verificando estado MFA para:', email);
       
       const userCheck = await pool.query(
@@ -272,27 +272,34 @@ export const login = async (req: Request, res: Response) => {
         [email]
       );
       
+      let mfaRequired = false;
+      let userIdForMFA = null;
+      
       if (userCheck.rows.length > 0) {
         const user = userCheck.rows[0];
         
         if (user.mfa_enabled) {
           console.log('🚫 Usuario tiene MFA activado - requerir código');
+          mfaRequired = true;
+          userIdForMFA = user.id;
           
-          // 🎯 LOGIN EXITOSO PERO CON MFA REQUERIDO
+          // 🆕 CORRECCIÓN: Registrar intento exitoso pero con MFA requerido
           await LoginSecurityService.recordLoginAttempt({
             email,
             ip_address: clientIp,
             user_agent: userAgent,
-            success: true, // ✅ Login exitoso, pero requiere MFA
+            success: true,
             failure_reason: 'mfa_required'
           });
 
+          // 🆕 CORRECCIÓN: Retornar respuesta específica para MFA
           return res.status(200).json({
             success: false, // 🚫 Cambiar a false para indicar login incompleto
             message: 'Se requiere código MFA',
             mfaRequired: true,
-            userId: user.id,
-            email: email
+            userId: userIdForMFA,
+            email: email,
+            requiresMFA: true // 🆕 Campo adicional para claridad
           });
         }
       }
@@ -348,7 +355,7 @@ export const login = async (req: Request, res: Response) => {
             console.log(`✅ LOGIN EXITOSO para: ${email}`);
             console.log(`🔐 JWT generado con sessionId: ${sessionResult.sessionToken.substring(0, 10)}...`);
             
-            res.json({
+            return res.json({
               success: true,
               message: 'Login exitoso',
               data: {
@@ -362,7 +369,6 @@ export const login = async (req: Request, res: Response) => {
                 sessionToken: sessionResult.sessionToken
               }
             });
-            return;
             
           } else {
             console.warn(`⚠️ Sesión no registrada o sin token para: ${userEmail}, Error: ${sessionResult.error}`);
@@ -377,7 +383,7 @@ export const login = async (req: Request, res: Response) => {
       // 🆕 SI NO SE PUDO CREAR SESIÓN, ENVIAR RESPUESTA SIN TOKEN
       console.log(`✅ LOGIN EXITOSO (sin sesión) para: ${email}`);
 
-      res.json({
+      return res.json({
         success: true,
         message: 'Login exitoso',
         data: {
@@ -412,7 +418,7 @@ export const login = async (req: Request, res: Response) => {
         failure_reason: 'firebase_error'
       });
 
-      res.status(401).json({
+      return res.status(401).json({
         success: false,
         message: errorMessage
       });

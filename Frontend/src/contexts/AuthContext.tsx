@@ -619,7 +619,19 @@ const login = async (email: string, password: string) => {
     // 🎯 TERCERO: Login exitoso en nuestro backend
     const backendResponse = await authAPI.login(email, password);
 
-    // 🆕 CAMBIO CLAVE: RETORNAR LA RESPUESTA COMPLETA
+    // 🆕 CORRECCIÓN: DETECTAR SI SE REQUIERE MFA
+    if (backendResponse.mfaRequired || backendResponse.requiresMFA) {
+      console.log('🔐 MFA requerido - redirigiendo a verificación');
+      
+      // 🆕 CORRECCIÓN: Lanzar error específico para MFA que será capturado en LoginScreen
+      const mfaError = new Error('Se requiere código MFA');
+      (mfaError as any).mfaRequired = true;
+      (mfaError as any).userId = backendResponse.userId;
+      (mfaError as any).email = email;
+      throw mfaError;
+    }
+    
+    // 🆕 SI NO HAY MFA, CONTINUAR CON LOGIN NORMAL
     if (backendResponse.success) {
       const userData = backendResponse.data.user;
       const token = backendResponse.data.token;
@@ -652,18 +664,18 @@ const login = async (email: string, password: string) => {
       
       handleUserActivity();
 
-      // 🆕 RETORNAR LA RESPUESTA COMPLETA PARA MFA
       return backendResponse;
     } else {
-      // 🆕 SI HAY MFA REQUERIDO, RETORNAR LA RESPUESTA
-      if (backendResponse.mfaRequired) {
-        return backendResponse;
-      }
       throw new Error(backendResponse.message);
     }
     
   } catch (error: any) {
     console.error('❌ Error en login:', error);
+    
+    // 🆕 CORRECCIÓN: PROPAGAR ERROR DE MFA SIN MANIPULARLO
+    if (error.mfaRequired) {
+      throw error; // 🎯 Dejar que LoginScreen maneje la redirección
+    }
     
     // 🎯 MANEJAR ERRORES DE CREDENCIALES - Registrar intento fallido
     if (error.code === 'auth/invalid-credential' || 

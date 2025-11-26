@@ -98,30 +98,18 @@ const onSubmit = async (data: FormData) => {
     console.log('🔐 Iniciando proceso de login...');
     const response = await login(data.email, data.password);
     
-    // 🆕 DETECTAR SI SE REQUIERE MFA (AGREGAR ESTO)
-    if (response && response.mfaRequired) {
-      console.log('🔐 MFA requerido - redirigiendo a verificación');
-      
-      // Redirigir a pantalla MFA con los datos necesarios
-      navigate('/verify-mfa', { 
-        state: { 
-          userId: response.userId,
-          email: data.email 
-        } 
-      });
-      return;
-    }
+    // 🆕 CORRECCIÓN: ESTE CÓDIGO NO DEBERÍA EJECUTARSE SI HAY MFA
+    // Porque el login lanzará un error específico para MFA
     
-    // 🆕 SI NO HAY MFA, CONTINUAR CON LOGIN NORMAL
     console.log('✅ Login exitoso (sin MFA) - redirigiendo a inicio');
     navigate("/inicio");
     
   } catch (error: any) {
     console.log('🔍 Error en login:', error);
     
-    // 🆕 MANEJAR REDIRECCIÓN MFA (AGREGAR ESTO)
-    if (error.message?.includes('Se requiere código MFA') || error.mfaRequired) {
-      console.log('🔐 MFA detectado en error - redirigiendo');
+    // 🆕 CORRECCIÓN: MANEJAR REDIRECCIÓN MFA DE FORMA ESPECÍFICA
+    if (error.mfaRequired) {
+      console.log('🔐 MFA detectado - redirigiendo a verificación');
       navigate('/verify-mfa', { 
         state: { 
           userId: error.userId,
