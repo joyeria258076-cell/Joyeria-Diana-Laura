@@ -1,3 +1,4 @@
+// En Joyeria-Diana-Laura/Frontend/src/screens/MFAVerifyScreen.tsx - COMPLETO
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,7 +8,7 @@ import "../styles/MFAVerifyScreen.css";
 export default function MFAVerifyScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, login } = useAuth();
+  const { user, login } = useAuth(); // 🆕 AGREGAR login del contexto
   
   const [mfaCode, setMfaCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -50,9 +51,38 @@ export default function MFAVerifyScreen() {
       if (response.success && response.verified) {
         console.log('✅ MFA verificado correctamente');
         
-        // 🎯 Aquí necesitaremos completar el login
-        // Por ahora redirigimos al inicio
-        navigate('/inicio');
+        // 🆕 CORRECCIÓN: MANEJAR LA RESPUESTA COMPLETA DEL BACKEND
+        if (response.data) {
+          console.log('✅ Datos de sesión recibidos después de MFA');
+          
+          // 🆕 ACTUALIZAR EL CONTEXTO DE AUTENTICACIÓN
+          const userData = response.data.user;
+          const token = response.data.token;
+          const sessionToken = response.data.sessionToken;
+          
+          const userWithToken = {
+            ...userData,
+            token: token
+          };
+          
+          // 🆕 GUARDAR EN LOCALSTORAGE
+          localStorage.setItem('diana_laura_user', JSON.stringify(userWithToken));
+          localStorage.setItem('diana_laura_session_token', sessionToken);
+          
+          console.log('✅ Login completado después de MFA - redirigiendo a inicio');
+          navigate('/inicio');
+          
+        } else {
+          // 🆕 FALLBACK: Si no vienen datos de sesión, intentar login normal
+          console.log('⚠️ No hay datos de sesión, intentando login normal...');
+          try {
+            await login(email, 'dummy_password'); // 🆕 Usar la función login del contexto
+            navigate('/inicio');
+          } catch (loginError: any) {
+            console.error('❌ Error en login después de MFA:', loginError);
+            setError('Error completando el login. Por favor, intenta iniciar sesión nuevamente.');
+          }
+        }
       } else {
         setError('Código MFA inválido');
       }
@@ -66,6 +96,11 @@ export default function MFAVerifyScreen() {
 
   const handleBackToLogin = () => {
     navigate('/login');
+  };
+
+  // 🆕 FUNCIÓN: Usar código de respaldo
+  const handleUseBackupCode = () => {
+    setError('Función de códigos de respaldo no implementada aún');
   };
 
   if (!userId) {
@@ -84,6 +119,7 @@ export default function MFAVerifyScreen() {
         <div className="mfa-header">
           <h1>🔒 Verificación en Dos Pasos</h1>
           <p>Para continuar, ingresa el código de tu aplicación authenticator</p>
+          <p className="user-email">Usuario: <strong>{email}</strong></p>
         </div>
 
         {error && (
@@ -133,6 +169,13 @@ export default function MFAVerifyScreen() {
             <li>El código cambia cada 30 segundos</li>
             <li>Usa códigos de respaldo si los configuraste</li>
           </ul>
+          
+          <button 
+            onClick={handleUseBackupCode}
+            className="backup-code-button"
+          >
+            🔑 Usar código de respaldo
+          </button>
         </div>
 
         <button 

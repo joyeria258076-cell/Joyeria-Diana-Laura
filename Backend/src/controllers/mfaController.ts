@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { MFAService } from '../services/MFAService';
 import { pool } from '../config/database';
+import { SessionService } from '../services/SessionService'; 
+import jwt from 'jsonwebtoken';
 
 export const mfaController = {
   /**
@@ -148,9 +150,16 @@ setupMFA: async (req: Request, res: Response) => {
       console.log(`🔐 Verificando MFA para login usuario: ${userId}`);
 
       const userResult = await pool.query(
-        'SELECT mfa_secret, mfa_enabled FROM usuarios WHERE id = $1',
+        'SELECT mfa_secret, mfa_enabled, email, firebase_uid FROM usuarios WHERE id = $1',
         [userId]
       );
+
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Usuario no encontrado' 
+        });
+      }
 
       const user = userResult.rows[0];
       
@@ -175,12 +184,65 @@ setupMFA: async (req: Request, res: Response) => {
 
       console.log(`✅ MFA verificado para login usuario: ${userId}`);
 
-      res.json({ 
+      // 🆕 CORRECCIÓN: CREAR SESIÓN Y TOKEN DESPUÉS DE MFA EXITOSO
+      try {
+        const deviceInfo = SessionService.parseUserAgent(req.get('User-Agent') || 'unknown');
+        const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+        
+        const sessionResult = await SessionService.createSession(
+          userId,
+          user.firebase_uid,
+          deviceInfo,
+          clientIp as string,
+          req.get('User-Agent') || 'unknown'
+        );
+
+        if (sessionResult.success && sessionResult.sessionToken) {
+          // 🆕 GENERAR JWT
+          const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_2024_joyeria_diana_laura';
+          const token = jwt.sign(
+            { 
+              userId: userId,
+              firebaseUid: user.firebase_uid,
+              email: user.email,
+              sessionId: sessionResult.sessionToken
+            },
+            JWT_SECRET,
+            { expiresIn: '30d' }
+          );
+
+          console.log(`✅ Sesión creada después de MFA para usuario: ${userId}`);
+
+          return res.json({ 
+            success: true, 
+            mfaRequired: true, 
+            verified: true,
+            message: 'MFA verificado correctamente',
+            // 🆕 DATOS PARA COMPLETAR EL LOGIN
+            data: {
+              user: {
+                id: user.firebase_uid,
+                email: user.email,
+                dbId: userId
+              },
+              token: token,
+              sessionToken: sessionResult.sessionToken
+            }
+          });
+        }
+      } catch (sessionError: any) {
+        console.error('❌ Error creando sesión después de MFA:', sessionError);
+        // Continuar sin sesión como fallback
+      }
+
+      // 🆕 FALLBACK: Retornar éxito sin datos de sesión
+      return res.json({ 
         success: true, 
         mfaRequired: true, 
         verified: true,
         message: 'MFA verificado correctamente'
       });
+
     } catch (error: any) {
       console.error('❌ Error verificando MFA en login:', error);
       res.status(500).json({ 
