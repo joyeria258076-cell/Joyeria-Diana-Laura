@@ -1,3 +1,4 @@
+// En Joyeria-Diana-Laura/Frontend/src/screens/RecuperarConPreguntaScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -43,22 +44,21 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [answerVerified, setAnswerVerified] = useState(false);
-    const [step, setStep] = useState<'question' | 'password'>('question'); // 🆕 CONTROL DE PASOS
 
     const { 
         register, 
         handleSubmit, 
-        formState: { errors, isValid },
+        formState: { errors },
         watch,
-        trigger,
-        setValue,
-        reset
+        setValue
     } = useForm<FormData>({ 
         resolver: zodResolver(schema),
         mode: 'onChange'
     });
 
     const securityAnswerValue = watch('securityAnswer');
+    const newPasswordValue = watch('newPassword');
+    const confirmPasswordValue = watch('confirmPassword');
 
     // Obtener email de los parámetros de la URL
     useEffect(() => {
@@ -102,8 +102,8 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         }
     };
 
-    // 🆕 FUNCIÓN MEJORADA: Verificar respuesta
-    const verifyAnswer = async () => {
+    // 🆕 CORRECCIÓN: Función separada para verificar respuesta
+    const handleVerifyAnswer = async () => {
         if (!userId || !securityAnswerValue) {
             setMessage('❌ Por favor ingresa una respuesta');
             setMessageType('error');
@@ -114,7 +114,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         setMessage('');
 
         try {
-            console.log('🔍 Verificando respuesta para usuario:', userId, 'Respuesta:', securityAnswerValue);
+            console.log('🔍 Verificando respuesta para usuario:', userId);
             const response = await securityQuestionAPI.verifySecurityAnswer(userId, securityAnswerValue.trim());
             console.log('📊 Respuesta de verificación:', response);
             
@@ -122,7 +122,6 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                 setMessage('✅ Respuesta correcta. Ahora puedes establecer tu nueva contraseña.');
                 setMessageType('success');
                 setAnswerVerified(true);
-                setStep('password'); // 🆕 CAMBIAR A PANTALLA DE CONTRASEÑA
             } else {
                 setMessage('❌ Respuesta incorrecta. Intenta nuevamente.');
                 setMessageType('error');
@@ -136,10 +135,10 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         }
     };
 
-    // 🆕 FUNCIÓN MEJORADA: Cambiar contraseña
-    const changePassword = async (data: FormData) => {
-        if (!email) {
-            setMessage('❌ Email no disponible');
+    // 🆕 CORRECCIÓN: Función separada para cambiar contraseña
+    const handleChangePassword = async (data: FormData) => {
+        if (!email || !userId) {
+            setMessage('❌ Email o usuario no disponible');
             setMessageType('error');
             return;
         }
@@ -151,7 +150,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
             console.log('🔄 Cambiando contraseña para:', email);
             const resetResponse = await securityQuestionAPI.resetPasswordWithQuestion(
                 email, 
-                securityAnswerValue, // 🆕 USAR LA RESPUESTA YA VERIFICADA
+                securityAnswerValue, // Usar la respuesta ya verificada
                 data.newPassword
             );
             
@@ -177,6 +176,15 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         }
     };
 
+    // 🆕 CORRECCIÓN: Manejar envío según el estado
+    const onSubmit = async (data: FormData) => {
+        if (!answerVerified) {
+            await handleVerifyAnswer();
+        } else {
+            await handleChangePassword(data);
+        }
+    };
+
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         const cleanedValue = value.replace(/\s/g, '');
@@ -185,23 +193,12 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         }
     };
 
-    // 🆕 FUNCIÓN: Volver a intentar con otra respuesta
     const handleTryAgain = () => {
         setAnswerVerified(false);
-        setStep('question');
         setMessage('');
         setValue('securityAnswer', '');
         setValue('newPassword', '');
         setValue('confirmPassword', '');
-    };
-
-    // 🆕 FUNCIÓN: Manejar envío del formulario según el paso
-    const onSubmit = async (data: FormData) => {
-        if (step === 'question') {
-            await verifyAnswer();
-        } else {
-            await changePassword(data);
-        }
     };
 
     if (loading && !securityQuestion) {
@@ -248,8 +245,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                 )}
 
                 <form onSubmit={handleSubmit(onSubmit)} className="recuperar-pregunta-form">
-                    {/* 🆕 PASO 1: PREGUNTA SECRETA */}
-                    {step === 'question' && (
+                    {!answerVerified ? (
                         <div className="question-step">
                             <div className="security-question-display">
                                 <h3>🔒 Tu Pregunta Secreta:</h3>
@@ -283,10 +279,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                                 {loading ? 'Verificando...' : '✅ Verificar Respuesta'}
                             </button>
                         </div>
-                    )}
-
-                    {/* 🆕 PASO 2: NUEVA CONTRASEÑA */}
-                    {step === 'password' && (
+                    ) : (
                         <div className="password-step">
                             <div className="success-verification">
                                 <div className="success-icon">✅</div>
@@ -369,7 +362,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
 
                             <button 
                                 type="submit" 
-                                disabled={loading} 
+                                disabled={loading || !newPasswordValue || !confirmPasswordValue} 
                                 className="submit-button"
                             >
                                 {loading ? 'Actualizando...' : '🔄 Actualizar Contraseña'}
