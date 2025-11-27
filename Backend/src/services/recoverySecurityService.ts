@@ -21,112 +21,77 @@ export class RecoverySecurityService {
   }
 
   /**
-   * Verificar límites de recuperación
+   * Verificar límites de recuperación - CORREGIDA
    */
-static async checkRecoveryLimits(email: string): Promise<{
-  allowed: boolean;
-  remainingAttempts: number;
-  remainingTime?: number;
-  blockedUntil?: Date;
-}> {
-  const client = await this.getClient();
-  
-  try {
-    await client.connect();
-
-    const result = await client.query(
-      `SELECT recovery_attempts, last_recovery_attempt, recovery_blocked_until 
-       FROM usuarios WHERE email = $1`,
-      [email]
-    );
-
-    if (result.rows.length === 0) {
-      return { allowed: true, remainingAttempts: this.MAX_RECOVERY_ATTEMPTS };
-    }
-
-    const user = result.rows[0];
-    const now = new Date();
+  static async checkRecoveryLimits(email: string): Promise<{
+    allowed: boolean;
+    remainingAttempts: number;
+    remainingTime?: number;
+    blockedUntil?: Date;
+  }> {
+    const client = await this.getClient();
     
-    console.log(`🔍 Estado actual de ${email}:`, {
-      intentos: user.recovery_attempts,
-      bloqueado_hasta: user.recovery_blocked_until,
-      ahora: now
-    });
+    try {
+      await client.connect();
 
-    // 🛑 **CORRECCIÓN 1: Verificar bloqueo existente primero**
-    if (user.recovery_blocked_until) {
-      const blockedUntil = new Date(user.recovery_blocked_until);
-      if (blockedUntil > now) {
-        const remainingTime = Math.ceil((blockedUntil.getTime() - now.getTime()) / (1000 * 60));
-        return { 
-          allowed: false, 
-          remainingAttempts: 0, 
-          remainingTime,
-          blockedUntil 
-        };
-      } else {
-        // Resetear si ya pasó el bloqueo
-        console.log(`🔄 Bloqueo expirado, liberando automáticamente: ${email}`);
-        await this.resetRecoveryAttempts(email);
+      const result = await client.query(
+        `SELECT recovery_attempts, last_recovery_attempt, recovery_blocked_until 
+         FROM usuarios WHERE email = $1`,
+        [email]
+      );
+
+      if (result.rows.length === 0) {
         return { allowed: true, remainingAttempts: this.MAX_RECOVERY_ATTEMPTS };
       }
-    }
 
-    // 🛑 **CORRECCIÓN 2: Calcular intentos restantes CORRECTAMENTE**
-    const remainingAttempts = Math.max(0, this.MAX_RECOVERY_ATTEMPTS - user.recovery_attempts);
-    
-    // 🛑 **CORRECCIÓN 3: Solo bloquear si se alcanzó el máximo Y NO está ya bloqueado**
-    if (user.recovery_attempts >= this.MAX_RECOVERY_ATTEMPTS && !user.recovery_blocked_until) {
-      const blockedUntil = new Date(now.getTime() + this.LOCK_DURATION_MINUTES * 60 * 1000);
+      const user = result.rows[0];
+      const now = new Date();
       
-      await client.query(
-        'UPDATE usuarios SET recovery_blocked_until = $1 WHERE email = $2',
-        [blockedUntil, email]
-      );
+      console.log(`🔍 Estado actual de ${email}:`, {
+        intentos: user.recovery_attempts,
+        bloqueado_hasta: user.recovery_blocked_until,
+        ahora: now
+      });
+
+      // 🛑 **CORRECCIÓN: Verificar bloqueo existente primero**
+      if (user.recovery_blocked_until) {
+        const blockedUntil = new Date(user.recovery_blocked_until);
+        if (blockedUntil > now) {
+          const remainingTime = Math.ceil((blockedUntil.getTime() - now.getTime()) / (1000 * 60));
+          return { 
+            allowed: false, 
+            remainingAttempts: 0, 
+            remainingTime,
+            blockedUntil 
+          };
+        } else {
+          // 🆕 CORRECCIÓN: Si el bloqueo ya expiró, resetear intentos
+          console.log(`🔄 Bloqueo expirado, liberando automáticamente: ${email}`);
+          await this.resetRecoveryAttempts(email);
+          return { allowed: true, remainingAttempts: this.MAX_RECOVERY_ATTEMPTS };
+        }
+      }
+
+      // 🆕 CORRECCIÓN: Calcular intentos restantes correctamente
+      const remainingAttempts = Math.max(0, this.MAX_RECOVERY_ATTEMPTS - (user.recovery_attempts || 0));
       
-      console.log(`🔒 NUEVO BLOQUEO aplicado para: ${email} por ${this.LOCK_DURATION_MINUTES} minutos`);
-      
+      console.log(`📊 Intentos actuales: ${user.recovery_attempts || 0}, Restantes: ${remainingAttempts}`);
+
       return { 
-        allowed: false, 
-        remainingAttempts: 0, 
-        remainingTime: this.LOCK_DURATION_MINUTES,
-        blockedUntil 
+        allowed: true, 
+        remainingAttempts: remainingAttempts 
       };
+
+    } catch (error) {
+      console.error('Error en checkRecoveryLimits:', error);
+      return { allowed: true, remainingAttempts: this.MAX_RECOVERY_ATTEMPTS };
+    } finally {
+      await client.end();
     }
-
-    // 🛑 ** Si ya está bloqueado pero no en la verificación inicial**
-    if (user.recovery_attempts >= this.MAX_RECOVERY_ATTEMPTS && user.recovery_blocked_until) {
-      const blockedUntil = new Date(user.recovery_blocked_until);
-      const remainingTime = Math.ceil((blockedUntil.getTime() - now.getTime()) / (1000 * 60));
-      
-      return { 
-        allowed: false, 
-        remainingAttempts: 0, 
-        remainingTime,
-        blockedUntil 
-      };
-    }
-
-
-
-    // 🛑 **CORRECCIÓN 5: Devolver los intentos reales restantes**
-    return { 
-      allowed: true, 
-      remainingAttempts: remainingAttempts 
-    };
-
-  } catch (error) {
-    console.error('Error en checkRecoveryLimits:', error);
-    return { allowed: true, remainingAttempts: this.MAX_RECOVERY_ATTEMPTS };
-  } finally {
-    await client.end();
   }
-  
-}
-
 
   /**
-   * Incrementar intentos de recuperación
+   * Incrementar intentos de recuperación - CORREGIDA
    */
   static async incrementRecoveryAttempts(email: string): Promise<void> {
     const client = await this.getClient();
@@ -134,13 +99,45 @@ static async checkRecoveryLimits(email: string): Promise<{
     try {
       await client.connect();
       
-      await client.query(
-        `UPDATE usuarios 
-         SET recovery_attempts = recovery_attempts + 1, 
-             last_recovery_attempt = CURRENT_TIMESTAMP 
-         WHERE email = $1`,
+      // 🆕 CORRECCIÓN: Primero obtener el estado actual
+      const currentResult = await client.query(
+        `SELECT recovery_attempts FROM usuarios WHERE email = $1`,
         [email]
       );
+
+      let currentAttempts = 0;
+      if (currentResult.rows.length > 0) {
+        currentAttempts = currentResult.rows[0].recovery_attempts || 0;
+      }
+
+      const newAttempts = currentAttempts + 1;
+      
+      console.log(`📈 Incrementando intentos para ${email}: ${currentAttempts} -> ${newAttempts}`);
+
+      // 🆕 CORRECCIÓN: Si alcanza el máximo, bloquear
+      if (newAttempts >= this.MAX_RECOVERY_ATTEMPTS) {
+        const blockedUntil = new Date(Date.now() + this.LOCK_DURATION_MINUTES * 60 * 1000);
+        
+        await client.query(
+          `UPDATE usuarios 
+           SET recovery_attempts = $1, 
+               last_recovery_attempt = CURRENT_TIMESTAMP,
+               recovery_blocked_until = $2
+           WHERE email = $3`,
+          [newAttempts, blockedUntil, email]
+        );
+        
+        console.log(`🔒 Usuario bloqueado por recuperación: ${email} por ${this.LOCK_DURATION_MINUTES} minutos`);
+      } else {
+        // Solo incrementar intentos
+        await client.query(
+          `UPDATE usuarios 
+           SET recovery_attempts = $1, 
+               last_recovery_attempt = CURRENT_TIMESTAMP 
+           WHERE email = $2`,
+          [newAttempts, email]
+        );
+      }
     } catch (error) {
       console.error('Error en incrementRecoveryAttempts:', error);
     } finally {
@@ -165,6 +162,8 @@ static async checkRecoveryLimits(email: string): Promise<{
          WHERE email = $1`,
         [email]
       );
+      
+      console.log(`🔄 Intentos reseteados para: ${email}`);
     } catch (error) {
       console.error('Error en resetRecoveryAttempts:', error);
     } finally {
@@ -198,4 +197,3 @@ static async checkRecoveryLimits(email: string): Promise<{
     }
   }
 }
-

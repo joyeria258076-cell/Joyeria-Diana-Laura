@@ -43,7 +43,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [answerVerified, setAnswerVerified] = useState(false);
-    const [step, setStep] = useState<'question' | 'password'>('question'); // 🆕 CONTROL DE PASOS
+    const [step, setStep] = useState<'question' | 'password'>('question');
 
     const { 
         register, 
@@ -102,10 +102,18 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         }
     };
 
-    // 🆕 FUNCIÓN MEJORADA: Verificar respuesta
+    // 🆕 FUNCIÓN CORREGIDA: Verificar respuesta
     const verifyAnswer = async () => {
+        console.log('🔍 Iniciando verificación de respuesta...');
+        
         if (!userId || !securityAnswerValue) {
             setMessage('❌ Por favor ingresa una respuesta');
+            setMessageType('error');
+            return;
+        }
+
+        if (securityAnswerValue.trim().length < 2) {
+            setMessage('❌ La respuesta debe tener al menos 2 caracteres');
             setMessageType('error');
             return;
         }
@@ -122,10 +130,12 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                 setMessage('✅ Respuesta correcta. Ahora puedes establecer tu nueva contraseña.');
                 setMessageType('success');
                 setAnswerVerified(true);
-                setStep('password'); // 🆕 CAMBIAR A PANTALLA DE CONTRASEÑA
+                setStep('password');
+                console.log('✅ Respuesta verificada correctamente, avanzando a paso de contraseña');
             } else {
                 setMessage('❌ Respuesta incorrecta. Intenta nuevamente.');
                 setMessageType('error');
+                console.log('❌ Respuesta incorrecta');
             }
         } catch (error: any) {
             console.error('❌ Error verificando respuesta:', error);
@@ -144,6 +154,12 @@ const RecuperarConPreguntaScreen: React.FC = () => {
             return;
         }
 
+        if (!answerVerified) {
+            setMessage('❌ Primero debes verificar tu respuesta secreta');
+            setMessageType('error');
+            return;
+        }
+
         setLoading(true);
         setMessage('');
 
@@ -151,7 +167,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
             console.log('🔄 Cambiando contraseña para:', email);
             const resetResponse = await securityQuestionAPI.resetPasswordWithQuestion(
                 email, 
-                securityAnswerValue, // 🆕 USAR LA RESPUESTA YA VERIFICADA
+                securityAnswerValue,
                 data.newPassword
             );
             
@@ -195,13 +211,22 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         setValue('confirmPassword', '');
     };
 
-    // 🆕 FUNCIÓN: Manejar envío del formulario según el paso
+    // 🆕 FUNCIÓN CORREGIDA: Manejar envío del formulario según el paso
     const onSubmit = async (data: FormData) => {
+        console.log('📝 Formulario enviado, paso actual:', step);
+        
         if (step === 'question') {
             await verifyAnswer();
         } else {
             await changePassword(data);
         }
+    };
+
+    // 🆕 FUNCIÓN SEPARADA para el botón de verificar
+    const handleVerifyClick = async (e: React.FormEvent) => {
+        e.preventDefault();
+        console.log('🔄 Botón de verificar clickeado');
+        await verifyAnswer();
     };
 
     if (loading && !securityQuestion) {
@@ -276,7 +301,8 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                             </div>
 
                             <button 
-                                type="submit"
+                                type="button" // 🆕 CAMBIADO A button (no submit)
+                                onClick={handleVerifyClick} // 🆕 USAR FUNCIÓN SEPARADA
                                 disabled={loading || !securityAnswerValue}
                                 className="verify-button"
                             >
