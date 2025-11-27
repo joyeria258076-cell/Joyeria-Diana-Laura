@@ -415,48 +415,4 @@
     .detalles-acciones {
         flex-direction: column;
     }
-    /* Estilos para la sección QR en el modal */
-    .qr-section {
-        text-align: center;
-        margin-bottom: 1.5rem;
-        padding: 1rem;
-        background: rgba(236, 178, 195, 0.05);
-        border-radius: 8px;
-        border: 1px solid rgba(236, 178, 195, 0.2);
-    }
-
-    .qr-image {
-        max-width: 200px;
-        height: auto;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        border: 2px solid rgba(236, 178, 195, 0.3);
-    }
-
-    .qr-description {
-        color: #D9D9D9;
-        font-size: 0.9rem;
-        line-height: 1.4;
-        margin: 0;
-    }
-
-    .qr-description strong {
-        color: #ECB2C3;
-    }
-
-    /* Ajustes para el modal con QR */
-    .ar-instructions ol {
-        margin-top: 1rem;
-    }
-
-    /* Responsive para QR */
-    @media (max-width: 768px) {
-        .qr-image {
-            max-width: 150px;
-        }
-        
-        .qr-section {
-            padding: 0.75rem;
-        }
-    }
 }
