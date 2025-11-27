@@ -17,6 +17,7 @@ const CatalogoScreen: React.FC = () => {
     const navigate = useNavigate();
     const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
     const [paginaActual, setPaginaActual] = useState(1);
+    const [instruccionesAbiertas, setInstruccionesAbiertas] = useState(false);
     const productosPorPagina = 4;
 
     // Datos estáticos de productos
@@ -94,15 +95,21 @@ const CatalogoScreen: React.FC = () => {
 
     const verDetalles = (producto: Producto) => {
         setProductoSeleccionado(producto);
+        setInstruccionesAbiertas(false); // Cerrar instrucciones al abrir nuevo producto
     };
 
     const cerrarDetalles = () => {
         setProductoSeleccionado(null);
+        setInstruccionesAbiertas(false);
     };
 
     const cambiarPagina = (nuevaPagina: number) => {
         setPaginaActual(nuevaPagina);
         window.scrollTo(0, 0);
+    };
+
+    const toggleInstrucciones = () => {
+        setInstruccionesAbiertas(!instruccionesAbiertas);
     };
 
     return (
@@ -248,21 +255,32 @@ const CatalogoScreen: React.FC = () => {
                                     </div>
 
                                     <div className="ar-instructions">
-                                        <h4>¿Cómo ver en AR?</h4>
-                                        <div className="qr-section">
-                                            <div className="qr-image-container"></div>
-                                            <p className="qr-description">
-                                                Escanea este código QR con la aplicación de Unity 
-                                                para ver <strong> {productoSeleccionado.nombre}</strong> 
-                                                en Realidad Aumentada.
-                                            </p>
+                                        <button 
+                                            className="ar-instructions-header"
+                                            onClick={toggleInstrucciones}
+                                        >
+                                            <h4>¿Cómo ver en Realidad Aumentada?</h4>
+                                            <span className="ar-toggle-icon">
+                                                {instruccionesAbiertas ? '−' : '+'}
+                                            </span>
+                                        </button>
+                                        
+                                        <div className={`ar-instructions-content ${instruccionesAbiertas ? 'expanded' : 'collapsed'}`}>
+                                            <div className="qr-section">
+                                                <div className="qr-image-container"></div>
+                                                <p className="qr-description">
+                                                    Escanea este código QR con la aplicación de Unity 
+                                                    para ver <strong>{productoSeleccionado.nombre}</strong> 
+                                                    en Realidad Aumentada.
+                                                </p>
+                                            </div>
+                                            <ol>
+                                                <li>Abre la aplicación de Unity en tu dispositivo móvil</li>
+                                                <li>Escanea el código QR con la cámara</li>
+                                                <li>Apunta a una superficie plana</li>
+                                                <li>¡Disfruta de la joya en tu espacio!</li>
+                                            </ol>
                                         </div>
-                                        <ol>
-                                            <li>Haz click en "Ver en Realidad Aumentada"</li>
-                                            <li>Escanea el código QR con tu dispositivo móvil</li>
-                                            <li>Apunta la cámara a una superficie plana</li>
-                                            <li>¡Disfruta de la joya en tu espacio!</li>
-                                        </ol>
                                     </div>
                                 </div>
                             </div>
