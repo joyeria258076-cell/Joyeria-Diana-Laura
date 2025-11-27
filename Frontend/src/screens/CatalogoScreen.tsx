@@ -32,33 +32,33 @@ const CatalogoScreen: React.FC = () => {
         },
         {
             id: 2,
-            nombre: "Collar Oro 18k",
+            nombre: "Anillo Diamante Elegante",
             precio: 1800,
-            descripcion: "Collar elegante en oro de 18k con diseño contemporáneo",
+            descripcion: "Anillo en plata sterling con diamante central de 0.5 quilates",
             imagen: "/assets/images/collar-oro.jpg",
             categoria: "Collares"
         },
         {
             id: 3,
-            nombre: "Aretes Perlas Naturales",
+            nombre: "Anillo Diamante Elegante",
             precio: 1200,
-            descripcion: "Aretes con perlas naturales y detalles en plata",
+            descripcion: "Anillo en plata sterling con diamante central de 0.5 quilates",
             imagen: "/assets/images/aretes-perlas.jpg",
             categoria: "Aretes"
         },
         {
             id: 4,
-            nombre: "Pulsera Esmeralda",
+            nombre: "Anillo Diamante Elegante",
             precio: 3200,
-            descripcion: "Pulsera en oro con esmeraldas colombianas auténticas",
+            descripcion: "Anillo en plata sterling con diamante central de 0.5 quilates",
             imagen: "/assets/images/pulsera-esmeralda.jpg",
             categoria: "Pulseras"
         },
         {
             id: 5,
-            nombre: "Set Matrimonio",
+            nombre: "Anillo Diamante Elegante",
             precio: 4500,
-            descripcion: "Set completo de anillos para boda en oro blanco",
+            descripcion: "Anillo en plata sterling con diamante central de 0.5 quilates",
             imagen: "/assets/images/set-matrimonio.jpg",
             categoria: "Conjuntos"
         },
@@ -72,17 +72,17 @@ const CatalogoScreen: React.FC = () => {
         },
         {
             id: 7,
-            nombre: "Collar Perlas Cultivadas",
+            nombre: "Anillo Zafiro Azul",
             precio: 2200,
-            descripcion: "Collar de perlas cultivadas con cierre de oro",
+            descripcion: "Anillo en plata sterling con diamante central de 0.5 quilates",
             imagen: "/assets/images/collar-perlas.jpg",
             categoria: "Collares"
         },
         {
             id: 8,
-            nombre: "Aretes Diamante Solitario",
+            nombre: "Anillo Zafiro Azul",
             precio: 1900,
-            descripcion: "Aretes con diamantes solitarios en setting de platino",
+            descripcion: "Anillo en plata sterling con diamante central de 0.5 quilates",
             imagen: "/assets/images/aretes-diamante.jpg",
             categoria: "Aretes"
         }
