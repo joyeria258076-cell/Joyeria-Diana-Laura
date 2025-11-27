@@ -322,10 +322,10 @@ export default function PerfilScreen() {
                       <div className="mfa-benefits">
                         <h4>Tu cuenta está protegida con:</h4>
                         <ul>
-                          <li>✅ Códigos que cambian cada 30 segundos</li>
-                          <li>✅ Protección contra accesos no autorizados</li>
-                          <li>✅ Seguridad incluso si tu contraseña es comprometida</li>
-                          <li>✅ Compatible con Google Authenticator, Authy, etc.</li>
+                          <li>Códigos que cambian cada 30 segundos</li>
+                          <li>Protección contra accesos no autorizados</li>
+                          <li>Seguridad incluso si tu contraseña es comprometida</li>
+                          <li>Compatible con Google Authenticator, Authy, etc.</li>
                         </ul>
                       </div>
                     </div>
@@ -339,10 +339,10 @@ export default function PerfilScreen() {
                       <div className="mfa-benefits">
                         <h4>Beneficios al activar:</h4>
                         <ul>
-                          <li>✅ Protección contra accesos no autorizados</li>
-                          <li>✅ Seguridad incluso si tu contraseña es comprometida</li>
-                          <li>✅ Códigos que cambian cada 30 segundos</li>
-                          <li>✅ Compatible con Google Authenticator, Authy, etc.</li>
+                          <li>Protección contra accesos no autorizados</li>
+                          <li>Seguridad incluso si tu contraseña es comprometida</li>
+                          <li>Códigos que cambian cada 30 segundos</li>
+                          <li>Compatible con Google Authenticator, Authy, etc.</li>
                         </ul>
                       </div>
                     </div>
