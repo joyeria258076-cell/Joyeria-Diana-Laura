@@ -116,10 +116,10 @@ export default function MFASetupScreen() {
             <div className="benefits">
               <h3>Beneficios:</h3>
               <ul>
-                <li>✅ Protección contra accesos no autorizados</li>
-                <li>✅ Seguridad incluso si tu contraseña es comprometida</li>
-                <li>✅ Códigos que cambian cada 30 segundos</li>
-                <li>✅ Compatible con Google Authenticator, Authy, etc.</li>
+                <li>Protección contra accesos no autorizados</li>
+                <li>Seguridad incluso si tu contraseña es comprometida</li>
+                <li>Códigos que cambian cada 30 segundos</li>
+                <li>Compatible con Google Authenticator, Authy, etc.</li>
               </ul>
             </div>
 
