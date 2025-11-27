@@ -13,6 +13,7 @@ import RecuperarConPreguntaScreen from '../screens/RecuperarConPreguntaScreen';
 import MFAVerifyScreen from "../screens/MFAVerifyScreen";
 import MFASetupScreen from "../screens/MFASetupScreen";
 import { useAuth } from "../contexts/AuthContext";
+import CatalogoScreen from '../screens/CatalogoScreen';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -114,6 +115,15 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <PerfilScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/catalogo"
+          element={
+            <ProtectedRoute>
+              <CatalogoScreen />
             </ProtectedRoute>
           }
         />

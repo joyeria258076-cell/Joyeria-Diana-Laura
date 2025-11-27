@@ -27,6 +27,13 @@ export default function InicioScreen() {
                     </nav>
                     <div className="user-actions">
                         <button 
+                            className="catalog-icon-btn"
+                            onClick={() => navigate("/catalogo")}
+                            title="Ver Catálogo"
+                        >
+                            🛍️
+                        </button>
+                        <button 
                             className="profile-icon-btn"
                             onClick={() => navigate("/perfil")}
                             title="Mi Perfil"
