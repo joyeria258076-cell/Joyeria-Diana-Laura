@@ -508,9 +508,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`📧 Verificando límites para: ${email}`);
+    console.log(`📧 Procesando recuperación para: ${email}`);
     
     // 🛡️ VERIFICAR LÍMITES - CORREGIDO
+    console.log(`🔄 Verificando límites...`);
     const limitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
     
     console.log(`📊 Resultado de límites:`, limitCheck);
@@ -527,30 +528,38 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 
     // 🛡️ INCREMENTAR INTENTOS - CORREGIDO (solo si está permitido)
-    console.log(`📈 Incrementando intentos para: ${email}`);
+    console.log(`📈 Incrementando intentos...`);
     await RecoverySecurityService.incrementRecoveryAttempts(email);
     
     // 🆕 VERIFICAR NUEVAMENTE LOS LÍMITES DESPUÉS DE INCREMENTAR
     const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
     
-    console.log(`✅ Intento permitido para: ${email}, intentos restantes: ${updatedLimitCheck.remainingAttempts}`);
+    console.log(`✅ Intento registrado para: ${email}, intentos restantes: ${updatedLimitCheck.remainingAttempts}`);
 
     // 🎯 DEVOLVER ÉXITO CON LOS INTENTOS ACTUALIZADOS
     res.json({
       success: true,
-      message: 'Puedes enviar el email de recuperación',
+      message: 'Se ha enviado un enlace de recuperación a tu email',
       remainingAttempts: updatedLimitCheck.remainingAttempts
     });
 
-  } catch (error) {
-    console.error('Error en forgotPassword:', error);
+  } catch (error: any) {
+    console.error('❌ Error en forgotPassword:', error);
     
-    // En caso de error, permitir que el frontend intente igual
-    res.json({
-      success: true,
-      message: 'Procediendo con el envío de email',
-      remainingAttempts: 3 // Valor por defecto
-    });
+    // En caso de error de base de datos, permitir el envío pero mostrar advertencia
+    if (error.code === 'ECONNRESET' || error.message.includes('ECONNRESET')) {
+      console.log('⚠️ Error de conexión a BD, pero permitiendo envío de email');
+      res.json({
+        success: true,
+        message: 'Se ha enviado un enlace de recuperación a tu email',
+        remainingAttempts: 2 // Valor por defecto conservador
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor al procesar la recuperación'
+      });
+    }
   }
 };
 
