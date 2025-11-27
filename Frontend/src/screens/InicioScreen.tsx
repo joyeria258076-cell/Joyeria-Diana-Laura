@@ -20,7 +20,16 @@ export default function InicioScreen() {
                     </div>
                     <nav className="nav-menu">
                         <a href="#inicio" className="nav-link active">Inicio</a>
-                        <a href="#colecciones" className="nav-link">Colecciones</a>
+                        <a 
+                                href="#colecciones" 
+                                className="nav-link"
+                                onClick={(e) => { 
+                                    e.preventDefault(); 
+                                    navigate("/catalogo"); 
+                                }}
+                            >
+                                Catálogo
+                            </a>
                         <a href="#personalizados" className="nav-link">Personalizados</a>
                         <a href="#nosotros" className="nav-link">Sobre Nosotros</a>
                         <a href="#contacto" className="nav-link">Contacto</a>
@@ -59,7 +68,7 @@ export default function InicioScreen() {
                         acabados de aire cabidal y un estilo femenino contemporáneo.
                     </p>
                     <div className="hero-buttons">
-                        <button className="btn-primary">
+                        <button className="btn-primary" onClick={() => navigate("/catalogo")}>
                             Descubre nuestras Colecciones
                         </button>
                         <button className="btn-secondary">
