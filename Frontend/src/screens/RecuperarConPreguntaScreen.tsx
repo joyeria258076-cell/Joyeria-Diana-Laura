@@ -1,37 +1,9 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/screens/RecuperarConPreguntaScreen.tsx
 
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { securityQuestionAPI } from '../services/securityQuestionAPI';
 import '../styles/RecuperarConPreguntaScreen.css';
-
-const schema = z.object({
-    securityAnswer: z.string()
-        .min(1, "La respuesta secreta es requerida")
-        .min(2, "La respuesta debe tener al menos 2 caracteres")
-        .max(100, "La respuesta no puede tener más de 100 caracteres")
-        .refine((answer) => !answer.startsWith(' ') && !answer.endsWith(' '), {
-            message: "La respuesta no puede comenzar ni terminar con espacios"
-        }),
-    newPassword: z.string()
-        .min(1, "La nueva contraseña es requerida")
-        .min(8, "La contraseña debe tener al menos 8 caracteres")
-        .max(16, "La contraseña no puede tener más de 16 caracteres")
-        .regex(/[A-Z]/, "La contraseña debe contener al menos una letra mayúscula")
-        .regex(/[a-z]/, "La contraseña debe contener al menos una letra minúscula")
-        .regex(/\d/, "La contraseña debe contener al menos un número")
-        .regex(/^\S*$/, "La contraseña no puede contener espacios"),
-    confirmPassword: z.string()
-        .min(1, "La confirmación de contraseña es requerida")
-}).refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Las contraseñas no coinciden",
-    path: ["confirmPassword"]
-});
-
-type FormData = z.infer<typeof schema>;
 
 const RecuperarConPreguntaScreen: React.FC = () => {
     const navigate = useNavigate();
@@ -46,19 +18,11 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [answerVerified, setAnswerVerified] = useState(false);
     const [step, setStep] = useState<'question' | 'password'>('question');
-
-    const { 
-        register, 
-        handleSubmit, 
-        formState: { errors },
-        watch,
-        setValue
-    } = useForm<FormData>({ 
-        resolver: zodResolver(schema),
-        mode: 'onChange'
-    });
-
-    const securityAnswerValue = watch('securityAnswer');
+    
+    // Estados para los campos del formulario
+    const [securityAnswer, setSecurityAnswer] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     // Obtener email de los parámetros de la URL
     useEffect(() => {
@@ -103,8 +67,9 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     };
 
     // 🆕 FUNCIÓN CORREGIDA: Verificar respuesta
-    const verifyAnswer = async () => {
-        console.log('🔍 Iniciando verificación de respuesta...');
+    const handleVerifyAnswer = async (e: React.FormEvent) => {
+        e.preventDefault();
+        console.log('🔄 Botón de verificar clickeado');
         
         if (!userId) {
             setMessage('❌ Error: Usuario no identificado');
@@ -112,13 +77,13 @@ const RecuperarConPreguntaScreen: React.FC = () => {
             return;
         }
 
-        if (!securityAnswerValue || securityAnswerValue.trim().length === 0) {
+        if (!securityAnswer || securityAnswer.trim().length === 0) {
             setMessage('❌ Por favor ingresa una respuesta');
             setMessageType('error');
             return;
         }
 
-        if (securityAnswerValue.trim().length < 2) {
+        if (securityAnswer.trim().length < 2) {
             setMessage('❌ La respuesta debe tener al menos 2 caracteres');
             setMessageType('error');
             return;
@@ -128,8 +93,8 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         setMessage('');
 
         try {
-            console.log('🔍 Verificando respuesta para usuario:', userId, 'Respuesta:', securityAnswerValue);
-            const response = await securityQuestionAPI.verifySecurityAnswer(userId, securityAnswerValue.trim());
+            console.log('🔍 Verificando respuesta para usuario:', userId, 'Respuesta:', securityAnswer);
+            const response = await securityQuestionAPI.verifySecurityAnswer(userId, securityAnswer.trim());
             console.log('📊 Respuesta de verificación:', response);
             
             if (response.success) {
@@ -153,7 +118,9 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     };
 
     // 🆕 FUNCIÓN MEJORADA: Cambiar contraseña
-    const changePassword = async (data: FormData) => {
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
         if (!email) {
             setMessage('❌ Email no disponible');
             setMessageType('error');
@@ -166,6 +133,43 @@ const RecuperarConPreguntaScreen: React.FC = () => {
             return;
         }
 
+        // Validar contraseña
+        if (newPassword.length < 8) {
+            setMessage('❌ La contraseña debe tener al menos 8 caracteres');
+            setMessageType('error');
+            return;
+        }
+
+        if (!/[A-Z]/.test(newPassword)) {
+            setMessage('❌ La contraseña debe contener al menos una letra MAYÚSCULA (A-Z)');
+            setMessageType('error');
+            return;
+        }
+
+        if (!/[a-z]/.test(newPassword)) {
+            setMessage('❌ La contraseña debe contener al menos una letra minúscula (a-z)');
+            setMessageType('error');
+            return;
+        }
+
+        if (!/\d/.test(newPassword)) {
+            setMessage('❌ La contraseña debe contener al menos un número (0-9)');
+            setMessageType('error');
+            return;
+        }
+
+        if (/\s/.test(newPassword)) {
+            setMessage('❌ La contraseña no puede contener espacios en blanco');
+            setMessageType('error');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setMessage('❌ Las contraseñas no coinciden');
+            setMessageType('error');
+            return;
+        }
+
         setLoading(true);
         setMessage('');
 
@@ -173,8 +177,8 @@ const RecuperarConPreguntaScreen: React.FC = () => {
             console.log('🔄 Cambiando contraseña para:', email);
             const resetResponse = await securityQuestionAPI.resetPasswordWithQuestion(
                 email, 
-                securityAnswerValue,
-                data.newPassword
+                securityAnswer,
+                newPassword
             );
             
             console.log('📊 Respuesta de cambio de contraseña:', resetResponse);
@@ -199,34 +203,22 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         }
     };
 
-    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        const cleanedValue = value.replace(/\s/g, '');
-        if (value !== cleanedValue) {
-            e.target.value = cleanedValue;
-        }
-    };
-
     // 🆕 FUNCIÓN: Volver a intentar con otra respuesta
     const handleTryAgain = () => {
         setAnswerVerified(false);
         setStep('question');
         setMessage('');
-        setValue('securityAnswer', '');
-        setValue('newPassword', '');
-        setValue('confirmPassword', '');
+        setSecurityAnswer('');
+        setNewPassword('');
+        setConfirmPassword('');
     };
 
-    // 🆕 FUNCIÓN CORREGIDA: Manejar envío del formulario según el paso
-    const onSubmit = async (data: FormData) => {
-        console.log('📝 Formulario enviado, paso actual:', step);
-        
-        if (step === 'question') {
-            // En el paso de pregunta, usar verifyAnswer directamente
-            await verifyAnswer();
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'newPassword' | 'confirmPassword') => {
+        const value = e.target.value.replace(/\s/g, '');
+        if (field === 'newPassword') {
+            setNewPassword(value);
         } else {
-            // En el paso de contraseña, usar changePassword
-            await changePassword(data);
+            setConfirmPassword(value);
         }
     };
 
@@ -273,10 +265,9 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                     </div>
                 )}
 
-                {/* 🆕 CORRECCIÓN: Formulario único que maneja ambos pasos */}
-                <form onSubmit={handleSubmit(onSubmit)} className="recuperar-pregunta-form">
-                    {/* PASO 1: PREGUNTA SECRETA */}
-                    {step === 'question' && (
+                {/* 🆕 CORRECCIÓN: Formularios separados para cada paso */}
+                {step === 'question' && (
+                    <form onSubmit={handleVerifyAnswer} className="recuperar-pregunta-form">
                         <div className="question-step">
                             <div className="security-question-display">
                                 <h3>🔒 Tu Pregunta Secreta:</h3>
@@ -290,30 +281,29 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                                 <input
                                     id="securityAnswer"
                                     type="text"
+                                    value={securityAnswer}
+                                    onChange={(e) => setSecurityAnswer(e.target.value)}
                                     placeholder="Escribe tu respuesta secreta"
-                                    className={`pregunta-input ${errors.securityAnswer ? 'error' : ''}`}
-                                    {...register("securityAnswer")}
+                                    className="pregunta-input"
                                     maxLength={100}
                                     disabled={loading}
                                     autoFocus
                                 />
-                                {errors.securityAnswer && (
-                                    <span className="field-error">{errors.securityAnswer.message}</span>
-                                )}
                             </div>
 
                             <button 
-                                type="submit" // 🆕 CORRECCIÓN: type="submit" para que funcione con el formulario
-                                disabled={loading || !securityAnswerValue}
+                                type="submit"
+                                disabled={loading || !securityAnswer}
                                 className="verify-button"
                             >
                                 {loading ? 'Verificando...' : '✅ Verificar Respuesta'}
                             </button>
                         </div>
-                    )}
+                    </form>
+                )}
 
-                    {/* PASO 2: NUEVA CONTRASEÑA */}
-                    {step === 'password' && (
+                {step === 'password' && (
+                    <form onSubmit={handleChangePassword} className="recuperar-pregunta-form">
                         <div className="password-step">
                             <div className="success-verification">
                                 <div className="success-icon">✅</div>
@@ -335,11 +325,11 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                                     <input
                                         id="newPassword"
                                         type={showNewPassword ? "text" : "password"}
+                                        value={newPassword}
+                                        onChange={(e) => handlePasswordChange(e, 'newPassword')}
                                         placeholder="Nueva contraseña (8-16 caracteres)"
-                                        className={`pregunta-input password-input ${errors.newPassword ? 'error' : ''}`}
-                                        {...register("newPassword")}
+                                        className="pregunta-input password-input"
                                         maxLength={16}
-                                        onChange={handlePasswordChange}
                                         disabled={loading}
                                         autoFocus
                                     />
@@ -351,9 +341,6 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                                         {showNewPassword ? "🙈" : "👁️"}
                                     </button>
                                 </div>
-                                {errors.newPassword && (
-                                    <span className="field-error">{errors.newPassword.message}</span>
-                                )}
                             </div>
 
                             <div className="form-group">
@@ -362,11 +349,11 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                                     <input
                                         id="confirmPassword"
                                         type={showConfirmPassword ? "text" : "password"}
+                                        value={confirmPassword}
+                                        onChange={(e) => handlePasswordChange(e, 'confirmPassword')}
                                         placeholder="Repite tu nueva contraseña"
-                                        className={`pregunta-input password-input ${errors.confirmPassword ? 'error' : ''}`}
-                                        {...register("confirmPassword")}
+                                        className="pregunta-input password-input"
                                         maxLength={16}
-                                        onChange={handlePasswordChange}
                                         disabled={loading}
                                     />
                                     <button
@@ -377,9 +364,6 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                                         {showConfirmPassword ? "🙈" : "👁️"}
                                     </button>
                                 </div>
-                                {errors.confirmPassword && (
-                                    <span className="field-error">{errors.confirmPassword.message}</span>
-                                )}
                             </div>
 
                             <div className="password-requirements">
@@ -402,8 +386,8 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                                 {loading ? 'Actualizando...' : '🔄 Actualizar Contraseña'}
                             </button>
                         </div>
-                    )}
-                </form>
+                    </form>
+                )}
 
                 <div className="action-buttons">
                     <button onClick={() => navigate('/olvide')} className="back-button">

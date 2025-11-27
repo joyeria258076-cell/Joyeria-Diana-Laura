@@ -510,8 +510,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     console.log(`📧 Verificando límites para: ${email}`);
     
-    // 🛡️ SOLO VERIFICAR LÍMITES
+    // 🛡️ VERIFICAR LÍMITES - CORREGIDO
     const limitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
+    
+    console.log(`📊 Resultado de límites:`, limitCheck);
     
     if (!limitCheck.allowed) {
       console.log(`🚫 BLOQUEO ACTIVO: ${email} - ${limitCheck.remainingTime} minutos restantes`);
@@ -524,14 +526,16 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
     }
 
-    // 🛡️ REGISTRAR INTENTO (PERMITIDO)
+    // 🛡️ INCREMENTAR INTENTOS - CORREGIDO (solo si está permitido)
+    console.log(`📈 Incrementando intentos para: ${email}`);
     await RecoverySecurityService.incrementRecoveryAttempts(email);
     
-    console.log(`✅ Intento permitido para: ${email}, intentos restantes: ${limitCheck.remainingAttempts - 1}`);
-
-    // 🎯 DEVOLVER ÉXITO - EL FRONTEND ENVIARÁ EL EMAIL
+    // 🆕 VERIFICAR NUEVAMENTE LOS LÍMITES DESPUÉS DE INCREMENTAR
     const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
     
+    console.log(`✅ Intento permitido para: ${email}, intentos restantes: ${updatedLimitCheck.remainingAttempts}`);
+
+    // 🎯 DEVOLVER ÉXITO CON LOS INTENTOS ACTUALIZADOS
     res.json({
       success: true,
       message: 'Puedes enviar el email de recuperación',
