@@ -175,7 +175,16 @@ const handleCerrarOtrasSesiones = async () => {
             <a href="#inicio" className="nav-link" onClick={(e) => { e.preventDefault(); navigate("/inicio"); }}>
               Inicio
             </a>
-            <a href="#colecciones" className="nav-link">Catálogo</a>
+            <a 
+                href="#colecciones" 
+                className="nav-link"
+                onClick={(e) => { 
+                    e.preventDefault(); 
+                    navigate("/catalogo"); 
+                }}
+            >
+                Catálogo
+            </a>
             <a href="#personalizados" className="nav-link">Personalizados</a>
             <a href="#nosotros" className="nav-link">Sobre Nosotros</a>
             <a href="#contacto" className="nav-link">Contacto</a>
