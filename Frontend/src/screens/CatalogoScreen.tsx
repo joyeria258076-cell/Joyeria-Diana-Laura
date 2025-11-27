@@ -253,7 +253,7 @@ const CatalogoScreen: React.FC = () => {
                                             <div className="qr-image-container"></div>
                                             <p className="qr-description">
                                                 Escanea este código QR con la aplicación de Unity 
-                                                para ver <strong>{productoSeleccionado.nombre}</strong> 
+                                                para ver <strong> {productoSeleccionado.nombre}</strong> 
                                                 en Realidad Aumentada.
                                             </p>
                                         </div>

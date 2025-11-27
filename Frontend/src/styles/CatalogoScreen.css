@@ -215,7 +215,6 @@
     font-weight: 500;
 }
 
-/* Modal de detalles */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -271,9 +270,14 @@
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
     padding: 2rem;
+    min-height: 500px; /* Altura mínima */
 }
 
+/* IMAGEN FIJA - NO SE MUEVE CON SCROLL */
 .detalles-imagen {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -282,6 +286,7 @@
     min-height: 300px;
     position: relative;
     overflow: hidden;
+    align-self: start; /* Mantiene su posición */
 }
 
 .detalles-imagen::before {
@@ -293,6 +298,12 @@
     bottom: 0;
     background: linear-gradient(45deg, rgba(236, 178, 195, 0.2), rgba(255, 255, 255, 0.1));
     opacity: 0.3;
+}
+
+/* CONTENIDO DESPLAZABLE */
+.detalles-info {
+    display: flex;
+    flex-direction: column;
 }
 
 .detalles-info h2 {
@@ -346,8 +357,6 @@
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(236, 178, 195, 0.4);
 }
-
-/* QUITADO: Botón Ver en AR */
 
 .ar-instructions {
     background: rgba(236, 178, 195, 0.05);
@@ -429,11 +438,6 @@
     color: #ECB2C3;
 }
 
-/* Ajustes para el modal con QR */
-.ar-instructions ol {
-    margin-top: 1rem;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
     .catalogo-content {
@@ -447,6 +451,12 @@
     .detalles-content {
         grid-template-columns: 1fr;
         gap: 1.5rem;
+    }
+    
+    /* En móvil la imagen ya no es sticky */
+    .detalles-imagen {
+        position: relative;
+        top: auto;
     }
     
     .productos-grid {
