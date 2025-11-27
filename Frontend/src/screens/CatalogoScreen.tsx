@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/CatalogoScreen.css';
 
+// Importar la imagen QR
+import qrImage from '../assets/images/QR-JOYERIA.png';
+
 interface Producto {
     id: number;
     nombre: string;
@@ -97,7 +100,7 @@ const CatalogoScreen: React.FC = () => {
     };
 
     const verEnAR = (producto: Producto) => {
-        alert(`🔮 Abriendo vista AR para: ${producto.nombre}\n\n📱 Escanea este código QR con tu app de Unity:\n\n[IMAGEN_QR_AQUI]\n\nO usa este enlace: unityapp://ar-view?product=${producto.id}`);
+        alert(`🔮 Vista AR para: ${producto.nombre}\n\n📱 Escanea el código QR con tu app de Unity para ver esta joya en Realidad Aumentada.`);
     };
 
     const cerrarDetalles = () => {
@@ -259,10 +262,22 @@ const CatalogoScreen: React.FC = () => {
 
                                     <div className="ar-instructions">
                                         <h4>¿Cómo ver en AR?</h4>
+                                        <div className="qr-section">
+                                            <img 
+                                                src={qrImage} 
+                                                alt="Código QR para Realidad Aumentada" 
+                                                className="qr-image"
+                                            />
+                                            <p className="qr-description">
+                                                Escanea este código QR con la aplicación de Unity 
+                                                para ver <strong>{productoSeleccionado.nombre}</strong> 
+                                                en Realidad Aumentada.
+                                            </p>
+                                        </div>
                                         <ol>
                                             <li>Haz click en "Ver en Realidad Aumentada"</li>
-                                            <li>Se abrirá tu aplicación de Unity</li>
-                                            <li>Escanea el código QR que se mostrará</li>
+                                            <li>Escanea el código QR con tu dispositivo móvil</li>
+                                            <li>Apunta la cámara a una superficie plana</li>
                                             <li>¡Disfruta de la joya en tu espacio!</li>
                                         </ol>
                                     </div>
