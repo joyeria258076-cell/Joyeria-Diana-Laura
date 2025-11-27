@@ -13,7 +13,7 @@ interface Producto {
 }
 
 const CatalogoScreen: React.FC = () => {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
     const [paginaActual, setPaginaActual] = useState(1);
@@ -97,7 +97,7 @@ const CatalogoScreen: React.FC = () => {
     };
 
     const verEnAR = (producto: Producto) => {
-        alert(`🔮 Abriendo vista AR para: ${producto.nombre}\n\nEsta funcionalidad abrirá la cámara de Unity para ver el producto en Realidad Aumentada.`);
+        alert(`🔮 Abriendo vista AR para: ${producto.nombre}\n\n📱 Escanea este código QR con tu app de Unity:\n\n[IMAGEN_QR_AQUI]\n\nO usa este enlace: unityapp://ar-view?product=${producto.id}`);
     };
 
     const cerrarDetalles = () => {
@@ -111,7 +111,55 @@ const CatalogoScreen: React.FC = () => {
 
     return (
         <div className="catalogo-container">
-            {/* Solo el contenido específico del catálogo - SIN header/footer */}
+            {/* Header */}
+            <header className="inicio-header">
+                <div className="header-content">
+                    <div className="logo">
+                        <span className="logo-initials">DL</span>
+                        <span className="logo-name">Diana Laura</span>
+                    </div>
+                    <nav className="nav-menu">
+                        <a 
+                            href="#inicio" 
+                            className="nav-link" 
+                            onClick={(e) => { e.preventDefault(); navigate("/inicio"); }}
+                        >
+                            Inicio
+                        </a>
+                        <a 
+                            href="#catalogo" 
+                            className="nav-link active"
+                        >
+                            Catálogo
+                        </a>
+                        <a href="#personalizados" className="nav-link">Personalizados</a>
+                        <a href="#nosotros" className="nav-link">Sobre Nosotros</a>
+                        <a href="#contacto" className="nav-link">Contacto</a>
+                    </nav>
+                    <div className="user-actions">
+                        <button 
+                            className="catalog-icon-btn"
+                            onClick={() => navigate("/catalogo")}
+                            title="Ver Catálogo"
+                        >
+                            🛍️
+                        </button>
+                        <button 
+                            className="profile-icon-btn"
+                            onClick={() => navigate("/perfil")}
+                            title="Mi Perfil"
+                        >
+                            👤
+                        </button>
+                        <span className="user-welcome">Hola, {user?.nombre}</span>
+                        <button className="logout-btn" onClick={logout}>
+                            Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            {/* Contenido del Catálogo */}
             <div className="catalogo-content">
                 {/* Hero Section del Catálogo */}
                 <section className="catalogo-hero">
@@ -213,8 +261,8 @@ const CatalogoScreen: React.FC = () => {
                                         <h4>¿Cómo ver en AR?</h4>
                                         <ol>
                                             <li>Haz click en "Ver en Realidad Aumentada"</li>
-                                            <li>Permite el acceso a la cámara</li>
-                                            <li>Apunta a una superficie plana</li>
+                                            <li>Se abrirá tu aplicación de Unity</li>
+                                            <li>Escanea el código QR que se mostrará</li>
                                             <li>¡Disfruta de la joya en tu espacio!</li>
                                         </ol>
                                     </div>
@@ -224,6 +272,49 @@ const CatalogoScreen: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Footer */}
+            <footer className="inicio-footer">
+                <div className="footer-content">
+                    <div className="footer-brand">
+                        <div className="logo">
+                            <span className="logo-initials">DL</span>
+                            <span className="logo-name">Diana Laura</span>
+                        </div>
+                        <p className="footer-tagline">
+                            Joyería y Bisutería con esencia femenina
+                        </p>
+                    </div>
+                    <div className="footer-links">
+                        <div className="link-group">
+                            <h4>Colecciones</h4>
+                            <a href="#anillos">Anillos</a>
+                            <a href="#collares">Collares</a>
+                            <a href="#aretes">Aretes</a>
+                            <a href="#pulseras">Pulseras</a>
+                        </div>
+                        <div className="link-group">
+                            <h4>Empresa</h4>
+                            <a href="#nosotros">Sobre Nosotros</a>
+                            <a href="#contacto">Contacto</a>
+                            <a href="#personalizados">Diseños Personalizados</a>
+                        </div>
+                        <div className="link-group">
+                            <h4>Legal</h4>
+                            <a href="#privacidad">Política de Privacidad</a>
+                            <a href="#terminos">Términos y Condiciones</a>
+                        </div>
+                    </div>
+                </div>
+                <div className="footer-bottom">
+                    <p>&copy; 2025 Diana Laura - Joyería y Bisutería. Todos los derechos reservados.</p>
+                    <div className="social-links">
+                        <a href="#" className="social-link">📱</a>
+                        <a href="#" className="social-link">📷</a>
+                        <a href="#" className="social-link">👤</a>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 };
