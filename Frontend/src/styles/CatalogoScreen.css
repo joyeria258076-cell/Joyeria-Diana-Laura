@@ -347,35 +347,21 @@
     box-shadow: 0 8px 25px rgba(236, 178, 195, 0.4);
 }
 
-.btn-ver-ar {
-    padding: 1rem;
-    background: transparent;
-    color: #ECB2C3;
-    border: 1px solid #ECB2C3;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
-}
-
-.btn-ver-ar:hover {
-    background: rgba(236, 178, 195, 0.1);
-    transform: translateY(-2px);
-}
+/* QUITADO: Botón Ver en AR */
 
 .ar-instructions {
     background: rgba(236, 178, 195, 0.05);
     padding: 1.5rem;
     border-radius: 8px;
     border-left: 4px solid #ECB2C3;
+    margin-top: 2rem;
 }
 
 .ar-instructions h4 {
     margin: 0 0 1rem 0;
     color: #FFFFFF;
     font-family: 'Playfair Display', serif;
+    text-align: center;
 }
 
 .ar-instructions ol {
@@ -388,7 +374,7 @@
     color: #D9D9D9;
 }
 
-/* Estilos para la sección QR en el modal */
+/* Estilos para la sección QR en el modal - IMAGEN NATURAL */
 .qr-section {
     text-align: center;
     margin-bottom: 1.5rem;
@@ -398,17 +384,16 @@
     border: 1px solid rgba(236, 178, 195, 0.2);
 }
 
-/* Contenedor para la imagen QR - cargada desde CSS */
+/* QR NATURAL - SIN DEFORMACIÓN */
 .qr-image-container {
-    width: 200px;
-    height: 200px;
+    width: 250px;
+    height: 250px;
     margin: 0 auto 1rem auto;
     background: 
-        linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 100%),
         url('../assets/images/QR_JOYERIA.png') center/contain no-repeat;
-    border-radius: 8px;
+    border-radius: 12px;
     border: 2px solid rgba(236, 178, 195, 0.3);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     position: relative;
     overflow: hidden;
 }
@@ -437,6 +422,7 @@
     line-height: 1.4;
     margin: 0;
     font-family: 'Montserrat', sans-serif;
+    text-align: center;
 }
 
 .qr-description strong {
@@ -477,8 +463,8 @@
     }
 
     .qr-image-container {
-        width: 150px;
-        height: 150px;
+        width: 200px;
+        height: 200px;
     }
     
     .qr-section {
@@ -488,7 +474,7 @@
 
 @media (max-width: 480px) {
     .qr-image-container {
-        width: 120px;
-        height: 120px;
+        width: 180px;
+        height: 180px;
     }
 }

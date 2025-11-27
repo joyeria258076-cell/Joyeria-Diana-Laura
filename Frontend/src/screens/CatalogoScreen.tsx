@@ -96,10 +96,6 @@ const CatalogoScreen: React.FC = () => {
         setProductoSeleccionado(producto);
     };
 
-    const verEnAR = (producto: Producto) => {
-        alert(`🔮 Vista AR para: ${producto.nombre}\n\n📱 Escanea el código QR con tu app de Unity para ver esta joya en Realidad Aumentada.`);
-    };
-
     const cerrarDetalles = () => {
         setProductoSeleccionado(null);
     };
@@ -248,12 +244,6 @@ const CatalogoScreen: React.FC = () => {
                                     <div className="detalles-acciones">
                                         <button className="btn-comprar">
                                             Agregar al Carrito
-                                        </button>
-                                        <button 
-                                            className="btn-ver-ar"
-                                            onClick={() => verEnAR(productoSeleccionado)}
-                                        >
-                                            👁️ Ver en Realidad Aumentada
                                         </button>
                                     </div>
 
