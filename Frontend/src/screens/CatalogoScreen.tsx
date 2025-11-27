@@ -13,7 +13,7 @@ interface Producto {
 }
 
 const CatalogoScreen: React.FC = () => {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
     const [paginaActual, setPaginaActual] = useState(1);
@@ -98,7 +98,6 @@ const CatalogoScreen: React.FC = () => {
 
     const verEnAR = (producto: Producto) => {
         alert(`🔮 Abriendo vista AR para: ${producto.nombre}\n\nEsta funcionalidad abrirá la cámara de Unity para ver el producto en Realidad Aumentada.`);
-        // Aquí después integrarás con tu APK de Unity
     };
 
     const cerrarDetalles = () => {
@@ -112,161 +111,119 @@ const CatalogoScreen: React.FC = () => {
 
     return (
         <div className="catalogo-container">
-            {/* Header (igual al de InicioScreen) */}
-            <header className="catalogo-header">
-                <div className="header-content">
-                    <div className="logo">
-                        <span className="logo-initials">DL</span>
-                        <span className="logo-name">Diana Laura</span>
-                    </div>
-                    <nav className="nav-menu">
-                        <a href="#inicio" className="nav-link" onClick={() => navigate("/inicio")}>Inicio</a>
-                        <a href="#colecciones" className="nav-link active">Catálogo</a>
-                        <a href="#personalizados" className="nav-link">Personalizados</a>
-                        <a href="#nosotros" className="nav-link">Sobre Nosotros</a>
-                        <a href="#contacto" className="nav-link">Contacto</a>
-                    </nav>
-                    <div className="user-actions">
-                        <button 
-                            className="catalog-icon-btn"
-                            onClick={() => navigate("/catalogo")}
-                            title="Ver Catálogo"
-                        >
-                            🛍️
-                        </button>
-                        <button 
-                            className="profile-icon-btn"
-                            onClick={() => navigate("/perfil")}
-                            title="Mi Perfil"
-                        >
-                            👤
-                        </button>
-                        <span className="user-welcome">Hola, {user?.nombre}</span>
-                        <button className="logout-btn" onClick={logout}>
-                            Cerrar Sesión
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            {/* Contenido del Catálogo */}
+            {/* Solo el contenido específico del catálogo - SIN header/footer */}
             <div className="catalogo-content">
-                <div className="catalogo-hero">
-                    <h1>Nuestro Catálogo Exclusivo</h1>
-                    <p>Descubre piezas únicas elaboradas con los más altos estándares de calidad</p>
-                </div>
+                {/* Hero Section del Catálogo */}
+                <section className="catalogo-hero">
+                    <h1 className="catalogo-title">
+                        Nuestro Catálogo Exclusivo
+                    </h1>
+                    <p className="catalogo-description">
+                        Descubre piezas únicas elaboradas con los más altos estándares de calidad. 
+                        Cada joya cuenta una historia especial.
+                    </p>
+                </section>
 
-                {/* Grid de productos - 4 por página */}
-                <div className="productos-grid">
-                    {productosActuales.map((producto) => (
-                        <div key={producto.id} className="producto-card">
-                            <div className="producto-imagen">
-                                <div className="placeholder-imagen">
-                                    {producto.nombre.charAt(0)}
-                                </div>
-                            </div>
-                            <div className="producto-info">
-                                <h3>{producto.nombre}</h3>
-                                <p className="producto-precio">${producto.precio.toLocaleString()}</p>
-                                <p className="producto-categoria">{producto.categoria}</p>
-                                <button 
-                                    className="btn-ver-detalles"
-                                    onClick={() => verDetalles(producto)}
-                                >
-                                    Ver Detalles
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Paginación */}
-                <div className="paginacion">
-                    <button 
-                        className="btn-pagina" 
-                        disabled={paginaActual === 1}
-                        onClick={() => cambiarPagina(paginaActual - 1)}
-                    >
-                        ← Anterior
-                    </button>
+                {/* Grid de Productos */}
+                <section className="productos-section">
+                    <div className="section-header">
+                        <h2 className="section-title">Productos Destacados</h2>
+                        <p className="section-subtitle">Explora nuestra colección de joyas excepcionales</p>
+                    </div>
                     
-                    <span className="info-pagina">
-                        Página {paginaActual} de {totalPaginas}
-                    </span>
-                    
-                    <button 
-                        className="btn-pagina"
-                        disabled={paginaActual === totalPaginas}
-                        onClick={() => cambiarPagina(paginaActual + 1)}
-                    >
-                        Siguiente →
-                    </button>
-                </div>
-            </div>
-
-            {/* Modal de Detalles */}
-            {productoSeleccionado && (
-                <div className="modal-overlay">
-                    <div className="modal-detalles">
-                        <button className="btn-cerrar" onClick={cerrarDetalles}>×</button>
-                        
-                        <div className="detalles-content">
-                            <div className="detalles-imagen">
-                                <div className="placeholder-imagen grande">
-                                    {productoSeleccionado.nombre.charAt(0)}
+                    <div className="productos-grid">
+                        {productosActuales.map((producto) => (
+                            <div key={producto.id} className="producto-card">
+                                <div className="producto-imagen">
+                                    <div className="placeholder-imagen">
+                                        💎
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <div className="detalles-info">
-                                <h2>{productoSeleccionado.nombre}</h2>
-                                <p className="detalles-precio">${productoSeleccionado.precio.toLocaleString()}</p>
-                                <p className="detalles-descripcion">{productoSeleccionado.descripcion}</p>
-                                <p className="detalles-categoria">Categoría: {productoSeleccionado.categoria}</p>
-                                
-                                <div className="detalles-acciones">
-                                    <button className="btn-comprar">
-                                        Agregar al Carrito
-                                    </button>
+                                <div className="producto-info">
+                                    <h3 className="producto-nombre">{producto.nombre}</h3>
+                                    <p className="producto-precio">${producto.precio.toLocaleString()}</p>
+                                    <p className="producto-categoria">{producto.categoria}</p>
                                     <button 
-                                        className="btn-ver-ar"
-                                        onClick={() => verEnAR(productoSeleccionado)}
+                                        className="btn-ver-detalles"
+                                        onClick={() => verDetalles(producto)}
                                     >
-                                        👁️ Ver en Realidad Aumentada
+                                        Ver Detalles
                                     </button>
                                 </div>
+                            </div>
+                        ))}
+                    </div>
 
-                                <div className="ar-instructions">
-                                    <h4>¿Cómo ver en AR?</h4>
-                                    <ol>
-                                        <li>Haz click en "Ver en Realidad Aumentada"</li>
-                                        <li>Permite el acceso a la cámara</li>
-                                        <li>Apunta a una superficie plana</li>
-                                        <li>¡Disfruta de la joya en tu espacio!</li>
-                                    </ol>
+                    {/* Paginación */}
+                    <div className="paginacion">
+                        <button 
+                            className="btn-pagina" 
+                            disabled={paginaActual === 1}
+                            onClick={() => cambiarPagina(paginaActual - 1)}
+                        >
+                            ← Anterior
+                        </button>
+                        
+                        <span className="info-pagina">
+                            Página {paginaActual} de {totalPaginas}
+                        </span>
+                        
+                        <button 
+                            className="btn-pagina"
+                            disabled={paginaActual === totalPaginas}
+                            onClick={() => cambiarPagina(paginaActual + 1)}
+                        >
+                            Siguiente →
+                        </button>
+                    </div>
+                </section>
+
+                {/* Modal de Detalles */}
+                {productoSeleccionado && (
+                    <div className="modal-overlay">
+                        <div className="modal-detalles">
+                            <button className="btn-cerrar" onClick={cerrarDetalles}>×</button>
+                            
+                            <div className="detalles-content">
+                                <div className="detalles-imagen">
+                                    <div className="placeholder-imagen grande">
+                                        💎
+                                    </div>
+                                </div>
+                                
+                                <div className="detalles-info">
+                                    <h2>{productoSeleccionado.nombre}</h2>
+                                    <p className="detalles-precio">${productoSeleccionado.precio.toLocaleString()}</p>
+                                    <p className="detalles-descripcion">{productoSeleccionado.descripcion}</p>
+                                    <p className="detalles-categoria">Categoría: {productoSeleccionado.categoria}</p>
+                                    
+                                    <div className="detalles-acciones">
+                                        <button className="btn-comprar">
+                                            Agregar al Carrito
+                                        </button>
+                                        <button 
+                                            className="btn-ver-ar"
+                                            onClick={() => verEnAR(productoSeleccionado)}
+                                        >
+                                            👁️ Ver en Realidad Aumentada
+                                        </button>
+                                    </div>
+
+                                    <div className="ar-instructions">
+                                        <h4>¿Cómo ver en AR?</h4>
+                                        <ol>
+                                            <li>Haz click en "Ver en Realidad Aumentada"</li>
+                                            <li>Permite el acceso a la cámara</li>
+                                            <li>Apunta a una superficie plana</li>
+                                            <li>¡Disfruta de la joya en tu espacio!</li>
+                                        </ol>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Footer */}
-            <footer className="catalogo-footer">
-                <div className="footer-content">
-                    <div className="footer-brand">
-                        <div className="logo">
-                            <span className="logo-initials">DL</span>
-                            <span className="logo-name">Diana Laura</span>
-                        </div>
-                        <p className="footer-tagline">
-                            Joyería y Bisutería con esencia femenina
-                        </p>
-                    </div>
-                </div>
-                <div className="footer-bottom">
-                    <p>&copy; 2025 Diana Laura - Joyería y Bisutería. Todos los derechos reservados.</p>
-                </div>
-            </footer>
+                )}
+            </div>
         </div>
     );
 };
