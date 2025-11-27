@@ -508,48 +508,52 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`📧 Verificando límites para: ${email}`);
+    console.log(`📧 Proceso de recuperación iniciado para: ${email}`);
     
-    // 🛡️ VERIFICAR LÍMITES - CORREGIDO
-    const limitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
+    // 🛡️ PRIMERO: Verificar límites ANTES de incrementar
+    console.log(`🔍 Verificando límites actuales para: ${email}`);
+    const initialLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
     
-    console.log(`📊 Resultado de límites:`, limitCheck);
+    console.log(`📊 Límites iniciales:`, initialLimitCheck);
     
-    if (!limitCheck.allowed) {
-      console.log(`🚫 BLOQUEO ACTIVO: ${email} - ${limitCheck.remainingTime} minutos restantes`);
+    if (!initialLimitCheck.allowed) {
+      console.log(`🚫 BLOQUEO DETECTADO: ${email} - ${initialLimitCheck.remainingTime} minutos restantes`);
       return res.status(429).json({
         success: false,
-        message: `Demasiados intentos de recuperación. Intente nuevamente en ${limitCheck.remainingTime} minutos.`,
+        message: `Demasiados intentos de recuperación. Intente nuevamente en ${initialLimitCheck.remainingTime} minutos.`,
         blocked: true,
-        remainingTime: limitCheck.remainingTime,
+        remainingTime: initialLimitCheck.remainingTime,
         remainingAttempts: 0
       });
     }
 
-    // 🛡️ INCREMENTAR INTENTOS - CORREGIDO (solo si está permitido)
+    // 🛡️ SEGUNDO: Si está permitido, INCREMENTAR intentos
     console.log(`📈 Incrementando intentos para: ${email}`);
     await RecoverySecurityService.incrementRecoveryAttempts(email);
     
-    // 🆕 VERIFICAR NUEVAMENTE LOS LÍMITES DESPUÉS DE INCREMENTAR
+    // 🛡️ TERCERO: Verificar límites DESPUÉS de incrementar
+    console.log(`🔍 Verificando límites actualizados para: ${email}`);
     const updatedLimitCheck = await RecoverySecurityService.checkRecoveryLimits(email);
     
-    console.log(`✅ Intento permitido para: ${email}, intentos restantes: ${updatedLimitCheck.remainingAttempts}`);
+    console.log(`📊 Límites actualizados:`, updatedLimitCheck);
 
-    // 🎯 DEVOLVER ÉXITO CON LOS INTENTOS ACTUALIZADOS
+    // 🎯 CUARTO: Devolver respuesta con los intentos ACTUALIZADOS
+    console.log(`✅ Proceso completado para: ${email}, intentos restantes: ${updatedLimitCheck.remainingAttempts}`);
+
     res.json({
       success: true,
-      message: 'Puedes enviar el email de recuperación',
-      remainingAttempts: updatedLimitCheck.remainingAttempts
+      message: 'Se ha procesado tu solicitud de recuperación',
+      remainingAttempts: updatedLimitCheck.remainingAttempts,
+      blocked: !updatedLimitCheck.allowed
     });
 
-  } catch (error) {
-    console.error('Error en forgotPassword:', error);
+  } catch (error: any) {
+    console.error('❌ Error en forgotPassword:', error);
     
-    // En caso de error, permitir que el frontend intente igual
-    res.json({
-      success: true,
-      message: 'Procediendo con el envío de email',
-      remainingAttempts: 3 // Valor por defecto
+    // En caso de error, devolver error específico
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor al procesar la recuperación: ' + error.message
     });
   }
 };
