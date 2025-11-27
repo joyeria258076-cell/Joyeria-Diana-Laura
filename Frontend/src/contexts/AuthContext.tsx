@@ -454,8 +454,6 @@ useEffect(() => {
     }
   };
 
-// En AuthContext.tsx - REEMPLAZAR la función sendPasswordReset completa: - CÓDIGO EXISTENTE
-
 const sendPasswordReset = async (email: string): Promise<{
   success: boolean;
   message: string;
@@ -523,25 +521,34 @@ const sendPasswordReset = async (email: string): Promise<{
 
     console.log('✅ Límites verificados:', data);
     
-    // 🎯 CORRECCIÓN: Usar sendPasswordResetEmail normal pero con URL personalizada
-    console.log('🚀 Enviando email de recuperación con Firebase...');
-    
-    const actionCodeSettings = {
-      url: `${window.location.origin}/reiniciar`,
-      handleCodeInApp: false
-    };
-    
-    console.log('🔗 URL de redirección:', actionCodeSettings.url);
-    
-    await firebaseSendPasswordReset(auth, email, actionCodeSettings);
-    
-    console.log('✅ Email de recuperación enviado por Firebase');
-    
-    return {
-      success: true,
-      message: 'Se ha enviado un enlace de recuperación a tu email. Revisa tu bandeja de entrada y carpeta de spam.',
-      remainingAttempts: data.remainingAttempts
-    };
+    // 🆕 CORRECCIÓN: SOLO enviar email si los límites lo permiten
+    if (data.success && data.remainingAttempts > 0) {
+      console.log('🚀 Enviando email de recuperación con Firebase...');
+      
+      const actionCodeSettings = {
+        url: `${window.location.origin}/reiniciar`,
+        handleCodeInApp: false
+      };
+      
+      console.log('🔗 URL de redirección:', actionCodeSettings.url);
+      
+      await firebaseSendPasswordReset(auth, email, actionCodeSettings);
+      
+      console.log('✅ Email de recuperación enviado por Firebase');
+      
+      return {
+        success: true,
+        message: 'Se ha enviado un enlace de recuperación a tu email. Revisa tu bandeja de entrada y carpeta de spam.',
+        remainingAttempts: data.remainingAttempts
+      };
+    } else {
+      // 🆕 CORRECCIÓN: Si no hay intentos restantes, no enviar email
+      return {
+        success: false,
+        message: 'No se pudo enviar el email. Límite de intentos alcanzado.',
+        remainingAttempts: 0
+      };
+    }
     
   } catch (error: any) {
     console.error('❌ Error en sendPasswordReset:', error);

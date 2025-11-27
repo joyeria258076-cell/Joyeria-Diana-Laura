@@ -1,3 +1,5 @@
+// Ruta: Joyeria-Diana-Laura/Frontend/src/screens/RecuperarConPreguntaScreen.tsx
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -48,11 +50,9 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     const { 
         register, 
         handleSubmit, 
-        formState: { errors, isValid },
+        formState: { errors },
         watch,
-        trigger,
-        setValue,
-        reset
+        setValue
     } = useForm<FormData>({ 
         resolver: zodResolver(schema),
         mode: 'onChange'
@@ -106,7 +106,13 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     const verifyAnswer = async () => {
         console.log('🔍 Iniciando verificación de respuesta...');
         
-        if (!userId || !securityAnswerValue) {
+        if (!userId) {
+            setMessage('❌ Error: Usuario no identificado');
+            setMessageType('error');
+            return;
+        }
+
+        if (!securityAnswerValue || securityAnswerValue.trim().length === 0) {
             setMessage('❌ Por favor ingresa una respuesta');
             setMessageType('error');
             return;
@@ -216,17 +222,12 @@ const RecuperarConPreguntaScreen: React.FC = () => {
         console.log('📝 Formulario enviado, paso actual:', step);
         
         if (step === 'question') {
+            // En el paso de pregunta, usar verifyAnswer directamente
             await verifyAnswer();
         } else {
+            // En el paso de contraseña, usar changePassword
             await changePassword(data);
         }
-    };
-
-    // 🆕 FUNCIÓN SEPARADA para el botón de verificar
-    const handleVerifyClick = async (e: React.FormEvent) => {
-        e.preventDefault();
-        console.log('🔄 Botón de verificar clickeado');
-        await verifyAnswer();
     };
 
     if (loading && !securityQuestion) {
@@ -272,8 +273,9 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                     </div>
                 )}
 
+                {/* 🆕 CORRECCIÓN: Formulario único que maneja ambos pasos */}
                 <form onSubmit={handleSubmit(onSubmit)} className="recuperar-pregunta-form">
-                    {/* 🆕 PASO 1: PREGUNTA SECRETA */}
+                    {/* PASO 1: PREGUNTA SECRETA */}
                     {step === 'question' && (
                         <div className="question-step">
                             <div className="security-question-display">
@@ -301,8 +303,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                             </div>
 
                             <button 
-                                type="button" // 🆕 CAMBIADO A button (no submit)
-                                onClick={handleVerifyClick} // 🆕 USAR FUNCIÓN SEPARADA
+                                type="submit" // 🆕 CORRECCIÓN: type="submit" para que funcione con el formulario
                                 disabled={loading || !securityAnswerValue}
                                 className="verify-button"
                             >
@@ -311,7 +312,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                         </div>
                     )}
 
-                    {/* 🆕 PASO 2: NUEVA CONTRASEÑA */}
+                    {/* PASO 2: NUEVA CONTRASEÑA */}
                     {step === 'password' && (
                         <div className="password-step">
                             <div className="success-verification">
