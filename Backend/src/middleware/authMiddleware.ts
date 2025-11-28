@@ -2,6 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { SessionService } from '../services/SessionService';
+import { JWTService } from '../services/JWTService';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_2024_joyeria_diana_laura';
 
@@ -14,7 +15,7 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
-  // 🆕 VERIFICACIÓN MÁS FLEXIBLE: También aceptar sessionToken en header
+  // 🎯 VERIFICACIÓN MÁS FLEXIBLE: También aceptar sessionToken en header
   const sessionToken = req.headers['x-session-token'] as string;
 
   if (!token && !sessionToken) {
@@ -25,13 +26,15 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
   }
 
   try {
-    // 🆕 ESTRATEGIA DUAL: Intentar con JWT primero, luego con sessionToken
+    // 🎯 ESTRATEGIA DUAL: Intentar con JWT primero, luego con sessionToken
     let decoded: any;
-    let sessionIdToVerify: string = ''; // 🆕 INICIALIZAR LA VARIABLE
+    let sessionIdToVerify: string = '';
 
     if (token) {
-      console.log('🔐 Verificando token JWT...');
-      decoded = jwt.verify(token, JWT_SECRET) as any;
+      console.log('🔐 Verificando token JWT seguro...');
+      
+      // 🎯 VERIFICACIÓN JWT MEJORADA
+      decoded = JWTService.verifyToken(token);
       
       if (!decoded.sessionId) {
         console.error('❌ Token JWT inválido: falta sessionId');
@@ -68,7 +71,7 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
       });
     }
 
-    // 🆕 VERIFICAR QUE sessionIdToVerify ESTÉ ASIGNADA
+    // 🎯 VERIFICAR QUE sessionIdToVerify ESTÉ ASIGNADA
     if (!sessionIdToVerify) {
       return res.status(401).json({
         success: false,
@@ -76,7 +79,7 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
       });
     }
 
-    // 🆕 VERIFICACIÓN OBLIGATORIA DE SESIÓN ACTIVA EN BD
+    // 🎯 VERIFICACIÓN OBLIGATORIA DE SESIÓN ACTIVA EN BD
     console.log('🔍 Verificando sesión en base de datos...');
     const sessionResult = await SessionService.getSessionByToken(sessionIdToVerify);
     
@@ -111,7 +114,7 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
       });
     }
 
-    // 🆕 Actualizar última actividad
+    // 🎯 Actualizar última actividad
     console.log('🔄 Actualizando última actividad de la sesión...');
     await SessionService.updateLastActivity(sessionIdToVerify);
 
@@ -119,25 +122,25 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
     req.user = decoded;
     req.sessionId = sessionIdToVerify;
     
-    console.log(`✅ Autenticación exitosa para sesión: ${sessionIdToVerify.substring(0, 10)}...`);
+    console.log(`✅ Autenticación segura exitosa para sesión: ${sessionIdToVerify.substring(0, 10)}...`);
     next();
 
   } catch (error: any) {
-    console.error('❌ Error en autenticación:', error);
+    console.error('❌ Error en autenticación segura:', error);
     
-    if (error instanceof jwt.JsonWebTokenError) {
-      console.error('❌ Token JWT inválido:', error.message);
+    // 🎯 MANEJO MEJORADO DE ERRORES JWT
+    if (error.message.includes('SESSION_EXPIRED')) {
       return res.status(403).json({
         success: false,
-        message: 'Token inválido'
+        message: 'Sesión expirada',
+        expired: true
       });
     }
     
-    if (error instanceof jwt.TokenExpiredError) {
-      console.error('❌ Token JWT expirado:', error.message);
+    if (error.message.includes('INVALID_TOKEN')) {
       return res.status(403).json({
         success: false,
-        message: 'Token expirado'
+        message: 'Token inválido'
       });
     }
     
@@ -145,6 +148,41 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
     return res.status(500).json({
       success: false,
       message: 'Error interno del servidor en autenticación'
+    });
+  }
+};
+
+// 🎯 MIDDLEWARE PARA OBTENER INFORMACIÓN DEL TOKEN SIN VERIFICAR (solo debugging)
+export const getTokenInfo = async (req: Request, res: Response) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(400).json({
+      success: false,
+      message: 'Token requerido'
+    });
+  }
+
+  try {
+    const tokenInfo = JWTService.getTokenInfo(token);
+    const decoded = JWTService.decodeToken(token);
+
+    res.json({
+      success: true,
+      data: {
+        tokenInfo,
+        decoded: decoded ? {
+          userId: decoded.userId,
+          email: decoded.email,
+          sessionId: decoded.sessionId ? `${decoded.sessionId.substring(0, 10)}...` : null
+        } : null
+      }
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message
     });
   }
 };

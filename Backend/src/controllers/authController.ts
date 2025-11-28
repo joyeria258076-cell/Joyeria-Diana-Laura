@@ -9,6 +9,7 @@ import { RecoverySecurityService } from '../services/recoverySecurityService';
 import { SessionService } from '../services/SessionService';
 import { getUserByEmail } from '../models/userModel';
 import jwt from 'jsonwebtoken';
+import { JWTService } from '../services/JWTService';
 
 // 🎯 FUNCIÓN MEJORADA para obtener IP real del cliente
 const getClientIp = (req: Request): string => {
@@ -338,21 +339,16 @@ export const login = async (req: Request, res: Response) => {
           if (sessionResult.success && sessionResult.sessionToken) {
             console.log(`✅ Sesión registrada para: ${userEmail}, Session Token: ${sessionResult.sessionToken.substring(0, 10)}...`);
             
-            // 🆕 GENERAR JWT CON sessionId
-            const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_2024_joyeria_diana_laura';
-            const token = jwt.sign(
-              { 
-                userId: dbUser.id,
-                firebaseUid: userRecord.uid,
-                email: userEmail,
-                nombre: userName,
-                sessionId: sessionResult.sessionToken
-              },
-              JWT_SECRET,
-              { expiresIn: '30d' }
-            );
+            // 🎯 GENERAR JWT SEGURO CON EL NUEVO SERVICIO
+            const token = JWTService.generateToken({
+              userId: dbUser.id,
+              firebaseUid: userRecord.uid,
+              email: userEmail,
+              nombre: userName,
+              sessionId: sessionResult.sessionToken
+            });
 
-            console.log(`✅ LOGIN EXITOSO para: ${email}`);
+            console.log(`✅ LOGIN EXITOSO con JWT seguro para: ${email}`);
             console.log(`🔐 JWT generado con sessionId: ${sessionResult.sessionToken.substring(0, 10)}...`);
             
             return res.json({

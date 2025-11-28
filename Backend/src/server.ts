@@ -7,6 +7,8 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import { LoginSecurityService } from './services/loginSecurityService';
 import securityQuestionRoutes from './routes/securityQuestionRoutes';
+import { getTokenInfo } from './middleware/authMiddleware';
+import { JWTConfig } from './config/jwtConfig';
 
 dotenv.config();
 
@@ -28,6 +30,25 @@ app.use(cors({
     'X-Session-Token'  // 🆕 AGREGADO PARA REVOCACIÓN DE SESIONES
   ]
 }));
+
+// 🎯 AGREGAR ESTE ENDPOINT PARA DIAGNÓSTICO JWT
+app.get('/api/jwt-info', getTokenInfo);
+
+app.get('/api/jwt-config', (req, res) => {
+  // No exponer el secret real, solo información de configuración
+  res.json({
+    success: true,
+    data: {
+      algorithm: 'HS256',
+      expiresIn: '30d',
+      issuer: 'joyeria-diana-laura-backend',
+      audience: 'joyeria-diana-laura-frontend',
+      secretLength: JWTConfig.getSecret().length,
+      configValid: JWTConfig.getSecret().length >= 32
+    }
+  });
+});
+
 
 // 🆕 AGREGAR HANDLER EXPLÍCITO PARA PREFLIGHT (IMPORTANTE PARA CORS)
 app.options('*', cors());

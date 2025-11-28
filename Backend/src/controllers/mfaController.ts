@@ -4,6 +4,7 @@ import { MFAService } from '../services/MFAService';
 import { pool } from '../config/database';
 import { SessionService } from '../services/SessionService';
 import jwt from 'jsonwebtoken';
+import { JWTService } from '../services/JWTService';
 
 export const mfaController = {
   /**
@@ -188,7 +189,7 @@ export const mfaController = {
 
       console.log(`✅ MFA verificado para login usuario: ${userId}`);
 
-      // 🆕 CORRECCIÓN COMPLETA: CREAR SESIÓN DESPUÉS DE MFA
+      // 🎯 CORRECCIÓN COMPLETA: CREAR SESIÓN DESPUÉS DE MFA CON JWT SEGURO
       try {
         const clientIp = req.headers['x-forwarded-for'] || 
                         req.connection.remoteAddress || 
@@ -209,28 +210,22 @@ export const mfaController = {
         );
 
         if (sessionResult.success && sessionResult.sessionToken) {
-          // 🆕 GENERAR JWT COMPLETO
-          const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_2024_joyeria_diana_laura';
-          const jwtToken = jwt.sign(
-            { 
-              userId: userId,
-              firebaseUid: user.firebase_uid,
-              email: user.email,
-              nombre: user.nombre,
-              sessionId: sessionResult.sessionToken
-            },
-            JWT_SECRET,
-            { expiresIn: '30d' }
-          );
+          // 🎯 GENERAR JWT SEGURO CON EL NUEVO SERVICIO
+          const jwtToken = JWTService.generateToken({
+            userId: userId,
+            firebaseUid: user.firebase_uid,
+            email: user.email,
+            nombre: user.nombre,
+            sessionId: sessionResult.sessionToken
+          });
 
-          console.log(`✅ Sesión y JWT creados después de MFA para: ${user.email}`);
+          console.log(`✅ Sesión y JWT seguro creados después de MFA para: ${user.email}`);
 
           return res.json({ 
             success: true, 
             mfaRequired: true, 
             verified: true,
             message: 'MFA verificado correctamente',
-            // 🆕 DATOS COMPLETOS PARA EL FRONTEND
             data: {
               user: {
                 id: user.firebase_uid,

@@ -122,6 +122,17 @@ const enhancedApi = new EnhancedApiService(API_BASE_URL);
 
 // 🎯 MANTENER TU authAPI EXISTENTE EXACTA
 export const authAPI = {
+
+    // 🎯 NUEVA FUNCIÓN: Obtener información del token JWT
+  getJWTInfo: async () => {
+    return enhancedApi.get('/jwt-info');
+  },
+
+  // 🎯 NUEVA FUNCIÓN: Verificar configuración JWT
+  getJWTConfig: async () => {
+    return enhancedApi.get('/jwt-config');
+  },
+  
   // 🎯 NUEVA FUNCIÓN: Verificar estado de bloqueo
   checkAccountLock: async (data: { email: string }) => {
     return apiRequest('/auth/check-account-lock', {
