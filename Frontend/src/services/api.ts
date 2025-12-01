@@ -1,5 +1,5 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/services/api.ts
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
 
 // 🎯 MANTENER TU FUNCIÓN ORIGINAL EXACTA
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
