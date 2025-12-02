@@ -9,6 +9,7 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
         'Content-Type': 'application/json',
         ...options.headers,
       },
+        credentials: 'include',
       ...options,
     });
 
@@ -72,6 +73,7 @@ class EnhancedApiService {
     }
 
     const config: RequestInit = {
+      credentials: 'include', 
       headers: {
         ...headers,
         ...options.headers,
@@ -213,6 +215,7 @@ export const authAPI = {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ email }),
       });
 

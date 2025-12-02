@@ -10,6 +10,7 @@ import { SessionService } from '../services/SessionService';
 import { getUserByEmail } from '../models/userModel';
 import jwt from 'jsonwebtoken';
 import { JWTService } from '../services/JWTService';
+import { CookieConfig } from '../config/cookieConfig'; // 🆕 LÍNEA NUEVA
 
 // 🎯 FUNCIÓN MEJORADA para obtener IP real del cliente
 const getClientIp = (req: Request): string => {
@@ -351,6 +352,9 @@ export const login = async (req: Request, res: Response) => {
             console.log(`✅ LOGIN EXITOSO con JWT seguro para: ${email}`);
             console.log(`🔐 JWT generado con sessionId: ${sessionResult.sessionToken.substring(0, 10)}...`);
             
+            res.cookie('auth_token', token, CookieConfig.getConfig());
+            console.log(`🍪 Cookie configurada (${CookieConfig.isProduction ? 'PROD' : 'DEV'})`);
+
             return res.json({
               success: true,
               message: 'Login exitoso',
@@ -1169,6 +1173,9 @@ export const logout = async (req: any, res: Response) => {
       await SessionService.revokeSessionByToken(sessionToken);
       console.log(`✅ Sesión revocada en logout: ${sessionToken.substring(0, 10)}...`);
     }
+
+    res.clearCookie('auth_token', CookieConfig.getClearConfig());
+    console.log(`🍪 Cookie eliminada (${CookieConfig.isProduction ? 'PROD' : 'DEV'})`);
 
     res.json({
       success: true,

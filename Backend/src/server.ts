@@ -9,6 +9,8 @@ import { LoginSecurityService } from './services/loginSecurityService';
 import securityQuestionRoutes from './routes/securityQuestionRoutes';
 import { getTokenInfo } from './middleware/authMiddleware';
 import { JWTConfig } from './config/jwtConfig';
+import cookieParser from 'cookie-parser'; // 🆕 NUEVO
+import { cookieAuthMiddleware } from './middleware/cookieMiddleware'; // 🆕 NUEVO
 
 dotenv.config();
 
@@ -30,6 +32,9 @@ app.use(cors({
     'X-Session-Token'  // 🆕 AGREGADO PARA REVOCACIÓN DE SESIONES
   ]
 }));
+
+app.use(cookieParser()); // 🆕 LÍNEA NUEVA
+app.use(cookieAuthMiddleware); // 🆕 LÍNEA NUEVA
 
 // 🎯 AGREGAR ESTE ENDPOINT PARA DIAGNÓSTICO JWT
 app.get('/api/jwt-info', getTokenInfo);
