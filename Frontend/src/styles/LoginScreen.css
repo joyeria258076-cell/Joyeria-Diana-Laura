@@ -703,3 +703,60 @@
   border: 1px solid #9e9e9e;
   color: #616161;
 }
+/* ============================
+   MENSAJE DE PROCESANDO
+   ============================ */
+
+.processing-message {
+    background-color: #e8f4fd;  
+    color: #0c5460;       
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 4px solid #17a2b8;  
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 14px;
+    animation: pulse 1.5s infinite;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Animación de pulso */
+@keyframes pulse {
+    0% { 
+        opacity: 0.8;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    50% { 
+        opacity: 1;
+        box-shadow: 0 2px 8px rgba(23, 162, 184, 0.2);
+    }
+    100% { 
+        opacity: 0.8;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Mensaje de verificación (si no lo tienes) */
+.verification-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 4px solid #28a745;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Mensaje de error (ya deberías tenerlo) */
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 500;
+}
