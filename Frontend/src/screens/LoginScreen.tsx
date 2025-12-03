@@ -217,7 +217,13 @@ const onSubmit = async (data: FormData) => {
                         </div>
                     )}
 
-                    {errors.root && (
+                    {loading && (
+                        <div className="processing-message">
+                            ⏳ Procesando tu inicio de sesión...
+                        </div>
+                    )}
+
+                    {!loading && errors.root?.message && (
                         <div className="error-message">
                             {errors.root.message}
                         </div>

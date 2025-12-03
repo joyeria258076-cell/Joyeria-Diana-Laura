@@ -30,8 +30,9 @@ app.use(cors({
     'Content-Type', 
     'Authorization',
     'X-Session-Token'  // 🆕 AGREGADO PARA REVOCACIÓN DE SESIONES
-  ]
+  ],
 }));
+
 
 app.use(cookieParser()); // 🆕 LÍNEA NUEVA
 app.use(cookieAuthMiddleware); // 🆕 LÍNEA NUEVA
