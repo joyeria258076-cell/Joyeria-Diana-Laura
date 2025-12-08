@@ -83,6 +83,83 @@
   border: 1px solid #e2e8f0;
 }
 
+/* Estados minimizado/expandido */
+.global-accessibility-buttons.minimized {
+  padding: 8px;
+  width: auto;
+}
+
+.global-accessibility-buttons.minimized .global-font-btn,
+.global-accessibility-buttons.minimized .global-font-size-indicator {
+  display: none;
+}
+
+/* Botón de toggle (minimizar/expandir) */
+.toggle-controls-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background-color: #6b7280;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-right: 4px;
+}
+
+.toggle-controls-btn:hover {
+  background-color: #4b5563;
+  transform: scale(1.1);
+}
+
+/* Cuando está minimizado, el botón de toggle es más visible */
+.global-accessibility-buttons.minimized .toggle-controls-btn {
+  background-color: #2563eb;
+  width: 36px;
+  height: 36px;
+}
+
+.global-accessibility-buttons.minimized .toggle-controls-btn:hover {
+  background-color: #1d4ed8;
+}
+
+/* Transición suave al minimizar/expandir */
+.global-accessibility-buttons {
+  transition: all 0.3s ease;
+}
+
+/* Para pantallas móviles cuando está minimizado */
+@media (max-width: 768px) {
+  .global-accessibility-buttons.minimized {
+    top: 8px;
+    right: 8px;
+    padding: 6px;
+  }
+  
+  .global-accessibility-buttons.minimized .toggle-controls-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
+
+/* Efecto de hover cuando está minimizado */
+.global-accessibility-buttons.minimized:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Asegurar que el botón de toggle tenga buen foco */
+.toggle-controls-btn:focus {
+  outline: 3px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 /* Responsive para móviles */
 @media (max-width: 768px) {
   .global-accessibility-buttons {
