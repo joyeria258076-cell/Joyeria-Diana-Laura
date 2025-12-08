@@ -1,0 +1,131 @@
+/* 
+ * Ruta: Joyeria-Diana-Laura/Frontend/src/styles/AccessibilityFonts.css
+ * Controles GLOBALES de tamaño de fuente para accesibilidad
+ */
+
+/* Botones fijos que aparecen en TODAS las pantallas */
+.global-accessibility-buttons {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  border: 2px solid #2563eb;
+  transition: all 0.3s ease;
+}
+
+.global-accessibility-buttons:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Botones individuales */
+.global-font-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.decrease-btn {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border: 2px solid #d1d5db;
+}
+
+.decrease-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.reset-btn {
+  background-color: #2563eb;
+  color: white;
+  border: 2px solid #1d4ed8;
+}
+
+.reset-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.increase-btn {
+  background-color: #10b981;
+  color: white;
+  border: 2px solid #059669;
+}
+
+.increase-btn:hover {
+  background-color: #059669;
+}
+
+/* Indicador de tamaño */
+.global-font-size-indicator {
+  margin-left: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  min-width: 40px;
+  text-align: center;
+  background: #f8fafc;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .global-accessibility-buttons {
+    top: 10px;
+    right: 10px;
+    padding: 6px 10px;
+    gap: 4px;
+  }
+  
+  .global-font-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .global-font-size-indicator {
+    font-size: 12px;
+    min-width: 35px;
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .global-accessibility-buttons {
+    top: 8px;
+    right: 8px;
+    padding: 5px 8px;
+  }
+  
+  .global-font-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  
+  .global-font-size-indicator {
+    font-size: 11px;
+    min-width: 30px;
+  }
+}
+
+/* Mejora de foco para accesibilidad */
+.global-font-btn:focus {
+  outline: 3px solid #3b82f6;
+  outline-offset: 2px;
+}
