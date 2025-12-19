@@ -260,8 +260,8 @@ export default function RegistroScreen() {
                         )}
                         <div className="field-requirements">
                             <ul className="requirements-list">
-                                <li>Mínimo 2 caracteres</li>
-                                <li>Máximo 50 caracteres</li>
+                                <li>Mínimo 3 caracteres</li>
+                                <li>Máximo 30 caracteres</li>
                                 <li>Solo letras (A-Z, a-z, áéíóú, ñ)</li>
                                 <li>Se permiten espacios entre nombres</li>
                                 <li>No símbolos especiales (#, $, %, 1, 2, 3, etc.)</li>
