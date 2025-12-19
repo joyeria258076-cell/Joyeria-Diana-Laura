@@ -8,24 +8,78 @@ import { useAuth } from "../contexts/AuthContext";
 import { securityQuestionAPI } from "../services/securityQuestionAPI";
 import "../styles/RegistroScreen.css";
 
+// 🆕 FUNCIONES DE VALIDACIÓN PARA PREVENIR INYECCIONES
+const validateNoSQLInjection = (value: string) => {
+    if (!value) return true;
+    
+    // Patrones de inyección SQL comunes
+    const sqlInjectionPatterns = [
+        /(\bOR\b|\bAND\b)\s*['"]?\d+['"]?\s*=\s*['"]?\d+['"]?/i,
+        /(\bUNION\b|\bSELECT\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bDROP\b|\bCREATE\b)/i,
+        /--\s*$/i,
+        /;.*?(?:DROP|DELETE|TRUNCATE|UPDATE|INSERT)/i,
+        /('\s*OR\s*'.*'='|'\s*OR\s*1\s*=\s*1)/i,
+        /"\s*OR\s*"\s*=\s*"/i,
+        /(`|%27|%23)/i,
+    ];
+    
+    for (const pattern of sqlInjectionPatterns) {
+        if (pattern.test(value)) {
+            return false;
+        }
+    }
+    
+    return true;
+};
+
+const validateNoXSS = (value: string) => {
+    if (!value) return true;
+    
+    // Patrones de XSS comunes
+    const xssPatterns = [
+        /<script[^>]*>.*?<\/script>/gi,
+        /javascript:/gi,
+        /<iframe[^>]*>/gi,
+        /<svg[^>]*>/gi,
+        /on\w+\s*=/gi,
+        /<img[^>]*on/gi,
+        /eval\s*\(/gi,
+        /expression\s*\(/gi,
+        /<embed[^>]*>/gi,
+        /<object[^>]*>/gi,
+    ];
+    
+    for (const pattern of xssPatterns) {
+        if (pattern.test(value)) {
+            return false;
+        }
+    }
+    
+    return true;
+};
+
 const schema = z.object({
     nombre: z.string()
         .min(1, "El nombre completo es requerido")
-        .min(2, "El nombre debe tener al menos 2 caracteres")
-        .max(50, "El nombre no puede tener más de 50 caracteres")
+        .min(3, "El nombre debe tener al menos 3 caracteres")
+        .max(30, "El nombre no puede tener más de 30 caracteres")
         .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, "El nombre no puede contener símbolos especiales ni números")
         .refine((nombre) => !/^\s+$/.test(nombre), {
             message: "El nombre no puede contener solo espacios"
         })
         .refine((nombre) => !nombre.startsWith(' ') && !nombre.endsWith(' '), {
             message: "El nombre no puede comenzar ni terminar con espacios"
-        }),
+        })
+        .refine(validateNoSQLInjection, "El nombre contiene caracteres no permitidos")
+        .refine(validateNoXSS, "El nombre contiene caracteres no permitidos"),
     email: z.string()
         .min(1, "El correo electrónico es requerido")
         .min(6, "El correo electrónico debe tener al menos 6 caracteres")
         .max(60, "El correo electrónico no puede tener más de 60 caracteres")
         .email("Correo electrónico inválido")
-        .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, "Formato de email inválido"),
+        .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, "Formato de email inválido")
+        .refine(validateNoSQLInjection, "El correo contiene caracteres no permitidos")
+        .refine(validateNoXSS, "El correo contiene caracteres no permitidos"),
     password: z.string()
         .min(1, "La contraseña es requerida")
         .min(8, "La contraseña debe tener al menos 8 caracteres")
@@ -36,7 +90,8 @@ const schema = z.object({
         .regex(/^\S*$/, "La contraseña no puede contener espacios")
         .refine((password) => !password.includes(' '), {
             message: "La contraseña no puede contener espacios"
-        }),
+        })
+        .refine(validateNoXSS, "La contraseña contiene caracteres no permitidos"),
     confirmPassword: z.string()
         .min(1, "La confirmación de contraseña es requerida"),
     questionType: z.string()
@@ -48,7 +103,9 @@ const schema = z.object({
         .max(100, "La respuesta no puede tener más de 100 caracteres")
         .refine((answer) => !answer.startsWith(' ') && !answer.endsWith(' '), {
             message: "La respuesta no puede comenzar ni terminar con espacios"
-        }),
+        })
+        .refine(validateNoSQLInjection, "La respuesta contiene caracteres no permitidos")
+        .refine(validateNoXSS, "La respuesta contiene caracteres no permitidos"),
     acceptTerms: z.boolean()
         .refine((val) => val === true, {
             message: "Debes aceptar los términos y condiciones para registrarte"

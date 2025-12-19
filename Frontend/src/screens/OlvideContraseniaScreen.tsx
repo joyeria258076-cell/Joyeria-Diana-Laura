@@ -8,6 +8,56 @@ import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
 import '../styles/OlvideContraseniaScreen.css';
 
+// 🆕 FUNCIONES DE VALIDACIÓN PARA PREVENIR INYECCIONES
+const validateNoSQLInjection = (value: string) => {
+    if (!value) return true;
+    
+    // Patrones de inyección SQL comunes
+    const sqlInjectionPatterns = [
+        /(\bOR\b|\bAND\b)\s*['"]?\d+['"]?\s*=\s*['"]?\d+['"]?/i,
+        /(\bUNION\b|\bSELECT\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bDROP\b|\bCREATE\b)/i,
+        /--\s*$/i,
+        /;.*?(?:DROP|DELETE|TRUNCATE|UPDATE|INSERT)/i,
+        /('\s*OR\s*'.*'='|'\s*OR\s*1\s*=\s*1)/i,
+        /"\s*OR\s*"\s*=\s*"/i,
+        /(`|%27|%23)/i,
+    ];
+    
+    for (const pattern of sqlInjectionPatterns) {
+        if (pattern.test(value)) {
+            return false;
+        }
+    }
+    
+    return true;
+};
+
+const validateNoXSS = (value: string) => {
+    if (!value) return true;
+    
+    // Patrones de XSS comunes
+    const xssPatterns = [
+        /<script[^>]*>.*?<\/script>/gi,
+        /javascript:/gi,
+        /<iframe[^>]*>/gi,
+        /<svg[^>]*>/gi,
+        /on\w+\s*=/gi,
+        /<img[^>]*on/gi,
+        /eval\s*\(/gi,
+        /expression\s*\(/gi,
+        /<embed[^>]*>/gi,
+        /<object[^>]*>/gi,
+    ];
+    
+    for (const pattern of xssPatterns) {
+        if (pattern.test(value)) {
+            return false;
+        }
+    }
+    
+    return true;
+};
+
 const schema = z.object({
     email: z.string()
         .min(1, "El correo electrónico es requerido")
@@ -15,6 +65,8 @@ const schema = z.object({
         .max(60, "El correo electrónico no puede tener más de 60 caracteres")
         .email("Correo electrónico inválido")
         .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, "Formato de email inválido")
+        .refine(validateNoSQLInjection, "El correo contiene caracteres no permitidos")
+        .refine(validateNoXSS, "El correo contiene caracteres no permitidos")
 });
 
 type FormData = z.infer<typeof schema>;
