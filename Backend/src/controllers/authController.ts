@@ -11,6 +11,7 @@ import { getUserByEmail } from '../models/userModel';
 import jwt from 'jsonwebtoken';
 import { JWTService } from '../services/JWTService';
 import { CookieConfig } from '../config/cookieConfig'; // 🆕 LÍNEA NUEVA
+import { validateInputSecurity, validateName, validateEmailSecurity, validatePasswordSecurity } from '../utils/inputValidation'; // 🆕 VALIDACIONES
 
 // 🎯 FUNCIÓN MEJORADA para obtener IP real del cliente
 const getClientIp = (req: Request): string => {
@@ -167,6 +168,25 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         message: 'Email es requerido'
+      });
+    }
+
+    // 🆕 VALIDACIÓN DE SEGURIDAD - Prevenir inyección SQL y XSS
+    const emailSecurityCheck = validateEmailSecurity(email);
+    if (!emailSecurityCheck.valid) {
+      console.log(`🚫 Intento de inyección detectado en email: ${emailSecurityCheck.message}`);
+      return res.status(400).json({
+        success: false,
+        message: emailSecurityCheck.message
+      });
+    }
+
+    const passwordSecurityCheck = validatePasswordSecurity(password || '');
+    if (!passwordSecurityCheck.valid) {
+      console.log(`🚫 Intento de inyección detectado en contraseña: ${passwordSecurityCheck.message}`);
+      return res.status(400).json({
+        success: false,
+        message: passwordSecurityCheck.message
       });
     }
 
@@ -508,6 +528,16 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
     }
 
+    // 🆕 VALIDACIÓN DE SEGURIDAD - Prevenir inyección SQL y XSS
+    const emailSecurityCheck = validateEmailSecurity(email);
+    if (!emailSecurityCheck.valid) {
+      console.log(`🚫 Intento de inyección detectado en email: ${emailSecurityCheck.message}`);
+      return res.status(400).json({
+        success: false,
+        message: emailSecurityCheck.message
+      });
+    }
+
     console.log(`📧 Procesando recuperación para: ${email}`);
     
     // 🛡️ VERIFICAR LÍMITES - CORREGIDO
@@ -536,10 +566,13 @@ export const forgotPassword = async (req: Request, res: Response) => {
     
     console.log(`✅ Intento registrado para: ${email}, intentos restantes: ${updatedLimitCheck.remainingAttempts}`);
 
-    // 🎯 DEVOLVER ÉXITO CON LOS INTENTOS ACTUALIZADOS
+    // 🆕 MENSAJE NEUTRO - No revelar si el usuario existe
+    const neutralMessage = 'Si el correo existe en nuestro sistema, se enviará un código de verificación. De lo contrario, revise correctamente la dirección del correo';
+
+    // 🎯 DEVOLVER ÉXITO CON MENSAJE NEUTRO
     res.json({
       success: true,
-      message: 'Se ha enviado un enlace de recuperación a tu email',
+      message: neutralMessage,
       remainingAttempts: updatedLimitCheck.remainingAttempts
     });
 
@@ -549,9 +582,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
     // En caso de error de base de datos, permitir el envío pero mostrar advertencia
     if (error.code === 'ECONNRESET' || error.message.includes('ECONNRESET')) {
       console.log('⚠️ Error de conexión a BD, pero permitiendo envío de email');
+      const neutralMessage = 'Si el correo existe en nuestro sistema, se enviará un código de verificación. De lo contrario, revise correctamente la dirección del correo';
       res.json({
         success: true,
-        message: 'Se ha enviado un enlace de recuperación a tu email',
+        message: neutralMessage,
         remainingAttempts: 2 // Valor por defecto conservador
       });
     } else {
