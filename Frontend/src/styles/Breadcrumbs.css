@@ -1,0 +1,27 @@
+.breadcrumbs-nav {
+    padding: 1rem 2rem;
+    font-size: 0.9rem;
+    color: #D9D9D9;
+    background: #000;
+}
+
+.breadcrumbs-nav a {
+    color: #ECB2C3; /* Rosa característico */
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.breadcrumbs-nav a:hover {
+    text-decoration: underline;
+}
+
+.separator {
+    color: #555;
+    margin: 0 8px;
+}
+
+.current-page {
+    color: #FFFFFF;
+    font-weight: 600;
+    text-transform: capitalize;
+}

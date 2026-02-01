@@ -1,0 +1,28 @@
+.footer-privado-content {
+    margin-top: 50px;
+    padding-bottom: 20px;
+}
+
+.footer-divider {
+    height: 1px;
+    background: rgba(236, 178, 195, 0.1);
+    margin-bottom: 20px;
+}
+
+.footer-links-row {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    color: #666;
+    font-size: 0.75rem;
+}
+
+.footer-links-row a {
+    color: #888;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.footer-links-row a:hover {
+    color: var(--rosa-joyeria);
+}

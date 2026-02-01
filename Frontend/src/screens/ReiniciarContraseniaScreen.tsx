@@ -1,6 +1,8 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/screens/ReiniciarContraseniaScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import PublicHeader from '../components/PublicHeader';
+import PublicFooter from '../components/PublicFooter';
 import { authAPI } from '../services/api';
 import { getAuth, verifyPasswordResetCode, confirmPasswordReset } from 'firebase/auth';
 import '../styles/ReiniciarContraseniaScreen.css';
@@ -227,62 +229,72 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   if (verifying) {
     return (
-      <div className="reset-password-container">
-        <div className="reset-password-card">
-          <div className="verifying-message">
-            <p>🔍 Verificando enlace de recuperación...</p>
+      <div className="reiniciar-page-wrapper">
+        <PublicHeader />
+        <div className="reset-password-container">
+          <div className="reset-password-card">
+            <div className="verifying-message">
+              <p>🔍 Verificando enlace de recuperación...</p>
+            </div>
           </div>
         </div>
+        <PublicFooter />
       </div>
     );
   }
 
   if (!validCode) {
     return (
-      <div className="reset-password-container">
-        <div className="reset-password-card">
-          <div className="error-message">
-            <p>{error}</p>
-            <div className="action-buttons">
-              <button 
-                onClick={() => navigate('/olvide')} 
-                className="back-button"
-              >
-                ← Solicitar nuevo enlace
-              </button>
-              <button 
-                onClick={() => navigate('/login')} 
-                className="secondary-button"
-              >
-                Volver al Login
-              </button>
+      <div className="reiniciar-page-wrapper">
+        <PublicHeader />
+        <div className="reset-password-container">
+          <div className="reset-password-card">
+            <div className="error-message">
+              <p>{error}</p>
+              <div className="action-buttons">
+                <button 
+                  onClick={() => navigate('/olvide')} 
+                  className="back-button"
+                >
+                  ← Solicitar nuevo enlace
+                </button>
+                <button 
+                  onClick={() => navigate('/login')} 
+                  className="secondary-button"
+                >
+                  Volver al Login
+                </button>
+              </div>
             </div>
           </div>
         </div>
+        <PublicFooter />
       </div>
     );
   }
 
   return (
-    <div className="reset-password-container">
-      <div className="reset-password-card">
-        <div className="reset-password-header">
-          <h2>Establecer Nueva Contraseña</h2>
-          <p>Creando nueva contraseña para: <strong>{email}</strong></p>
-          <div className="security-notice">
-            <small>🔒 Solo puedes cambiar la contraseña de esta cuenta</small>
+    <div className="reiniciar-page-wrapper">
+      <PublicHeader />
+      <div className="reset-password-container">
+        <div className="reset-password-card">
+          <div className="reset-password-header">
+            <h2>Establecer Nueva Contraseña</h2>
+            <p>Creando nueva contraseña para: <strong>{email}</strong></p>
+            <div className="security-notice">
+              <small>🔒 Solo puedes cambiar la contraseña de esta cuenta</small>
+            </div>
           </div>
-        </div>
-        
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
+          
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
 
-        {message && (
-          <div className="success-message">
-            {message}
+          {message && (
+            <div className="success-message">
+              {message}
           </div>
         )}
 
@@ -365,6 +377,8 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
       </div>
     </div>
+    <PublicFooter />
+  </div>
   );
 };
 

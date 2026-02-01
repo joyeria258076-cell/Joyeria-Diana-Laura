@@ -1,0 +1,157 @@
+/* PublicHeader.css */
+
+.public-header {
+  background: linear-gradient(135deg, #0a0a0a 0%, #000000 100%);
+  border-bottom: 1px solid rgba(236, 178, 195, 0.3);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  font-family: 'Montserrat', sans-serif;
+}
+
+.public-header .container-lg {
+  padding: 0 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+/* Logo y marca */
+.header-brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.brand-link {
+  text-decoration: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: opacity 0.3s ease;
+}
+
+.brand-link:hover {
+  opacity: 0.8;
+}
+
+.brand-initials {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+}
+
+.brand-name {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #ECB2C3;
+  font-style: italic;
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.5px;
+}
+
+/* Navegación */
+.header-nav {
+  display: flex;
+  gap: 2rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-link {
+  color: #d4b5c8;
+  text-decoration: none;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  font-weight: 500;
+  padding: 0.5rem 0;
+  border-bottom: 2px solid transparent;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: #ECB2C3;
+  border-bottom-color: #ECB2C3;
+}
+
+/* Botón de acceso */
+.header-auth {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btn-acceso {
+  background: linear-gradient(135deg, #ECB2C3 0%, #f5c5d8 100%);
+  color: #0f0f12;
+  border: none;
+  font-weight: 600;
+  padding: 10px 25px;
+  border-radius: 12px;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  font-size: 1rem;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 12px rgba(236, 178, 195, 0.3);
+}
+
+.btn-acceso:hover {
+  background: linear-gradient(135deg, #f5c5d8 0%, #ECB2C3 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(236, 178, 195, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header-content {
+    gap: 1rem;
+  }
+
+  .header-nav {
+    display: none;
+  }
+
+  .brand-initials {
+    font-size: 1.2rem;
+  }
+
+  .brand-name {
+    font-size: 1rem;
+  }
+
+  .btn-acceso {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .header-content {
+    gap: 0.5rem;
+  }
+
+  .brand-initials {
+    font-size: 1rem;
+  }
+
+  .brand-name {
+    font-size: 0.85rem;
+  }
+
+  .btn-acceso {
+    padding: 6px 15px;
+    font-size: 0.8rem;
+  }
+}

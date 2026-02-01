@@ -1,91 +1,82 @@
-// Ruta:Joyeria-Diana-Laura/Frontend/src/screens/InicioScreen.tsx
-
+// Ruta: Joyeria-Diana-Laura/Frontend/src/screens/InicioScreen.tsx
 import React from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import "../styles/InicioScreen.css";
-import { useNavigate } from "react-router-dom"; // Agregar esta importación
+import FooterPrivado from "../components/FooterPrivado"; 
 
-export default function InicioScreen() {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate(); // Agregar esta línea
+const InicioScreen: React.FC = () => {
+    const navigate = useNavigate();
     
     return (
         <div className="inicio-container">
-            {/* Header */}
-            <header className="inicio-header">
-                <div className="header-content">
-                    <div className="logo">
-                        <span className="logo-initials">DL</span>
-                        <span className="logo-name">Diana Laura</span>
-                    </div>
-                    <nav className="nav-menu">
-                        <a href="#inicio" className="nav-link active">Inicio</a>
-                        <a 
-                                href="#colecciones" 
-                                className="nav-link"
-                                onClick={(e) => { 
-                                    e.preventDefault(); 
-                                    navigate("/catalogo"); 
-                                }}
-                            >
-                                Catálogo
-                            </a>
-                        <a href="#personalizados" className="nav-link">Personalizados</a>
-                        <a href="#nosotros" className="nav-link">Sobre Nosotros</a>
-                        <a href="#contacto" className="nav-link">Contacto</a>
-                    </nav>
-                    <div className="user-actions">
-                        <button 
-                            className="catalog-icon-btn"
-                            onClick={() => navigate("/catalogo")}
-                            title="Ver Catálogo"
-                        >
-                            🛍️
-                        </button>
-                        <button 
-                            className="profile-icon-btn"
-                            onClick={() => navigate("/perfil")}
-                            title="Mi Perfil"
-                        >
-                            👤
-                        </button>
-                        <span className="user-welcome">Hola, {user?.nombre}</span>
-                        <button className="logout-btn" onClick={logout}>
-                            Cerrar Sesión
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            {/* Hero Section */}
+            {/* 1. SECCIÓN HERO */}
             <section className="hero-section">
                 <div className="hero-content">
-                    <h1 className="hero-title">
-                        Elegancia que brilla contigo
-                    </h1>
+                    <h1 className="hero-title">Elegancia que brilla contigo</h1>
                     <p className="hero-description">
-                        Joyería pensada para mantenerse que impactes. Diseño delicado, 
-                        acabados de aire cabidal y un estilo femenino contemporáneo.
+                        Joyería pensada para que impactes. Diseño delicado, 
+                        acabados de alta calidad y un estilo femenino contemporáneo.
                     </p>
                     <div className="hero-buttons">
                         <button className="btn-primary" onClick={() => navigate("/catalogo")}>
                             Descubre nuestras Colecciones
                         </button>
-                        <button className="btn-secondary">
+                        <button className="btn-secondary" onClick={() => navigate("/contacto")}>
                             Pide tu diseño
                         </button>
                     </div>
                 </div>
+                
                 <div className="hero-visual">
                     <div className="jewelry-showcase">
-                        <div className="jewel-item"></div>
-                        <div className="jewel-item"></div>
-                        <div className="jewel-item"></div>
+                        <div className="jewel-item">💍</div>
+                        <div className="jewel-item">✨</div>
+                        <div className="jewel-item">💎</div>
                     </div>
                 </div>
             </section>
 
-            {/* Quick Stats */}
+            {/* 2. SECCIÓN DE EXPLORACIÓN (Categorías + Destacados) */}
+            <section className="catalog-preview-section">
+                <div className="section-header-block">
+                    <h2 className="section-title-elegant">Explora por Categorías</h2>
+                    <div className="categories-container-styled">
+                        <button className="cat-chip active">Todas</button>
+                        <button className="cat-chip">Anillos</button>
+                        <button className="cat-chip">Collares</button>
+                        <button className="cat-chip">Aretes</button>
+                        <button className="cat-chip">Pulseras</button>
+                    </div>
+                </div>
+
+                {/* Título de Productos Destacados (Lo que faltaba) */}
+                <div className="featured-header">
+                    <h2 className="section-title-elegant">Productos Destacados</h2>
+                    <div className="title-underline"></div>
+                </div>
+
+                {/* 3. GRID DE PRODUCTOS */}
+                <div className="products-grid-styled">
+                    {[1, 2, 3, 4].map((item) => (
+                        <div key={item} className="product-card-styled">
+                            <div className="product-image-placeholder">
+                                <span className="icon-placeholder">💎</span>
+                            </div>
+                            <div className="product-info-styled">
+                                <h3>Producto Exclusivo</h3>
+                                <p>Descripción breve del diseño y materiales.</p>
+                                <span className="price-tag">$0.00</span>
+                                <div className="card-actions-styled">
+                                    <button className="btn-detail">Ver Detalle</button>
+                                    <button className="btn-cart-icon">🛒</button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* 4. SECCIÓN DE ESTADÍSTICAS */}
             <section className="stats-section">
                 <div className="stats-container">
                     <div className="stat-card">
@@ -97,96 +88,14 @@ export default function InicioScreen() {
                         <p className="stat-label">Clientes Satisfechos</p>
                     </div>
                     <div className="stat-card">
-                        <h3 className="stat-number">5+</h3>
-                        <p className="stat-label">Años de Experiencia</p>
-                    </div>
-                    <div className="stat-card">
                         <h3 className="stat-number">100%</h3>
                         <p className="stat-label">Hecho a Mano</p>
                     </div>
                 </div>
             </section>
 
-            {/* Features Grid */}
-            <section className="features-section">
-                <div className="section-header">
-                    <h2 className="section-title">Nuestras Colecciones</h2>
-                    <p className="section-subtitle">Descubre piezas únicas elaboradas con pasión y dedicación</p>
-                </div>
-                <div className="features-grid">
-                    <div className="feature-card">
-                        <div className="feature-icon">💍</div>
-                        <h3 className="feature-title">Anillos</h3>
-                        <p className="feature-description">
-                            Diseños exclusivos que realzan la belleza de tus manos
-                        </p>
-                    </div>
-                    <div className="feature-card">
-                        <div className="feature-icon">📿</div>
-                        <h3 className="feature-title">Collares</h3>
-                        <p className="feature-description">
-                            Piezas que acentúan tu elegancia y personalidad
-                        </p>
-                    </div>
-                    <div className="feature-card">
-                        <div className="feature-icon">💫</div>
-                        <h3 className="feature-title">Aretes</h3>
-                        <p className="feature-description">
-                            Detalles que iluminan tu rostro con estilo único
-                        </p>
-                    </div>
-                    <div className="feature-card">
-                        <div className="feature-icon">✨</div>
-                        <h3 className="feature-title">Conjuntos</h3>
-                        <p className="feature-description">
-                            Sets coordinados para ocasiones especiales
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="inicio-footer">
-                <div className="footer-content">
-                    <div className="footer-brand">
-                        <div className="logo">
-                            <span className="logo-initials">DL</span>
-                            <span className="logo-name">Diana Laura</span>
-                        </div>
-                        <p className="footer-tagline">
-                            Joyería y Bisutería con esencia femenina
-                        </p>
-                    </div>
-                    <div className="footer-links">
-                        <div className="link-group">
-                            <h4>Colecciones</h4>
-                            <a href="#anillos">Anillos</a>
-                            <a href="#collares">Collares</a>
-                            <a href="#aretes">Aretes</a>
-                            <a href="#pulseras">Pulseras</a>
-                        </div>
-                        <div className="link-group">
-                            <h4>Empresa</h4>
-                            <a href="#nosotros">Sobre Nosotros</a>
-                            <a href="#contacto">Contacto</a>
-                            <a href="#personalizados">Diseños Personalizados</a>
-                        </div>
-                        <div className="link-group">
-                            <h4>Legal</h4>
-                            <a href="#privacidad">Política de Privacidad</a>
-                            <a href="#terminos">Términos y Condiciones</a>
-                        </div>
-                    </div>
-                </div>
-                <div className="footer-bottom">
-                    <p>&copy; 2025 Diana Laura - Joyería y Bisutería. Todos los derechos reservados.</p>
-                    <div className="social-links">
-                        <a href="#" className="social-link">📱</a>
-                        <a href="#" className="social-link">📷</a>
-                        <a href="#" className="social-link">👤</a>
-                    </div>
-                </div>
-            </footer>
         </div>
     );
-}
+};
+
+export default InicioScreen;

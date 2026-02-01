@@ -1,0 +1,123 @@
+/* Sidebar Lateral */
+.sidebar-privado {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    background-color: var(--negro-panel);
+    border-right: 1px solid rgba(236, 178, 195, 0.15);
+    display: flex;
+    flex-direction: column;
+    padding: 25px 0;
+    z-index: 100;
+}
+
+.sidebar-logo {
+    padding: 0 25px 30px;
+    cursor: pointer;
+}
+
+.logo-text {
+    color: #fff;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.logo-subtext {
+    color: var(--rosa-joyeria);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Permite que el logout se pegue abajo si es necesario */
+}
+
+.nav-item {
+    background: transparent;
+    border: none;
+    color: #999;
+    padding: 15px 25px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    width: 100%;
+}
+
+.nav-item:hover, 
+.nav-item.active {
+    background: rgba(236, 178, 195, 0.1);
+    color: var(--rosa-joyeria);
+    border-left: 4px solid var(--rosa-joyeria);
+}
+
+.logout-item {
+    margin-top: auto; /* Mueve el botón de salir al fondo */
+    padding-bottom: 30px;
+    color: #ff6b6b;
+}
+
+/* Header Superior */
+.header-top-privado {
+    grid-column: 2;
+    grid-row: 1;
+    background-color: var(--negro-panel);
+    border-bottom: 1px solid rgba(236, 178, 195, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 35px;
+    height: var(--header-height);
+    z-index: 90;
+}
+
+.header-welcome {
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.header-welcome strong {
+    color: var(--rosa-joyeria);
+}
+
+.user-profile-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.user-avatar {
+    width: 38px;
+    height: 38px;
+    background: var(--rosa-joyeria);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-weight: bold;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.user-name {
+    color: #fff;
+    font-size: 0.85rem;
+}
+
+.user-role {
+    color: #666;
+    font-size: 0.7rem;
+}

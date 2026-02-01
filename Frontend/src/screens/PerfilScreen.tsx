@@ -210,57 +210,6 @@ export default function PerfilScreen() {
 
   return (
     <div className="perfil-container">
-      {/* Header igual al InicioScreen */}
-      <header className="perfil-header">
-        <div className="header-content">
-          <div className="logo">
-            <span className="logo-initials">DL</span>
-            <span className="logo-name">Diana Laura</span>
-          </div>
-          <nav className="nav-menu">
-            <a href="#inicio" className="nav-link" onClick={(e) => { e.preventDefault(); navigate("/inicio"); }}>
-              Inicio
-            </a>
-            <a 
-                  href="#colecciones" 
-                  className="nav-link"
-                  onClick={(e) => { 
-                      e.preventDefault(); 
-                      navigate("/catalogo"); 
-                  }}
-              >
-                  Catálogo
-            </a>            
-            <a href="#personalizados" className="nav-link">Personalizados</a>
-            <a href="#nosotros" className="nav-link">Sobre Nosotros</a>
-            <a href="#contacto" className="nav-link">Contacto</a>
-          </nav>
-          <div className="user-actions">
-          <button 
-                  className="catalog-icon-btn"
-                  onClick={() => navigate("/catalogo")}
-                  title="Ver Catálogo"
-              >
-                  🛍️
-          </button>
-          <button 
-                  className="profile-icon-btn"
-                  onClick={() => navigate("/perfil")}
-                  title="Mi Perfil"
-              >
-                  👤
-          </button>
-            <span className="user-welcome">Hola, {user?.nombre}</span>
-            <button 
-              className="logout-btn" 
-              onClick={handleCerrarSesionActual}
-            >
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </header>
-
       {/* Contenido principal del perfil */}
       <main className="perfil-main">
         <div className="perfil-content">

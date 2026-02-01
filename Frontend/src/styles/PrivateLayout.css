@@ -1,0 +1,41 @@
+/* Estructura Global de la App Privada */
+:root {
+    --sidebar-width: 260px;
+    --header-height: 75px;
+    --rosa-joyeria: #ECB2C3;
+    --negro-fondo: #000000;
+    --negro-panel: #0a0a0a;
+}
+
+/* Contenedor Maestro usando Grid */
+.app-private-wrapper {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: var(--header-height) 1fr;
+    height: 100vh;
+    width: 100vw;
+    background-color: var(--negro-fondo);
+    overflow: hidden; /* Evita que toda la página scrollee */
+}
+
+/* El contenido donde se cargan las pantallas (Inicio, Catálogo, etc.) */
+.content-area {
+    grid-column: 2;
+    grid-row: 2;
+    padding: 40px;
+    overflow-y: auto; /* Solo el contenido tiene scroll */
+    background-color: var(--negro-fondo);
+    color: #ffffff;
+}
+
+/* Ajuste para dispositivos móviles */
+@media (max-width: 768px) {
+    .app-private-wrapper {
+        grid-template-columns: 1fr; /* Sidebar se oculta o se vuelve menú */
+    }
+    .content-area {
+        grid-column: 1;
+        padding: 20px;
+    }
+}
+

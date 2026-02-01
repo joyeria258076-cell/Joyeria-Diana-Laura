@@ -1,0 +1,63 @@
+/* Ruta: src/styles/UbicacionScreen.css */
+.page-container {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section-header {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.section-header h1 {
+    font-family: 'Playfair Display', serif;
+    color: var(--rosa-joyeria);
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.section-header p {
+    color: #999;
+    font-size: 1.1rem;
+}
+
+.map-card {
+    background: var(--negro-panel);
+    border-radius: 20px;
+    border: 1px solid rgba(236, 178, 195, 0.15);
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease;
+}
+
+.map-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(236, 178, 195, 0.3);
+}
+
+.map-container {
+    line-height: 0; /* Elimina espacio extra debajo del iframe */
+}
+
+.address-details {
+    padding: 30px;
+    text-align: center;
+    background: linear-gradient(to bottom, transparent, rgba(236, 178, 195, 0.05));
+}
+
+.address-details h3 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.address-details p {
+    color: #ccc;
+    margin: 5px 0;
+    font-size: 1rem;
+}
+
+.address-details strong {
+    color: var(--rosa-joyeria);
+}

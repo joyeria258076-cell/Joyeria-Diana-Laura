@@ -1,0 +1,118 @@
+/* Ruta: src/styles/AyudaScreen.css */
+.faq-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 0.9fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.faq-section h2 {
+    color: #fff;
+    margin-bottom: 25px;
+    font-size: 1.8rem;
+    border-left: 5px solid var(--rosa-joyeria);
+    padding-left: 15px;
+}
+
+.faq-list details {
+    background: rgba(255, 255, 255, 0.03);
+    margin-bottom: 15px;
+    padding: 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.faq-list details:hover {
+    background: rgba(236, 178, 195, 0.05);
+    border-color: rgba(236, 178, 195, 0.2);
+}
+
+.faq-list summary {
+    font-weight: 600;
+    color: var(--rosa-joyeria);
+    font-size: 1.1rem;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-list summary::after {
+    content: '▶';
+    font-size: 0.8rem;
+    transition: transform 0.3s;
+}
+
+.faq-list details[open] summary::after {
+    transform: rotate(90deg);
+}
+
+.faq-list p {
+    margin-top: 15px;
+    color: #aaa;
+    line-height: 1.6;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 10px;
+}
+
+.support-card {
+    background: var(--negro-panel);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    border: 1px solid rgba(236, 178, 195, 0.2);
+    height: fit-content;
+    position: sticky;
+    top: 100px;
+}
+
+.support-card h3 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+.support-card p {
+    color: #999;
+    margin-bottom: 25px;
+}
+
+.btn-contact {
+    background: var(--rosa-joyeria);
+    color: #000;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.btn-contact:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(236, 178, 195, 0.4);
+}
+
+.email-link {
+    display: block;
+    margin-top: 20px;
+    color: var(--rosa-joyeria);
+    text-decoration: none;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Ajuste para móviles */
+@media (max-width: 900px) {
+    .faq-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .support-card {
+        position: static;
+    }
+}
