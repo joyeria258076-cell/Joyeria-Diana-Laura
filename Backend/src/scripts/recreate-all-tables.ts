@@ -6,7 +6,7 @@ dotenv.config();
 
 async function recreateAllTables() {
   console.log('🚀 Iniciando recreación de todas las tablas...');
-  
+  //
   const client = new Client({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
