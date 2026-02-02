@@ -339,9 +339,10 @@ export const login = async (req: Request, res: Response) => {
       const userName = userRecord.displayName || (userEmail ? userEmail.split('@')[0] : 'Usuario');
       
       // 🆕 🎯 CREACIÓN DE SESIÓN Y GENERACIÓN DE JWT
+      let dbUser: any = null;
       try {
         // Obtener usuario de PostgreSQL para el ID
-        const dbUser = await userModel.getUserByEmail(userEmail);
+        dbUser = await userModel.getUserByEmail(userEmail);
         
         if (dbUser?.id) {
           const deviceInfo = SessionService.parseUserAgent(userAgent);
@@ -409,7 +410,8 @@ export const login = async (req: Request, res: Response) => {
           user: {
             id: userRecord.uid,
             email: userEmail,
-            nombre: userName
+            nombre: userName,
+            rol: dbUser?.rol || 'cliente'
           }
         }
       });

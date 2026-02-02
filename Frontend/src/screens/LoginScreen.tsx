@@ -153,13 +153,10 @@ const onSubmit = async (data: FormData) => {
     console.log('🔐 Iniciando proceso de login...');
     const response = await login(data.email, data.password);
     
-    // 🆕 CORRECCIÓN: ESTE CÓDIGO NO DEBERÍA EJECUTARSE SI HAY MFA
-    // Porque el login lanzará un error específico para MFA
-    
-    console.log('✅ Login exitoso (sin MFA) - verificando rol del usuario');
-    
-    // 🆕 OBTENER EL USUARIO DEL CONTEXTO PARA VER SU ROL
-    const currentUser = (window as any).__currentUser || null;
+    console.log('✅ Login exitoso (sin MFA)');
+    console.log('📊 Response completo:', response);
+    console.log('📦 Usuario del response:', response.data?.user);
+    console.log('🎭 Rol detectado:', response.data?.user?.rol);
     
     // 🆕 REDIRECCIONAR SEGÚN EL ROL
     if (response.data?.user?.rol === 'admin') {
@@ -169,7 +166,7 @@ const onSubmit = async (data: FormData) => {
       console.log('👷 Usuario es Trabajador - redirigiendo a dashboard trabajador');
       navigate("/dashboard-trabajador");
     } else {
-      console.log('👤 Usuario es Cliente - redirigiendo a inicio');
+      console.log('👤 Usuario es Cliente (rol:', response.data?.user?.rol, ') - redirigiendo a inicio');
       navigate("/inicio");
     }
     
