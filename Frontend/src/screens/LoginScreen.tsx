@@ -153,11 +153,32 @@ const onSubmit = async (data: FormData) => {
     console.log('🔐 Iniciando proceso de login...');
     const response = await login(data.email, data.password);
     
-    // 🆕 CORRECCIÓN: ESTE CÓDIGO NO DEBERÍA EJECUTARSE SI HAY MFA
-    // Porque el login lanzará un error específico para MFA
+    console.log('✅ Login exitoso (sin MFA)');
+    console.log('📊 Response completo:', JSON.stringify(response, null, 2));
+    console.log('📦 Usuario del response:', response.data?.user);
+    console.log('🎭 Rol detectado (valor):', response.data?.user?.rol);
+    console.log('🎭 Rol detectado (tipo):', typeof response.data?.user?.rol);
+    console.log('🎭 Rol comparación admin:', response.data?.user?.rol === 'admin');
+    console.log('🎭 Rol comparación trabajador:', response.data?.user?.rol === 'trabajador');
+    console.log('🎭 Rol comparación cliente:', response.data?.user?.rol === 'cliente');
+    console.log('🎭 Rol con .toLowerCase():', response.data?.user?.rol?.toLowerCase?.());
     
-    console.log('✅ Login exitoso (sin MFA) - redirigiendo a inicio');
-    navigate("/inicio");
+    // 🆕 REDIRECCIONAR SEGÚN EL ROL - CON VERIFICACIÓN MÁS ROBUSTA
+    const rol = response.data?.user?.rol;
+    const rolLower = String(rol).toLowerCase().trim();
+    
+    console.log('🎭 Rol normalizado:', rolLower);
+    
+    if (rol === 'admin' || rolLower === 'admin') {
+      console.log('👨‍💼 Usuario es Admin - redirigiendo a dashboard admin');
+      navigate("/dashboard-admin");
+    } else if (rol === 'trabajador' || rolLower === 'trabajador') {
+      console.log('👷 Usuario es Trabajador - redirigiendo a dashboard trabajador');
+      navigate("/dashboard-trabajador");
+    } else {
+      console.log('👤 Usuario es Cliente (rol:', rol, ', tipo:', typeof rol, ') - redirigiendo a inicio');
+      navigate("/inicio");
+    }
     
   } catch (error: any) {
     console.log('🔍 Error en login:', error);

@@ -34,6 +34,7 @@ interface User {
   email: string;
   nombre: string;
   dbId?: number; // 🆕 ID numérico de PostgreSQL
+  rol?: 'admin' | 'trabajador' | 'cliente'; // 🆕 Rol del usuario
 }
 
 // 🆕 INTERFAZ para sesiones activas
@@ -342,7 +343,10 @@ useEffect(() => {
     const savedSessionToken = localStorage.getItem('diana_laura_session_token'); // 🆕 Cargar session token
     
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      const parsedUser = JSON.parse(savedUser);
+      console.log('📦 Usuario restaurado del localStorage:', parsedUser);
+      console.log('🎭 Rol del usuario restaurado:', parsedUser.rol);
+      setUser(parsedUser);
     }
     if (savedSessionToken) {
       setCurrentSessionToken(savedSessionToken);
@@ -660,6 +664,9 @@ const login = async (email: string, password: string) => {
         ...userData,
         token: token
       };
+      
+      console.log('💾 Guardando usuario en contexto y localStorage:', userWithToken);
+      console.log('🎭 Rol que se va a guardar:', userWithToken.rol);
       
       setUser(userWithToken);
       setCurrentSessionToken(sessionToken);

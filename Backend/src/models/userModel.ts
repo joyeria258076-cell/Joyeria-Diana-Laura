@@ -13,6 +13,7 @@ export interface User {
   fecha_actualizacion?: Date;
   reset_password_token?: string;
   reset_password_expires?: Date;
+  rol?: 'admin' | 'trabajador' | 'cliente';
 }
 
 export const createUser = async (email: string, password: string, nombre: string, firebase_uid: string): Promise<boolean> => {

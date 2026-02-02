@@ -8,10 +8,9 @@ import { pool } from '../config/database';
 import { RecoverySecurityService } from '../services/recoverySecurityService';
 import { SessionService } from '../services/SessionService';
 import { getUserByEmail } from '../models/userModel';
-import jwt from 'jsonwebtoken';
 import { JWTService } from '../services/JWTService';
 import { CookieConfig } from '../config/cookieConfig'; // 🆕 LÍNEA NUEVA
-import { validateInputSecurity, validateName, validateEmailSecurity, validatePasswordSecurity } from '../utils/inputValidation'; // 🆕 VALIDACIONES
+import { validateEmailSecurity, validatePasswordSecurity } from '../utils/inputValidation'; // 🆕 VALIDACIONES
 
 // 🎯 FUNCIÓN MEJORADA para obtener IP real del cliente
 const getClientIp = (req: Request): string => {
@@ -302,7 +301,6 @@ export const login = async (req: Request, res: Response) => {
         
         if (user.mfa_enabled) {
           console.log('🚫 Usuario tiene MFA activado - requerir código');
-          mfaRequired = true;
           userIdForMFA = user.id;
           
           // 🆕 CORRECCIÓN: Registrar intento exitoso pero con MFA requerido
@@ -341,11 +339,17 @@ export const login = async (req: Request, res: Response) => {
       const userName = userRecord.displayName || (userEmail ? userEmail.split('@')[0] : 'Usuario');
       
       // 🆕 🎯 CREACIÓN DE SESIÓN Y GENERACIÓN DE JWT
+      let dbUser: any = null;
       try {
         // Obtener usuario de PostgreSQL para el ID
-        const dbUser = await userModel.getUserByEmail(userEmail);
+        dbUser = await userModel.getUserByEmail(userEmail);
         
-        if (dbUser && dbUser.id) {
+        console.log('📊 Usuario obtenido de PostgreSQL:', dbUser);
+        console.log('🎭 Rol del usuario en BD:', dbUser?.rol);
+        console.log('🎭 Tipo de rol:', typeof dbUser?.rol);
+        console.log('🎭 Rol como string:', String(dbUser?.rol));
+        
+        if (dbUser?.id) {
           const deviceInfo = SessionService.parseUserAgent(userAgent);
           
           // Crear sesión en la base de datos
@@ -383,7 +387,8 @@ export const login = async (req: Request, res: Response) => {
                   id: userRecord.uid,
                   email: userEmail,
                   nombre: userName,
-                  dbId: dbUser.id
+                  dbId: dbUser.id,
+                  rol: String(dbUser.rol || 'cliente')
                 },
                 token: token,
                 sessionToken: sessionResult.sessionToken
@@ -402,6 +407,8 @@ export const login = async (req: Request, res: Response) => {
 
       // 🆕 SI NO SE PUDO CREAR SESIÓN, ENVIAR RESPUESTA SIN TOKEN
       console.log(`✅ LOGIN EXITOSO (sin sesión) para: ${email}`);
+      console.log('📊 dbUser en respuesta final:', dbUser);
+      console.log('🎭 Rol final:', String(dbUser?.rol || 'cliente'));
 
       return res.json({
         success: true,
@@ -410,7 +417,8 @@ export const login = async (req: Request, res: Response) => {
           user: {
             id: userRecord.uid,
             email: userEmail,
-            nombre: userName
+            nombre: userName,
+            rol: String(dbUser?.rol || 'cliente')
           }
         }
       });
@@ -457,7 +465,6 @@ export const login = async (req: Request, res: Response) => {
 export const checkAccountLock = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
-    const clientIp = getClientIp(req);
 
     if (!email) {
       return res.status(400).json({
@@ -633,7 +640,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       console.log('🗄️ Buscando usuario en PostgreSQL...');
       const user = await userModel.getUserByEmail(email);
       
-      if (user && user.id) {
+      if (user?.id) {
         console.log('✅ Usuario encontrado en PostgreSQL, ID:', user.id);
         console.log('🔄 Actualizando contraseña en PostgreSQL...');
         const dbUpdated = await userModel.updatePassword(user.id, newPassword);
@@ -1221,6 +1228,50 @@ export const logout = async (req: any, res: Response) => {
     res.json({
       success: true,
       message: 'Sesión cerrada (error revocando sesión en BD)'
+    });
+  }
+};
+
+// 🆕 ENDPOINT DE DIAGNÓSTICO: Verificar estructura de tabla usuarios y rol
+export const diagnosticCheckUsersTable = async (req: Request, res: Response) => {
+  try {
+    console.log('🔍 Iniciando diagnóstico de tabla usuarios...');
+    
+    // Verificar si existe la columna rol
+    const columnCheck = await pool.query(`
+      SELECT column_name, data_type 
+      FROM information_schema.columns 
+      WHERE table_name = 'usuarios' AND column_name = 'rol'
+    `);
+    
+    console.log('📊 Columna rol existe:', columnCheck.rows.length > 0);
+    
+    // Obtener todos los usuarios con sus roles
+    const usersCheck = await pool.query(`
+      SELECT id, email, nombre, rol 
+      FROM usuarios 
+      LIMIT 10
+    `);
+    
+    console.log('👥 Usuarios en la tabla:', usersCheck.rows);
+    
+    res.json({
+      success: true,
+      message: 'Diagnóstico completado',
+      data: {
+        rolColumnExists: columnCheck.rows.length > 0,
+        rolColumnInfo: columnCheck.rows[0],
+        sampleUsers: usersCheck.rows,
+        totalUsers: usersCheck.rows.length
+      }
+    });
+    
+  } catch (error: any) {
+    console.error('❌ Error en diagnóstico:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error en diagnóstico',
+      error: error.message
     });
   }
 };

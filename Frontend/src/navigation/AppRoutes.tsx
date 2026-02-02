@@ -37,6 +37,8 @@ import AdminProductosScreen from '../screens/AdminProductosScreen';
 import AdminTrabajadoresScreen from "../screens/AdminTrabajadoresScreen";
 import AdminPerfilScreen from "../screens/AdminPerfilScreen";
 import AdminReportesScreen from "../screens/AdminReportesScreen";
+import DashboardTrabajadorScreen from "../screens/DashboardTrabajadorScreen";
+import DashboardAdminScreen from "../screens/DashboardAdminScreen";
 
 // PANTALLAS DE ERROR
 import NotFoundScreen from '../screens/NotFoundScreen';
@@ -55,7 +57,16 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center h-screen text-lg font-semibold bg-[#0f0f12] text-[#ecb2c3]">Cargando...</div>;
-  if (user) return <Navigate to="/inicio" replace />;
+  if (user) {
+    // 🆕 Redirigir según el rol del usuario
+    console.log('🔐 Usuario detectado en PublicRoute. Rol:', user.rol);
+    if (user.rol === 'admin') {
+      return <Navigate to="/dashboard-admin" replace />;
+    } else if (user.rol === 'trabajador') {
+      return <Navigate to="/dashboard-trabajador" replace />;
+    }
+    return <Navigate to="/inicio" replace />;
+  }
   return <>{children}</>;
 };
 
@@ -128,6 +139,8 @@ export default function AppRoutes() {
           <Route path="/admin-trabajadores" element={<AdminTrabajadoresScreen />} />
           <Route path="/admin-perfil" element={<AdminPerfilScreen />} />
           <Route path="/admin-reportes" element={<AdminReportesScreen />} />
+          <Route path="/dashboard-trabajador" element={<DashboardTrabajadorScreen />} />
+          <Route path="/dashboard-admin" element={<DashboardAdminScreen />} />
         </Route>
 
         {/* 4. MANEJO DE ERRORES */}
