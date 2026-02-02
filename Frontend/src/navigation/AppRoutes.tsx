@@ -37,6 +37,8 @@ import AdminProductosScreen from '../screens/AdminProductosScreen';
 import AdminTrabajadoresScreen from "../screens/AdminTrabajadoresScreen";
 import AdminPerfilScreen from "../screens/AdminPerfilScreen";
 import AdminReportesScreen from "../screens/AdminReportesScreen";
+import DashboardTrabajadorScreen from "../screens/DashboardTrabajadorScreen";
+import DashboardAdminScreen from "../screens/DashboardAdminScreen";
 
 // PANTALLAS DE ERROR
 import NotFoundScreen from '../screens/NotFoundScreen';
@@ -128,6 +130,8 @@ export default function AppRoutes() {
           <Route path="/admin-trabajadores" element={<AdminTrabajadoresScreen />} />
           <Route path="/admin-perfil" element={<AdminPerfilScreen />} />
           <Route path="/admin-reportes" element={<AdminReportesScreen />} />
+          <Route path="/dashboard-trabajador" element={<DashboardTrabajadorScreen />} />
+          <Route path="/dashboard-admin" element={<DashboardAdminScreen />} />
         </Route>
 
         {/* 4. MANEJO DE ERRORES */}

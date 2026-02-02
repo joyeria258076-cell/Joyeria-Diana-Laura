@@ -156,8 +156,22 @@ const onSubmit = async (data: FormData) => {
     // 🆕 CORRECCIÓN: ESTE CÓDIGO NO DEBERÍA EJECUTARSE SI HAY MFA
     // Porque el login lanzará un error específico para MFA
     
-    console.log('✅ Login exitoso (sin MFA) - redirigiendo a inicio');
-    navigate("/inicio");
+    console.log('✅ Login exitoso (sin MFA) - verificando rol del usuario');
+    
+    // 🆕 OBTENER EL USUARIO DEL CONTEXTO PARA VER SU ROL
+    const currentUser = (window as any).__currentUser || null;
+    
+    // 🆕 REDIRECCIONAR SEGÚN EL ROL
+    if (response.data?.user?.rol === 'admin') {
+      console.log('👨‍💼 Usuario es Admin - redirigiendo a dashboard admin');
+      navigate("/dashboard-admin");
+    } else if (response.data?.user?.rol === 'trabajador') {
+      console.log('👷 Usuario es Trabajador - redirigiendo a dashboard trabajador');
+      navigate("/dashboard-trabajador");
+    } else {
+      console.log('👤 Usuario es Cliente - redirigiendo a inicio');
+      navigate("/inicio");
+    }
     
   } catch (error: any) {
     console.log('🔍 Error en login:', error);

@@ -34,6 +34,7 @@ interface User {
   email: string;
   nombre: string;
   dbId?: number; // 🆕 ID numérico de PostgreSQL
+  rol?: 'admin' | 'trabajador' | 'cliente'; // 🆕 Rol del usuario
 }
 
 // 🆕 INTERFAZ para sesiones activas

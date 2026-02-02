@@ -8,10 +8,9 @@ import { pool } from '../config/database';
 import { RecoverySecurityService } from '../services/recoverySecurityService';
 import { SessionService } from '../services/SessionService';
 import { getUserByEmail } from '../models/userModel';
-import jwt from 'jsonwebtoken';
 import { JWTService } from '../services/JWTService';
 import { CookieConfig } from '../config/cookieConfig'; // 🆕 LÍNEA NUEVA
-import { validateInputSecurity, validateName, validateEmailSecurity, validatePasswordSecurity } from '../utils/inputValidation'; // 🆕 VALIDACIONES
+import { validateEmailSecurity, validatePasswordSecurity } from '../utils/inputValidation'; // 🆕 VALIDACIONES
 
 // 🎯 FUNCIÓN MEJORADA para obtener IP real del cliente
 const getClientIp = (req: Request): string => {
@@ -302,7 +301,6 @@ export const login = async (req: Request, res: Response) => {
         
         if (user.mfa_enabled) {
           console.log('🚫 Usuario tiene MFA activado - requerir código');
-          mfaRequired = true;
           userIdForMFA = user.id;
           
           // 🆕 CORRECCIÓN: Registrar intento exitoso pero con MFA requerido
@@ -345,7 +343,7 @@ export const login = async (req: Request, res: Response) => {
         // Obtener usuario de PostgreSQL para el ID
         const dbUser = await userModel.getUserByEmail(userEmail);
         
-        if (dbUser && dbUser.id) {
+        if (dbUser?.id) {
           const deviceInfo = SessionService.parseUserAgent(userAgent);
           
           // Crear sesión en la base de datos
@@ -383,7 +381,8 @@ export const login = async (req: Request, res: Response) => {
                   id: userRecord.uid,
                   email: userEmail,
                   nombre: userName,
-                  dbId: dbUser.id
+                  dbId: dbUser.id,
+                  rol: dbUser.rol || 'cliente'
                 },
                 token: token,
                 sessionToken: sessionResult.sessionToken
@@ -457,7 +456,6 @@ export const login = async (req: Request, res: Response) => {
 export const checkAccountLock = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
-    const clientIp = getClientIp(req);
 
     if (!email) {
       return res.status(400).json({
@@ -633,7 +631,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       console.log('🗄️ Buscando usuario en PostgreSQL...');
       const user = await userModel.getUserByEmail(email);
       
-      if (user && user.id) {
+      if (user?.id) {
         console.log('✅ Usuario encontrado en PostgreSQL, ID:', user.id);
         console.log('🔄 Actualizando contraseña en PostgreSQL...');
         const dbUpdated = await userModel.updatePassword(user.id, newPassword);
