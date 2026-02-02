@@ -346,6 +346,8 @@ export const login = async (req: Request, res: Response) => {
         
         console.log('📊 Usuario obtenido de PostgreSQL:', dbUser);
         console.log('🎭 Rol del usuario en BD:', dbUser?.rol);
+        console.log('🎭 Tipo de rol:', typeof dbUser?.rol);
+        console.log('🎭 Rol como string:', String(dbUser?.rol));
         
         if (dbUser?.id) {
           const deviceInfo = SessionService.parseUserAgent(userAgent);
@@ -386,7 +388,7 @@ export const login = async (req: Request, res: Response) => {
                   email: userEmail,
                   nombre: userName,
                   dbId: dbUser.id,
-                  rol: dbUser.rol || 'cliente'
+                  rol: String(dbUser.rol || 'cliente')
                 },
                 token: token,
                 sessionToken: sessionResult.sessionToken
@@ -406,7 +408,7 @@ export const login = async (req: Request, res: Response) => {
       // 🆕 SI NO SE PUDO CREAR SESIÓN, ENVIAR RESPUESTA SIN TOKEN
       console.log(`✅ LOGIN EXITOSO (sin sesión) para: ${email}`);
       console.log('📊 dbUser en respuesta final:', dbUser);
-      console.log('🎭 Rol final:', dbUser?.rol || 'cliente (default)');
+      console.log('🎭 Rol final:', String(dbUser?.rol || 'cliente'));
 
       return res.json({
         success: true,
@@ -416,7 +418,7 @@ export const login = async (req: Request, res: Response) => {
             id: userRecord.uid,
             email: userEmail,
             nombre: userName,
-            rol: dbUser?.rol || 'cliente'
+            rol: String(dbUser?.rol || 'cliente')
           }
         }
       });
