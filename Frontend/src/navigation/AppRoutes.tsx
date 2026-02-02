@@ -38,7 +38,6 @@ import AdminTrabajadoresScreen from "../screens/AdminTrabajadoresScreen";
 import AdminPerfilScreen from "../screens/AdminPerfilScreen";
 import AdminReportesScreen from "../screens/AdminReportesScreen";
 import DashboardTrabajadorScreen from "../screens/DashboardTrabajadorScreen";
-import DashboardAdminScreen from "../screens/DashboardAdminScreen";
 
 // PANTALLAS DE ERROR
 import NotFoundScreen from '../screens/NotFoundScreen';
@@ -139,9 +138,11 @@ export default function AppRoutes() {
           <Route path="/admin-trabajadores" element={<AdminTrabajadoresScreen />} />
           <Route path="/admin-perfil" element={<AdminPerfilScreen />} />
           <Route path="/admin-reportes" element={<AdminReportesScreen />} />
-          <Route path="/dashboard-trabajador" element={<DashboardTrabajadorScreen />} />
-          <Route path="/dashboard-admin" element={<DashboardAdminScreen />} />
         </Route>
+
+        {/* 3.5. DASHBOARDS PROTEGIDOS (Sin Layout / Sin Sidebar) */}
+        <Route path="/dashboard-trabajador" element={<ProtectedRoute><DashboardTrabajadorScreen /></ProtectedRoute>} />
+        <Route path="/dashboard-admin" element={<ProtectedRoute><AdminDashboardScreen /></ProtectedRoute>} />
 
         {/* 4. MANEJO DE ERRORES */}
         <Route path="/403" element={<ForbiddenScreen />} />
