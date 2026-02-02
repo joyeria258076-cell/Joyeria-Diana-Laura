@@ -1,0 +1,94 @@
+.gestion-pedidos-container {
+    padding: 1.5rem;
+    animation: fadeIn 0.5s ease-in;
+}
+
+.page-header h2 {
+    color: #ECB2C3;
+    font-family: 'Playfair Display', serif;
+    margin-bottom: 2rem;
+}
+
+.tabs-container {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(236, 178, 195, 0.3);
+}
+
+.tab-item {
+    background: none;
+    border: none;
+    color: #D4B5C8;
+    padding: 10px 5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.tab-item.active {
+    color: #ECB2C3;
+    border-bottom: 2px solid #ECB2C3;
+}
+
+.table-responsive-custom {
+    background: rgba(42, 29, 36, 0.4);
+    border: 1px solid rgba(236, 178, 195, 0.3);
+    border-radius: 12px;
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+}
+
+.custom-table th {
+    color: #ECB2C3;
+    text-align: left;
+    padding: 1.2rem;
+    border-bottom: 2px solid rgba(236, 178, 195, 0.2);
+}
+
+.custom-table td {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid rgba(236, 178, 195, 0.1);
+    color: #D4B5C8;
+}
+
+/* Badges de Estado */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pending { background: rgba(168, 116, 139, 0.3); color: #f5d8e8; }
+.status-waiting { background: rgba(236, 178, 195, 0.2); color: #ECB2C3; }
+.status-delivered { background: rgba(45, 100, 80, 0.3); color: #2ecc71; }
+.status-accepted { background: rgba(212, 181, 200, 0.2); color: #d4b5c8; }
+
+.btn-view {
+    background: #ECB2C3;
+    color: #0f0f12;
+    border: none;
+    padding: 6px 15px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-view:hover {
+    background: #f5d8e8;
+    transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

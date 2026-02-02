@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import Breadcrumbs from "../components/Breadcrumbs";
 
 // LAYOUTS
 import { PrivateLayout } from "../components/PrivateLayout";
@@ -31,6 +30,13 @@ import SobreNosotros from "../screens/SobreNosotros";
 import Ubicacion from "../screens/UbicacionScreen";
 import Ayuda from "../screens/AyudaScreen";
 import ContactoScreen from "../screens/ContactoScreen";
+import ConfiguracionScreen from '../screens/ConfiguracionScreen';
+import AdminDashboardScreen from "../screens/AdminDashboardScreen";
+import GestionPedidosScreen from "../screens/GestionPedidosScreen";
+import AdminProductosScreen from '../screens/AdminProductosScreen'; 
+import AdminTrabajadoresScreen from "../screens/AdminTrabajadoresScreen";
+import AdminPerfilScreen from "../screens/AdminPerfilScreen";
+import AdminReportesScreen from "../screens/AdminReportesScreen";
 
 // PANTALLAS DE ERROR
 import NotFoundScreen from '../screens/NotFoundScreen';
@@ -115,6 +121,13 @@ export default function AppRoutes() {
           <Route path="/ubicacion" element={<Ubicacion />} />
           <Route path="/ayuda" element={<Ayuda />} />
           <Route path="/pedidos" element={<ClientePedidosScreen />} />
+          <Route path="/configuracion" element={<ConfiguracionScreen />} />
+          <Route path="/admin-dashboard" element={<AdminDashboardScreen />} />
+          <Route path="/pedidos-admin" element={<GestionPedidosScreen />} />
+          <Route path="/admin-productos" element={<AdminProductosScreen />} />
+          <Route path="/admin-trabajadores" element={<AdminTrabajadoresScreen />} />
+          <Route path="/admin-perfil" element={<AdminPerfilScreen />} />
+          <Route path="/admin-reportes" element={<AdminReportesScreen />} />
         </Route>
 
         {/* 4. MANEJO DE ERRORES */}
