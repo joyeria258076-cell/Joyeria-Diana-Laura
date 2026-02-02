@@ -21,7 +21,8 @@ import {
     revokeAllOtherSessions,
     revokeAllSessions ,
     validateSession, 
-    logout 
+    logout,
+    diagnosticCheckUsersTable
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/authMiddleware'; 
 import { mfaController } from '../controllers/mfaController';
@@ -62,5 +63,8 @@ router.post('/mfa/verify-enable', authenticateToken, mfaController.verifyAndEnab
 router.post('/mfa/verify-login', mfaController.verifyLoginMFA); // 🚫 SIN autenticación (para login)
 router.post('/mfa/disable', authenticateToken, mfaController.disableMFA);
 router.post('/mfa/status', authenticateToken, mfaController.checkMFAStatus);
+
+// 🆕 RUTA DE DIAGNÓSTICO (temporal para debugging)
+router.get('/diagnostic/users-table', diagnosticCheckUsersTable);
 
 export default router;

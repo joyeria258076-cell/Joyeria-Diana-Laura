@@ -344,6 +344,9 @@ export const login = async (req: Request, res: Response) => {
         // Obtener usuario de PostgreSQL para el ID
         dbUser = await userModel.getUserByEmail(userEmail);
         
+        console.log('📊 Usuario obtenido de PostgreSQL:', dbUser);
+        console.log('🎭 Rol del usuario en BD:', dbUser?.rol);
+        
         if (dbUser?.id) {
           const deviceInfo = SessionService.parseUserAgent(userAgent);
           
@@ -402,6 +405,8 @@ export const login = async (req: Request, res: Response) => {
 
       // 🆕 SI NO SE PUDO CREAR SESIÓN, ENVIAR RESPUESTA SIN TOKEN
       console.log(`✅ LOGIN EXITOSO (sin sesión) para: ${email}`);
+      console.log('📊 dbUser en respuesta final:', dbUser);
+      console.log('🎭 Rol final:', dbUser?.rol || 'cliente (default)');
 
       return res.json({
         success: true,
@@ -1221,6 +1226,50 @@ export const logout = async (req: any, res: Response) => {
     res.json({
       success: true,
       message: 'Sesión cerrada (error revocando sesión en BD)'
+    });
+  }
+};
+
+// 🆕 ENDPOINT DE DIAGNÓSTICO: Verificar estructura de tabla usuarios y rol
+export const diagnosticCheckUsersTable = async (req: Request, res: Response) => {
+  try {
+    console.log('🔍 Iniciando diagnóstico de tabla usuarios...');
+    
+    // Verificar si existe la columna rol
+    const columnCheck = await pool.query(`
+      SELECT column_name, data_type 
+      FROM information_schema.columns 
+      WHERE table_name = 'usuarios' AND column_name = 'rol'
+    `);
+    
+    console.log('📊 Columna rol existe:', columnCheck.rows.length > 0);
+    
+    // Obtener todos los usuarios con sus roles
+    const usersCheck = await pool.query(`
+      SELECT id, email, nombre, rol 
+      FROM usuarios 
+      LIMIT 10
+    `);
+    
+    console.log('👥 Usuarios en la tabla:', usersCheck.rows);
+    
+    res.json({
+      success: true,
+      message: 'Diagnóstico completado',
+      data: {
+        rolColumnExists: columnCheck.rows.length > 0,
+        rolColumnInfo: columnCheck.rows[0],
+        sampleUsers: usersCheck.rows,
+        totalUsers: usersCheck.rows.length
+      }
+    });
+    
+  } catch (error: any) {
+    console.error('❌ Error en diagnóstico:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error en diagnóstico',
+      error: error.message
     });
   }
 };
