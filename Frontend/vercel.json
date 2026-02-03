@@ -3,11 +3,27 @@
   "outputDirectory": "dist",
   "routes": [
     {
-      "src": "/static/(.*)",
+      "src": "/assets/(.*)",
       "headers": {
         "cache-control": "max-age=31536000, immutable"
       },
-      "dest": "/$1"
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/favicon.ico"
+    },
+    {
+      "src": ".*\\.js$",
+      "dest": "/$0"
+    },
+    {
+      "src": ".*\\.css$",
+      "dest": "/$0"
+    },
+    {
+      "src": ".*\\.json$",
+      "dest": "/$0"
     },
     {
       "src": "/(.*)",
