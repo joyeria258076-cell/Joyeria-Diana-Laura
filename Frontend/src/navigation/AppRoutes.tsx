@@ -60,7 +60,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     // 🆕 Redirigir según el rol del usuario
     console.log('🔐 Usuario detectado en PublicRoute. Rol:', user.rol);
     if (user.rol === 'admin') {
-      return <Navigate to="/dashboard-admin" replace />;
+      return <Navigate to="/admin-dashboard" replace />;
     } else if (user.rol === 'trabajador') {
       return <Navigate to="/dashboard-trabajador" replace />;
     }
@@ -142,7 +142,6 @@ export default function AppRoutes() {
 
         {/* 3.5. DASHBOARDS PROTEGIDOS (Sin Layout / Sin Sidebar) */}
         <Route path="/dashboard-trabajador" element={<ProtectedRoute><DashboardTrabajadorScreen /></ProtectedRoute>} />
-        <Route path="/dashboard-admin" element={<ProtectedRoute><AdminDashboardScreen /></ProtectedRoute>} />
 
         {/* 4. MANEJO DE ERRORES */}
         <Route path="/403" element={<ForbiddenScreen />} />

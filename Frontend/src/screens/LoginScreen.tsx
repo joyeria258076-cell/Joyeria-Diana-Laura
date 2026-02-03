@@ -171,7 +171,7 @@ const onSubmit = async (data: FormData) => {
     
     if (rol === 'admin' || rolLower === 'admin') {
       console.log('👨‍💼 Usuario es Admin - redirigiendo a dashboard admin');
-      navigate("/dashboard-admin");
+      navigate("/admin-dashboard");
     } else if (rol === 'trabajador' || rolLower === 'trabajador') {
       console.log('👷 Usuario es Trabajador - redirigiendo a dashboard trabajador');
       navigate("/dashboard-trabajador");
