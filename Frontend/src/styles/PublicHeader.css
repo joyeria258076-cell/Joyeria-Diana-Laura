@@ -62,7 +62,7 @@
 /* Navegación */
 .header-nav {
   display: flex;
-  gap: 2rem;
+  gap: 1.2rem;
   flex: 1;
   justify-content: center;
 }

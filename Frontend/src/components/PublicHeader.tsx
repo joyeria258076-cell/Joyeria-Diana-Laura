@@ -51,6 +51,20 @@ const PublicHeader: React.FC = () => {
             >
               Contacto
             </Link>
+
+            <Link 
+              to="/ubicacion-publica" 
+              className={`nav-link ${isActive("/ubicacion-publica") ? "active" : ""}`}
+            >
+              Ubicación
+            </Link>
+
+            <Link 
+              to="/ayuda-publica" 
+              className={`nav-link ${isActive("/ayuda-publica") ? "active" : ""}`}
+            >
+              Ayuda
+            </Link>
           </nav>
 
           {/* Botón de acceso */}

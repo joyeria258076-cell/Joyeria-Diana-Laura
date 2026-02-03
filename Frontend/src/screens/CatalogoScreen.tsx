@@ -11,9 +11,13 @@ interface Producto {
 }
 
 const CatalogoScreen: React.FC = () => {
-    // --- ESTADOS ---
+    // --- ESTADOS DE FILTRADO ---
     const [categoriaActiva, setCategoriaActiva] = useState('Todas');
-    const [busqueda, setBusqueda] = useState(''); // Estado para Búsqueda Simple
+    const [busqueda, setBusqueda] = useState('');
+    const [precioMaximo, setPrecioMaximo] = useState(5000); // Filtro por precio
+    const [orden, setOrden] = useState('relevancia'); // Estado para ordenar
+    
+    // --- ESTADOS DE UI ---
     const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
     const [paginaActual, setPaginaActual] = useState(1);
     const [instruccionesAbiertas, setInstruccionesAbiertas] = useState(false);
@@ -29,19 +33,31 @@ const CatalogoScreen: React.FC = () => {
         { id: 4, nombre: "Pulsera Esmeralda", precio: 3200, descripcion: "Esmeraldas naturales engastadas en plata", imagen: "/assets/images/pulsera-esmeralda.jpg", categoria: "Pulseras" },
         { id: 5, nombre: "Set Matrimonio", precio: 4500, descripcion: "Conjunto de anillos coordinados", imagen: "/assets/images/set-matrimonio.jpg", categoria: "Conjuntos" },
         { id: 6, nombre: "Anillo Zafiro Azul", precio: 2800, descripcion: "Zafiro central con halo de diamantes", imagen: "/assets/images/anillo-zafiro.jpg", categoria: "Anillos" },
-        { id: 7, nombre: "Collar de Perlas", precio: 2200, descripcion: "Anillo en plata sterling con diamante central de 0.5 quilates", imagen: "/assets/images/collar-perlas.jpg", categoria: "Collares" },
-        { id: 8, nombre: "Aretes Diamante", precio: 1900, descripcion: "Anillo en plata sterling con diamante central de 0.5 quilates", imagen: "/assets/images/aretes-diamante.jpg", categoria: "Aretes" }
+        { id: 7, nombre: "Collar de Perlas", precio: 2200, descripcion: "Selección de perlas naturales de alta calidad", imagen: "/assets/images/collar-perlas.jpg", categoria: "Collares" },
+        { id: 8, nombre: "Aretes Diamante", precio: 1900, descripcion: "Corte brillante con montura de oro", imagen: "/assets/images/aretes-diamante.jpg", categoria: "Aretes" }
     ];
 
-    // --- LÓGICA DE FILTRADO COMBINADO (Punto 4 del Checklist) ---
+    // --- LÓGICA DE FILTRADO MULTIVARIABLE ---
     const productosFiltrados = useMemo(() => {
-        return productos.filter(p => {
+        // 1. Filtrar por Categoría, Búsqueda y Precio al mismo tiempo
+        let resultado = productos.filter(p => {
             const coincideCategoria = categoriaActiva === 'Todas' || p.categoria === categoriaActiva;
             const coincideBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
                                      p.descripcion.toLowerCase().includes(busqueda.toLowerCase());
-            return coincideCategoria && coincideBusqueda;
+            const coincidePrecio = p.precio <= precioMaximo;
+
+            return coincideCategoria && coincideBusqueda && coincidePrecio;
         });
-    }, [categoriaActiva, busqueda]);
+
+        // 2. Aplicar ordenamiento
+        if (orden === 'precio-bajo') {
+            resultado.sort((a, b) => a.precio - b.precio);
+        } else if (orden === 'precio-alto') {
+            resultado.sort((a, b) => b.precio - a.precio);
+        }
+
+        return resultado;
+    }, [categoriaActiva, busqueda, precioMaximo, orden]);
 
     // --- LÓGICA DE PAGINACIÓN ---
     const indiceInicio = (paginaActual - 1) * productosPorPagina;
@@ -68,44 +84,70 @@ const CatalogoScreen: React.FC = () => {
         <main className="catalogo-body">
             <h2 className="page-title">Catálogo de Productos</h2>
 
-            {/* --- 4.a BÚSQUEDA SIMPLE --- */}
-            <div className="search-container-premium">
-                <input 
-                    type="text" 
-                    className="search-input"
-                    placeholder="Buscar por nombre o material (ej. Diamante)..."
-                    value={busqueda}
-                    onChange={(e) => {
-                        setBusqueda(e.target.value);
-                        setPaginaActual(1); // Reiniciar paginación al buscar
-                    }}
-                />
-                <span className="search-icon">🔍</span>
-            </div>
+            {/* --- SECCIÓN DE FILTROS --- */}
+            <div className="filtros-container-premium">
+                
+                {/* 1. Buscador */}
+                <div className="search-container-premium">
+                    <input 
+                        type="text" 
+                        className="search-input"
+                        placeholder="Buscar por nombre o material (ej. Oro)..."
+                        value={busqueda}
+                        onChange={(e) => { setBusqueda(e.target.value); setPaginaActual(1); }}
+                    />
+                    <span className="search-icon">🔍</span>
+                </div>
 
-            {/* --- 4.b BÚSQUEDA AVANZADA (CHIPS) --- */}
-            <div className="categorias-filter">
-                <h5 className="filter-label">Explorar por Categoría</h5>
-                <div className="filter-buttons">
-                    {categorias.map(cat => (
-                        <button 
-                            key={cat}
-                            className={`btn-filter ${categoriaActiva === cat ? 'active' : 'outline'}`}
-                            onClick={() => {
-                                setCategoriaActiva(cat);
-                                setPaginaActual(1);
-                            }}
+                {/* 2. Filtros de Rango y Orden */}
+                <div className="advanced-filters-row">
+                    <div className="filter-group">
+                        <label className="filter-label">Precio Máximo: <strong>${precioMaximo.toLocaleString()}</strong></label>
+                        <input 
+                            type="range" 
+                            className="price-slider"
+                            min="1000" 
+                            max="5000" 
+                            step="100"
+                            value={precioMaximo}
+                            onChange={(e) => { setPrecioMaximo(Number(e.target.value)); setPaginaActual(1); }}
+                        />
+                    </div>
+
+                    <div className="filter-group">
+                        <label className="filter-label">Ordenar por:</label>
+                        <select 
+                            className="filter-select"
+                            value={orden} 
+                            onChange={(e) => setOrden(e.target.value)}
                         >
-                            {cat}
-                        </button>
-                    ))}
+                            <option value="relevancia">Relevancia</option>
+                            <option value="precio-bajo">Precio: Menor a Mayor</option>
+                            <option value="precio-alto">Precio: Mayor a Menor</option>
+                        </select>
+                    </div>
+                </div>
+
+                {/* 3. Chips de Categoría */}
+                <div className="categorias-filter">
+                    <div className="filter-buttons">
+                        {categorias.map(cat => (
+                            <button 
+                                key={cat}
+                                className={`btn-filter ${categoriaActiva === cat ? 'active' : 'outline'}`}
+                                onClick={() => { setCategoriaActiva(cat); setPaginaActual(1); }}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
             {/* AVISO SIN RESULTADOS */}
             {productosFiltrados.length === 0 && (
                 <div className="no-results">
-                    <p>No se encontraron piezas que coincidan con tu búsqueda.</p>
+                    <p>No se encontraron piezas que coincidan con los filtros seleccionados.</p>
                 </div>
             )}
 
@@ -114,6 +156,7 @@ const CatalogoScreen: React.FC = () => {
                 {productosActuales.map((producto) => (
                     <div key={producto.id} className="producto-card">
                         <div className="producto-imagen-box">
+                            <span className="categoria-tag">{producto.categoria}</span>
                             <div className="placeholder-icon">💎</div>
                         </div>
                         <div className="producto-info">
@@ -125,7 +168,7 @@ const CatalogoScreen: React.FC = () => {
                                     Ver Detalle
                                 </button>
                                 <button className="btn-accion outline">
-                                    Agregar al Carrito
+                                    🛒
                                 </button>
                             </div>
                         </div>
@@ -182,7 +225,6 @@ const CatalogoScreen: React.FC = () => {
                                     <div className={`ar-instructions-content ${instruccionesAbiertas ? 'expanded' : 'collapsed'}`}>
                                         <div className="qr-section">
                                             <div className="qr-image-container">
-                                                {/* Representación visual de un QR */}
                                                 <div className="fake-qr"></div>
                                             </div>
                                             <p className="qr-description">

@@ -1219,3 +1219,228 @@
     .detalles-content { grid-template-columns: 1fr; }
     .page-title { font-size: 1.8rem; }
 }
+
+/* ==========================================================================
+   CATALOGOSCREEN.CSS - DISEÑO PREMIUM OPTIMIZADO
+   ========================================================================== */
+
+.catalogo-body {
+    padding: 3rem 2rem;
+    background-color: #000000;
+    min-height: 100vh;
+    color: #FFFFFF;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, #FFFFFF 0%, #ECB2C3 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* --- SECCIÓN DE FILTROS AVANZADOS --- */
+.filtros-container-premium {
+    max-width: 1000px;
+    margin: 0 auto 3rem auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 25px;
+    border-radius: 15px;
+    border: 1px solid rgba(236, 178, 195, 0.1);
+}
+
+/* Fila de Slider y Select */
+.advanced-filters-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filter-label {
+    color: #d4b5c8;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Estilo del Slider (Rango de Precio) */
+.price-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: rgba(236, 178, 195, 0.2);
+    border-radius: 5px;
+    outline: none;
+}
+
+.price-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #ECB2C3;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(236, 178, 195, 0.5);
+    transition: 0.3s;
+}
+
+.price-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+/* Estilo del Selector (Ordenar por) */
+.filter-select {
+    background: #1a1a1f;
+    color: white;
+    border: 1px solid rgba(236, 178, 195, 0.3);
+    padding: 10px;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+}
+
+/* Buscador */
+.search-container-premium {
+    position: relative;
+    width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(236, 178, 195, 0.3);
+    border-radius: 25px;
+    color: #FFFFFF;
+    transition: 0.3s;
+}
+
+.search-input:focus {
+    border-color: #ECB2C3;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* --- GRID Y CARDS --- */
+.productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.producto-card {
+    background: #0f0f12;
+    border: 1px solid rgba(236, 178, 195, 0.15);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.producto-card:hover {
+    transform: translateY(-5px);
+    border-color: #ECB2C3;
+    box-shadow: 0 10px 20px rgba(236, 178, 195, 0.1);
+}
+
+.producto-imagen-box {
+    height: 250px;
+    background: #1a1a1f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    position: relative;
+}
+
+.categoria-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(236, 178, 195, 0.2);
+    color: #ECB2C3;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+}
+
+.producto-info { padding: 1.5rem; }
+.producto-nombre { color: white; font-size: 1.1rem; margin-bottom: 5px; }
+.producto-precio { color: #ECB2C3; font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; }
+
+/* Botones */
+.btn-accion {
+    width: 100%; padding: 10px; border-radius: 6px; 
+    font-weight: 600; cursor: pointer; transition: 0.3s;
+}
+.btn-accion.primary { background: #ECB2C3; border: none; color: #0f0f12; }
+.btn-accion.outline { background: transparent; border: 1px solid #ECB2C3; color: #ECB2C3; }
+
+.btn-accion:hover { transform: scale(1.02); opacity: 0.9; }
+
+/* Chips de Categoría */
+.filter-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-filter {
+    padding: 8px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-filter.active { background: #ECB2C3; border: none; color: #000000; }
+.btn-filter.outline { background: transparent; border: 1px solid #ECB2C3; color: #ECB2C3; }
+
+/* MODAL Y AR (Simplificado) */
+.modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+}
+
+.modal-detalles {
+    background: #0a0a0a;
+    border: 1px solid #ECB2C3;
+    max-width: 800px; width: 90%;
+    border-radius: 15px;
+    padding: 30px;
+    position: relative;
+}
+
+/* QR visual */
+.fake-qr {
+    width: 150px; height: 150px;
+    background: white; margin: 15px auto;
+    border: 4px solid #ECB2C3;
+    background-image: url('../assets/images/QR_JOYERIA.png');
+    background-size: cover;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .advanced-filters-row { flex-direction: column; align-items: stretch; }
+    .page-title { font-size: 1.8rem; }
+}

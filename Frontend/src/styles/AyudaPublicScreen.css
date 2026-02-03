@@ -1,0 +1,100 @@
+/* Contenedor principal para rutas públicas */
+.ayuda-publica-wrapper {
+    background-color: #000000; /* Fondo negro absoluto */
+    min-height: 100vh;
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+}
+
+.page-container {
+    padding: 100px 20px 40px; /* Padding superior para no chocar con el Header */
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.section-header h1 {
+    color: #ecb2c3; /* El rosa de tu marca */
+    font-size: 2.8rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.faq-grid {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 40px;
+    margin-top: 50px;
+}
+
+/* Estilo para los acordeones */
+details {
+    background: #1a1a1d; /* Gris muy oscuro para resaltar del fondo negro */
+    margin-bottom: 15px;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(236, 178, 195, 0.2);
+    transition: all 0.3s ease;
+}
+
+details[open] {
+    border-color: #ecb2c3;
+}
+
+summary {
+    list-style: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: #ecb2c3;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* La tarjeta de soporte de la derecha */
+.support-card {
+    background: #1a1a1d;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    border: 1px solid #ecb2c3;
+    height: fit-content;
+}
+
+.btn-contact {
+    background: #ecb2c3;
+    color: #000;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: bold;
+    width: 100%;
+    margin: 20px 0;
+    cursor: pointer;
+}
+
+/* Alineación perfecta de la cabecera */
+.section-header {
+    display: flex;
+    flex-direction: column; /* Pone el título arriba y el texto abajo */
+    align-items: flex-start; /* Alinea todo a la izquierda */
+    gap: 10px;               /* Espacio controlado entre letras */
+    margin-bottom: 40px;
+    border-left: 4px solid #ecb2c3; /* Detalle elegante de marca */
+    padding-left: 20px;
+}
+
+.section-header h1 {
+    display: flex;
+    align-items: center;
+    gap: 15px;               /* Espacio entre el ícono SOS y el texto */
+    color: #ecb2c3;
+    font-size: 3rem;         /* Un poco más grande para que imponga */
+    font-family: 'Playfair Display', serif;
+    margin: 0;
+}
+
+.section-header p {
+    color: #ccc;
+    font-size: 1.1rem;
+    max-width: 600px;        /* Evita que el texto se estire demasiado y se vea chueco */
+    line-height: 1.6;        /* Mejora la lectura */
+    margin: 0;
+}

@@ -12,6 +12,8 @@ import InicioPublicScreen from "../screens/InicioPublicScreen";
 import CatalogoPublicScreen from "../screens/CatalogoPublicScreen";
 import NoticiasScreen from "../screens/NoticiasScreen";
 import ContactoPublicScreen from "../screens/ContactoPublicScreen";
+import UbicacionPublicScreen from "../screens/UbicacionPublicScreen";
+import AyudaPublicScreen from "../screens/AyudaPublicScreen";
 
 // PANTALLAS DE AUTENTICACIÓN
 import LoginScreen from "../screens/LoginScreen";
@@ -105,6 +107,8 @@ export default function AppRoutes() {
         <Route path="/catalogo-publico" element={<CatalogoPublicScreen />} />
         <Route path="/noticias" element={<NoticiasScreen />} />
         <Route path="/contacto-publico" element={<ContactoPublicScreen />} />
+        <Route path="/ubicacion-publica" element={<UbicacionPublicScreen />} />
+        <Route path="/ayuda-publica" element={<AyudaPublicScreen />} />
 
         {/* 2. RUTAS DE AUTENTICACIÓN (Solo si no estás logueado) */}
         <Route path="/login" element={<PublicRoute><LoginScreen /></PublicRoute>} />
