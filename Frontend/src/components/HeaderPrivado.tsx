@@ -1,5 +1,5 @@
 // Ruta: src/components/HeaderPrivado.tsx
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import "../styles/HeaderPrivado.css";
@@ -8,13 +8,14 @@ const HeaderPrivado: React.FC = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const [isContentMenuOpen, setIsContentMenuOpen] = useState(false);
 
     // 1. Normalizamos el rol para evitar errores de mayúsculas o espacios
     // Si user o user.rol no existen, por defecto es 'cliente'
     const userRole = user?.rol?.toLowerCase().trim() || 'cliente';
 
     // Función para marcar la opción activa en el menú
-    const isActive = (path: string) => location.pathname === path ? "active" : "";
+    const isActive = (path: string) => location.pathname.startsWith(path) ? "active" : "";
 
     return (
         <>
@@ -39,6 +40,68 @@ const HeaderPrivado: React.FC = () => {
                             <button className={`nav-item ${isActive("/admin-productos")}`} onClick={() => navigate("/admin-productos")}>
                                 <span className="nav-icon">💎</span> Gestionar Productos
                             </button>
+                            
+                            {/* MENÚ DESPLEGABLE DE GESTIONAR CONTENIDO */}
+                            <div className="nav-item-group">
+                                <button 
+                                    className={`nav-item ${isActive("/admin-contenido") ? "active" : ""} dropdown-toggle`}
+                                    onClick={() => setIsContentMenuOpen(!isContentMenuOpen)}
+                                >
+                                    <span className="nav-icon">⚙️</span> Gestionar Contenido
+                                    <span className={`dropdown-arrow ${isContentMenuOpen ? 'open' : ''}`}>▼</span>
+                                </button>
+                                
+                                {isContentMenuOpen && (
+                                    <div className="dropdown-menu">
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin-contenido/inicio") ? "active" : ""}`}
+                                            onClick={() => {
+                                                navigate("/admin-contenido/inicio");
+                                                setIsContentMenuOpen(false);
+                                            }}
+                                        >
+                                            <span className="dropdown-icon">🏠</span> Página de Inicio
+                                        </button>
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin-contenido/noticias") ? "active" : ""}`}
+                                            onClick={() => {
+                                                navigate("/admin-contenido/noticias");
+                                                setIsContentMenuOpen(false);
+                                            }}
+                                        >
+                                            <span className="dropdown-icon">📰</span> Noticias
+                                        </button>
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin-contenido/info") ? "active" : ""}`}
+                                            onClick={() => {
+                                                navigate("/admin-contenido/info");
+                                                setIsContentMenuOpen(false);
+                                            }}
+                                        >
+                                            <span className="dropdown-icon">ℹ️</span> Información Empresarial
+                                        </button>
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin-contenido/faq") ? "active" : ""}`}
+                                            onClick={() => {
+                                                navigate("/admin-contenido/faq");
+                                                setIsContentMenuOpen(false);
+                                            }}
+                                        >
+                                            <span className="dropdown-icon">❓</span> Preguntas Frecuentes
+                                        </button>
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin-contenido/mision") ? "active" : ""}`}
+                                            onClick={() => {
+                                                navigate("/admin-contenido/mision");
+                                                setIsContentMenuOpen(false);
+                                            }}
+                                        >
+                                            <span className="dropdown-icon">🎯</span> Misión, Visión y Valores
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
                             <button className={`nav-item ${isActive("/pedidos-admin")}`} onClick={() => navigate("/pedidos-admin")}>
                                 <span className="nav-icon">📦</span> Pedidos Tienda
                             </button>

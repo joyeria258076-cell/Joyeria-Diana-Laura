@@ -34,6 +34,12 @@ import Ayuda from "../screens/AyudaScreen";
 import ContactoScreen from "../screens/ContactoScreen";
 import ConfiguracionScreen from '../screens/ConfiguracionScreen';
 import AdminDashboardScreen from "../screens/AdminDashboardScreen";
+import AdminContentManagerScreen from "../screens/AdminContentManagerScreen";
+import AdminContentInicioScreen from "../screens/AdminContentInicioScreen";
+import AdminContentNoticiasScreen from "../screens/AdminContentNoticiasScreen";
+import AdminContentInfoScreen from "../screens/AdminContentInfoScreen";
+import AdminContentFAQScreen from "../screens/AdminContentFAQScreen";
+import AdminContentMisionScreen from "../screens/AdminContentMisionScreen";
 import GestionPedidosScreen from "../screens/GestionPedidosScreen";
 import AdminProductosScreen from '../screens/AdminProductosScreen'; 
 import AdminTrabajadoresScreen from "../screens/AdminTrabajadoresScreen";
@@ -45,9 +51,7 @@ import DashboardTrabajadorScreen from "../screens/DashboardTrabajadorScreen";
 import NotFoundScreen from '../screens/NotFoundScreen';
 import ForbiddenScreen from '../screens/ForbiddenScreen';
 import ServerErrorScreen from '../screens/ServerErrorScreen';
-import ClientePedidosScreen from "../screens/ClientePedidosScreen";
-
-// --- COMPONENTES DE PROTECCIÓN ---
+import ClientePedidosScreen from "../screens/ClientePedidosScreen";// --- COMPONENTES DE PROTECCIÓN ---
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center h-screen text-lg font-semibold bg-[#0f0f12] text-[#ecb2c3]">Cargando...</div>;
@@ -137,6 +141,12 @@ export default function AppRoutes() {
           <Route path="/pedidos" element={<ClientePedidosScreen />} />
           <Route path="/configuracion" element={<ConfiguracionScreen />} />
           <Route path="/admin-dashboard" element={<AdminDashboardScreen />} />
+          <Route path="/admin-contenido" element={<AdminContentManagerScreen />} />
+          <Route path="/admin-contenido/inicio" element={<AdminContentInicioScreen />} />
+          <Route path="/admin-contenido/noticias" element={<AdminContentNoticiasScreen />} />
+          <Route path="/admin-contenido/info" element={<AdminContentInfoScreen />} />
+          <Route path="/admin-contenido/faq" element={<AdminContentFAQScreen />} />
+          <Route path="/admin-contenido/mision" element={<AdminContentMisionScreen />} />
           <Route path="/pedidos-admin" element={<GestionPedidosScreen />} />
           <Route path="/admin-productos" element={<AdminProductosScreen />} />
           <Route path="/admin-trabajadores" element={<AdminTrabajadoresScreen />} />
