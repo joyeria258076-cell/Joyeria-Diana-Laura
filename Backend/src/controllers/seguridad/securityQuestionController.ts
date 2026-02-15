@@ -1,9 +1,9 @@
-// Ruta: Joyeria-Diana-Laura/Backend/src/controllers/securityQuestionController.ts
 import { Request, Response } from 'express';
-import { SecurityQuestionModel } from '../models/securityQuestionModel';
-import { getUserByEmail, updatePassword } from '../models/userModel'; // 🆕 Agregar updatePassword
-import admin from '../config/firebase'; // 🆕 Agregar import de Firebase
-import { RecoverySecurityService } from '../services/recoverySecurityService'; // 🆕 Agregar import
+// 👇 CORRECCIONES: Agregamos '../' extra a todos los imports
+import { SecurityQuestionModel } from '../../models/securityQuestionModel';
+import { getUserByEmail, updatePassword } from '../../models/userModel'; 
+import admin from '../../config/firebase'; 
+import { RecoverySecurityService } from '../../services/recoverySecurityService'; 
 
 // Lista de 5 preguntas seguras predefinidas
 const SECURE_QUESTIONS = [

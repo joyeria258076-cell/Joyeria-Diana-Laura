@@ -1,6 +1,6 @@
-// Ruta: Joyeria-Diana-Laura/Backend/src/controllers/userController.ts
 import { Request, Response } from 'express';
-import * as userModel from '../models/userModel';
+// 👇 CORRECCIÓN 1: Subir dos niveles para encontrar el modelo
+import * as userModel from '../../models/userModel';
 
 // Obtener perfil de usuario por ID
 export const getUserProfile = async (req: Request, res: Response) => {
@@ -45,7 +45,14 @@ export const updateUserProfile = async (req: Request, res: Response) => {
       });
     }
     
-    const success = await userModel.updateUser(parseInt(id), { nombre, email });
+    // Validar que id sea número válido
+    const userId = parseInt(id);
+    if (isNaN(userId)) {
+        return res.status(400).json({ success: false, message: 'ID de usuario inválido' });
+    }
+
+    // Nota: Asegúrate de que tu userModel tenga la función updateUser aceptando estos parámetros
+    const success = await userModel.updateUser(userId, { nombre, email });
     
     if (success) {
       res.json({
@@ -100,7 +107,8 @@ export const getAllUsers = async (req: Request, res: Response) => {
     const users = await userModel.getAllUsers();
     
     // No devolver passwords
-    const usersWithoutPasswords = users.map(user => {
+    // 👇 CORRECCIÓN 2: Agregamos (user: any) para calmar a TypeScript
+    const usersWithoutPasswords = users.map((user: any) => {
       const { password_hash, ...userWithoutPassword } = user;
       return userWithoutPassword;
     });

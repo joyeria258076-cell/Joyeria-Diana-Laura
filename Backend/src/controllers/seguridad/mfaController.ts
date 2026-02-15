@@ -1,10 +1,10 @@
-// En Joyeria-Diana-Laura/Backend/src/controllers/mfaController.ts
 import { Request, Response } from 'express';
-import { MFAService } from '../services/MFAService';
-import { pool } from '../config/database';
-import { SessionService } from '../services/SessionService';
-import jwt from 'jsonwebtoken';
-import { JWTService } from '../services/JWTService';
+// 👇 CORRECCIÓN 1: Subir dos niveles (../../) para encontrar los servicios y config
+import { MFAService } from '../../services/MFAService';
+import { pool } from '../../config/database';
+import { SessionService } from '../../services/SessionService';
+import jwt from 'jsonwebtoken'; 
+import { JWTService } from '../../services/JWTService';
 
 export const mfaController = {
   /**
@@ -28,8 +28,8 @@ export const mfaController = {
       const backupCodes = MFAService.generateBackupCodes();
       const qrCodeUrl = await MFAService.generateQRCode(secret.otpauth_url!);
 
-      // 🆕 FORMATO CORRECTO para PostgreSQL arrays
-      const backupCodesFormatted = `{${backupCodes.map(code => `"${code}"`).join(',')}}`;
+      // 🆕 CORRECCIÓN 2: Especificar el tipo (code: string) para evitar error de TypeScript
+      const backupCodesFormatted = `{${backupCodes.map((code: string) => `"${code}"`).join(',')}}`;
       
       console.log(`📦 Backup codes formateados: ${backupCodesFormatted}`);
 
@@ -129,7 +129,7 @@ export const mfaController = {
   },
 
   /**
-   * Verificar código MFA durante el login - CORREGIDA COMPLETAMENTE
+   * Verificar código MFA durante el login
    */
   verifyLoginMFA: async (req: Request, res: Response) => {
     try {
@@ -189,7 +189,7 @@ export const mfaController = {
 
       console.log(`✅ MFA verificado para login usuario: ${userId}`);
 
-      // 🎯 CORRECCIÓN COMPLETA: CREAR SESIÓN DESPUÉS DE MFA CON JWT SEGURO
+      // Crear sesión después de MFA exitoso
       try {
         const clientIp = req.headers['x-forwarded-for'] || 
                         req.connection.remoteAddress || 
@@ -210,7 +210,7 @@ export const mfaController = {
         );
 
         if (sessionResult.success && sessionResult.sessionToken) {
-          // 🎯 GENERAR JWT SEGURO CON EL NUEVO SERVICIO
+          // Generar JWT seguro
           const jwtToken = JWTService.generateToken({
             userId: userId,
             firebaseUid: user.firebase_uid,
