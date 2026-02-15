@@ -64,6 +64,73 @@
     color: #ff6b6b;
 }
 
+/* ============================================
+   MENÚ DESPLEGABLE DE GESTIONAR CONTENIDO
+   ============================================ */
+
+.nav-item-group {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.dropdown-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dropdown-arrow {
+    font-size: 0.7rem;
+    transition: transform 0.3s ease;
+    margin-left: auto;
+}
+
+.dropdown-arrow.open {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu {
+    background: rgba(236, 178, 195, 0.08);
+    border-left: 3px solid rgba(236, 178, 195, 0.3);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.dropdown-item {
+    background: transparent;
+    border: none;
+    color: #888;
+    padding: 12px 25px 12px 45px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.dropdown-item:hover {
+    background: rgba(236, 178, 195, 0.12);
+    color: var(--rosa-joyeria);
+}
+
+.dropdown-item.active {
+    background: rgba(236, 178, 195, 0.15);
+    color: var(--rosa-joyeria);
+    border-left: 3px solid var(--rosa-joyeria);
+    padding-left: 42px;
+}
+
+.dropdown-icon {
+    font-size: 1.1rem;
+}
+
 /* Header Superior */
 .header-top-privado {
     grid-column: 2;
