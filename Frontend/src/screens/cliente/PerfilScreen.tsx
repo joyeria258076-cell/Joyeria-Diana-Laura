@@ -1,0 +1,425 @@
+// Ruta: Joyeria-Diana-Laura/Frontend/src/screens/PerfilScreen.tsx
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { authAPI } from "../../services/api";
+import "./PerfilScreen.css";
+
+// 🆕 INTERFAZ para estado MFA
+interface MFAStatus {
+  mfaEnabled: boolean;
+}
+
+// 🆕 TIPO ACTUALIZADO para sesiones activas
+interface SesionActiva {
+  id: number;
+  device_name: string;
+  browser: string;
+  os: string;
+  ip_address: string;
+  location: string;
+  created_at: string;
+  last_activity: string;
+  is_current?: boolean;
+}
+
+export default function PerfilScreen() {
+  const { user, logout, getActiveSessions, revokeSession, revokeAllOtherSessions, revokeAllSessions } = useAuth();
+  const navigate = useNavigate();
+  const [sesionesActivas, setSesionesActivas] = useState<SesionActiva[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [mensaje, setMensaje] = useState<string>("");
+  const [tipoMensaje, setTipoMensaje] = useState<"success" | "error">("success");
+  
+  // 🆕 ESTADO PARA MFA
+  const [mfaStatus, setMfaStatus] = useState<MFAStatus>({ mfaEnabled: false });
+  const [cargandoMFA, setCargandoMFA] = useState(false);
+
+  // 🆕 CARGAR ESTADO MFA Y SESIONES
+  useEffect(() => {
+    cargarEstadoMFA();
+    cargarSesionesActivas();
+  }, []);
+
+  // 🆕 FUNCIÓN PARA CARGAR ESTADO MFA
+  const cargarEstadoMFA = async () => {
+    if (!user?.dbId) return;
+    
+    try {
+      console.log('🔍 Cargando estado MFA...');
+      const response = await authAPI.checkMFAStatus(user.dbId);
+      
+      if (response.success) {
+        setMfaStatus(response.data);
+        console.log('✅ Estado MFA cargado:', response.data);
+      }
+    } catch (error: any) {
+      console.error('❌ Error cargando estado MFA:', error);
+    }
+  };
+
+  // 🆕 FUNCIÓN PARA DESACTIVAR MFA
+  const handleDesactivarMFA = async () => {
+    if (!user?.dbId) {
+      mostrarMensaje('❌ Error: Usuario no identificado', 'error');
+      return;
+    }
+
+    if (!window.confirm('¿Estás seguro de que quieres desactivar la Autenticación en Dos Pasos? Esto reducirá la seguridad de tu cuenta.')) {
+      return;
+    }
+
+    setCargandoMFA(true);
+
+    try {
+      console.log('🔐 Desactivando MFA para usuario:', user.dbId);
+      const response = await authAPI.disableMFA(user.dbId);
+      
+      if (response.success) {
+        setMfaStatus({ mfaEnabled: false });
+        mostrarMensaje('✅ Autenticación en Dos Pasos desactivada correctamente', 'success');
+        console.log('✅ MFA desactivado correctamente');
+      } else {
+        mostrarMensaje(`❌ Error al desactivar MFA: ${response.message}`, 'error');
+      }
+    } catch (error: any) {
+      console.error('❌ Error desactivando MFA:', error);
+      mostrarMensaje(`❌ Error al desactivar MFA: ${error.message}`, 'error');
+    } finally {
+      setCargandoMFA(false);
+    }
+  };
+
+  const cargarSesionesActivas = async () => {
+    try {
+      setCargando(true);
+      console.log('📋 Cargando sesiones activas del backend...');
+      
+      const sesiones = await getActiveSessions();
+      
+      console.log('✅ Sesiones cargadas:', sesiones.length);
+      console.log('🎯 Sesión actual ya marcada por backend:', sesiones.some(s => s.is_current));
+      
+      setSesionesActivas(sesiones);
+      
+    } catch (error: any) {
+      console.error("❌ Error cargando sesiones:", error);
+      mostrarMensaje("Error al cargar las sesiones activas: " + error.message, "error");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const mostrarMensaje = (texto: string, tipo: "success" | "error") => {
+    setMensaje(texto);
+    setTipoMensaje(tipo);
+    setTimeout(() => setMensaje(""), 5000);
+  };
+
+  const handleCerrarSesionDispositivo = async (sesionId: number) => {
+    const sesion = sesionesActivas.find(s => s.id === sesionId);
+    
+    const esSesionActual = sesion?.is_current === true;
+    
+    let mensajeConfirmacion = '';
+    
+    if (esSesionActual) {
+      mensajeConfirmacion = '⚠️ ¿Cerrar tu SESIÓN ACTUAL? Serás redirigido al login.';
+    } else {
+      mensajeConfirmacion = `¿Cerrar sesión en ${sesion?.device_name} (${sesion?.location})?`;
+    }
+
+    if (!window.confirm(mensajeConfirmacion)) {
+      return;
+    }
+    
+    try {
+      console.log("🔐 Cerrando sesión en dispositivo:", sesionId);
+      await revokeSession(sesionId);
+      
+      if (esSesionActual) {
+        mostrarMensaje("✅ Tu sesión actual se ha cerrado. Serás redirigido al login...", "success");
+        
+        setTimeout(async () => {
+          await logout();
+          navigate("/login");
+        }, 1000);
+      } else {
+        setSesionesActivas(prev => prev.filter(s => s.id !== sesionId));
+        mostrarMensaje("✅ Sesión cerrada exitosamente. El otro dispositivo será desconectado en 15 segundos.", "success");
+      }
+    } catch (error: any) {
+      console.error("❌ Error cerrando sesión:", error);
+      mostrarMensaje("Error al cerrar la sesión: " + error.message, "error");
+    }
+  };
+
+  const handleCerrarOtrasSesiones = async () => {
+    if (!window.confirm('¿Estás seguro de que quieres cerrar sesión en todos los otros dispositivos?')) {
+      return;
+    }
+    
+    try {
+      console.log("🔐 Cerrando todas las otras sesiones...");
+      const result = await revokeAllOtherSessions();
+      
+      await cargarSesionesActivas();
+      mostrarMensaje(`✅ Se cerraron ${result.revokedCount} sesiones. Los dispositivos serán desconectados en 15 segundos.`, "success");
+    } catch (error: any) {
+      console.error("❌ Error cerrando otras sesiones:", error);
+      mostrarMensaje("Error al cerrar otras sesiones: " + error.message, "error");
+    }
+  };
+
+  const handleCerrarTodasLasSesiones = async () => {
+    if (window.confirm("¿Estás seguro de que quieres cerrar todas las sesiones? Esto te cerrará la sesión en todos los dispositivos incluyendo este.")) {
+      try {
+        console.log("Cerrando TODAS las sesiones...");
+        const result = await revokeAllSessions();
+        
+        mostrarMensaje(`Se cerraron todas las sesiones (${result.revokedCount} dispositivos)`, "success");
+        
+        navigate("/login");
+      } catch (error: any) {
+        console.error("❌ Error cerrando todas las sesiones:", error);
+        mostrarMensaje("Error al cerrar todas las sesiones: " + error.message, "error");
+      }
+    }
+  };
+
+  const handleCerrarSesionActual = async () => {
+    if (window.confirm("¿Estás seguro de que quieres cerrar sesión en este dispositivo?")) {
+      await logout();
+      navigate("/login");
+    }
+  };
+
+  const formatearFecha = (fecha: string) => {
+    const ahora = new Date();
+    const fechaSesion = new Date(fecha);
+    const diffMs = ahora.getTime() - fechaSesion.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return "Hace unos segundos";
+    if (diffMins < 60) return `Hace ${diffMins} minuto${diffMins > 1 ? 's' : ''}`;
+    if (diffHours < 24) return `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+    return `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+  };
+
+  return (
+    <div className="perfil-container">
+      {/* Contenido principal del perfil */}
+      <main className="perfil-main">
+        <div className="perfil-content">
+          {/* Información del usuario */}
+          <section className="user-info-section">
+            <div className="user-avatar-large">
+              {user?.nombre?.charAt(0) || 'U'}
+            </div>
+            <div className="user-details">
+              <h1 className="user-name">{user?.nombre}</h1>
+              <p className="user-email">{user?.email}</p>
+              <p className="user-member">Miembro desde Enero 2024</p>
+            </div>
+          </section>
+
+          {/* 🆕 MENSAJES */}
+          {mensaje && (
+            <div className={`mensaje-alerta ${tipoMensaje}`}>
+              {mensaje}
+            </div>
+          )}
+
+          {/* 🆕 SECCIÓN MFA - ACTUALIZADA CON ESTADO DINÁMICO */}
+          <section className="sesiones-section">
+            <div className="section-header">
+              <h2 className="section-title">🔒 Autenticación en Dos Pasos (MFA)</h2>
+              <p className="section-subtitle">
+                Protege tu cuenta con una capa adicional de seguridad
+              </p>
+              
+              {/* 🆕 BOTÓN ACTUALIZAR ESTADO MFA */}
+              <button 
+                className="btn-actualizar"
+                onClick={cargarEstadoMFA}
+                disabled={cargandoMFA}
+              >
+                🔄 Actualizar Estado
+              </button>
+            </div>
+
+            <div className="mfa-status-card">
+              <div className="mfa-status-content">
+                <div className="mfa-status-info">
+                  {/* 🆕 ESTADO DINÁMICO */}
+                  <h3>
+                    Estado actual: 
+                    <span className={`mfa-badge ${mfaStatus.mfaEnabled ? 'mfa-enabled' : 'mfa-disabled'}`}>
+                      {mfaStatus.mfaEnabled ? 'Activada' : 'No activada'}
+                    </span>
+                  </h3>
+                  
+                  {mfaStatus.mfaEnabled ? (
+                    <div className="mfa-active-state">
+                      <p>
+                        <strong>✅ La autenticación en dos pasos está activa en tu cuenta.</strong><br/>
+                        Para iniciar sesión necesitarás tu contraseña y un código de verificación de tu aplicación authenticator.
+                      </p>
+                      
+                      <div className="mfa-benefits">
+                        <h4>Tu cuenta está protegida con:</h4>
+                        <ul>
+                          <li>Códigos que cambian cada 30 segundos</li>
+                          <li>Protección contra accesos no autorizados</li>
+                          <li>Seguridad incluso si tu contraseña es comprometida</li>
+                          <li>Compatible con Google Authenticator, Authy, etc.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mfa-inactive-state">
+                      <p>
+                        La autenticación en dos pasos añade una capa extra de seguridad a tu cuenta. 
+                        Además de tu contraseña, necesitarás un código de verificación de tu aplicación móvil.
+                      </p>
+                      
+                      <div className="mfa-benefits">
+                        <h4>Beneficios al activar:</h4>
+                        <ul>
+                          <li>Protección contra accesos no autorizados</li>
+                          <li>Seguridad incluso si tu contraseña es comprometida</li>
+                          <li>Códigos que cambian cada 30 segundos</li>
+                          <li>Compatible con Google Authenticator, Authy, etc.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="mfa-action">
+                  {/* 🆕 BOTONES DINÁMICOS SEGÚN ESTADO */}
+                  {mfaStatus.mfaEnabled ? (
+                    <div className="mfa-actions-enabled">
+                      <button 
+                        className="btn-desactivar-mfa"
+                        onClick={handleDesactivarMFA}
+                        disabled={cargandoMFA}
+                      >
+                        {cargandoMFA ? 'Desactivando...' : '🚫 Desactivar MFA'}
+                      </button>
+                      <small>
+                        Al desactivar MFA, tu cuenta será menos segura. 
+                        Solo se pedirá tu contraseña para iniciar sesión.
+                      </small>
+                    </div>
+                  ) : (
+                    <div className="mfa-actions-disabled">
+                      <button 
+                        className="btn-activar-mfa"
+                        onClick={() => navigate('/mfa-setup')}
+                      >
+                        🔐 Activar Autenticación en Dos Pasos
+                      </button>
+                      <small>Puedes desactivarla en cualquier momento</small>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Gestión de sesiones activas (código existente se mantiene igual) */}
+          <section className="sesiones-section">
+            <div className="section-header">
+              <h2 className="section-title">Sesiones Activas</h2>
+              <p className="section-subtitle">
+                Gestiona tus sesiones iniciadas en diferentes dispositivos
+              </p>
+              
+              <button 
+                className="btn-actualizar"
+                onClick={cargarSesionesActivas}
+                disabled={cargando}
+              >
+                🔄 Actualizar
+              </button>
+            </div>
+
+            {cargando ? (
+              <div className="loading-sesiones">
+                <p>Cargando sesiones activas...</p>
+              </div>
+            ) : sesionesActivas.length === 0 ? (
+              <div className="sin-sesiones">
+                <p>No hay sesiones activas</p>
+              </div>
+            ) : (
+              <div className="sesiones-list">
+                {sesionesActivas.map((sesion) => (
+                  <div key={sesion.id} className={`sesion-card ${sesion.is_current ? 'sesion-actual' : ''}`}>
+                    <div className="sesion-info">
+                      <div className="sesion-dispositivo">
+                        <span className="dispositivo-icon">💻</span>
+                        <div>
+                          <h3 className="dispositivo-nombre">{sesion.device_name}</h3>
+                          <p className="sesion-detalles">
+                            {sesion.location} • {formatearFecha(sesion.last_activity)}
+                            {sesion.is_current && (
+                              <span className="badge-actual">Este dispositivo</span>
+                            )}
+                          </p>
+                          <p className="sesion-ip">IP: {sesion.ip_address}</p>
+                        </div>
+                      </div>
+                      <div className="sesion-actions">
+                        {!sesion.is_current && (
+                          <button 
+                            className="btn-cerrar-sesion"
+                            onClick={() => handleCerrarSesionDispositivo(sesion.id)}
+                          >
+                            Cerrar Sesión
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Botones para los 3 tipos de cierre (código existente) */}
+            <div className="acciones-globales">
+              <div className="botones-accion">
+                <button 
+                  className="btn-cerrar-otras"
+                  onClick={handleCerrarOtrasSesiones}
+                  disabled={sesionesActivas.filter(s => !s.is_current).length === 0}
+                >
+                  🔒 Cerrar Otras Sesiones
+                </button>
+                
+                <button 
+                  className="btn-cerrar-todas"
+                  onClick={handleCerrarTodasLasSesiones}
+                >
+                  🚫 Cerrar Todas las Sesiones
+                </button>
+              </div>
+              
+              <div className="advertencias">
+                <p className="advertencia">
+                  <strong>Cerrar Otras Sesiones:</strong> Cierra sesión en todos los dispositivos excepto en este.
+                </p>
+                <p className="advertencia peligro">
+                  <strong>Cerrar Todas las Sesiones:</strong> Cierra sesión en TODOS los dispositivos incluyendo este.
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+};
