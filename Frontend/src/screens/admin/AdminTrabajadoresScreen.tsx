@@ -16,25 +16,20 @@ const AdminTrabajadoresScreen: React.FC = () => {
   const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const cargarTrabajadores = async () => {
+const cargarTrabajadores = async () => {
     try {
       setLoading(true);
       const res = await workersAPI.getAll();
       
-      console.log("1. Datos recibidos del API:", res.data);
-
       if (res.success && Array.isArray(res.data)) {
-        // 🎯 NORMALIZACIÓN Y FILTRADO:
-        // Algunos usuarios pueden venir con .rol y otros con .puesto dependiendo de la BD
         const filtrados = res.data
           .map((u: any) => ({
             ...u,
-            // Si no viene 'rol', intentamos usar 'puesto' como respaldo
             rol: (u.rol || u.puesto || 'sin rol').toLowerCase()
           }))
-          .filter((u: any) => u.rol === 'trabajador'); // Filtramos solo trabajadores
+          // 🎯 CAMBIO: Ahora permitimos ver a 'trabajador' Y 'admin'
+          .filter((u: any) => u.rol === 'trabajador' || u.rol === 'admin'); 
         
-        console.log("2. Trabajadores listos para mostrar:", filtrados);
         setTrabajadores(filtrados);
       }
     } catch (error) {

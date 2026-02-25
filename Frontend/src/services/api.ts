@@ -322,17 +322,13 @@ export const productsAPI = {
 };
 
 export const workersAPI = {
-  // 🎯 Petición Fetch para dar de alta un trabajador (Bloque 2)
+  // 🎯 Actualizado para usar el nuevo controlador de admin
   create: async (workerData: { nombre: string; email: string; puesto: string; password: string }) => {
-    return enhancedApi.post('/users/workers', workerData);
+    return enhancedApi.post('/admin/workers', workerData); // ✅ Ruta nueva
   },
   
-  // 📋 Obtener lista de usuarios para la tabla
+  // 📋 Este se queda igual (obtiene la lista de usuarios)
   getAll: async () => {
     return enhancedApi.get('/users');
   }
 };
-
-// 🆕 EXPORTAR enhancedApi POR SI SE NECESITA EN OTROS LUGARES
-export { enhancedApi };
-
