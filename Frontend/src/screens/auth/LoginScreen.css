@@ -2,12 +2,34 @@
     min-height: 100vh;
     display: flex;
     font-family: 'Montserrat', sans-serif;
-    background: #000000;
+    background: linear-gradient(135deg, #0f0f12 0%, #0a0a0a 100%);
     position: relative;
-    /* Añadido para prevenir zoom automático en móviles */
     touch-action: manipulation;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+}
+
+/* Animaciones de entrada */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Efecto de partículas sutiles en el fondo */
@@ -68,26 +90,28 @@
 /* FORMATO DE LETRA MEJORADO - TÍTULO PRINCIPAL */
 .login-image-content h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 3rem; /* Más grande */
+    font-size: 3.2rem;
     margin-bottom: 1.5rem;
-    font-weight: 700; /* Más negrita */
-    background: linear-gradient(135deg, #FFFFFF 0%, #ECB2C3 100%);
+    font-weight: 800;
+    background: linear-gradient(135deg, #FFFFFF 0%, #f5c5d8 50%, #ECB2C3 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: 1px; /* Mejor espaciado */
-    line-height: 1.2; /* Mejor interlineado */
+    letter-spacing: 1px;
+    line-height: 1.2;
+    animation: fadeInDown 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* FORMATO DE LETRA MEJORADO - DESCRIPCIÓN */
 .login-image-content p {
-    font-size: 1.3rem; /* Tamaño óptimo */
+    font-size: 1.3rem;
     color: #FFFFFF;
-    line-height: 1.6; /* Mejor interlineado */
-    font-weight: 500;
-    letter-spacing: 0.8px; /* Mejor espaciado */
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    line-height: 1.8;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
     font-family: 'Montserrat', sans-serif;
+    animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s both;
 }
 
 /* Sección del formulario */
@@ -103,17 +127,18 @@
 
 .login-card {
     background: linear-gradient(145deg, #0a0a0a, #000000);
-    padding: 3.5rem 3rem;
-    border-radius: 20px;
+    padding: 4rem 3.5rem;
+    border-radius: 24px;
     width: 100%;
     max-width: 480px;
-    border: 1px solid rgba(236, 178, 195, 0.15);
+    border: 1.5px solid rgba(236, 178, 195, 0.2);
     position: relative;
     box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.8),
-        0 0 0 1px rgba(255, 255, 255, 0.03),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
+        0 25px 75px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(25px);
+    animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s both;
 }
 
 /* Efecto de borde superior mejorado */
@@ -166,34 +191,39 @@
 /* FORMATO DE LETRA MEJORADO - TÍTULO FORMULARIO */
 .login-header h2 {
     color: #FFFFFF;
-    font-size: 2.5rem; /* Más grande */
+    font-size: 2.8rem;
     margin-bottom: 1.2rem;
-    font-weight: 700; /* Más negrita */
+    font-weight: 800;
     font-family: 'Playfair Display', serif;
-    letter-spacing: 1.2px; /* Mejor espaciado */
+    letter-spacing: 1.2px;
     position: relative;
     display: inline-block;
-    line-height: 1.3; /* Mejor interlineado */
+    line-height: 1.3;
+    background: linear-gradient(135deg, #FFFFFF 0%, #f5c5d8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .login-header h2::after {
     content: '';
     position: absolute;
-    bottom: -10px;
+    bottom: -12px;
     left: 20%;
     right: 20%;
     height: 3px;
-    background: linear-gradient(90deg, transparent, #ECB2C3, transparent);
+    background: linear-gradient(90deg, transparent, #f5c5d8, transparent);
+    border-radius: 2px;
 }
 
 /* FORMATO DE LETRA MEJORADO - SUBTÍTULO */
 .login-header p {
-    color: #ECB2C3;
-    font-size: 1.2rem; /* Tamaño óptimo */
-    line-height: 1.5; /* Mejor interlineado */
-    opacity: 0.95;
-    font-weight: 600;
-    letter-spacing: 0.5px; /* Mejor espaciado */
+    color: #f5c5d8;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    opacity: 1;
+    font-weight: 700;
+    letter-spacing: 0.5px;
     font-family: 'Montserrat', sans-serif;
 }
 
@@ -201,7 +231,7 @@
 .login-form {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 2.2rem;
 }
 
 .login-form-group {
@@ -310,24 +340,24 @@
 
 /* BOTÓN MEJORADO */
 .login-button {
-    background: linear-gradient(135deg, #ECB2C3 0%, #e0a5b8 50%, #d89aad 100%);
+    background: linear-gradient(135deg, #f5c5d8 0%, #ECB2C3 100%);
     color: #000000;
-    border: none;
-    padding: 1.25rem 2rem;
+    border: 2px solid #f5c5d8;
+    padding: 16px 24px;
     border-radius: 12px;
-    font-size: 1.2rem; /* Texto del botón más grande */
-    font-weight: 700;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 1.2px;
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     margin-top: 1.5rem;
-    font-family: 'Montserrat', sans-serif;
-    letter-spacing: 1px; /* Mejor espaciado */
+    font-family: 'Playfair Display', serif;
     position: relative;
     overflow: hidden;
+    min-height: 56px;
     box-shadow: 
-        0 6px 20px rgba(236, 178, 195, 0.3),
+        0 8px 25px rgba(245, 197, 216, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    min-height: 60px; /* Altura consistente */
 }
 
 .login-button::before {
@@ -344,10 +374,10 @@
 .login-button:hover:not(:disabled) {
     transform: translateY(-3px);
     box-shadow: 
-        0 12px 30px rgba(236, 178, 195, 0.5),
-        0 4px 15px rgba(236, 178, 195, 0.3),
+        0 12px 35px rgba(245, 197, 216, 0.4),
+        0 4px 15px rgba(245, 197, 216, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    background: linear-gradient(135deg, #f0b8c9 0%, #e8b0c2 50%, #e0a5b8 100%);
+    letter-spacing: 1.4px;
 }
 
 .login-button:hover::before {
@@ -673,90 +703,141 @@
 /* Agregar esto al archivo LoginScreen.css */
 
 .attempts-warning {
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-weight: 600;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-weight: 700;
   text-align: center;
+  font-size: 0.95rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(236, 178, 195, 0.3);
+  animation: slideInDown 0.4s ease;
 }
 
 .attempts-warning.info {
-  background-color: #e8f5e8;
-  border: 1px solid #4caf50;
-  color: #2e7d32;
+  background: linear-gradient(145deg, rgba(102, 153, 255, 0.1), rgba(102, 153, 255, 0.05));
+  border-color: rgba(102, 153, 255, 0.3);
+  color: #66d9ff;
 }
 
 .attempts-warning.warning {
-  background-color: #fff3e0;
-  border: 1px solid #ff9800;
-  color: #e65100;
+  background: linear-gradient(145deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
 }
 
 .attempts-warning.danger {
-  background-color: #ffebee;
-  border: 1px solid #f44336;
-  color: #c62828;
+  background: linear-gradient(145deg, rgba(236, 80, 80, 0.1), rgba(236, 80, 80, 0.05));
+  border-color: rgba(236, 80, 80, 0.3);
+  color: #ff6b6b;
 }
 
 .attempts-warning.blocked {
-  background-color: #f5f5f5;
-  border: 1px solid #9e9e9e;
-  color: #616161;
+  background: linear-gradient(145deg, rgba(150, 150, 150, 0.1), rgba(150, 150, 150, 0.05));
+  border-color: rgba(150, 150, 150, 0.3);
+  color: #b0b0b0;
 }
 /* ============================
-   MENSAJE DE PROCESANDO
+   MENSAJES DE ESTADO
    ============================ */
 
 .processing-message {
-    background-color: #e8f4fd;  
-    color: #0c5460;       
-    padding: 12px 16px;
-    border-radius: 8px;
-    border-left: 4px solid #17a2b8;  
+    background: linear-gradient(145deg, rgba(102, 153, 255, 0.1), rgba(102, 153, 255, 0.05));
+    color: #66d9ff;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border-left: 4px solid #66d9ff;
+    border: 1px solid rgba(102, 153, 255, 0.3);
     margin-bottom: 20px;
     text-align: center;
-    font-weight: 500;
-    font-size: 14px;
+    font-weight: 700;
+    font-size: 0.95rem;
     animation: pulse 1.5s infinite;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(102, 153, 255, 0.1);
+    backdrop-filter: blur(10px);
 }
 
-/* Animación de pulso */
 @keyframes pulse {
     0% { 
         opacity: 0.8;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 15px rgba(102, 153, 255, 0.1);
     }
     50% { 
         opacity: 1;
-        box-shadow: 0 2px 8px rgba(23, 162, 184, 0.2);
+        box-shadow: 0 4px 25px rgba(102, 153, 255, 0.2);
     }
     100% { 
         opacity: 0.8;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 15px rgba(102, 153, 255, 0.1);
     }
 }
 
-/* Mensaje de verificación (si no lo tienes) */
 .verification-message {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 12px 16px;
-    border-radius: 8px;
-    border-left: 4px solid #28a745;
+    background: linear-gradient(145deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+    color: #81c784;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border-left: 4px solid #81c784;
+    border: 1px solid rgba(76, 175, 80, 0.3);
     margin-bottom: 20px;
     text-align: center;
-    font-weight: 500;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.1);
+    backdrop-filter: blur(10px);
 }
 
-/* Mensaje de error (ya deberías tenerlo) */
-.error-message {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 12px 16px;
-    border-radius: 8px;
-    border-left: 4px solid #dc3545;
-    margin-bottom: 20px;
-    text-align: center;
-    font-weight: 500;
+/* Asegurar que el wrapper ocupe toda la pantalla */
+.login-page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+    background: #000000; /* Fondo negro consistente */
+}
+
+/* El contenedor principal debe crecer para llenar el espacio */
+.login-container {
+    flex: 1 0 auto; /* Esto hace que se expanda */
+    width: 100%;
+    display: flex;
+    min-height: 0; /* Importante para flexbox children */
+}
+
+/* Asegurar que el footer siempre esté al fondo */
+.public-footer {
+    flex-shrink: 0; /* Evita que se encoja */
+    width: 100%;
+    margin-top: auto; /* Empuja el footer hacia abajo si hay espacio */
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+    .login-page-wrapper {
+        min-height: 100vh;
+        height: 100%;
+    }
+    
+    .login-container {
+        flex-direction: column;
+        flex: 1 0 auto;
+    }
+    
+    .login-image-section,
+    .login-form-section {
+        flex: none; /* Evita que se estiren incorrectamente */
+        width: 100%;
+    }
+    
+    .login-image-section {
+        min-height: 250px;
+    }
+}
+
+/* Fix para iOS y Safari */
+@supports (-webkit-touch-callout: none) {
+    .login-page-wrapper {
+        min-height: -webkit-fill-available;
+    }
 }

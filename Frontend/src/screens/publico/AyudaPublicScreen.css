@@ -1,100 +1,212 @@
 /* Contenedor principal para rutas públicas */
 .ayuda-publica-wrapper {
-    background-color: #000000; /* Fondo negro absoluto */
+    background-color: #0f0f12;
     min-height: 100vh;
     color: #ffffff;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Montserrat', sans-serif;
+    position: relative;
+}
+
+.ayuda-publica-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(236, 178, 195, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(236, 178, 195, 0.02) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .page-container {
-    padding: 100px 20px 40px; /* Padding superior para no chocar con el Header */
-    max-width: 1100px;
+    padding: 120px 20px 50px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
 .section-header h1 {
-    color: #ecb2c3; /* El rosa de tu marca */
-    font-size: 2.8rem;
+    color: #f5c5d8;
+    font-size: 3rem;
     font-family: 'Playfair Display', serif;
+    font-weight: 800;
+    letter-spacing: 1px;
 }
 
 .faq-grid {
     display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 40px;
-    margin-top: 50px;
+    grid-template-columns: 1fr 380px;
+    gap: 50px;
+    margin-top: 60px;
 }
 
 /* Estilo para los acordeones */
 details {
-    background: #1a1a1d; /* Gris muy oscuro para resaltar del fondo negro */
-    margin-bottom: 15px;
-    padding: 20px;
-    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(25, 25, 30, 0.6), rgba(42, 29, 36, 0.3));
+    margin-bottom: 18px;
+    padding: 22px;
+    border-radius: 14px;
     border: 1px solid rgba(236, 178, 195, 0.2);
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 details[open] {
-    border-color: #ecb2c3;
+    border-color: rgba(236, 178, 195, 0.4);
+    background: linear-gradient(145deg, rgba(42, 29, 36, 0.4), rgba(60, 40, 50, 0.2));
+    box-shadow: 0 8px 25px rgba(236, 178, 195, 0.15);
 }
 
 summary {
     list-style: none;
     cursor: pointer;
-    font-weight: 600;
-    color: #ecb2c3;
+    font-weight: 700;
+    color: #f5c5d8;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    font-size: 1.05rem;
+    letter-spacing: 0.3px;
+}
+
+details[open] summary {
+    color: white;
 }
 
 /* La tarjeta de soporte de la derecha */
 .support-card {
-    background: #1a1a1d;
-    padding: 40px;
+    background: linear-gradient(145deg, rgba(25, 25, 30, 0.6), rgba(42, 29, 36, 0.3));
+    padding: 50px;
     border-radius: 20px;
     text-align: center;
-    border: 1px solid #ecb2c3;
+    border: 1px solid rgba(236, 178, 195, 0.2);
     height: fit-content;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    backdrop-filter: blur(10px);
+}
+
+.support-card:hover {
+    border-color: rgba(236, 178, 195, 0.4);
+    box-shadow: 0 20px 60px rgba(236, 178, 195, 0.15);
+    transform: translateY(-5px);
+}
+
+.support-card h3 {
+    color: #f5c5d8;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+}
+
+.support-card p {
+    color: #c0a0b0;
+    margin: 1rem 0;
+    line-height: 1.6;
+    font-weight: 500;
 }
 
 .btn-contact {
-    background: #ecb2c3;
-    color: #000;
+    background: linear-gradient(135deg, #f5c5d8 0%, #ECB2C3 100%);
+    color: #0f0f12;
     border: none;
-    padding: 12px 30px;
+    padding: 14px 35px;
     border-radius: 50px;
-    font-weight: bold;
+    font-weight: 800;
     width: 100%;
-    margin: 20px 0;
+    margin: 25px 0;
     cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 8px 20px rgba(236, 178, 195, 0.3);
+}
+
+.btn-contact:hover {
+    background: linear-gradient(135deg, #ECB2C3 0%, #f5c5d8 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(236, 178, 195, 0.5);
 }
 
 /* Alineación perfecta de la cabecera */
 .section-header {
     display: flex;
-    flex-direction: column; /* Pone el título arriba y el texto abajo */
-    align-items: flex-start; /* Alinea todo a la izquierda */
-    gap: 10px;               /* Espacio controlado entre letras */
-    margin-bottom: 40px;
-    border-left: 4px solid #ecb2c3; /* Detalle elegante de marca */
-    padding-left: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 50px;
+    border-left: 4px solid #f5c5d8;
+    padding-left: 25px;
+    animation: slideInLeft 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .section-header h1 {
     display: flex;
     align-items: center;
-    gap: 15px;               /* Espacio entre el ícono SOS y el texto */
-    color: #ecb2c3;
-    font-size: 3rem;         /* Un poco más grande para que imponga */
-    font-family: 'Playfair Display', serif;
+    gap: 15px;
+    color: #f5c5d8;
     margin: 0;
 }
 
 .section-header p {
-    color: #ccc;
-    font-size: 1.1rem;
-    max-width: 600px;        /* Evita que el texto se estire demasiado y se vea chueco */
-    line-height: 1.6;        /* Mejora la lectura */
+    color: #d0b0c0;
+    font-size: 1.15rem;
+    max-width: 700px;
+    line-height: 1.7;
     margin: 0;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .faq-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .support-card {
+    padding: 2.5rem;
+  }
+
+  .section-header h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-container {
+    padding: 100px 1rem 3rem;
+  }
+
+  .section-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .section-header p {
+    font-size: 1rem;
+  }
+
+  details {
+    padding: 1.5rem;
+  }
+
+  .btn-contact {
+    padding: 12px 25px;
+    font-size: 0.9rem;
+  }
 }
