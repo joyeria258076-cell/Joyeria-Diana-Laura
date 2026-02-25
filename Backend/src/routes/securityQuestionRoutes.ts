@@ -1,12 +1,12 @@
-// Ruta: Joyeria-Diana-Laura/Backend/src/routes/securityQuestionRoutes.ts
 import express from 'express';
+// 👇 CORRECCIÓN: Apuntamos a la carpeta 'seguridad'
 import { 
   setSecurityQuestion, 
   getSecurityQuestion, 
   verifySecurityAnswer,
   getSecureQuestionsList,
   resetPasswordWithSecurityQuestion
-} from '../controllers/securityQuestionController';
+} from '../controllers/seguridad/securityQuestionController';
 
 const router = express.Router();
 

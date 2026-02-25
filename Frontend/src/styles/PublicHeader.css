@@ -2,13 +2,15 @@
 
 .public-header {
   background: linear-gradient(135deg, #0a0a0a 0%, #000000 100%);
-  border-bottom: 1px solid rgba(236, 178, 195, 0.3);
-  padding: 1rem 0;
+  border-bottom: 1px solid rgba(236, 178, 195, 0.25);
+  padding: 1.2rem 0;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
   font-family: 'Montserrat', sans-serif;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .public-header .container-lg {
@@ -37,23 +39,29 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: opacity 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .brand-link:hover {
-  opacity: 0.8;
+  opacity: 1;
+  transform: scale(1.05);
 }
 
 .brand-initials {
   font-size: 1.5rem;
-  font-weight: bold;
+  font-weight: 800;
   color: white;
+  letter-spacing: 0.1em;
+  font-family: 'Playfair Display', serif;
 }
 
 .brand-name {
   font-size: 1.3rem;
-  font-weight: 600;
-  color: #ECB2C3;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ECB2C3 0%, #f5c5d8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-style: italic;
   font-family: 'Playfair Display', serif;
   letter-spacing: 0.5px;
@@ -62,7 +70,7 @@
 /* Navegación */
 .header-nav {
   display: flex;
-  gap: 2rem;
+  gap: 1.2rem;
   flex: 1;
   justify-content: center;
 }
@@ -71,17 +79,20 @@
   color: #d4b5c8;
   text-decoration: none;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  font-weight: 500;
-  padding: 0.5rem 0;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
   border-bottom: 2px solid transparent;
+  border-top: 2px solid transparent;
   font-family: 'Montserrat', sans-serif;
   letter-spacing: 0.3px;
+  position: relative;
 }
 
 .nav-link:hover,
 .nav-link.active {
-  color: #ECB2C3;
-  border-bottom-color: #ECB2C3;
+  color: #f5c5d8;
+  border-bottom: 2px solid #f5c5d8;
+  transform: translateY(-2px);
 }
 
 /* Botón de acceso */
@@ -95,9 +106,9 @@
   background: linear-gradient(135deg, #ECB2C3 0%, #f5c5d8 100%);
   color: #0f0f12;
   border: none;
-  font-weight: 600;
-  padding: 10px 25px;
-  border-radius: 12px;
+  font-weight: 700;
+  padding: 11px 28px;
+  border-radius: 18px;
   text-decoration: none;
   display: inline-block;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -109,8 +120,8 @@
 
 .btn-acceso:hover {
   background: linear-gradient(135deg, #f5c5d8 0%, #ECB2C3 100%);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(236, 178, 195, 0.4);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(236, 178, 195, 0.5);
 }
 
 /* Responsive */

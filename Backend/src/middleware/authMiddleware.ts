@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { SessionService } from '../services/SessionService';
 import { JWTService } from '../services/JWTService';
+import { pool } from '../config/database';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_2024_joyeria_diana_laura';
 
@@ -323,4 +324,39 @@ export const softAuth = async (req: AuthRequest, res: Response, next: NextFuncti
     console.log('⚠️ Error en softAuth - continuando sin autenticación');
     next();
   }
+};
+
+export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        // 1. Obtenemos el ID del usuario que authenticateToken ya validó
+        const userId = (req as any).user?.userId || (req as any).user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Usuario no identificado.' });
+        }
+
+        // 2. Consultamos el rol en la BD (Usando tu pool existente)
+        const result = await pool.query('SELECT rol FROM usuarios WHERE id = $1', [userId]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
+        }
+
+        const rol = result.rows[0].rol;
+
+        // 3. Verificamos si es admin o trabajador
+        if (rol !== 'admin' && rol !== 'trabajador') {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Acceso denegado. Se requieren permisos de Administrador.' 
+            });
+        }
+
+        // 4. Si es admin, dejamos pasar
+        next();
+
+    } catch (error) {
+        console.error('Error validando rol de admin:', error);
+        return res.status(500).json({ success: false, message: 'Error del servidor al validar permisos.' });
+    }
 };

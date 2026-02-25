@@ -2,11 +2,23 @@
 
 .public-footer {
   background: linear-gradient(135deg, #0a0a0a 0%, #000000 100%);
-  border-top: 1px solid rgba(236, 178, 195, 0.3);
+  border-top: 2px solid rgba(236, 178, 195, 0.25);
   color: #d4b5c8;
-  padding: 4rem 0 2rem;
-  margin-top: 4rem;
+  padding: 5rem 0 2.5rem;
+  margin-top: 5rem;
   font-family: 'Montserrat', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.public-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #ECB2C3, transparent);
 }
 
 .public-footer .container-lg {
@@ -28,12 +40,13 @@
 }
 
 .footer-title {
-  color: #ECB2C3;
-  font-weight: 600;
-  margin-bottom: 1rem;
+  color: #f5c5d8;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
   font-family: 'Playfair Display', serif;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .footer-description {
@@ -59,11 +72,13 @@
   display: inline-block;
   font-family: 'Montserrat', sans-serif;
   letter-spacing: 0.2px;
+  font-weight: 500;
 }
 
 .footer-links a:hover {
-  color: #ECB2C3;
-  transform: translateX(5px);
+  color: #f5c5d8;
+  transform: translateX(8px);
+  text-shadow: 0 0 8px rgba(236, 178, 195, 0.3);
 }
 
 .footer-info {
@@ -97,23 +112,24 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(145deg, rgba(236, 178, 195, 0.15), rgba(236, 178, 195, 0.1));
-  border: 1px solid rgba(236, 178, 195, 0.3);
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(145deg, rgba(236, 178, 195, 0.12), rgba(236, 178, 195, 0.05));
+  border: 1.5px solid rgba(236, 178, 195, 0.25);
   border-radius: 50%;
   color: #ECB2C3;
   text-decoration: none;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   font-size: 1rem;
-  box-shadow: 0 4px 12px rgba(236, 178, 195, 0.1);
+  box-shadow: 0 4px 12px rgba(236, 178, 195, 0.08);
 }
 
 .social-link:hover {
   background: linear-gradient(135deg, #ECB2C3 0%, #f5c5d8 100%);
   color: #0f0f12;
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(236, 178, 195, 0.3);
+  transform: translateY(-8px) scale(1.1);
+  box-shadow: 0 12px 30px rgba(236, 178, 195, 0.4);
+  border-color: rgba(236, 178, 195, 0.5);
 }
 
 .footer-divider {

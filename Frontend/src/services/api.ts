@@ -1,5 +1,6 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/services/api.ts
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+//const API_BASE_URL = 'http://localhost:5000/api';
 
 // 🎯 MANTENER TU FUNCIÓN ORIGINAL EXACTA
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
@@ -115,6 +116,12 @@ class EnhancedApiService {
   async get(endpoint: string) {
     return this.request(endpoint, {
       method: 'GET',
+    });
+  }
+
+  async delete(endpoint: string) {
+    return this.request(endpoint, {
+      method: 'DELETE',
     });
   }
 }
@@ -283,6 +290,34 @@ export const authAPI = {
 
   checkMFAStatus: async (userId: number) => {
     return enhancedApi.post('/auth/mfa/status', { userId });
+  }
+};
+
+export const productsAPI = {
+  // 📦 Obtener catálogo completo
+  getAll: async () => {
+    return enhancedApi.get('/products');
+  },
+
+  // 💎 Crear nuevo producto
+  // Nota: data debe ser un objeto JSON { nombre, precio, categoria_id, ... }
+  create: async (data: any) => {
+    return enhancedApi.post('/products', data);
+  },
+
+  // 🗑️ Eliminar producto 
+  delete: async (id: number | string) => {
+    return enhancedApi.delete(`/products/${id}`);
+  },
+
+  // 📂 Obtener categorías (para el filtro)
+  getCategories: async () => {
+    return enhancedApi.get('/products/categorias');
+  },
+
+  // ➕ Crear nueva categoría
+  createCategory: async (data: { nombre: string; descripcion?: string }) => {
+    return enhancedApi.post('/products/categorias', data);
   }
 };
 

@@ -1,11 +1,11 @@
-// Ruta:Joyeria-Diana-Laura/Backend/src/routes/userRoutes.ts
 import express from 'express';
+// 👇 CORRECCIÓN: Agregamos '/usuario/' a la ruta porque movimos el archivo ahí
 import {
   getUserProfile,
   updateUserProfile,
   deleteUserProfile,
   getAllUsers
-} from '../controllers/userController';
+} from '../controllers/usuario/userController';
 
 const router = express.Router();
 

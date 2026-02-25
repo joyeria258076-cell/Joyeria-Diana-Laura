@@ -11,6 +11,7 @@ import { getTokenInfo } from './middleware/authMiddleware';
 import { JWTConfig } from './config/jwtConfig';
 import cookieParser from 'cookie-parser'; // 🆕 NUEVO
 import { cookieAuthMiddleware } from './middleware/cookieMiddleware'; // 🆕 NUEVO
+import productRoutes from './routes/productRoutes';
 
 dotenv.config();
 
@@ -22,7 +23,8 @@ app.use(cors({
   origin: [
     'https://joyeria-diana-laura.vercel.app',
     'http://localhost:3000', 
-    'https://joyeria-diana-laura-nqnq.onrender.com'
+    'https://joyeria-diana-laura-nqnq.onrender.com',
+    'http://localhost:5173'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -66,6 +68,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/security', securityQuestionRoutes);
+app.use('/api/products', productRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -88,6 +91,7 @@ app.listen(PORT, async () => {
   console.log(`📊 Endpoints disponibles:`);
   console.log(`   🔐 Auth: http://localhost:${PORT}/api/auth`);
   console.log(`   👥 Users: http://localhost:${PORT}/api/users`);
+  console.log(`   💎 Products: http://localhost:${PORT}/api/products`); 
   console.log(`   ❤️  Health: http://localhost:${PORT}/api/health`);
   console.log(`   🗄️  DB Test: http://localhost:${PORT}/api/db-test`);
   console.log(`🔐 CORS Headers permitidos: Content-Type, Authorization, X-Session-Token`); // 🆕 LOG
