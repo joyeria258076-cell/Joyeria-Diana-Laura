@@ -82,8 +82,9 @@ export const getUserById = async (id: number): Promise<User | null> => {
 // Obtener todos los usuarios
 export const getAllUsers = async (): Promise<User[]> => {
   try {
+    // 🎯 AGREGAMOS 'rol' a la consulta SQL
     const result = await pool.query(
-      'SELECT id, email, nombre, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE activo = true'
+      'SELECT id, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE activo = true'
     );
     
     return result.rows;
@@ -247,5 +248,30 @@ export const isUserInactive = async (email: string, maxInactivityMinutes: number
   } catch (error) {
     console.error('Error verificando inactividad:', error);
     return true; // Por seguridad, considerar inactivo si hay error
+  }
+};
+
+// Función para crear trabajadores con datos extendidos
+export const createWorker = async (userData: {
+  email: string;
+  password_hash: string;
+  nombre: string;
+  firebase_uid: string;
+  rol: string; // Solo usaremos el rol
+}): Promise<boolean> => {
+  try {
+    const { email, password_hash, nombre, firebase_uid, rol } = userData;
+    
+    // 🎯 Quitamos 'puesto' de la lista de columnas y de los valores ($)
+    const result = await pool.query(
+      `INSERT INTO usuarios (email, password_hash, nombre, firebase_uid, rol, activo) 
+       VALUES ($1, $2, $3, $4, $5, true) RETURNING id`,
+      [email, password_hash, nombre, firebase_uid, rol]
+    );
+    
+    return result.rowCount ? result.rowCount > 0 : false;
+  } catch (error) {
+    console.error('Error en createWorker (Model):', error);
+    throw error; 
   }
 };
