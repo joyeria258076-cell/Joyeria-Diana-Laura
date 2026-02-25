@@ -1,6 +1,6 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/services/api.ts
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
-//const API_BASE_URL = 'http://localhost:5000/api';
+//const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // 🎯 MANTENER TU FUNCIÓN ORIGINAL EXACTA
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
@@ -321,5 +321,18 @@ export const productsAPI = {
   }
 };
 
+export const workersAPI = {
+  // 🎯 Petición Fetch para dar de alta un trabajador (Bloque 2)
+  create: async (workerData: { nombre: string; email: string; puesto: string; password: string }) => {
+    return enhancedApi.post('/users/workers', workerData);
+  },
+  
+  // 📋 Obtener lista de usuarios para la tabla
+  getAll: async () => {
+    return enhancedApi.get('/users');
+  }
+};
+
 // 🆕 EXPORTAR enhancedApi POR SI SE NECESITA EN OTROS LUGARES
-export { enhancedApi};
+export { enhancedApi };
+
