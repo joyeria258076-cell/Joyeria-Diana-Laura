@@ -44,7 +44,6 @@ import AdminContentMisionScreen from "../screens/admin/contenido/AdminContentMis
 import GestionPedidosScreen from "../screens/trabajador/GestionPedidosScreen";
 import AdminProductosScreen from '../screens/admin/AdminProductosScreen'; 
 import AdminTrabajadoresScreen from "../screens/admin/AdminTrabajadoresScreen";
-import AdminAltaTrabajadorForm from "../screens/admin/AdminAltaTrabajadorForm";
 import AdminPerfilScreen from "../screens/admin/AdminPerfilScreen";
 import AdminReportesScreen from "../screens/admin/AdminReportesScreen";
 import DashboardTrabajadorScreen from "../screens/trabajador/DashboardTrabajadorScreen";
@@ -152,7 +151,6 @@ export default function AppRoutes() {
           <Route path="/pedidos-admin" element={<GestionPedidosScreen />} />
           <Route path="/admin-productos" element={<AdminProductosScreen />} />
           <Route path="/admin-trabajadores" element={<AdminTrabajadoresScreen />} />
-          <Route path="/admin-trabajadores/nuevo" element={<AdminAltaTrabajadorForm />} />
           <Route path="/admin-perfil" element={<AdminPerfilScreen />} />
           <Route path="/admin-reportes" element={<AdminReportesScreen />} />
         </Route>
