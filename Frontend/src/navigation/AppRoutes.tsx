@@ -1,7 +1,5 @@
-// Ruta: Joyeria-Diana-Laura/Frontend/src/navigation/AppRoutes.tsx
-
 import React, { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 // LAYOUTS
@@ -44,6 +42,7 @@ import AdminContentMisionScreen from "../screens/admin/contenido/AdminContentMis
 import GestionPedidosScreen from "../screens/trabajador/GestionPedidosScreen";
 import AdminProductosScreen from '../screens/admin/AdminProductosScreen'; 
 import AdminTrabajadoresScreen from "../screens/admin/AdminTrabajadoresScreen";
+import AdminAltaTrabajadorForm from "../screens/admin/AdminAltaTrabajadorForm";
 import AdminPerfilScreen from "../screens/admin/AdminPerfilScreen";
 import AdminReportesScreen from "../screens/admin/AdminReportesScreen";
 import DashboardTrabajadorScreen from "../screens/trabajador/DashboardTrabajadorScreen";
@@ -52,7 +51,10 @@ import DashboardTrabajadorScreen from "../screens/trabajador/DashboardTrabajador
 import NotFoundScreen from '../screens/general/NotFoundScreen';
 import ForbiddenScreen from '../screens/general/ForbiddenScreen';
 import ServerErrorScreen from '../screens/general/ServerErrorScreen';
-import ClientePedidosScreen from "../screens/cliente/ClientePedidosScreen";// --- COMPONENTES DE PROTECCIÓN ---
+import ClientePedidosScreen from "../screens/cliente/ClientePedidosScreen";
+
+// --- COMPONENTES DE PROTECCIÓN ---
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center h-screen text-lg font-semibold bg-[#0f0f12] text-[#ecb2c3]">Cargando...</div>;
@@ -60,11 +62,19 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
+// 🆕 RoleRoute corregido para funcionar como Wrapper de Rutas Anidadas
+const RoleRoute: React.FC<{ allowedRoles: string[] }> = ({ allowedRoles }) => {
+  const { user } = useAuth();
+  if (!user || !allowedRoles.includes(user.rol || '')) {
+    return <Navigate to="/403" replace />;
+  }
+  return <Outlet />; // Esto permite renderizar las rutas hijas
+};
+
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center h-screen text-lg font-semibold bg-[#0f0f12] text-[#ecb2c3]">Cargando...</div>;
   if (user) {
-    // 🆕 Redirigir según el rol del usuario
     console.log('🔐 Usuario detectado en PublicRoute. Rol:', user.rol);
     if (user.rol === 'admin') {
       return <Navigate to="/admin-dashboard" replace />;
@@ -80,7 +90,6 @@ export default function AppRoutes() {
   const { loading } = useAuth();
   const [forcedLoad, setForcedLoad] = useState(false);
 
-  // Manejo de carga de seguridad (5 segundos)
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (loading) {
@@ -105,7 +114,6 @@ export default function AppRoutes() {
 
   return (
     <BrowserRouter>
-    
       <Routes>
         {/* 1. RUTAS COMPLETAMENTE PÚBLICAS */}
         <Route path="/" element={<InicioPublicScreen />} />
@@ -115,7 +123,7 @@ export default function AppRoutes() {
         <Route path="/ubicacion-publica" element={<UbicacionPublicScreen />} />
         <Route path="/ayuda-publica" element={<AyudaPublicScreen />} />
 
-        {/* 2. RUTAS DE AUTENTICACIÓN (Solo si no estás logueado) */}
+        {/* 2. RUTAS DE AUTENTICACIÓN */}
         <Route path="/login" element={<PublicRoute><LoginScreen /></PublicRoute>} />
         <Route path="/registro" element={<PublicRoute><RegistroScreen /></PublicRoute>} />
         <Route path="/olvide" element={<PublicRoute><OlvideContraseniaScreen /></PublicRoute>} />
@@ -123,7 +131,7 @@ export default function AppRoutes() {
         <Route path="/verify-mfa" element={<PublicRoute><MFAVerifyScreen /></PublicRoute>} />
         <Route path="/recuperar-con-pregunta" element={<RecuperarConPreguntaScreen />} />
 
-        {/* 3. RUTAS PROTEGIDAS (Con PrivateLayout / Sidebar) */}
+        {/* 3. RUTAS PROTEGIDAS (Con PrivateLayout) */}
         <Route
           element={
             <ProtectedRoute>
@@ -141,22 +149,35 @@ export default function AppRoutes() {
           <Route path="/ayuda" element={<Ayuda />} />
           <Route path="/pedidos" element={<ClientePedidosScreen />} />
           <Route path="/configuracion" element={<ConfiguracionScreen />} />
-          <Route path="/admin-dashboard" element={<AdminDashboardScreen />} />
-          <Route path="/admin-contenido" element={<AdminContentManagerScreen />} />
-          <Route path="/admin-contenido/inicio" element={<AdminContentInicioScreen />} />
-          <Route path="/admin-contenido/noticias" element={<AdminContentNoticiasScreen />} />
-          <Route path="/admin-contenido/info" element={<AdminContentInfoScreen />} />
-          <Route path="/admin-contenido/faq" element={<AdminContentFAQScreen />} />
-          <Route path="/admin-contenido/mision" element={<AdminContentMisionScreen />} />
-          <Route path="/pedidos-admin" element={<GestionPedidosScreen />} />
-          <Route path="/admin-productos" element={<AdminProductosScreen />} />
-          <Route path="/admin-trabajadores" element={<AdminTrabajadoresScreen />} />
-          <Route path="/admin-perfil" element={<AdminPerfilScreen />} />
-          <Route path="/admin-reportes" element={<AdminReportesScreen />} />
+
+          {/* 🔐 RUTAS EXCLUSIVAS ADMIN */}
+          <Route element={<RoleRoute allowedRoles={['admin']} />}>
+            <Route path="/admin-dashboard" element={<AdminDashboardScreen />} />
+            <Route path="/admin-contenido" element={<AdminContentManagerScreen />} />
+            <Route path="/admin-contenido/inicio" element={<AdminContentInicioScreen />} />
+            <Route path="/admin-contenido/noticias" element={<AdminContentNoticiasScreen />} />
+            <Route path="/admin-contenido/info" element={<AdminContentInfoScreen />} />
+            <Route path="/admin-contenido/faq" element={<AdminContentFAQScreen />} />
+            <Route path="/admin-contenido/mision" element={<AdminContentMisionScreen />} />
+            <Route path="/admin-productos" element={<AdminProductosScreen />} />
+            <Route path="/admin-trabajadores" element={<AdminTrabajadoresScreen />} />
+            <Route path="/admin-trabajadores/nuevo" element={<AdminAltaTrabajadorForm />} />
+            <Route path="/admin-perfil" element={<AdminPerfilScreen />} />
+            <Route path="/admin-reportes" element={<AdminReportesScreen />} />
+          </Route>
+
+          {/* 🔐 RUTAS EXCLUSIVAS TRABAJADOR / ADMIN */}
+          <Route element={<RoleRoute allowedRoles={['trabajador', 'admin']} />}>
+             <Route path="/pedidos-admin" element={<GestionPedidosScreen />} />
+          </Route>
         </Route>
 
-        {/* 3.5. DASHBOARDS PROTEGIDOS (Sin Layout / Sin Sidebar) */}
-        <Route path="/dashboard-trabajador" element={<ProtectedRoute><DashboardTrabajadorScreen /></ProtectedRoute>} />
+        {/* DASHBOARDS PROTEGIDOS (Sin Sidebar) */}
+        <Route path="/dashboard-trabajador" element={
+            <ProtectedRoute>
+                <DashboardTrabajadorScreen />
+            </ProtectedRoute>
+        } />
 
         {/* 4. MANEJO DE ERRORES */}
         <Route path="/403" element={<ForbiddenScreen />} />

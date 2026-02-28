@@ -321,5 +321,14 @@ export const productsAPI = {
   }
 };
 
-// 🆕 EXPORTAR enhancedApi POR SI SE NECESITA EN OTROS LUGARES
-export { enhancedApi};
+export const workersAPI = {
+  // 🎯 Actualizado para usar el nuevo controlador de admin
+  create: async (workerData: { nombre: string; email: string; puesto: string; password: string }) => {
+    return enhancedApi.post('/admin/workers', workerData); // ✅ Ruta nueva
+  },
+  
+  // 📋 Este se queda igual (obtiene la lista de usuarios)
+  getAll: async () => {
+    return enhancedApi.get('/users');
+  }
+};

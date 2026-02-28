@@ -12,6 +12,7 @@ import { JWTConfig } from './config/jwtConfig';
 import cookieParser from 'cookie-parser'; // 🆕 NUEVO
 import { cookieAuthMiddleware } from './middleware/cookieMiddleware'; // 🆕 NUEVO
 import productRoutes from './routes/productRoutes';
+import adminRoutes from './routes/adminRoutes'; // 🆕 NUEVO
 
 dotenv.config();
 
@@ -69,6 +70,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/security', securityQuestionRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/admin', adminRoutes); // 🆕 NUEVO ENDPOINT PARA FUNCIONES DE ADMINISTRACIÓN
 
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -95,6 +97,7 @@ app.listen(PORT, async () => {
   console.log(`   ❤️  Health: http://localhost:${PORT}/api/health`);
   console.log(`   🗄️  DB Test: http://localhost:${PORT}/api/db-test`);
   console.log(`🔐 CORS Headers permitidos: Content-Type, Authorization, X-Session-Token`); // 🆕 LOG
+  console.log(`   🛠️  Admin: http://localhost:${PORT}/api/admin`); // ⬅️ AÑADIR ESTA LÍNEA
 
   // 🎯 CONEXIÓN Y LIMPIEZA INICIAL
   try {
