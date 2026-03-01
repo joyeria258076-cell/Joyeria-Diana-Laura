@@ -1,0 +1,383 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+
+:root {
+    --gold-lux: #ECB2C3;
+    --dark-prime: #050505;
+    --dark-surface: #0a0a0a;
+    --border-lux: rgba(236, 178, 195, 0.2);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- CONTENEDOR PRINCIPAL --- */
+.admin-productos-container {
+    padding: 4rem;
+    min-height: 100vh;
+    background-color: var(--dark-prime);
+    font-family: 'Montserrat', sans-serif;
+    color: #FFFFFF;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Resplandor de fondo */
+.admin-productos-container::before {
+    content: '';
+    position: absolute;
+    top: -150px; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px; 
+    height: 900px;
+    background: radial-gradient(circle, rgba(236, 178, 195, 0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* --- ENCABEZADO --- */
+.admin-page-header {
+    margin-bottom: 3.5rem;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    width: 100%;
+    max-width: 850px;
+}
+
+.admin-page-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.2rem;
+    background: linear-gradient(135deg, #FFFFFF 30%, var(--gold-lux) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+    letter-spacing: -1px;
+    text-shadow: 0 10px 30px rgba(236, 178, 195, 0.1); /* Brillo al título */
+}
+
+.header-subtitle {
+    color: var(--gold-lux);
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    margin-top: 15px;
+    opacity: 0.7;
+    display: block;
+    font-weight: 500;
+}
+
+/* --- TARJETA DEL FORMULARIO (ESTILO 3D / CRISTAL) --- */
+.form-container-admin {
+    /* Gradiente para simular luz pegando desde arriba a la izquierda */
+    background: linear-gradient(145deg, rgba(30, 30, 30, 0.5) 0%, rgba(10, 10, 10, 0.8) 100%);
+    border-radius: 24px;
+    /* Bordes iluminados asimétricos para efecto 3D */
+    border-top: 1px solid rgba(236, 178, 195, 0.3);
+    border-left: 1px solid rgba(236, 178, 195, 0.15);
+    border-right: 1px solid rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.8);
+    padding: 3.5rem 4rem;
+    width: 100%;
+    max-width: 850px;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(20px);
+    /* Sombra profunda */
+    box-shadow: 0 25px 50px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* --- ESTRUCTURA DE LOS CAMPOS --- */
+.admin-form .form-group {
+    margin-bottom: 2.2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+}
+
+/* --- ETIQUETAS (Labels con detalle de diamante) --- */
+.admin-form label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+/* El detallito de lujo antes del texto */
+.admin-form label::before {
+    content: '✦';
+    color: var(--gold-lux);
+    margin-right: 8px;
+    font-size: 0.9rem;
+    text-shadow: 0 0 8px var(--gold-lux);
+}
+
+/* --- INPUTS Y SELECTS (EFECTO HUNDIDO / PROFUNDIDAD) --- */
+.admin-form input[type="text"],
+.admin-form input[type="number"],
+.admin-form select.admin-select,
+.admin-form textarea {
+    background: #050505 !important; /* Fondo súper oscuro */
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    /* Sombra interior para que parezca un hueco */
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(255, 255, 255, 0.03);
+    color: #FFFFFF !important;
+    padding: 1.1rem 1.2rem;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    transition: var(--transition);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.admin-form input::placeholder,
+.admin-form textarea::placeholder {
+    color: rgba(255, 255, 255, 0.2);
+    font-weight: 300;
+}
+
+/* Efecto Focus Iluminado desde adentro */
+.admin-form input[type="text"]:focus,
+.admin-form input[type="number"]:focus,
+.admin-form select.admin-select:focus,
+.admin-form textarea:focus {
+    outline: none;
+    border-color: rgba(236, 178, 195, 0.5) !important;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.8), 0 0 15px rgba(236, 178, 195, 0.1) !important;
+}
+
+/* Ajuste del Select */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.admin-form select.admin-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ECB2C3%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 1.2rem top 50% !important;
+    background-size: 0.65rem auto !important;
+    padding-right: 2.5rem;
+}
+
+.admin-form select.admin-select option {
+    background-color: var(--dark-prime);
+    color: #fff;
+    padding: 15px;
+}
+
+.admin-form textarea {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.5;
+}
+
+/* --- ZONA DE SUBIR IMAGEN (EFECTO DASHED PROFUNDO) --- */
+.upload-area-lux {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: #050505;
+    border: 1px dashed rgba(236, 178, 195, 0.4);
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.8);
+    padding: 1rem;
+    border-radius: 12px;
+    transition: var(--transition);
+}
+
+.upload-area-lux:hover, .upload-area-lux:focus-within {
+    border-color: var(--gold-lux);
+    background: rgba(236, 178, 195, 0.02);
+}
+
+.upload-input-container {
+    flex: 1;
+    overflow: hidden;
+}
+
+.admin-form input[type="file"] {
+    width: 100%;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    font-size: 0.9rem;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0;
+}
+
+/* Botón falso del input file */
+.admin-form input[type="file"]::file-selector-button {
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 0.7rem 1.4rem;
+    border-radius: 8px;
+    margin-right: 15px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.admin-form input[type="file"]::file-selector-button:hover {
+    background: var(--gold-lux);
+    color: #000;
+    border-color: var(--gold-lux);
+    box-shadow: 0 0 15px rgba(236, 178, 195, 0.3);
+}
+
+/* Vista previa de imagen */
+.preview-img-wrapper {
+    width: 75px;
+    height: 75px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid var(--gold-lux);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(236, 178, 195, 0.2);
+    flex-shrink: 0;
+}
+
+.preview-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* --- BOTÓN DE GUARDAR (GRADIENTE 3D) --- */
+.submit-wrapper {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.btn-submit-admin {
+    background: linear-gradient(135deg, #FFF 0%, var(--gold-lux) 100%);
+    color: #050505;
+    border: none;
+    padding: 1.2rem 2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Montserrat', sans-serif;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    /* Sombra exterior para que flote */
+    box-shadow: 0 10px 20px rgba(236, 178, 195, 0.15), inset 0 -3px 0 rgba(0,0,0,0.1);
+}
+
+.btn-submit-admin:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(236, 178, 195, 0.25), inset 0 -3px 0 rgba(0,0,0,0.1);
+    background: linear-gradient(135deg, #FFF 20%, #f7d2dc 100%);
+}
+
+.btn-submit-admin:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 5px 10px rgba(236, 178, 195, 0.15), inset 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.btn-submit-admin:disabled {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.3);
+    box-shadow: none;
+    cursor: not-allowed;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* --- RESPONSIVO --- */
+@media (max-width: 768px) {
+    .admin-form .form-row {
+        grid-template-columns: 1fr;
+        gap: 2.2rem;
+    }
+    .admin-productos-container {
+        padding: 2rem 1.5rem;
+    }
+    .form-container-admin {
+        padding: 2rem 1.5rem;
+    }
+    .admin-page-header h2 {
+        font-size: 2.2rem;
+    }
+    .upload-area-lux {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* --- OCULTAR FLECHAS DE LOS INPUTS NUMÉRICOS --- */
+/* Chrome, Safari, Edge, Opera */
+.admin-form input[type="number"]::-webkit-outer-spin-button,
+.admin-form input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* Firefox */
+.admin-form input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* --- ESTILOS PARA LA X DE LA IMAGEN --- */
+.preview-img-wrapper {
+    width: 75px;
+    height: 75px;
+    border-radius: 10px;
+    border: 2px solid var(--gold-lux);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(236, 178, 195, 0.2);
+    flex-shrink: 0;
+    /* Cambiamos a relative y visible para que la X pueda salir de la caja */
+    position: relative; 
+    overflow: visible; 
+}
+
+.preview-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px; /* Redondeamos la imagen por dentro */
+}
+
+.btn-remove-img {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #e74c3c;
+    color: white;
+    border: 2px solid #050505; /* Borde oscuro para que resalte */
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    transition: all 0.2s ease;
+    z-index: 10;
+    padding-bottom: 2px; /* Centra la X ópticamente */
+}
+
+.btn-remove-img:hover {
+    background: #c0392b;
+    transform: scale(1.1);
+}

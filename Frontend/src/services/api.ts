@@ -1,6 +1,6 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/services/api.ts
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
-//const API_BASE_URL = 'http://localhost:5000/api';
+//const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // 🎯 MANTENER TU FUNCIÓN ORIGINAL EXACTA
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
@@ -300,7 +300,8 @@ export const productsAPI = {
   },
 
   // 💎 Crear nuevo producto
-  // Nota: data debe ser un objeto JSON { nombre, precio, categoria_id, ... }
+  // (No necesitas cambiar el "data: any", porque ahora desde el formulario 
+  // le estaremos enviando automáticamente el "categoria_id" en lugar del nombre)
   create: async (data: any) => {
     return enhancedApi.post('/products', data);
   },
@@ -310,15 +311,25 @@ export const productsAPI = {
     return enhancedApi.delete(`/products/${id}`);
   },
 
-  // 📂 Obtener categorías (para el filtro)
+  // 📂 Obtener categorías (para llenar el menú desplegable)
   getCategories: async () => {
     return enhancedApi.get('/products/categorias');
   },
 
-  // ➕ Crear nueva categoría
+  // ➕ Crear nueva categoría desde el panel
   createCategory: async (data: { nombre: string; descripcion?: string }) => {
     return enhancedApi.post('/products/categorias', data);
-  }
+  },
+
+  // 🔄 Ocultar / Mostrar categoría (Usamos post porque tu api no tiene put ni patch)
+    toggleCategoryStatus: async (id: number, activo: boolean) => {
+      return enhancedApi.post(`/products/categorias/${id}/status`, { activo });
+    },
+
+    // 🗑️ Eliminar categoría definitivamente
+    deleteCategory: async (id: number) => {
+      return enhancedApi.delete(`/products/categorias/${id}`);
+    }
 };
 
 export const workersAPI = {

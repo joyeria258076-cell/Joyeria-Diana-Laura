@@ -37,14 +37,21 @@ const CatalogoScreen: React.FC = () => {
                 const data = await productsAPI.getAll();
                 const lista = Array.isArray(data) ? data : (data.data || []);
                 
-                const productosNormalizados = lista.map((p: any) => ({
-                    id: p.id,
-                    nombre: p.nombre,
-                    precio: Number(p.precio),
-                    descripcion: p.descripcion || 'Sin descripción disponible.',
-                    imagen_url: p.imagen_url || p.imagen, // Soporta ambos nombres de columna
-                    categoria: p.categoria_nombre || p.categoria || 'Joyería'
-                }));
+                const productosNormalizados = lista.map((p: any) => {
+                    let urlFoto = p.imagen_url || p.imagen;
+                    if (urlFoto === 'EMPTY' || urlFoto === '') {
+                         urlFoto = undefined;
+                    }
+
+                    return {
+                        id: p.id,
+                        nombre: p.nombre,
+                        precio: Number(p.precio),
+                        descripcion: p.descripcion || 'Sin descripción disponible.',
+                        imagen_url: urlFoto, 
+                        categoria: p.categoria_nombre || p.categoria || 'Joyería'
+                    };
+                });
 
                 setProductos(productosNormalizados);
             } catch (error) {
@@ -56,30 +63,23 @@ const CatalogoScreen: React.FC = () => {
         fetchProducts();
     }, []);
 
-    // 2. GENERAR CATEGORÍAS DINÁMICAS (Basadas en los productos existentes)
+    // 2. GENERAR CATEGORÍAS DINÁMICAS
     const categoriasDinamicas = useMemo(() => {
         const nombresCategorias = productos.map(p => p.categoria);
-        // Usamos Array.from para evitar errores de TS/ES5 con el spread de Set
         return ['Todas', ...Array.from(new Set(nombresCategorias))];
     }, [productos]);
 
     // 3. LÓGICA DE FILTRADO MULTIVARIABLE
     const productosFiltrados = useMemo(() => {
         let resultado = productos.filter(p => {
-            // Filtro por Categoría exacta
             const coincideCategoria = categoriaActiva === 'Todas' || p.categoria === categoriaActiva;
-            
-            // Filtro por Busqueda
             const coincideBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
                                      p.descripcion.toLowerCase().includes(busqueda.toLowerCase());
-                                     
-            // Filtro por Precio
             const coincidePrecio = p.precio <= precioMaximo;
 
             return coincideCategoria && coincideBusqueda && coincidePrecio;
         });
 
-        // Ordenamiento
         if (orden === 'precio-bajo') {
             resultado.sort((a, b) => a.precio - b.precio);
         } else if (orden === 'precio-alto') {
@@ -158,7 +158,6 @@ const CatalogoScreen: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Chips de Categoría DINÁMICOS */}
                 <div className="categorias-filter">
                     <div className="filter-buttons">
                         {categoriasDinamicas.map(cat => (
@@ -174,7 +173,6 @@ const CatalogoScreen: React.FC = () => {
                 </div>
             </div>
 
-            {/* AVISO SIN RESULTADOS */}
             {!loading && productosFiltrados.length === 0 && (
                 <div className="no-results">
                     <p>No encontramos joyas con esas características.</p>
@@ -191,7 +189,13 @@ const CatalogoScreen: React.FC = () => {
                         <div className="producto-imagen-box">
                             <span className="categoria-tag">{producto.categoria}</span>
                             {producto.imagen_url ? (
-                                <img src={producto.imagen_url} alt={producto.nombre} className="producto-img-real" />
+                                /* 🌟 CORRECCIÓN 1: Se obliga a la imagen de la tarjeta a medir 100% y recortarse bonito (objectFit: 'cover') */
+                                <img 
+                                    src={producto.imagen_url} 
+                                    alt={producto.nombre} 
+                                    className="producto-img-real" 
+                                    style={{ width: '100%', height: '220px', objectFit: 'cover' }} 
+                                />
                             ) : (
                                 <div className="placeholder-icon">💎</div>
                             )}
@@ -238,7 +242,13 @@ const CatalogoScreen: React.FC = () => {
                         <div className="detalles-content">
                             <div className="detalles-imagen">
                                 {productoSeleccionado.imagen_url ? (
-                                    <img src={productoSeleccionado.imagen_url} alt="Full" className="img-full-modal"/>
+                                    /* 🌟 CORRECCIÓN 2: Se obliga a la imagen del Modal a no medir más del 100% del ancho y 400px de alto, conteniendo toda la foto (objectFit: 'contain') para que no empuje las opciones. */
+                                    <img 
+                                        src={productoSeleccionado.imagen_url} 
+                                        alt="Full" 
+                                        className="img-full-modal"
+                                        style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '8px' }}
+                                    />
                                 ) : (
                                     <div className="placeholder-imagen grande">💎</div>
                                 )}

@@ -40,12 +40,19 @@ import AdminContentInfoScreen from "../screens/admin/contenido/AdminContentInfoS
 import AdminContentFAQScreen from "../screens/admin/contenido/AdminContentFAQScreen";
 import AdminContentMisionScreen from "../screens/admin/contenido/AdminContentMisionScreen";
 import GestionPedidosScreen from "../screens/trabajador/GestionPedidosScreen";
-import AdminProductosScreen from '../screens/admin/AdminProductosScreen'; 
+
+// 🌟 NUEVAS PANTALLAS IMPORTADAS (Reemplazan a AdminProductosScreen)
+import AdminInventarioScreen from '../screens/admin/AdminInventarioScreen';
+import AdminNuevoProductoScreen from '../screens/admin/AdminNuevoProductoScreen';
+
 import AdminTrabajadoresScreen from "../screens/admin/AdminTrabajadoresScreen";
 import AdminAltaTrabajadorForm from "../screens/admin/AdminAltaTrabajadorForm";
 import AdminPerfilScreen from "../screens/admin/AdminPerfilScreen";
 import AdminReportesScreen from "../screens/admin/AdminReportesScreen";
 import DashboardTrabajadorScreen from "../screens/trabajador/DashboardTrabajadorScreen";
+
+// 🌟 NUEVA PANTALLA IMPORTADA PARA CATEGORÍAS
+import AdminCategoriasScreen from "../screens/admin/AdminCategoriasScreen";
 
 // PANTALLAS DE ERROR
 import NotFoundScreen from '../screens/general/NotFoundScreen';
@@ -159,7 +166,14 @@ export default function AppRoutes() {
             <Route path="/admin-contenido/info" element={<AdminContentInfoScreen />} />
             <Route path="/admin-contenido/faq" element={<AdminContentFAQScreen />} />
             <Route path="/admin-contenido/mision" element={<AdminContentMisionScreen />} />
-            <Route path="/admin-productos" element={<AdminProductosScreen />} />
+            
+            {/* 🌟 RUTAS SEPARADAS DE INVENTARIO Y NUEVO PRODUCTO */}
+            <Route path="/admin-inventario" element={<AdminInventarioScreen />} />
+            <Route path="/admin-nuevo-producto" element={<AdminNuevoProductoScreen />} />
+            
+            {/* 🌟 RUTA PARA CATEGORÍAS */}
+            <Route path="/admin-categorias" element={<AdminCategoriasScreen />} />
+            
             <Route path="/admin-trabajadores" element={<AdminTrabajadoresScreen />} />
             <Route path="/admin-trabajadores/nuevo" element={<AdminAltaTrabajadorForm />} />
             <Route path="/admin-perfil" element={<AdminPerfilScreen />} />
