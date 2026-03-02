@@ -1,15 +1,15 @@
 import { Router } from 'express';
-// 1. Importamos los controladores que acabas de modificar
+// 1. Importamos TODOS los controladores, incluyendo los dos nuevos al final
 import { 
     getProducts, 
     createProduct, 
     deleteProduct,
     getCategories,
-    createCategory
+    createCategory,
+    toggleCategoryStatus, // 👈 NUEVO: Función para ocultar/mostrar
+    deleteCategory        // 👈 NUEVO: Función para eliminar en cascada
 } from '../controllers/producto/productoController';
 
-// 2. Importamos AMBOS middlewares desde el archivo authMiddleware
-// (authenticateToken verifica que estés logueado, requireAdmin verifica que seas admin)
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
 const router = Router();
@@ -25,13 +25,17 @@ router.get('/categorias', getCategories); // Ver las categorías para el filtro
 // ==========================================
 // El orden importa: Primero verifica token -> Luego verifica Rol -> Luego ejecuta controlador
 
-// Crear Producto
+// --- RUTAS DE PRODUCTOS ---
 router.post('/', authenticateToken, requireAdmin, createProduct);
-
-// Eliminar Producto
 router.delete('/:id', authenticateToken, requireAdmin, deleteProduct);
 
-// Crear Categoría
+// --- RUTAS DE CATEGORÍAS ---
 router.post('/categorias', authenticateToken, requireAdmin, createCategory);
+
+// 🌟 NUEVO: Ocultar / Mostrar categoría (Usamos POST coincidiendo con lo que pusiste en api.ts)
+router.post('/categorias/:id/status', authenticateToken, requireAdmin, toggleCategoryStatus); 
+
+// 🚨 NUEVO: Eliminar categoría definitivamente
+router.delete('/categorias/:id', authenticateToken, requireAdmin, deleteCategory); 
 
 export default router;

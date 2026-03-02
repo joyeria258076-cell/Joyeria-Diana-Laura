@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
-import { productsAPI } from "../../services/api"; // Importación de tu API
+import { productsAPI } from "../../services/api"; 
 import "./CatalogoPublicScreen.css";
 
 interface Producto {
@@ -23,7 +23,26 @@ const CatalogoPublicScreen: React.FC = () => {
       try {
         const data = await productsAPI.getAll();
         const lista = Array.isArray(data) ? data : (data.data || []);
-        setProductos(lista);
+        
+        // 🌟 CORRECCIÓN: Normalizar los datos tal como lo haces en tu catálogo privado
+        const productosNormalizados = lista.map((p: any) => {
+          // Detectamos si la imagen viene en p.imagen o p.imagen_url
+          // Y evitamos usarla si dice literalmente "EMPTY"
+          let urlFoto = p.imagen_url || p.imagen;
+          if (urlFoto === 'EMPTY' || urlFoto === '') {
+             urlFoto = undefined;
+          }
+
+          return {
+            id: p.id,
+            nombre: p.nombre,
+            categoria_nombre: p.categoria_nombre || p.categoria || "General",
+            precio: Number(p.precio),
+            imagen_url: urlFoto
+          };
+        });
+
+        setProductos(productosNormalizados);
       } catch (error) {
         console.error("Error cargando catálogo:", error);
       } finally {
@@ -33,18 +52,20 @@ const CatalogoPublicScreen: React.FC = () => {
     fetchProductos();
   }, []);
 
-  // 2. CORRECCIÓN: Categorías únicas usando Array.from (Evita el error de la imagen 5fcb3a)
+  // 2. Categorías únicas
   const categoriasDinamicas = [
     "Todos",
-    ...Array.from(new Set(productos.map((p) => p.categoria_nombre || "General")))
+    ...Array.from(new Set(productos.map((p) => p.categoria_nombre)))
   ];
 
   // 3. Lógica de filtrado dinámico
   const productosFiltrados = productos.filter((p) => {
-    const catProducto = p.categoria_nombre || "General";
     if (categoriaActiva === "Todos") return true;
-    return catProducto === categoriaActiva;
+    return p.categoria_nombre === categoriaActiva;
   });
+
+  // 4. Placeholder oscuro y elegante que sí funciona
+  const placeholderImage = 'https://placehold.co/300x300/1a1a1a/pink?text=Joya';
 
   return (
     <div className="catalogo-public-container">
@@ -62,7 +83,6 @@ const CatalogoPublicScreen: React.FC = () => {
       <section className="catalogo-section">
         <div className="container-lg">
           
-          {/* Botones de Filtro - Ahora se activan dinámicamente */}
           <div className="filter-section">
             <div className="filter-buttons">
               {categoriasDinamicas.map((cat) => (
@@ -86,17 +106,18 @@ const CatalogoPublicScreen: React.FC = () => {
                   <div 
                     className="producto-image"
                     style={{ 
-                      backgroundImage: `url(${producto.imagen_url || 'https://via.placeholder.com/300x300?text=Joya'})`,
-                      backgroundSize: 'cover'
+                      backgroundImage: `url(${producto.imagen_url || placeholderImage})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
                     }}
                   >
                   </div>
                   <div className="producto-info">
                     <h4 className="producto-nombre">{producto.nombre}</h4>
-                    <p className="producto-categoria">{producto.categoria_nombre || "General"}</p>
+                    <p className="producto-categoria">{producto.categoria_nombre}</p>
                     <div className="producto-footer">
                       <span className="producto-precio">
-                        ${Number(producto.precio).toLocaleString('es-MX')}
+                        ${producto.precio.toLocaleString('es-MX')}
                       </span>
                       <button className="btn-agregar" title="Ver detalle">
                         <i className="fas fa-shopping-bag"></i>
