@@ -1,6 +1,6 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/services/api.ts
 //const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 
 // 🎯 MANTENER TU FUNCIÓN ORIGINAL EXACTA
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
@@ -306,11 +306,31 @@ export const productsAPI = {
     return enhancedApi.get('/products');
   },
 
+  // 🆕 Obtener productos recientes
+  getRecent: async (limit: number = 10) => {
+    return enhancedApi.get(`/products/recent?limit=${limit}`);
+  },
+
+  // 🆕 Obtener producto por ID
+  getById: async (id: number) => {
+    return enhancedApi.get(`/products/${id}`);
+  },
+
+  // 🆕 Buscar productos
+  search: async (query: string) => {
+    return enhancedApi.get(`/products/search?q=${encodeURIComponent(query)}`);
+  },
+
   // 💎 Crear nuevo producto
   // (No necesitas cambiar el "data: any", porque ahora desde el formulario 
   // le estaremos enviando automáticamente el "categoria_id" en lugar del nombre)
   create: async (data: any) => {
     return enhancedApi.post('/products', data);
+  },
+
+  // 🆕 Actualizar producto
+  update: async (id: number, data: any) => {
+    return enhancedApi.put(`/products/${id}`, data);
   },
 
   // 🗑️ Eliminar producto 
@@ -365,6 +385,54 @@ export const productsAPI = {
   // 🗑️ Eliminar categoría definitivamente
   deleteCategory: async (id: number) => {
     return enhancedApi.delete(`/products/categorias/${id}`);
+  },
+
+  // ========================================
+  // 📦 PROVEEDORES
+  // ========================================
+  getProveedores: async () => {
+    return enhancedApi.get('/products/proveedores');
+  },
+
+  getProveedorById: async (id: number) => {
+    return enhancedApi.get(`/products/proveedores/${id}`);
+  },
+
+  // ========================================
+  // 📅 TEMPORADAS
+  // ========================================
+  getTemporadas: async () => {
+    return enhancedApi.get('/products/temporadas');
+  },
+
+  getTemporadaById: async (id: number) => {
+    return enhancedApi.get(`/products/temporadas/${id}`);
+  },
+
+  // ========================================
+  // 🏷️ TIPOS DE PRODUCTO
+  // ========================================
+  getTiposProducto: async () => {
+    return enhancedApi.get('/products/tipos-producto');
+  },
+
+  getTipoProductoById: async (id: number) => {
+    return enhancedApi.get(`/products/tipos-producto/${id}`);
+  },
+
+  // ========================================
+  // ⚙️ CONFIGURACIÓN
+  // ========================================
+  getConfiguracion: async () => {
+    return enhancedApi.get('/products/configuracion');
+  },
+
+  getConfiguracionByClave: async (clave: string) => {
+    return enhancedApi.get(`/products/configuracion/clave/${clave}`);
+  },
+
+  getConfiguracionByCategoria: async (categoria: string) => {
+    return enhancedApi.get(`/products/configuracion/categoria/${categoria}`);
   }
 };
 
