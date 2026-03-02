@@ -13,6 +13,7 @@ import cookieParser from 'cookie-parser';
 import { cookieAuthMiddleware } from './middleware/cookieMiddleware';
 import productRoutes from './routes/productRoutes';
 import adminRoutes from './routes/adminRoutes';
+import adminContentRoutes from './routes/adminContentRoutes'; 
 
 dotenv.config();
 
@@ -28,7 +29,7 @@ app.use(cors({
     'http://localhost:5173'
   ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Agregué PATCH por si acaso
   allowedHeaders: [
     'Content-Type', 
     'Authorization',
@@ -36,21 +37,31 @@ app.use(cors({
   ],
 }));
 
+app.options('*', cors());
+
+// ✅ 1. MOVER ESTO AQUÍ ARRIBA (Súper importante para que las imágenes pesadas de las noticias pasen bien)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser()); 
 
-// 🌟 SOLUCIÓN AL CATÁLOGO PÚBLICO: Middleware Condicional
+// 🌟 SOLUCIÓN DE RUTAS PÚBLICAS Y PRIVADAS: Middleware Condicional
 app.use((req, res, next) => {
   // 1. Permitir acceso público a ver productos y categorías (Catálogo Público)
   if (req.path.startsWith('/api/products') && req.method === 'GET') {
     return next();
   }
   
-  // 2. Permitir acceso público a las rutas de autenticación (Login, Registro, etc.)
+  // 2. NUEVO: Permitir acceso público a VER las noticias y configuración de la página
+  if (req.path.startsWith('/api/content') && req.method === 'GET') {
+    return next();
+  }
+  
+  // 3. Permitir acceso público a las rutas de autenticación (Login, Registro, etc.)
   if (req.path.startsWith('/api/auth')) {
     return next();
   }
   
-  // 3. Aplicar el candado de seguridad de cookies para todo el resto de la App
+  // 4. Aplicar el candado de seguridad de cookies para todo el resto de la App (incluyendo POST/PUT de noticias)
   return cookieAuthMiddleware(req, res, next);
 });
 
@@ -71,18 +82,13 @@ app.get('/api/jwt-config', (req, res) => {
   });
 });
 
-app.options('*', cors());
-
-// ✅ LÍMITES AUMENTADOS PARA LAS IMÁGENES
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
 // ✅ Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/security', securityQuestionRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/content', adminContentRoutes); // Tu nueva ruta registrada
 
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -106,6 +112,7 @@ app.listen(PORT, async () => {
   console.log(`   🔐 Auth: http://localhost:${PORT}/api/auth`);
   console.log(`   👥 Users: http://localhost:${PORT}/api/users`);
   console.log(`   💎 Products: http://localhost:${PORT}/api/products`); 
+  console.log(`   📰 Content: http://localhost:${PORT}/api/content`); 
   console.log(`   ❤️  Health: http://localhost:${PORT}/api/health`);
   console.log(`   🗄️  DB Test: http://localhost:${PORT}/api/db-test`);
   console.log(`🔐 CORS Headers permitidos: Content-Type, Authorization, X-Session-Token`);

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { carruselAPI, promocionesAPI } from '../../services/api';
+import '../../screens/admin/contenido/AdminContentManager.css'; // Usamos las clases de lujo
 
 interface CarouselItem {
-    id: string;
+    id: string | number;
     titulo: string;
     descripcion: string;
     imagen: string;
@@ -9,7 +11,7 @@ interface CarouselItem {
 }
 
 interface PromocionItem {
-    id: string;
+    id: string | number;
     titulo: string;
     descripcion: string;
     descuento: number;
@@ -17,219 +19,317 @@ interface PromocionItem {
 }
 
 const AdminInitoManager: React.FC = () => {
-    const [carouselItems, setCarouselItems] = useState<CarouselItem[]>([
-        {
-            id: '1',
-            titulo: 'Colección Primavera',
-            descripcion: 'Descubre nuestras nuevas joyas para la primavera',
-            imagen: '/placeholder-carousel.jpg',
-            enlace: '/catalogo'
-        }
-    ]);
+    // ── ESTADOS DE CARGA Y ERRORES ──
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [backendError, setBackendError] = useState<string | null>(null);
 
-    const [promociones, setPromociones] = useState<PromocionItem[]>([
-        {
-            id: '1',
-            titulo: '20% Descuento en Anillos',
-            descripcion: 'Aplica en toda la colección de anillos',
-            descuento: 20,
-            activa: true
-        }
-    ]);
+    // ── ESTADOS DE DATOS (Vacíos por defecto, sin info estática) ──
+    const [carouselItems, setCarouselItems] = useState<CarouselItem[]>([]);
+    const [promociones, setPromociones] = useState<PromocionItem[]>([]);
 
-    const [newCarousel, setNewCarousel] = useState<Partial<CarouselItem>>({});
-    const [newPromocion, setNewPromocion] = useState<Partial<PromocionItem>>({});
+    const [newCarousel, setNewCarousel] = useState<Partial<CarouselItem>>({ titulo: '', descripcion: '', enlace: '', imagen: '' });
+    const [newPromocion, setNewPromocion] = useState<Partial<PromocionItem>>({ titulo: '', descripcion: '', descuento: 0 });
+    const [actionLoading, setActionLoading] = useState(false);
 
-    const addCarouselItem = () => {
-        if (newCarousel.titulo && newCarousel.descripcion) {
-            const item: CarouselItem = {
-                id: Date.now().toString(),
+    // Ref para el input de archivo
+    const carouselInputRef = useRef<HTMLInputElement>(null);
+
+    // ── CARGAR DATOS ──
+    useEffect(() => {
+        const fetchInicioData = async () => {
+            try {
+                setBackendError(null);
+                const [cRes, pRes] = await Promise.all([
+                    carruselAPI.getAll(),
+                    promocionesAPI.getAll()
+                ]);
+
+                const cData = Array.isArray(cRes) ? cRes : (cRes?.data || []);
+                const pData = Array.isArray(pRes) ? pRes : (pRes?.data || []);
+
+                setCarouselItems(cData);
+                setPromociones(pData);
+            } catch (error) {
+                console.error("Falló la petición al backend:", error);
+                setBackendError("No se pudo conectar con el servidor. Revisar si el backend está encendido.");
+            } finally {
+                setInitialLoading(false);
+            }
+        };
+        fetchInicioData();
+    }, []);
+
+    // ── MANEJO DE IMAGEN DESDE PC → Base64 ──
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setNewCarousel(prev => ({ ...prev, imagen: reader.result as string }));
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const clearImage = () => {
+        setNewCarousel(prev => ({ ...prev, imagen: '' }));
+        if (carouselInputRef.current) carouselInputRef.current.value = '';
+    };
+
+    // ── FUNCIONES DE CARRUSEL ──
+    const addCarouselItem = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newCarousel.titulo || !newCarousel.imagen) return alert("El título y la imagen son obligatorios");
+        setActionLoading(true);
+        try {
+            const data = {
                 titulo: newCarousel.titulo,
-                descripcion: newCarousel.descripcion,
-                imagen: newCarousel.imagen || '/placeholder-carousel.jpg',
+                descripcion: newCarousel.descripcion || '',
+                imagen: newCarousel.imagen,
                 enlace: newCarousel.enlace || ''
             };
-            setCarouselItems([...carouselItems, item]);
-            setNewCarousel({});
+            const created = await carruselAPI.create(data);
+            const newObj = created?.data || created;
+            setCarouselItems(prev => [...(Array.isArray(prev) ? prev : []), newObj]);
+            // Limpiar formulario
+            setNewCarousel({ titulo: '', descripcion: '', enlace: '', imagen: '' });
+            if (carouselInputRef.current) carouselInputRef.current.value = '';
+        } catch (error) {
+            console.error(error);
+            alert("Error al guardar el carrusel en la BD");
+        } finally {
+            setActionLoading(false);
         }
     };
 
-    const deleteCarouselItem = (id: string) => {
-        setCarouselItems(carouselItems.filter(item => item.id !== id));
+    const deleteCarouselItem = async (id: string | number) => {
+        if (!window.confirm("¿Seguro que deseas eliminar este elemento del carrusel?")) return;
+        try {
+            await carruselAPI.delete(id);
+            setCarouselItems(prev => prev.filter(item => item.id !== id));
+        } catch (error) {
+            console.error(error);
+            alert("Error al eliminar");
+        }
     };
 
-    const addPromocion = () => {
-        if (newPromocion.titulo && newPromocion.descuento) {
-            const promo: PromocionItem = {
-                id: Date.now().toString(),
+    // ── FUNCIONES DE PROMOCIONES ──
+    const addPromocion = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newPromocion.titulo || !newPromocion.descuento) return alert("El título y el descuento son obligatorios");
+        setActionLoading(true);
+        try {
+            const data = {
                 titulo: newPromocion.titulo,
                 descripcion: newPromocion.descripcion || '',
-                descuento: newPromocion.descuento,
-                activa: newPromocion.activa !== undefined ? newPromocion.activa : true
+                descuento: Number(newPromocion.descuento),
+                activa: true
             };
-            setPromociones([...promociones, promo]);
-            setNewPromocion({});
+            const created = await promocionesAPI.create(data);
+            const newObj = created?.data || created;
+            setPromociones(prev => [newObj, ...(Array.isArray(prev) ? prev : [])]);
+            setNewPromocion({ titulo: '', descripcion: '', descuento: 0 });
+        } catch (error) {
+            console.error(error);
+            alert("Error al crear la promoción");
+        } finally {
+            setActionLoading(false);
         }
     };
 
-    const deletePromocion = (id: string) => {
-        setPromociones(promociones.filter(item => item.id !== id));
+    const deletePromocion = async (id: string | number) => {
+        if (!window.confirm("¿Seguro que deseas eliminar esta promoción?")) return;
+        try {
+            await promocionesAPI.delete(id);
+            setPromociones(prev => prev.filter(item => item.id !== id));
+        } catch (error) {
+            console.error(error);
+            alert("Error al eliminar");
+        }
     };
 
-    const togglePromocion = (id: string) => {
-        setPromociones(promociones.map(p =>
-            p.id === id ? { ...p, activa: !p.activa } : p
-        ));
+    const togglePromocion = async (id: string | number, activaActual: boolean) => {
+        try {
+            const nuevaActiva = !activaActual;
+            await promocionesAPI.toggleStatus(id, nuevaActiva);
+            setPromociones(prev => prev.map(p => p.id === id ? { ...p, activa: nuevaActiva } : p));
+        } catch (error) {
+            console.error(error);
+            alert("Error al cambiar el estado");
+        }
     };
+
+    // ── COMPONENTE REUTILIZABLE DE IMAGEN (El mismo de Noticias) ──
+    const ImageField = () => (
+        <div className="upload-area-lux" style={{ flexDirection: newCarousel.imagen ? 'row' : 'column', alignItems: newCarousel.imagen ? 'center' : 'stretch', padding: newCarousel.imagen ? '1rem' : '1.5rem 1rem' }}>
+            {newCarousel.imagen ? (
+                <>
+                    <div className="preview-img-wrapper" style={{ width: '120px', height: '80px', flexShrink: 0 }}>
+                        <img src={newCarousel.imagen} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                        <button type="button" className="btn-remove-img" onClick={clearImage} title="Quitar imagen">✕</button>
+                    </div>
+                    <div style={{ flex: 1, paddingLeft: '1rem' }}>
+                        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', margin: '0 0 4px 0', fontWeight: 600 }}>✓ Imagen seleccionada</p>
+                        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem', margin: 0 }}>Haz clic en <strong style={{ color: '#e74c3c' }}>✕</strong> para cambiarla</p>
+                    </div>
+                </>
+            ) : (
+                <div className="upload-input-container">
+                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', margin: '0 0 0.75rem 0', textAlign: 'center' }}>🖼️ &nbsp;JPG, PNG, WEBP — Recomendado 1400×600 px</p>
+                    <input type="file" accept="image/*" ref={carouselInputRef} onChange={handleImageChange} required style={{ width: '100%' }} />
+                </div>
+            )}
+        </div>
+    );
+
+    // ── PANTALLA DE CARGA ──
+    if (initialLoading) {
+        return (
+            <div className="content-page animate-fade-in" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+                <div className="noticias-loading">
+                    <div className="loading-spinner">
+                        <div className="spinner-ring" />
+                        <div className="spinner-ring spinner-ring--2" />
+                        <div className="spinner-dot" />
+                    </div>
+                    <p className="loading-text" style={{ marginTop: '1.5rem' }}>Conectando con la base de datos...</p>
+                    <div className="loading-dots"><span /><span /><span /></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="content-page">
+        <div className="content-page animate-fade-in">
             <h2 className="content-page-title">🏠 Gestionar Página de Inicio</h2>
-            <p className="content-page-subtitle">Gestiona los elementos que aparecen en la página principal de tu tienda</p>
+            <p className="content-page-subtitle">Personaliza el carrusel principal y las promociones destacadas.</p>
 
-            {/* SECCIÓN DE CARRUSEL */}
-            <div className="manager-subsection">
-                <h3 className="subsection-title">🎠 Carrusel Principal</h3>
-                <p className="subsection-description">Agrega imágenes y descripciones que rotarán en la página de inicio</p>
-                
-                <div className="carousel-form">
-                    <div className="form-group">
-                        <label>Título del Carrusel:</label>
-                        <input
-                            type="text"
-                            placeholder="Ej: Colección Nueva"
-                            value={newCarousel.titulo || ''}
-                            onChange={(e) => setNewCarousel({ ...newCarousel, titulo: e.target.value })}
-                        />
+            {/* ── DISCLAIMER DE ERROR ── */}
+            {backendError && (
+                <div style={{ background: 'rgba(231, 76, 60, 0.1)', border: '1px solid #e74c3c', padding: '1rem 1.5rem', borderRadius: '8px', marginBottom: '2rem', color: '#ff8a80', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                    <span style={{ fontSize: '1.5rem', lineHeight: '1' }}>⚠️</span>
+                    <div>
+                        <strong style={{ display: 'block', marginBottom: '4px', color: '#ffb3b3' }}>Aviso de conexión:</strong>
+                        <span style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>{backendError}</span>
                     </div>
-
-                    <div className="form-group">
-                        <label>Descripción:</label>
-                        <textarea
-                            placeholder="Descripción de la diapositiva"
-                            value={newCarousel.descripcion || ''}
-                            onChange={(e) => setNewCarousel({ ...newCarousel, descripcion: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>URL de Imagen:</label>
-                        <input
-                            type="text"
-                            placeholder="URL de la imagen"
-                            value={newCarousel.imagen || ''}
-                            onChange={(e) => setNewCarousel({ ...newCarousel, imagen: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Enlace (Opcional):</label>
-                        <input
-                            type="text"
-                            placeholder="Ej: /catalogo"
-                            value={newCarousel.enlace || ''}
-                            onChange={(e) => setNewCarousel({ ...newCarousel, enlace: e.target.value })}
-                        />
-                    </div>
-
-                    <button className="btn-primary" onClick={addCarouselItem}>
-                        + Agregar Diapositiva
-                    </button>
                 </div>
+            )}
 
-                <div className="items-list">
-                    {carouselItems.length === 0 ? (
-                        <p className="empty-state">No hay diapositivas. ¡Crea la primera!</p>
+            {/* ==========================================
+                SECCIÓN 1: CARRUSEL
+            ========================================== */}
+            <div className="manager-subsection glass-panel" style={{ borderLeft: '4px solid var(--gold-lux)' }}>
+                <div className="subsection-header">
+                    <h3 className="subsection-title">🎠 1. Añadir al Carrusel</h3>
+                </div>
+                
+                {/* Formulario mejorado (Estilo Noticias) */}
+                <form onSubmit={addCarouselItem} className="noticia-form-lux">
+                    <div className="form-group-lux full-width">
+                        <label>✦ Título del Slide</label>
+                        <input type="text" placeholder="Ej: Nueva Colección de Oro" value={newCarousel.titulo} onChange={e => setNewCarousel({ ...newCarousel, titulo: e.target.value })} required />
+                    </div>
+                    <div className="form-group-lux full-width">
+                        <label>✦ Descripción Breve</label>
+                        <textarea rows={2} placeholder="Piezas únicas forjadas en..." value={newCarousel.descripcion} onChange={e => setNewCarousel({ ...newCarousel, descripcion: e.target.value })} />
+                    </div>
+                    <div className="form-group-lux full-width">
+                        <label>✦ Enlace del Botón (Opcional)</label>
+                        <input type="text" placeholder="Ej: /catalogo" value={newCarousel.enlace} onChange={e => setNewCarousel({ ...newCarousel, enlace: e.target.value })} />
+                    </div>
+                    <div className="form-group-lux full-width">
+                        <label>✦ Imagen de Fondo</label>
+                        <ImageField />
+                    </div>
+                    <div className="form-submit-container">
+                        <button type="submit" className="btn-submit-admin" disabled={actionLoading || !newCarousel.imagen}>
+                            {actionLoading ? 'GUARDANDO...' : '+ PUBLICAR EN CARRUSEL'}
+                        </button>
+                    </div>
+                </form>
+
+                {/* Lista de Carrusel Estilizada */}
+                <div className="noticias-grid" style={{ marginTop: '2rem' }}>
+                    {(!carouselItems || carouselItems.length === 0) ? (
+                        <div className="no-data-lux">El carrusel está vacío.</div>
                     ) : (
                         carouselItems.map(item => (
-                            <div key={item.id} className="item-card">
-                                <div className="item-preview">
-                                    <img src={item.imagen} alt={item.titulo} className="item-image" />
+                            <div key={item.id} className="noticia-card-lux" style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div className="card-image-wrapper" style={{ height: '140px' }}>
+                                    <img src={item.imagen} alt={item.titulo} className="noticia-image" />
                                 </div>
-                                <div className="item-info">
-                                    <h5>{item.titulo}</h5>
-                                    <p>{item.descripcion}</p>
-                                    {item.enlace && <span className="item-link">🔗 {item.enlace}</span>}
+                                <div className="card-content-lux" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                    <div>
+                                        <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>{item.titulo}</h4>
+                                        <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>{item.descripcion}</p>
+                                    </div>
+                                    <div className="card-actions-lux" style={{ marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
+                                        <button type="button" className="btn-action-lux delete" onClick={() => deleteCarouselItem(item.id)} style={{ width: '100%' }}>
+                                            🗑️ Eliminar
+                                        </button>
+                                    </div>
                                 </div>
-                                <button className="btn-delete" onClick={() => deleteCarouselItem(item.id)}>
-                                    🗑️ Eliminar
-                                </button>
                             </div>
                         ))
                     )}
                 </div>
             </div>
 
-            {/* SECCIÓN DE PROMOCIONES */}
-            <div className="manager-subsection">
-                <h3 className="subsection-title">🎁 Promociones Destacadas</h3>
-                <p className="subsection-description">Destaca promociones y ofertas especiales en la página de inicio</p>
-
-                <div className="promocion-form">
-                    <div className="form-group">
-                        <label>Título de Promoción:</label>
-                        <input
-                            type="text"
-                            placeholder="Ej: 20% Descuento en Anillos"
-                            value={newPromocion.titulo || ''}
-                            onChange={(e) => setNewPromocion({ ...newPromocion, titulo: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Descripción:</label>
-                        <textarea
-                            placeholder="Detalles de la promoción"
-                            value={newPromocion.descripcion || ''}
-                            onChange={(e) => setNewPromocion({ ...newPromocion, descripcion: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Porcentaje de Descuento:</label>
-                        <input
-                            type="number"
-                            placeholder="Ej: 20"
-                            min="0"
-                            max="100"
-                            value={newPromocion.descuento || ''}
-                            onChange={(e) => setNewPromocion({ ...newPromocion, descuento: parseInt(e.target.value) })}
-                        />
-                    </div>
-
-                    <button className="btn-primary" onClick={addPromocion}>
-                        + Agregar Promoción
-                    </button>
+            {/* ==========================================
+                SECCIÓN 2: PROMOCIONES
+            ========================================== */}
+            <div className="manager-subsection glass-panel" style={{ marginTop: '3rem' }}>
+                <div className="subsection-header">
+                    <h3 className="subsection-title">🎁 2. Añadir Promoción</h3>
                 </div>
 
-                <div className="items-list">
-                    {promociones.length === 0 ? (
-                        <p className="empty-state">No hay promociones. ¡Crea la primera!</p>
+                {/* Formulario mejorado */}
+                <form onSubmit={addPromocion} className="noticia-form-lux">
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
+                        <div className="form-group-lux">
+                            <label>✦ Título de la Promoción</label>
+                            <input type="text" placeholder="Ej: 20% en Anillos" value={newPromocion.titulo} onChange={e => setNewPromocion({ ...newPromocion, titulo: e.target.value })} required />
+                        </div>
+                        <div className="form-group-lux">
+                            <label>✦ % Descuento</label>
+                            <input type="number" min="0" max="100" placeholder="Ej: 20" value={newPromocion.descuento || ''} onChange={e => setNewPromocion({ ...newPromocion, descuento: parseInt(e.target.value) || 0 })} required />
+                        </div>
+                    </div>
+                    <div className="form-group-lux full-width">
+                        <label>✦ Descripción</label>
+                        <textarea rows={2} placeholder="Aplica en toda la tienda..." value={newPromocion.descripcion} onChange={e => setNewPromocion({ ...newPromocion, descripcion: e.target.value })} />
+                    </div>
+                    <div className="form-submit-container">
+                        <button type="submit" className="btn-submit-admin" disabled={actionLoading}>
+                            {actionLoading ? 'GUARDANDO...' : '+ PUBLICAR PROMOCIÓN'}
+                        </button>
+                    </div>
+                </form>
+
+                {/* Lista de Promociones */}
+                <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {(!promociones || promociones.length === 0) ? (
+                        <div className="no-data-lux">No hay promociones activas.</div>
                     ) : (
                         promociones.map(promo => (
-                            <div key={promo.id} className="item-card promo-card">
-                                <div className="item-header">
-                                    <div>
-                                        <h5>{promo.titulo}</h5>
-                                        <p className="promo-description">{promo.descripcion}</p>
+                            <div key={promo.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--rose-border)' }}>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                                        <h4 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-main)' }}>{promo.titulo}</h4>
+                                        <span style={{ background: 'var(--rose-vivid)', color: 'white', padding: '0.2rem 0.8rem', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                                            -{promo.descuento}%
+                                        </span>
+                                        <span className={`status-badge ${promo.activa ? 'active' : 'inactive'}`} style={{ position: 'static' }}>
+                                            {promo.activa ? '● Activa' : '○ Oculta'}
+                                        </span>
                                     </div>
-                                    <span className={`badge ${promo.activa ? 'active' : 'inactive'}`}>
-                                        {promo.activa ? '✓ Activa' : '✗ Inactiva'}
-                                    </span>
+                                    <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>{promo.descripcion}</p>
                                 </div>
-                                <p className="discount-badge">💰 Descuento: {promo.descuento}%</p>
-                                <div className="item-actions">
-                                    <button 
-                                        className="btn-toggle" 
-                                        onClick={() => togglePromocion(promo.id)}
-                                    >
-                                        {promo.activa ? '🔴 Desactivar' : '🟢 Activar'}
+                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                    <button type="button" className="btn-action-lux" onClick={() => togglePromocion(promo.id, promo.activa)}>
+                                        {promo.activa ? '👁️ Ocultar' : '👁️‍🗨️ Mostrar'}
                                     </button>
-                                    <button 
-                                        className="btn-delete" 
-                                        onClick={() => deletePromocion(promo.id)}
-                                    >
-                                        🗑️ Eliminar
+                                    <button type="button" className="btn-action-lux delete" onClick={() => deletePromocion(promo.id)}>
+                                        🗑️
                                     </button>
                                 </div>
                             </div>
