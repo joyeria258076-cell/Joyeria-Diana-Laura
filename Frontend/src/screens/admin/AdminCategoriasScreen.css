@@ -39,7 +39,7 @@
     pointer-events: none;
 }
 
-/* --- ENCABEZADO --- */
+/* --- ENCABEZADO ACTUALIZADO --- */
 .admin-page-header {
     display: flex;
     justify-content: space-between;
@@ -47,6 +47,8 @@
     margin-bottom: 3.5rem;
     position: relative;
     z-index: 1;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .header-title-section h2 {
@@ -67,7 +69,14 @@
     margin-top: 8px;
 }
 
-.btn-refresh-lux {
+.header-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn-refresh-lux,
+.btn-new-lux {
     background: transparent;
     border: 1px solid var(--border-lux);
     color: var(--gold-lux);
@@ -80,139 +89,97 @@
     gap: 8px;
     font-weight: 600;
     white-space: nowrap;
+    font-size: 0.9rem;
 }
 
-.btn-refresh-lux:hover {
+.btn-refresh-lux:hover,
+.btn-new-lux:hover {
     background: rgba(236, 178, 195, 0.1);
 }
 
-/* =====================================================
-   FORMULARIO — FIX RESPONSIVO
-   Ambos contenedores (form + tabla) tienen el mismo
-   ancho, border-radius y border para verse iguales.
-   ===================================================== */
+.btn-new-lux {
+    background: rgba(236, 178, 195, 0.15);
+    border-color: var(--gold-lux);
+}
 
-.form-container-lux {
-    /* Mismo ancho y estilo que la tabla */
-    width: 100%;
-    box-sizing: border-box;
-    background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(0,0,0,0));
-    border: 1px solid var(--border-lux);
-    border-radius: 24px;          /* igual que table-container-lux */
-    padding: 2.5rem;
-    backdrop-filter: blur(10px);
+.btn-new-lux:hover {
+    background: rgba(236, 178, 195, 0.25);
+}
+
+.btn-refresh-lux .icon,
+.btn-new-lux .icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+/* --- BUSCADOR --- */
+.search-container {
+    position: relative;
     margin-bottom: 2rem;
+    z-index: 1;
 }
 
-.form-inner h3 {
-    margin: 0 0 0.5rem 0;
-    font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
-    font-weight: 400;
-    color: #fff;
-}
-
-/* FIX: fila del formulario — input y botón del mismo alto */
-.categoria-form-row {
-    display: flex;
-    gap: 16px;
-    align-items: flex-end;
+.search-input {
     width: 100%;
-    margin-top: 1.5rem;
-}
-
-.input-lux-group {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.input-lux-group label {
-    display: block;
-    margin-bottom: 10px;
-    font-size: 0.73rem;
-    color: var(--gold-lux);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-}
-
-/* Input y botón: misma altura exacta con box-sizing */
-.input-lux-group input {
-    width: 100%;
-    height: 52px;
-    box-sizing: border-box;
+    padding: 14px 20px;
     background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 14px;
-    padding: 0 20px;
+    border: 1px solid var(--border-lux);
+    border-radius: 12px;
     color: #fff;
     font-size: 0.95rem;
     font-family: 'Montserrat', sans-serif;
     transition: var(--transition);
-    outline: none;
 }
 
-.input-lux-group input::placeholder {
+.search-input::placeholder {
     color: rgba(255, 255, 255, 0.25);
 }
 
-.input-lux-group input:focus {
+.search-input:focus {
+    outline: none;
     border-color: var(--gold-lux);
     background: rgba(236, 178, 195, 0.04);
     box-shadow: 0 0 0 3px rgba(236, 178, 195, 0.08);
 }
 
-.btn-submit-lux {
-    height: 52px;           /* misma altura que el input */
-    box-sizing: border-box;
-    padding: 0 32px;
-    background: var(--gold-lux);
-    color: #000;
-    border: none;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 0.82rem;
-    letter-spacing: 1.5px;
-    cursor: pointer;
-    transition: var(--transition);
-    white-space: nowrap;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-submit-lux:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(236, 178, 195, 0.3);
-}
-
-.btn-submit-lux:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
+.search-count {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    color: var(--gold-lux);
+    opacity: 0.7;
 }
 
 /* =====================================================
-   TABLA — mismo ancho y borde que el formulario
+   TABLA — Actualizada para más columnas
    ===================================================== */
 .table-container-lux {
     width: 100%;
     box-sizing: border-box;
-    border-radius: 24px;          /* igual que form-container-lux */
+    border-radius: 24px;
     border: 1px solid var(--border-lux);
     overflow: hidden;
     background: rgba(255, 255, 255, 0.015);
+    position: relative;
+    z-index: 1;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .admin-custom-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 900px;
 }
 
 .admin-custom-table th {
     background: rgba(236, 178, 195, 0.03);
-    padding: 22px 24px;
+    padding: 18px 16px;
     color: var(--gold-lux);
     text-transform: uppercase;
     font-size: 0.7rem;
@@ -220,6 +187,7 @@
     border-bottom: 1px solid var(--border-lux);
     text-align: left;
     white-space: nowrap;
+    font-weight: 600;
 }
 
 .admin-custom-table th.txt-center {
@@ -227,9 +195,10 @@
 }
 
 .admin-custom-table td {
-    padding: 22px 24px;
+    padding: 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.025);
     vertical-align: middle;
+    font-size: 0.9rem;
 }
 
 .admin-custom-table tbody tr:last-child td {
@@ -244,17 +213,30 @@
     opacity: 0.6;
 }
 
+/* Celda ID */
+.id-cell {
+    color: var(--gold-lux);
+    font-weight: 600;
+    min-width: 60px;
+}
+
 /* Celda nombre */
+.name-cell {
+    min-width: 150px;
+}
+
 .category-info-wrapper {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
 }
 
 .category-name {
     font-family: 'Playfair Display', serif;
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-weight: 400;
+    color: #fff;
 }
 
 .status-pill {
@@ -272,7 +254,69 @@
     border: 1px solid rgba(255, 77, 77, 0.25);
 }
 
-/* Estado */
+/* Celda descripción */
+.description-cell {
+    min-width: 150px;
+    max-width: 200px;
+}
+
+.text-truncate {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Celda tipo */
+.type-cell {
+    min-width: 120px;
+}
+
+.type-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.type-badge.principal {
+    background: rgba(212, 175, 55, 0.2);
+    color: #d4af37;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.type-badge.sub {
+    background: rgba(100, 150, 200, 0.15);
+    color: #64b0ff;
+    border: 1px solid rgba(100, 150, 200, 0.3);
+}
+
+/* Celda orden */
+.orden-cell {
+    min-width: 80px;
+    text-align: center;
+}
+
+.orden-badge {
+    display: inline-block;
+    background: rgba(236, 178, 195, 0.1);
+    color: var(--gold-lux);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Celda estado */
+.status-cell {
+    min-width: 120px;
+}
+
 .status-container {
     display: flex;
     align-items: center;
@@ -303,25 +347,41 @@
 /* Acciones */
 .actions-cell {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     justify-content: center;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    min-width: 280px;
 }
 
 .btn-action-lux {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.8);
-    padding: 8px 16px;
-    border-radius: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
     font-size: 0.75rem;
     font-family: 'Montserrat', sans-serif;
     cursor: pointer;
     transition: var(--transition);
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     white-space: nowrap;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    min-height: 38px;
+    min-width: 100px;
+}
+
+.btn-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.btn-action-lux.edit {
+    border-color: var(--gold-lux);
+    color: var(--gold-lux);
 }
 
 .btn-action-lux.show {
@@ -334,9 +394,20 @@
     color: rgba(255, 255, 255, 0.7);
 }
 
+.btn-action-lux.delete {
+    border-color: rgba(255, 77, 77, 0.5);
+    color: #ff6b6b;
+}
+
 .btn-action-lux:hover {
     background: rgba(255, 255, 255, 0.06);
     border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+.btn-action-lux.edit:hover {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: var(--gold-lux);
     color: #fff;
 }
 
@@ -353,4 +424,102 @@
     color: rgba(255, 255, 255, 0.3);
     font-style: italic;
     font-size: 0.9rem;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1200px) {
+    .admin-categorias-container {
+        padding: 2rem;
+    }
+
+    .admin-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-buttons {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .btn-refresh-lux,
+    .btn-new-lux {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .admin-custom-table {
+        font-size: 0.85rem;
+    }
+
+    .admin-custom-table th,
+    .admin-custom-table td {
+        padding: 12px;
+    }
+
+    .actions-cell {
+        flex-direction: column;
+        min-width: 100px;
+    }
+
+    .btn-action-lux {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-categorias-container {
+        padding: 1.5rem;
+    }
+
+    .header-title-section h2 {
+        font-size: 2rem;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -16px;
+    }
+
+    .admin-custom-table {
+        font-size: 0.75rem;
+        min-width: 600px;
+    }
+
+    .admin-custom-table th,
+    .admin-custom-table td {
+        padding: 8px;
+    }
+
+    .actions-cell {
+        min-width: 100px;
+    }
+
+    .btn-action-lux {
+        padding: 8px 10px;
+        font-size: 0.65rem;
+        min-height: 36px;
+        min-width: 80px;
+    }
+
+    .btn-icon {
+        font-size: 0.9rem;
+    }
+
+    .category-name {
+        font-size: 0.9rem;
+    }
+
+    .search-input {
+        font-size: 0.85rem;
+        padding: 10px 14px;
+    }
+
+    .btn-refresh-lux,
+    .btn-new-lux {
+        padding: 10px 16px;
+        font-size: 0.8rem;
+    }
 }

@@ -1,13 +1,15 @@
 import { Router } from 'express';
-// 1. Importamos TODOS los controladores, incluyendo los dos nuevos al final
 import { 
     getProducts, 
     createProduct, 
     deleteProduct,
     getCategories,
+    getCategoryById,
+    getSubcategorias,
     createCategory,
-    toggleCategoryStatus, // 👈 NUEVO: Función para ocultar/mostrar
-    deleteCategory        // 👈 NUEVO: Función para eliminar en cascada
+    updateCategory,
+    toggleCategoryStatus,
+    deleteCategory
 } from '../controllers/producto/productoController';
 
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
@@ -18,7 +20,9 @@ const router = Router();
 // 🔓 RUTAS PÚBLICAS (Cualquiera puede verlas)
 // ==========================================
 router.get('/', getProducts);             // Ver el catálogo
-router.get('/categorias', getCategories); // Ver las categorías para el filtro
+router.get('/categorias', getCategories); // Ver todas las categorías
+router.get('/categorias/:id', getCategoryById); // Ver una categoría específica
+router.get('/categorias/:id/subcategorias', getSubcategorias); // Ver subcategorías de una categoría
 
 // ==========================================
 // 🔒 RUTAS PRIVADAS (Solo Admin)
@@ -31,11 +35,8 @@ router.delete('/:id', authenticateToken, requireAdmin, deleteProduct);
 
 // --- RUTAS DE CATEGORÍAS ---
 router.post('/categorias', authenticateToken, requireAdmin, createCategory);
-
-// 🌟 NUEVO: Ocultar / Mostrar categoría (Usamos POST coincidiendo con lo que pusiste en api.ts)
-router.post('/categorias/:id/status', authenticateToken, requireAdmin, toggleCategoryStatus); 
-
-// 🚨 NUEVO: Eliminar categoría definitivamente
-router.delete('/categorias/:id', authenticateToken, requireAdmin, deleteCategory); 
+router.put('/categorias/:id', authenticateToken, requireAdmin, updateCategory);
+router.post('/categorias/:id/status', authenticateToken, requireAdmin, toggleCategoryStatus);
+router.delete('/categorias/:id', authenticateToken, requireAdmin, deleteCategory);
 
 export default router;

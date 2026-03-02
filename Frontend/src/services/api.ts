@@ -124,6 +124,13 @@ class EnhancedApiService {
       method: 'DELETE',
     });
   }
+
+  async put(endpoint: string, data: any) {
+    return this.request(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 // 🆕 CREAR INSTANCIA MEJORADA
@@ -311,25 +318,54 @@ export const productsAPI = {
     return enhancedApi.delete(`/products/${id}`);
   },
 
-  // 📂 Obtener categorías (para llenar el menú desplegable)
+  // 📂 Obtener todas las categorías
   getCategories: async () => {
     return enhancedApi.get('/products/categorias');
   },
 
-  // ➕ Crear nueva categoría desde el panel
-  createCategory: async (data: { nombre: string; descripcion?: string }) => {
+  // 📂 Obtener una categoría por ID
+  getCategoryById: async (id: number) => {
+    return enhancedApi.get(`/products/categorias/${id}`);
+  },
+
+  // 📂 Obtener subcategorías de una categoría padre
+  getSubcategorias: async (id: number) => {
+    return enhancedApi.get(`/products/categorias/${id}/subcategorias`);
+  },
+
+  // ➕ Crear nueva categoría con todos los campos
+  createCategory: async (data: {
+    nombre: string;
+    descripcion?: string;
+    categoria_padre_id?: number | null;
+    imagen_url?: string;
+    orden?: number;
+    creado_por?: number;
+  }) => {
     return enhancedApi.post('/products/categorias', data);
   },
 
-  // 🔄 Ocultar / Mostrar categoría (Usamos post porque tu api no tiene put ni patch)
-    toggleCategoryStatus: async (id: number, activo: boolean) => {
-      return enhancedApi.post(`/products/categorias/${id}/status`, { activo });
-    },
+  // ✏️ Actualizar categoría
+  updateCategory: async (id: number, data: {
+    nombre?: string;
+    descripcion?: string;
+    categoria_padre_id?: number | null;
+    imagen_url?: string;
+    orden?: number;
+    activo?: boolean;
+  }) => {
+    return enhancedApi.put(`/products/categorias/${id}`, data);
+  },
 
-    // 🗑️ Eliminar categoría definitivamente
-    deleteCategory: async (id: number) => {
-      return enhancedApi.delete(`/products/categorias/${id}`);
-    }
+  // 🔄 Cambiar estado de categoría (Activo / Inactivo)
+  toggleCategoryStatus: async (id: number, activo: boolean) => {
+    return enhancedApi.post(`/products/categorias/${id}/status`, { activo });
+  },
+
+  // 🗑️ Eliminar categoría definitivamente
+  deleteCategory: async (id: number) => {
+    return enhancedApi.delete(`/products/categorias/${id}`);
+  }
 };
 
 export const workersAPI = {
