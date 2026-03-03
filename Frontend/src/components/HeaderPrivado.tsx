@@ -76,7 +76,7 @@ const HeaderPrivado: React.FC = () => {
                             {/* MENÚ DESPLEGABLE DE GESTIONAR CONTENIDO */}
                             <div className="nav-item-group">
                                 <button 
-                                    className={`nav-item ${isActive("/admin-contenido") ? "active" : ""} dropdown-toggle`}
+                                    className={`nav-item ${isActive("/admin-contenido") || isActive("/admin-contenido/paginas") || isActive("/admin-contenido/secciones") ? "active" : ""} dropdown-toggle`}
                                     onClick={() => setIsContentMenuOpen(!isContentMenuOpen)}
                                 >
                                     <span className="nav-icon">⚙️</span> Gestionar Contenido
@@ -85,6 +85,18 @@ const HeaderPrivado: React.FC = () => {
                                 
                                 {isContentMenuOpen && (
                                     <div className="dropdown-menu">
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin-contenido/paginas") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin-contenido/paginas")}
+                                        >
+                                            <span className="dropdown-icon">📄</span> Gestión de Páginas
+                                        </button>
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin-contenido/secciones") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin-contenido/secciones")}
+                                        >
+                                            <span className="dropdown-icon">📑</span> Gestión de Secciones
+                                        </button>
                                         <button 
                                             className={`dropdown-item ${isActive("/admin-contenido/inicio") ? "active" : ""}`}
                                             onClick={() => navigate("/admin-contenido/inicio")}

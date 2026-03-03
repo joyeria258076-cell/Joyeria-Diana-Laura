@@ -1,3 +1,12 @@
+:root {
+  --gold-lux: #ECB2C3;
+  --dark-bg: #0d0d0d;
+  --dark-secondary: #1a1a1a;
+  --text-primary: white;
+  --text-secondary: #d4b5c8;
+  --border-gold: rgba(236, 178, 195, 0.2);
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

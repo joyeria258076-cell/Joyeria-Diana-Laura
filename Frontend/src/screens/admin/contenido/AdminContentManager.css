@@ -508,3 +508,162 @@
 
 /* Empty State Genérico */
 .empty-state { grid-column: 1 / -1; text-align: center; padding: 2rem; color: rgba(255, 255, 255, 0.5); font-size: 1rem; background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(236, 178, 195, 0.2); border-radius: 8px; }
+
+/* ============================================
+   OPCIONES DE CONTENIDO (GRID)
+   ============================================ */
+.content-options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+    margin-top: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.content-option-card {
+    background: linear-gradient(145deg, rgba(30, 30, 30, 0.5) 0%, rgba(10, 10, 10, 0.8) 100%);
+    border-top: 1px solid rgba(236, 178, 195, 0.3);
+    border-left: 1px solid rgba(236, 178, 195, 0.15);
+    border-right: 1px solid rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.8);
+    border-radius: 12px;
+    padding: 2rem;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.content-option-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(236, 178, 195, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.content-option-card:hover {
+    background: linear-gradient(145deg, rgba(40, 40, 40, 0.6) 0%, rgba(15, 15, 15, 0.9) 100%);
+    border-color: #ecb2c3;
+    transform: translateY(-8px);
+    box-shadow: 0 20px 50px rgba(236, 178, 195, 0.2);
+}
+
+.content-option-card:hover::before {
+    opacity: 1;
+}
+
+.option-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.content-option-card:hover .option-icon {
+    transform: scale(1.15);
+}
+
+.option-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: white;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.option-description {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+    flex-grow: 1;
+}
+
+.option-button {
+    background: linear-gradient(135deg, #ecb2c3 0%, #e49bb3 100%);
+    color: #0f0f12;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.content-option-card:hover .option-button {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(236, 178, 195, 0.4);
+}
+
+.option-button:active {
+    transform: scale(0.98);
+}
+
+/* ============================================
+   SECCIÓN DE INFORMACIÓN (TIPS)
+   ============================================ */
+.content-info-section {
+    background: linear-gradient(145deg, rgba(30, 30, 30, 0.5) 0%, rgba(10, 10, 10, 0.8) 100%);
+    border: 1px solid rgba(236, 178, 195, 0.3);
+    border-radius: 12px;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.content-info-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    color: #ecb2c3;
+    margin-bottom: 1.5rem;
+}
+
+.content-info-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.content-info-section li {
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(236, 178, 195, 0.1);
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.content-info-section li:last-child {
+    border-bottom: none;
+}
+
+.content-info-section strong {
+    color: #ecb2c3;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .content-options-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .option-title {
+        font-size: 1.2rem;
+    }
+
+    .option-icon {
+        font-size: 2.5rem;
+    }
+}

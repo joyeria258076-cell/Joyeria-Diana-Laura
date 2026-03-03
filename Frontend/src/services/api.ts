@@ -441,6 +441,40 @@ export const productsAPI = {
 
   getConfiguracionByCategoria: async (categoria: string) => {
     return enhancedApi.get(`/products/configuracion/categoria/${categoria}`);
+  },
+
+  // ========================================
+  // 🔍 BÚSQUEDA Y FILTROS AVANZADOS (Pública)
+  // ========================================
+  searchAndFilter: async (filters: {
+    nombre?: string;
+    categoria_id?: number;
+    tipo_producto_id?: number;
+    material_principal?: string;
+    precio_min?: number;
+    precio_max?: number;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const params = new URLSearchParams();
+    if (filters.nombre) params.append('nombre', filters.nombre);
+    if (filters.categoria_id) params.append('categoria_id', filters.categoria_id.toString());
+    if (filters.tipo_producto_id) params.append('tipo_producto_id', filters.tipo_producto_id.toString());
+    if (filters.material_principal) params.append('material_principal', filters.material_principal);
+    if (filters.precio_min) params.append('precio_min', filters.precio_min.toString());
+    if (filters.precio_max) params.append('precio_max', filters.precio_max.toString());
+    if (filters.limit) params.append('limit', filters.limit.toString());
+    if (filters.offset) params.append('offset', filters.offset.toString());
+
+    return enhancedApi.get(`/products/filter?${params.toString()}`);
+  },
+
+  getProductsByCategories: async (limit: number = 4) => {
+    return enhancedApi.get(`/products/por-categorias?limit=${limit}`);
+  },
+
+  getProductsByCategory: async (categoria_id: number, limit: number = 20) => {
+    return enhancedApi.get(`/products/categorias/${categoria_id}/productos?limit=${limit}`);
   }
 };
 
@@ -499,4 +533,83 @@ export const promocionesAPI = {
   create: async (data: { titulo: string; descripcion: string; descuento: number; activa?: boolean }) => enhancedApi.post('/content/promociones', data),
   toggleStatus: async (id: string | number, activa: boolean) => enhancedApi.patch(`/content/promociones/${id}/status`, { activa }),
   delete: async (id: string | number) => enhancedApi.delete(`/content/promociones/${id}`)
+};
+
+// ==========================================
+// GESTIÓN DE PÁGINAS (CMS DINÁMICO)
+// ==========================================
+export const paginasAPI = {
+  getAll: async () => enhancedApi.get('/content/paginas'),
+  getById: async (id: string | number) => enhancedApi.get(`/content/paginas/${id}`),
+  create: async (data: {
+    nombre: string;
+    slug: string;
+    descripcion?: string;
+    icono?: string;
+    orden?: number;
+    mostrar_en_menu?: boolean;
+    mostrar_en_footer?: boolean;
+    requiere_autenticacion?: boolean;
+  }) => enhancedApi.post('/content/paginas', data),
+  update: async (id: string | number, data: {
+    nombre: string;
+    slug: string;
+    descripcion?: string;
+    icono?: string;
+    orden?: number;
+    mostrar_en_menu?: boolean;
+    mostrar_en_footer?: boolean;
+    requiere_autenticacion?: boolean;
+  }) => enhancedApi.put(`/content/paginas/${id}`, data),
+  delete: async (id: string | number) => enhancedApi.delete(`/content/paginas/${id}`)
+};
+
+// ==========================================
+// GESTIÓN DE SECCIONES (CMS DINÁMICO)
+// ==========================================
+export const seccionesAPI = {
+  getByPagina: async (paginaId: string | number) => enhancedApi.get(`/content/secciones/pagina/${paginaId}`),
+  getById: async (id: string | number) => enhancedApi.get(`/content/secciones/${id}`),
+  create: async (data: {
+    pagina_id: string | number;
+    nombre: string;
+    descripcion?: string;
+    imagen_url?: string;
+    color_fondo?: string;
+    orden?: number;
+  }) => enhancedApi.post('/content/secciones', data),
+  update: async (id: string | number, data: {
+    nombre: string;
+    descripcion?: string;
+    imagen_url?: string;
+    color_fondo?: string;
+    orden?: number;
+  }) => enhancedApi.put(`/content/secciones/${id}`, data),
+  delete: async (id: string | number) => enhancedApi.delete(`/content/secciones/${id}`)
+};
+
+// ==========================================
+// GESTIÓN DE CONTENIDOS (CMS DINÁMICO)
+// ==========================================
+export const contenidosAPI = {
+  getBySeccion: async (seccionId: string | number) => enhancedApi.get(`/content/contenidos/seccion/${seccionId}`),
+  getById: async (id: string | number) => enhancedApi.get(`/content/contenidos/${id}`),
+  create: async (data: {
+    seccion_id: string | number;
+    titulo: string;
+    descripcion?: string;
+    imagen_url?: string;
+    enlace_url?: string;
+    enlace_nueva_ventana?: boolean;
+    orden?: number;
+  }) => enhancedApi.post('/content/contenidos', data),
+  update: async (id: string | number, data: {
+    titulo: string;
+    descripcion?: string;
+    imagen_url?: string;
+    enlace_url?: string;
+    enlace_nueva_ventana?: boolean;
+    orden?: number;
+  }) => enhancedApi.put(`/content/contenidos/${id}`, data),
+  delete: async (id: string | number) => enhancedApi.delete(`/content/contenidos/${id}`)
 };
