@@ -125,9 +125,17 @@ class EnhancedApiService {
     });
   }
 
+  // 👇 MÉTODOS AÑADIDOS PARA EL GESTOR DE CONTENIDO
   async put(endpoint: string, data: any) {
     return this.request(endpoint, {
       method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async patch(endpoint: string, data: any) {
+    return this.request(endpoint, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   }
@@ -446,4 +454,49 @@ export const workersAPI = {
   getAll: async () => {
     return enhancedApi.get('/users');
   }
+};
+
+// ==========================================
+// 📝 GESTOR DE CONTENIDO (PÁGINAS Y NOTICIAS)
+// ==========================================
+export const contentAPI = {
+  // 1. Configuración global de la página (Banner, Título principal)
+  getPageConfig: async (pageName: string) => {
+    return enhancedApi.get(`/content/pages/${pageName}`);
+  },
+  updatePageConfig: async (pageName: string, data: { titulo: string; contenido: string; imagen: string; fecha: string }) => {
+    return enhancedApi.put(`/content/pages/${pageName}`, data);
+  },
+
+  // 2. Gestión de artículos individuales (Noticias)
+  getNoticias: async () => {
+    return enhancedApi.get('/content/noticias');
+  },
+  createNoticia: async (data: any) => {
+    return enhancedApi.post('/content/noticias', data);
+  },
+  toggleNoticiaStatus: async (id: string, activa: boolean) => {
+    return enhancedApi.patch(`/content/noticias/${id}/status`, { activa });
+  },
+  deleteNoticia: async (id: string) => {
+    return enhancedApi.delete(`/content/noticias/${id}`);
+  }
+};
+
+// ==========================================
+// GESTIÓN DE CARRUSEL Y PROMOCIONES (Inicio)
+// ==========================================
+export const carruselAPI = {
+  // 👈 Agregamos /content/ antes de cada ruta
+  getAll: async () => enhancedApi.get('/content/carrusel'),
+  create: async (data: { titulo: string; descripcion: string; imagen: string; enlace?: string }) => enhancedApi.post('/content/carrusel', data),
+  delete: async (id: string | number) => enhancedApi.delete(`/content/carrusel/${id}`)
+};
+
+export const promocionesAPI = {
+  // 👈 Agregamos /content/ antes de cada ruta
+  getAll: async () => enhancedApi.get('/content/promociones'),
+  create: async (data: { titulo: string; descripcion: string; descuento: number; activa?: boolean }) => enhancedApi.post('/content/promociones', data),
+  toggleStatus: async (id: string | number, activa: boolean) => enhancedApi.patch(`/content/promociones/${id}/status`, { activa }),
+  delete: async (id: string | number) => enhancedApi.delete(`/content/promociones/${id}`)
 };
