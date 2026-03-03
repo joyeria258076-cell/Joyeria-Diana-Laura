@@ -1,0 +1,139 @@
+/* Contenedor del Dashboard */
+.dashboard-container {
+  flex: 1;
+  padding: 2.5rem;
+  background-color: #0f0f12;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.welcome-header {
+  margin-bottom: 3rem;
+}
+
+.welcome-header h2 {
+  color: white;
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  margin: 0;
+  font-weight: 800;
+}
+
+.welcome-header .accent-name {
+  color: #ECB2C3;
+  text-shadow: 0 0 15px rgba(236, 178, 195, 0.3);
+}
+
+.welcome-header p {
+  color: #D4B5C8;
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+}
+
+/* Rejilla de Tarjetas */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+/* Tarjeta Estilo Premium */
+.dashboard-card {
+  background: rgba(30, 26, 33, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(236, 178, 195, 0.3);
+  border-radius: 16px;
+  padding: 2.2rem;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-card:hover {
+  background-color: rgba(42, 29, 36, 0.8);
+  transform: translateY(-8px);
+  border-color: #ECB2C3;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.dashboard-card h4 {
+  color: #ECB2C3;
+  margin-bottom: 1.5rem;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-card .stat-number {
+  font-size: 3rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 0.5rem;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.dashboard-card .stat-label {
+  color: #D4B5C8;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-change {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Acciones Rápidas */
+.quick-actions-box {
+  background: rgba(42, 29, 36, 0.4);
+  border: 1px solid rgba(236, 178, 195, 0.2);
+  border-radius: 16px;
+  padding: 2.5rem;
+}
+
+.quick-actions-box h4 {
+  color: #ECB2C3;
+  margin-bottom: 2rem;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.2rem;
+}
+
+.quick-action-btn {
+  background: transparent;
+  border: 2px solid #ECB2C3;
+  color: #ECB2C3;
+  text-decoration: none;
+  padding: 14px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quick-action-btn:hover {
+  background-color: #ECB2C3;
+  color: #0f0f12;
+  transform: scale(1.03);
+  box-shadow: 0 10px 20px rgba(236, 178, 195, 0.2);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

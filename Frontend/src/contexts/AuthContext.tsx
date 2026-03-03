@@ -104,11 +104,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const isSettingUpRef = useRef<boolean>(false);
 
   // 🎯 CONFIGURACIÓN OPTIMIZADA de inactividad - CÓDIGO EXISTENTE
-  const INACTIVITY_TIMEOUT = 1 * 60 * 1000; // 1 minuto para pruebas
+  //const INACTIVITY_TIMEOUT = 1 * 60 * 1000; // 1 minuto para pruebas
+
+  // 🎯 FUNCIÓN: Obtener tiempo de inactividad según el rol
+  const getTimeoutByRole = () => {
+    if (!user) return 24 * 60 * 60 * 1000; // Por defecto 24h si no hay user
+    
+    if (user.rol === 'admin' || user.rol === 'trabajador') {
+      return 15 * 60 * 1000; // 🔒 15 minutos para personal
+    }
+    
+    return 24 * 60 * 60 * 1000; // ✅ 24 horas para clientes
+  };
 
   // 🎯 FUNCIÓN: Manejar logout automático - CÓDIGO EXISTENTE
   const handleAutoLogout = async () => {
-    console.log('🔒 🔥 🔥 🔥 SESIÓN EXPIRADA - INACTIVIDAD DE 1 MINUTO 🔥 🔥 🔥');
+    console.log('🔒 🔥 🔥 🔥 SESIÓN EXPIRADA POR INACTIVIDAD 🔥 🔥 🔥');
     
     alert('Tu sesión ha expirada por inactividad. Por favor, inicia sesión nuevamente.');
     
@@ -152,19 +163,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // 🎯 FUNCIÓN: Resetear timer de inactividad - CÓDIGO EXISTENTE
   const resetInactivityTimer = () => {
-    // Limpiar timer anterior
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
     }
 
     if (user) {
-      console.log('🔄 Reseteando timer de inactividad');
+      const timeout = getTimeoutByRole(); // 👈 Calculamos el tiempo real aquí
+      
+      // Solo para debug:
+      // console.log(`🔄 Timer reseteado para ${user.rol}. Expira en ${timeout / 60000} min`);
+
       inactivityTimerRef.current = setTimeout(() => {
-        console.log('⏰ ⏰ ⏰ TIMER ACTIVADO - EJECUTANDO LOGOUT AUTOMÁTICO');
+        console.log('⏰ TIMER ACTIVADO - LOGOUT POR INACTIVIDAD');
         handleAutoLogout();
-      }, INACTIVITY_TIMEOUT);
+      }, timeout);
     }
-  };
+};
 
   // 🎯 FUNCIÓN: Manejar actividad del usuario - CÓDIGO EXISTENTE
   const handleUserActivity = () => {
@@ -180,8 +194,8 @@ useEffect(() => {
 
   isSettingUpRef.current = true;
   
-  console.log('🎯 🎯 🎯 INICIANDO SISTEMA DE INACTIVIDAD - 1 MINUTO 🎯 🎯 🎯');
-  console.log('⏰ Timeout configurado:', INACTIVITY_TIMEOUT / 60000 + ' minutos');
+  console.log('🎯 🎯 🎯 INICIANDO SISTEMA DE INACTIVIDAD 🎯 🎯 🎯');
+  //console.log('⏰ Timeout configurado:', INACTIVITY_TIMEOUT / 60000 + ' minutos');
 
   // ✅ SOLO eventos significativos - 🚫 EXCLUIR mousemove
   const activityEvents = [
@@ -662,7 +676,8 @@ const login = async (email: string, password: string) => {
       
       const userWithToken = {
         ...userData,
-        token: token
+        token: token,
+        rol: userData.rol || 'cliente'
       };
       
       console.log('💾 Guardando usuario en contexto y localStorage:', userWithToken);

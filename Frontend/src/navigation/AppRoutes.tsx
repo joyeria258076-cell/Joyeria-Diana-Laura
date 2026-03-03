@@ -41,17 +41,19 @@ import AdminContentFAQScreen from "../screens/admin/contenido/AdminContentFAQScr
 import AdminContentMisionScreen from "../screens/admin/contenido/AdminContentMisionScreen";
 import GestionPedidosScreen from "../screens/trabajador/GestionPedidosScreen";
 
-// 🌟 NUEVAS PANTALLAS IMPORTADAS (Reemplazan a AdminProductosScreen)
+// INVENTARIO Y PRODUCTOS
 import AdminInventarioScreen from '../screens/admin/AdminInventarioScreen';
 import AdminNuevoProductoScreen from '../screens/admin/AdminNuevoProductoScreen';
 
+// PERSONAL Y REPORTES
 import AdminTrabajadoresScreen from "../screens/admin/AdminTrabajadoresScreen";
 import AdminAltaTrabajadorForm from "../screens/admin/AdminAltaTrabajadorForm";
 import AdminPerfilScreen from "../screens/admin/AdminPerfilScreen";
 import AdminReportesScreen from "../screens/admin/AdminReportesScreen";
 import DashboardTrabajadorScreen from "../screens/trabajador/DashboardTrabajadorScreen";
+import ActividadesTrabajadorScreen from "../screens/trabajador/ActividadesTrabajadorScreen";
 
-// 🌟 NUEVA PANTALLA IMPORTADA PARA CATEGORÍAS
+// CATEGORÍAS
 import AdminCategoriasScreen from "../screens/admin/AdminCategoriasScreen";
 
 // PANTALLAS DE ERROR
@@ -69,25 +71,23 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
-// 🆕 RoleRoute corregido para funcionar como Wrapper de Rutas Anidadas
 const RoleRoute: React.FC<{ allowedRoles: string[] }> = ({ allowedRoles }) => {
   const { user } = useAuth();
-  if (!user || !allowedRoles.includes(user.rol || '')) {
+  // Normalizamos el rol para comparar
+  const userRole = user?.rol?.toLowerCase().trim() || '';
+  if (!user || !allowedRoles.includes(userRole)) {
     return <Navigate to="/403" replace />;
   }
-  return <Outlet />; // Esto permite renderizar las rutas hijas
+  return <Outlet />;
 };
 
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center h-screen text-lg font-semibold bg-[#0f0f12] text-[#ecb2c3]">Cargando...</div>;
   if (user) {
-    console.log('🔐 Usuario detectado en PublicRoute. Rol:', user.rol);
-    if (user.rol === 'admin') {
-      return <Navigate to="/admin-dashboard" replace />;
-    } else if (user.rol === 'trabajador') {
-      return <Navigate to="/dashboard-trabajador" replace />;
-    }
+    const userRole = user.rol?.toLowerCase().trim();
+    if (userRole === 'admin') return <Navigate to="/admin-dashboard" replace />;
+    if (userRole === 'trabajador') return <Navigate to="/dashboard-trabajador" replace />;
     return <Navigate to="/inicio" replace />;
   }
   return <>{children}</>;
@@ -146,6 +146,7 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         >
+          {/* --- RUTAS PARA TODOS LOS USUARIOS LOGUEADOS --- */}
           <Route path="/inicio" element={<InicioScreen />} />
           <Route path="/perfil" element={<PerfilScreen />} />
           <Route path="/catalogo" element={<CatalogoScreen />} />
@@ -166,14 +167,9 @@ export default function AppRoutes() {
             <Route path="/admin-contenido/info" element={<AdminContentInfoScreen />} />
             <Route path="/admin-contenido/faq" element={<AdminContentFAQScreen />} />
             <Route path="/admin-contenido/mision" element={<AdminContentMisionScreen />} />
-            
-            {/* 🌟 RUTAS SEPARADAS DE INVENTARIO Y NUEVO PRODUCTO */}
             <Route path="/admin-inventario" element={<AdminInventarioScreen />} />
             <Route path="/admin-nuevo-producto" element={<AdminNuevoProductoScreen />} />
-            
-            {/* 🌟 RUTA PARA CATEGORÍAS */}
             <Route path="/admin-categorias" element={<AdminCategoriasScreen />} />
-            
             <Route path="/admin-trabajadores" element={<AdminTrabajadoresScreen />} />
             <Route path="/admin-trabajadores/nuevo" element={<AdminAltaTrabajadorForm />} />
             <Route path="/admin-perfil" element={<AdminPerfilScreen />} />
@@ -182,16 +178,16 @@ export default function AppRoutes() {
 
           {/* 🔐 RUTAS EXCLUSIVAS TRABAJADOR / ADMIN */}
           <Route element={<RoleRoute allowedRoles={['trabajador', 'admin']} />}>
+             {/* El dashboard ahora tiene Sidebar porque está dentro del PrivateLayout */}
+             <Route path="/dashboard-trabajador" element={<DashboardTrabajadorScreen />} />
              <Route path="/pedidos-admin" element={<GestionPedidosScreen />} />
+             
+             {/* Rutas adicionales de navegación para el trabajador */}
+             <Route path="/trabajador/actividades" element={<ActividadesTrabajadorScreen />} />
+             <Route path="/trabajador/configuracion" element={<ConfiguracionScreen />} />
+             <Route path="/trabajador/perfil" element={<PerfilScreen />} />
           </Route>
         </Route>
-
-        {/* DASHBOARDS PROTEGIDOS (Sin Sidebar) */}
-        <Route path="/dashboard-trabajador" element={
-            <ProtectedRoute>
-                <DashboardTrabajadorScreen />
-            </ProtectedRoute>
-        } />
 
         {/* 4. MANEJO DE ERRORES */}
         <Route path="/403" element={<ForbiddenScreen />} />

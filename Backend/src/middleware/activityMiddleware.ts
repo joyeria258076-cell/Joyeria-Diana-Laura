@@ -15,33 +15,34 @@ export interface ActivityRequest extends Request {
  */
 export const checkActivity = async (req: ActivityRequest, res: Response, next: NextFunction) => {
   try {
-    // Solo verificar si hay usuario autenticado
-    if (!req.user || !req.user.email) {
-      return next();
+    if (!req.user || !req.user.email) return next();
+
+    // 🕵️ Extraemos el rol. Si no existe en el token, asumimos 'cliente'
+    const userRole = (req.user as any).rol || 'cliente';
+    const userEmail = req.user.email;
+
+    // ⏱️ Definimos el tiempo según el rol
+    let MAX_MINUTES = 1440; // 24 horas para clientes
+
+    if (userRole === 'admin' || userRole === 'trabajador') {
+      MAX_MINUTES = 15; // 15 minutos para personal
+      console.log(`🛡️ Seguridad: Filtro activo para ${userRole} (${userEmail}) - Límite: 15m`);
     }
 
-    const MAX_INACTIVITY_MINUTES = 15;
-    
-    // Verificar si el usuario está inactivo
-    const isInactive = await userModel.isUserInactive(req.user.email, MAX_INACTIVITY_MINUTES);
+    // Verificar inactividad
+    const isInactive = await userModel.isUserInactive(userEmail, MAX_MINUTES);
     
     if (isInactive) {
-      console.log(`🕒 Sesión expirada por inactividad para: ${req.user.email}`);
-      
       return res.status(401).json({
         success: false,
-        message: 'Sesión expirada por inactividad. Por favor, inicia sesión nuevamente.',
+        message: 'Sesión expirada por inactividad.',
         expired: true
       });
     }
 
-    // Actualizar timestamp de actividad para requests exitosos
-    await userModel.updateUserActivity(req.user.email);
-    
+    await userModel.updateUserActivity(userEmail);
     next();
   } catch (error) {
-    console.error('Error en checkActivity middleware:', error);
-    // En caso de error, permitir que continúe por seguridad
     next();
   }
 };

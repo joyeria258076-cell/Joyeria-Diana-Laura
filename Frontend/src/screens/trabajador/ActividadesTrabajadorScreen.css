@@ -1,0 +1,250 @@
+:root {
+  --primary-pink: #ECB2C3;
+  --primary-pink-low: rgba(236, 178, 195, 0.15);
+  --primary-pink-medium: rgba(236, 178, 195, 0.4);
+  --bg-dark: #0f0f12;
+  --card-bg: rgba(30, 26, 33, 0.7);
+  --text-light: #ffffff;
+  --text-muted: #D4B5C8;
+  --transition-smooth: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Contenedor principal */
+.actividades-container {
+  padding: 2.5rem;
+  background-color: var(--bg-dark);
+  min-height: calc(100vh - 60px); /* Ajuste para el header si existe */
+  color: var(--text-light);
+  font-family: 'Montserrat', sans-serif;
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.actividades-titulo {
+  color: var(--text-light);
+  font-family: 'Playfair Display', serif;
+  margin-bottom: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-weight: 800;
+  font-size: 2rem;
+  letter-spacing: 0.5px;
+}
+
+.actividades-titulo i {
+  color: var(--primary-pink);
+  filter: drop-shadow(0 0 8px var(--primary-pink-medium));
+}
+
+/* Tarjeta de Actividad con Efecto Glassmorphism */
+.activity-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--primary-pink-medium);
+  border-radius: 16px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.activity-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--primary-pink);
+  opacity: 0;
+  transition: var(--transition-smooth);
+}
+
+.activity-card:hover {
+  background: rgba(42, 29, 36, 0.8);
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 
+              0 0 20px rgba(236, 178, 195, 0.1);
+  border-color: var(--primary-pink);
+}
+
+.activity-card:hover::before {
+  opacity: 1;
+}
+
+.activity-card h3 {
+  color: var(--primary-pink);
+  font-family: 'Playfair Display', serif;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1.6rem;
+}
+
+/* Badge de Estado */
+.activity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary-pink-low);
+  color: var(--primary-pink);
+  padding: 0.5rem 1.2rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--primary-pink-medium);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.activity-description {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  line-height: 1.8;
+  font-size: 1.05rem;
+  max-width: 90%;
+}
+
+/* Bloque de Detalles Internos */
+.activity-details-box {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.activity-details-box p {
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Grid de Permisos */
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.permission-tag {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(236, 178, 195, 0.2);
+  padding: 0.8rem 1.2rem;
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: var(--transition-smooth);
+}
+
+.permission-tag i {
+  color: var(--primary-pink);
+}
+
+.permission-tag:hover {
+  background: var(--primary-pink-low);
+  color: var(--text-light);
+  border-color: var(--primary-pink);
+  transform: translateX(5px);
+}
+
+/* Botones de Acción Estilo Luxury */
+.activity-actions {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+}
+
+.btn-primary-worker {
+  background: var(--primary-pink);
+  color: #0f0f12 !important;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  transition: var(--transition-smooth);
+}
+
+.btn-primary-worker:hover {
+  background: #f8d7e0;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(236, 178, 195, 0.3);
+}
+
+.btn-secondary-worker {
+  background: transparent;
+  border: 2px solid var(--primary-pink);
+  color: var(--primary-pink) !important;
+  padding: 12px 26px;
+  border-radius: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: var(--transition-smooth);
+}
+
+.btn-secondary-worker:hover {
+  background: var(--primary-pink-low);
+  transform: translateY(-4px);
+}
+
+/* Sección No Habilitada */
+.inactive-section-title {
+  color: var(--text-light);
+  font-family: 'Playfair Display', serif;
+  margin: 5rem 0 2rem 0;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  opacity: 0.8;
+}
+
+.empty-activities-placeholder {
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px dashed var(--primary-pink-medium);
+  border-radius: 20px;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.empty-activities-placeholder i {
+  font-size: 3rem;
+  color: var(--primary-pink-medium);
+  margin-bottom: 1.5rem;
+}
+
+.empty-activities-placeholder p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  max-width: 450px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .actividades-container { padding: 1.5rem; }
+  .activity-actions { flex-direction: column; }
+  .btn-primary-worker, .btn-secondary-worker { justify-content: center; }
+  .actividades-titulo { font-size: 1.6rem; }
+}

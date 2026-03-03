@@ -24,7 +24,7 @@ const HeaderPrivado: React.FC = () => {
             <aside className="sidebar-privado">
                 <div 
                     className="sidebar-logo" 
-                    onClick={() => navigate(userRole === 'admin' ? "/admin-dashboard" : "/inicio")}
+                    onClick={() => navigate(userRole === 'admin' ? "/admin-dashboard" : userRole === 'trabajador' ? "/dashboard-trabajador" : "/inicio")}
                     style={{ cursor: 'pointer' }}
                 >
                     <div className="logo-text">Diana Laura</div>
@@ -129,6 +129,26 @@ const HeaderPrivado: React.FC = () => {
                                 <span className="nav-icon">📈</span> Reportes
                             </button>
                         </>
+                    ) : userRole === 'trabajador' ? (
+                        /* --- VISTA PARA TRABAJADORES --- */
+                        <>
+                            <button className={`nav-item ${isActive("/dashboard-trabajador")}`} onClick={() => navigate("/dashboard-trabajador")}>
+                                <span className="nav-icon">📊</span> Dashboard
+                            </button>
+
+                            <div className="sidebar-divider"></div>
+                            
+                            <button className={`nav-item ${isActive("/trabajador/actividades")}`} onClick={() => navigate("/trabajador/actividades")}>
+                                <span className="nav-icon">✅</span> Mis Actividades
+                            </button>
+                            
+                            <button className={`nav-item ${isActive("/trabajador/configuracion")}`} onClick={() => navigate("/trabajador/configuracion")}>
+                                <span className="nav-icon">⚙️</span> Configuración
+                            </button>
+                            <button className={`nav-item ${isActive("/trabajador/perfil")}`} onClick={() => navigate("/trabajador/perfil")}>
+                                <span className="nav-icon">👤</span> Mi Perfil
+                            </button>
+                        </>
                     ) : (
                         /* --- VISTA PARA CLIENTES --- */
                         <>
@@ -174,7 +194,7 @@ const HeaderPrivado: React.FC = () => {
 
                 <div 
                     className="user-profile-info" 
-                    onClick={() => navigate(userRole === 'admin' ? "/admin-perfil" : "/perfil")}
+                    onClick={() => navigate(userRole === 'admin' ? "/admin-perfil" : userRole === 'trabajador' ? "/trabajador/perfil" : "/perfil")}
                     style={{ cursor: 'pointer' }}
                 >
                     <div className="user-avatar">
@@ -183,7 +203,7 @@ const HeaderPrivado: React.FC = () => {
                     <div className="user-details">
                         <span className="user-name">{user?.nombre || 'Mi Perfil'}</span>
                         <span className="user-role">
-                            {userRole === 'admin' ? "Administrador" : "Cliente Premium"}
+                            {userRole === 'admin' ? "Administrador" : userRole === 'trabajador' ? "Trabajador" : "Cliente Premium"}
                         </span>
                     </div>
                 </div>
