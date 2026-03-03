@@ -22,7 +22,10 @@ import {
     getTipoProductoById,
     getConfiguracion,
     getConfiguracionByClave,
-    getConfiguracionByCategoria
+    getConfiguracionByCategoria,
+    searchAndFilterProducts,
+    getProductsByCategory,
+    getProductsByCategories
 } from '../controllers/producto/productoController';
 
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
@@ -36,12 +39,15 @@ const router = Router();
 // De lo contrario, Express interpretará "categorias" como un ID
 router.get('/', getProducts);                    // Ver el catálogo de productos
 router.get('/recent', getRecentProducts);        // Ver productos recientes
-router.get('/search', searchProducts);           // Buscar productos
+router.get('/search', searchProducts);           // Buscar productos (búsqueda simple)
+router.get('/filter', searchAndFilterProducts);  // 🔍 NUEVA: Búsqueda avanzada con filtros
+router.get('/por-categorias', getProductsByCategories); // 🆕 NUEVA: Todos los productos agrupados por categoría
 
 // --- RUTAS DE CATEGORÍAS ---
 router.get('/categorias', getCategories);        // Ver todas las categorías ⚠️ ANTES de /:id
 router.get('/categorias/:id', getCategoryById);  // Ver una categoría específica
 router.get('/categorias/:id/subcategorias', getSubcategorias); // Ver subcategorías de una categoría
+router.get('/categorias/:id/productos', getProductsByCategory); // 🆕 NUEVA: Productos de una categoría específica
 
 // --- RUTAS DE PROVEEDORES ---
 router.get('/proveedores', getProveedores);      // Ver todos los proveedores

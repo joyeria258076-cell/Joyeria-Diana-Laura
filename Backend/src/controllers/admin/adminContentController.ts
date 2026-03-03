@@ -195,6 +195,362 @@ export const adminContentController = {
       console.error('Error eliminando promocion:', error);
       res.status(500).json({ message: 'Error al eliminar promoción' });
     }
+  },
+
+  // ==========================================
+  // GESTIÓN DE PÁGINAS (CMS)
+  // ==========================================
+  getPaginas: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const result = await pool.query(
+        'SELECT * FROM paginas WHERE activo = true ORDER BY orden ASC, nombre ASC'
+      );
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error en getPaginas:', error);
+      res.status(500).json({ message: "Error al obtener páginas" });
+    }
+  },
+
+  getPaginaById: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        'SELECT * FROM paginas WHERE id = $1',
+        [id]
+      );
+      
+      if (result.rows.length === 0) {
+        res.status(404).json({ message: "Página no encontrada" });
+        return;
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error en getPaginaById:', error);
+      res.status(500).json({ message: "Error al obtener página" });
+    }
+  },
+
+  createPagina: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { nombre, slug, descripcion, icono, orden, mostrar_en_menu, mostrar_en_footer, requiere_autenticacion } = req.body;
+      const userId = (req as any).user?.id;
+      
+      // Validar que el slug sea único
+      const slugExists = await pool.query(
+        'SELECT id FROM paginas WHERE slug = $1',
+        [slug]
+      );
+      
+      if (slugExists.rows.length > 0) {
+        res.status(400).json({ message: "El slug ya existe" });
+        return;
+      }
+
+      const result = await pool.query(
+        `INSERT INTO paginas 
+         (nombre, slug, descripcion, icono, orden, mostrar_en_menu, mostrar_en_footer, requiere_autenticacion, creado_por, activo)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)
+         RETURNING *`,
+        [nombre, slug, descripcion || '', icono || '', orden || 0, mostrar_en_menu ?? true, mostrar_en_footer ?? false, requiere_autenticacion ?? false, userId]
+      );
+
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error en createPagina:', error);
+      res.status(500).json({ message: "Error al crear página" });
+    }
+  },
+
+  updatePagina: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { nombre, slug, descripcion, icono, orden, mostrar_en_menu, mostrar_en_footer, requiere_autenticacion } = req.body;
+      const userId = (req as any).user?.id;
+
+      // Validar que el slug sea único (si cambió)
+      const slugExists = await pool.query(
+        'SELECT id FROM paginas WHERE slug = $1 AND id != $2',
+        [slug, id]
+      );
+      
+      if (slugExists.rows.length > 0) {
+        res.status(400).json({ message: "El slug ya existe" });
+        return;
+      }
+
+      const result = await pool.query(
+        `UPDATE paginas 
+         SET nombre = $1, slug = $2, descripcion = $3, icono = $4, orden = $5, 
+             mostrar_en_menu = $6, mostrar_en_footer = $7, requiere_autenticacion = $8, 
+             actualizado_por = $9, fecha_actualizacion = CURRENT_TIMESTAMP
+         WHERE id = $10
+         RETURNING *`,
+        [nombre, slug, descripcion || '', icono || '', orden || 0, mostrar_en_menu, mostrar_en_footer, requiere_autenticacion, userId, id]
+      );
+
+      if (result.rows.length === 0) {
+        res.status(404).json({ message: "Página no encontrada" });
+        return;
+      }
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error en updatePagina:', error);
+      res.status(500).json({ message: "Error al actualizar página" });
+    }
+  },
+
+  deletePagina: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      
+      // Verificar si tiene secciones
+      const sectionCount = await pool.query(
+        'SELECT COUNT(*) as count FROM secciones WHERE pagina_id = $1',
+        [id]
+      );
+
+      if (parseInt(sectionCount.rows[0].count) > 0) {
+        res.status(400).json({ message: "No se puede eliminar una página que tiene secciones. Elimina las secciones primero." });
+        return;
+      }
+
+      const result = await pool.query(
+        'DELETE FROM paginas WHERE id = $1 RETURNING id',
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        res.status(404).json({ message: "Página no encontrada" });
+        return;
+      }
+
+      res.json({ message: "Página eliminada correctamente" });
+    } catch (error) {
+      console.error('Error en deletePagina:', error);
+      res.status(500).json({ message: "Error al eliminar página" });
+    }
+  },
+
+  // ==========================================
+  // GESTIÓN DE SECCIONES (CMS)
+  // ==========================================
+  getSeccionesByPagina: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { paginaId } = req.params;
+      const result = await pool.query(
+        'SELECT * FROM secciones WHERE pagina_id = $1 AND activo = true ORDER BY orden ASC',
+        [paginaId]
+      );
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error en getSeccionesByPagina:', error);
+      res.status(500).json({ message: "Error al obtener secciones" });
+    }
+  },
+
+  getSeccionById: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        'SELECT * FROM secciones WHERE id = $1',
+        [id]
+      );
+      
+      if (result.rows.length === 0) {
+        res.status(404).json({ message: "Sección no encontrada" });
+        return;
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error en getSeccionById:', error);
+      res.status(500).json({ message: "Error al obtener sección" });
+    }
+  },
+
+  createSeccion: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { pagina_id, nombre, descripcion, imagen_url, color_fondo, orden } = req.body;
+      const userId = (req as any).user?.id;
+
+      const result = await pool.query(
+        `INSERT INTO secciones
+         (pagina_id, nombre, descripcion, imagen_url, color_fondo, orden, creado_por, activo)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, true)
+         RETURNING *`,
+        [pagina_id, nombre, descripcion || '', imagen_url || '', color_fondo || '#ffffff', orden || 0, userId]
+      );
+
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error en createSeccion:', error);
+      res.status(500).json({ message: "Error al crear sección" });
+    }
+  },
+
+  updateSeccion: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { nombre, descripcion, imagen_url, color_fondo, orden } = req.body;
+      const userId = (req as any).user?.id;
+
+      const result = await pool.query(
+        `UPDATE secciones
+         SET nombre = $1, descripcion = $2, imagen_url = $3, color_fondo = $4, orden = $5, fecha_actualizacion = CURRENT_TIMESTAMP
+         WHERE id = $6
+         RETURNING *`,
+        [nombre, descripcion || '', imagen_url || '', color_fondo || '#ffffff', orden || 0, id]
+      );
+
+      if (result.rows.length === 0) {
+        res.status(404).json({ message: "Sección no encontrada" });
+        return;
+      }
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error en updateSeccion:', error);
+      res.status(500).json({ message: "Error al actualizar sección" });
+    }
+  },
+
+  deleteSeccion: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      // Verificar si tiene contenidos
+      const contentCount = await pool.query(
+        'SELECT COUNT(*) as count FROM contenidos WHERE seccion_id = $1',
+        [id]
+      );
+
+      if (parseInt(contentCount.rows[0].count) > 0) {
+        res.status(400).json({ message: "No se puede eliminar una sección que tiene contenidos. Elimina los contenidos primero." });
+        return;
+      }
+
+      const result = await pool.query(
+        'DELETE FROM secciones WHERE id = $1 RETURNING id',
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        res.status(404).json({ message: "Sección no encontrada" });
+        return;
+      }
+
+      res.json({ message: "Sección eliminada correctamente" });
+    } catch (error) {
+      console.error('Error en deleteSeccion:', error);
+      res.status(500).json({ message: "Error al eliminar sección" });
+    }
+  },
+
+  // ==========================================
+  // GESTIÓN DE CONTENIDOS (CMS)
+  // ==========================================
+  getContenidosBySeccion: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { seccionId } = req.params;
+      const result = await pool.query(
+        'SELECT * FROM contenidos WHERE seccion_id = $1 AND activo = true ORDER BY orden ASC',
+        [seccionId]
+      );
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error en getContenidosBySeccion:', error);
+      res.status(500).json({ message: "Error al obtener contenidos" });
+    }
+  },
+
+  getContenidoById: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        'SELECT * FROM contenidos WHERE id = $1',
+        [id]
+      );
+      
+      if (result.rows.length === 0) {
+        res.status(404).json({ message: "Contenido no encontrado" });
+        return;
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error en getContenidoById:', error);
+      res.status(500).json({ message: "Error al obtener contenido" });
+    }
+  },
+
+  createContenido: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { seccion_id, titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden } = req.body;
+      const userId = (req as any).user?.id;
+
+      const result = await pool.query(
+        `INSERT INTO contenidos
+         (seccion_id, titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden, creado_por, activo)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)
+         RETURNING *`,
+        [seccion_id, titulo, descripcion || '', imagen_url || '', enlace_url || '', enlace_nueva_ventana ?? false, orden || 0, userId]
+      );
+
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error en createContenido:', error);
+      res.status(500).json({ message: "Error al crear contenido" });
+    }
+  },
+
+  updateContenido: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden } = req.body;
+      const userId = (req as any).user?.id;
+
+      const result = await pool.query(
+        `UPDATE contenidos
+         SET titulo = $1, descripcion = $2, imagen_url = $3, enlace_url = $4, enlace_nueva_ventana = $5, orden = $6, fecha_actualizacion = CURRENT_TIMESTAMP
+         WHERE id = $7
+         RETURNING *`,
+        [titulo, descripcion || '', imagen_url || '', enlace_url || '', enlace_nueva_ventana ?? false, orden || 0, id]
+      );
+
+      if (result.rows.length === 0) {
+        res.status(404).json({ message: "Contenido no encontrado" });
+        return;
+      }
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error en updateContenido:', error);
+      res.status(500).json({ message: "Error al actualizar contenido" });
+    }
+  },
+
+  deleteContenido: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      const result = await pool.query(
+        'DELETE FROM contenidos WHERE id = $1 RETURNING id',
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        res.status(404).json({ message: "Contenido no encontrado" });
+        return;
+      }
+
+      res.json({ message: "Contenido eliminado correctamente" });
+    } catch (error) {
+      console.error('Error en deleteContenido:', error);
+      res.status(500).json({ message: "Error al eliminar contenido" });
+    }
   }
 };
 
