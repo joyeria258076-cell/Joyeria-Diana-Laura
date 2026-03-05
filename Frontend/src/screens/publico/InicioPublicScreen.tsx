@@ -3,7 +3,7 @@ import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { Link } from "react-router-dom";
 // ¡IMPORTANTE! Asegúrate de importar carruselAPI, promocionesAPI y productsAPI
-import { contentAPI, carruselAPI, promocionesAPI, productsAPI } from "../../services/api";
+import { contentAPI, carruselAPI, promocionesAPI, productsAPI, paginasAPI, seccionesAPI, contenidosAPI } from "../../services/api";
 import "./InicioPublicScreen.css";
 
 const InicioPublicScreen: React.FC = () => {
@@ -47,15 +47,61 @@ const InicioPublicScreen: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 1. Carrusel
+        // 1. CARRUSEL - Traer datos de la BD (Página Inicio > Sección Carrusel > Contenidos)
         try {
-          const carruselRes = await carruselAPI.getAll();
-          if (carruselRes && carruselRes.length > 0) {
-            setSlides(carruselRes);
+          // Obtener página "Inicio"
+          const paginas = await paginasAPI.getAll();
+          const paginaInicio = Array.isArray(paginas)
+            ? paginas.find((p: any) => p.slug === 'inicio')
+            : paginas.data?.find((p: any) => p.slug === 'inicio');
+
+          if (paginaInicio) {
+            // Obtener secciones de la página Inicio
+            const secciones = await seccionesAPI.getByPagina(paginaInicio.id);
+            const seccionesArray = Array.isArray(secciones) ? secciones : secciones.data || [];
+            
+            // Buscar la sección "carrusel"
+            const seccionCarrusel = seccionesArray.find((s: any) => 
+              s.nombre?.toLowerCase().includes('carrusel') || 
+              s.nombre?.toLowerCase().includes('carousel')
+            );
+
+            if (seccionCarrusel) {
+              // Obtener contenidos de la sección Carrusel
+              const contenidos = await contenidosAPI.getBySeccion(seccionCarrusel.id);
+              const contenidosArray = Array.isArray(contenidos) ? contenidos : contenidos.data || [];
+              
+              // Convertir contenidos a formato de slides
+              const slidesFromDB = contenidosArray
+                .filter((c: any) => c.activo !== false)
+                .sort((a: any, b: any) => (a.orden || 0) - (b.orden || 0))
+                .map((c: any) => ({
+                  id: c.id.toString(),
+                  titulo: c.titulo,
+                  tag: c.descripcion ? c.descripcion.split('\n')[0].substring(0, 20) : "Exclusivo",
+                  descripcion: c.descripcion || "Descubre nuestras colecciones exclusivas",
+                  imagen: c.imagen_url,
+                  image: c.imagen_url,
+                  enlace: c.enlace_url,
+                  enlace_nueva_ventana: c.enlace_nueva_ventana
+                }));
+
+              if (slidesFromDB.length > 0) {
+                setSlides(slidesFromDB);
+              } else {
+                setSlides(defaultSlides);
+              }
+            } else {
+              // Si no existe sección de carrusel, usar datos por defecto
+              setSlides(defaultSlides);
+            }
           } else {
             setSlides(defaultSlides);
           }
-        } catch (e) { setSlides(defaultSlides); }
+        } catch (e) { 
+          console.error("Error obteniendo carrusel de BD:", e);
+          setSlides(defaultSlides); 
+        }
 
         // 2. Promociones
         try {

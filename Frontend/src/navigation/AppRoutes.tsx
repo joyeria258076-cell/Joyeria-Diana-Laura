@@ -34,8 +34,8 @@ import ContactoScreen from "../screens/cliente/ContactoScreen";
 import ConfiguracionScreen from '../screens/general/ConfiguracionScreen';
 import AdminDashboardScreen from "../screens/admin/AdminDashboardScreen";
 import AdminContentManagerScreen from "../screens/admin/contenido/AdminContentManagerScreen";
-import AdminContentInicioScreen from "../screens/admin/contenido/AdminContentInicioScreen";
-import AdminContentNoticiasScreen from "../screens/admin/contenido/AdminContentNoticiasScreen";
+import AdminPageContentInitialScreen from "../screens/admin/contenido/AdminPageContentInitialScreen";
+import AdminPageContentNoticiasScreen from "../screens/admin/contenido/AdminPageContentNoticiasScreen";
 import AdminContentInfoScreen from "../screens/admin/contenido/AdminContentInfoScreen";
 import AdminContentFAQScreen from "../screens/admin/contenido/AdminContentFAQScreen";
 import AdminContentMisionScreen from "../screens/admin/contenido/AdminContentMisionScreen";
@@ -164,8 +164,10 @@ export default function AppRoutes() {
           <Route element={<RoleRoute allowedRoles={['admin']} />}>
             <Route path="/admin-dashboard" element={<AdminDashboardScreen />} />
             <Route path="/admin-contenido" element={<AdminContentManagerScreen />} />
-            <Route path="/admin-contenido/inicio" element={<AdminContentInicioScreen />} />
-            <Route path="/admin-contenido/noticias" element={<AdminContentNoticiasScreen />} />
+            <Route path="/admin-contenido/paginas" element={<AdminPageManagementScreen />} />
+            <Route path="/admin-contenido/secciones" element={<AdminSectionManagementScreen />} />
+            <Route path="/admin-contenido/pagina-inicio" element={<AdminPageContentInitialScreen />} />
+            <Route path="/admin-contenido/pagina-noticias" element={<AdminPageContentNoticiasScreen />} />
             <Route path="/admin-contenido/info" element={<AdminContentInfoScreen />} />
             <Route path="/admin-contenido/faq" element={<AdminContentFAQScreen />} />
             <Route path="/admin-contenido/mision" element={<AdminContentMisionScreen />} />

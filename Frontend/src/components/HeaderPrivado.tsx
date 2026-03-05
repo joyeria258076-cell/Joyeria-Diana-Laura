@@ -76,7 +76,7 @@ const HeaderPrivado: React.FC = () => {
                             {/* MENÚ DESPLEGABLE DE GESTIONAR CONTENIDO */}
                             <div className="nav-item-group">
                                 <button 
-                                    className={`nav-item ${isActive("/admin-contenido") || isActive("/admin-contenido/paginas") || isActive("/admin-contenido/secciones") ? "active" : ""} dropdown-toggle`}
+                                    className={`nav-item ${isActive("/admin-contenido") || isActive("/admin-contenido/paginas") || isActive("/admin-contenido/secciones") || isActive("/admin-contenido/pagina-inicio") || isActive("/admin-contenido/pagina-noticias") ? "active" : ""} dropdown-toggle`}
                                     onClick={() => setIsContentMenuOpen(!isContentMenuOpen)}
                                 >
                                     <span className="nav-icon">⚙️</span> Gestionar Contenido
@@ -98,16 +98,16 @@ const HeaderPrivado: React.FC = () => {
                                             <span className="dropdown-icon">📑</span> Gestión de Secciones
                                         </button>
                                         <button 
-                                            className={`dropdown-item ${isActive("/admin-contenido/inicio") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-contenido/inicio")}
+                                            className={`dropdown-item ${isActive("/admin-contenido/pagina-inicio") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin-contenido/pagina-inicio")}
                                         >
-                                            <span className="dropdown-icon">🏠</span> Página de Inicio
+                                            <span className="dropdown-icon">🎨</span> Contenido de Inicio
                                         </button>
                                         <button 
-                                            className={`dropdown-item ${isActive("/admin-contenido/noticias") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-contenido/noticias")}
+                                            className={`dropdown-item ${isActive("/admin-contenido/pagina-noticias") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin-contenido/pagina-noticias")}
                                         >
-                                            <span className="dropdown-icon">📰</span> Noticias
+                                            <span className="dropdown-icon">📰</span> Contenido de Noticias
                                         </button>
                                         <button 
                                             className={`dropdown-item ${isActive("/admin-contenido/info") ? "active" : ""}`}
