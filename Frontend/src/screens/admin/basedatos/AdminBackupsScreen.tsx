@@ -4,30 +4,67 @@ import React, { useState } from 'react';
 import './styles/AdminBackupsScreen.css';
 import { backupsService } from '../../../services/backupsService';
 
+// 1. Definimos la estructura de un respaldo para el historial
+interface Backup {
+  id: string;
+  name: string;
+  type: 'manual' | 'automatic' | 'incremental' | 'full';
+  size: string;
+  tables: number;
+  records: number;
+  status: 'completed' | 'in_progress' | 'failed' | 'scheduled';
+  created_at: string;
+}
+
 const AdminBackupsScreen: React.FC = () => {
   // --- ESTADOS ---
   const [isDownloading, setIsDownloading] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
 
+  // 2. Estado para almacenar el historial (con datos de ejemplo)
+  const [backups] = useState<Backup[]>([
+    {
+      id: '1',
+      name: 'Respaldo_Sistema_Completo',
+      type: 'full',
+      size: '2.4 MB',
+      tables: 42,
+      records: 15420,
+      status: 'completed',
+      created_at: '2024-03-05 10:00:00',
+    },
+    {
+      id: '2',
+      name: 'Corte_Caja_Previo',
+      type: 'manual',
+      size: '850 KB',
+      tables: 12,
+      records: 3200,
+      status: 'completed',
+      created_at: '2024-03-04 18:30:00',
+    }
+  ]);
+
   // --- ACCIONES ---
 
-  /**
-   * Genera el respaldo y abre el cuadro de diálogo para elegir ruta (Guardar como)
-   */
   const handleGenerateAndDownload = async () => {
     setIsDownloading(true);
     try {
-      // Invocamos el servicio asíncrono que ahora permite elegir ruta
       await backupsService.downloadBackupDirectly();
-      
-      // Opcional: Podrías poner una notificación de éxito aquí con un Toast
       console.log("Descarga completada con éxito.");
     } catch (error) {
-      // Manejamos errores (ej. si el usuario cancela la ventana de Guardar)
       console.error("Error en la descarga:", error);
     } finally {
-      // Liberamos el botón inmediatamente al terminar o cancelar
       setIsDownloading(false);
+    }
+  };
+
+  // --- HELPERS PARA LA TABLA ---
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed': return <span className="badge badge-success">✅ Completado</span>;
+      case 'failed': return <span className="badge badge-error">❌ Fallido</span>;
+      default: return <span className="badge">{status}</span>;
     }
   };
 
@@ -71,7 +108,7 @@ const AdminBackupsScreen: React.FC = () => {
         <div className="stat-card action-card disabled">
           <div className="stat-icon">🔄</div>
           <div className="stat-content">
-            <span className="stat-label">Restauración de Sistema</span>
+            <span className="stat-label">Restauración de Sistema (NO PROGRAMADO)</span>
             <button 
               className="btn-secondary" 
               disabled={true}
@@ -86,8 +123,49 @@ const AdminBackupsScreen: React.FC = () => {
         </div>
       </div>
 
+      {/* --- SECCIÓN NUEVA: HISTORIAL DE RESPALDOS --- */}
+      <section className="backups-history-section" style={{ marginTop: '2rem' }}>
+        <h2 className="section-title">Historial de Respaldos Recientes (NO PROGRAMADO)</h2>
+        <div className="table-container shadow-sm" style={{ background: 'white', borderRadius: '12px', overflow: 'hidden' }}>
+          <table className="backups-table">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Nombre del Respaldo</th>
+                <th>Fecha</th>
+                <th>Tamaño</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {backups.map((backup) => (
+                <tr key={backup.id}>
+                  <td style={{ textAlign: 'center' }}>{backup.type === 'full' ? '💿' : '✋'}</td>
+                  <td>
+                    <div className="name-cell" style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontWeight: '600', color: '#2d3748' }}>{backup.name}</span>
+                      <small style={{ color: '#718096' }}>{backup.tables} tablas | {backup.records} registros</small>
+                    </div>
+                  </td>
+                  <td>{backup.created_at}</td>
+                  <td>{backup.size}</td>
+                  <td>{getStatusBadge(backup.status)}</td>
+                  <td>
+                    <div className="actions-cell">
+                      <button className="btn-icon" title="Ver detalles">👁️</button>
+                      <button className="btn-icon" title="Eliminar registro" style={{ marginLeft: '10px' }}>🗑️</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       {/* Sección Informativa */}
-      <div className="backups-table-section">
+      <div className="backups-table-section" style={{ marginTop: '2rem' }}>
         <div className="info-box info-gradient">
           <h3><span className="icon">🛡️</span> Seguridad y Almacenamiento</h3>
           <ul>
@@ -98,7 +176,7 @@ const AdminBackupsScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Overlay de Carga Crítica (Para futuras restauraciones) */}
+      {/* Overlay de Carga Crítica */}
       {isRestoring && (
         <div className="restore-overlay">
           <div className="restore-loader">
