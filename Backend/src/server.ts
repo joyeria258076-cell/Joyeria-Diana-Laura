@@ -13,7 +13,9 @@ import cookieParser from 'cookie-parser';
 import { cookieAuthMiddleware } from './middleware/cookieMiddleware';
 import productRoutes from './routes/productRoutes';
 import adminRoutes from './routes/adminRoutes';
-import adminContentRoutes from './routes/adminContentRoutes'; 
+import adminContentRoutes from './routes/adminContentRoutes';
+import importRoutes from './routes/importRoutes';
+
 
 dotenv.config();
 
@@ -89,6 +91,7 @@ app.use('/api/security', securityQuestionRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/content', adminContentRoutes); // Tu nueva ruta registrada
+app.use('/api/import', importRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -104,6 +107,10 @@ app.get('/api/db-test', async (req, res) => {
     success: dbOk,
     message: dbOk ? '✅ BD Conectada' : '❌ Error BD'
   });
+});
+
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Servidor funcionando' });
 });
 
 app.listen(PORT, async () => {

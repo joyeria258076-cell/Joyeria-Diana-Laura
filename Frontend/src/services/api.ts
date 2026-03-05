@@ -144,6 +144,68 @@ class EnhancedApiService {
 // 🆕 CREAR INSTANCIA MEJORADA
 const enhancedApi = new EnhancedApiService(API_BASE_URL);
 
+// ==========================================
+// 📥 API PARA IMPORTACIÓN DE DATOS
+// ==========================================
+export const importAPI = {
+  // Obtener todas las tablas disponibles
+  getTables: async () => {
+    return enhancedApi.get('/import/tables');
+  },
+
+  // Obtener información de una tabla específica
+  getTableInfo: async (tableName: string) => {
+    return enhancedApi.get(`/import/tables/${tableName}`);
+  },
+
+  // Subir y previsualizar CSV
+  previewCSV: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Usamos fetch directamente para FormData
+    const jwtToken = localStorage.getItem('diana_laura_user') 
+      ? JSON.parse(localStorage.getItem('diana_laura_user')!).token 
+      : null;
+    const sessionToken = localStorage.getItem('diana_laura_session_token');
+
+    const headers: Record<string, string> = {};
+    if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+    if (sessionToken) headers['X-Session-Token'] = sessionToken;
+
+    const response = await fetch(`${API_BASE_URL}/import/preview`, {
+      method: 'POST',
+      headers,
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Error al procesar el archivo');
+    }
+
+    return response.json();
+  },
+
+  // Importar datos a la base de datos
+  importData: async (tableName: string, data: any[], columns: string[]) => {
+    return enhancedApi.post('/import/import', {
+      tableName,
+      data,
+      columns,
+    });
+  },
+
+  // Validar datos sin importar
+  validateImport: async (tableName: string, data: any[]) => {
+    return enhancedApi.post('/import/validate', {
+      tableName,
+      data,
+    });
+  },
+};
+
 // 🎯 MANTENER TU authAPI EXISTENTE EXACTA
 export const authAPI = {
 
@@ -633,3 +695,21 @@ export const contenidosAPI = {
   }) => enhancedApi.put(`/content/contenidos/${id}`, data),
   delete: async (id: string | number) => enhancedApi.delete(`/content/contenidos/${id}`)
 };
+
+// ==========================================
+// 📥 EXPORTACIÓN DE API (opcional, para tener todo en un solo objeto)
+// ==========================================
+export const api = {
+  auth: authAPI,
+  products: productsAPI,
+  workers: workersAPI,
+  content: contentAPI,
+  carrusel: carruselAPI,
+  promociones: promocionesAPI,
+  paginas: paginasAPI,
+  secciones: seccionesAPI,
+  contenidos: contenidosAPI,
+  import: importAPI, // ✅ NUEVO
+};
+
+export default api;

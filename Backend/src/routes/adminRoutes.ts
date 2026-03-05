@@ -12,4 +12,4 @@ router.get('/roles', getRoles); // Nueva ruta para obtener roles disponibles
 router.patch('/workers/:id/status', toggleWorkerAccountStatus); // Nueva ruta para activar/desactivar trabajadores
 router.put('/workers/:id', updateWorker); // Nueva ruta para actualizar nombre y rol del trabajador
 
-export default router;
+export default router;  

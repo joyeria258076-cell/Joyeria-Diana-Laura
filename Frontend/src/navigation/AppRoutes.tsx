@@ -64,6 +64,7 @@ import AdminDatabaseScreen from "../screens/admin/basedatos/AdminDatabaseScreen"
 import AdminBackupsScreen from "../screens/admin/basedatos/AdminBackupsScreen";
 import AdminImportExportScreen from "../screens/admin/basedatos/AdminImportExportScreen";
 import AdminAutomationScreen from "../screens/admin/basedatos/AdminAutomationScreen";
+import AdminSimpleImportScreen from "../screens/admin/basedatos/AdminSimpleImportScreen";
 
 // PANTALLAS DE ERROR
 import NotFoundScreen from '../screens/general/NotFoundScreen';
@@ -175,6 +176,8 @@ export default function AppRoutes() {
             <Route path="/admin-backups" element={<AdminBackupsScreen />} />
             <Route path="/admin-import-export" element={<AdminImportExportScreen />} />
             <Route path="/admin-automation" element={<AdminAutomationScreen />} />
+            <Route path="/admin/importar" element={<AdminSimpleImportScreen />} />
+            <Route path="/admin/importar-csv" element={<AdminSimpleImportScreen />} />
             
             {/* Rutas existentes de contenido */}
             <Route path="/admin-contenido" element={<AdminContentManagerScreen />} />

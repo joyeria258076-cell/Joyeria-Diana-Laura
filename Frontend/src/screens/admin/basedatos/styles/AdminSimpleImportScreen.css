@@ -1,0 +1,338 @@
+/* Frontend/src/screens/admin/basedatos/styles/AdminSimpleImportScreen.css */
+
+.simple-import-container {
+  flex: 1;
+  padding: 2rem;
+  background: linear-gradient(135deg, #050505 0%, #0a0a0f 100%);
+  min-height: 100vh;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Header */
+.simple-import-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(236, 178, 195, 0.2);
+}
+
+.simple-import-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, #ECB2C3 0%, #e49bb3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.simple-import-header p {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+/* Mensajes */
+.message {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message.success {
+  background: rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  color: #4CAF50;
+}
+
+.message.error {
+  background: rgba(244, 67, 54, 0.15);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  color: #F44336;
+}
+
+/* Formulario */
+.import-form {
+  background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, rgba(10, 10, 15, 0.7) 100%);
+  border: 1px solid rgba(236, 178, 195, 0.2);
+  border-radius: 12px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #ECB2C3;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.form-group select,
+.form-group input[type="file"] {
+  width: 100%;
+  padding: 0.8rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(236, 178, 195, 0.2);
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.form-group select:focus,
+.form-group input[type="file"]:focus {
+  outline: none;
+  border-color: #ECB2C3;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.form-group select option {
+  background: #0f0f12;
+  color: #ffffff;
+}
+
+.form-group small {
+  display: block;
+  margin-top: 0.5rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+}
+
+.form-group select:disabled,
+.form-group input[type="file"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Información de columnas */
+.columns-info {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.columns-info h3 {
+  margin: 0 0 0.8rem 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.columns-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.column-tag {
+  background: rgba(236, 178, 195, 0.1);
+  border: 1px solid rgba(236, 178, 195, 0.2);
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #ECB2C3;
+  font-family: monospace;
+}
+
+/* Acciones */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.btn-preview, .btn-import {
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+.btn-preview {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(236, 178, 195, 0.3);
+  color: #ECB2C3;
+}
+
+.btn-preview:hover:not(:disabled) {
+  background: rgba(236, 178, 195, 0.15);
+  transform: translateY(-2px);
+}
+
+.btn-import {
+  background: linear-gradient(135deg, #ECB2C3 0%, #e49bb3 100%);
+  color: #0f0f12;
+  box-shadow: 0 10px 20px rgba(236, 178, 195, 0.2);
+}
+
+.btn-import:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(236, 178, 195, 0.3);
+}
+
+.btn-preview:disabled,
+.btn-import:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Sección de vista previa */
+.preview-section {
+  margin-top: 2rem;
+  border-top: 1px solid rgba(236, 178, 195, 0.2);
+  padding-top: 2rem;
+}
+
+.preview-section h3 {
+  margin-bottom: 1rem;
+  color: #ECB2C3;
+  font-size: 1.2rem;
+}
+
+.preview-info {
+  margin-bottom: 1rem;
+  padding: 0.8rem;
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 6px;
+  color: #4CAF50;
+  font-size: 0.95rem;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(236, 178, 195, 0.2);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(0, 0, 0, 0.2);
+  min-width: 600px;
+}
+
+.preview-table thead {
+  position: sticky;
+  top: 0;
+  background: rgba(10, 10, 15, 0.95);
+  z-index: 10;
+}
+
+.preview-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #ECB2C3;
+  border-bottom: 1px solid rgba(236, 178, 195, 0.2);
+  font-size: 0.9rem;
+}
+
+.preview-table td {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid rgba(236, 178, 195, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+}
+
+.preview-table tbody tr:hover {
+  background: rgba(236, 178, 195, 0.05);
+}
+
+.preview-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Mensaje cuando no hay datos */
+.no-data {
+  text-align: center;
+  padding: 3rem !important;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(236, 178, 195, 0.3);
+  border-radius: 50%;
+  border-top-color: #ECB2C3;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .simple-import-container {
+    padding: 1rem;
+  }
+
+  .simple-import-header h1 {
+    font-size: 2rem;
+  }
+
+  .import-form {
+    padding: 1.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-preview, .btn-import {
+    width: 100%;
+  }
+
+  .columns-list {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .simple-import-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .import-form {
+    padding: 1rem;
+  }
+
+  .preview-section h3 {
+    font-size: 1rem;
+  }
+}

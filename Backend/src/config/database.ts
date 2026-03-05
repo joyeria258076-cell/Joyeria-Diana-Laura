@@ -1,4 +1,4 @@
-// Ruta: Joyeria-Diana-Laura/Backend/src/config/database.ts
+// Backend/src/config/database.ts
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
@@ -6,18 +6,16 @@ dotenv.config();
 
 // Configuración para Supabase
 const getDatabaseConfig = () => {
-  // Opción 1: Usar la URL completa (Recomendado para Supabase)
   if (process.env.DATABASE_URL) {
     return {
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }, // Supabase requiere SSL
-      max: 10, // Número máximo de clientes en el pool
+      ssl: { rejectUnauthorized: false },
+      max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 15000,
     };
   }
 
-  // Opción 2: Configuración manual por variables individuales
   return {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -25,20 +23,21 @@ const getDatabaseConfig = () => {
     database: process.env.DB_NAME,
     port: parseInt(process.env.DB_PORT || '5432'),
     ssl: { rejectUnauthorized: false },
-    max: 10,
+    max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 15000,
   };
 };
 
-export const pool = new Pool(getDatabaseConfig());
+// Creamos el pool
+const pool = new Pool(getDatabaseConfig());
 
+// Función para probar la conexión
 export const testConnection = async (): Promise<boolean> => {
   try {
     const client = await pool.connect();
     console.log('✅ Conectado a PostgreSQL en Supabase');
     
-    // Verificar conexión básica y hora del servidor
     const result = await client.query('SELECT NOW() as current_time');
     console.log('⏰ Hora del servidor Supabase:', result.rows[0].current_time);
     
@@ -71,3 +70,9 @@ export const testConnection = async (): Promise<boolean> => {
     return false;
   }
 };
+
+// ✅ EXPORTACIÓN CORREGIDA - exportamos el pool como default
+export default pool;
+
+// También exportamos como named export para compatibilidad
+export { pool };

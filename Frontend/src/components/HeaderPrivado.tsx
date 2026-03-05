@@ -106,6 +106,10 @@ const HeaderPrivado: React.FC = () => {
                                         >
                                             <span className="dropdown-icon">⚡</span> Automatización
                                         </button>
+                                        <button 
+                                            className={`nav-item ${isActive("/admin/importar-csv") ? "active" : ""}`} 
+                                            onClick={() => navigate("/admin/importar-csv")}> <span className="nav-icon">📥</span> Importar CSV
+                                        </button>
                                     </div>
                                 )}
                             </div>
