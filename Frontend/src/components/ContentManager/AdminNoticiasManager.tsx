@@ -1,3 +1,4 @@
+// Frontend/src/components/ContentManager/AdminNoticiasManager.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import '../../screens/admin/contenido/AdminContentManager.css';
 import { contentAPI } from '../../services/api';

@@ -1,3 +1,4 @@
+// Frontend/src/screens/admin/contenido/AdminContentInicioScreen.tsx
 import React from 'react';
 import AdminInitoManager from '../../../components/ContentManager/AdminInitoManager'
 const AdminContentInicioScreen: React.FC = () => {

@@ -1,3 +1,4 @@
+// Frontend/src/components/HeaderPrivado.tsx
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -8,19 +9,16 @@ const HeaderPrivado: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     
-    // Estados para controlar los menús desplegables
     const [isContentMenuOpen, setIsContentMenuOpen] = useState(false);
     const [isCatalogoMenuOpen, setIsCatalogoMenuOpen] = useState(false);
+    const [isDatabaseMenuOpen, setIsDatabaseMenuOpen] = useState(false); // Nuevo estado
 
-    // Normalizamos el rol para evitar errores de mayúsculas o espacios
     const userRole = user?.rol?.toLowerCase().trim() || 'cliente';
 
-    // Función para marcar la opción activa en el menú
     const isActive = (path: string) => location.pathname.startsWith(path) ? "active" : "";
 
     return (
         <>
-            {/* --- SIDEBAR LATERAL (Navegación Principal) --- */}
             <aside className="sidebar-privado">
                 <div 
                     className="sidebar-logo" 
@@ -32,7 +30,6 @@ const HeaderPrivado: React.FC = () => {
                 </div>
 
                 <nav className="sidebar-nav">
-                    {/* --- VISTA PARA ADMINISTRADOR --- */}
                     {userRole === 'admin' ? (
                         <>
                             <button className={`nav-item ${isActive("/admin-dashboard")}`} onClick={() => navigate("/admin-dashboard")}>
@@ -73,6 +70,46 @@ const HeaderPrivado: React.FC = () => {
                                 )}
                             </div>
                             
+                            {/* 📁 NUEVO MENÚ DESPLEGABLE DE BASE DE DATOS */}
+                            <div className="nav-item-group">
+                                <button 
+                                    className={`nav-item ${isActive("/admin-database") || isActive("/admin-backups") || isActive("/admin-import-export") || isActive("/admin-automation") || isActive("/admin-nosql-security") || isActive("/admin-nosql-monitoring") ? "active" : ""} dropdown-toggle`}
+                                    onClick={() => setIsDatabaseMenuOpen(!isDatabaseMenuOpen)}
+                                >
+                                    <span className="nav-icon">🗄️</span> Gestión BD
+                                    <span className={`dropdown-arrow ${isDatabaseMenuOpen ? 'open' : ''}`}>▼</span>
+                                </button>
+                                
+                                {isDatabaseMenuOpen && (
+                                    <div className="dropdown-menu">
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin-database") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin-database")}
+                                        >
+                                            <span className="dropdown-icon">📊</span> Dashboard BD
+                                        </button>
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin-backups") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin-backups")}
+                                        >
+                                            <span className="dropdown-icon">💾</span> Respaldos
+                                        </button>
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin-import-export") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin-import-export")}
+                                        >
+                                            <span className="dropdown-icon">🔄</span> Importar/Exportar
+                                        </button>
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin-automation") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin-automation")}
+                                        >
+                                            <span className="dropdown-icon">⚡</span> Automatización
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* MENÚ DESPLEGABLE DE GESTIONAR CONTENIDO */}
                             <div className="nav-item-group">
                                 <button 
@@ -176,7 +213,6 @@ const HeaderPrivado: React.FC = () => {
 
                             <div className="sidebar-divider"></div>
 
-                            {/* Opciones de Soporte y Empresa (Solo para Clientes) */}
                             <button className={`nav-item ${isActive("/sobre-nosotros")}`} onClick={() => navigate("/sobre-nosotros")}>
                                 <span className="nav-icon">📖</span> Sobre nosotros
                             </button>
@@ -191,14 +227,12 @@ const HeaderPrivado: React.FC = () => {
 
                     <div className="sidebar-divider"></div>
 
-                    {/* Botón de Salida (Común) */}
                     <button className="nav-item logout-item" onClick={logout}>
                         <span className="nav-icon">🔒</span> Cerrar Sesión
                     </button>
                 </nav>
             </aside>
 
-            {/* --- HEADER SUPERIOR (Información de Usuario) --- */}
             <header className="header-top-privado">
                 <div className="header-welcome">
                     Bienvenido, <strong>{user?.nombre || 'Usuario'}</strong>

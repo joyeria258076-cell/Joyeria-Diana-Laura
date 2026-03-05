@@ -1,3 +1,4 @@
+// Frontend/src/screens/admin/contenido/AdminPageContentInitialScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { paginasAPI, seccionesAPI, contenidosAPI } from '../../../services/api';
 import './AdminPageContentNoticiasScreen.css';

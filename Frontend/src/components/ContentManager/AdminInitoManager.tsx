@@ -1,3 +1,4 @@
+// Frontend/src/components/ContentManager/AdminInitoManager.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { carruselAPI, promocionesAPI } from '../../services/api';
 import '../../screens/admin/contenido/AdminContentManager.css'; // Usamos las clases de lujo

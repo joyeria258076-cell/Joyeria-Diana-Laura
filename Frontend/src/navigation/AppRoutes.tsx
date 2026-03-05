@@ -1,3 +1,4 @@
+// Frontend/src/navigation/AppRoutes.tsx
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -25,7 +26,6 @@ import MFAVerifyScreen from "../screens/auth/MFAVerifyScreen";
 import InicioScreen from "../screens/cliente/InicioScreen";
 import PerfilScreen from "../screens/cliente/PerfilScreen";
 import CatalogoScreen from '../screens/cliente/CatalogoScreen';
-
 import MFASetupScreen from "../screens/auth/MFASetupScreen";
 import SobreNosotros from "../screens/cliente/SobreNosotros";
 import Ubicacion from "../screens/cliente/UbicacionScreen";
@@ -59,6 +59,12 @@ import ActividadesTrabajadorScreen from "../screens/trabajador/ActividadesTrabaj
 // CATEGORÍAS
 import AdminCategoriasScreen from "../screens/admin/AdminCategoriasScreen";
 
+// 📁 NUEVAS PANTALLAS DE BASE DE DATOS
+import AdminDatabaseScreen from "../screens/admin/basedatos/AdminDatabaseScreen";
+import AdminBackupsScreen from "../screens/admin/basedatos/AdminBackupsScreen";
+import AdminImportExportScreen from "../screens/admin/basedatos/AdminImportExportScreen";
+import AdminAutomationScreen from "../screens/admin/basedatos/AdminAutomationScreen";
+
 // PANTALLAS DE ERROR
 import NotFoundScreen from '../screens/general/NotFoundScreen';
 import ForbiddenScreen from '../screens/general/ForbiddenScreen';
@@ -76,7 +82,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 const RoleRoute: React.FC<{ allowedRoles: string[] }> = ({ allowedRoles }) => {
   const { user } = useAuth();
-  // Normalizamos el rol para comparar
   const userRole = user?.rol?.toLowerCase().trim() || '';
   if (!user || !allowedRoles.includes(userRole)) {
     return <Navigate to="/403" replace />;
@@ -164,6 +169,14 @@ export default function AppRoutes() {
           {/* 🔐 RUTAS EXCLUSIVAS ADMIN */}
           <Route element={<RoleRoute allowedRoles={['admin']} />}>
             <Route path="/admin-dashboard" element={<AdminDashboardScreen />} />
+            
+            {/* 📁 NUEVAS RUTAS DE BASE DE DATOS */}
+            <Route path="/admin-database" element={<AdminDatabaseScreen />} />
+            <Route path="/admin-backups" element={<AdminBackupsScreen />} />
+            <Route path="/admin-import-export" element={<AdminImportExportScreen />} />
+            <Route path="/admin-automation" element={<AdminAutomationScreen />} />
+            
+            {/* Rutas existentes de contenido */}
             <Route path="/admin-contenido" element={<AdminContentManagerScreen />} />
             <Route path="/admin-contenido/paginas" element={<AdminPageManagementScreen />} />
             <Route path="/admin-contenido/secciones" element={<AdminSectionManagementScreen />} />
@@ -172,10 +185,8 @@ export default function AppRoutes() {
             <Route path="/admin-contenido/info" element={<AdminContentInfoScreen />} />
             <Route path="/admin-contenido/faq" element={<AdminContentFAQScreen />} />
             <Route path="/admin-contenido/mision" element={<AdminContentMisionScreen />} />
-            <Route path="/admin-contenido/paginas" element={<AdminPageManagementScreen />} />
-            <Route path="/admin-contenido/secciones" element={<AdminSectionManagementScreen />} />
             
-            {/* 🌟 RUTAS SEPARADAS DE INVENTARIO Y NUEVO PRODUCTO */}
+            {/* Rutas de inventario */}
             <Route path="/admin-inventario" element={<AdminInventarioScreen />} />
             <Route path="/admin-nuevo-producto" element={<AdminNuevoProductoScreen />} />
             <Route path="/admin-categorias" element={<AdminCategoriasScreen />} />
@@ -188,11 +199,8 @@ export default function AppRoutes() {
 
           {/* 🔐 RUTAS EXCLUSIVAS TRABAJADOR / ADMIN */}
           <Route element={<RoleRoute allowedRoles={['trabajador', 'admin']} />}>
-             {/* El dashboard ahora tiene Sidebar porque está dentro del PrivateLayout */}
              <Route path="/dashboard-trabajador" element={<DashboardTrabajadorScreen />} />
              <Route path="/pedidos-admin" element={<GestionPedidosScreen />} />
-             
-             {/* Rutas adicionales de navegación para el trabajador */}
              <Route path="/trabajador/actividades" element={<ActividadesTrabajadorScreen />} />
              <Route path="/trabajador/configuracion" element={<ConfiguracionScreen />} />
              <Route path="/trabajador/perfil" element={<PerfilScreen />} />

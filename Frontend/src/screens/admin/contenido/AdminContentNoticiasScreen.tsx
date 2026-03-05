@@ -1,3 +1,4 @@
+// Frontend/src/screens/admin/contenido/AdminContentNoticiasScreen.tsx
 import React from 'react';
 import AdminNoticiasManager from '../../../components/ContentManager/AdminNoticiasManager';
 
