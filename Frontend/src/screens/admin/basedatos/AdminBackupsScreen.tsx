@@ -6,35 +6,30 @@ import { backupsService } from '../../../services/backupsService';
 
 const AdminBackupsScreen: React.FC = () => {
   // --- ESTADOS ---
-  // Ahora solo necesitamos estados para la UI inmediata
   const [isDownloading, setIsDownloading] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
 
   // --- ACCIONES ---
 
   /**
-   * Genera y descarga el respaldo vía Streaming
+   * Genera el respaldo y abre el cuadro de diálogo para elegir ruta (Guardar como)
    */
   const handleGenerateAndDownload = async () => {
     setIsDownloading(true);
     try {
-      // Invocamos el servicio que dispara la descarga directa
-      backupsService.downloadBackupDirectly();
+      // Invocamos el servicio asíncrono que ahora permite elegir ruta
+      await backupsService.downloadBackupDirectly();
       
-      // Nota: Como es una descarga de navegador, no hay una promesa 
-      // de "finalización" real, así que liberamos el botón tras un breve delay
-      setTimeout(() => setIsDownloading(false), 2000);
+      // Opcional: Podrías poner una notificación de éxito aquí con un Toast
+      console.log("Descarga completada con éxito.");
     } catch (error) {
-      alert("No se pudo conectar con el servicio de descarga.");
+      // Manejamos errores (ej. si el usuario cancela la ventana de Guardar)
+      console.error("Error en la descarga:", error);
+    } finally {
+      // Liberamos el botón inmediatamente al terminar o cancelar
       setIsDownloading(false);
     }
   };
-
-  /**
-   * NOTA: La restauración sigue requiriendo un archivo. 
-   * Si borraste la carpeta, la restauración manual por lista ya no aplica.
-   * Aquí podrías implementar un "Upload" de archivo si lo necesitas en el futuro.
-   */
 
   return (
     <div className={`backups-screen-container ${isRestoring ? 'app-locked' : ''}`}>
@@ -43,7 +38,7 @@ const AdminBackupsScreen: React.FC = () => {
         <div className="header-left">
           <h1 className="page-title">Panel de Base de Datos</h1>
           <p className="page-description">
-            Estado de Supabase: <strong>Conectado</strong>
+            Estado de Supabase: <span className="status-badge">Conectado</span>
           </p>
         </div>
       </div>
@@ -53,16 +48,22 @@ const AdminBackupsScreen: React.FC = () => {
         <div className="stat-card action-card">
           <div className="stat-icon">📥</div>
           <div className="stat-content">
-            <span className="stat-label">Respaldo Inmediato</span>
+            <span className="stat-label">Respaldo Personalizado</span>
             <button 
-              className="btn-primary" 
+              className={`btn-primary ${isDownloading ? 'loading' : ''}`} 
               onClick={handleGenerateAndDownload}
               disabled={isDownloading || isRestoring}
             >
-              {isDownloading ? 'Generando Archivo...' : 'Generar y Descargar .SQL'}
+              {isDownloading ? (
+                <>
+                  <span className="spinner-small"></span> Generando...
+                </>
+              ) : (
+                'Generar y Elegir Carpeta .DUMP'
+              )}
             </button>
             <p className="help-text">
-              Esto extraerá los datos actuales de Supabase y los descargará en tu computadora sin guardarlos en el servidor.
+              Extrae los datos y permite elegir <strong>exactamente dónde guardar</strong> el archivo en tu PC.
             </p>
           </div>
         </div>
@@ -79,25 +80,25 @@ const AdminBackupsScreen: React.FC = () => {
               Subir y Restaurar (Próximamente)
             </button>
             <p className="help-text">
-              La restauración ahora requiere que cargues un archivo descargado previamente.
+              Para restaurar, deberás seleccionar el archivo <strong>.dump</strong> generado anteriormente.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Sección Informativa (Ya no hay tabla porque no hay archivos en el servidor) */}
+      {/* Sección Informativa */}
       <div className="backups-table-section">
-        <div className="info-box">
-          <h3>Información de Seguridad</h3>
+        <div className="info-box info-gradient">
+          <h3><span className="icon">🛡️</span> Seguridad y Almacenamiento</h3>
           <ul>
-            <li>Los respaldos generados contienen toda la información de la joyería.</li>
-            <li>Al usar el método de <strong>Descarga Directa</strong>, el servidor no almacena copias, lo cual es más seguro.</li>
-            <li>Se recomienda generar un respaldo antes de cualquier modificación masiva de precios o inventario.</li>
+            <li>Los archivos <strong>.dump</strong> son copias binarias comprimidas de toda tu base de datos.</li>
+            <li>Al elegir tu propia carpeta (ej. una USB o Dropbox), mantienes el control total de tus datos.</li>
+            <li><strong>Importante:</strong> Este proceso no consume espacio en el servidor de la joyería.</li>
           </ul>
         </div>
       </div>
 
-      {/* Overlay de Carga Crítica */}
+      {/* Overlay de Carga Crítica (Para futuras restauraciones) */}
       {isRestoring && (
         <div className="restore-overlay">
           <div className="restore-loader">

@@ -18,16 +18,10 @@
     "axios": "^1.13.2",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
-<<<<<<< Updated upstream
     "cors": "^2.8.5",
     "csv-parser": "^3.2.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
-=======
-    "cors": "^2.8.6",
-    "dotenv": "^16.6.1",
-    "express": "^4.22.1",
->>>>>>> Stashed changes
     "firebase-admin": "^13.5.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.1.1",
@@ -42,16 +36,10 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",
-<<<<<<< Updated upstream
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/multer": "^2.0.0",
     "@types/node": "^20.19.35",
-=======
-    "@types/cors": "^2.8.19",
-    "@types/express": "^4.17.25",
-    "@types/node": "^20.11.24",
->>>>>>> Stashed changes
     "@types/nodemailer": "^7.0.3",
     "@types/pg": "^8.11.2",
     "@types/qrcode": "^1.5.5",
