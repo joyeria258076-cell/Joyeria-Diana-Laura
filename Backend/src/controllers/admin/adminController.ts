@@ -77,3 +77,61 @@ export const createWorkerAccount = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getRoles = async (req: Request, res: Response) => {
+  try {
+    // Llamamos a la función que acabas de crear en el userModel
+    const roles = await userModel.getAvailableRoles();
+    
+    // Devolvemos el arreglo puro para que el Frontend lo lea en el select
+    res.status(200).json(roles);
+  } catch (error: any) {
+    console.error('❌ Error en adminController (getRoles):', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error interno del servidor al obtener los roles' 
+    });
+  }
+};
+
+/**
+ * Activa o Desactiva a un trabajador en BD y Firebase
+ */
+export const toggleWorkerAccountStatus = async (req: Request, res: Response) => {
+  try {
+    const workerId = parseInt(req.params.id);
+    const { activo } = req.body; // Recibimos true o false desde el frontend
+
+    // 1. Buscamos al trabajador
+    const worker = await userModel.getWorkerById(workerId);
+    
+    if (!worker) {
+      return res.status(404).json({ success: false, message: 'Trabajador no encontrado' });
+    }
+
+    // 2. Bloquear o Desbloquear en Firebase
+    // Si activo es false, 'disabled' debe ser true.
+    if (worker.firebase_uid) {
+      console.log(`[Admin] Cambiando estado en Firebase. UID: ${worker.firebase_uid}, disabled: ${!activo}`);
+      await admin.auth().updateUser(worker.firebase_uid, {
+        disabled: !activo 
+      });
+    }
+
+    // 3. Actualizar en PostgreSQL
+    await userModel.toggleWorkerStatus(workerId, activo);
+
+    res.status(200).json({ 
+      success: true, 
+      message: activo ? 'Trabajador reactivado exitosamente' : 'Trabajador desactivado exitosamente (ya no podrá iniciar sesión)' 
+    });
+
+  } catch (error: any) {
+    console.error('❌ Error en adminController (toggleWorkerAccountStatus):', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error al cambiar el estado del trabajador',
+      details: error.message 
+    });
+  }
+};

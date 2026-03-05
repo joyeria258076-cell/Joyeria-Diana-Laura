@@ -169,6 +169,8 @@ export default function AppRoutes() {
             <Route path="/admin-contenido/info" element={<AdminContentInfoScreen />} />
             <Route path="/admin-contenido/faq" element={<AdminContentFAQScreen />} />
             <Route path="/admin-contenido/mision" element={<AdminContentMisionScreen />} />
+            <Route path="/admin-contenido/paginas" element={<AdminPageManagementScreen />} />
+            <Route path="/admin-contenido/secciones" element={<AdminSectionManagementScreen />} />
             
             {/* 🌟 RUTAS SEPARADAS DE INVENTARIO Y NUEVO PRODUCTO */}
             <Route path="/admin-inventario" element={<AdminInventarioScreen />} />

@@ -195,6 +195,15 @@ const onSubmit = async (data: FormData) => {
       return;
     }
     
+    // 🚨 MANEJAR CUENTA DESACTIVADA POR EL ADMINISTRADOR 🚨
+    if (error.message.includes('user-disabled') || error.code === 'auth/user-disabled' || error.message.includes('disabled')) {
+      setError('root', { 
+        type: 'manual', 
+        message: "Tu cuenta ha sido suspendida. Por favor, comunícate con la administración para recuperar el acceso."
+      });
+      return;
+    }
+    
     // 🎯 MANEJAR BLOQUEOS
     if (error.message.includes('bloqueada')) {
       setError('root', { 

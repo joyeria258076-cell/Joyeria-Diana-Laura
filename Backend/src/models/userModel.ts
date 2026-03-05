@@ -82,10 +82,11 @@ export const getUserById = async (id: number): Promise<User | null> => {
 // Obtener todos los usuarios
 export const getAllUsers = async (): Promise<User[]> => {
   try {
-    // 🎯 AGREGAMOS 'rol' a la consulta SQL
-    const result = await pool.query(
-      'SELECT id, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE activo = true'
-    );
+    // QUITAMOS el "WHERE activo = true" para que el Admin vea a TODOS
+    // Ordenamos por activo para que los vigentes salgan primero
+  const result = await pool.query(
+        'SELECT id, firebase_uid, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios ORDER BY activo DESC, nombre ASC'
+      );
     
     return result.rows;
   } catch (error) {
@@ -273,5 +274,56 @@ export const createWorker = async (userData: {
   } catch (error) {
     console.error('Error en createWorker (Model):', error);
     throw error; 
+  }
+};
+
+export const getAvailableRoles = async () => {
+  try {
+    const query = `SELECT unnest(enum_range(NULL::rol_enum))::text AS rol`;
+    const result = await pool.query(query); 
+    
+    // 1. Obtenemos todos los roles de la base de datos
+    const todosLosRoles = result.rows.map((row: any) => row.rol);
+
+    // 2. Definimos AQUÍ MISMOS los roles que NO deben aparecer en el panel
+    // Puedes agregar más separándolos por comas, ej: ['cliente', 'invitado']
+    const rolesExcluidos = ['cliente'];
+
+    // 3. Filtramos: Dejamos solo los que NO estén en la lista de excluidos
+    const rolesOperacion = todosLosRoles.filter(
+      (rol: string) => !rolesExcluidos.includes(rol)
+    );
+    
+    // 4. Devolvemos la lista limpia al Frontend
+    return rolesOperacion;
+    
+  } catch (error) {
+    console.error('Error obteniendo rol_enum en userModel:', error);
+    throw error;
+  }
+};
+
+// 1. Buscar un trabajador por ID para obtener su firebase_uid
+export const getWorkerById = async (id: number) => {
+  try {
+    // QUITAMOS "AND activo = true" para poder encontrarlo y reactivarlo
+    const query = `SELECT id, firebase_uid, activo, nombre, email, rol FROM usuarios WHERE id = $1`;
+    const result = await pool.query(query, [id]);
+    return result.rows[0]; 
+  } catch (error) {
+    console.error('Error al buscar trabajador por ID:', error);
+    throw error;
+  }
+};
+
+// 2. Cambiar el estado activo/inactivo en PostgreSQL
+export const toggleWorkerStatus = async (id: number, activo: boolean) => {
+  try {
+    const query = `UPDATE usuarios SET activo = $1 WHERE id = $2`;
+    await pool.query(query, [activo, id]);
+    return true;
+  } catch (error) {
+    console.error('Error al cambiar estado del trabajador:', error);
+    throw error;
   }
 };
