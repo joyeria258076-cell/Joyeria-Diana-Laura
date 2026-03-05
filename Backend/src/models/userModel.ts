@@ -68,7 +68,7 @@ export const emailExists = async (email: string): Promise<boolean> => {
 export const getUserById = async (id: number): Promise<User | null> => {
   try {
     const result = await pool.query(
-      'SELECT id, email, nombre, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE id = $1 AND activo = true',
+      'SELECT id, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE id = $1',
       [id]
     );
     
@@ -326,4 +326,19 @@ export const toggleWorkerStatus = async (id: number, activo: boolean) => {
     console.error('Error al cambiar estado del trabajador:', error);
     throw error;
   }
+};
+
+/**
+ * Actualiza el nombre y el rol de un trabajador en PostgreSQL
+ */
+export const updateWorkerInfo = async (id: number, nombre: string, rol: string, email: string) => {
+  const query = `
+    UPDATE usuarios 
+    SET nombre = $1, rol = $2, email = $3 
+    WHERE id = $4 
+    RETURNING id, nombre, email, rol, activo`; // <-- Retorna 'rol' explícitamente
+    
+  const values = [nombre, rol, email, id];
+  const { rows } = await pool.query(query, values);
+  return rows[0];
 };

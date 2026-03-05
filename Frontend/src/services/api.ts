@@ -484,20 +484,30 @@ export const workersAPI = {
     return enhancedApi.get('/admin/roles'); // O la ruta de tu backend que devuelva los roles
   },
 
-  // Actualizado para usar el nuevo controlador de admin
-  create: async (workerData: { nombre: string; email: string; puesto: string; password: string }) => {
-    return enhancedApi.post('/admin/workers', workerData); // ✅ Ruta nueva
+  // 🎯 Actualizado para usar el nuevo controlador de admin
+  create: async (workerData: { nombre: string; email: string; rol: string; password: string }) => {
+    return enhancedApi.post('/admin/workers', workerData); 
   },
   
-  // Este se queda igual (obtiene la lista de usuarios)
+  // 📋 Este se queda igual (obtiene la lista de usuarios)
   getAll: async () => {
     return enhancedApi.get('/users');
   },
 
-  // PARA ACTIVAR/DESACTIVAR
-  toggleStatus: async (id: number, activo: boolean) => {
-    return enhancedApi.patch(`/admin/workers/${id}/status`, { activo });
-  }
+  // 🔄 Activar/Desactivar cuenta
+    toggleStatus: async (id: number, activo: boolean) => {
+      return enhancedApi.patch(`/admin/workers/${id}/status`, { activo });
+    },
+
+    // 👇 Obtener un solo trabajador por ID (Para cargar el formulario de edición)
+    getById: async (id: string | number) => {
+      return enhancedApi.get(`/users/${id}`); 
+    },
+
+    // 👇 Actualizar nombre y rol del trabajador
+    update: async (id: string | number, workerData: { nombre: string; rol: string; email: string }) => {
+      return enhancedApi.put(`/admin/workers/${id}`, workerData);
+    }
 };
 
 // ==========================================

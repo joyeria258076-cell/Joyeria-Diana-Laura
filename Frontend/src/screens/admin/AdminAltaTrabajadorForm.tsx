@@ -142,7 +142,7 @@ const AdminAltaTrabajadorForm: React.FC = () => {
       const res = await workersAPI.create({
         nombre:   data.nombre,
         email:    data.email,
-        puesto:   data.rol, 
+        rol:   data.rol, 
         password: data.password,
       });
       if (res.success) {

@@ -42,6 +42,7 @@ import AdminContentMisionScreen from "../screens/admin/contenido/AdminContentMis
 import AdminPageManagementScreen from "../screens/admin/contenido/AdminPageManagementScreen";
 import AdminSectionManagementScreen from "../screens/admin/contenido/AdminSectionManagementScreen";
 import GestionPedidosScreen from "../screens/trabajador/GestionPedidosScreen";
+import AdminEditarTrabajadorScreen from "../screens/admin/AdminEditarTrabajadorScreen";
 
 // INVENTARIO Y PRODUCTOS
 import AdminInventarioScreen from '../screens/admin/AdminInventarioScreen';
@@ -180,6 +181,7 @@ export default function AppRoutes() {
             <Route path="/admin-categorias" element={<AdminCategoriasScreen />} />
             <Route path="/admin-trabajadores" element={<AdminTrabajadoresScreen />} />
             <Route path="/admin-trabajadores/nuevo" element={<AdminAltaTrabajadorForm />} />
+            <Route path="/admin-trabajadores/editar/:id" element={<AdminEditarTrabajadorScreen />} />
             <Route path="/admin-perfil" element={<AdminPerfilScreen />} />
             <Route path="/admin-reportes" element={<AdminReportesScreen />} />
           </Route>

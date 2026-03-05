@@ -3,45 +3,41 @@ import { Request, Response } from 'express';
 import admin from '../../config/firebase'; 
 import * as userModel from '../../models/userModel';
 import bcrypt from 'bcryptjs';
+import { SessionService } from '../../services/SessionService'; // ← AÑADIDO
 
 /**
  * Registra un nuevo trabajador tanto en Firebase Auth como en la Base de Datos local.
  */
 export const createWorkerAccount = async (req: Request, res: Response) => {
   try {
-    const { nombre, email, password, puesto } = req.body;
+    const { nombre, email, password, rol } = req.body;
 
-    // 1. Validación de entrada
-    if (!nombre || !email || !password || !puesto) {
+    if (!nombre || !email || !password || !rol) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Todos los campos son obligatorios (nombre, email, password, puesto)' 
+        message: 'Todos los campos son obligatorios (nombre, email, password, rol)' 
       });
     }
 
     console.log(`[Admin] Iniciando proceso de alta para: ${email}`);
 
-    // 2. Crear el usuario en Firebase Authentication
-    // Esto genera el UID real necesario para el Login
     const firebaseUser = await admin.auth().createUser({
       email,
       password,
       displayName: nombre,
-      emailVerified: true, // Se marca verificado porque lo crea un administrador
+      emailVerified: true,
     });
 
     console.log(`[Firebase] Usuario creado exitosamente. UID: ${firebaseUser.uid}`);
 
-    // 3. Encriptar contraseña para la base de datos de PostgreSQL (Seguridad redundante)
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 4. Guardar en PostgreSQL
     const success = await userModel.createWorker({
       nombre,
       email,
       password_hash: hashedPassword,
-      firebase_uid: firebaseUser.uid, // Guardamos el UID REAL de Firebase
-      rol: puesto
+      firebase_uid: firebaseUser.uid,
+      rol: rol
     });
 
     if (success) {
@@ -50,7 +46,6 @@ export const createWorkerAccount = async (req: Request, res: Response) => {
         message: 'Trabajador registrado correctamente en Firebase y Base de Datos' 
       });
     } else {
-      // Si la DB falla, revertimos el cambio en Firebase para no dejar cuentas huérfanas
       await admin.auth().deleteUser(firebaseUser.uid);
       return res.status(500).json({ 
         success: false, 
@@ -61,9 +56,7 @@ export const createWorkerAccount = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('❌ Error en adminController (createWorkerAccount):', error);
     
-    // Manejo de errores específicos de Firebase Admin SDK
     let errorMsg = 'Error interno del servidor al crear el usuario';
-    
     if (error.code === 'auth/email-already-exists') {
       errorMsg = 'Este correo electrónico ya está registrado en Firebase.';
     } else if (error.code === 'auth/invalid-password') {
@@ -80,10 +73,7 @@ export const createWorkerAccount = async (req: Request, res: Response) => {
 
 export const getRoles = async (req: Request, res: Response) => {
   try {
-    // Llamamos a la función que acabas de crear en el userModel
     const roles = await userModel.getAvailableRoles();
-    
-    // Devolvemos el arreglo puro para que el Frontend lo lea en el select
     res.status(200).json(roles);
   } catch (error: any) {
     console.error('❌ Error en adminController (getRoles):', error);
@@ -95,35 +85,41 @@ export const getRoles = async (req: Request, res: Response) => {
 };
 
 /**
- * Activa o Desactiva a un trabajador en BD y Firebase
+ * Activa o Desactiva a un trabajador en BD, Firebase y sesiones activas.
  */
 export const toggleWorkerAccountStatus = async (req: Request, res: Response) => {
   try {
     const workerId = parseInt(req.params.id);
-    const { activo } = req.body; // Recibimos true o false desde el frontend
+    const { activo } = req.body;
 
-    // 1. Buscamos al trabajador
+    // 1. Buscar al trabajador
     const worker = await userModel.getWorkerById(workerId);
-    
     if (!worker) {
       return res.status(404).json({ success: false, message: 'Trabajador no encontrado' });
     }
 
-    // 2. Bloquear o Desbloquear en Firebase
-    // Si activo es false, 'disabled' debe ser true.
+    // 2. Bloquear o desbloquear en Firebase
     if (worker.firebase_uid) {
       console.log(`[Admin] Cambiando estado en Firebase. UID: ${worker.firebase_uid}, disabled: ${!activo}`);
-      await admin.auth().updateUser(worker.firebase_uid, {
-        disabled: !activo 
-      });
+      await admin.auth().updateUser(worker.firebase_uid, { disabled: !activo });
     }
 
     // 3. Actualizar en PostgreSQL
     await userModel.toggleWorkerStatus(workerId, activo);
 
+    // 4. ✅ Si se DESACTIVA — revocar todas sus sesiones activas
+    //    Así el frontend detecta el 403 en el próximo ciclo de validación (≤15 seg)
+    if (!activo) {
+      console.log(`[Admin] Revocando sesiones activas del trabajador ID: ${workerId}`);
+      const revokeResult = await SessionService.revokeAllSessions(workerId);
+      console.log(`[Admin] Sesiones revocadas: ${revokeResult.revokedCount}`);
+    }
+
     res.status(200).json({ 
       success: true, 
-      message: activo ? 'Trabajador reactivado exitosamente' : 'Trabajador desactivado exitosamente (ya no podrá iniciar sesión)' 
+      message: activo 
+        ? 'Trabajador reactivado exitosamente' 
+        : 'Trabajador desactivado y sesiones cerradas exitosamente'
     });
 
   } catch (error: any) {
@@ -133,5 +129,21 @@ export const toggleWorkerAccountStatus = async (req: Request, res: Response) => 
       message: 'Error al cambiar el estado del trabajador',
       details: error.message 
     });
+  }
+};
+
+export const updateWorker = async (req: Request, res: Response) => {
+  try {
+    const workerId = parseInt(req.params.id);
+    const { nombre, rol, email } = req.body;
+
+    if (!nombre || !rol || !email) {
+      return res.status(400).json({ success: false, message: 'Faltan datos' });
+    }
+
+    const updatedUser = await userModel.updateWorkerInfo(workerId, nombre, rol.toLowerCase(), email);
+    res.status(200).json({ success: true, data: updatedUser });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error interno' });
   }
 };
