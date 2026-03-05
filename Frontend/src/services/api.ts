@@ -696,6 +696,25 @@ export const contenidosAPI = {
   delete: async (id: string | number) => enhancedApi.delete(`/content/contenidos/${id}`)
 };
 
+// 🗄️ GESTIÓN DE RESPALDOS (BACKUPS)
+// ==========================================
+export const backupsAPI = {
+  // Obtener lista de todos los archivos .sql
+  getAll: async () => {
+    return enhancedApi.get('/backups');
+  },
+
+  // Generar un nuevo backup en el servidor
+  create: async () => {
+    return enhancedApi.post('/backups/create', {});
+  },
+
+  // Eliminar un archivo de respaldo
+  delete: async (id: string) => {
+    return enhancedApi.delete(`/backups/${id}`);
+  }
+};
+
 // ==========================================
 // 📥 EXPORTACIÓN DE API (opcional, para tener todo en un solo objeto)
 // ==========================================

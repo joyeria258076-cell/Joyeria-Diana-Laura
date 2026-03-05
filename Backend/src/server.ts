@@ -15,7 +15,7 @@ import productRoutes from './routes/productRoutes';
 import adminRoutes from './routes/adminRoutes';
 import adminContentRoutes from './routes/adminContentRoutes';
 import importRoutes from './routes/importRoutes';
-
+import backupRoutes from './routes/backupRoutes';
 
 dotenv.config();
 
@@ -62,6 +62,10 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/api/auth')) {
     return next();
   }
+
+  if (req.path.startsWith('/api/backups')) {
+        return next(); 
+    }
   
   // 4. Aplicar el candado de seguridad de cookies para todo el resto de la App (incluyendo POST/PUT de noticias)
   return cookieAuthMiddleware(req, res, next);
@@ -92,7 +96,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/content', adminContentRoutes); // Tu nueva ruta registrada
 app.use('/api/import', importRoutes);
-
+app.use('/api/backups', backupRoutes); 
 app.get('/api/health', (req, res) => {
   res.json({ 
     success: true, 
