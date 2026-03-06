@@ -16,6 +16,9 @@ import adminRoutes from './routes/adminRoutes';
 import adminContentRoutes from './routes/adminContentRoutes';
 import importRoutes from './routes/importRoutes';
 import backupRoutes from './routes/backupRoutes';
+import uploadRoutes from './routes/uploadRoutes';
+import cloudinary from './config/cloudinary';
+import { testCloudinaryConnection } from './config/cloudinary';
 
 dotenv.config();
 
@@ -97,6 +100,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/content', adminContentRoutes); // Tu nueva ruta registrada
 app.use('/api/import', importRoutes);
 app.use('/api/backups', backupRoutes); 
+app.use('/api/upload', uploadRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ 
     success: true, 
@@ -140,5 +144,10 @@ app.listen(PORT, async () => {
     }
   } catch (error) {
     console.error('❌ Error en inicialización:', error);
+  }
+
+  const cloudinaryOk = await testCloudinaryConnection();
+  if (cloudinaryOk) {
+    console.log('✅ Cloudinary configurado correctamente');
   }
 });

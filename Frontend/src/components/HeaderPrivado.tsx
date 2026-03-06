@@ -95,20 +95,16 @@ const HeaderPrivado: React.FC = () => {
                                             <span className="dropdown-icon">💾</span> Respaldos
                                         </button>
                                         <button 
-                                            className={`dropdown-item ${isActive("/admin-import-export") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-import-export")}
-                                        >
-                                            <span className="dropdown-icon">🔄</span> Importar/Exportar
+                                            className={`dropdown-item ${isActive("/admin/importar-csv") ? "active" : ""}`} 
+                                            onClick={() => navigate("/admin/importar-csv")}>
+                                                
+                                            <span className="nav-icon">📥</span> Importar CSV
                                         </button>
                                         <button 
                                             className={`dropdown-item ${isActive("/admin-automation") ? "active" : ""}`}
                                             onClick={() => navigate("/admin-automation")}
                                         >
                                             <span className="dropdown-icon">⚡</span> Automatización
-                                        </button>
-                                        <button 
-                                            className={`nav-item ${isActive("/admin/importar-csv") ? "active" : ""}`} 
-                                            onClick={() => navigate("/admin/importar-csv")}> <span className="nav-icon">📥</span> Importar CSV
                                         </button>
                                     </div>
                                 )}
