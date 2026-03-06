@@ -1,29 +1,48 @@
 const API_URL = 'http://localhost:5000/api/backups';
 
+// --- ENFOQUE EMPRESARIAL: INTERFAZ DE DATOS ---
+export interface Backup {
+  id: string;
+  name: string;
+  type: string;
+  size: string;
+  status: 'completed' | 'failed';
+  created_at: string;
+  created_by?: string; // Nombre del administrador que realizó la acción
+}
+
 export const backupsService = {
+  /**
+   * OBTIENE EL HISTORIAL REAL DESDE LA BASE DE DATOS
+   * Este es el "puente" para que la tabla sea dinámica
+   */
+  async getHistory(): Promise<Backup[]> {
+    try {
+      const response = await fetch(`${API_URL}/history`);
+      if (!response.ok) throw new Error('Error al obtener el historial del servidor');
+      return await response.json();
+    } catch (error) {
+      console.error("Error en servicio getHistory:", error);
+      return []; // Retorna array vacío para que la interfaz no truene
+    }
+  },
+
   /**
    * Genera el backup y permite al usuario elegir dónde guardarlo
    */
   async downloadBackupDirectly(): Promise<void> {
     const downloadUrl = `${API_URL}/direct-download`;
 
-    // --- NUEVA LÓGICA DE NOMBRE DINÁMICO LOCAL ---
+    // --- LÓGICA DE NOMBRE DINÁMICO ---
     const ahora = new Date();
-    
-    // Obtenemos fecha (DD-MM-YYYY)
     const fecha = ahora.toLocaleDateString('es-MX').replace(/\//g, '-');
-    
-    // Obtenemos hora (HH-MM-SS)
     const hora = ahora.toLocaleTimeString('es-MX', { hour12: false }).replace(/:/g, '-');
-    
-    // Nombre final que aparecerá en la ventana de Windows
     const nombreSugerido = `respaldo_joyeria_${fecha}_${hora}.dump`;
 
-    // 1. Verificar si el navegador soporta el selector de archivos
     if ('showSaveFilePicker' in window) {
       try {
         const handle = await (window as any).showSaveFilePicker({
-          suggestedName: nombreSugerido, // <--- CAMBIADO: Ahora usa la variable dinámica
+          suggestedName: nombreSugerido,
           types: [{
             description: 'PostgreSQL Backup File',
             accept: { 'application/octet-stream': ['.dump'] },
@@ -56,7 +75,6 @@ export const backupsService = {
   },
 
   fallbackDownload(url: string): void {
-    // Para el fallback también usamos la hora local
     const ahora = new Date();
     const marcaReferencia = ahora.getTime(); 
     const link = document.createElement('a');
