@@ -82,7 +82,8 @@ export const getBackupsHistory = async (req: Request, res: Response) => {
                 h.tipo as type, 
                 h.estado as status, 
                 h.tamano as size,
-                to_char(h.fecha_creacion, 'YYYY-MM-DD HH24:MI:SS') as created_at,
+                -- Convertimos de UTC a la hora de Ciudad de México
+                to_char(h.fecha_creacion AT TIME ZONE 'UTC' AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS') as created_at,
                 u.nombre as created_by
             FROM respaldos_historial h
             LEFT JOIN usuarios u ON h.usuario_id = u.id

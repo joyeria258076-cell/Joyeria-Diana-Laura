@@ -15,7 +15,7 @@ const AdminBackupsScreen: React.FC = () => {
     const [selectedLog, setSelectedLog] = useState<Backup | null>(null);
     const [showLogModal, setShowLogModal] = useState(false);
 
-    // --- CARGA DE DATOS (BITÁCORA REAL) ---
+    // --- CARGA DE DATOS ---
     const fetchHistory = async () => {
         try {
             setIsLoading(true);
@@ -57,13 +57,11 @@ const AdminBackupsScreen: React.FC = () => {
 
     // --- HELPERS DE INTERFAZ ---
     const getStatusBadge = (status: string) => {
-        // Normalizamos a minúsculas por si el backend manda "COMPLETED" en mayúsculas
         const normalizedStatus = status?.toLowerCase();
-        
         switch (normalizedStatus) {
             case 'completed': return <span className="badge badge-success">✅ COMPLETADO</span>;
             case 'failed': return <span className="badge badge-error">❌ FALLIDO</span>;
-            default: return <span className="badge badge-info">{status || 'PENDIENTE'}</span>;
+            default: return <span className="badge badge-info">{status?.toUpperCase() || 'PENDIENTE'}</span>;
         }
     };
 
@@ -161,7 +159,6 @@ const AdminBackupsScreen: React.FC = () => {
                                                     {getStatusBadge(backup.status)}
                                                 </td>
                                                 <td>
-                                                    {/* Quitamos los estilos en línea y lo delegamos al CSS */}
                                                     <div className="action-buttons">
                                                         <button 
                                                             className="btn-icon" 
@@ -195,26 +192,26 @@ const AdminBackupsScreen: React.FC = () => {
                 </div>
             </section>
 
-            {/* --- MODAL DE DETALLES (LOG) --- */}
+            {/* --- MODAL DE DETALLES (LOG) DINÁMICO --- */}
             {showLogModal && selectedLog && (
                 <div className="modal-overlay" onClick={() => setShowLogModal(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h2>Log de Evento: {selectedLog.id}</h2>
+                            <h2>Detalles del Respaldo #{selectedLog.id}</h2>
                             <button className="btn-close" onClick={() => setShowLogModal(false)}>×</button>
                         </div>
                         <div className="modal-body">
                             <div className="log-container">
                                 <div className="log-item">
                                     <span className="log-label">Operación:</span>
-                                    <span className="log-value">PG_DUMP_STREAM</span>
+                                    <span className="log-value">PG_DUMP_STREAM ({selectedLog.type.toUpperCase()})</span>
                                 </div>
                                 <div className="log-item">
                                     <span className="log-label">Archivo generado:</span>
                                     <span className="log-value">{selectedLog.name}</span>
                                 </div>
                                 <div className="log-item">
-                                    <span className="log-label">Fecha y Hora:</span>
+                                    <span className="log-label">Fecha y Hora (Local):</span>
                                     <span className="log-value">{selectedLog.created_at}</span>
                                 </div>
                                 <div className="log-item">
@@ -222,19 +219,22 @@ const AdminBackupsScreen: React.FC = () => {
                                     <span className="log-value">{selectedLog.created_by || 'Usuario del Sistema'}</span>
                                 </div>
                                 <div className="log-item">
-                                    <span className="log-label">Estado de Salida:</span>
-                                    <span className="log-value" style={{ color: '#4CAF50' }}>SUCCESS (Code 0)</span>
+                                    <span className="log-label">Estado:</span>
+                                    <span className="log-value" style={{ color: selectedLog.status === 'completed' ? '#4CAF50' : '#FF5252' }}>
+                                        {selectedLog.status.toUpperCase()}
+                                    </span>
                                 </div>
                                 <div className="log-item">
                                     <span className="log-label">Servidor Origen:</span>
                                     <span className="log-value">aws-1-us-east-2.pooler.supabase.com</span>
                                 </div>
-                                <div className="log-item" style={{ marginTop: '1rem', opacity: 0.6 }}>
-                                    <span className="log-label">Dump Info:</span>
-                                    <p style={{ fontSize: '0.75rem' }}>
+                                <div className="log-item" style={{ marginTop: '1rem', opacity: 0.6, borderTop: '1px solid #444', paddingTop: '1rem' }}>
+                                    <span className="log-label">Información Técnica:</span>
+                                    <p style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
                                         -- PostgreSQL database dump complete --<br/>
                                         Format: Custom (Compressed)<br/>
-                                        Encoding: UTF8
+                                        Encoding: UTF8<br/>
+                                        Status Code: 0 (Success)
                                     </p>
                                 </div>
                             </div>
