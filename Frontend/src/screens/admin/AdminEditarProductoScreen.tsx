@@ -1,9 +1,9 @@
-// Frontend/src/screens/admin/AdminNuevoProductoScreen.tsx
+// Frontend/src/screens/admin/AdminEditarProductoScreen.tsx
 import React, { useState, useEffect } from 'react';
-import { AiOutlineArrowLeft, AiOutlineCheck, AiOutlineClose, AiOutlineForm, AiOutlineUpload, AiOutlineDelete } from 'react-icons/ai';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { AiOutlineArrowLeft, AiOutlineCheck, AiOutlineClose, AiOutlineUpload, AiOutlineDelete } from 'react-icons/ai';
 import { productsAPI, uploadAPI } from '../../services/api';
-import './AdminNuevoProductoScreen.css';
+import './AdminEditarProductoScreen.css';
 
 interface Category {
   id: number;
@@ -33,49 +33,35 @@ interface Configuracion {
 }
 
 interface FormData {
-  // Información básica
   nombre: string;
   descripcion: string;
   categoria_id: number | null;
-  
-  // Referencias a otras tablas
   proveedor_id: number | null;
   temporada_id: number | null;
   tipo_producto_id: number | null;
-  
-  // Material e información física
   material_principal: string;
   peso_gramos: number | null;
-  
-  // Precios (solo precio_compra, precio_venta se calcula)
   precio_compra: number | null;
   precio_oferta: number | null;
-  
-  // Stock (usaremos valores de configuración)
   stock_actual: number;
-  
-  // Ubicación y características
   ubicacion_fisica: string;
   tiene_medidas: boolean;
   medidas: string;
   permite_personalizacion: boolean;
   dias_fabricacion: number;
-  
-  // Imagen
   imagen_principal: string;
-  imagen_public_id?: string; // Para Cloudinary
-  
-  // Estado
+  imagen_public_id?: string;
   es_nuevo: boolean;
   es_destacado: boolean;
   activo: boolean;
-  
-  creado_por: number | null;
 }
 
-const AdminNuevoProductoScreen: React.FC = () => {
+const AdminEditarProductoScreen: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -95,6 +81,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
   // Vista previa de imagen
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [currentImagePublicId, setCurrentImagePublicId] = useState<string>('');
   
   // Formulario
   const [formData, setFormData] = useState<FormData>({
@@ -117,14 +104,53 @@ const AdminNuevoProductoScreen: React.FC = () => {
     imagen_principal: '',
     es_nuevo: false,
     es_destacado: false,
-    activo: true,
-    creado_por: null
+    activo: true
   });
 
-  // Cargar datos de referencia
+  // Cargar datos del producto y referencias
   useEffect(() => {
     const loadData = async () => {
+      if (!id) return;
+      
       try {
+        setLoadingData(true);
+        
+        // Cargar producto
+        const productResponse = await productsAPI.getById(parseInt(id));
+        if (!productResponse.success) {
+          setError('No se pudo cargar el producto');
+          return;
+        }
+        
+        const producto = productResponse.data;
+        setFormData({
+          nombre: producto.nombre || '',
+          descripcion: producto.descripcion || '',
+          categoria_id: producto.categoria_id || null,
+          proveedor_id: producto.proveedor_id || null,
+          temporada_id: producto.temporada_id || null,
+          tipo_producto_id: producto.tipo_producto_id || null,
+          material_principal: producto.material_principal || '',
+          peso_gramos: producto.peso_gramos || null,
+          precio_compra: producto.precio_compra || null,
+          precio_oferta: producto.precio_oferta || null,
+          stock_actual: producto.stock_actual || 0,
+          ubicacion_fisica: producto.ubicacion_fisica || '',
+          tiene_medidas: producto.tiene_medidas || false,
+          medidas: typeof producto.medidas === 'string' ? producto.medidas : JSON.stringify(producto.medidas) || '',
+          permite_personalizacion: producto.permite_personalizacion || false,
+          dias_fabricacion: producto.dias_fabricacion || 0,
+          imagen_principal: producto.imagen_principal || '',
+          es_nuevo: producto.es_nuevo || false,
+          es_destacado: producto.es_destacado || false,
+          activo: producto.activo !== false
+        });
+        
+        if (producto.imagen_principal) {
+          setImagePreview(producto.imagen_principal);
+        }
+        
+        // Cargar datos de referencia
         const [categoriasRes, proveedoresRes, temporadasRes, tiposRes, configRes] = await Promise.all([
           productsAPI.getCategories(),
           productsAPI.getProveedores(),
@@ -148,31 +174,28 @@ const AdminNuevoProductoScreen: React.FC = () => {
         if (configRes.success) {
           const configs = Array.isArray(configRes.data) ? configRes.data : [];
           
-          // Configuración de precios
           const iva = configs.find((c: Configuracion) => c.clave === 'iva_porcentaje');
           const margen = configs.find((c: Configuracion) => c.clave === 'margen_ganancia_default');
-          
-          // Configuración de stock
           const stockMinimo = configs.find((c: Configuracion) => c.clave === 'stock_minimo_default');
           const stockMaximo = configs.find((c: Configuracion) => c.clave === 'stock_maximo_default');
           
           if (iva) setIvaConfig(parseFloat(iva.valor));
           if (margen) setMargenConfig(parseFloat(margen.valor));
-          if (stockMinimo) {
-            setStockMinimoDefault(parseInt(stockMinimo.valor));
-            setFormData(prev => ({ ...prev, stock_actual: parseInt(stockMinimo.valor) }));
-          }
+          if (stockMinimo) setStockMinimoDefault(parseInt(stockMinimo.valor));
           if (stockMaximo) setStockMaximoDefault(parseInt(stockMaximo.valor));
         }
+        
       } catch (err: any) {
         console.error('Error cargando datos:', err);
+        setError(err.message || 'Error al cargar los datos');
+      } finally {
+        setLoadingData(false);
       }
     };
     
     loadData();
-  }, []);
+  }, [id]);
 
-  // Calcular precio de venta automáticamente
   const calcularPrecioVenta = (precioCompra: number | null): number => {
     if (!precioCompra || precioCompra <= 0) return 0;
     
@@ -204,13 +227,11 @@ const AdminNuevoProductoScreen: React.FC = () => {
     }
   };
 
-  // Manejar selección de imagen
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setSelectedFile(file);
       
-      // Crear vista previa
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -219,7 +240,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
     }
   };
 
-  // Subir imagen a Cloudinary
   const handleUploadImage = async () => {
     if (!selectedFile) {
       setError('Selecciona una imagen primero');
@@ -230,18 +250,36 @@ const AdminNuevoProductoScreen: React.FC = () => {
     setError('');
 
     try {
-      const response = await uploadAPI.uploadImage(selectedFile, 'joyeria/productos');
-      
-      if (response.success) {
-        setFormData(prev => ({
-          ...prev,
-          imagen_principal: response.data.url,
-          imagen_public_id: response.data.publicId
-        }));
-        return true;
+      // Si hay imagen anterior, actualizar (eliminar y subir nueva)
+      if (currentImagePublicId) {
+        const response = await uploadAPI.updateImage(selectedFile, currentImagePublicId, 'joyeria/productos');
+        if (response.success) {
+          setFormData(prev => ({
+            ...prev,
+            imagen_principal: response.data.url,
+            imagen_public_id: response.data.publicId
+          }));
+          setCurrentImagePublicId(response.data.publicId);
+          return true;
+        } else {
+          setError(response.message || 'Error al actualizar la imagen');
+          return false;
+        }
       } else {
-        setError(response.message || 'Error al subir la imagen');
-        return false;
+        // Subir imagen nueva
+        const response = await uploadAPI.uploadImage(selectedFile, 'joyeria/productos');
+        if (response.success) {
+          setFormData(prev => ({
+            ...prev,
+            imagen_principal: response.data.url,
+            imagen_public_id: response.data.publicId
+          }));
+          setCurrentImagePublicId(response.data.publicId);
+          return true;
+        } else {
+          setError(response.message || 'Error al subir la imagen');
+          return false;
+        }
       }
     } catch (err: any) {
       console.error('Error uploading image:', err);
@@ -252,7 +290,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
     }
   };
 
-  // Eliminar imagen seleccionada
   const handleRemoveImage = () => {
     setSelectedFile(null);
     setImagePreview(null);
@@ -269,11 +306,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
       return false;
     }
 
-    if (formData.nombre.length > 200) {
-      setError('El nombre no puede exceder 200 caracteres');
-      return false;
-    }
-
     if (!formData.categoria_id) {
       setError('Debe seleccionar una categoría');
       return false;
@@ -281,6 +313,11 @@ const AdminNuevoProductoScreen: React.FC = () => {
 
     if (!formData.precio_compra || formData.precio_compra <= 0) {
       setError('El precio de compra debe ser mayor a 0');
+      return false;
+    }
+
+    if (formData.stock_actual < 0) {
+      setError('El stock no puede ser negativo');
       return false;
     }
 
@@ -295,7 +332,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
       return;
     }
 
-    // Si hay imagen pendiente por subir, subirla primero
+    // Si hay imagen pendiente por subir
     if (selectedFile && !formData.imagen_principal) {
       const uploaded = await handleUploadImage();
       if (!uploaded) return;
@@ -314,45 +351,19 @@ const AdminNuevoProductoScreen: React.FC = () => {
         stock_maximo: stockMaximoDefault
       };
 
-      const response = await productsAPI.create(dataToSend);
+      const response = await productsAPI.update(parseInt(id!), dataToSend);
 
       if (response.success) {
         setSuccess(true);
-        alert('¡Producto registrado exitosamente!');
-        
+        alert('¡Producto actualizado exitosamente!');
         setTimeout(() => {
-          setFormData({
-            nombre: '',
-            descripcion: '',
-            categoria_id: null,
-            proveedor_id: null,
-            temporada_id: null,
-            tipo_producto_id: null,
-            material_principal: '',
-            peso_gramos: null,
-            precio_compra: null,
-            precio_oferta: null,
-            stock_actual: stockMinimoDefault,
-            ubicacion_fisica: '',
-            tiene_medidas: false,
-            medidas: '',
-            permite_personalizacion: false,
-            dias_fabricacion: 0,
-            imagen_principal: '',
-            es_nuevo: false,
-            es_destacado: false,
-            activo: true,
-            creado_por: null
-          });
-          setSelectedFile(null);
-          setImagePreview(null);
-          setSuccess(false);
-        }, 500);
+          navigate(`/admin/producto/${id}`);
+        }, 1000);
       } else {
-        setError(response.message || 'Error al crear el producto');
+        setError(response.message || 'Error al actualizar el producto');
       }
     } catch (err: any) {
-      setError(err.message || 'Error al crear el producto');
+      setError(err.message || 'Error al actualizar el producto');
     } finally {
       setLoading(false);
     }
@@ -360,22 +371,25 @@ const AdminNuevoProductoScreen: React.FC = () => {
 
   const precioVentaCalculado = calcularPrecioVenta(formData.precio_compra);
 
+  if (loadingData) {
+    return (
+      <div className="admin-editar-loading">
+        <div className="spinner"></div>
+        <p>Cargando producto...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="admin-nuevo-producto-container">
-      <div className="producto-form-wrapper">
+    <div className="admin-editar-container">
+      <div className="editar-wrapper">
         {/* Header */}
-        <div className="producto-form-header">
-          <button 
-            className="btn-back"
-            onClick={() => navigate('/admin-dashboard')}
-          >
+        <div className="editar-header">
+          <button className="btn-back" onClick={() => navigate(`/admin/producto/${id}`)}>
             <AiOutlineArrowLeft size={20} />
-            <span>Volver</span>
+            <span>Volver al Detalle</span>
           </button>
-          <h1>
-            <AiOutlineForm size={28} />
-            Agregar Nuevo Producto
-          </h1>
+          <h1>✏️ Editar Producto</h1>
         </div>
 
         {/* Alerts */}
@@ -389,14 +403,14 @@ const AdminNuevoProductoScreen: React.FC = () => {
         {success && (
           <div className="alert alert-success">
             <AiOutlineCheck size={20} />
-            <span>¡Producto creado exitosamente!</span>
+            <span>¡Producto actualizado exitosamente!</span>
           </div>
         )}
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="producto-form">
-
-          {/* SECCIÓN 1: INFORMACIÓN BÁSICA */}
+        <form onSubmit={handleSubmit} className="editar-form">
+          
+          {/* Información Básica */}
           <fieldset className="form-section">
             <legend>📋 Información Básica</legend>
             
@@ -410,10 +424,8 @@ const AdminNuevoProductoScreen: React.FC = () => {
                   value={formData.nombre}
                   onChange={handleInputChange}
                   maxLength={200}
-                  placeholder="Ej: Pulsera de Oro Blanco"
                   required
                 />
-                <small>{formData.nombre.length}/200</small>
               </div>
             </div>
 
@@ -425,7 +437,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
                   name="descripcion"
                   value={formData.descripcion}
                   onChange={handleInputChange}
-                  placeholder="Describe las características principales del producto"
                   rows={4}
                 />
               </div>
@@ -465,7 +476,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
             </div>
           </fieldset>
 
-          {/* SECCIÓN 2: REFERENCIAS */}
+          {/* Referencias */}
           <fieldset className="form-section">
             <legend>🔗 Referencias</legend>
             
@@ -502,9 +513,9 @@ const AdminNuevoProductoScreen: React.FC = () => {
             </div>
           </fieldset>
 
-          {/* SECCIÓN 3: MATERIAL E INFORMACIÓN FÍSICA */}
+          {/* Material e Información Física */}
           <fieldset className="form-section">
-            <legend>💎 Material e Información Física</legend>
+            <legend>💎 Material</legend>
             
             <div className="form-row">
               <div className="form-group">
@@ -536,23 +547,22 @@ const AdminNuevoProductoScreen: React.FC = () => {
                   min="0"
                   value={formData.peso_gramos || ''}
                   onChange={handleInputChange}
-                  placeholder="Ej: 2.5"
                 />
               </div>
             </div>
           </fieldset>
 
-          {/* SECCIÓN 4: PRECIOS CON CÁLCULO AUTOMÁTICO */}
+          {/* Precios */}
           <fieldset className="form-section">
-            <legend>💰 Precios (Cálculo Automático)</legend>
+            <legend>💰 Precios</legend>
             
             <div className="precio-info">
-              <p><strong>Configuración de cálculo:</strong> IVA: {ivaConfig}% | Margen Ganancia: {margenConfig}%</p>
+              <p>IVA: {ivaConfig}% | Margen: {margenConfig}%</p>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="precio_compra">Precio de Compra * (Base para cálculo)</label>
+                <label htmlFor="precio_compra">Precio de Compra *</label>
                 <input
                   type="number"
                   id="precio_compra"
@@ -561,7 +571,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
                   min="0"
                   value={formData.precio_compra || ''}
                   onChange={handleInputChange}
-                  placeholder="Ej: 100.00"
                   required
                 />
               </div>
@@ -576,7 +585,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="precio_oferta">Precio en Oferta (Opcional)</label>
+                <label htmlFor="precio_oferta">Precio en Oferta</label>
                 <input
                   type="number"
                   id="precio_oferta"
@@ -585,15 +594,14 @@ const AdminNuevoProductoScreen: React.FC = () => {
                   min="0"
                   value={formData.precio_oferta || ''}
                   onChange={handleInputChange}
-                  placeholder="Ej: 80.00"
                 />
               </div>
             </div>
           </fieldset>
 
-          {/* SECCIÓN 5: IMAGEN DEL PRODUCTO */}
+          {/* Imagen */}
           <fieldset className="form-section">
-            <legend>🖼️ Imagen del Producto</legend>
+            <legend>🖼️ Imagen</legend>
             
             <div className="form-row">
               <div className="form-group full">
@@ -605,7 +613,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
                   className="file-input"
                   disabled={uploadingImage}
                 />
-                <small>Formatos: JPG, PNG, GIF, WEBP | Máx: 10MB</small>
               </div>
             </div>
 
@@ -613,7 +620,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
               <div className="image-preview-container">
                 <img src={imagePreview} alt="Vista previa" className="image-preview" />
                 <div className="image-preview-actions">
-                  {!formData.imagen_principal && (
+                  {selectedFile && (
                     <button
                       type="button"
                       className="btn-upload"
@@ -621,7 +628,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
                       disabled={uploadingImage}
                     >
                       <AiOutlineUpload size={18} />
-                      {uploadingImage ? 'Subiendo...' : 'Subir Imagen'}
+                      {uploadingImage ? 'Subiendo...' : 'Actualizar Imagen'}
                     </button>
                   )}
                   <button
@@ -635,40 +642,27 @@ const AdminNuevoProductoScreen: React.FC = () => {
                 </div>
               </div>
             )}
-
-            {formData.imagen_principal && !imagePreview && (
-              <div className="image-preview-container">
-                <img src={formData.imagen_principal} alt="Producto" className="image-preview" />
-                <div className="image-preview-actions">
-                  <span className="badge-uploaded">✓ Imagen subida</span>
-                </div>
-              </div>
-            )}
           </fieldset>
 
-          {/* SECCIÓN 6: STOCK */}
+          {/* Stock */}
           <fieldset className="form-section">
-            <legend>📦 Stock (Configuración Global)</legend>
+            <legend>📦 Stock</legend>
             
             <div className="stock-info">
-              <p><strong>Stock Mínimo Global:</strong> {stockMinimoDefault} unidades</p>
-              <p><strong>Stock Máximo Global:</strong> {stockMaximoDefault} unidades</p>
+              <p>Mínimo: {stockMinimoDefault} | Máximo: {stockMaximoDefault}</p>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="stock_actual">Stock Inicial</label>
+                <label htmlFor="stock_actual">Stock Actual</label>
                 <input
                   type="number"
                   id="stock_actual"
                   name="stock_actual"
                   min="0"
-                  max={stockMaximoDefault}
                   value={formData.stock_actual}
                   onChange={handleInputChange}
-                  placeholder={stockMinimoDefault.toString()}
                 />
-                <small>Mínimo sugerido: {stockMinimoDefault}</small>
               </div>
 
               <div className="form-group">
@@ -677,7 +671,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
                   type="text"
                   id="ubicacion_fisica"
                   name="ubicacion_fisica"
-                  placeholder="Ej: Estante A-3"
                   value={formData.ubicacion_fisica}
                   onChange={handleInputChange}
                 />
@@ -685,9 +678,9 @@ const AdminNuevoProductoScreen: React.FC = () => {
             </div>
           </fieldset>
 
-          {/* SECCIÓN 7: CARACTERÍSTICAS ESPECIALES */}
+          {/* Características Especiales */}
           <fieldset className="form-section">
-            <legend>✨ Características Especiales</legend>
+            <legend>✨ Características</legend>
             
             <div className="form-row">
               <div className="form-group">
@@ -699,33 +692,30 @@ const AdminNuevoProductoScreen: React.FC = () => {
                   min="0"
                   value={formData.dias_fabricacion}
                   onChange={handleInputChange}
-                  placeholder="0"
                 />
               </div>
             </div>
 
-            <div className="form-row checkbox-group">
-              <div className="form-group checkbox">
+            <div className="checkbox-group">
+              <label className="checkbox-label">
                 <input
                   type="checkbox"
-                  id="tiene_medidas"
                   name="tiene_medidas"
                   checked={formData.tiene_medidas}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="tiene_medidas">Tiene Medidas Personalizables</label>
-              </div>
+                Tiene Medidas Personalizables
+              </label>
 
-              <div className="form-group checkbox">
+              <label className="checkbox-label">
                 <input
                   type="checkbox"
-                  id="permite_personalizacion"
                   name="permite_personalizacion"
                   checked={formData.permite_personalizacion}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="permite_personalizacion">Permite Personalización</label>
-              </div>
+                Permite Personalización
+              </label>
             </div>
 
             {formData.tiene_medidas && (
@@ -737,7 +727,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
                     name="medidas"
                     value={formData.medidas}
                     onChange={handleInputChange}
-                    placeholder="Ej: Largo 15cm, Ancho 2cm | Talla: XS a XL"
                     rows={3}
                   />
                 </div>
@@ -745,54 +734,50 @@ const AdminNuevoProductoScreen: React.FC = () => {
             )}
           </fieldset>
 
-          {/* SECCIÓN 8: ESTADO Y VISIBILIDAD */}
+          {/* Estado */}
           <fieldset className="form-section">
-            <legend>👁️ Estado y Visibilidad</legend>
+            <legend>👁️ Estado</legend>
             
-            <div className="form-row checkbox-group">
-              <div className="form-group checkbox">
+            <div className="checkbox-group">
+              <label className="checkbox-label">
                 <input
                   type="checkbox"
-                  id="es_nuevo"
                   name="es_nuevo"
                   checked={formData.es_nuevo}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="es_nuevo">Marcar como Nuevo</label>
-              </div>
+                Marcar como Nuevo
+              </label>
 
-              <div className="form-group checkbox">
+              <label className="checkbox-label">
                 <input
                   type="checkbox"
-                  id="es_destacado"
                   name="es_destacado"
                   checked={formData.es_destacado}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="es_destacado">Destacar en Tienda</label>
-              </div>
+                Destacar en Tienda
+              </label>
 
-              <div className="form-group checkbox">
+              <label className="checkbox-label">
                 <input
                   type="checkbox"
-                  id="activo"
                   name="activo"
                   checked={formData.activo}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="activo">Activo / Visible</label>
-              </div>
+                Activo / Visible
+              </label>
             </div>
           </fieldset>
 
-          {/* Botones de acción */}
+          {/* Botones */}
           <div className="form-actions">
             <button
               type="button"
               className="btn-cancel"
-              onClick={() => navigate('/admin-dashboard')}
+              onClick={() => navigate(`/admin/producto/${id}`)}
             >
-              <AiOutlineArrowLeft size={20} />
               Cancelar
             </button>
             <button
@@ -800,8 +785,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
               className="btn-submit"
               disabled={loading || uploadingImage}
             >
-              <AiOutlineCheck size={20} />
-              {loading ? 'Guardando...' : 'Guardar Producto'}
+              {loading ? 'Guardando...' : 'Guardar Cambios'}
             </button>
           </div>
         </form>
@@ -810,4 +794,4 @@ const AdminNuevoProductoScreen: React.FC = () => {
   );
 };
 
-export default AdminNuevoProductoScreen;
+export default AdminEditarProductoScreen;

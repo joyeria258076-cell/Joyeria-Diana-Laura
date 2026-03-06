@@ -1,3 +1,4 @@
+// Frontend/src/screens/publico/CatalogoPublicScreen.tsx
 import React, { useState, useEffect } from "react";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";

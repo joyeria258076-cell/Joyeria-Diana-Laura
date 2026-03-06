@@ -47,6 +47,8 @@ import AdminEditarTrabajadorScreen from "../screens/admin/AdminEditarTrabajadorS
 // INVENTARIO Y PRODUCTOS
 import AdminInventarioScreen from '../screens/admin/AdminInventarioScreen';
 import AdminNuevoProductoScreen from '../screens/admin/AdminNuevoProductoScreen';
+import AdminProductoDetalleScreen from "../screens/admin/AdminProductoDetalleScreen";
+import AdminEditarProductoScreen from "../screens/admin/AdminEditarProductoScreen";
 
 // PERSONAL Y REPORTES
 import AdminTrabajadoresScreen from "../screens/admin/AdminTrabajadoresScreen";
@@ -198,6 +200,8 @@ export default function AppRoutes() {
             <Route path="/admin-trabajadores/editar/:id" element={<AdminEditarTrabajadorScreen />} />
             <Route path="/admin-perfil" element={<AdminPerfilScreen />} />
             <Route path="/admin-reportes" element={<AdminReportesScreen />} />
+            <Route path="/admin/producto/:id" element={<AdminProductoDetalleScreen />} />
+            <Route path="/admin/editar-producto/:id" element={<AdminEditarProductoScreen />} />
           </Route>
 
           {/* 🔐 RUTAS EXCLUSIVAS TRABAJADOR / ADMIN */}

@@ -1,5 +1,5 @@
 // Frontend/src/components/HeaderPrivado.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import "../styles/HeaderPrivado.css";
@@ -8,18 +8,35 @@ const HeaderPrivado: React.FC = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const sidebarRef = useRef<HTMLDivElement>(null);
     
     const [isContentMenuOpen, setIsContentMenuOpen] = useState(false);
     const [isCatalogoMenuOpen, setIsCatalogoMenuOpen] = useState(false);
-    const [isDatabaseMenuOpen, setIsDatabaseMenuOpen] = useState(false); // Nuevo estado
+    const [isDatabaseMenuOpen, setIsDatabaseMenuOpen] = useState(false);
+    const [isConfigMenuOpen, setIsConfigMenuOpen] = useState(false); // Nuevo estado
 
     const userRole = user?.rol?.toLowerCase().trim() || 'cliente';
 
     const isActive = (path: string) => location.pathname.startsWith(path) ? "active" : "";
 
+    // Cerrar menús al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+                setIsContentMenuOpen(false);
+                setIsCatalogoMenuOpen(false);
+                setIsDatabaseMenuOpen(false);
+                setIsConfigMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     return (
         <>
-            <aside className="sidebar-privado">
+            <aside className="sidebar-privado" ref={sidebarRef}>
                 <div 
                     className="sidebar-logo" 
                     onClick={() => navigate(userRole === 'admin' ? "/admin-dashboard" : userRole === 'trabajador' ? "/dashboard-trabajador" : "/inicio")}
@@ -69,11 +86,24 @@ const HeaderPrivado: React.FC = () => {
                                     </div>
                                 )}
                             </div>
-                            
-                            {/* 📁 NUEVO MENÚ DESPLEGABLE DE BASE DE DATOS */}
+
+                            {/* 📁 NUEVO MENÚ DESPLEGABLE DE PROVEEDORES */}
                             <div className="nav-item-group">
                                 <button 
-                                    className={`nav-item ${isActive("/admin-database") || isActive("/admin-backups") || isActive("/admin-import-export") || isActive("/admin-automation") || isActive("/admin-nosql-security") || isActive("/admin-nosql-monitoring") ? "active" : ""} dropdown-toggle`}
+                                    className={`nav-item ${isActive("/admin/proveedores") || isActive("/admin/proveedor/nuevo") ? "active" : ""} dropdown-toggle`}
+                                    onClick={() => {
+                                        // Navegar directamente a la lista de proveedores
+                                        navigate("/admin/proveedores");
+                                    }}
+                                >
+                                    <span className="nav-icon">🏢</span> Proveedores
+                                </button>
+                            </div>
+                            
+                            {/* 📁 MENÚ DESPLEGABLE DE BASE DE DATOS */}
+                            <div className="nav-item-group">
+                                <button 
+                                    className={`nav-item ${isActive("/admin-database") || isActive("/admin-backups") || isActive("/admin/importar-csv") || isActive("/admin-automation") ? "active" : ""} dropdown-toggle`}
                                     onClick={() => setIsDatabaseMenuOpen(!isDatabaseMenuOpen)}
                                 >
                                     <span className="nav-icon">🗄️</span> Gestión BD
@@ -95,10 +125,10 @@ const HeaderPrivado: React.FC = () => {
                                             <span className="dropdown-icon">💾</span> Respaldos
                                         </button>
                                         <button 
-                                            className={`dropdown-item ${isActive("/admin/importar-csv") ? "active" : ""}`} 
-                                            onClick={() => navigate("/admin/importar-csv")}>
-                                                
-                                            <span className="nav-icon">📥</span> Importar CSV
+                                            className={`dropdown-item ${isActive("/admin/importar-csv") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin/importar-csv")}
+                                        >
+                                            <span className="dropdown-icon">📥</span> Importar CSV
                                         </button>
                                         <button 
                                             className={`dropdown-item ${isActive("/admin-automation") ? "active" : ""}`}
@@ -110,13 +140,41 @@ const HeaderPrivado: React.FC = () => {
                                 )}
                             </div>
 
+                            {/* ⚙️ NUEVO MENÚ DESPLEGABLE DE CONFIGURACIÓN */}
+                            <div className="nav-item-group">
+                                <button 
+                                    className={`nav-item ${isActive("/admin/configuracion") || isActive("/admin/configuracion/general") || isActive("/admin/configuracion/variables") ? "active" : ""} dropdown-toggle`}
+                                    onClick={() => setIsConfigMenuOpen(!isConfigMenuOpen)}
+                                >
+                                    <span className="nav-icon">⚙️</span> Configuración
+                                    <span className={`dropdown-arrow ${isConfigMenuOpen ? 'open' : ''}`}>▼</span>
+                                </button>
+                                
+                                {isConfigMenuOpen && (
+                                    <div className="dropdown-menu">
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin/configuracion/variables") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin/configuracion/variables")}
+                                        >
+                                            <span className="dropdown-icon">🔧</span> Variables del Sistema
+                                        </button>
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin/configuracion/general") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin/configuracion/general")}
+                                        >
+                                            <span className="dropdown-icon">🌐</span> Configuración General
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* MENÚ DESPLEGABLE DE GESTIONAR CONTENIDO */}
                             <div className="nav-item-group">
                                 <button 
                                     className={`nav-item ${isActive("/admin-contenido") || isActive("/admin-contenido/paginas") || isActive("/admin-contenido/secciones") || isActive("/admin-contenido/pagina-inicio") || isActive("/admin-contenido/pagina-noticias") ? "active" : ""} dropdown-toggle`}
                                     onClick={() => setIsContentMenuOpen(!isContentMenuOpen)}
                                 >
-                                    <span className="nav-icon">⚙️</span> Gestionar Contenido
+                                    <span className="nav-icon">📝</span> Gestionar Contenido
                                     <span className={`dropdown-arrow ${isContentMenuOpen ? 'open' : ''}`}>▼</span>
                                 </button>
                                 

@@ -1,3 +1,4 @@
+// Frontend/src/screens/admin/AdminInventarioScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AiOutlinePlus, AiOutlineSearch, AiOutlineReload, AiOutlineEdit, AiOutlineDelete, AiOutlineInfo } from 'react-icons/ai';
@@ -144,7 +145,7 @@ const AdminInventarioScreen: React.FC = () => {
         <h1>📦 Inventario de Productos</h1>
         <button
           className="btn-new-product"
-          onClick={() => navigate('/admin/nuevo-producto')}
+          onClick={() => navigate('/admin-nuevo-producto')}
         >
           <AiOutlinePlus size={20} />
           Nuevo Producto

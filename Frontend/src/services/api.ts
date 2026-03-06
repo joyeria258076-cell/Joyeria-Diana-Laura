@@ -1,6 +1,6 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/services/api.ts
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
-//const API_BASE_URL = 'http://localhost:5000/api';
+//const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // 🎯 MANTENER TU FUNCIÓN ORIGINAL EXACTA
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
@@ -712,6 +712,166 @@ export const backupsAPI = {
   // Eliminar un archivo de respaldo
   delete: async (id: string) => {
     return enhancedApi.delete(`/backups/${id}`);
+  }
+};
+
+// ==========================================
+// 📤 API PARA UPLOAD DE IMÁGENES
+// ==========================================
+export const uploadAPI = {
+  // Subir imagen general
+  uploadImage: async (file: File, folder?: string) => {
+    const formData = new FormData();
+    formData.append('imagen', file);
+    if (folder) formData.append('folder', folder);
+
+    const jwtToken = localStorage.getItem('diana_laura_user') 
+      ? JSON.parse(localStorage.getItem('diana_laura_user')!).token 
+      : null;
+    const sessionToken = localStorage.getItem('diana_laura_session_token');
+
+    const headers: Record<string, string> = {};
+    if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+    if (sessionToken) headers['X-Session-Token'] = sessionToken;
+
+    const response = await fetch(`${API_BASE_URL}/upload/image`, {
+      method: 'POST',
+      headers,
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Error al subir la imagen');
+    }
+
+    return response.json();
+  },
+
+  // Subir imagen para producto (con o sin ID)
+  uploadProductImage: async (file: File, productoId?: number | string, esPrincipal?: boolean) => {
+    const formData = new FormData();
+    formData.append('imagen', file);
+    if (esPrincipal) formData.append('esPrincipal', 'true');
+
+    let url = '/upload/productos/imagen';
+    if (productoId) {
+      url = `/upload/productos/${productoId}/imagen`;
+    }
+
+    const jwtToken = localStorage.getItem('diana_laura_user') 
+      ? JSON.parse(localStorage.getItem('diana_laura_user')!).token 
+      : null;
+    const sessionToken = localStorage.getItem('diana_laura_session_token');
+
+    const headers: Record<string, string> = {};
+    if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+    if (sessionToken) headers['X-Session-Token'] = sessionToken;
+
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      method: 'POST',
+      headers,
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Error al subir la imagen del producto');
+    }
+
+    return response.json();
+  },
+
+  // Subir imagen para categoría
+  uploadCategoryImage: async (file: File, categoriaId?: number | string) => {
+    const formData = new FormData();
+    formData.append('imagen', file);
+
+    let url = '/upload/categorias/imagen';
+    if (categoriaId) {
+      url = `/upload/categorias/${categoriaId}/imagen`;
+    }
+
+    const jwtToken = localStorage.getItem('diana_laura_user') 
+      ? JSON.parse(localStorage.getItem('diana_laura_user')!).token 
+      : null;
+    const sessionToken = localStorage.getItem('diana_laura_session_token');
+
+    const headers: Record<string, string> = {};
+    if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+    if (sessionToken) headers['X-Session-Token'] = sessionToken;
+
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      method: 'POST',
+      headers,
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Error al subir la imagen de la categoría');
+    }
+
+    return response.json();
+  },
+
+  // Actualizar imagen (eliminar anterior y subir nueva)
+  updateImage: async (file: File, oldPublicId: string, folder?: string) => {
+    const formData = new FormData();
+    formData.append('imagen', file);
+    formData.append('oldPublicId', oldPublicId);
+    if (folder) formData.append('folder', folder);
+
+    const jwtToken = localStorage.getItem('diana_laura_user') 
+      ? JSON.parse(localStorage.getItem('diana_laura_user')!).token 
+      : null;
+    const sessionToken = localStorage.getItem('diana_laura_session_token');
+
+    const headers: Record<string, string> = {};
+    if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+    if (sessionToken) headers['X-Session-Token'] = sessionToken;
+
+    const response = await fetch(`${API_BASE_URL}/upload/image`, {
+      method: 'PUT',
+      headers,
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Error al actualizar la imagen');
+    }
+
+    return response.json();
+  },
+
+  // Eliminar imagen por publicId
+  deleteImage: async (publicId: string) => {
+    const jwtToken = localStorage.getItem('diana_laura_user') 
+      ? JSON.parse(localStorage.getItem('diana_laura_user')!).token 
+      : null;
+    const sessionToken = localStorage.getItem('diana_laura_session_token');
+
+    const headers: Record<string, string> = {};
+    if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+    if (sessionToken) headers['X-Session-Token'] = sessionToken;
+
+    const response = await fetch(`${API_BASE_URL}/upload/image/${publicId}`, {
+      method: 'DELETE',
+      headers,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Error al eliminar la imagen');
+    }
+
+    return response.json();
   }
 };
 
