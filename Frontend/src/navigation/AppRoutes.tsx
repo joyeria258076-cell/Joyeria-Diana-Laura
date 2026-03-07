@@ -68,6 +68,15 @@ import AdminImportExportScreen from "../screens/admin/basedatos/AdminImportExpor
 import AdminAutomationScreen from "../screens/admin/basedatos/AdminAutomationScreen";
 import AdminSimpleImportScreen from "../screens/admin/basedatos/AdminSimpleImportScreen";
 
+// 📁 NUEVAS PANTALLAS DE CONFIGURACIÓN
+import AdminVariablesConfigScreen from "../screens/admin/configuracion/AdminVariablesConfigScreen";
+
+// 📁 NUEVAS PANTALLAS DE PROVEEDORES
+import AdminProveedoresScreen from "../screens/admin/proveedores/AdminProveedoresScreen";
+import AdminNuevoProveedorScreen from "../screens/admin/proveedores/AdminNuevoProveedorScreen";
+import AdminEditarProveedorScreen from "../screens/admin/proveedores/AdminEditarProveedorScreen";
+import AdminProveedorDetalleScreen from "../screens/admin/proveedores/AdminProveedorDetalleScreen";
+
 // PANTALLAS DE ERROR
 import NotFoundScreen from '../screens/general/NotFoundScreen';
 import ForbiddenScreen from '../screens/general/ForbiddenScreen';
@@ -180,6 +189,15 @@ export default function AppRoutes() {
             <Route path="/admin-automation" element={<AdminAutomationScreen />} />
             <Route path="/admin/importar" element={<AdminSimpleImportScreen />} />
             <Route path="/admin/importar-csv" element={<AdminSimpleImportScreen />} />
+            
+            {/* 📁 NUEVAS RUTAS DE CONFIGURACIÓN */}
+            <Route path="/admin/configuracion/variables" element={<AdminVariablesConfigScreen />} />
+            
+            {/* 📁 NUEVAS RUTAS DE PROVEEDORES */}
+            <Route path="/admin/proveedores" element={<AdminProveedoresScreen />} />
+            <Route path="/admin/proveedor/nuevo" element={<AdminNuevoProveedorScreen />} />
+            <Route path="/admin/proveedor/:id" element={<AdminProveedorDetalleScreen />} />
+            <Route path="/admin/editar-proveedor/:id" element={<AdminEditarProveedorScreen />} />
             
             {/* Rutas existentes de contenido */}
             <Route path="/admin-contenido" element={<AdminContentManagerScreen />} />

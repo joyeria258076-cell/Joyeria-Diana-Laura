@@ -1,4 +1,12 @@
-/* Sidebar Lateral */
+/* Frontend/src/styles/HeaderPrivado.css */
+
+:root {
+    --rosa-joyeria: #ECB2C3;
+    --negro-panel: #0f0f12;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sidebar Lateral con Scroll */
 .sidebar-privado {
     grid-column: 1;
     grid-row: 1 / 3;
@@ -8,11 +16,15 @@
     flex-direction: column;
     padding: 25px 0;
     z-index: 100;
+    height: 100vh;
+    position: sticky;
+    top: 0;
 }
 
 .sidebar-logo {
     padding: 0 25px 30px;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .logo-text {
@@ -33,7 +45,31 @@
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    height: 100%; /* Permite que el logout se pegue abajo si es necesario */
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 20px;
+    
+    /* Scrollbar personalizada */
+    scrollbar-width: thin;
+    scrollbar-color: var(--rosa-joyeria) #1a1a1a;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: var(--rosa-joyeria);
+    border-radius: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: #f5c5d8;
 }
 
 .nav-item {
@@ -46,9 +82,10 @@
     align-items: center;
     gap: 15px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: var(--transition);
     font-size: 0.95rem;
     width: 100%;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .nav-item:hover, 
@@ -58,32 +95,39 @@
     border-left: 4px solid var(--rosa-joyeria);
 }
 
+.nav-icon {
+    font-size: 1.2rem;
+    min-width: 24px;
+}
+
 .logout-item {
-    margin-top: auto; /* Mueve el botón de salir al fondo */
+    margin-top: auto;
     padding-bottom: 30px;
     color: #ff6b6b;
 }
 
 /* ============================================
-   MENÚ DESPLEGABLE DE GESTIONAR CONTENIDO
+   MENÚ DESPLEGABLE
    ============================================ */
 
 .nav-item-group {
     position: relative;
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
 .dropdown-toggle {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
 }
 
 .dropdown-arrow {
     font-size: 0.7rem;
     transition: transform 0.3s ease;
-    margin-left: auto;
+    color: rgba(236, 178, 195, 0.5);
 }
 
 .dropdown-arrow.open {
@@ -96,15 +140,15 @@
     display: flex;
     flex-direction: column;
     padding: 0;
-    margin: 0;
-    list-style: none;
+    margin-left: 25px;
+    width: calc(100% - 25px);
 }
 
 .dropdown-item {
     background: transparent;
     border: none;
     color: #888;
-    padding: 12px 25px 12px 45px;
+    padding: 12px 15px;
     text-align: left;
     display: flex;
     align-items: center;
@@ -113,6 +157,7 @@
     transition: all 0.2s ease;
     font-size: 0.9rem;
     width: 100%;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .dropdown-item:hover {
@@ -124,11 +169,18 @@
     background: rgba(236, 178, 195, 0.15);
     color: var(--rosa-joyeria);
     border-left: 3px solid var(--rosa-joyeria);
-    padding-left: 42px;
 }
 
 .dropdown-icon {
     font-size: 1.1rem;
+    min-width: 20px;
+}
+
+/* Divisor */
+.sidebar-divider {
+    height: 1px;
+    background: rgba(236, 178, 195, 0.2);
+    margin: 0.8rem 0;
 }
 
 /* Header Superior */
@@ -143,6 +195,8 @@
     padding: 0 35px;
     height: var(--header-height);
     z-index: 90;
+    position: sticky;
+    top: 0;
 }
 
 .header-welcome {
@@ -159,6 +213,13 @@
     align-items: center;
     gap: 12px;
     cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 40px;
+    transition: var(--transition);
+}
+
+.user-profile-info:hover {
+    background: rgba(236, 178, 195, 0.1);
 }
 
 .user-avatar {
@@ -187,4 +248,35 @@
 .user-role {
     color: #666;
     font-size: 0.7rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar-privado {
+        width: 240px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar-privado.open {
+        transform: translateX(0);
+    }
+
+    .header-top-privado {
+        left: 0;
+        padding: 0 15px;
+    }
+
+    .user-details {
+        display: none;
+    }
+
+    .user-profile-info {
+        padding: 3px;
+    }
+
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+    }
 }

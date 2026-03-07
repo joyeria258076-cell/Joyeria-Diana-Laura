@@ -13,7 +13,8 @@ const HeaderPrivado: React.FC = () => {
     const [isContentMenuOpen, setIsContentMenuOpen] = useState(false);
     const [isCatalogoMenuOpen, setIsCatalogoMenuOpen] = useState(false);
     const [isDatabaseMenuOpen, setIsDatabaseMenuOpen] = useState(false);
-    const [isConfigMenuOpen, setIsConfigMenuOpen] = useState(false); // Nuevo estado
+    const [isConfigMenuOpen, setIsConfigMenuOpen] = useState(false);
+    const [isProveedoresMenuOpen, setIsProveedoresMenuOpen] = useState(false);
 
     const userRole = user?.rol?.toLowerCase().trim() || 'cliente';
 
@@ -27,6 +28,7 @@ const HeaderPrivado: React.FC = () => {
                 setIsCatalogoMenuOpen(false);
                 setIsDatabaseMenuOpen(false);
                 setIsConfigMenuOpen(false);
+                setIsProveedoresMenuOpen(false);
             }
         };
 
@@ -87,17 +89,32 @@ const HeaderPrivado: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* 📁 NUEVO MENÚ DESPLEGABLE DE PROVEEDORES */}
+                            {/* 📁 MENÚ DESPLEGABLE DE PROVEEDORES */}
                             <div className="nav-item-group">
                                 <button 
-                                    className={`nav-item ${isActive("/admin/proveedores") || isActive("/admin/proveedor/nuevo") ? "active" : ""} dropdown-toggle`}
-                                    onClick={() => {
-                                        // Navegar directamente a la lista de proveedores
-                                        navigate("/admin/proveedores");
-                                    }}
+                                    className={`nav-item ${isActive("/admin/proveedores") || isActive("/admin/proveedor/nuevo") || isActive("/admin/proveedor/") ? "active" : ""} dropdown-toggle`}
+                                    onClick={() => setIsProveedoresMenuOpen(!isProveedoresMenuOpen)}
                                 >
                                     <span className="nav-icon">🏢</span> Proveedores
+                                    <span className={`dropdown-arrow ${isProveedoresMenuOpen ? 'open' : ''}`}>▼</span>
                                 </button>
+                                
+                                {isProveedoresMenuOpen && (
+                                    <div className="dropdown-menu">
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin/proveedores") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin/proveedores")}
+                                        >
+                                            <span className="dropdown-icon">📋</span> Lista de Proveedores
+                                        </button>
+                                        <button 
+                                            className={`dropdown-item ${isActive("/admin/proveedor/nuevo") ? "active" : ""}`}
+                                            onClick={() => navigate("/admin/proveedor/nuevo")}
+                                        >
+                                            <span className="dropdown-icon">➕</span> Nuevo Proveedor
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                             
                             {/* 📁 MENÚ DESPLEGABLE DE BASE DE DATOS */}
@@ -140,10 +157,10 @@ const HeaderPrivado: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* ⚙️ NUEVO MENÚ DESPLEGABLE DE CONFIGURACIÓN */}
+                            {/* ⚙️ MENÚ DESPLEGABLE DE CONFIGURACIÓN */}
                             <div className="nav-item-group">
                                 <button 
-                                    className={`nav-item ${isActive("/admin/configuracion") || isActive("/admin/configuracion/general") || isActive("/admin/configuracion/variables") ? "active" : ""} dropdown-toggle`}
+                                    className={`nav-item ${isActive("/admin/configuracion") || isActive("/admin/configuracion/variables") ? "active" : ""} dropdown-toggle`}
                                     onClick={() => setIsConfigMenuOpen(!isConfigMenuOpen)}
                                 >
                                     <span className="nav-icon">⚙️</span> Configuración
@@ -157,12 +174,6 @@ const HeaderPrivado: React.FC = () => {
                                             onClick={() => navigate("/admin/configuracion/variables")}
                                         >
                                             <span className="dropdown-icon">🔧</span> Variables del Sistema
-                                        </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin/configuracion/general") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin/configuracion/general")}
-                                        >
-                                            <span className="dropdown-icon">🌐</span> Configuración General
                                         </button>
                                     </div>
                                 )}

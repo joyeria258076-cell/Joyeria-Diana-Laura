@@ -19,6 +19,8 @@ import backupRoutes from './routes/backupRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import cloudinary from './config/cloudinary';
 import { testCloudinaryConnection } from './config/cloudinary';
+import configuracionRoutes from './routes/configuracionRoutes';
+import proveedoresRoutes from './routes/proveedoresRoutes';
 
 dotenv.config();
 
@@ -108,6 +110,8 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+app.use('/api/configuracion', configuracionRoutes);
+app.use('/api/proveedores', proveedoresRoutes);
 
 app.get('/api/db-test', async (req, res) => {
   const dbOk = await testConnection();

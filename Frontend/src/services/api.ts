@@ -875,6 +875,68 @@ export const uploadAPI = {
   }
 };
 
+export const configAPI = {
+  // Obtener todas las configuraciones
+  getAll: async () => {
+    return enhancedApi.get('/configuracion');
+  },
+
+  // Obtener configuración por categoría
+  getByCategoria: async (categoria: string) => {
+    return enhancedApi.get(`/configuracion/categoria/${categoria}`);
+  },
+
+  // Obtener una configuración por clave
+  getByClave: async (clave: string) => {
+    return enhancedApi.get(`/configuracion/${clave}`);
+  },
+
+  // Actualizar configuración
+  update: async (clave: string, valor: string) => {
+    return enhancedApi.put(`/configuracion/${clave}`, { valor });
+  },
+
+  // Actualizar múltiples configuraciones
+  updateMultiple: async (configuraciones: { clave: string; valor: string }[]) => {
+    return enhancedApi.post('/configuracion/batch', { configuraciones });
+  }
+};
+
+// ==========================================
+// 🏢 API PARA PROVEEDORES
+// ==========================================
+export const proveedoresAPI = {
+  // Obtener todos los proveedores
+  getAll: async () => {
+    return enhancedApi.get('/proveedores');
+  },
+
+  // Obtener proveedor por ID
+  getById: async (id: number) => {
+    return enhancedApi.get(`/proveedores/${id}`);
+  },
+
+  // Crear proveedor
+  create: async (data: any) => {
+    return enhancedApi.post('/proveedores', data);
+  },
+
+  // Actualizar proveedor
+  update: async (id: number, data: any) => {
+    return enhancedApi.put(`/proveedores/${id}`, data);
+  },
+
+  // Eliminar proveedor
+  delete: async (id: number) => {
+    return enhancedApi.delete(`/proveedores/${id}`);
+  },
+
+  // Cambiar estado
+  toggleStatus: async (id: number, activo: boolean) => {
+    return enhancedApi.patch(`/proveedores/${id}/status`, { activo });
+  }
+};
+
 // ==========================================
 // 📥 EXPORTACIÓN DE API (opcional, para tener todo en un solo objeto)
 // ==========================================
