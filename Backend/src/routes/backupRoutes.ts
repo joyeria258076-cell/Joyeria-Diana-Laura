@@ -1,7 +1,8 @@
 // Ruta: Backend/src/routes/backupRoutes.ts
 import { Router } from 'express';
 import { generateDirectBackup, getBackupsHistory, getBackupLogContent, downloadBackupLog,
-    getSchedulerStatus,updateSchedulerConfig, runSchedulerNow, } from '../controllers/backup/backupController';    
+    getSchedulerStatus,updateSchedulerConfig, runSchedulerNow,
+    getDatabaseHealth, performMaintenance, deleteBackup } from '../controllers/backup/backupController';    
 const router = Router();
 
 // Esta ruta será: http://localhost:5000/api/backups/direct-download
@@ -20,4 +21,13 @@ router.post('/scheduler/config', updateSchedulerConfig);
 // POST /api/backups/scheduler/run-now → ejecutar respaldo automático ahora (prueba)
 router.post('/scheduler/run-now', runSchedulerNow);
 
+// ─── Mantenimiento y salud de la base de datos
+// GET  /api/backups/health       → estado de salud de la base de datos
+router.get('/health', getDatabaseHealth);
+// POST /api/backups/maintenance  → ejecutar tareas de mantenimiento
+router.post('/maintenance', performMaintenance);
+
+// ─── Eliminar respaldo manualmente
+// DELETE /api/backups/:backupId → eliminar respaldo por ID
+router.delete('/:backupId', deleteBackup);
 export default router;

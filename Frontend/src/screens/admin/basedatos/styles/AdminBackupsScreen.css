@@ -808,10 +808,9 @@ input:checked + .slider:before { transform: translateX(22px); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ═══════════════════════════════════════════
-   NUEVOS ESTILOS — SCHEDULER
+   ESTILOS ORIGINALES — SCHEDULER
    ═══════════════════════════════════════════ */
 
-/* Spinner pequeño (loading inline) */
 .spinner-small {
   display: inline-block;
   width: 14px;
@@ -824,7 +823,6 @@ input:checked + .slider:before { transform: translateX(22px); }
   margin-right: 6px;
 }
 
-/* Botón guardar pequeño */
 .btn-save-small {
   background: linear-gradient(135deg, #ECB2C3 0%, #e49bb3 100%);
   color: #0f0f12;
@@ -845,7 +843,6 @@ input:checked + .slider:before { transform: translateX(22px); }
 
 .btn-save-small:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Botón Probar Ahora */
 .btn-run-now {
   background: rgba(33, 150, 243, 0.12);
   border: 1px solid rgba(33, 150, 243, 0.4);
@@ -866,17 +863,6 @@ input:checked + .slider:before { transform: translateX(22px); }
 
 .btn-run-now:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Fila de botones de acción */
-.automation-actions-row {
-  justify-content: flex-end !important;
-  border-top: 1px solid rgba(236, 178, 195, 0.1) !important;
-  padding-top: 1rem !important;
-  padding-bottom: 0 !important;
-  border-bottom: none !important;
-  gap: 0.8rem;
-}
-
-/* Toast del scheduler */
 .scheduler-toast {
   padding: 0.7rem 1.2rem;
   border-radius: 8px;
@@ -901,4 +887,149 @@ input:checked + .slider:before { transform: translateX(22px); }
 @keyframes toastIn {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: none; }
+}
+
+/* ═══════════════════════════════════════════
+   NUEVOS ESTILOS — 3 CAMBIOS
+   ═══════════════════════════════════════════ */
+
+/* 1. Card única sin estirarse */
+.backup-stats-grid.single-card {
+  grid-template-columns: minmax(200px, 420px);
+}
+
+/* 2. Fila de botones scheduler — ARREGLADA (ya no hereda flex del automation-item) */
+.automation-actions-row {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding-top: 1rem !important;
+  padding-bottom: 0 !important;
+  border-top: 1px solid rgba(236, 178, 195, 0.1) !important;
+  border-bottom: none !important;
+}
+
+/* 3. Modal de salud */
+.modal-content.health-modal { max-width: 720px; }
+
+.health-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1rem;
+}
+
+.health-results { display: flex; flex-direction: column; gap: 1.2rem; }
+
+.health-section {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 1.2rem;
+}
+
+.health-section-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #ECB2C3;
+  margin: 0 0 0.9rem 0;
+  letter-spacing: 0.3px;
+}
+
+.health-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.87rem;
+}
+
+.health-row:last-of-type { border-bottom: none; }
+
+.health-label { color: rgba(255,255,255,0.5); }
+.health-value { color: #ffffff; font-weight: 500; }
+.health-value.ok { color: #4CAF50; }
+
+.health-progress-bar {
+  height: 5px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+  margin-top: 0.7rem;
+  overflow: hidden;
+}
+
+.health-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4CAF50, #81C784);
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.health-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.health-table th {
+  text-align: left;
+  padding: 0.4rem 0.7rem;
+  color: rgba(255,255,255,0.45);
+  font-weight: 600;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.health-table td {
+  padding: 0.5rem 0.7rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: #ffffff;
+}
+
+.health-table code {
+  background: rgba(236, 178, 195, 0.08);
+  color: #ECB2C3;
+  padding: 0.12rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.79rem;
+}
+
+.health-badge {
+  display: inline-block;
+  padding: 0.18rem 0.55rem;
+  border-radius: 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.health-badge.ok   { background: rgba(76,175,80,0.12); color: #4CAF50; }
+.health-badge.warn { background: rgba(255,193,7,0.12);  color: #FFC107; }
+
+.health-note {
+  font-size: 0.77rem;
+  color: rgba(255,255,255,0.32);
+  margin: 0.7rem 0 0;
+  line-height: 1.5;
+}
+
+/* FIX botones scheduler */
+.automation-panel > .automation-actions-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(236, 178, 195, 0.1);
+  margin-top: 0;
+}
+
+.automation-panel > .automation-actions-row .btn-run-now,
+.automation-panel > .automation-actions-row .btn-save-small {
+  width: auto;
+  flex: none;
 }

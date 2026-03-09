@@ -176,4 +176,47 @@ export const backupsService = {
       return { success: false, message: 'Error de conexión con el servidor' };
     }
   },
+
+  async getDatabaseHealth(): Promise<any> {
+    try {
+      const response = await fetch(`${API_URL}/health`);
+      if (!response.ok) throw new Error('Error al obtener salud de BD');
+      return await response.json();
+    } catch (error) {
+      console.error("Error en getDatabaseHealth:", error);
+      return null;
+    }
+  },
+
+  /**
+   * Dispara el proceso de VACUUM ANALYZE
+   */
+  async runMaintenance(): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await fetch(`${API_URL}/maintenance`, { method: 'POST' });
+      const data = await response.json();
+      return { success: response.ok, message: data.message || data.error };
+    } catch (error) {
+      return { success: false, message: 'Error de conexión' };
+    }
+  },
+
+  deleteBackup: async (id: string): Promise<{ success: boolean; message: string }> => { // <-- Aquí
+        try {
+            const token = localStorage.getItem('token'); // Asegúrate de usar el nombre correcto de tu token
+            const response = await fetch(`${API_URL}/${id}`, { // <-- Quitamos /backups para evitar /api/backups/backups/id
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Error en deleteBackup:", error);
+            return { success: false, message: 'Error de conexión con el servidor' };
+        }
+    },
 };
+

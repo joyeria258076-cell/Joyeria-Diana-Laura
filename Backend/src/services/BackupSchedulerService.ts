@@ -5,7 +5,7 @@ import { spawn } from 'child_process';
 import pool from '../config/database';
 import path from 'path';
 import fs from 'fs';
-import cloudinary from '../config/cloudinary'; // ← NUEVO
+import cloudinary from '../config/cloudinary';
 
 interface SchedulerConfig {
   enabled: boolean;
@@ -151,11 +151,7 @@ export class BackupSchedulerService {
         urlArchivo = await this.uploadToCloudinary(filePath, fileName);
         logAcumulado += `\nCloudinary URL: ${urlArchivo}`;
         console.log(`✅ [BackupScheduler] Subido a Cloudinary: ${urlArchivo}`);
-        // Borrar archivo local tras subida exitosa
-        //fs.unlinkSync(filePath);
-        //console.log(`🗑️  [BackupScheduler] Archivo local eliminado tras subida exitosa`);
       } catch (cloudErr: any) {
-        // Si falla Cloudinary no es crítico — el archivo queda local como respaldo
         console.error(`⚠️  [BackupScheduler] No se pudo subir a Cloudinary:`, cloudErr.message);
         logAcumulado += `\n⚠️ Cloudinary falló: ${cloudErr.message} — archivo conservado localmente`;
       }
@@ -170,7 +166,9 @@ export class BackupSchedulerService {
 
       console.log(`✅ [BackupScheduler] Respaldo completado: ${fileName} (${fileSizeMB} MB)`);
 
+      // 👇 AQUÍ ESTÁ LA MAGIA QUE FALTABA PARA PROBAR AL INSTANTE
       await this.cleanOldFiles(backupDir);
+      await this.cleanOldDbRecords();
 
     } catch (error: any) {
       logAcumulado += `\n\n❌ ERROR: ${error.message}`;
@@ -218,17 +216,19 @@ export class BackupSchedulerService {
     }
   }
 
-  // ─── LIMPIAR REGISTROS VIEJOS EN BD ──────────────────────────────────────
+  // ─── LIMPIAR REGISTROS VIEJOS EN BD (Consulta Segura) ─────────────────────
   static async cleanOldDbRecords(): Promise<void> {
     try {
       const config = await this.getConfig();
       const result = await pool.query(
         `DELETE FROM respaldos_historial
          WHERE tipo = 'automatico'
-           AND fecha_creacion < NOW() - INTERVAL '${config.retencion_dias} days'`
+           AND fecha_creacion < NOW() - (interval '1 day' * $1)`,
+        [config.retencion_dias]
       );
+      // count de registros borrados
       if (result.rowCount && result.rowCount > 0) {
-        console.log(`🧹 [BackupScheduler] ${result.rowCount} registros BD eliminados por retención`);
+        console.log(`🧹 [BackupScheduler] ${result.rowCount} registros BD eliminados por retención (${config.retencion_dias} días)`);
       }
     } catch (err) {
       console.error('⚠️  [BackupScheduler] Error limpiando registros BD:', err);
@@ -275,7 +275,7 @@ export class BackupSchedulerService {
 
     if (config.frecuencia === 'diario')       this.taskDiario  = task;
     else if (config.frecuencia === 'semanal') this.taskSemanal = task;
-    else                                       this.taskMensual = task;
+    else                                      this.taskMensual = task;
 
     this.taskLimpieza = cron.schedule('0 4 * * *', async () => {
       console.log('🧹 [BackupScheduler] Ejecutando limpieza programada...');

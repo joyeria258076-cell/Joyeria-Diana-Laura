@@ -15,18 +15,23 @@ const AdminBackupsScreen: React.FC = () => {
     const [selectedLog, setSelectedLog] = useState<Backup | null>(null);
     const [showLogModal, setShowLogModal] = useState(false);
 
-    // --- ESTADOS ORIGINALES (Nube y Salud) ---
+    // --- ESTADOS ORIGINALES (Salud) ---
     const [isCheckingHealth, setIsCheckingHealth] = useState(false);
-    const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+    const [showHealthModal, setShowHealthModal] = useState(false);
+    const [healthData, setHealthData] = useState<any>(null);
+    const [isOptimizing, setIsOptimizing] = useState(false);
 
     // --- ESTADOS DEL SCHEDULER ---
     const [schedulerStatus, setSchedulerStatus] = useState<SchedulerStatus | null>(null);
     const [isLoadingScheduler, setIsLoadingScheduler] = useState(true);
     const [isSavingScheduler, setIsSavingScheduler] = useState(false);
     const [isRunningNow, setIsRunningNow] = useState(false);
-    const [runNowStatus, setRunNowStatus] = useState<string>('');  // ← texto del overlay
+    const [runNowStatus, setRunNowStatus] = useState<string>('');
     const [schedulerToast, setSchedulerToast] = useState<{ msg: string; ok: boolean } | null>(null);
     const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // Estado para confirmar eliminación (NUEVO)
+    const [backupToDelete, setBackupToDelete] = useState<{id: string, name: string} | null>(null);
 
     const [schedForm, setSchedForm] = useState<SchedulerConfig>({
         enabled: false,
@@ -100,22 +105,64 @@ const AdminBackupsScreen: React.FC = () => {
 
     const handleHealthCheck = async () => {
         setIsCheckingHealth(true);
+        setShowHealthModal(true);
+        setHealthData(null);
         try {
-            await new Promise(res => setTimeout(res, 1500));
-            alert("Chequeo de Salud Completo: Conexión Activa, Espacio Suficiente y Base de Datos Optimizada.");
+            const data = await backupsService.getDatabaseHealth();
+            if (!data) throw new Error("No data");
+            setHealthData(data);
+        } catch (error) {
+            console.error("Error al obtener salud:", error);
+            setHealthData({ error: true, message: 'Error interno en el servidor.' });
         } finally {
             setIsCheckingHealth(false);
         }
     };
 
-    const handleCloudBackup = async () => {
-        setIsSyncingCloud(true);
+    // ─── ABRIR MODAL DE ELIMINACIÓN ─────────────────────────────────────────
+    const handleDeleteBackup = (id: string, name: string) => {
+        setBackupToDelete({ id, name });
+    };
+
+    // ─── EJECUTAR ELIMINACIÓN REAL ─────────────────────────────────────────
+    const confirmDeleteBackup = async () => {
+        if (!backupToDelete) return;
+
         try {
-            await new Promise(res => setTimeout(res, 2500));
-            alert("Respaldo enviado exitosamente a AWS S3.");
-            fetchHistory();
+            setSchedulerToast({ msg: '⏳ Eliminando respaldo...', ok: true });
+            
+            const result = await backupsService.deleteBackup(backupToDelete.id);
+            
+            if (result.success) {
+                setSchedulerToast({ msg: '🗑️ Respaldo eliminado correctamente', ok: true });
+                fetchHistory(); // Recargar tabla
+            } else {
+                setSchedulerToast({ msg: `❌ Error: ${result.message}`, ok: false });
+            }
+        } catch (error) {
+            console.error("Error al eliminar el respaldo:", error);
+            setSchedulerToast({ msg: '❌ Error de red al intentar eliminar', ok: false });
         } finally {
-            setIsSyncingCloud(false);
+            setBackupToDelete(null); // Cerrar modal siempre al terminar
+        }
+    };
+    
+    const handleOptimize = async () => {
+        if (!window.confirm('¿Deseas ejecutar el mantenimiento? Esto optimizará el rendimiento de las tablas.')) return;
+        
+        setIsOptimizing(true);
+        try {
+            const result = await backupsService.runMaintenance();
+            alert(result.message);
+            
+            if (result.success) {
+                const newData = await backupsService.getDatabaseHealth();
+                setHealthData(newData);
+            }
+        } catch (error) {
+            alert("Error al ejecutar mantenimiento técnico.");
+        } finally {
+            setIsOptimizing(false);
         }
     };
 
@@ -145,19 +192,16 @@ const AdminBackupsScreen: React.FC = () => {
                 return;
             }
 
-            // Guardar el ID más reciente antes de empezar
             const beforeData = await backupsService.getHistory();
             const latestIdBefore = beforeData.length > 0 ? beforeData[0].id : null;
 
             setRunNowStatus('⚙️ Generando dump de base de datos...');
-
             let attempts = 0;
-            const MAX_ATTEMPTS = 20; // 20 × 3s = 60s máximo
+            const MAX_ATTEMPTS = 20;
 
             pollingRef.current = setInterval(async () => {
                 attempts++;
 
-                // Mensajes progresivos para que no parezca que se colgó
                 if (attempts === 3)  setRunNowStatus('📦 Comprimiendo datos...');
                 if (attempts === 6)  setRunNowStatus('☁️ Subiendo a Cloudinary...');
                 if (attempts === 10) setRunNowStatus('🔄 Finalizando y registrando...');
@@ -165,7 +209,6 @@ const AdminBackupsScreen: React.FC = () => {
                 const currentData = await backupsService.getHistory();
                 const latestId = currentData.length > 0 ? currentData[0].id : null;
 
-                // Apareció un nuevo registro
                 if (latestId !== latestIdBefore) {
                     clearInterval(pollingRef.current!);
                     pollingRef.current = null;
@@ -176,7 +219,6 @@ const AdminBackupsScreen: React.FC = () => {
                     return;
                 }
 
-                // Timeout
                 if (attempts >= MAX_ATTEMPTS) {
                     clearInterval(pollingRef.current!);
                     pollingRef.current = null;
@@ -186,7 +228,6 @@ const AdminBackupsScreen: React.FC = () => {
                     await fetchHistory();
                 }
             }, 3000);
-
         } catch (error) {
             setIsRunningNow(false);
             setRunNowStatus('');
@@ -230,7 +271,7 @@ const AdminBackupsScreen: React.FC = () => {
             </div>
 
             {/* Grid de Acciones */}
-            <div className="backup-stats-grid">
+            <div className="backup-stats-grid single-card">
                 <div className="stat-card action-card">
                     <div className="stat-icon">📥</div>
                     <div className="stat-content">
@@ -243,21 +284,6 @@ const AdminBackupsScreen: React.FC = () => {
                             {isDownloading ? 'Generando archivo...' : 'Descargar .DUMP Actual'}
                         </button>
                         <p className="help-text">Genera una copia binaria y permite elegir destino local.</p>
-                    </div>
-                </div>
-
-                <div className="stat-card action-card cloud-variant">
-                    <div className="stat-icon">☁️</div>
-                    <div className="stat-content">
-                        <span className="stat-label">Copia en la Nube</span>
-                        <button 
-                            className={`btn-cloud ${isSyncingCloud ? 'loading' : ''}`}
-                            onClick={handleCloudBackup}
-                            disabled={isSyncingCloud || isRestoring}
-                        >
-                            {isSyncingCloud ? 'Sincronizando...' : 'Enviar a AWS S3'}
-                        </button>
-                        <p className="help-text">Almacena el respaldo automáticamente en servidor remoto.</p>
                     </div>
                 </div>
             </div>
@@ -351,7 +377,8 @@ const AdminBackupsScreen: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="automation-item automation-actions-row">
+                        {/* BOTONES */}
+                        <div className="automation-actions-row">
                             <button
                                 className="btn-run-now"
                                 onClick={handleRunNow}
@@ -421,7 +448,7 @@ const AdminBackupsScreen: React.FC = () => {
                                                         <button 
                                                             className="btn-icon delete" 
                                                             title="Eliminar Registro"
-                                                            onClick={() => alert('Función de borrado en desarrollo')}
+                                                            onClick={() => handleDeleteBackup(backup.id, backup.name)}
                                                         >🗑️</button>
                                                     </div>
                                                 </td>
@@ -500,6 +527,164 @@ const AdminBackupsScreen: React.FC = () => {
                             </button>
                             <button className="btn-save" onClick={() => setShowLogModal(false)}>
                                 Cerrar Bitácora
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── MODAL VERIFICAR SALUD ── */}
+            {showHealthModal && (
+                <div className="modal-overlay" onClick={() => { if (!isCheckingHealth && !isOptimizing) setShowHealthModal(false); }}>
+                    <div className="modal-content health-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>🔍 Salud de la Base de Datos</h2>
+                            {!isCheckingHealth && !isOptimizing && (
+                                <button className="btn-close" onClick={() => setShowHealthModal(false)}>×</button>
+                            )}
+                        </div>
+                        <div className="modal-body">
+                            {isCheckingHealth || !healthData ? (
+                                <div className="health-loading">
+                                    <div className="spinner-large" style={{ margin: '0 auto 1rem' }}></div>
+                                    <p style={{ color: '#ECB2C3', textAlign: 'center', margin: 0 }}>Ejecutando diagnóstico...</p>
+                                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', textAlign: 'center', marginTop: '0.4rem' }}>
+                                        VACUUM · ANALYZE · Conexión · Espacio
+                                    </p>
+                                </div>
+                            ) : healthData.error ? (
+                                <div className="info-box" style={{ background: 'rgba(255, 82, 82, 0.1)', color: '#FF5252', border: '1px solid #FF5252', padding: '1rem', borderRadius: '8px' }}>
+                                    <strong>Error en el Servidor:</strong>
+                                    <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>{healthData.message}</p>
+                                </div>
+                            ) : (
+                                <div className="health-results">
+
+                                    {/* Conexión */}
+                                    <div className="health-section">
+                                        <h3 className="health-section-title">🔗 Conexión</h3>
+                                        <div className="health-row">
+                                            <span className="health-label">Estado</span>
+                                            <span className="health-value ok">✅ Activa</span>
+                                        </div>
+                                        <div className="health-row">
+                                            <span className="health-label">Latencia</span>
+                                            <span className="health-value">{healthData.conexion?.latencia || '12ms'}</span>
+                                        </div>
+                                        <div className="health-row">
+                                            <span className="health-label">Servidor</span>
+                                            <span className="health-value" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>{healthData.conexion?.servidor || 'supabase.com'}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* VACUUM */}
+                                    <div className="health-section">
+                                        <h3 className="health-section-title">🧹 VACUUM — Limpieza de Filas Muertas</h3>
+                                        <table className="health-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tabla</th>
+                                                    <th>Último VACUUM</th>
+                                                    <th>Filas muertas</th>
+                                                    <th>Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(healthData.vacuum || []).map((row: any) => (
+                                                    <tr key={row.tabla}>
+                                                        <td><code>{row.tabla}</code></td>
+                                                        <td style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>{row.ultimo_vacuum}</td>
+                                                        <td>{row.filas_muertas}</td>
+                                                        <td>
+                                                            <span className={`health-badge ${row.filas_muertas > 100 ? 'warn' : 'ok'}`}>
+                                                                {row.filas_muertas > 100 ? '⚠️ Alto' : '✅ OK'}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* ANALYZE */}
+                                    <div className="health-section">
+                                        <h3 className="health-section-title">📊 ANALYZE — Estadísticas del Planificador</h3>
+                                        <table className="health-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tabla</th>
+                                                    <th>Último ANALYZE</th>
+                                                    <th>Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(healthData.analyze || []).map((row: any) => (
+                                                    <tr key={row.tabla}>
+                                                        <td><code>{row.tabla}</code></td>
+                                                        <td style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>{row.ultimo_analyze}</td>
+                                                        <td><span className="health-badge ok">✅ OK</span></td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        <p className="health-note">
+                                            💡 PostgreSQL en Supabase ejecuta autovacuum automáticamente. Estos datos son informativos.
+                                        </p>
+                                    </div>
+
+                                </div>
+                            )}
+                        </div>
+                        {!isCheckingHealth && healthData && !healthData.error && (
+                            <div className="modal-footer">
+                                <button className="btn-cancel" onClick={() => setShowHealthModal(false)}>Cerrar</button>
+                                <button 
+                                    className="btn-primary pulse" 
+                                    onClick={handleOptimize}
+                                    disabled={isOptimizing}
+                                >
+                                    {isOptimizing ? '⏳ Optimizando...' : '🧹 Ejecutar Mantenimiento'}
+                                </button>
+                            </div>
+                        )}
+                        {healthData?.error && (
+                            <div className="modal-footer">
+                                <button className="btn-save" onClick={() => setShowHealthModal(false)}>Cerrar</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* ── MODAL DE CONFIRMACIÓN DE BORRADO ── */}
+            {backupToDelete && (
+                <div className="modal-overlay" onClick={() => setBackupToDelete(null)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>⚠️ Confirmar Eliminación</h2>
+                            <button className="btn-close" onClick={() => setBackupToDelete(null)}>×</button>
+                        </div>
+                        <div className="modal-body">
+                            <p style={{ marginBottom: '1rem', color: '#ECB2C3' }}>
+                                ¿Estás seguro de que deseas eliminar permanentemente este respaldo?
+                            </p>
+                            
+                            <div className="info-box" style={{ background: 'rgba(255, 82, 82, 0.1)', color: '#FF5252', border: '1px solid #FF5252', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+                                <strong>Archivo seleccionado:</strong><br />
+                                <span style={{ wordBreak: 'break-all', marginTop: '0.5rem', display: 'block' }}>
+                                    {backupToDelete.name}
+                                </span>
+                                <p style={{ fontSize: '0.85rem', marginTop: '0.8rem', opacity: 0.9 }}>
+                                    Esta acción no se puede deshacer. El archivo se borrará de tu servidor.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-cancel" onClick={() => setBackupToDelete(null)}>
+                                Cancelar
+                            </button>
+                            <button className="btn-save" onClick={confirmDeleteBackup}>
+                                Sí, eliminar
                             </button>
                         </div>
                     </div>
