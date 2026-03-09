@@ -21,6 +21,7 @@ import cloudinary from './config/cloudinary';
 import { testCloudinaryConnection } from './config/cloudinary';
 import configuracionRoutes from './routes/configuracionRoutes';
 import proveedoresRoutes from './routes/proveedoresRoutes';
+import { BackupSchedulerService } from './services/BackupSchedulerService';
 
 dotenv.config();
 
@@ -143,6 +144,7 @@ app.listen(PORT, async () => {
     if (dbOk) {
       console.log('✅ Base de datos conectada correctamente');
       await LoginSecurityService.cleanupExpiredLocks();
+      await BackupSchedulerService.initialize();
     } else {
       console.log('❌ Error conectando a la base de datos');
     }
