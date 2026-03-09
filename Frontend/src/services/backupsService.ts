@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:5000/api/backups';
+const API_URL = `${import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api'}/backups`;
+//const API_URL = 'http://localhost:5000/api/backups';
 
 // --- INTERFAZ DE DATOS ---
 export interface Backup {
@@ -124,7 +125,7 @@ export const backupsService = {
     link.remove();
   },
 
-  // ─── NUEVOS MÉTODOS DEL SCHEDULER ────────────────────────────────────────
+  // ─── MÉTODOS DEL SCHEDULER ────────────────────────────────────────────────
 
   /**
    * Obtiene el estado actual del scheduler

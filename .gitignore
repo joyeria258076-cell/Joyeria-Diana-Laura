@@ -124,3 +124,11 @@ firebase-debug.*.log
 ".env.production.local" 
 "*.env*" 
 "/Backend/.env" 
+
+# Ignorar la carpeta de respaldos automáticos
+Backend/backups_automaticos/
+
+# Ignorar cualquier archivo de respaldo por extensión (por si acaso)
+*.sql
+*.gzip
+*.gz
