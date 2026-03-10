@@ -436,7 +436,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 .backups-table th:nth-child(1), .backups-table td:nth-child(1) { width: 60px;  text-align: center; }
 .backups-table th:nth-child(3), .backups-table td:nth-child(3) { width: 160px; white-space: nowrap; }
 .backups-table th:nth-child(4), .backups-table td:nth-child(4) { width: 150px; }
-.backups-table th:nth-child(5), .backups-table td:nth-child(5) { width: 100px; text-align: center; }
+.backups-table th:nth-child(5), .backups-table td:nth-child(5) { width: 130px; text-align: center; }
 
 .backups-table th {
   text-align: left;
@@ -834,6 +834,8 @@ input:checked + .slider:before { transform: translateX(22px); }
   cursor: pointer;
   transition: all 0.25s ease;
   font-family: 'Montserrat', sans-serif;
+  position: relative;
+  isolation: isolate;
 }
 
 .btn-save-small:hover:not(:disabled) {
@@ -1016,7 +1018,7 @@ input:checked + .slider:before { transform: translateX(22px); }
   line-height: 1.5;
 }
 
-/* FIX botones scheduler */
+/* FIX botones scheduler — evita que badges globales floten encima */
 .automation-panel > .automation-actions-row {
   display: flex;
   flex-direction: row;
@@ -1032,4 +1034,6 @@ input:checked + .slider:before { transform: translateX(22px); }
 .automation-panel > .automation-actions-row .btn-save-small {
   width: auto;
   flex: none;
+  position: relative;
+  isolation: isolate;
 }

@@ -31,7 +31,7 @@ const AdminBackupsScreen: React.FC = () => {
     const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // Estado para confirmar eliminación
-    const [backupToDelete, setBackupToDelete] = useState<{id: string, name: string} | null>(null);
+    const [backupToDelete, setBackupToDelete] = useState<{id: string, name: string, type: string} | null>(null);
 
     // Estado para descarga desde Cloudinary — guarda el id del backup en descarga
     const [downloadingCloudId, setDownloadingCloudId] = useState<string | null>(null);
@@ -185,8 +185,8 @@ const AdminBackupsScreen: React.FC = () => {
     };
 
     // ─── MODAL ELIMINACIÓN ────────────────────────────────────────────────
-    const handleDeleteBackup = (id: string, name: string) => {
-        setBackupToDelete({ id, name });
+    const handleDeleteBackup = (id: string, name: string, type: string) => {
+        setBackupToDelete({ id, name, type });
     };
 
     const confirmDeleteBackup = async () => {
@@ -468,21 +468,25 @@ const AdminBackupsScreen: React.FC = () => {
                         </div>
 
                         <div className="automation-actions-row">
-                            <button
-                                className="btn-run-now"
-                                onClick={handleRunNow}
-                                disabled={isRunningNow}
-                                title="Ejecuta un respaldo automático ahora mismo para probar"
-                            >
-                                {isRunningNow ? '⏳ Ejecutando...' : '▶ Probar Ahora'}
-                            </button>
-                            <button
-                                className="btn-save-small"
-                                onClick={handleSaveScheduler}
-                                disabled={isSavingScheduler}
-                            >
-                                {isSavingScheduler ? 'Guardando...' : '💾 Guardar Configuración'}
-                            </button>
+                            <div style={{ position: 'relative', isolation: 'isolate' }}>
+                                <button
+                                    className="btn-run-now"
+                                    onClick={handleRunNow}
+                                    disabled={isRunningNow}
+                                    title="Ejecuta un respaldo automático ahora mismo para probar"
+                                >
+                                    {isRunningNow ? '⏳ Ejecutando...' : '▶ Probar Ahora'}
+                                </button>
+                            </div>
+                            <div style={{ position: 'relative', isolation: 'isolate' }}>
+                                <button
+                                    className="btn-save-small"
+                                    onClick={handleSaveScheduler}
+                                    disabled={isSavingScheduler}
+                                >
+                                    {isSavingScheduler ? 'Guardando...' : '💾 Guardar Configuración'}
+                                </button>
+                            </div>
                         </div>
                     </>
                 )}
@@ -556,7 +560,7 @@ const AdminBackupsScreen: React.FC = () => {
                                                         <button 
                                                             className="btn-icon delete" 
                                                             title="Eliminar Registro"
-                                                            onClick={() => handleDeleteBackup(backup.id, backup.name)}
+                                                            onClick={() => handleDeleteBackup(backup.id, backup.name, backup.type)}
                                                         >🗑️</button>
                                                     </div>
                                                 </td>
@@ -785,7 +789,9 @@ const AdminBackupsScreen: React.FC = () => {
                                     {backupToDelete.name}
                                 </span>
                                 <p style={{ fontSize: '0.85rem', marginTop: '0.8rem', opacity: 0.9 }}>
-                                    Esta acción no se puede deshacer. El archivo se borrará del sistema y de Cloudinary.
+                                    {backupToDelete.type === 'automatico'
+                                        ? 'Esta acción no se puede deshacer. El registro se eliminará del historial y el archivo se borrará de Cloudinary.'
+                                        : 'Esta acción no se puede deshacer. El registro se eliminará del historial.'}
                                 </p>
                             </div>
                         </div>
