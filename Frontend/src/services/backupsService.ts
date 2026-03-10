@@ -257,4 +257,126 @@ export const backupsService = {
       return { success: false, message: 'Error de conexión con el servidor' };
     }
   },
+
+  /**
+   * Obtiene la lista de tablas disponibles en la BD
+   */
+  async getTablesList(): Promise<{ tabla: string; filas: number }[]> {
+    try {
+      const response = await fetch(`${API_URL}/tables`);
+      if (!response.ok) throw new Error('Error al obtener tablas');
+      const data = await response.json();
+      return data.tables || [];
+    } catch (error) {
+      console.error("Error en getTablesList:", error);
+      return [];
+    }
+  },
+
+  /**
+   * Descarga el .dump de una tabla específica con selector de carpeta
+   */
+  async downloadCollectionBackup(tabla: string): Promise<void> {
+    const downloadUrl = `${API_URL}/collection/${tabla}`;
+    const ahora = new Date();
+    const localString = ahora.toLocaleString('es-MX', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false,
+    });
+    const nombreLimpio = localString.replace(/\//g, '-').replace(/, /g, '_').replace(/:/g, '-');
+    const nombreSugerido = `respaldo_${tabla}_${nombreLimpio}.dump`;
+
+    if ('showSaveFilePicker' in window) {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: nombreSugerido,
+          types: [{
+            description: 'PostgreSQL Backup File',
+            accept: { 'application/octet-stream': ['.dump'] },
+          }],
+        });
+        const response = await fetch(downloadUrl);
+        if (!response.ok) throw new Error('Error al conectar con el servidor');
+        const writable = await handle.createWritable();
+        if (response.body) {
+          await response.body.pipeTo(writable);
+        } else {
+          throw new Error('No se recibió cuerpo de respuesta');
+        }
+        console.log(`✅ Colección ${tabla} guardada como ${nombreSugerido}`);
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          console.log('Descarga cancelada por el usuario.');
+        } else {
+          console.error('Error FileSystem API:', err);
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.setAttribute('download', nombreSugerido);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        }
+      }
+    } else {
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', nombreSugerido);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+  },
+
+  /**
+   * Descarga una tabla como CSV con selector de carpeta
+   */
+  async downloadCollectionCSV(tabla: string): Promise<void> {
+    const downloadUrl = `${API_URL}/collection/${tabla}/csv`;
+    const ahora = new Date();
+    const localString = ahora.toLocaleString('es-MX', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false,
+    });
+    const nombreLimpio = localString.replace(/\//g, '-').replace(/, /g, '_').replace(/:/g, '-');
+    const nombreSugerido = `respaldo_${tabla}_${nombreLimpio}.csv`;
+
+    if ('showSaveFilePicker' in window) {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: nombreSugerido,
+          types: [{ description: 'CSV File', accept: { 'text/csv': ['.csv'] } }],
+        });
+        const response = await fetch(downloadUrl);
+        if (!response.ok) throw new Error('Error al conectar con el servidor');
+        const writable = await handle.createWritable();
+        if (response.body) {
+          await response.body.pipeTo(writable);
+        } else {
+          throw new Error('No se recibió cuerpo de respuesta');
+        }
+        console.log(`✅ CSV ${tabla} guardado como ${nombreSugerido}`);
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          console.log('Descarga cancelada por el usuario.');
+        } else {
+          console.error('Error FileSystem API:', err);
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.setAttribute('download', nombreSugerido);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        }
+      }
+    } else {
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', nombreSugerido);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+  },
 };

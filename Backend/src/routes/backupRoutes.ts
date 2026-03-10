@@ -2,7 +2,8 @@
 import { Router } from 'express';
 import { generateDirectBackup, getBackupsHistory, getBackupLogContent, downloadBackupLog,
     getSchedulerStatus,updateSchedulerConfig, runSchedulerNow,
-    getDatabaseHealth, performMaintenance, deleteBackup } from '../controllers/backup/backupController';    
+    getDatabaseHealth, performMaintenance, deleteBackup,
+    getTablesList, downloadCollectionBackup, downloadCollectionCSV } from '../controllers/backup/backupController';    
 const router = Router();
 
 // Esta ruta será: http://localhost:5000/api/backups/direct-download
@@ -30,4 +31,13 @@ router.post('/maintenance', performMaintenance);
 // ─── Eliminar respaldo manualmente
 // DELETE /api/backups/:backupId → eliminar respaldo por ID
 router.delete('/:backupId', deleteBackup);
+
+// ─── Respaldo de colección (tabla específica)
+// GET  /api/backups/tables              → lista de tablas disponibles
+router.get('/tables', getTablesList);
+// GET  /api/backups/collection/:tabla   → descarga .dump de una tabla
+router.get('/collection/:tabla', downloadCollectionBackup);
+// GET  /api/backups/collection/:tabla/csv  → descarga .csv de una tabla
+router.get('/collection/:tabla/csv', downloadCollectionCSV);
+
 export default router;

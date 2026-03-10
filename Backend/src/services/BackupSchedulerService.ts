@@ -16,6 +16,7 @@ export class BackupSchedulerService {
   private static taskDiario:   ReturnType<typeof cron.schedule> | null = null;
   private static taskSemanal:  ReturnType<typeof cron.schedule> | null = null;
   private static taskMensual:  ReturnType<typeof cron.schedule> | null = null;
+  private static taskCada5min: ReturnType<typeof cron.schedule> | null = null;
   private static taskLimpieza: ReturnType<typeof cron.schedule> | null = null;
   private static isRunning = false;
 
@@ -55,7 +56,7 @@ export class BackupSchedulerService {
         {
           resource_type: 'raw',
           folder: 'joyeria_backups',
-          public_id: fileName, // incluimos .dump — Cloudinary raw conserva la extensión
+          public_id: fileName,
           use_filename: true,
           unique_filename: false,
         },
@@ -66,6 +67,12 @@ export class BackupSchedulerService {
       );
       uploadStream.end(buffer);
     });
+  }
+
+  // ─── HELPER: extraer public_id de URL de Cloudinary ──────────────────────
+  private static extractPublicIdFromCloudinary(url: string): string | null {
+    const match = url.match(/\/joyeria_backups\/(.+)$/);
+    return match ? `joyeria_backups/${match[1]}` : null;
   }
 
   // ─── EJECUTAR UN RESPALDO AUTOMÁTICO ─────────────────────────────────────
@@ -128,19 +135,14 @@ export class BackupSchedulerService {
           env: { ...process.env, PGPASSWORD: process.env.DB_PASSWORD },
         });
 
-        // stdout → acumulamos chunks en memoria
         dump.stdout.on('data', (chunk: Buffer) => chunks.push(chunk));
-
-        // stderr → log
         dump.stderr.on('data', (data: Buffer) => {
           logAcumulado += data.toString().replace(/pg_dump: /g, '');
         });
-
         dump.on('close', (code: number | null) => {
           if (code === 0) resolve(Buffer.concat(chunks));
           else reject(new Error(`pg_dump salió con código ${code}`));
         });
-
         dump.on('error', reject);
       });
 
@@ -164,7 +166,7 @@ export class BackupSchedulerService {
 
       console.log(`✅ [BackupScheduler] Respaldo completado: ${fileName} (${fileSizeMB} MB)`);
 
-      // ── Limpieza de registros viejos en BD ────────────────────────────
+      // ── Limpieza de registros viejos ──────────────────────────────────
       await this.cleanOldDbRecords();
 
     } catch (error: any) {
@@ -187,21 +189,49 @@ export class BackupSchedulerService {
     }
   }
 
-  // ─── LIMPIAR REGISTROS VIEJOS EN BD ──────────────────────────────────────
+  // ─── LIMPIAR REGISTROS VIEJOS EN BD + CLOUDINARY ─────────────────────────
   static async cleanOldDbRecords(): Promise<void> {
     try {
       const config = await this.getConfig();
+
+      // Obtener registros viejos antes de borrarlos para limpiar Cloudinary
+      const viejos = await pool.query(
+        `SELECT id, url_archivo FROM respaldos_historial
+         WHERE tipo = 'automatico'
+           AND fecha_creacion < NOW() - (interval '1 day' * $1)`,
+        [config.retencion_dias]
+      );
+
+      if (!viejos.rows.length) return;
+
+      // Borrar de Cloudinary los que tengan URL
+      for (const row of viejos.rows) {
+        if (row.url_archivo) {
+          try {
+            const publicId = this.extractPublicIdFromCloudinary(row.url_archivo);
+            if (publicId) {
+              await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+              console.log(`☁️  [Limpieza] Eliminado de Cloudinary: ${publicId}`);
+            }
+          } catch (cloudErr) {
+            console.error(`⚠️  [Limpieza] Error al eliminar de Cloudinary (id=${row.id}):`, cloudErr);
+          }
+        }
+      }
+
+      // Borrar de BD
       const result = await pool.query(
         `DELETE FROM respaldos_historial
          WHERE tipo = 'automatico'
            AND fecha_creacion < NOW() - (interval '1 day' * $1)`,
         [config.retencion_dias]
       );
+
       if (result.rowCount && result.rowCount > 0) {
-        console.log(`🧹 [BackupScheduler] ${result.rowCount} registros BD eliminados por retención (${config.retencion_dias} días)`);
+        console.log(`🧹 [BackupScheduler] ${result.rowCount} registros eliminados (retención: ${config.retencion_dias} días)`);
       }
     } catch (err) {
-      console.error('⚠️  [BackupScheduler] Error limpiando registros BD:', err);
+      console.error('⚠️  [BackupScheduler] Error limpiando registros:', err);
     }
   }
 
@@ -219,10 +249,10 @@ export class BackupSchedulerService {
 
   // ─── DETENER TODOS LOS TASKS ──────────────────────────────────────────────
   static stopAll(): void {
-    [this.taskDiario, this.taskSemanal, this.taskMensual, this.taskLimpieza].forEach(t => {
+    [this.taskDiario, this.taskSemanal, this.taskMensual, this.taskCada5min, this.taskLimpieza].forEach(t => {
       if (t) t.stop();
     });
-    this.taskDiario = this.taskSemanal = this.taskMensual = this.taskLimpieza = null;
+    this.taskDiario = this.taskSemanal = this.taskMensual = this.taskCada5min = this.taskLimpieza = null;
     console.log('⏹️  [BackupScheduler] Todos los cron jobs detenidos');
   }
 
@@ -237,24 +267,26 @@ export class BackupSchedulerService {
     }
 
     const cronExpr = this.timeToCron(config.hora, config.frecuencia);
-    console.log(`⏰ [BackupScheduler] Programando respaldo ${config.frecuencia} a las ${config.hora} → cron: "${cronExpr}"`);
+    console.log(`⏰ [BackupScheduler] Programando respaldo ${config.frecuencia} → cron: "${cronExpr}"`);
 
     const task = cron.schedule(cronExpr, async () => {
       console.log(`\n🤖 [BackupScheduler] Disparando respaldo ${config.frecuencia}...`);
       await this.runScheduledBackup();
     }, { timezone: 'America/Mexico_City' });
 
-    if (config.frecuencia === 'diario')       this.taskDiario  = task;
-    else if (config.frecuencia === 'semanal') this.taskSemanal = task;
-    else                                      this.taskMensual = task;
+    if (config.frecuencia === 'diario')        this.taskDiario   = task;
+    else if (config.frecuencia === 'semanal')  this.taskSemanal  = task;
+    else if (config.frecuencia === 'cada5min') this.taskCada5min = task;
+    else                                       this.taskMensual  = task;
 
-    // Limpieza diaria de registros viejos en BD a las 4:00 AM
-    this.taskLimpieza = cron.schedule('0 4 * * *', async () => {
+    // Limpieza: si retención < 1 día → cada hora; si no → diario a las 4AM
+    const cronLimpieza = config.retencion_dias < 1 ? '0 * * * *' : '0 4 * * *';
+    this.taskLimpieza = cron.schedule(cronLimpieza, async () => {
       console.log('🧹 [BackupScheduler] Ejecutando limpieza programada...');
       await this.cleanOldDbRecords();
     }, { timezone: 'America/Mexico_City' });
 
-    console.log(`✅ [BackupScheduler] Iniciado. Retención: ${config.retencion_dias} días`);
+    console.log(`✅ [BackupScheduler] Iniciado. Retención: ${config.retencion_dias} días — limpieza cron: ${cronLimpieza}`);
   }
 
   // ─── RE-INICIAR DESPUÉS DE CAMBIO DE CONFIG ───────────────────────────────
@@ -272,7 +304,7 @@ export class BackupSchedulerService {
     lastRun: string | null;
   }> {
     const config = await this.getConfig();
-    const hasTask = !!(this.taskDiario || this.taskSemanal || this.taskMensual);
+    const hasTask = !!(this.taskDiario || this.taskSemanal || this.taskMensual || this.taskCada5min);
 
     let lastRun: string | null = null;
     try {

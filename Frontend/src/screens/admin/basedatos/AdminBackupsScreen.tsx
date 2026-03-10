@@ -36,6 +36,14 @@ const AdminBackupsScreen: React.FC = () => {
     // Estado para descarga desde Cloudinary — guarda el id del backup en descarga
     const [downloadingCloudId, setDownloadingCloudId] = useState<string | null>(null);
 
+    // Estados para modal de respaldo de colección
+    const [showCollectionModal, setShowCollectionModal] = useState(false);
+    const [tablesList, setTablesList] = useState<{ tabla: string; filas: number }[]>([]);
+    const [selectedTable, setSelectedTable] = useState<string | null>(null);
+    const [selectedFormat, setSelectedFormat] = useState<'dump' | 'csv'>('dump');
+    const [isLoadingTables, setIsLoadingTables] = useState(false);
+    const [isDownloadingCollection, setIsDownloadingCollection] = useState(false);
+
     const [schedForm, setSchedForm] = useState<SchedulerConfig>({
         enabled: false,
         frecuencia: 'diario' as 'cada5min' | 'diario' | 'semanal' | 'mensual',
@@ -125,6 +133,40 @@ const AdminBackupsScreen: React.FC = () => {
             setHealthData({ error: true, message: 'Error interno en el servidor.' });
         } finally {
             setIsCheckingHealth(false);
+        }
+    };
+
+    // ─── MODAL COLECCIÓN ──────────────────────────────────────────────────
+    const handleOpenCollectionModal = async () => {
+        setShowCollectionModal(true);
+        setSelectedTable(null);
+        setSelectedFormat('dump');
+        setIsLoadingTables(true);
+        try {
+            const tables = await backupsService.getTablesList();
+            setTablesList(tables);
+        } catch (error) {
+            console.error("Error al cargar tablas:", error);
+        } finally {
+            setIsLoadingTables(false);
+        }
+    };
+
+    const handleDownloadCollection = async () => {
+        if (!selectedTable) return;
+        setIsDownloadingCollection(true);
+        try {
+            if (selectedFormat === 'csv') {
+                await backupsService.downloadCollectionCSV(selectedTable);
+            } else {
+                await backupsService.downloadCollectionBackup(selectedTable);
+            }
+        } catch (error) {
+            console.error("Error al descargar colección:", error);
+            setSchedulerToast({ msg: '❌ Error al descargar la colección', ok: false });
+        } finally {
+            setIsDownloadingCollection(false);
+            setShowCollectionModal(false);
         }
     };
 
@@ -285,11 +327,11 @@ const AdminBackupsScreen: React.FC = () => {
             </div>
 
             {/* Grid de Acciones */}
-            <div className="backup-stats-grid single-card">
-                <div className="stat-card action-card">
+            <div className="backup-stats-grid" style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                <div className="stat-card action-card" style={{ flex: 1, minWidth: '260px' }}>
                     <div className="stat-icon">📥</div>
                     <div className="stat-content">
-                        <span className="stat-label">Respaldo Manual</span>
+                        <span className="stat-label">Respaldo Manual Completo</span>
                         <button 
                             className={`btn-primary ${isDownloading ? 'loading' : ''}`} 
                             onClick={handleGenerateAndDownload}
@@ -297,7 +339,22 @@ const AdminBackupsScreen: React.FC = () => {
                         >
                             {isDownloading ? 'Generando archivo...' : 'Descargar .DUMP Actual'}
                         </button>
-                        <p className="help-text">Genera una copia binaria y permite elegir destino local.</p>
+                        <p className="help-text">Genera una copia binaria completa y permite elegir destino local.</p>
+                    </div>
+                </div>
+
+                <div className="stat-card action-card" style={{ flex: 1, minWidth: '260px' }}>
+                    <div className="stat-icon">🗂️</div>
+                    <div className="stat-content">
+                        <span className="stat-label">Respaldo de Colección</span>
+                        <button 
+                            className="btn-primary"
+                            onClick={handleOpenCollectionModal}
+                            disabled={isRestoring}
+                        >
+                            Seleccionar Tabla
+                        </button>
+                        <p className="help-text">Descarga el .dump de una tabla específica de la base de datos.</p>
                     </div>
                 </div>
             </div>
@@ -456,13 +513,13 @@ const AdminBackupsScreen: React.FC = () => {
                                         backups.map((backup) => (
                                             <tr key={backup.id}>
                                                 <td style={{ textAlign: 'center' }}>
-                                                    {backup.type === 'manual' ? '✋' : '🤖'}
+                                                    {backup.type === 'manual' ? '✋' : backup.type === 'coleccion' ? '🗂️' : '🤖'}
                                                 </td>
                                                 <td>
                                                     <div className="backup-name">
                                                         <strong>{backup.name}</strong>
                                                         <small>
-                                                            ID: {backup.id} | Por: {backup.created_by || (backup.type === 'automatico' ? 'Sistema Automático' : 'Admin')}
+                                                            ID: {backup.id} | Por: {backup.created_by || (backup.type === 'automatico' ? 'Sistema Automático' : backup.type === 'coleccion' ? 'Admin (Colección)' : 'Admin')}
                                                         </small>
                                                         {/* Etiqueta de almacenamiento en nube */}
                                                         {backup.url_archivo && (
@@ -738,6 +795,99 @@ const AdminBackupsScreen: React.FC = () => {
                             </button>
                             <button className="btn-save" onClick={confirmDeleteBackup}>
                                 Sí, eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── MODAL RESPALDO DE COLECCIÓN ── */}
+            {showCollectionModal && (
+                <div className="modal-overlay" onClick={() => { if (!isDownloadingCollection) setShowCollectionModal(false); }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>🗂️ Respaldo de Colección</h2>
+                            {!isDownloadingCollection && (
+                                <button className="btn-close" onClick={() => setShowCollectionModal(false)}>×</button>
+                            )}
+                        </div>
+                        <div className="modal-body">
+                            <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                                Selecciona la tabla y el formato de descarga.
+                            </p>
+
+                            {/* Selector de formato */}
+                            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.2rem' }}>
+                                <div
+                                    onClick={() => setSelectedFormat('dump')}
+                                    style={{
+                                        flex: 1, padding: '0.75rem', borderRadius: '8px', cursor: 'pointer', textAlign: 'center',
+                                        border: selectedFormat === 'dump' ? '1px solid #ECB2C3' : '1px solid rgba(255,255,255,0.1)',
+                                        background: selectedFormat === 'dump' ? 'rgba(236,178,195,0.1)' : 'rgba(255,255,255,0.03)',
+                                        transition: 'all 0.2s',
+                                    }}
+                                >
+                                    <div style={{ fontSize: '1.4rem' }}>🗄️</div>
+                                    <div style={{ fontWeight: 600, fontSize: '0.9rem', marginTop: '0.3rem' }}>.dump</div>
+                                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.2rem' }}>Restaurable con pg_restore</div>
+                                </div>
+                                <div
+                                    onClick={() => setSelectedFormat('csv')}
+                                    style={{
+                                        flex: 1, padding: '0.75rem', borderRadius: '8px', cursor: 'pointer', textAlign: 'center',
+                                        border: selectedFormat === 'csv' ? '1px solid #ECB2C3' : '1px solid rgba(255,255,255,0.1)',
+                                        background: selectedFormat === 'csv' ? 'rgba(236,178,195,0.1)' : 'rgba(255,255,255,0.03)',
+                                        transition: 'all 0.2s',
+                                    }}
+                                >
+                                    <div style={{ fontSize: '1.4rem' }}>📊</div>
+                                    <div style={{ fontWeight: 600, fontSize: '0.9rem', marginTop: '0.3rem' }}>.csv</div>
+                                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.2rem' }}>Abrir en Excel o editor</div>
+                                </div>
+                            </div>
+
+                            {/* Lista de tablas */}
+                            {isLoadingTables ? (
+                                <div style={{ textAlign: 'center', padding: '2rem', color: '#ECB2C3' }}>
+                                    <span className="spinner-small"></span> Cargando tablas...
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '280px', overflowY: 'auto' }}>
+                                    {tablesList.map((t) => (
+                                        <div
+                                            key={t.tabla}
+                                            onClick={() => setSelectedTable(t.tabla)}
+                                            style={{
+                                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                                padding: '0.75rem 1rem', borderRadius: '8px', cursor: 'pointer',
+                                                border: selectedTable === t.tabla ? '1px solid #ECB2C3' : '1px solid rgba(255,255,255,0.1)',
+                                                background: selectedTable === t.tabla ? 'rgba(236,178,195,0.1)' : 'rgba(255,255,255,0.03)',
+                                                transition: 'all 0.2s',
+                                            }}
+                                        >
+                                            <span style={{ fontFamily: 'monospace', fontSize: '0.95rem' }}>
+                                                {selectedTable === t.tabla ? '✅ ' : ''}{t.tabla}
+                                            </span>
+                                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
+                                                {Number(t.filas).toLocaleString()} filas
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-cancel" onClick={() => setShowCollectionModal(false)} disabled={isDownloadingCollection}>
+                                Cancelar
+                            </button>
+                            <button
+                                className="btn-save"
+                                onClick={handleDownloadCollection}
+                                disabled={!selectedTable || isDownloadingCollection}
+                            >
+                                {isDownloadingCollection
+                                    ? '⏳ Generando...'
+                                    : selectedFormat === 'csv' ? '📊 Descargar .csv' : '📥 Descargar .dump'}
                             </button>
                         </div>
                     </div>

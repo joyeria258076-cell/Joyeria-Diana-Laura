@@ -300,6 +300,194 @@ export const performMaintenance = async (req: Request, res: Response) => {
 };
 
 /**
+ * GET /api/backups/tables
+ * Devuelve la lista de tablas públicas de la BD
+ */
+export const getTablesList = async (req: Request, res: Response) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                relname as tabla,
+                n_live_tup as filas
+            FROM pg_stat_user_tables
+            WHERE schemaname = 'public'
+            ORDER BY relname ASC
+        `);
+        res.json({ success: true, tables: result.rows });
+    } catch (error) {
+        console.error('Error al obtener tablas:', error);
+        res.status(500).json({ error: 'No se pudo obtener la lista de tablas' });
+    }
+};
+
+/**
+ * GET /api/backups/collection/:tabla
+ * Genera un pg_dump de una tabla específica y lo descarga como .dump
+ */
+export const downloadCollectionBackup = async (req: Request, res: Response) => {
+    const { tabla } = req.params;
+
+    // Validar que la tabla existe en la BD para evitar inyección
+    try {
+        const check = await pool.query(
+            `SELECT relname FROM pg_stat_user_tables WHERE schemaname = 'public' AND relname = $1`,
+            [tabla]
+        );
+        if (check.rows.length === 0) {
+            return res.status(404).json({ error: `La tabla "${tabla}" no existe` });
+        }
+    } catch (error) {
+        return res.status(500).json({ error: 'Error al validar la tabla' });
+    }
+
+    const ahora = new Date();
+    const localString = ahora.toLocaleString('es-MX', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+    });
+    const nombreLimpio = localString.replace(/\//g, '-').replace(/, /g, '_').replace(/:/g, '-');
+    const fileName = `respaldo_${tabla}_${nombreLimpio}.dump`;
+
+    try {
+        res.setHeader('Content-disposition', `attachment; filename=${fileName}`);
+        res.setHeader('Content-Type', 'application/octet-stream');
+
+        const pgDumpPath = process.env.NODE_ENV === 'production'
+            ? 'pg_dump'
+            : `C:\\Program Files\\PostgreSQL\\17\\bin\\pg_dump.exe`;
+
+        const dump = spawn(pgDumpPath, [
+            '-h', process.env.DB_HOST || 'aws-1-us-east-2.pooler.supabase.com',
+            '-p', process.env.DB_PORT || '6543',
+            '-U', process.env.DB_USER || '',
+            '-d', process.env.DB_NAME || 'postgres',
+            '-t', tabla,   // ← solo esta tabla
+            '-F', 'c',
+        ], {
+            env: { ...process.env, PGPASSWORD: process.env.DB_PASSWORD },
+        });
+
+        dump.stdout.pipe(res);
+
+        dump.stderr.on('data', (data) => {
+            console.log(`[CollectionBackup:${tabla}]`, data.toString().trim());
+        });
+
+        dump.on('close', async (code) => {
+            if (code === 0) {
+                console.log(`✅ [CollectionBackup] ${tabla} descargado correctamente`);
+                try {
+                    const usuario_id = (req as any).user?.id || null;
+                    await pool.query(
+                        `INSERT INTO respaldos_historial
+                            (nombre_archivo, tipo, estado, usuario_id, detalles_log)
+                         VALUES ($1, 'coleccion', 'completed', $2, $3)`,
+                        [fileName, usuario_id, `Respaldo de colección: tabla "${tabla}" — formato .dump`]
+                    );
+                } catch (dbErr) {
+                    console.error('[CollectionBackup] Error al guardar en historial:', dbErr);
+                }
+            } else {
+                console.error(`[CollectionBackup] pg_dump salió con código ${code}`);
+            }
+        });
+
+        dump.on('error', (err) => {
+            console.error('[CollectionBackup] Error spawn:', err);
+            if (!res.headersSent) res.status(500).json({ error: 'Error al iniciar pg_dump' });
+        });
+
+    } catch (error) {
+        console.error('Error en downloadCollectionBackup:', error);
+        if (!res.headersSent) res.status(500).json({ error: 'Error interno' });
+    }
+};
+
+/**
+ * GET /api/backups/collection/:tabla/csv
+ * Descarga una tabla como CSV usando COPY TO STDOUT
+ */
+export const downloadCollectionCSV = async (req: Request, res: Response) => {
+    const { tabla } = req.params;
+
+    // Validar que la tabla existe
+    try {
+        const check = await pool.query(
+            `SELECT relname FROM pg_stat_user_tables WHERE schemaname = 'public' AND relname = $1`,
+            [tabla]
+        );
+        if (check.rows.length === 0) {
+            return res.status(404).json({ error: `La tabla "${tabla}" no existe` });
+        }
+    } catch (error) {
+        return res.status(500).json({ error: 'Error al validar la tabla' });
+    }
+
+    const ahora = new Date();
+    const localString = ahora.toLocaleString('es-MX', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+    });
+    const nombreLimpio = localString.replace(/\//g, '-').replace(/, /g, '_').replace(/:/g, '-');
+    const fileName = `respaldo_${tabla}_${nombreLimpio}.csv`;
+
+    try {
+        const result = await pool.query(`SELECT * FROM "${tabla}"`);
+
+        if (result.rows.length === 0) {
+            // Tabla vacía — devolvemos solo los headers
+            const headersOnly = result.fields.map(f => f.name).join(',') + '\n';
+            res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+            res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+            return res.send(headersOnly);
+        }
+
+        // Construir CSV manualmente para mayor compatibilidad
+        const headers = result.fields.map(f => f.name);
+        const csvHeader = headers.join(',');
+        const csvRows = result.rows.map(row =>
+            headers.map(h => {
+                const val = row[h];
+                if (val === null || val === undefined) return '';
+                const str = String(val);
+                // Escapar comillas y envolver en comillas si contiene coma, comilla o salto
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+            }).join(',')
+        );
+
+        const csv = [csvHeader, ...csvRows].join('\n');
+
+        res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.send(csv);
+
+        console.log(`✅ [CollectionCSV] ${tabla} descargado como CSV (${result.rows.length} filas)`);
+
+        // Registrar en historial
+        try {
+            const usuario_id = (req as any).user?.id || null;
+            await pool.query(
+                `INSERT INTO respaldos_historial
+                    (nombre_archivo, tipo, estado, usuario_id, detalles_log)
+                 VALUES ($1, 'coleccion', 'completed', $2, $3)`,
+                [fileName, usuario_id, `Respaldo de colección: tabla "${tabla}" — formato .csv — ${result.rows.length} filas exportadas`]
+            );
+        } catch (dbErr) {
+            console.error('[CollectionCSV] Error al guardar en historial:', dbErr);
+        }
+
+    } catch (error) {
+        console.error('Error en downloadCollectionCSV:', error);
+        if (!res.headersSent) res.status(500).json({ error: 'Error al generar el CSV' });
+    }
+};
+
+/**
  * Extrae el public_id de Cloudinary desde una URL.
  * Para archivos raw, Cloudinary conserva la extensión en el public_id.
  * Ejemplo: https://res.cloudinary.com/CLOUD/raw/upload/v123/joyeria_backups/respaldo_auto_xxx.dump
