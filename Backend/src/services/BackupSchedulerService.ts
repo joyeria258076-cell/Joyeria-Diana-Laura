@@ -3,13 +3,11 @@
 import * as cron from 'node-cron';
 import { spawn } from 'child_process';
 import pool from '../config/database';
-import path from 'path';
-import fs from 'fs';
 import cloudinary from '../config/cloudinary';
 
 interface SchedulerConfig {
   enabled: boolean;
-  frecuencia: 'diario' | 'semanal' | 'mensual';
+  frecuencia: 'cada5min' | 'diario' | 'semanal' | 'mensual';
   hora: string;
   retencion_dias: number;
 }
@@ -50,16 +48,24 @@ export class BackupSchedulerService {
     );
   }
 
-  // ─── SUBIR ARCHIVO A CLOUDINARY ───────────────────────────────────────────
-  private static async uploadToCloudinary(filePath: string, fileName: string): Promise<string> {
-    const result = await cloudinary.uploader.upload(filePath, {
-      resource_type: 'raw',
-      folder: 'joyeria_backups',
-      public_id: fileName.replace('.dump', ''),
-      use_filename: true,
-      unique_filename: false,
+  // ─── SUBIR BUFFER A CLOUDINARY (sin archivo local) ────────────────────────
+  private static uploadBufferToCloudinary(buffer: Buffer, fileName: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'raw',
+          folder: 'joyeria_backups',
+          public_id: fileName, // incluimos .dump — Cloudinary raw conserva la extensión
+          use_filename: true,
+          unique_filename: false,
+        },
+        (error, result) => {
+          if (error || !result) return reject(error ?? new Error('Cloudinary no devolvió resultado'));
+          resolve(result.secure_url);
+        }
+      );
+      uploadStream.end(buffer);
     });
-    return result.secure_url;
   }
 
   // ─── EJECUTAR UN RESPALDO AUTOMÁTICO ─────────────────────────────────────
@@ -83,16 +89,13 @@ export class BackupSchedulerService {
 
     const fileName = `respaldo_auto_${nombreLimpio}.dump`;
 
-    const backupDir = process.env.BACKUP_DIR || path.join(process.cwd(), 'backups_automaticos');
-    if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
-    const filePath = path.join(backupDir, fileName);
-
     let logAcumulado = `--- RESPALDO AUTOMÁTICO: ${ahora.toLocaleString()} ---\n`;
     logAcumulado += `Servidor: ${process.env.DB_HOST || 'supabase.com'}\n`;
 
     console.log(`\n🤖 [BackupScheduler] Iniciando respaldo automático: ${fileName}`);
 
     try {
+      // ── Resumen de tablas ──────────────────────────────────────────────
       const stats = await pool.query(`
         SELECT relname as tabla, n_live_tup as filas
         FROM pg_stat_user_tables
@@ -106,12 +109,13 @@ export class BackupSchedulerService {
       });
       logAcumulado += `\n--- PROCESO PG_DUMP ---\n`;
 
-      await new Promise<void>((resolve, reject) => {
+      // ── pg_dump directo a buffer en memoria ───────────────────────────
+      const dumpBuffer = await new Promise<Buffer>((resolve, reject) => {
         const pgDumpPath = process.env.NODE_ENV === 'production'
           ? 'pg_dump'
           : `C:\\Program Files\\PostgreSQL\\17\\bin\\pg_dump.exe`;
 
-        const outStream = fs.createWriteStream(filePath);
+        const chunks: Buffer[] = [];
 
         const dump = spawn(pgDumpPath, [
           '-h', process.env.DB_HOST || 'aws-1-us-east-2.pooler.supabase.com',
@@ -124,39 +128,33 @@ export class BackupSchedulerService {
           env: { ...process.env, PGPASSWORD: process.env.DB_PASSWORD },
         });
 
-        dump.stdout.pipe(outStream);
+        // stdout → acumulamos chunks en memoria
+        dump.stdout.on('data', (chunk: Buffer) => chunks.push(chunk));
 
+        // stderr → log
         dump.stderr.on('data', (data: Buffer) => {
           logAcumulado += data.toString().replace(/pg_dump: /g, '');
         });
 
         dump.on('close', (code: number | null) => {
-          if (code === 0) resolve();
+          if (code === 0) resolve(Buffer.concat(chunks));
           else reject(new Error(`pg_dump salió con código ${code}`));
         });
 
         dump.on('error', reject);
       });
 
-      const fileSizeBytes = fs.statSync(filePath).size;
-      const fileSizeMB = (fileSizeBytes / 1024 / 1024).toFixed(2);
-
+      const fileSizeMB = (dumpBuffer.length / 1024 / 1024).toFixed(2);
       logAcumulado += `\n--- FINALIZADO A LAS ${new Date().toLocaleTimeString()} ---`;
       logAcumulado += `\nTamaño generado: ${fileSizeMB} MB`;
 
-      // ── SUBIR A CLOUDINARY ──────────────────────────────────────────────
-      let urlArchivo: string | null = null;
-      try {
-        console.log(`☁️  [BackupScheduler] Subiendo a Cloudinary...`);
-        urlArchivo = await this.uploadToCloudinary(filePath, fileName);
-        logAcumulado += `\nCloudinary URL: ${urlArchivo}`;
-        console.log(`✅ [BackupScheduler] Subido a Cloudinary: ${urlArchivo}`);
-      } catch (cloudErr: any) {
-        console.error(`⚠️  [BackupScheduler] No se pudo subir a Cloudinary:`, cloudErr.message);
-        logAcumulado += `\n⚠️ Cloudinary falló: ${cloudErr.message} — archivo conservado localmente`;
-      }
-      // ───────────────────────────────────────────────────────────────────
+      // ── Subir buffer a Cloudinary ──────────────────────────────────────
+      console.log(`☁️  [BackupScheduler] Subiendo a Cloudinary... (${fileSizeMB} MB)`);
+      const urlArchivo = await this.uploadBufferToCloudinary(dumpBuffer, fileName);
+      logAcumulado += `\nCloudinary URL: ${urlArchivo}`;
+      console.log(`✅ [BackupScheduler] Subido a Cloudinary: ${urlArchivo}`);
 
+      // ── Guardar registro en BD ─────────────────────────────────────────
       await pool.query(
         `INSERT INTO respaldos_historial
           (nombre_archivo, tipo, estado, tamano, usuario_id, detalles_log, url_archivo)
@@ -166,8 +164,7 @@ export class BackupSchedulerService {
 
       console.log(`✅ [BackupScheduler] Respaldo completado: ${fileName} (${fileSizeMB} MB)`);
 
-      // 👇 AQUÍ ESTÁ LA MAGIA QUE FALTABA PARA PROBAR AL INSTANTE
-      await this.cleanOldFiles(backupDir);
+      // ── Limpieza de registros viejos en BD ────────────────────────────
       await this.cleanOldDbRecords();
 
     } catch (error: any) {
@@ -185,38 +182,12 @@ export class BackupSchedulerService {
         console.error('❌ [BackupScheduler] No se pudo guardar el error en BD:', dbErr);
       }
 
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-
     } finally {
       this.isRunning = false;
     }
   }
 
-  // ─── LIMPIAR ARCHIVOS VIEJOS EN DISCO ─────────────────────────────────────
-  static async cleanOldFiles(dir: string): Promise<void> {
-    try {
-      const config = await this.getConfig();
-      const cutoff = Date.now() - config.retencion_dias * 24 * 60 * 60 * 1000;
-      const files = fs.readdirSync(dir);
-      let deleted = 0;
-      for (const file of files) {
-        const filePath = path.join(dir, file);
-        const stat = fs.statSync(filePath);
-        if (stat.mtimeMs < cutoff) {
-          fs.unlinkSync(filePath);
-          deleted++;
-          console.log(`🗑️  [BackupScheduler] Archivo eliminado por retención: ${file}`);
-        }
-      }
-      if (deleted > 0) {
-        console.log(`🧹 [BackupScheduler] ${deleted} archivos eliminados por política de retención`);
-      }
-    } catch (err) {
-      console.error('⚠️  [BackupScheduler] Error limpiando archivos viejos:', err);
-    }
-  }
-
-  // ─── LIMPIAR REGISTROS VIEJOS EN BD (Consulta Segura) ─────────────────────
+  // ─── LIMPIAR REGISTROS VIEJOS EN BD ──────────────────────────────────────
   static async cleanOldDbRecords(): Promise<void> {
     try {
       const config = await this.getConfig();
@@ -226,7 +197,6 @@ export class BackupSchedulerService {
            AND fecha_creacion < NOW() - (interval '1 day' * $1)`,
         [config.retencion_dias]
       );
-      // count de registros borrados
       if (result.rowCount && result.rowCount > 0) {
         console.log(`🧹 [BackupScheduler] ${result.rowCount} registros BD eliminados por retención (${config.retencion_dias} días)`);
       }
@@ -239,10 +209,11 @@ export class BackupSchedulerService {
   private static timeToCron(hora: string, frecuencia: string): string {
     const [h, m] = hora.split(':').map(Number);
     switch (frecuencia) {
-      case 'diario':  return `${m} ${h} * * *`;
-      case 'semanal': return `${m} ${h} * * 0`;
-      case 'mensual': return `${m} ${h} 1 * *`;
-      default:        return `${m} ${h} * * *`;
+      case 'cada5min': return `*/5 * * * *`;
+      case 'diario':   return `${m} ${h} * * *`;
+      case 'semanal':  return `${m} ${h} * * 0`;
+      case 'mensual':  return `${m} ${h} 1 * *`;
+      default:         return `${m} ${h} * * *`;
     }
   }
 
@@ -277,10 +248,9 @@ export class BackupSchedulerService {
     else if (config.frecuencia === 'semanal') this.taskSemanal = task;
     else                                      this.taskMensual = task;
 
+    // Limpieza diaria de registros viejos en BD a las 4:00 AM
     this.taskLimpieza = cron.schedule('0 4 * * *', async () => {
       console.log('🧹 [BackupScheduler] Ejecutando limpieza programada...');
-      const backupDir = process.env.BACKUP_DIR || path.join(process.cwd(), 'backups_automaticos');
-      if (fs.existsSync(backupDir)) await this.cleanOldFiles(backupDir);
       await this.cleanOldDbRecords();
     }, { timezone: 'America/Mexico_City' });
 
@@ -318,7 +288,11 @@ export class BackupSchedulerService {
     return {
       running: config.enabled && hasTask,
       config,
-      nextRun: config.enabled ? `Próximo: ${config.frecuencia} a las ${config.hora}` : null,
+      nextRun: config.enabled
+        ? config.frecuencia === 'cada5min'
+          ? 'Próximo: cada 5 minutos'
+          : `Próximo: ${config.frecuencia} a las ${config.hora}`
+        : null,
       lastRun,
     };
   }

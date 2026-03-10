@@ -11,12 +11,13 @@ export interface Backup {
   created_at: string;
   created_by?: string;
   detalles_log?: string;
+  url_archivo?: string; // ← URL de Cloudinary para respaldos automáticos
 }
 
 // --- INTERFAZ DEL SCHEDULER ---
 export interface SchedulerConfig {
   enabled: boolean;
-  frecuencia: 'diario' | 'semanal' | 'mensual';
+  frecuencia: 'cada5min' | 'diario' | 'semanal' | 'mensual';
   hora: string;
   retencion_dias: number;
 }
@@ -112,6 +113,56 @@ export const backupsService = {
   },
 
   /**
+   * Descarga un respaldo automático desde Cloudinary
+   * Permite al usuario elegir dónde guardarlo (igual que el manual)
+   */
+  async downloadFromCloudinary(urlArchivo: string, fileName: string): Promise<void> {
+    if ('showSaveFilePicker' in window) {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: fileName,
+          types: [{
+            description: 'PostgreSQL Backup File',
+            accept: { 'application/octet-stream': ['.dump'] },
+          }],
+        });
+
+        const response = await fetch(urlArchivo);
+        if (!response.ok) throw new Error('No se pudo descargar el archivo desde Cloudinary');
+
+        const writable = await handle.createWritable();
+        if (response.body) {
+          await response.body.pipeTo(writable);
+        } else {
+          throw new Error('No se recibió cuerpo de respuesta');
+        }
+        console.log(`✅ Archivo ${fileName} guardado exitosamente.`);
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          console.log('Descarga cancelada por el usuario.');
+        } else {
+          console.error('Error usando FileSystem API:', err);
+          // Fallback: descarga directa sin selector
+          const link = document.createElement('a');
+          link.href = urlArchivo;
+          link.setAttribute('download', fileName);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        }
+      }
+    } else {
+      // Navegadores sin FileSystem API
+      const link = document.createElement('a');
+      link.href = urlArchivo;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+  },
+
+  /**
    * Método de respaldo para navegadores que no soportan FileSystem API
    */
   fallbackDownload(url: string): void {
@@ -127,9 +178,6 @@ export const backupsService = {
 
   // ─── MÉTODOS DEL SCHEDULER ────────────────────────────────────────────────
 
-  /**
-   * Obtiene el estado actual del scheduler
-   */
   async getSchedulerStatus(): Promise<SchedulerStatus | null> {
     try {
       const response = await fetch(`${API_URL}/scheduler/status`);
@@ -142,9 +190,6 @@ export const backupsService = {
     }
   },
 
-  /**
-   * Actualiza la configuración del scheduler
-   */
   async updateSchedulerConfig(config: SchedulerConfig): Promise<{ success: boolean; message: string }> {
     try {
       const response = await fetch(`${API_URL}/scheduler/config`, {
@@ -160,9 +205,6 @@ export const backupsService = {
     }
   },
 
-  /**
-   * Ejecuta un respaldo automático inmediatamente (prueba)
-   */
   async runSchedulerNow(): Promise<{ success: boolean; message: string }> {
     try {
       const response = await fetch(`${API_URL}/scheduler/run-now`, {
@@ -188,9 +230,6 @@ export const backupsService = {
     }
   },
 
-  /**
-   * Dispara el proceso de VACUUM ANALYZE
-   */
   async runMaintenance(): Promise<{ success: boolean; message: string }> {
     try {
       const response = await fetch(`${API_URL}/maintenance`, { method: 'POST' });
@@ -201,22 +240,21 @@ export const backupsService = {
     }
   },
 
-  deleteBackup: async (id: string): Promise<{ success: boolean; message: string }> => { // <-- Aquí
-        try {
-            const token = localStorage.getItem('token'); // Asegúrate de usar el nombre correcto de tu token
-            const response = await fetch(`${API_URL}/${id}`, { // <-- Quitamos /backups para evitar /api/backups/backups/id
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error("Error en deleteBackup:", error);
-            return { success: false, message: 'Error de conexión con el servidor' };
+  deleteBackup: async (id: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-    },
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error en deleteBackup:", error);
+      return { success: false, message: 'Error de conexión con el servidor' };
+    }
+  },
 };
-

@@ -3,6 +3,7 @@ import { spawn } from 'child_process';
 import pool from '../../config/database';
 import fs from 'fs';
 import path from 'path';
+import cloudinary from '../../config/cloudinary';
 import { BackupSchedulerService } from '../../services/BackupSchedulerService'; 
 
 /**
@@ -100,6 +101,7 @@ export const getBackupsHistory = async (req: Request, res: Response) => {
                 h.estado as status, 
                 h.tamano as size,
                 h.detalles_log,
+                h.url_archivo,
                 to_char(h.fecha_creacion AT TIME ZONE 'UTC' AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS') as created_at,
                 u.nombre as created_by
             FROM respaldos_historial h
@@ -169,13 +171,9 @@ export const getBackupLogContent = async (req: any, res: any) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ENDPOINTS DE AUTOMATIZACIÓN — NUEVOS
+// ENDPOINTS DE AUTOMATIZACIÓN
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * GET /api/backups/scheduler/status
- * Devuelve el estado actual del scheduler y su configuración
- */
 export const getSchedulerStatus = async (req: Request, res: Response) => {
     try {
         const status = await BackupSchedulerService.getStatus();
@@ -186,23 +184,18 @@ export const getSchedulerStatus = async (req: Request, res: Response) => {
     }
 };
 
-/**
- * POST /api/backups/scheduler/config
- * Actualiza la configuración del scheduler y lo reinicia
- * Body: { enabled, frecuencia, hora, retencion_dias }
- */
 export const updateSchedulerConfig = async (req: Request, res: Response) => {
     try {
         const { enabled, frecuencia, hora, retencion_dias } = req.body;
 
         if (typeof enabled !== 'boolean')
             return res.status(400).json({ error: 'El campo "enabled" debe ser boolean' });
-        if (!['diario', 'semanal', 'mensual'].includes(frecuencia))
-            return res.status(400).json({ error: 'frecuencia debe ser: diario, semanal o mensual' });
+        if (!['cada5min', 'diario', 'semanal', 'mensual'].includes(frecuencia))
+            return res.status(400).json({ error: 'frecuencia debe ser: cada5min, diario, semanal o mensual' });
         if (!/^\d{2}:\d{2}$/.test(hora))
             return res.status(400).json({ error: 'hora debe tener formato HH:MM (ej: 03:00)' });
-        if (typeof retencion_dias !== 'number' || retencion_dias < 1 || retencion_dias > 365)
-            return res.status(400).json({ error: 'retencion_dias debe ser un número entre 1 y 365' });
+        if (typeof retencion_dias !== 'number' || retencion_dias <= 0 || retencion_dias > 365)
+            return res.status(400).json({ error: 'retencion_dias debe ser un número entre 0 y 365' });
 
         const newConfig = { enabled, frecuencia, hora, retencion_dias };
         await BackupSchedulerService.restart(newConfig);
@@ -210,7 +203,9 @@ export const updateSchedulerConfig = async (req: Request, res: Response) => {
         res.json({
             success: true,
             message: enabled
-                ? `✅ Respaldo automático ${frecuencia} activado a las ${hora}`
+                ? frecuencia === 'cada5min'
+                    ? `✅ Respaldo automático cada 5 minutos activado`
+                    : `✅ Respaldo automático ${frecuencia} activado a las ${hora}`
                 : '⏹️ Respaldo automático desactivado',
             config: newConfig,
         });
@@ -220,10 +215,6 @@ export const updateSchedulerConfig = async (req: Request, res: Response) => {
     }
 };
 
-/**
- * POST /api/backups/scheduler/run-now
- * Ejecuta un respaldo automático inmediatamente (para pruebas)
- */
 export const runSchedulerNow = async (req: Request, res: Response) => {
     try {
         res.json({
@@ -242,7 +233,6 @@ export const runSchedulerNow = async (req: Request, res: Response) => {
 
 export const getDatabaseHealth = async (req: Request, res: Response) => {
     try {
-        // 1. Consulta de estadísticas generales
         const statsQuery = `
             SELECT 
                 pg_size_pretty(pg_database_size(current_database())) as total_size,
@@ -251,7 +241,6 @@ export const getDatabaseHealth = async (req: Request, res: Response) => {
                 to_char(pg_postmaster_start_time(), 'DD-MM-YYYY HH24:MI:SS') as uptime
         `;
 
-        // 2. Consulta de Salud de tablas con Cast ::numeric corregido
         const tablesQuery = `
             SELECT 
                 relname as table_name,
@@ -272,15 +261,13 @@ export const getDatabaseHealth = async (req: Request, res: Response) => {
         const stats = await pool.query(statsQuery);
         const tables = await pool.query(tablesQuery);
 
-        // Formatear datos adicionales para el frontend
         const responseData = {
             summary: stats.rows[0],
             tables: tables.rows,
             conexion: {
-                latencia: '12ms', // Ejemplo estático o calculado
+                latencia: '12ms',
                 servidor: process.env.DB_HOST || 'supabase.com'
             },
-            // Mapeo para el componente de salud del frontend
             vacuum: tables.rows.map(t => ({
                 tabla: t.table_name,
                 ultimo_vacuum: t.last_vacuum,
@@ -299,9 +286,6 @@ export const getDatabaseHealth = async (req: Request, res: Response) => {
     }
 };
 
-/**
- * Ejecuta VACUUM ANALYZE para optimizar la base de datos
- */
 export const performMaintenance = async (req: Request, res: Response) => {
     try {
         await pool.query('VACUUM ANALYZE');
@@ -316,38 +300,74 @@ export const performMaintenance = async (req: Request, res: Response) => {
 };
 
 /**
- * Elimina un respaldo específico (Registro de BD y Archivo Físico)
+ * Extrae el public_id de Cloudinary desde una URL.
+ * Para archivos raw, Cloudinary conserva la extensión en el public_id.
+ * Ejemplo: https://res.cloudinary.com/CLOUD/raw/upload/v123/joyeria_backups/respaldo_auto_xxx.dump
+ * → public_id: joyeria_backups/respaldo_auto_xxx.dump
+ */
+const extractCloudinaryPublicId = (url: string): string | null => {
+    try {
+        const match = url.match(/\/upload\/(?:v\d+\/)?(.+)$/);
+        if (!match) return null;
+        return match[1]; // Conservamos la extensión — requerido para archivos raw
+    } catch {
+        return null;
+    }
+};
+
+/**
+ * Elimina un respaldo específico:
+ * 1. Registro en BD
+ * 2. Archivo físico en disco (si existe)
+ * 3. Archivo en Cloudinary (si tiene url_archivo)
  */
 export const deleteBackup = async (req: Request, res: Response) => {
     try {
         const { backupId } = req.params;
-        const id = backupId; // Para no tener que cambiar el resto del código
-        // 1. Buscamos el archivo en la base de datos para saber su nombre
+
+        // 1. Buscamos el registro — incluimos url_archivo para Cloudinary
         const result = await pool.query(
-            "SELECT nombre_archivo FROM respaldos_historial WHERE id = $1", 
-            [id]
+            "SELECT nombre_archivo, url_archivo FROM respaldos_historial WHERE id = $1", 
+            [backupId]
         );
 
         if (result.rows.length === 0) {
             return res.status(404).json({ success: false, message: 'El registro no existe' });
         }
 
-        const fileName = result.rows[0].nombre_archivo;
+        const { nombre_archivo: fileName, url_archivo: urlArchivo } = result.rows[0];
 
-        // 2. Eliminamos el registro de la base de datos
-        await pool.query("DELETE FROM respaldos_historial WHERE id = $1", [id]);
+        // 2. Eliminamos el registro de la BD
+        await pool.query("DELETE FROM respaldos_historial WHERE id = $1", [backupId]);
 
-        // 3. Intentamos eliminar el archivo físico del disco duro
+        // 3. Eliminamos el archivo físico del disco (backups locales)
         const backupDir = process.env.BACKUP_DIR || path.join(process.cwd(), 'backups_automaticos');
         const filePath = path.join(backupDir, fileName);
 
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
+            console.log(`🗑️  [deleteBackup] Archivo local eliminado: ${fileName}`);
+        }
+
+        // 4. Eliminamos de Cloudinary si el registro tiene url_archivo
+        if (urlArchivo) {
+            const publicId = extractCloudinaryPublicId(urlArchivo);
+            if (publicId) {
+                try {
+                    await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+                    console.log(`☁️  [deleteBackup] Eliminado de Cloudinary: ${publicId}`);
+                } catch (cloudErr: any) {
+                    // No bloqueamos la respuesta si Cloudinary falla — el registro ya fue borrado
+                    console.error(`⚠️  [deleteBackup] No se pudo eliminar de Cloudinary:`, cloudErr.message);
+                }
+            }
         }
 
         res.json({ 
             success: true, 
-            message: 'Respaldo eliminado correctamente' 
+            message: urlArchivo
+                ? 'Respaldo eliminado del sistema y de Cloudinary'
+                : 'Respaldo eliminado correctamente'
         });
 
     } catch (error) {

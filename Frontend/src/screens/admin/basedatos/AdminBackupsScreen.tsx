@@ -15,7 +15,7 @@ const AdminBackupsScreen: React.FC = () => {
     const [selectedLog, setSelectedLog] = useState<Backup | null>(null);
     const [showLogModal, setShowLogModal] = useState(false);
 
-    // --- ESTADOS ORIGINALES (Salud) ---
+    // --- ESTADOS (Salud) ---
     const [isCheckingHealth, setIsCheckingHealth] = useState(false);
     const [showHealthModal, setShowHealthModal] = useState(false);
     const [healthData, setHealthData] = useState<any>(null);
@@ -30,12 +30,15 @@ const AdminBackupsScreen: React.FC = () => {
     const [schedulerToast, setSchedulerToast] = useState<{ msg: string; ok: boolean } | null>(null);
     const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    // Estado para confirmar eliminación (NUEVO)
+    // Estado para confirmar eliminación
     const [backupToDelete, setBackupToDelete] = useState<{id: string, name: string} | null>(null);
+
+    // Estado para descarga desde Cloudinary — guarda el id del backup en descarga
+    const [downloadingCloudId, setDownloadingCloudId] = useState<string | null>(null);
 
     const [schedForm, setSchedForm] = useState<SchedulerConfig>({
         enabled: false,
-        frecuencia: 'diario',
+        frecuencia: 'diario' as 'cada5min' | 'diario' | 'semanal' | 'mensual',
         hora: '03:00',
         retencion_dias: 7,
     });
@@ -76,7 +79,13 @@ const AdminBackupsScreen: React.FC = () => {
         return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
     }, []);
 
-    // Auto-ocultar toast
+    // Ticker para recalcular "próximo" cada minuto cuando frecuencia es cada5min
+    const [tick, setTick] = useState(0);
+    useEffect(() => {
+        if (schedulerStatus?.config?.frecuencia !== 'cada5min' || !schedulerStatus?.running) return;
+        const interval = setInterval(() => setTick(t => t + 1), 60000);
+        return () => clearInterval(interval);
+    }, [schedulerStatus?.config?.frecuencia, schedulerStatus?.running]);
     useEffect(() => {
         if (schedulerToast) {
             const t = setTimeout(() => setSchedulerToast(null), 3500);
@@ -84,7 +93,7 @@ const AdminBackupsScreen: React.FC = () => {
         }
     }, [schedulerToast]);
 
-    // --- ACCIONES ORIGINALES ---
+    // --- ACCIONES ---
     const handleGenerateAndDownload = async () => {
         setIsDownloading(true);
         try {
@@ -119,42 +128,49 @@ const AdminBackupsScreen: React.FC = () => {
         }
     };
 
-    // ─── ABRIR MODAL DE ELIMINACIÓN ─────────────────────────────────────────
+    // ─── DESCARGAR DESDE CLOUDINARY ───────────────────────────────────────
+    const handleDownloadFromCloud = async (backup: Backup) => {
+        if (!backup.url_archivo) return;
+        setDownloadingCloudId(backup.id);
+        try {
+            await backupsService.downloadFromCloudinary(backup.url_archivo, backup.name);
+        } catch (error) {
+            console.error("Error al descargar desde Cloudinary:", error);
+            setSchedulerToast({ msg: '❌ No se pudo descargar el archivo desde la nube', ok: false });
+        } finally {
+            setDownloadingCloudId(null);
+        }
+    };
+
+    // ─── MODAL ELIMINACIÓN ────────────────────────────────────────────────
     const handleDeleteBackup = (id: string, name: string) => {
         setBackupToDelete({ id, name });
     };
 
-    // ─── EJECUTAR ELIMINACIÓN REAL ─────────────────────────────────────────
     const confirmDeleteBackup = async () => {
         if (!backupToDelete) return;
-
         try {
             setSchedulerToast({ msg: '⏳ Eliminando respaldo...', ok: true });
-            
             const result = await backupsService.deleteBackup(backupToDelete.id);
-            
             if (result.success) {
                 setSchedulerToast({ msg: '🗑️ Respaldo eliminado correctamente', ok: true });
-                fetchHistory(); // Recargar tabla
+                fetchHistory();
             } else {
                 setSchedulerToast({ msg: `❌ Error: ${result.message}`, ok: false });
             }
         } catch (error) {
-            console.error("Error al eliminar el respaldo:", error);
             setSchedulerToast({ msg: '❌ Error de red al intentar eliminar', ok: false });
         } finally {
-            setBackupToDelete(null); // Cerrar modal siempre al terminar
+            setBackupToDelete(null);
         }
     };
     
     const handleOptimize = async () => {
         if (!window.confirm('¿Deseas ejecutar el mantenimiento? Esto optimizará el rendimiento de las tablas.')) return;
-        
         setIsOptimizing(true);
         try {
             const result = await backupsService.runMaintenance();
             alert(result.message);
-            
             if (result.success) {
                 const newData = await backupsService.getDatabaseHealth();
                 setHealthData(newData);
@@ -166,7 +182,7 @@ const AdminBackupsScreen: React.FC = () => {
         }
     };
 
-    // --- ACCIONES DEL SCHEDULER ---
+    // --- SCHEDULER ---
     const handleSaveScheduler = async () => {
         setIsSavingScheduler(true);
         try {
@@ -178,7 +194,6 @@ const AdminBackupsScreen: React.FC = () => {
         }
     };
 
-    // ─── PROBAR AHORA CON POLLING ─────────────────────────────────────────
     const handleRunNow = async () => {
         setIsRunningNow(true);
         setRunNowStatus('🤖 Iniciando respaldo automático...');
@@ -201,7 +216,6 @@ const AdminBackupsScreen: React.FC = () => {
 
             pollingRef.current = setInterval(async () => {
                 attempts++;
-
                 if (attempts === 3)  setRunNowStatus('📦 Comprimiendo datos...');
                 if (attempts === 6)  setRunNowStatus('☁️ Subiendo a Cloudinary...');
                 if (attempts === 10) setRunNowStatus('🔄 Finalizando y registrando...');
@@ -309,7 +323,22 @@ const AdminBackupsScreen: React.FC = () => {
                                 <strong>Respaldos Automáticos</strong>
                                 <span>
                                     {schedulerStatus?.running
-                                        ? `🟢 Activo — ${schedulerStatus.nextRun ?? ''}`
+                                        ? `🟢 Activo — ${(() => {
+                                            if (schedulerStatus.config?.frecuencia === 'cada5min') {
+                                                void tick; // fuerza re-render cada minuto
+                                                const now = new Date();
+                                                const next = new Date(now);
+                                                const minActual = now.getMinutes();
+                                                const minSiguiente = Math.ceil((minActual + 1) / 5) * 5;
+                                                next.setMinutes(minSiguiente, 0, 0);
+                                                if (minSiguiente >= 60) {
+                                                    next.setHours(now.getHours() + 1);
+                                                    next.setMinutes(0, 0, 0);
+                                                }
+                                                return `Cada 5 min — próximo: ${next.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
+                                            }
+                                            return schedulerStatus.nextRun ?? '';
+                                          })()}`
                                         : '🔴 Desactivado'}
                                 </span>
                                 {schedulerStatus?.lastRun && (
@@ -342,18 +371,21 @@ const AdminBackupsScreen: React.FC = () => {
                                     onChange={(e) => setSchedForm({ ...schedForm, frecuencia: e.target.value as any })}
                                     disabled={!schedForm.enabled}
                                 >
+                                    <option value="cada5min">Cada 5 minutos (pruebas)</option>
                                     <option value="diario">Diariamente</option>
                                     <option value="semanal">Semanalmente (Domingos)</option>
                                     <option value="mensual">Mensualmente (Día 1)</option>
                                 </select>
-                                <input
-                                    type="time"
-                                    className="select-minimal"
-                                    value={schedForm.hora}
-                                    onChange={(e) => setSchedForm({ ...schedForm, hora: e.target.value })}
-                                    disabled={!schedForm.enabled}
-                                    style={{ width: '110px' }}
-                                />
+                                {schedForm.frecuencia !== 'cada5min' && (
+                                    <input
+                                        type="time"
+                                        className="select-minimal"
+                                        value={schedForm.hora}
+                                        onChange={(e) => setSchedForm({ ...schedForm, hora: e.target.value })}
+                                        disabled={!schedForm.enabled}
+                                        style={{ width: '110px' }}
+                                    />
+                                )}
                             </div>
                         </div>
 
@@ -368,6 +400,7 @@ const AdminBackupsScreen: React.FC = () => {
                                     value={schedForm.retencion_dias}
                                     onChange={(e) => setSchedForm({ ...schedForm, retencion_dias: Number(e.target.value) })}
                                 >
+                                    <option value={0.04}>1 hora (pruebas)</option>
                                     <option value={3}>3 días</option>
                                     <option value={7}>7 días</option>
                                     <option value={14}>14 días</option>
@@ -377,7 +410,6 @@ const AdminBackupsScreen: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* BOTONES */}
                         <div className="automation-actions-row">
                             <button
                                 className="btn-run-now"
@@ -432,6 +464,10 @@ const AdminBackupsScreen: React.FC = () => {
                                                         <small>
                                                             ID: {backup.id} | Por: {backup.created_by || (backup.type === 'automatico' ? 'Sistema Automático' : 'Admin')}
                                                         </small>
+                                                        {/* Etiqueta de almacenamiento en nube */}
+                                                        {backup.url_archivo && (
+                                                            <small style={{ color: '#ECB2C3' }}>☁️ En la nube</small>
+                                                        )}
                                                     </div>
                                                 </td>
                                                 <td>{backup.created_at}</td>
@@ -440,11 +476,26 @@ const AdminBackupsScreen: React.FC = () => {
                                                 </td>
                                                 <td>
                                                     <div className="action-buttons">
+                                                        {/* Ver log — siempre visible */}
                                                         <button 
                                                             className="btn-icon" 
                                                             title="Ver Detalles Técnicos"
                                                             onClick={() => handleOpenLog(backup)}
                                                         >👁️</button>
+
+                                                        {/* Descargar desde Cloudinary — solo si tiene url_archivo y está completado */}
+                                                        {backup.url_archivo && backup.status === 'completed' && (
+                                                            <button
+                                                                className="btn-icon download-cloud"
+                                                                title="Descargar desde la nube"
+                                                                onClick={() => handleDownloadFromCloud(backup)}
+                                                                disabled={downloadingCloudId === backup.id}
+                                                            >
+                                                                {downloadingCloudId === backup.id ? '⏳' : '☁️'}
+                                                            </button>
+                                                        )}
+
+                                                        {/* Eliminar — siempre visible */}
                                                         <button 
                                                             className="btn-icon delete" 
                                                             title="Eliminar Registro"
@@ -506,6 +557,14 @@ const AdminBackupsScreen: React.FC = () => {
                                     <span className="log-label">Servidor Origen:</span>
                                     <span className="log-value">aws-1-us-east-2.pooler.supabase.com</span>
                                 </div>
+                                {selectedLog.url_archivo && (
+                                    <div className="log-item">
+                                        <span className="log-label">Almacenamiento:</span>
+                                        <span className="log-value" style={{ color: '#ECB2C3', fontSize: '0.8rem', wordBreak: 'break-all' }}>
+                                            ☁️ Cloudinary — {selectedLog.url_archivo}
+                                        </span>
+                                    </div>
+                                )}
                                 <div className="log-item" style={{ marginTop: '1rem', opacity: 0.6, borderTop: '1px solid #444', paddingTop: '1rem' }}>
                                     <span className="log-label">Información Técnica:</span>
                                     <p style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
@@ -559,8 +618,6 @@ const AdminBackupsScreen: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="health-results">
-
-                                    {/* Conexión */}
                                     <div className="health-section">
                                         <h3 className="health-section-title">🔗 Conexión</h3>
                                         <div className="health-row">
@@ -577,7 +634,6 @@ const AdminBackupsScreen: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* VACUUM */}
                                     <div className="health-section">
                                         <h3 className="health-section-title">🧹 VACUUM — Limpieza de Filas Muertas</h3>
                                         <table className="health-table">
@@ -606,7 +662,6 @@ const AdminBackupsScreen: React.FC = () => {
                                         </table>
                                     </div>
 
-                                    {/* ANALYZE */}
                                     <div className="health-section">
                                         <h3 className="health-section-title">📊 ANALYZE — Estadísticas del Planificador</h3>
                                         <table className="health-table">
@@ -631,7 +686,6 @@ const AdminBackupsScreen: React.FC = () => {
                                             💡 PostgreSQL en Supabase ejecuta autovacuum automáticamente. Estos datos son informativos.
                                         </p>
                                     </div>
-
                                 </div>
                             )}
                         </div>
@@ -668,14 +722,13 @@ const AdminBackupsScreen: React.FC = () => {
                             <p style={{ marginBottom: '1rem', color: '#ECB2C3' }}>
                                 ¿Estás seguro de que deseas eliminar permanentemente este respaldo?
                             </p>
-                            
                             <div className="info-box" style={{ background: 'rgba(255, 82, 82, 0.1)', color: '#FF5252', border: '1px solid #FF5252', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
                                 <strong>Archivo seleccionado:</strong><br />
                                 <span style={{ wordBreak: 'break-all', marginTop: '0.5rem', display: 'block' }}>
                                     {backupToDelete.name}
                                 </span>
                                 <p style={{ fontSize: '0.85rem', marginTop: '0.8rem', opacity: 0.9 }}>
-                                    Esta acción no se puede deshacer. El archivo se borrará de tu servidor.
+                                    Esta acción no se puede deshacer. El archivo se borrará del sistema y de Cloudinary.
                                 </p>
                             </div>
                         </div>
