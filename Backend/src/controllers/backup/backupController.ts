@@ -11,7 +11,9 @@ import { BackupSchedulerService } from '../../services/BackupSchedulerService';
  * y los guarda en la base de datos de forma dinámica.
  */
 export const generateDirectBackup = async (req: Request, res: Response) => {
-    const pgDumpPath = `C:\\Program Files\\PostgreSQL\\17\\bin\\pg_dump.exe`;
+    const pgDumpPath = process.env.NODE_ENV === 'production'
+        ? 'pg_dump'
+        : `C:\\Program Files\\PostgreSQL\\17\\bin\\pg_dump.exe`;
     
     const ahora = new Date();
     const opciones: Intl.DateTimeFormatOptions = {
@@ -362,7 +364,7 @@ export const downloadCollectionBackup = async (req: Request, res: Response) => {
             '-p', process.env.DB_PORT || '6543',
             '-U', process.env.DB_USER || '',
             '-d', process.env.DB_NAME || 'postgres',
-            '-t', tabla,   // ← solo esta tabla
+            '-t', tabla,
             '-F', 'c',
         ], {
             env: { ...process.env, PGPASSWORD: process.env.DB_PASSWORD },
@@ -437,14 +439,12 @@ export const downloadCollectionCSV = async (req: Request, res: Response) => {
         const result = await pool.query(`SELECT * FROM "${tabla}"`);
 
         if (result.rows.length === 0) {
-            // Tabla vacía — devolvemos solo los headers
             const headersOnly = result.fields.map(f => f.name).join(',') + '\n';
             res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
             res.setHeader('Content-Type', 'text/csv; charset=utf-8');
             return res.send(headersOnly);
         }
 
-        // Construir CSV manualmente para mayor compatibilidad
         const headers = result.fields.map(f => f.name);
         const csvHeader = headers.join(',');
         const csvRows = result.rows.map(row =>
@@ -452,7 +452,6 @@ export const downloadCollectionCSV = async (req: Request, res: Response) => {
                 const val = row[h];
                 if (val === null || val === undefined) return '';
                 const str = String(val);
-                // Escapar comillas y envolver en comillas si contiene coma, comilla o salto
                 if (str.includes(',') || str.includes('"') || str.includes('\n')) {
                     return `"${str.replace(/"/g, '""')}"`;
                 }
@@ -468,7 +467,6 @@ export const downloadCollectionCSV = async (req: Request, res: Response) => {
 
         console.log(`✅ [CollectionCSV] ${tabla} descargado como CSV (${result.rows.length} filas)`);
 
-        // Registrar en historial
         try {
             const usuario_id = (req as any).user?.id || null;
             await pool.query(
@@ -489,15 +487,12 @@ export const downloadCollectionCSV = async (req: Request, res: Response) => {
 
 /**
  * Extrae el public_id de Cloudinary desde una URL.
- * Para archivos raw, Cloudinary conserva la extensión en el public_id.
- * Ejemplo: https://res.cloudinary.com/CLOUD/raw/upload/v123/joyeria_backups/respaldo_auto_xxx.dump
- * → public_id: joyeria_backups/respaldo_auto_xxx.dump
  */
 const extractCloudinaryPublicId = (url: string): string | null => {
     try {
         const match = url.match(/\/upload\/(?:v\d+\/)?(.+)$/);
         if (!match) return null;
-        return match[1]; // Conservamos la extensión — requerido para archivos raw
+        return match[1];
     } catch {
         return null;
     }
@@ -513,7 +508,6 @@ export const deleteBackup = async (req: Request, res: Response) => {
     try {
         const { backupId } = req.params;
 
-        // 1. Buscamos el registro — incluimos url_archivo para Cloudinary
         const result = await pool.query(
             "SELECT nombre_archivo, url_archivo FROM respaldos_historial WHERE id = $1", 
             [backupId]
@@ -525,10 +519,8 @@ export const deleteBackup = async (req: Request, res: Response) => {
 
         const { nombre_archivo: fileName, url_archivo: urlArchivo } = result.rows[0];
 
-        // 2. Eliminamos el registro de la BD
         await pool.query("DELETE FROM respaldos_historial WHERE id = $1", [backupId]);
 
-        // 3. Eliminamos el archivo físico del disco (backups locales)
         const backupDir = process.env.BACKUP_DIR || path.join(process.cwd(), 'backups_automaticos');
         const filePath = path.join(backupDir, fileName);
 
@@ -537,7 +529,6 @@ export const deleteBackup = async (req: Request, res: Response) => {
             console.log(`🗑️  [deleteBackup] Archivo local eliminado: ${fileName}`);
         }
 
-        // 4. Eliminamos de Cloudinary si el registro tiene url_archivo
         if (urlArchivo) {
             const publicId = extractCloudinaryPublicId(urlArchivo);
             if (publicId) {
@@ -545,7 +536,6 @@ export const deleteBackup = async (req: Request, res: Response) => {
                     await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
                     console.log(`☁️  [deleteBackup] Eliminado de Cloudinary: ${publicId}`);
                 } catch (cloudErr: any) {
-                    // No bloqueamos la respuesta si Cloudinary falla — el registro ya fue borrado
                     console.error(`⚠️  [deleteBackup] No se pudo eliminar de Cloudinary:`, cloudErr.message);
                 }
             }
