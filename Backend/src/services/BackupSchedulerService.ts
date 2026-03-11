@@ -5,6 +5,22 @@ import { spawn } from 'child_process';
 import pool from '../config/database';
 import cloudinary from '../config/cloudinary';
 
+
+/**
+ * Devuelve fecha/hora en zona horaria correcta según entorno.
+ * Producción (Render corre en UTC) → fuerza America/Mexico_City.
+ * Local → respeta el timezone del sistema (ya es México).
+ */
+const getFechaLocal = (fecha: Date): string => {
+  const opciones: Intl.DateTimeFormatOptions = {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false,
+    ...(process.env.NODE_ENV === 'production' && { timeZone: 'America/Mexico_City' }),
+  };
+  return fecha.toLocaleString('es-MX', opciones);
+};
+
 interface SchedulerConfig {
   enabled: boolean;
   frecuencia: 'cada5min' | 'diario' | 'semanal' | 'mensual';
@@ -84,19 +100,14 @@ export class BackupSchedulerService {
     this.isRunning = true;
 
     const ahora = new Date();
-    const nombreLimpio = ahora
-      .toLocaleString('es-MX', {
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', second: '2-digit',
-        hour12: false,
-      })
+    const nombreLimpio = getFechaLocal(ahora)
       .replace(/\//g, '-')
       .replace(/, /g, '_')
       .replace(/:/g, '-');
 
     const fileName = `respaldo_auto_${nombreLimpio}.dump`;
 
-    let logAcumulado = `--- RESPALDO AUTOMÁTICO: ${ahora.toLocaleString()} ---\n`;
+    let logAcumulado = `--- RESPALDO AUTOMÁTICO: ${getFechaLocal(ahora)} ---\n`;
     logAcumulado += `Servidor: ${process.env.DB_HOST || 'supabase.com'}\n`;
 
     console.log(`\n🤖 [BackupScheduler] Iniciando respaldo automático: ${fileName}`);
@@ -190,19 +201,26 @@ export class BackupSchedulerService {
   }
 
   // ─── LIMPIAR REGISTROS VIEJOS EN BD + CLOUDINARY ─────────────────────────
-  static async cleanOldDbRecords(): Promise<void> {
+  static async cleanOldDbRecords(configOverride?: SchedulerConfig): Promise<{ deleted: number }> {
     try {
-      const config = await this.getConfig();
+      const config = configOverride ?? await this.getConfig();
+
+      console.log(`🧹 [Limpieza] Verificando retención de ${config.retencion_dias} días (${config.retencion_dias * 24} horas)...`);
 
       // Obtener registros viejos antes de borrarlos para limpiar Cloudinary
       const viejos = await pool.query(
-        `SELECT id, url_archivo FROM respaldos_historial
+        `SELECT id, url_archivo, nombre_archivo FROM respaldos_historial
          WHERE tipo = 'automatico'
-           AND fecha_creacion < NOW() - (interval '1 day' * $1)`,
+           AND fecha_creacion < NOW() - (interval '1 day' * $1::float)`,
         [config.retencion_dias]
       );
 
-      if (!viejos.rows.length) return;
+      if (!viejos.rows.length) {
+        console.log(`🧹 [Limpieza] Sin registros que superen el período de retención.`);
+        return { deleted: 0 };
+      }
+
+      console.log(`🧹 [Limpieza] ${viejos.rows.length} registros a eliminar...`);
 
       // Borrar de Cloudinary los que tengan URL
       for (const row of viejos.rows) {
@@ -211,7 +229,7 @@ export class BackupSchedulerService {
             const publicId = this.extractPublicIdFromCloudinary(row.url_archivo);
             if (publicId) {
               await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
-              console.log(`☁️  [Limpieza] Eliminado de Cloudinary: ${publicId}`);
+              console.log(`☁️  [Limpieza] Eliminado de Cloudinary: ${publicId} (${row.nombre_archivo})`);
             }
           } catch (cloudErr) {
             console.error(`⚠️  [Limpieza] Error al eliminar de Cloudinary (id=${row.id}):`, cloudErr);
@@ -223,15 +241,16 @@ export class BackupSchedulerService {
       const result = await pool.query(
         `DELETE FROM respaldos_historial
          WHERE tipo = 'automatico'
-           AND fecha_creacion < NOW() - (interval '1 day' * $1)`,
+           AND fecha_creacion < NOW() - (interval '1 day' * $1::float)`,
         [config.retencion_dias]
       );
 
-      if (result.rowCount && result.rowCount > 0) {
-        console.log(`🧹 [BackupScheduler] ${result.rowCount} registros eliminados (retención: ${config.retencion_dias} días)`);
-      }
+      const deleted = result.rowCount ?? 0;
+      console.log(`🧹 [Limpieza] ${deleted} registros eliminados (retención: ${config.retencion_dias} días).`);
+      return { deleted };
     } catch (err) {
       console.error('⚠️  [BackupScheduler] Error limpiando registros:', err);
+      return { deleted: 0 };
     }
   }
 
@@ -283,7 +302,7 @@ export class BackupSchedulerService {
     const cronLimpieza = config.retencion_dias < 1 ? '0 * * * *' : '0 4 * * *';
     this.taskLimpieza = cron.schedule(cronLimpieza, async () => {
       console.log('🧹 [BackupScheduler] Ejecutando limpieza programada...');
-      await this.cleanOldDbRecords();
+      await this.cleanOldDbRecords(config);
     }, { timezone: 'America/Mexico_City' });
 
     console.log(`✅ [BackupScheduler] Iniciado. Retención: ${config.retencion_dias} días — limpieza cron: ${cronLimpieza}`);

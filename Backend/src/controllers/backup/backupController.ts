@@ -7,6 +7,21 @@ import cloudinary from '../../config/cloudinary';
 import { BackupSchedulerService } from '../../services/BackupSchedulerService'; 
 
 /**
+ * Devuelve fecha/hora en zona horaria correcta según entorno.
+ * Producción (Render corre en UTC) → fuerza America/Mexico_City.
+ * Local → respeta el timezone del sistema (ya es México).
+ */
+const getFechaLocal = (fecha: Date): string => {
+    const opciones: Intl.DateTimeFormatOptions = {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false,
+        ...(process.env.NODE_ENV === 'production' && { timeZone: 'America/Mexico_City' }),
+    };
+    return fecha.toLocaleString('es-MX', opciones);
+};
+
+/**
  * Genera el respaldo, captura los logs de consola en tiempo real
  * y los guarda en la base de datos de forma dinámica.
  */
@@ -16,17 +31,12 @@ export const generateDirectBackup = async (req: Request, res: Response) => {
         : `C:\\Program Files\\PostgreSQL\\17\\bin\\pg_dump.exe`;
     
     const ahora = new Date();
-    const opciones: Intl.DateTimeFormatOptions = {
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', second: '2-digit',
-        hour12: false
-    };
 
-    const localString = ahora.toLocaleString('es-MX', opciones);
+    const localString = getFechaLocal(ahora);
     const nombreLimpio = localString.replace(/\//g, '-').replace(/, /g, '_').replace(/:/g, '-');
     const fileName = `respaldo_joyeria_${nombreLimpio}.dump`;
 
-    let logAcumulado = `--- INICIO DE RESPALDO: ${ahora.toLocaleString()} ---\n`;
+    let logAcumulado = `--- INICIO DE RESPALDO: ${getFechaLocal(ahora)} ---\n`;
     logAcumulado += `Servidor: ${process.env.DB_HOST || 'supabase.com'}\n`;
 
     try {
@@ -343,11 +353,7 @@ export const downloadCollectionBackup = async (req: Request, res: Response) => {
     }
 
     const ahora = new Date();
-    const localString = ahora.toLocaleString('es-MX', {
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', second: '2-digit',
-        hour12: false
-    });
+    const localString = getFechaLocal(ahora);
     const nombreLimpio = localString.replace(/\//g, '-').replace(/, /g, '_').replace(/:/g, '-');
     const fileName = `respaldo_${tabla}_${nombreLimpio}.dump`;
 
@@ -427,11 +433,7 @@ export const downloadCollectionCSV = async (req: Request, res: Response) => {
     }
 
     const ahora = new Date();
-    const localString = ahora.toLocaleString('es-MX', {
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', second: '2-digit',
-        hour12: false
-    });
+    const localString = getFechaLocal(ahora);
     const nombreLimpio = localString.replace(/\//g, '-').replace(/, /g, '_').replace(/:/g, '-');
     const fileName = `respaldo_${tabla}_${nombreLimpio}.csv`;
 
