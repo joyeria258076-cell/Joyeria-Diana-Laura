@@ -22,6 +22,7 @@ import { testCloudinaryConnection } from './config/cloudinary';
 import configuracionRoutes from './routes/configuracionRoutes';
 import proveedoresRoutes from './routes/proveedoresRoutes';
 import { BackupSchedulerService } from './services/BackupSchedulerService';
+import templateRoutes from './routes/templateRoutes';
 
 dotenv.config();
 
@@ -76,6 +77,7 @@ app.use((req, res, next) => {
   // 4. Aplicar el candado de seguridad de cookies para todo el resto de la App (incluyendo POST/PUT de noticias)
   return cookieAuthMiddleware(req, res, next);
 });
+app.use('/api/templates', templateRoutes);
 
 // 🎯 ENDPOINT PARA DIAGNÓSTICO JWT
 app.get('/api/jwt-info', getTokenInfo);

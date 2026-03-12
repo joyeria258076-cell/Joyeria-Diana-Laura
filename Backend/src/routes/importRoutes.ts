@@ -14,14 +14,14 @@ router.use(authenticateToken);
 // Rutas
 router.get('/tables', importController.getTables);
 router.get('/tables/:tableName', importController.getTableInfo);
-router.post('/preview', importController.uploadMiddleware, importController.previewCSV);
+router.post('/preview', importController.uploadMiddleware, importController.previewFile); // Cambiado a previewFile
 router.post('/import', importController.importData);
 router.post('/validate', importController.validateImport);
 
 console.log('✅ Rutas de importación registradas:');
 console.log('   GET /tables');
 console.log('   GET /tables/:tableName');
-console.log('   POST /preview');
+console.log('   POST /preview (soporta Excel y CSV)');
 console.log('   POST /import');
 console.log('   POST /validate');
 

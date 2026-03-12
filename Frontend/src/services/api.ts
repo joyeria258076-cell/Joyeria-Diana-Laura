@@ -1,6 +1,6 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/services/api.ts
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
-//const API_BASE_URL = 'http://localhost:5000/api';
+//const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // 🎯 MANTENER TU FUNCIÓN ORIGINAL EXACTA
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
@@ -156,6 +156,37 @@ export const importAPI = {
   // Obtener información de una tabla específica
   getTableInfo: async (tableName: string) => {
     return enhancedApi.get(`/import/tables/${tableName}`);
+  },
+
+    // NUEVO: Vista previa para archivos (soporta Excel)
+  previewFile: async (file: File, tableName: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('tableName', tableName);
+
+    const jwtToken = localStorage.getItem('diana_laura_user') 
+      ? JSON.parse(localStorage.getItem('diana_laura_user')!).token 
+      : null;
+    const sessionToken = localStorage.getItem('diana_laura_session_token');
+
+    const headers: Record<string, string> = {};
+    if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+    if (sessionToken) headers['X-Session-Token'] = sessionToken;
+
+    const response = await fetch(`${API_BASE_URL}/import/preview`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al procesar el archivo');
+    }
+
+    return data;
   },
 
   // Subir y previsualizar CSV
@@ -938,6 +969,41 @@ export const proveedoresAPI = {
 };
 
 // ==========================================
+// 📋 API PARA PLANTILLAS
+// ==========================================
+export const templateAPI = {
+  // Descargar plantilla para una tabla
+  downloadTemplate: async (tableName: string) => {
+    const jwtToken = localStorage.getItem('diana_laura_user') 
+      ? JSON.parse(localStorage.getItem('diana_laura_user')!).token 
+      : null;
+    const sessionToken = localStorage.getItem('diana_laura_session_token');
+
+    const headers: Record<string, string> = {};
+    if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+    if (sessionToken) headers['X-Session-Token'] = sessionToken;
+
+    const response = await fetch(`${API_BASE_URL}/templates/download/${tableName}`, {
+      method: 'GET',
+      headers,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Error al descargar la plantilla');
+    }
+
+    return response;
+  },
+
+  // Obtener información de la plantilla
+  getTemplateInfo: async (tableName: string) => {
+    return enhancedApi.get(`/templates/info/${tableName}`);
+  }
+};
+
+// ==========================================
 // 📥 EXPORTACIÓN DE API (opcional, para tener todo en un solo objeto)
 // ==========================================
 export const api = {
@@ -950,7 +1016,8 @@ export const api = {
   paginas: paginasAPI,
   secciones: seccionesAPI,
   contenidos: contenidosAPI,
-  import: importAPI, // ✅ NUEVO
+  import: importAPI,
+  templates: templateAPI,
 };
 
 export default api;
