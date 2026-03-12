@@ -13,6 +13,7 @@ import NoticiasScreen from "../screens/publico/NoticiasScreen";
 import ContactoPublicScreen from "../screens/publico/ContactoPublicScreen";
 import UbicacionPublicScreen from "../screens/publico/UbicacionPublicScreen";
 import AyudaPublicScreen from "../screens/publico/AyudaPublicScreen";
+import ProductoDetallePublicScreen from "../screens/publico/ProductoDetallePublicScreen";
 
 // PANTALLAS DE AUTENTICACIÓN
 import LoginScreen from "../screens/auth/LoginScreen";
@@ -82,6 +83,8 @@ import NotFoundScreen from '../screens/general/NotFoundScreen';
 import ForbiddenScreen from '../screens/general/ForbiddenScreen';
 import ServerErrorScreen from '../screens/general/ServerErrorScreen';
 import ClientePedidosScreen from "../screens/cliente/ClientePedidosScreen";
+import ProductoDetalleScreen from "../screens/cliente/ProductoDetalleScreen";
+
 
 // --- COMPONENTES DE PROTECCIÓN ---
 
@@ -145,6 +148,7 @@ export default function AppRoutes() {
         {/* 1. RUTAS COMPLETAMENTE PÚBLICAS */}
         <Route path="/" element={<InicioPublicScreen />} />
         <Route path="/catalogo-publico" element={<CatalogoPublicScreen />} />
+        <Route path="/producto-publico/:id" element={<ProductoDetallePublicScreen />} />
         <Route path="/noticias" element={<NoticiasScreen />} />
         <Route path="/contacto-publico" element={<ContactoPublicScreen />} />
         <Route path="/ubicacion-publica" element={<UbicacionPublicScreen />} />
@@ -176,6 +180,7 @@ export default function AppRoutes() {
           <Route path="/ubicacion" element={<Ubicacion />} />
           <Route path="/ayuda" element={<Ayuda />} />
           <Route path="/pedidos" element={<ClientePedidosScreen />} />
+          <Route path="/producto/:id" element={<ProductoDetalleScreen />} />
           <Route path="/configuracion" element={<ConfiguracionScreen />} />
 
           {/* 🔐 RUTAS EXCLUSIVAS ADMIN */}

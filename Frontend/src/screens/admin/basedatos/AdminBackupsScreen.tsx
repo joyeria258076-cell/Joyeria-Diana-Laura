@@ -710,7 +710,10 @@ const AdminBackupsScreen: React.FC = () => {
                                                 {(healthData.vacuum || []).map((row: any) => (
                                                     <tr key={row.tabla}>
                                                         <td><code>{row.tabla}</code></td>
-                                                        <td style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>{row.ultimo_vacuum}</td>
+                                                        {/* CAMBIO: Muestra mensaje claro cuando Supabase no expone la fecha */}
+                                                        <td style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>
+                                                            {row.ultimo_vacuum === 'Nunca' ? 'Gestionado por Supabase' : row.ultimo_vacuum}
+                                                        </td>
                                                         <td>{row.filas_muertas}</td>
                                                         <td>
                                                             <span className={`health-badge ${row.filas_muertas > 100 ? 'warn' : 'ok'}`}>
@@ -737,7 +740,10 @@ const AdminBackupsScreen: React.FC = () => {
                                                 {(healthData.analyze || []).map((row: any) => (
                                                     <tr key={row.tabla}>
                                                         <td><code>{row.tabla}</code></td>
-                                                        <td style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>{row.ultimo_analyze}</td>
+                                                        {/* CAMBIO: Muestra mensaje claro cuando Supabase no expone la fecha */}
+                                                        <td style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>
+                                                            {row.ultimo_analyze === 'Nunca' ? 'Gestionado por Supabase' : row.ultimo_analyze}
+                                                        </td>
                                                         <td><span className="health-badge ok">✅ OK</span></td>
                                                     </tr>
                                                 ))}

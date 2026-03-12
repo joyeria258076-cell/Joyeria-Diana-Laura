@@ -1,5 +1,6 @@
+// Ruta: src/screens/cliente/CatalogoScreen.tsx
 import React, { useState, useEffect } from 'react';
-import { AiOutlineSearch, AiOutlinePlus, AiOutlineMinus } from 'react-icons/ai';
+import { AiOutlineSearch } from 'react-icons/ai';
 import './CatalogoScreen.css';
 import { productsAPI } from '../../services/api';
 import DetalleProductoModal from '../publico/DetalleProductoModal';
@@ -7,15 +8,24 @@ import DetalleProductoModal from '../publico/DetalleProductoModal';
 interface Producto {
     id: number;
     nombre: string;
-    precio_venta?: number;
+    precio_venta: number;        // ✅ requerido (igual que DetalleProductoModal)
     precio_oferta?: number;
     descripcion?: string;
     imagen_principal?: string;
     categoria_nombre?: string;
     tipo_producto_nombre?: string;
     material_principal?: string;
-    stock_actual?: number;
+    stock_actual: number;        // ✅ requerido (igual que DetalleProductoModal)
     es_nuevo?: boolean;
+    dias_fabricacion?: number;
+    permite_personalizacion?: boolean;
+}
+
+interface CategoriaConProductos {
+    categoria_id: number;
+    categoria_nombre: string;
+    productos: Producto[];
+    total: number;
 }
 
 interface FiltrosSearch {
@@ -39,7 +49,8 @@ interface TipoProducto {
 
 const CatalogoScreen: React.FC = () => {
     // --- ESTADOS DE DATOS ---
-    const [productosPorCategoria, setProductosPorCategoria] = useState<any>({});
+    // ✅ FIX: ahora es un array tipado, no un objeto genérico
+    const [categorias_con_productos, setCategorias_con_productos] = useState<CategoriaConProductos[]>([]);
     const [resultadosBusqueda, setResultadosBusqueda] = useState<Producto[]>([]);
     const [categorias, setCategorias] = useState<Categoria[]>([]);
     const [tiposProducto, setTiposProducto] = useState<TipoProducto[]>([]);
@@ -65,21 +76,23 @@ const CatalogoScreen: React.FC = () => {
         const loadInitialData = async () => {
             try {
                 setLoading(true);
-                
-                // Cargar productos por categorías
+
+                // ✅ FIX: el backend devuelve { success: true, data: [...] }
+                // donde data es un array de { categoria_id, categoria_nombre, productos, total }
                 const respProductos = await productsAPI.getProductsByCategories(4);
-                const productosData = Array.isArray(respProductos?.data) ? respProductos.data : [];
-                setProductosPorCategoria(productosData);
+                const rawData = Array.isArray(respProductos?.data) ? respProductos.data : [];
+                // Filtrar categorías que tengan al menos 1 producto
+                const categoriasValidas = rawData.filter((c: CategoriaConProductos) => c.total > 0);
+                setCategorias_con_productos(categoriasValidas);
 
-                // Cargar todas las categorías
+                // Cargar todas las categorías para el filtro
                 const respCategorias = await productsAPI.getCategories();
-                const categoriasData = Array.isArray(respCategorias?.data) ? respCategorias.data : [];
-                setCategorias(categoriasData);
+                setCategorias(Array.isArray(respCategorias?.data) ? respCategorias.data : []);
 
-                // Cargar todos los tipos de producto
+                // Cargar todos los tipos de producto para el filtro
                 const respTipos = await productsAPI.getTiposProducto();
-                const tiposData = Array.isArray(respTipos?.data) ? respTipos.data : [];
-                setTiposProducto(tiposData);
+                setTiposProducto(Array.isArray(respTipos?.data) ? respTipos.data : []);
+
             } catch (error) {
                 console.error('Error cargando datos iniciales:', error);
             } finally {
@@ -103,8 +116,7 @@ const CatalogoScreen: React.FC = () => {
                 precio_min: filtros.precio_min,
                 precio_max: filtros.precio_max,
             });
-            const productos = Array.isArray(response?.data) ? response.data : [];
-            setResultadosBusqueda(productos);
+            setResultadosBusqueda(Array.isArray(response?.data) ? response.data : []);
         } catch (error) {
             console.error('Error en búsqueda:', error);
             setResultadosBusqueda([]);
@@ -126,7 +138,7 @@ const CatalogoScreen: React.FC = () => {
         setResultadosBusqueda([]);
     };
 
-    // --- MANEJADORES ---
+    // --- MANEJADORES DE MODAL ---
     const verDetalles = (producto: Producto) => {
         setSelectedProducto(producto);
         setModalOpen(true);
@@ -136,6 +148,42 @@ const CatalogoScreen: React.FC = () => {
         setModalOpen(false);
         setSelectedProducto(null);
     };
+
+    // --- PLACEHOLDER IMAGE ---
+    const placeholderImg = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzFhMWEyZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4IiBmaWxsPSIjZWNiMmMzIj7oo6s8L3RleHQ+PC9zdmc+';
+
+    // ---- CARD REUTILIZABLE ----
+    const ProductoCard = ({ producto }: { producto: Producto }) => (
+        <div className="producto-card" onClick={() => verDetalles(producto)}>
+            <div className="producto-imagen">
+                {producto.imagen_principal ? (
+                    <img
+                        src={producto.imagen_principal}
+                        alt={producto.nombre}
+                        onError={(e) => { (e.target as HTMLImageElement).src = placeholderImg; }}
+                    />
+                ) : (
+                    <img src={placeholderImg} alt={producto.nombre} />
+                )}
+                {producto.es_nuevo && <span className="badge-nuevo">Nuevo</span>}
+                {producto.precio_oferta && <span className="badge-oferta">Oferta</span>}
+            </div>
+            <div className="producto-info">
+                <h4>{producto.nombre}</h4>
+                <p className="tipo">{producto.tipo_producto_nombre || producto.categoria_nombre}</p>
+                <div className="precio-section">
+                    {producto.precio_oferta ? (
+                        <>
+                            <span className="precio original">${producto.precio_venta?.toLocaleString('es-MX')}</span>
+                            <span className="precio oferta">${producto.precio_oferta?.toLocaleString('es-MX')}</span>
+                        </>
+                    ) : (
+                        <span className="precio">${producto.precio_venta?.toLocaleString('es-MX')}</span>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
 
     // --- RENDERIZADO ---
     if (loading) {
@@ -148,7 +196,6 @@ const CatalogoScreen: React.FC = () => {
 
             {/* --- SECCIÓN DE FILTROS --- */}
             <div className="filtros-container">
-                {/* BUSCADOR */}
                 <div className="search-section">
                     <div className="buscador">
                         <input
@@ -156,7 +203,7 @@ const CatalogoScreen: React.FC = () => {
                             placeholder="Buscar producto..."
                             value={filtros.nombre}
                             onChange={(e) => setFiltros({ ...filtros, nombre: e.target.value })}
-                            onKeyPress={(e) => e.key === 'Enter' && handleBuscar()}
+                            onKeyDown={(e) => e.key === 'Enter' && handleBuscar()}
                         />
                         <button className="btn-buscar" onClick={handleBuscar}>
                             <AiOutlineSearch size={20} />
@@ -164,7 +211,6 @@ const CatalogoScreen: React.FC = () => {
                     </div>
                 </div>
 
-                {/* FILTROS AVANZADOS */}
                 <div className="filtros-row">
                     <div className="form-group">
                         <label>Categoría</label>
@@ -173,10 +219,8 @@ const CatalogoScreen: React.FC = () => {
                             onChange={(e) => setFiltros({ ...filtros, categoria_id: e.target.value })}
                         >
                             <option value="">Todas las categorías</option>
-                            {categorias.map((cat: any) => (
-                                <option key={cat.id} value={cat.id}>
-                                    {cat.nombre}
-                                </option>
+                            {categorias.map((cat) => (
+                                <option key={cat.id} value={cat.id}>{cat.nombre}</option>
                             ))}
                         </select>
                     </div>
@@ -188,10 +232,8 @@ const CatalogoScreen: React.FC = () => {
                             onChange={(e) => setFiltros({ ...filtros, tipo_producto_id: e.target.value })}
                         >
                             <option value="">Todos los tipos</option>
-                            {tiposProducto.map((tipo: any) => (
-                                <option key={tipo.id} value={tipo.id}>
-                                    {tipo.nombre}
-                                </option>
+                            {tiposProducto.map((tipo) => (
+                                <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
                             ))}
                         </select>
                     </div>
@@ -228,107 +270,61 @@ const CatalogoScreen: React.FC = () => {
                 </div>
 
                 <div className="filtros-actions">
-                    <button className="btn-primary" onClick={handleBuscar}>
-                        Buscar
-                    </button>
-                    <button className="btn-secondary" onClick={handleLimpiarFiltros}>
-                        Limpiar Filtros
-                    </button>
+                    <button className="btn-primary" onClick={handleBuscar}>Buscar</button>
+                    <button className="btn-secondary" onClick={handleLimpiarFiltros}>Limpiar Filtros</button>
                 </div>
             </div>
 
-            {/* --- VISTA DE CATEGORÍAS O RESULTADOS --- */}
-            {!searchMode && Object.keys(productosPorCategoria).length > 0 ? (
-                <div className="categorias-sections">
-                    {Object.entries(productosPorCategoria).map(([nombreCategoria, productos]) => (
-                        <section key={nombreCategoria} className="categoria-section">
-                            <h3 className="categoria-title">{nombreCategoria}</h3>
-                            <div className="productos-grid">
-                                {Array.isArray(productos) && (productos as Producto[]).map((producto) => (
-                                    <div key={producto.id} className="producto-card" onClick={() => verDetalles(producto)}>
-                                        <div className="producto-imagen">
-                                            {producto.imagen_principal ? (
-                                                <img src={producto.imagen_principal} alt={producto.nombre} />
-                                            ) : (
-                                                <div className="placeholder">💎</div>
-                                            )}
-                                            {producto.es_nuevo && <span className="badge-nuevo">Nuevo</span>}
-                                            {producto.precio_oferta && <span className="badge-oferta">Oferta</span>}
-                                        </div>
-                                        <div className="producto-info">
-                                            <h4>{producto.nombre}</h4>
-                                            <p className="tipo">{producto.tipo_producto_nombre}</p>
-                                            <div className="precio-section">
-                                                {producto.precio_oferta ? (
-                                                    <>
-                                                        <span className="precio original">${producto.precio_venta?.toLocaleString()}</span>
-                                                        <span className="precio oferta">${producto.precio_oferta?.toLocaleString()}</span>
-                                                    </>
-                                                ) : (
-                                                    <span className="precio">${producto.precio_venta?.toLocaleString()}</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                    ))}
-                </div>
-            ) : null}
+            {/* --- VISTA POR CATEGORÍAS (modo normal) --- */}
+            {!searchMode && (
+                categorias_con_productos.length > 0 ? (
+                    <div className="categorias-sections">
+                        {categorias_con_productos.map((catData) => (
+                            <section key={catData.categoria_id} className="categoria-section">
+                                {/* ✅ Ahora usa categoria_nombre del objeto, no el índice */}
+                                <h3 className="categoria-title">{catData.categoria_nombre}</h3>
+                                <div className="productos-grid">
+                                    {catData.productos.map((producto) => (
+                                        <ProductoCard key={producto.id} producto={producto} />
+                                    ))}
+                                </div>
+                            </section>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="no-results">
+                        <p>No hay productos disponibles en este momento.</p>
+                    </div>
+                )
+            )}
 
             {/* --- RESULTADOS DE BÚSQUEDA --- */}
             {searchMode && (
-                <div>
-                    {resultadosBusqueda.length > 0 ? (
-                        <div className="resultados-section">
-                            <h3 className="resultados-title">
-                                Resultados de búsqueda ({resultadosBusqueda.length})
-                            </h3>
-                            <div className="productos-grid">
-                                {resultadosBusqueda.map((producto) => (
-                                    <div key={producto.id} className="producto-card" onClick={() => verDetalles(producto)}>
-                                        <div className="producto-imagen">
-                                            {producto.imagen_principal ? (
-                                                <img src={producto.imagen_principal} alt={producto.nombre} />
-                                            ) : (
-                                                <div className="placeholder">💎</div>
-                                            )}
-                                            {producto.es_nuevo && <span className="badge-nuevo">Nuevo</span>}
-                                            {producto.precio_oferta && <span className="badge-oferta">Oferta</span>}
-                                        </div>
-                                        <div className="producto-info">
-                                            <h4>{producto.nombre}</h4>
-                                            <p className="tipo">{producto.tipo_producto_nombre}</p>
-                                            <div className="precio-section">
-                                                {producto.precio_oferta ? (
-                                                    <>
-                                                        <span className="precio original">${producto.precio_venta?.toLocaleString()}</span>
-                                                        <span className="precio oferta">${producto.precio_oferta?.toLocaleString()}</span>
-                                                    </>
-                                                ) : (
-                                                    <span className="precio">${producto.precio_venta?.toLocaleString()}</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                resultadosBusqueda.length > 0 ? (
+                    <div className="resultados-section">
+                        <h3 className="resultados-title">
+                            Resultados ({resultadosBusqueda.length})
+                        </h3>
+                        <div className="productos-grid">
+                            {resultadosBusqueda.map((producto) => (
+                                <ProductoCard key={producto.id} producto={producto} />
+                            ))}
                         </div>
-                    ) : (
-                        <div className="no-results">
-                            <p>No encontramos productos con esos criterios.</p>
-                            <button className="btn-link" onClick={handleLimpiarFiltros}>
-                                Limpiar filtros
-                            </button>
-                        </div>
-                    )}
-                </div>
+                    </div>
+                ) : (
+                    <div className="no-results">
+                        <p>No encontramos productos con esos criterios.</p>
+                        <button className="btn-link" onClick={handleLimpiarFiltros}>
+                            Limpiar filtros
+                        </button>
+                    </div>
+                )
             )}
 
             {/* --- MODAL DE DETALLES --- */}
             {modalOpen && selectedProducto && (
                 <DetalleProductoModal
+                    isOpen={modalOpen}
                     producto={selectedProducto}
                     onClose={cerrarModal}
                 />

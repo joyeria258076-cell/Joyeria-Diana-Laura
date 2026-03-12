@@ -509,7 +509,7 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
 // --- OBTENER PRODUCTOS POR CATEGORÍA CON LÍMITE ---
 export const getProductsByCategory = async (req: Request, res: Response) => {
     try {
-        const { categoria_id } = req.params;
+        const { id: categoria_id } = req.params;
         const { limit = 4 } = req.query;
 
         const result = await pool.query(

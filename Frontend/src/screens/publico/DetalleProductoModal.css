@@ -366,3 +366,93 @@
     font-size: 1.5rem;
   }
 }
+
+/* === BOTÓN VER DETALLES COMPLETOS === */
+.btn-ver-detalles {
+  grid-column: 1 / -1;
+  background: transparent;
+  color: rgba(236, 178, 195, 0.7);
+  border: 1px solid rgba(236, 178, 195, 0.25);
+  font-size: 0.85rem;
+}
+
+.btn-ver-detalles:hover {
+  background-color: rgba(236, 178, 195, 0.06);
+  border-color: rgba(236, 178, 195, 0.6);
+  color: var(--gold-lux);
+  transform: translateY(-1px);
+}
+
+/* ── AGREGAR AL FINAL de DetalleProductoModal.css ── */
+
+/* Alert de login inline */
+.modal-login-alert {
+  background: rgba(236,178,195,0.06);
+  border-bottom: 1px solid rgba(236,178,195,0.2);
+  padding: 0.75rem 1.5rem;
+  animation: fadeInAlert 0.2s ease;
+}
+@keyframes fadeInAlert {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.modal-login-alert-content {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  color: #ecb2c3;
+  font-size: 0.85rem;
+}
+.modal-login-alert-content svg { flex-shrink: 0; }
+.modal-login-alert-content p {
+  margin: 0;
+  flex: 1;
+  color: rgba(240,230,234,0.85);
+  font-size: 0.83rem;
+}
+.modal-login-alert-btns { display: flex; gap: 0.4rem; }
+.btn-alerta-login {
+  padding: 0.35rem 0.9rem;
+  background: #ecb2c3;
+  color: #0f0f12;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+.btn-alerta-login:hover { background: #d4899f; }
+.btn-alerta-cancelar {
+  padding: 0.35rem 0.7rem;
+  background: transparent;
+  color: #8a7a82;
+  border: 1px solid rgba(236,178,195,0.2);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+/* Ícono de candado en botones */
+.btn-ver-detalles {
+  width: 100%;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: transparent;
+  border: 1px solid rgba(236,178,195,0.25);
+  color: #ecb2c3;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+.btn-ver-detalles:hover {
+  background: rgba(236,178,195,0.08);
+  border-color: #ecb2c3;
+}
