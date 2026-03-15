@@ -41,7 +41,7 @@ export class SessionService {
   static generateDeviceFingerprint(userAgent: string, ipAddress: string): string {
     // Combinar User-Agent + IP para crear un "ID virtual" único del dispositivo
     const fingerprintData = `${userAgent}-${ipAddress}`;
-    return crypto.createHash('md5').update(fingerprintData).digest('hex').substring(0, 16);
+    return crypto.createHash('sha256').update(fingerprintData).digest('hex').substring(0, 16);
   }
 
   /**

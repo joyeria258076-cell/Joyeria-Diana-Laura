@@ -97,7 +97,7 @@ const AdminEditarProveedorScreen: React.FC = () => {
       return false;
     }
 
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (formData.email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
       setError('El email no es válido');
       return false;
     }

@@ -19,7 +19,7 @@ export const validateInputSecurity = (
     /(\bOR\b|\bAND\b)\s*['"]?\d+['"]?\s*=\s*['"]?\d+['"]?/i, // ' OR '1'='1
     /(\bUNION\b|\bSELECT\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bDROP\b|\bCREATE\b)/i,
     /--\s*$/i, // Comentarios SQL
-    /;.*?(?:DROP|DELETE|TRUNCATE|UPDATE|INSERT)/i, // Múltiples sentencias
+    /;\s*(?:DROP|DELETE|TRUNCATE|UPDATE|INSERT)\b/i, // Múltiples sentencias
     /('\s*OR\s*'.*'='|'\s*OR\s*1\s*=\s*1)/i, // Variantes comunes
     /"\s*OR\s*"\s*=\s*"/i, // Comillas dobles
     /(`|%27|%23)/i, // Caracteres codificados
@@ -74,7 +74,7 @@ export const sanitizeInput = (input: string): string => {
   return (
     input
       // Remover etiquetas HTML
-      .replace(/<[^>]*>/g, "")
+      .replace(/<[^<>]+>/g, "")
       // Remover caracteres de control
       .replace(/[\x00-\x1F\x7F]/g, "")
       // Escapar comillas

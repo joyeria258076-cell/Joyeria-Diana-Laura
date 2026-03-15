@@ -19,7 +19,7 @@ const validateNoSQLInjection = (value: string) => {
         /(\bOR\b|\bAND\b)\s*['"]?\d+['"]?\s*=\s*['"]?\d+['"]?/i,
         /(\bUNION\b|\bSELECT\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bDROP\b|\bCREATE\b)/i,
         /--\s*$/i,
-        /;.*?(?:DROP|DELETE|TRUNCATE|UPDATE|INSERT)/i,
+        /;\s*(?:DROP|DELETE|TRUNCATE|UPDATE|INSERT)\b/i,
         /('\s*OR\s*'.*'='|'\s*OR\s*1\s*=\s*1)/i,
         /"\s*OR\s*"\s*=\s*"/i,
         /(`|%27|%23)/i,

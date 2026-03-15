@@ -238,7 +238,7 @@ const AdminAutomationScreen: React.FC = () => {
           ...log, 
           endTime: new Date().toLocaleString(), 
           status: 'success',
-          recordsProcessed: Math.floor(Math.random() * 1000) 
+          recordsProcessed: globalThis.crypto.getRandomValues(new Uint32Array(1))[0] % 1000
         } : log
       ));
     }, 3000);

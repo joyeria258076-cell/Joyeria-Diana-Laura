@@ -1,5 +1,6 @@
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
+import crypto from 'node:crypto';
 
 export class MFAService {
   /**
@@ -31,7 +32,7 @@ export class MFAService {
     const codes: string[] = [];
     for (let i = 0; i < 8; i++) {
       // Generar código de 8 caracteres alfanuméricos
-      codes.push(Math.random().toString(36).substring(2, 10).toUpperCase());
+      codes.push(crypto.randomBytes(4).toString('hex').toUpperCase());
     }
     return codes;
   }

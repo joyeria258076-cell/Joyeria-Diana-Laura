@@ -27,6 +27,7 @@ import templateRoutes from './routes/templateRoutes';
 dotenv.config();
 
 const app = express();
+app.disable('x-powered-by'); // <--- La línea mágica que elimina la etiquta express
 const PORT = process.env.PORT || 5000;
 
 // ✅ CONFIGURACIÓN CORS CORREGIDA

@@ -1,4 +1,6 @@
 // Backend/src/utils/codeGenerator.ts
+import crypto from 'node:crypto';
+
 export class CodeGenerator {
   
   /**
@@ -57,7 +59,7 @@ export class CodeGenerator {
     } catch (error) {
       console.error('Error generando código de producto:', error);
       // Fallback: código basado en timestamp
-      return `PRD-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(4, '0')}`;
+      return `PRD-${Date.now()}-${crypto.randomInt(0, 1000).toString().padStart(4, '0')}`;
     }
   }
 
