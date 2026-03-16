@@ -201,7 +201,7 @@ export class BackupSchedulerService {
   }
 
   /**
-     * ─── LIMPIAR REGISTROS VIEJOS EN BD + CLOUDINARY ─────────────────────────
+     * ─── LIMPIAR REGISTROS VIEJOS EN BD + CLOUDINARY ───────────────────────
      *
      * Reglas:
      * 1. Si solo hay 1 respaldo automático → no se borra nada (conservar siempre el último).
