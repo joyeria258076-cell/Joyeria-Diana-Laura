@@ -132,3 +132,6 @@ Backend/backups_automaticos/
 *.sql
 *.gzip
 *.gz
+
+# Ignorar escáner de SonarQube
+.scannerwork/

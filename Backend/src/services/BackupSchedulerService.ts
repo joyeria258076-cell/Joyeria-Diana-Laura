@@ -201,53 +201,65 @@ export class BackupSchedulerService {
   }
 
   // ─── LIMPIAR REGISTROS VIEJOS EN BD + CLOUDINARY ─────────────────────────
+  //
+  //  Reglas:
+  //    1. Si solo hay 1 respaldo automático → no se borra nada (conservar siempre el último).
+  //    2. Si hay más de 1 → se elimina DE UNO EN UNO el más antiguo que ya haya vencido.
+  //    3. Si ninguno ha vencido aún → no se borra nada.
+  //
   static async cleanOldDbRecords(configOverride?: SchedulerConfig): Promise<{ deleted: number }> {
     try {
       const config = configOverride ?? await this.getConfig();
 
-      console.log(`🧹 [Limpieza] Verificando retención de ${config.retencion_dias} días (${config.retencion_dias * 24} horas)...`);
+      console.log(`🧹 [Limpieza] Verificando retención de ${config.retencion_dias} días...`);
 
-      // Obtener registros viejos antes de borrarlos para limpiar Cloudinary
-      const viejos = await pool.query(
-        `SELECT id, url_archivo, nombre_archivo FROM respaldos_historial
-         WHERE tipo = 'automatico'
-           AND fecha_creacion < NOW() - (interval '1 day' * $1::float)`,
-        [config.retencion_dias]
+      // Regla 1: contar cuántos respaldos automáticos existen
+      const countResult = await pool.query(
+        `SELECT COUNT(*) as total FROM respaldos_historial WHERE tipo = 'automatico'`
       );
+      const total = parseInt(countResult.rows[0].total, 10);
 
-      if (!viejos.rows.length) {
-        console.log(`🧹 [Limpieza] Sin registros que superen el período de retención.`);
+      if (total <= 1) {
+        console.log(`🧹 [Limpieza] Solo hay ${total} respaldo(s) — se conserva siempre el último. Sin eliminaciones.`);
         return { deleted: 0 };
       }
 
-      console.log(`🧹 [Limpieza] ${viejos.rows.length} registros a eliminar...`);
-
-      // Borrar de Cloudinary los que tengan URL
-      for (const row of viejos.rows) {
-        if (row.url_archivo) {
-          try {
-            const publicId = this.extractPublicIdFromCloudinary(row.url_archivo);
-            if (publicId) {
-              await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
-              console.log(`☁️  [Limpieza] Eliminado de Cloudinary: ${publicId} (${row.nombre_archivo})`);
-            }
-          } catch (cloudErr) {
-            console.error(`⚠️  [Limpieza] Error al eliminar de Cloudinary (id=${row.id}):`, cloudErr);
-          }
-        }
-      }
-
-      // Borrar de BD
-      const result = await pool.query(
-        `DELETE FROM respaldos_historial
+      // Regla 2 y 3: buscar el MÁS ANTIGUO que ya venció, solo 1
+      const vencido = await pool.query(
+        `SELECT id, url_archivo, nombre_archivo FROM respaldos_historial
          WHERE tipo = 'automatico'
-           AND fecha_creacion < NOW() - (interval '1 day' * $1::float)`,
+           AND fecha_creacion < NOW() - (interval '1 day' * $1::float)
+         ORDER BY fecha_creacion ASC
+         LIMIT 1`,
         [config.retencion_dias]
       );
 
-      const deleted = result.rowCount ?? 0;
-      console.log(`🧹 [Limpieza] ${deleted} registros eliminados (retención: ${config.retencion_dias} días).`);
-      return { deleted };
+      if (vencido.rows.length === 0) {
+        console.log(`🧹 [Limpieza] Ningún respaldo ha vencido aún. Sin eliminaciones.`);
+        return { deleted: 0 };
+      }
+
+      const registro = vencido.rows[0];
+
+      // Eliminar de Cloudinary si tiene URL
+      if (registro.url_archivo) {
+        try {
+          const publicId = this.extractPublicIdFromCloudinary(registro.url_archivo);
+          if (publicId) {
+            await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+            console.log(`☁️  [Limpieza] Eliminado de Cloudinary: ${publicId} (${registro.nombre_archivo})`);
+          }
+        } catch (cloudErr) {
+          console.error(`⚠️  [Limpieza] Error al eliminar de Cloudinary (id=${registro.id}):`, cloudErr);
+        }
+      }
+
+      // Eliminar de BD — solo 1 registro
+      await pool.query(`DELETE FROM respaldos_historial WHERE id = $1`, [registro.id]);
+
+      console.log(`🧹 [Limpieza] 1 respaldo eliminado: ${registro.nombre_archivo}. Quedan ${total - 1} en total.`);
+      return { deleted: 1 };
+
     } catch (err) {
       console.error('⚠️  [BackupScheduler] Error limpiando registros:', err);
       return { deleted: 0 };

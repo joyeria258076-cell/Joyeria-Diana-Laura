@@ -446,10 +446,14 @@ const AdminBackupsScreen: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* ── ÚNICO CAMBIO: se agrega "1 día" y se actualiza la descripción ── */}
                         <div className="automation-item">
                             <div className="auto-info">
                                 <strong>Retención y Auto-limpieza</strong>
-                                <span>Días que se conservan los archivos automáticos.</span>
+                                <span>
+                                    Elimina <strong>de uno en uno</strong> los respaldos más antiguos
+                                    una vez vencido su tiempo. El último respaldo nunca se elimina.
+                                </span>
                             </div>
                             <div className="auto-actions">
                                 <select
@@ -458,6 +462,7 @@ const AdminBackupsScreen: React.FC = () => {
                                     onChange={(e) => setSchedForm({ ...schedForm, retencion_dias: Number(e.target.value) })}
                                 >
                                     <option value={0.04}>1 hora (pruebas)</option>
+                                    <option value={1}>1 día</option>
                                     <option value={3}>3 días</option>
                                     <option value={7}>7 días</option>
                                     <option value={14}>14 días</option>
