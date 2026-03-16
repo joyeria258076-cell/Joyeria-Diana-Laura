@@ -200,13 +200,14 @@ export class BackupSchedulerService {
     }
   }
 
-  // ─── LIMPIAR REGISTROS VIEJOS EN BD + CLOUDINARY ─────────────────────────
-  //
-  //  Reglas:
-  //    1. Si solo hay 1 respaldo automático → no se borra nada (conservar siempre el último).
-  //    2. Si hay más de 1 → se elimina DE UNO EN UNO el más antiguo que ya haya vencido.
-  //    3. Si ninguno ha vencido aún → no se borra nada.
-  //
+/**
+   * ─── LIMPIAR REGISTROS VIEJOS EN BD + CLOUDINARY ─────────────────────────
+   *
+   * Reglas:
+   * 1. Si solo hay 1 respaldo automático → no se borra nada (conservar siempre el último).
+   * 2. Si hay más de 1 → se elimina DE UNO EN UNO el más antiguo que ya haya vencido.
+   * 3. Si ninguno ha vencido aún → no se borra nada.
+   */
   static async cleanOldDbRecords(configOverride?: SchedulerConfig): Promise<{ deleted: number }> {
     try {
       const config = configOverride ?? await this.getConfig();
