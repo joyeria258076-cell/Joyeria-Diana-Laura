@@ -12,22 +12,13 @@ jobs:
   sonarqube:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-
     - name: SonarQube Scan
       uses: SonarSource/sonarqube-scan-action@v2
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       with:
-        # Agregamos parámetros para que el escáner sea más ligero
-        # y forzamos el directorio base para evitar errores de ruta
-        args: >
-          -Dsonar.projectKey=Joyeria-Diana-Laura
-          -Dsonar.projectBaseDir=.
-          -Dsonar.sources=.
-          -Dsonar.scm.provider=git
-          -Dsonar.javascript.node.max_old_space_size=4096
+        args: -Dsonar.projectKey=Joyeria-Diana-Laura
