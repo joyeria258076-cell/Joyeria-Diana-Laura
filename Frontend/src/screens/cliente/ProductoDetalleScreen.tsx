@@ -3,13 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AiOutlineArrowLeft, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart } from 'react-icons/ai';
 import { productsAPI } from '../../services/api';
+import { useCart } from '../../contexts/CartContext';
 import './ProductoDetalleScreen.css';
-
-let useCartSafe: () => { agregarAlCarrito?: Function } = () => ({});
-try {
-    const { useCart } = require('../../contexts/CartContext');
-    useCartSafe = useCart;
-} catch { /* CartContext no integrado aún */ }
 
 interface Producto {
     id: number;
@@ -45,11 +40,7 @@ const ProductoDetalleScreen: React.FC = () => {
     const [exitoso, setExitoso] = useState(false);
     const [tabActiva, setTabActiva] = useState<'descripcion' | 'specs' | 'fabricacion'>('descripcion');
 
-    let agregarAlCarrito: Function | undefined;
-    try {
-        const cart = useCartSafe();
-        agregarAlCarrito = cart.agregarAlCarrito;
-    } catch { /* sin carrito */ }
+    const { agregarAlCarrito } = useCart();
 
     useEffect(() => {
         if (!id) return;
@@ -117,17 +108,13 @@ const ProductoDetalleScreen: React.FC = () => {
 
     const handleAgregar = async () => {
         if (!producto) return;
-        if (!agregarAlCarrito) {
-            alert('Módulo de carrito no disponible aún.');
-            return;
-        }
         setAgregando(true);
         try {
-            await agregarAlCarrito(producto, cantidad);
+            await agregarAlCarrito(producto.id, cantidad);
             setExitoso(true);
             setTimeout(() => setExitoso(false), 2500);
-        } catch {
-            alert('No se pudo agregar. Intenta de nuevo.');
+        } catch (err: any) {
+            alert(err?.message || 'No se pudo agregar. Intenta de nuevo.');
         } finally {
             setAgregando(false);
         }
@@ -437,6 +424,56 @@ const ProductoDetalleScreen: React.FC = () => {
                     items={tePodrianGustar}
                 />
             )}
+
+
+            {/* ── SECCIÓN MAPA ── */}
+            <section className="pd-mapa-section">
+                <div className="pd-relacionados-header">
+                    <div className="pd-rel-line" aria-hidden="true" />
+                    <h2 className="pd-relacionados-titulo">Visítanos</h2>
+                    <div className="pd-rel-line" aria-hidden="true" />
+                </div>
+                <div className="pd-mapa-layout">
+                    <div className="pd-mapa-frame">
+                        <iframe
+                            title="Ubicación Diana Laura"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.539571588721!2d-99.1652643!3d19.4270245!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff35f5bd1563%3A0x6c666571936959!2sAv.%20Paseo%20de%20la%20Reforma%20456%2C%20Ju%C3%A1rez%2C%20Cuauht%C3%A9moc%2C%2006600%20Ciudad%20de%20M%C3%A9xico%2C%20CDMX!5e0!3m2!1ses-419!2smx!4v1700000000000"
+                            width="100%" height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                        />
+                    </div>
+                    <div className="pd-mapa-info">
+                        <div className="pd-mapa-info-card pd-mapa-featured">
+                            <span className="pd-mapa-gem">💎</span>
+                            <h3>Diana Laura Boutique</h3>
+                            <p>Tu destino de joyería exclusiva en el corazón de la ciudad.</p>
+                        </div>
+                        <div className="pd-mapa-info-card">
+                            <span className="pd-mapa-icon">📍</span>
+                            <div>
+                                <h4>Dirección</h4>
+                                <p>Av. de la Reforma 456, Piso 10<br />Juárez, Cuauhtémoc<br /><strong>CDMX, México</strong></p>
+                            </div>
+                        </div>
+                        <div className="pd-mapa-info-card">
+                            <span className="pd-mapa-icon">🕐</span>
+                            <div>
+                                <h4>Horario</h4>
+                                <p>Lunes a Sábado<br /><strong>10:00 AM – 8:00 PM</strong><br />Domingos: Cerrado</p>
+                            </div>
+                        </div>
+                        <div className="pd-mapa-info-card">
+                            <span className="pd-mapa-icon">📞</span>
+                            <div>
+                                <h4>Contacto</h4>
+                                <p><strong>+52 55 1234 5678</strong><br />info@dianalaura.com</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
         </main>
     );

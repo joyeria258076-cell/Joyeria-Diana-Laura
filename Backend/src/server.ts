@@ -16,6 +16,7 @@ import adminRoutes from './routes/adminRoutes';
 import adminContentRoutes from './routes/adminContentRoutes';
 import importRoutes from './routes/importRoutes';
 import backupRoutes from './routes/backupRoutes';
+import carritoRoutes from './routes/carritoRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import cloudinary from './config/cloudinary';
 import { testCloudinaryConnection } from './config/cloudinary';
@@ -74,6 +75,10 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/api/backups')) {
         return next(); 
     }
+
+  if (req.path.startsWith('/api/carrito/webhook')) {
+        return next();
+    }
   
   // 4. Aplicar el candado de seguridad de cookies para todo el resto de la App (incluyendo POST/PUT de noticias)
   return cookieAuthMiddleware(req, res, next);
@@ -105,7 +110,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/content', adminContentRoutes); // Tu nueva ruta registrada
 app.use('/api/import', importRoutes);
-app.use('/api/backups', backupRoutes); 
+app.use('/api/backups', backupRoutes);
+app.use('/api/carrito', carritoRoutes);
 app.use('/api/upload', uploadRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ 

@@ -1004,6 +1004,46 @@ export const templateAPI = {
 };
 
 // ==========================================
+// 🛒 API PARA CARRITO Y PEDIDOS
+// ==========================================
+export const carritoAPI = {
+  getCarrito: async () => {
+    return enhancedApi.get('/carrito');
+  },
+  getCount: async () => {
+    return enhancedApi.get('/carrito/count');
+  },
+  agregar: async (producto_id: number, cantidad: number, talla_medida?: string, nota?: string) => {
+    return enhancedApi.post('/carrito', { producto_id, cantidad, talla_medida, nota });
+  },
+  actualizarCantidad: async (id: number, cantidad: number) => {
+    return enhancedApi.put(`/carrito/${id}`, { cantidad });
+  },
+  eliminarItem: async (id: number) => {
+    return enhancedApi.delete(`/carrito/${id}`);
+  },
+  vaciar: async () => {
+    return enhancedApi.delete('/carrito/vaciar');
+  },
+  crearPedido: async (data: { direccion_envio: string; notas_cliente?: string }) => {
+    return enhancedApi.post('/carrito/pedidos', data);
+  },
+  getMisPedidos: async () => {
+    return enhancedApi.get('/carrito/pedidos/mis');
+  },
+  getPedidoById: async (id: number) => {
+    return enhancedApi.get(`/carrito/pedidos/${id}`);
+  },
+  getAllPedidos: async (estado?: string) => {
+    const q = estado ? `?estado=${estado}` : '';
+    return enhancedApi.get(`/carrito/pedidos${q}`);
+  },
+  actualizarEstado: async (id: number, estado: string, notas_internas?: string) => {
+    return enhancedApi.patch(`/carrito/pedidos/${id}/estado`, { estado, notas_internas });
+  },
+};
+
+// ==========================================
 // 📥 EXPORTACIÓN DE API (opcional, para tener todo en un solo objeto)
 // ==========================================
 export const api = {
@@ -1018,6 +1058,7 @@ export const api = {
   contenidos: contenidosAPI,
   import: importAPI,
   templates: templateAPI,
+  carrito: carritoAPI,
 };
 
 export default api;

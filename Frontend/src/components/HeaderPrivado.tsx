@@ -2,10 +2,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useCart } from '../contexts/CartContext';
 import "../styles/HeaderPrivado.css";
 
 const HeaderPrivado: React.FC = () => {
     const { user, logout } = useAuth();
+    const { count: cartCount } = useCart();
     const navigate = useNavigate();
     const location = useLocation();
     const sidebarRef = useRef<HTMLDivElement>(null);
@@ -278,6 +280,20 @@ const HeaderPrivado: React.FC = () => {
                             </button>
                             <button className={`nav-item ${isActive("/pedidos")}`} onClick={() => navigate("/pedidos")}>
                                 <span className="nav-icon">🛍️</span> Mis Pedidos
+                            </button>
+                            <button className={`nav-item ${isActive("/carrito")}`} onClick={() => navigate("/carrito")}>
+                                <span className="nav-icon">🛒</span>
+                                Mi Carrito
+                                {cartCount > 0 && (
+                                    <span style={{
+                                        background: '#ecb2c3', color: '#0f0f12',
+                                        borderRadius: '50%', fontSize: '0.65rem',
+                                        fontWeight: 800, padding: '0.1rem 0.4rem',
+                                        marginLeft: 'auto'
+                                    }}>
+                                        {cartCount}
+                                    </span>
+                                )}
                             </button>
 
                             <div className="sidebar-divider"></div>

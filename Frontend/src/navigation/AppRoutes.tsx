@@ -83,6 +83,7 @@ import NotFoundScreen from '../screens/general/NotFoundScreen';
 import ForbiddenScreen from '../screens/general/ForbiddenScreen';
 import ServerErrorScreen from '../screens/general/ServerErrorScreen';
 import ClientePedidosScreen from "../screens/cliente/ClientePedidosScreen";
+import CarritoScreen from "../screens/cliente/CarritoScreen";
 import ProductoDetalleScreen from "../screens/cliente/ProductoDetalleScreen";
 
 
@@ -180,6 +181,7 @@ export default function AppRoutes() {
           <Route path="/ubicacion" element={<Ubicacion />} />
           <Route path="/ayuda" element={<Ayuda />} />
           <Route path="/pedidos" element={<ClientePedidosScreen />} />
+          <Route path="/carrito" element={<CarritoScreen />} />
           <Route path="/producto/:id" element={<ProductoDetalleScreen />} />
           <Route path="/configuracion" element={<ConfiguracionScreen />} />
 

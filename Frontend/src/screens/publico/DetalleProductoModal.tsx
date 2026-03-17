@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AiOutlineClose, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineStar, AiOutlineArrowRight, AiOutlineLock } from 'react-icons/ai';
+import { useCart } from '../../contexts/CartContext';
 import './DetalleProductoModal.css';
 
 // Detectar sesión activa leyendo localStorage directamente
@@ -38,8 +39,11 @@ interface DetalleProductoModalProps {
 const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, producto, onClose }) => {
   const [cantidad, setCantidad] = React.useState(1);
   const [showLoginAlert, setShowLoginAlert] = React.useState(false);
+  const [agregando, setAgregando] = React.useState(false);
+  const [exitoso, setExitoso] = React.useState(false);
   const navigate = useNavigate();
   const logueado = estaLogueado();
+  const { agregarAlCarrito } = useCart();
 
   if (!isOpen || !producto) return null;
 
@@ -48,10 +52,19 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
   const precioFinal = producto.precio_oferta || producto.precio_venta;
   const hayDescuento = producto.precio_oferta && producto.precio_oferta < producto.precio_venta;
 
-  const handleAgregar = () => {
+  const handleAgregar = async () => {
     if (!logueado) { setShowLoginAlert(true); return; }
-    alert(`${cantidad} ${producto.nombre}(s) agregado(s) al carrito`);
-    setCantidad(1);
+    setAgregando(true);
+    try {
+      await agregarAlCarrito(producto.id, cantidad);
+      setExitoso(true);
+      setCantidad(1);
+      setTimeout(() => setExitoso(false), 2500);
+    } catch (err: any) {
+      alert(err?.message || 'No se pudo agregar. Intenta de nuevo.');
+    } finally {
+      setAgregando(false);
+    }
   };
 
   const handleFavorito = () => {
@@ -59,8 +72,6 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
     alert('Guardado en favoritos');
   };
 
-  // Logueado → página privada /producto/:id
-  // No logueado → página pública /producto-publico/:id
   const handleVerDetalles = () => {
     onClose();
     if (logueado) {
@@ -183,9 +194,9 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
 
             <div className="detalle-acciones">
               {producto.stock_actual > 0 ? (
-                <button className="btn btn-primary" onClick={handleAgregar}>
+                <button className="btn btn-primary" onClick={handleAgregar} disabled={agregando}>
                   <AiOutlineShoppingCart size={20} />
-                  Agregar al Carrito
+                  {agregando ? 'Agregando...' : exitoso ? '¡Agregado! ✓' : 'Agregar al Carrito'}
                   {!logueado && <AiOutlineLock size={13} style={{marginLeft: 4, opacity: 0.7}} />}
                 </button>
               ) : (
