@@ -1,6 +1,5 @@
-/// RUTA: Joyeria-Diana-Laura/Frontend/src/services/backupsService.ts
+// RUTA: Joyeria-Diana-Laura/Frontend/src/services/backupsService.ts
 const API_URL = `${import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api'}/backups`;
-//const API_URL = 'http://localhost:5000/api/backups'; 
 
 // --- INTERFAZ DE DATOS ---
 export interface Backup {
