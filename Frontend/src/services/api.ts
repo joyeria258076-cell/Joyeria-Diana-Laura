@@ -1,5 +1,6 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/services/api.ts
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+//const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api'; 
 
 // 🎯 MANTENER TU FUNCIÓN ORIGINAL EXACTA
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
@@ -1083,6 +1084,67 @@ export const carritoAPI = {
     })();
     return `${API_BASE_URL}/carrito/pedidos/${venta_id}/recibo?token=${token}`;
   },
+};
+
+export const exportAPI = {
+  getMetadata: async (tableName: string) => {
+    return enhancedApi.get(`/export/metadata/${tableName}`);
+  },
+  previewExport: async (tableName: string, filters: any[]) => {
+    return enhancedApi.post('/export/preview', { tableName, filters });
+  },
+  exportData: async (tableName: string, filters: any[], includeRelations: boolean) => {
+    const jwtToken = localStorage.getItem('diana_laura_user') 
+      ? JSON.parse(localStorage.getItem('diana_laura_user')!).token 
+      : null;
+    const sessionToken = localStorage.getItem('diana_laura_session_token');
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+    if (sessionToken) headers['X-Session-Token'] = sessionToken;
+
+    const response = await fetch(`${API_BASE_URL}/export/export`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ tableName, filters, includeRelations }),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Error al exportar');
+    }
+    return response;
+  }
+};
+
+export const bulkUpdateAPI = {
+  previewUpdate: async (formData: FormData) => {
+    const jwtToken = localStorage.getItem('diana_laura_user') 
+      ? JSON.parse(localStorage.getItem('diana_laura_user')!).token 
+      : null;
+    const sessionToken = localStorage.getItem('diana_laura_session_token');
+
+    const headers: Record<string, string> = {};
+    if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+    if (sessionToken) headers['X-Session-Token'] = sessionToken;
+
+    const response = await fetch(`${API_BASE_URL}/bulk-update/preview`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al procesar archivo');
+    }
+    return data;
+  },
+  executeUpdate: async (tableName: string, updates: any[]) => {
+    return enhancedApi.post('/bulk-update/execute', { tableName, updates });
+  }
 };
 
 // ==========================================

@@ -117,6 +117,12 @@ const HeaderPrivado: React.FC = () => {
                                         <button className={`dropdown-item ${isActive("/admin/importar-csv") ? "active" : ""}`} onClick={() => navigate("/admin/importar-csv")}>
                                             <span className="dropdown-icon">📥</span> Importar CSV
                                         </button>
+                                              <button className={`dropdown-item ${isActive("/admin/exportar") ? "active" : ""}`} onClick={() => navigate("/admin/exportar")}>
+                                            <span className="dropdown-icon">📤</span> Exportar Datos
+                                        </button>
+                                        <button className={`dropdown-item ${isActive("/admin/actualizacion-masiva") ? "active" : ""}`} onClick={() => navigate("/admin/actualizacion-masiva")}>
+                                            <span className="dropdown-icon">🔄</span> Actualización Masiva
+                                        </button>
                                         <button className={`dropdown-item ${isActive("/admin-automation") ? "active" : ""}`} onClick={() => navigate("/admin-automation")}>
                                             <span className="dropdown-icon">⚡</span> Automatización
                                         </button>

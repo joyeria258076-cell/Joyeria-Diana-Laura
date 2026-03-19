@@ -1,4 +1,4 @@
-// Ruta: Joyeria-Diana-Laura/Backend/src/server.ts
+// Backend/src/server.ts
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -7,7 +7,7 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import { LoginSecurityService } from './services/loginSecurityService';
 import securityQuestionRoutes from './routes/securityQuestionRoutes';
-import { getTokenInfo } from './middleware/authMiddleware';
+import { getTokenInfo, authenticateToken } from './middleware/authMiddleware';
 import { JWTConfig } from './config/jwtConfig';
 import cookieParser from 'cookie-parser';
 import { cookieAuthMiddleware } from './middleware/cookieMiddleware';
@@ -26,14 +26,18 @@ import { BackupSchedulerService } from './services/BackupSchedulerService';
 import templateRoutes from './routes/templateRoutes';
 import metricsRoutes from './routes/metricsRoutes';
 import { metricsMiddleware, setupErrorMonitoring, expressErrorMiddleware, cleanupOldLogs } from './middleware/metricsMiddleware';
+import exportRoutes from './routes/exportRoutes';
+import bulkUpdateRoutes from './routes/bulkUpdateRoutes';
+import { AuthRequest } from './middleware/authMiddleware';
+import pool from './config/database';
 
 dotenv.config();
 
 const app = express();
-app.disable('x-powered-by'); // <--- La línea mágica que elimina la etiquta express
+app.disable('x-powered-by');
 const PORT = process.env.PORT || 5000;
 
-// ✅ CONFIGURACIÓN CORS CORREGIDA
+// ✅ CONFIGURACIÓN CORS
 app.use(cors({
   origin: [
     'https://joyeria-diana-laura.vercel.app',
@@ -42,7 +46,7 @@ app.use(cors({
     'http://localhost:5173'
   ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Agregué PATCH por si acaso
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type', 
     'Authorization',
@@ -52,43 +56,50 @@ app.use(cors({
 
 app.options('*', cors());
 
-// ✅ 1. MOVER ESTO AQUÍ ARRIBA (Súper importante para que las imágenes pesadas de las noticias pasen bien)
+// ✅ Middlewares básicos
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser()); 
 app.use(metricsMiddleware);
 
-// 🌟 SOLUCIÓN DE RUTAS PÚBLICAS Y PRIVADAS: Middleware Condicional
+// 🌟 Middleware condicional para rutas públicas/privadas
 app.use((req, res, next) => {
-  // 1. Permitir acceso público a ver productos y categorías (Catálogo Público)
+  // 1. Permitir acceso público a ver productos y categorías
   if (req.path.startsWith('/api/products') && req.method === 'GET') {
     return next();
   }
   
-  // 2. NUEVO: Permitir acceso público a VER las noticias y configuración de la página
+  // 2. Permitir acceso público a VER noticias y configuración
   if (req.path.startsWith('/api/content') && req.method === 'GET') {
     return next();
   }
   
-  // 3. Permitir acceso público a las rutas de autenticación (Login, Registro, etc.)
+  // 3. Permitir acceso público a rutas de autenticación
   if (req.path.startsWith('/api/auth')) {
     return next();
   }
 
   if (req.path.startsWith('/api/backups')) {
-        return next(); 
-    }
+    return next(); 
+  }
 
   if (req.path.startsWith('/api/carrito/webhook')) {
-        return next();
-    }
+    return next();
+  }
   
-  // 4. Aplicar el candado de seguridad de cookies para todo el resto de la App (incluyendo POST/PUT de noticias)
+  // 4. Aplicar middleware de cookies para el resto
   return cookieAuthMiddleware(req, res, next);
 });
-app.use('/api/templates', templateRoutes);
 
-// 🎯 ENDPOINT PARA DIAGNÓSTICO JWT
+// =============================================
+// 🚀 RUTAS DE LA API
+// =============================================
+
+app.use('/api/templates', templateRoutes);
+app.use('/api/export', exportRoutes);
+app.use('/api/bulk-update', bulkUpdateRoutes);
+
+// 🎯 ENDPOINTS DE DIAGNÓSTICO
 app.get('/api/jwt-info', getTokenInfo);
 
 app.get('/api/jwt-config', (req, res) => {
@@ -105,27 +116,61 @@ app.get('/api/jwt-config', (req, res) => {
   });
 });
 
-// ✅ Rutas
+// 🆕 ENDPOINT PARA DEBUG - Verificar rol del usuario actual
+app.get('/api/debug/my-role', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const userId = (req as any).user?.id || (req as any).user?.userId;
+    
+    if (!userId) {
+      return res.json({ 
+        success: false, 
+        message: 'No hay usuario en la request',
+        userFromToken: req.user 
+      });
+    }
+
+    const result = await pool.query('SELECT id, email, rol FROM usuarios WHERE id = $1', [userId]);
+    
+    res.json({
+      success: true,
+      data: {
+        userId,
+        userFromToken: req.user,
+        userFromDB: result.rows[0]
+      }
+    });
+  } catch (error) {
+    console.error('Error en debug/my-role:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Error desconocido' 
+    });
+  }
+});
+
+// ✅ Rutas principales
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/security', securityQuestionRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/content', adminContentRoutes); // Tu nueva ruta registrada
+app.use('/api/content', adminContentRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/backups', backupRoutes);
 app.use('/api/carrito', carritoRoutes);
 app.use('/api/upload', uploadRoutes);
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    success: true, 
-    message: '🚀 Backend Diana Laura - Login & Users API',
-    timestamp: new Date().toISOString()
-  });
-});
 app.use('/api/configuracion', configuracionRoutes);
 app.use('/api/proveedores', proveedoresRoutes);
 app.use('/api/metrics', metricsRoutes);
+
+// 🩺 ENDPOINTS DE SALUD
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: '🚀 Backend Diana Laura - API funcionando correctamente',
+    timestamp: new Date().toISOString()
+  });
+});
 
 app.get('/api/db-test', async (req, res) => {
   const dbOk = await testConnection();
@@ -139,19 +184,27 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'Servidor funcionando' });
 });
 
+// Middleware de errores (debe ir al final)
 app.use(expressErrorMiddleware);
 
+// =============================================
+// 🚀 INICIALIZACIÓN DEL SERVIDOR
+// =============================================
+
 app.listen(PORT, async () => {
-  console.log(`🎯 Servidor en puerto ${PORT}`);
+  console.log(`\n🎯 Servidor en puerto ${PORT}`);
   console.log(`📊 Endpoints disponibles:`);
   console.log(`   🔐 Auth: http://localhost:${PORT}/api/auth`);
   console.log(`   👥 Users: http://localhost:${PORT}/api/users`);
   console.log(`   💎 Products: http://localhost:${PORT}/api/products`); 
   console.log(`   📰 Content: http://localhost:${PORT}/api/content`); 
-  console.log(`   ❤️  Health: http://localhost:${PORT}/api/health`);
-  console.log(`   🗄️  DB Test: http://localhost:${PORT}/api/db-test`);
+  console.log(`   ❤️ Health: http://localhost:${PORT}/api/health`);
+  console.log(`   🗄️ DB Test: http://localhost:${PORT}/api/db-test`);
+  console.log(`   📤 Export: http://localhost:${PORT}/api/export`);
+  console.log(`   🔄 Bulk Update: http://localhost:${PORT}/api/bulk-update`);
+  console.log(`   🔍 Debug Role: http://localhost:${PORT}/api/debug/my-role`);
   console.log(`🔐 CORS Headers permitidos: Content-Type, Authorization, X-Session-Token`);
-  console.log(`   🛠️  Admin: http://localhost:${PORT}/api/admin`);
+  console.log(`   🛠️ Admin: http://localhost:${PORT}/api/admin`);
 
   // 🎯 CONEXIÓN Y LIMPIEZA INICIAL
   try {
@@ -171,6 +224,9 @@ app.listen(PORT, async () => {
   if (cloudinaryOk) {
     console.log('✅ Cloudinary configurado correctamente');
   }
+  
   setupErrorMonitoring();
   await cleanupOldLogs();
+  
+  console.log('=================================\n');
 });
