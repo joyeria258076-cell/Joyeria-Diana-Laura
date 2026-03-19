@@ -87,3 +87,123 @@
 .cp-footer p { font-size: 0.78rem; color: #8a7a82; margin: 0; line-height: 1.6; }
 .cp-footer-social { display: flex; gap: 1rem; font-size: 1.3rem; }
 .cp-footer-hr { border: none; border-top: 1px solid rgba(236,178,195,0.1); }
+
+/* ── Indicador pago pendiente en tabla ── */
+.cp-pago-pendiente {
+    display: block;
+    font-size: 0.68rem;
+    color: #f5c842;
+    margin-top: 0.25rem;
+    font-weight: 600;
+}
+
+/* ── Sección de pago en modal ── */
+.cp-seccion-pago {
+    background: linear-gradient(135deg, rgba(107,203,119,0.08), rgba(236,178,195,0.06));
+    border: 1px solid rgba(107,203,119,0.25);
+    border-radius: 14px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.cp-pago-titulo {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+.cp-pago-icon { font-size: 1.5rem; flex-shrink: 0; }
+.cp-pago-titulo h4 { font-size: 0.95rem; font-weight: 700; color: #f0e6ea; margin: 0 0 0.2rem; }
+.cp-pago-titulo p  { font-size: 0.8rem; color: #8a7a82; margin: 0; }
+
+.cp-pago-error {
+    background: rgba(224,90,106,0.1);
+    border: 1px solid rgba(224,90,106,0.3);
+    color: #e05a6a;
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.82rem;
+}
+
+.cp-pago-botones {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.cp-btn-mp,
+.cp-btn-paypal {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    transition: 0.2s;
+    width: 100%;
+    text-align: left;
+}
+
+.cp-btn-mp {
+    background: linear-gradient(135deg, #00b1ea, #009ee3);
+    color: #fff;
+}
+.cp-btn-mp:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,177,234,0.3); }
+
+.cp-btn-paypal {
+    background: linear-gradient(135deg, #003087, #009cde);
+    color: #fff;
+}
+.cp-btn-paypal:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,48,135,0.4); }
+
+.cp-btn-mp:disabled,
+.cp-btn-paypal:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.cp-btn-pago-logo { font-size: 1.4rem; flex-shrink: 0; }
+
+.cp-btn-mp span:last-child,
+.cp-btn-paypal span:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+.cp-btn-mp strong,
+.cp-btn-paypal strong { font-size: 0.95rem; font-weight: 700; }
+.cp-btn-mp small,
+.cp-btn-paypal small  { font-size: 0.72rem; opacity: 0.85; }
+
+.cp-pago-seguro {
+    font-size: 0.72rem;
+    color: #8a7a82;
+    text-align: center;
+    margin: 0;
+}
+
+/* ── Pago completado ── */
+.cp-pago-completado {
+    background: rgba(107,203,119,0.1);
+    border: 1px solid rgba(107,203,119,0.3);
+    color: #6bcb77;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+/* ── Botón recibo ── */
+.cp-btn-recibo {
+    width: 100%;
+    padding: 0.75rem;
+    background: transparent;
+    border: 1px solid rgba(236,178,195,0.25);
+    color: #ecb2c3;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-family: 'Montserrat', sans-serif;
+    transition: 0.2s;
+}
+.cp-btn-recibo:hover { background: rgba(236,178,195,0.08); }

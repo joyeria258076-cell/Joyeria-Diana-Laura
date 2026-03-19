@@ -62,17 +62,19 @@ import ActividadesTrabajadorScreen from "../screens/trabajador/ActividadesTrabaj
 // CATEGORÍAS
 import AdminCategoriasScreen from "../screens/admin/AdminCategoriasScreen";
 
-// 📁 NUEVAS PANTALLAS DE BASE DE DATOS
+// 📁 PANTALLAS DE BASE DE DATOS
 import AdminDatabaseScreen from "../screens/admin/basedatos/AdminDatabaseScreen";
 import AdminBackupsScreen from "../screens/admin/basedatos/AdminBackupsScreen";
 import AdminImportExportScreen from "../screens/admin/basedatos/AdminImportExportScreen";
 import AdminAutomationScreen from "../screens/admin/basedatos/AdminAutomationScreen";
 import AdminSimpleImportScreen from "../screens/admin/basedatos/AdminSimpleImportScreen";
+// ✅ NUEVO: Pantalla de monitoreo
+import AdminMonitoreoScreen from "../screens/admin/basedatos/AdminMonitoreoScreen";
 
-// 📁 NUEVAS PANTALLAS DE CONFIGURACIÓN
+// 📁 PANTALLAS DE CONFIGURACIÓN
 import AdminVariablesConfigScreen from "../screens/admin/configuracion/AdminVariablesConfigScreen";
 
-// 📁 NUEVAS PANTALLAS DE PROVEEDORES
+// 📁 PANTALLAS DE PROVEEDORES
 import AdminProveedoresScreen from "../screens/admin/proveedores/AdminProveedoresScreen";
 import AdminNuevoProveedorScreen from "../screens/admin/proveedores/AdminNuevoProveedorScreen";
 import AdminEditarProveedorScreen from "../screens/admin/proveedores/AdminEditarProveedorScreen";
@@ -188,61 +190,63 @@ export default function AppRoutes() {
           {/* 🔐 RUTAS EXCLUSIVAS ADMIN */}
           <Route element={<RoleRoute allowedRoles={['admin']} />}>
             <Route path="/admin-dashboard" element={<AdminDashboardScreen />} />
-            
-            {/* 📁 NUEVAS RUTAS DE BASE DE DATOS */}
-            <Route path="/admin-database" element={<AdminDatabaseScreen />} />
-            <Route path="/admin-backups" element={<AdminBackupsScreen />} />
+
+            {/* 📁 RUTAS DE BASE DE DATOS */}
+            <Route path="/admin-database"     element={<AdminDatabaseScreen />} />
+            <Route path="/admin-backups"      element={<AdminBackupsScreen />} />
             <Route path="/admin-import-export" element={<AdminImportExportScreen />} />
-            <Route path="/admin-automation" element={<AdminAutomationScreen />} />
-            <Route path="/admin/importar" element={<AdminSimpleImportScreen />} />
+            <Route path="/admin-automation"   element={<AdminAutomationScreen />} />
+            <Route path="/admin/importar"     element={<AdminSimpleImportScreen />} />
             <Route path="/admin/importar-csv" element={<AdminSimpleImportScreen />} />
-            
-            {/* 📁 NUEVAS RUTAS DE CONFIGURACIÓN */}
+            {/* ✅ NUEVO */}
+            <Route path="/admin-monitoreo"    element={<AdminMonitoreoScreen />} />
+
+            {/* 📁 RUTAS DE CONFIGURACIÓN */}
             <Route path="/admin/configuracion/variables" element={<AdminVariablesConfigScreen />} />
-            
-            {/* 📁 NUEVAS RUTAS DE PROVEEDORES */}
-            <Route path="/admin/proveedores" element={<AdminProveedoresScreen />} />
-            <Route path="/admin/proveedor/nuevo" element={<AdminNuevoProveedorScreen />} />
-            <Route path="/admin/proveedor/:id" element={<AdminProveedorDetalleScreen />} />
-            <Route path="/admin/editar-proveedor/:id" element={<AdminEditarProveedorScreen />} />
-            
-            {/* Rutas existentes de contenido */}
-            <Route path="/admin-contenido" element={<AdminContentManagerScreen />} />
-            <Route path="/admin-contenido/paginas" element={<AdminPageManagementScreen />} />
-            <Route path="/admin-contenido/secciones" element={<AdminSectionManagementScreen />} />
-            <Route path="/admin-contenido/pagina-inicio" element={<AdminPageContentInitialScreen />} />
-            <Route path="/admin-contenido/pagina-noticias" element={<AdminPageContentNoticiasScreen />} />
-            <Route path="/admin-contenido/info" element={<AdminContentInfoScreen />} />
-            <Route path="/admin-contenido/faq" element={<AdminContentFAQScreen />} />
-            <Route path="/admin-contenido/mision" element={<AdminContentMisionScreen />} />
-            
+
+            {/* 📁 RUTAS DE PROVEEDORES */}
+            <Route path="/admin/proveedores"            element={<AdminProveedoresScreen />} />
+            <Route path="/admin/proveedor/nuevo"        element={<AdminNuevoProveedorScreen />} />
+            <Route path="/admin/proveedor/:id"          element={<AdminProveedorDetalleScreen />} />
+            <Route path="/admin/editar-proveedor/:id"   element={<AdminEditarProveedorScreen />} />
+
+            {/* Rutas de contenido */}
+            <Route path="/admin-contenido"                    element={<AdminContentManagerScreen />} />
+            <Route path="/admin-contenido/paginas"            element={<AdminPageManagementScreen />} />
+            <Route path="/admin-contenido/secciones"          element={<AdminSectionManagementScreen />} />
+            <Route path="/admin-contenido/pagina-inicio"      element={<AdminPageContentInitialScreen />} />
+            <Route path="/admin-contenido/pagina-noticias"    element={<AdminPageContentNoticiasScreen />} />
+            <Route path="/admin-contenido/info"               element={<AdminContentInfoScreen />} />
+            <Route path="/admin-contenido/faq"                element={<AdminContentFAQScreen />} />
+            <Route path="/admin-contenido/mision"             element={<AdminContentMisionScreen />} />
+
             {/* Rutas de inventario */}
-            <Route path="/admin-inventario" element={<AdminInventarioScreen />} />
-            <Route path="/admin-nuevo-producto" element={<AdminNuevoProductoScreen />} />
-            <Route path="/admin-categorias" element={<AdminCategoriasScreen />} />
-            <Route path="/admin-trabajadores" element={<AdminTrabajadoresScreen />} />
-            <Route path="/admin-trabajadores/nuevo" element={<AdminAltaTrabajadorForm />} />
+            <Route path="/admin-inventario"              element={<AdminInventarioScreen />} />
+            <Route path="/admin-nuevo-producto"          element={<AdminNuevoProductoScreen />} />
+            <Route path="/admin-categorias"              element={<AdminCategoriasScreen />} />
+            <Route path="/admin-trabajadores"            element={<AdminTrabajadoresScreen />} />
+            <Route path="/admin-trabajadores/nuevo"      element={<AdminAltaTrabajadorForm />} />
             <Route path="/admin-trabajadores/editar/:id" element={<AdminEditarTrabajadorScreen />} />
-            <Route path="/admin-perfil" element={<AdminPerfilScreen />} />
-            <Route path="/admin-reportes" element={<AdminReportesScreen />} />
-            <Route path="/admin/producto/:id" element={<AdminProductoDetalleScreen />} />
-            <Route path="/admin/editar-producto/:id" element={<AdminEditarProductoScreen />} />
+            <Route path="/admin-perfil"                  element={<AdminPerfilScreen />} />
+            <Route path="/admin-reportes"                element={<AdminReportesScreen />} />
+            <Route path="/admin/producto/:id"            element={<AdminProductoDetalleScreen />} />
+            <Route path="/admin/editar-producto/:id"     element={<AdminEditarProductoScreen />} />
           </Route>
 
           {/* 🔐 RUTAS EXCLUSIVAS TRABAJADOR / ADMIN */}
           <Route element={<RoleRoute allowedRoles={['trabajador', 'admin']} />}>
-             <Route path="/dashboard-trabajador" element={<DashboardTrabajadorScreen />} />
-             <Route path="/pedidos-admin" element={<GestionPedidosScreen />} />
-             <Route path="/trabajador/actividades" element={<ActividadesTrabajadorScreen />} />
-             <Route path="/trabajador/configuracion" element={<ConfiguracionScreen />} />
-             <Route path="/trabajador/perfil" element={<PerfilScreen />} />
+            <Route path="/dashboard-trabajador"       element={<DashboardTrabajadorScreen />} />
+            <Route path="/pedidos-admin"              element={<GestionPedidosScreen />} />
+            <Route path="/trabajador/actividades"     element={<ActividadesTrabajadorScreen />} />
+            <Route path="/trabajador/configuracion"   element={<ConfiguracionScreen />} />
+            <Route path="/trabajador/perfil"          element={<PerfilScreen />} />
           </Route>
         </Route>
 
         {/* 4. MANEJO DE ERRORES */}
         <Route path="/403" element={<ForbiddenScreen />} />
         <Route path="/500" element={<ServerErrorScreen />} />
-        <Route path="*" element={<NotFoundScreen />} />
+        <Route path="*"    element={<NotFoundScreen />} />
       </Routes>
     </BrowserRouter>
   );

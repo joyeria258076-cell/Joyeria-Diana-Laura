@@ -192,6 +192,12 @@ export const VentaModel = {
             SELECT
                 v.*,
                 ut.nombre AS trabajador_nombre,
+                COALESCE(
+                    (SELECT tp.estado FROM transacciones_pago tp
+                     WHERE tp.venta_id = v.id
+                     ORDER BY tp.fecha_creacion DESC LIMIT 1),
+                    'pendiente'
+                ) AS estado_pago,
                 (
                     SELECT json_agg(json_build_object(
                         'id',               dv.id,
@@ -220,10 +226,12 @@ export const VentaModel = {
                 c.nombre            AS cliente_nombre,
                 c.email             AS cliente_email,
                 ut.nombre           AS trabajador_nombre,
+                tw.nombre           AS trabajador_asignado_nombre,
                 (SELECT COUNT(*) FROM detalle_ventas dv WHERE dv.venta_id = v.id) AS total_items
             FROM ventas v
             JOIN clientes c ON v.cliente_id = c.id
             LEFT JOIN usuarios ut ON v.actualizado_por = ut.id
+            LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
             WHERE 1=1
         `;
         const params: any[] = [];
@@ -244,6 +252,12 @@ export const VentaModel = {
                 c.nombre  AS cliente_nombre_reg,
                 c.email   AS cliente_email_reg,
                 ut.nombre AS trabajador_nombre,
+                COALESCE(
+                    (SELECT tp.estado FROM transacciones_pago tp
+                     WHERE tp.venta_id = v.id
+                     ORDER BY tp.fecha_creacion DESC LIMIT 1),
+                    'pendiente'
+                ) AS estado_pago,
                 (
                     SELECT json_agg(json_build_object(
                         'id',               dv.id,
@@ -294,6 +308,150 @@ export const VentaModel = {
         return result.rows[0];
     },
 
+
+    // ── Editar detalles de venta ──────────────────────────────
+    editarDetalles: async (id: number, data: {
+        direccion_envio?: string;
+        notas_internas?: string;
+        fecha_estimada_entrega?: string;
+        numero_guia?: string;
+        paqueteria?: string;
+        trabajador_id: number;
+    }) => {
+        const campos: string[] = ['fecha_actualizacion = CURRENT_TIMESTAMP', 'actualizado_por = $2'];
+        const valores: any[] = [id, data.trabajador_id];
+        let i = 3;
+
+        if (data.direccion_envio !== undefined) {
+            campos.push(`notas_cliente = $${i++}`);
+            valores.push(data.direccion_envio);
+        }
+        if (data.notas_internas !== undefined) {
+            campos.push(`notas_internas = $${i++}`);
+            valores.push(data.notas_internas);
+        }
+        if (data.fecha_estimada_entrega !== undefined) {
+            campos.push(`fecha_estimada_entrega = $${i++}`);
+            valores.push(data.fecha_estimada_entrega || null);
+        }
+        if (data.numero_guia !== undefined) {
+            campos.push(`numero_guia = $${i++}`);
+            valores.push(data.numero_guia || null);
+        }
+        if (data.paqueteria !== undefined) {
+            campos.push(`paqueteria = $${i++}`);
+            valores.push(data.paqueteria || null);
+        }
+
+        const result = await pool.query(`
+            UPDATE ventas SET ${campos.join(', ')} WHERE id = $1 RETURNING *
+        `, valores);
+        return result.rows[0];
+    },
+
+    // ── Modificar cantidad de un item ─────────────────────────
+    editarCantidadItem: async (detalle_id: number, venta_id: number, cantidad: number) => {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const detalle = await client.query(
+                `SELECT * FROM detalle_ventas WHERE id = $1 AND venta_id = $2`,
+                [detalle_id, venta_id]
+            );
+            if (!detalle.rows.length) throw new Error('Item no encontrado');
+
+            const item = detalle.rows[0];
+            const nuevoSubtotal = item.precio_unitario * cantidad;
+
+            await client.query(`
+                UPDATE detalle_ventas SET cantidad = $1, subtotal = $2 WHERE id = $3
+            `, [cantidad, nuevoSubtotal, detalle_id]);
+
+            // Recalcular totales de la venta
+            const totales = await client.query(`
+                SELECT SUM(subtotal) AS subtotal FROM detalle_ventas WHERE venta_id = $1
+            `, [venta_id]);
+
+            const subtotal = parseFloat(totales.rows[0].subtotal);
+            const iva      = subtotal * 0.16;
+            const total    = subtotal + iva;
+
+            await client.query(`
+                UPDATE ventas SET subtotal = $1, iva = $2, total = $3, fecha_actualizacion = CURRENT_TIMESTAMP
+                WHERE id = $4
+            `, [subtotal, iva, total, venta_id]);
+
+            await client.query('COMMIT');
+            return { detalle_id, cantidad, subtotal: nuevoSubtotal };
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
+    },
+
+    // ── Eliminar item de venta ────────────────────────────────
+    eliminarItem: async (detalle_id: number, venta_id: number) => {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Verificar que no sea el último item
+            const count = await client.query(
+                `SELECT COUNT(*) FROM detalle_ventas WHERE venta_id = $1`, [venta_id]
+            );
+            if (parseInt(count.rows[0].count) <= 1)
+                throw new Error('No puedes eliminar el único producto del pedido');
+
+            await client.query(
+                `DELETE FROM detalle_ventas WHERE id = $1 AND venta_id = $2`, [detalle_id, venta_id]
+            );
+
+            // Recalcular totales
+            const totales = await client.query(
+                `SELECT SUM(subtotal) AS subtotal FROM detalle_ventas WHERE venta_id = $1`, [venta_id]
+            );
+            const subtotal = parseFloat(totales.rows[0].subtotal);
+            const iva      = subtotal * 0.16;
+            const total    = subtotal + iva;
+
+            await client.query(`
+                UPDATE ventas SET subtotal = $1, iva = $2, total = $3,
+                total_articulos = (SELECT COUNT(*) FROM detalle_ventas WHERE venta_id = $4),
+                fecha_actualizacion = CURRENT_TIMESTAMP WHERE id = $4
+            `, [subtotal, iva, total, venta_id]);
+
+            await client.query('COMMIT');
+            return { deleted: detalle_id };
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
+    },
+
+    // ── Obtener datos del cliente de una venta ────────────────
+    getClienteByVenta: async (venta_id: number) => {
+        const result = await pool.query(`
+            SELECT
+                v.cliente_nombre_completo,
+                v.cliente_email,
+                v.cliente_telefono,
+                v.notas_cliente AS direccion_envio,
+                c.telefono,
+                c.celular,
+                c.fecha_nacimiento,
+                u.email AS usuario_email
+            FROM ventas v
+            JOIN clientes c ON v.cliente_id = c.id
+            JOIN usuarios u ON c.user_id = u.id
+            WHERE v.id = $1
+        `, [venta_id]);
+        return result.rows[0];
+    },
     // Confirmar pago recibido de MercadoPago
     confirmarPago: async (payment_id: string, preference_id: string) => {
         const result = await pool.query(`

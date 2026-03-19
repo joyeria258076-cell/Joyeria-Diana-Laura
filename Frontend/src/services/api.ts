@@ -1041,6 +1041,49 @@ export const carritoAPI = {
   actualizarEstado: async (id: number, estado: string, notas_internas?: string) => {
     return enhancedApi.patch(`/carrito/pedidos/${id}/estado`, { estado, notas_internas });
   },
+  tomarPedido: async (id: number) => {
+    return enhancedApi.patch(`/carrito/pedidos/${id}/tomar`, {});
+  },
+  // Editar detalles del pedido
+  editarDetalles: async (id: number, data: {
+    direccion_envio?: string;
+    notas_internas?: string;
+    fecha_estimada_entrega?: string;
+    numero_guia?: string;
+    paqueteria?: string;
+  }) => {
+    return enhancedApi.patch(`/carrito/pedidos/${id}/detalles`, data);
+  },
+  // Modificar cantidad de un item
+  editarCantidadItem: async (venta_id: number, item_id: number, cantidad: number) => {
+    return enhancedApi.patch(`/carrito/pedidos/${venta_id}/items/${item_id}/cantidad`, { cantidad });
+  },
+  // Eliminar item de venta
+  eliminarItemVenta: async (venta_id: number, item_id: number) => {
+    return enhancedApi.delete(`/carrito/pedidos/${venta_id}/items/${item_id}`);
+  },
+  // Datos del cliente
+  getClienteVenta: async (venta_id: number) => {
+    return enhancedApi.get(`/carrito/pedidos/${venta_id}/cliente`);
+  },
+  // MercadoPago
+  crearPreferenciaMercadoPago: async (venta_id: number) => {
+    return enhancedApi.post('/carrito/pago/mercadopago', { venta_id });
+  },
+  // PayPal
+  crearOrdenPayPal: async (venta_id: number) => {
+    return enhancedApi.post('/carrito/pago/paypal/crear', { venta_id });
+  },
+  capturarPagoPayPal: async (order_id: string, venta_id: number) => {
+    return enhancedApi.post('/carrito/pago/paypal/capturar', { order_id, venta_id });
+  },
+  // Recibo — retorna HTML para imprimir como PDF
+  getReciboUrl: (venta_id: number): string => {
+    const token = (() => {
+        try { return JSON.parse(localStorage.getItem('diana_laura_user') || '{}').token || ''; } catch { return ''; }
+    })();
+    return `${API_BASE_URL}/carrito/pedidos/${venta_id}/recibo?token=${token}`;
+  },
 };
 
 // ==========================================

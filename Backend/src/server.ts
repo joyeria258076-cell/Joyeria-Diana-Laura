@@ -24,6 +24,8 @@ import configuracionRoutes from './routes/configuracionRoutes';
 import proveedoresRoutes from './routes/proveedoresRoutes';
 import { BackupSchedulerService } from './services/BackupSchedulerService';
 import templateRoutes from './routes/templateRoutes';
+import metricsRoutes from './routes/metricsRoutes';
+import { metricsMiddleware, setupErrorMonitoring, expressErrorMiddleware, cleanupOldLogs } from './middleware/metricsMiddleware';
 
 dotenv.config();
 
@@ -54,6 +56,7 @@ app.options('*', cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser()); 
+app.use(metricsMiddleware);
 
 // 🌟 SOLUCIÓN DE RUTAS PÚBLICAS Y PRIVADAS: Middleware Condicional
 app.use((req, res, next) => {
@@ -122,6 +125,7 @@ app.get('/api/health', (req, res) => {
 });
 app.use('/api/configuracion', configuracionRoutes);
 app.use('/api/proveedores', proveedoresRoutes);
+app.use('/api/metrics', metricsRoutes);
 
 app.get('/api/db-test', async (req, res) => {
   const dbOk = await testConnection();
@@ -134,6 +138,8 @@ app.get('/api/db-test', async (req, res) => {
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Servidor funcionando' });
 });
+
+app.use(expressErrorMiddleware);
 
 app.listen(PORT, async () => {
   console.log(`🎯 Servidor en puerto ${PORT}`);
@@ -165,4 +171,6 @@ app.listen(PORT, async () => {
   if (cloudinaryOk) {
     console.log('✅ Cloudinary configurado correctamente');
   }
+  setupErrorMonitoring();
+  await cleanupOldLogs();
 });

@@ -22,7 +22,6 @@ const HeaderPrivado: React.FC = () => {
 
     const isActive = (path: string) => location.pathname.startsWith(path) ? "active" : "";
 
-    // Cerrar menús al hacer clic fuera
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -33,7 +32,6 @@ const HeaderPrivado: React.FC = () => {
                 setIsProveedoresMenuOpen(false);
             }
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
@@ -57,7 +55,6 @@ const HeaderPrivado: React.FC = () => {
                                 <span className="nav-icon">📊</span> Dashboard Admin
                             </button>
                             
-                            {/* 🌟 MENÚ DESPLEGABLE DE GESTIÓN DE CATÁLOGO */}
                             <div className="nav-item-group">
                                 <button 
                                     className={`nav-item ${isActive("/admin-inventario") || isActive("/admin-nuevo-producto") || isActive("/admin-categorias") ? "active" : ""} dropdown-toggle`}
@@ -66,173 +63,116 @@ const HeaderPrivado: React.FC = () => {
                                     <span className="nav-icon">📋</span> Gestión de catálogo
                                     <span className={`dropdown-arrow ${isCatalogoMenuOpen ? 'open' : ''}`}>▼</span>
                                 </button>
-                                
                                 {isCatalogoMenuOpen && (
                                     <div className="dropdown-menu">
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-categorias") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-categorias")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-categorias") ? "active" : ""}`} onClick={() => navigate("/admin-categorias")}>
                                             <span className="dropdown-icon">🏷️</span> Categorías
                                         </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-inventario") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-inventario")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-inventario") ? "active" : ""}`} onClick={() => navigate("/admin-inventario")}>
                                             <span className="dropdown-icon">📦</span> Inventario
                                         </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-nuevo-producto") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-nuevo-producto")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-nuevo-producto") ? "active" : ""}`} onClick={() => navigate("/admin-nuevo-producto")}>
                                             <span className="dropdown-icon">➕</span> Nuevo Producto
                                         </button>
                                     </div>
                                 )}
                             </div>
 
-                            {/* 📁 MENÚ DESPLEGABLE DE PROVEEDORES */}
                             <div className="nav-item-group">
                                 <button 
-                                    className={`nav-item ${isActive("/admin/proveedores") || isActive("/admin/proveedor/nuevo") || isActive("/admin/proveedor/") ? "active" : ""} dropdown-toggle`}
+                                    className={`nav-item ${isActive("/admin/proveedores") || isActive("/admin/proveedor/") ? "active" : ""} dropdown-toggle`}
                                     onClick={() => setIsProveedoresMenuOpen(!isProveedoresMenuOpen)}
                                 >
                                     <span className="nav-icon">🏢</span> Proveedores
                                     <span className={`dropdown-arrow ${isProveedoresMenuOpen ? 'open' : ''}`}>▼</span>
                                 </button>
-                                
                                 {isProveedoresMenuOpen && (
                                     <div className="dropdown-menu">
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin/proveedores") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin/proveedores")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin/proveedores") ? "active" : ""}`} onClick={() => navigate("/admin/proveedores")}>
                                             <span className="dropdown-icon">📋</span> Lista de Proveedores
                                         </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin/proveedor/nuevo") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin/proveedor/nuevo")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin/proveedor/nuevo") ? "active" : ""}`} onClick={() => navigate("/admin/proveedor/nuevo")}>
                                             <span className="dropdown-icon">➕</span> Nuevo Proveedor
                                         </button>
                                     </div>
                                 )}
                             </div>
                             
-                            {/* 📁 MENÚ DESPLEGABLE DE BASE DE DATOS */}
                             <div className="nav-item-group">
                                 <button 
-                                    className={`nav-item ${isActive("/admin-database") || isActive("/admin-backups") || isActive("/admin/importar-csv") || isActive("/admin-automation") ? "active" : ""} dropdown-toggle`}
+                                    className={`nav-item ${isActive("/admin-database") || isActive("/admin-backups") || isActive("/admin/importar-csv") || isActive("/admin-automation") || isActive("/admin-monitoreo") ? "active" : ""} dropdown-toggle`}
                                     onClick={() => setIsDatabaseMenuOpen(!isDatabaseMenuOpen)}
                                 >
                                     <span className="nav-icon">🗄️</span> Gestión BD
                                     <span className={`dropdown-arrow ${isDatabaseMenuOpen ? 'open' : ''}`}>▼</span>
                                 </button>
-                                
                                 {isDatabaseMenuOpen && (
                                     <div className="dropdown-menu">
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-database") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-database")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-database") ? "active" : ""}`} onClick={() => navigate("/admin-database")}>
                                             <span className="dropdown-icon">📊</span> Dashboard BD
                                         </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-backups") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-backups")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-backups") ? "active" : ""}`} onClick={() => navigate("/admin-backups")}>
                                             <span className="dropdown-icon">💾</span> Respaldos
                                         </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin/importar-csv") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin/importar-csv")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin/importar-csv") ? "active" : ""}`} onClick={() => navigate("/admin/importar-csv")}>
                                             <span className="dropdown-icon">📥</span> Importar CSV
                                         </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-automation") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-automation")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-automation") ? "active" : ""}`} onClick={() => navigate("/admin-automation")}>
                                             <span className="dropdown-icon">⚡</span> Automatización
+                                        </button>
+                                        <button className={`dropdown-item ${isActive("/admin-monitoreo") ? "active" : ""}`} onClick={() => navigate("/admin-monitoreo")}>
+                                            <span className="dropdown-icon">🖥️</span> Monitoreo
                                         </button>
                                     </div>
                                 )}
                             </div>
 
-                            {/* ⚙️ MENÚ DESPLEGABLE DE CONFIGURACIÓN */}
                             <div className="nav-item-group">
                                 <button 
-                                    className={`nav-item ${isActive("/admin/configuracion") || isActive("/admin/configuracion/variables") ? "active" : ""} dropdown-toggle`}
+                                    className={`nav-item ${isActive("/admin/configuracion") ? "active" : ""} dropdown-toggle`}
                                     onClick={() => setIsConfigMenuOpen(!isConfigMenuOpen)}
                                 >
                                     <span className="nav-icon">⚙️</span> Configuración
                                     <span className={`dropdown-arrow ${isConfigMenuOpen ? 'open' : ''}`}>▼</span>
                                 </button>
-                                
                                 {isConfigMenuOpen && (
                                     <div className="dropdown-menu">
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin/configuracion/variables") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin/configuracion/variables")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin/configuracion/variables") ? "active" : ""}`} onClick={() => navigate("/admin/configuracion/variables")}>
                                             <span className="dropdown-icon">🔧</span> Variables del Sistema
                                         </button>
                                     </div>
                                 )}
                             </div>
 
-                            {/* MENÚ DESPLEGABLE DE GESTIONAR CONTENIDO */}
                             <div className="nav-item-group">
                                 <button 
-                                    className={`nav-item ${isActive("/admin-contenido") || isActive("/admin-contenido/paginas") || isActive("/admin-contenido/secciones") || isActive("/admin-contenido/pagina-inicio") || isActive("/admin-contenido/pagina-noticias") ? "active" : ""} dropdown-toggle`}
+                                    className={`nav-item ${isActive("/admin-contenido") ? "active" : ""} dropdown-toggle`}
                                     onClick={() => setIsContentMenuOpen(!isContentMenuOpen)}
                                 >
                                     <span className="nav-icon">📝</span> Gestionar Contenido
                                     <span className={`dropdown-arrow ${isContentMenuOpen ? 'open' : ''}`}>▼</span>
                                 </button>
-                                
                                 {isContentMenuOpen && (
                                     <div className="dropdown-menu">
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-contenido/paginas") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-contenido/paginas")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-contenido/paginas") ? "active" : ""}`} onClick={() => navigate("/admin-contenido/paginas")}>
                                             <span className="dropdown-icon">📄</span> Gestión de Páginas
                                         </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-contenido/secciones") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-contenido/secciones")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-contenido/secciones") ? "active" : ""}`} onClick={() => navigate("/admin-contenido/secciones")}>
                                             <span className="dropdown-icon">📑</span> Gestión de Secciones
                                         </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-contenido/pagina-inicio") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-contenido/pagina-inicio")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-contenido/pagina-inicio") ? "active" : ""}`} onClick={() => navigate("/admin-contenido/pagina-inicio")}>
                                             <span className="dropdown-icon">🎨</span> Contenido de Inicio
                                         </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-contenido/pagina-noticias") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-contenido/pagina-noticias")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-contenido/pagina-noticias") ? "active" : ""}`} onClick={() => navigate("/admin-contenido/pagina-noticias")}>
                                             <span className="dropdown-icon">📰</span> Contenido de Noticias
                                         </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-contenido/info") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-contenido/info")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-contenido/info") ? "active" : ""}`} onClick={() => navigate("/admin-contenido/info")}>
                                             <span className="dropdown-icon">ℹ️</span> Información Empresarial
                                         </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-contenido/faq") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-contenido/faq")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-contenido/faq") ? "active" : ""}`} onClick={() => navigate("/admin-contenido/faq")}>
                                             <span className="dropdown-icon">❓</span> Preguntas Frecuentes
                                         </button>
-                                        <button 
-                                            className={`dropdown-item ${isActive("/admin-contenido/mision") ? "active" : ""}`}
-                                            onClick={() => navigate("/admin-contenido/mision")}
-                                        >
+                                        <button className={`dropdown-item ${isActive("/admin-contenido/mision") ? "active" : ""}`} onClick={() => navigate("/admin-contenido/mision")}>
                                             <span className="dropdown-icon">🎯</span> Misión, Visión y Valores
                                         </button>
                                     </div>
@@ -254,6 +194,10 @@ const HeaderPrivado: React.FC = () => {
                         <>
                             <button className={`nav-item ${isActive("/dashboard-trabajador")}`} onClick={() => navigate("/dashboard-trabajador")}>
                                 <span className="nav-icon">📊</span> Dashboard
+                            </button>
+
+                            <button className={`nav-item ${isActive("/pedidos-admin")}`} onClick={() => navigate("/pedidos-admin")}>
+                                <span className="nav-icon">📦</span> Gestión de Pedidos
                             </button>
 
                             <div className="sidebar-divider"></div>
@@ -322,7 +266,6 @@ const HeaderPrivado: React.FC = () => {
                 <div className="header-welcome">
                     Bienvenido, <strong>{user?.nombre || 'Usuario'}</strong>
                 </div>
-
                 <div 
                     className="user-profile-info" 
                     onClick={() => navigate(userRole === 'admin' ? "/admin-perfil" : userRole === 'trabajador' ? "/trabajador/perfil" : "/perfil")}
