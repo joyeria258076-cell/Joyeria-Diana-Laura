@@ -6,7 +6,7 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Sidebar Lateral con Scroll */
+/* ── Sidebar ── */
 .sidebar-privado {
     grid-column: 1;
     grid-row: 1 / 3;
@@ -15,7 +15,7 @@
     display: flex;
     flex-direction: column;
     padding: 25px 0;
-    z-index: 100;
+    z-index: 200;
     height: 100vh;
     position: sticky;
     top: 0;
@@ -49,28 +49,14 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding-bottom: 20px;
-    
-    /* Scrollbar personalizada */
     scrollbar-width: thin;
     scrollbar-color: var(--rosa-joyeria) #1a1a1a;
 }
 
-.sidebar-nav::-webkit-scrollbar {
-    width: 6px;
-}
-
-.sidebar-nav::-webkit-scrollbar-track {
-    background: #1a1a1a;
-}
-
-.sidebar-nav::-webkit-scrollbar-thumb {
-    background: var(--rosa-joyeria);
-    border-radius: 3px;
-}
-
-.sidebar-nav::-webkit-scrollbar-thumb:hover {
-    background: #f5c5d8;
-}
+.sidebar-nav::-webkit-scrollbar { width: 6px; }
+.sidebar-nav::-webkit-scrollbar-track { background: #1a1a1a; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: var(--rosa-joyeria); border-radius: 3px; }
+.sidebar-nav::-webkit-scrollbar-thumb:hover { background: #f5c5d8; }
 
 .nav-item {
     background: transparent;
@@ -88,17 +74,14 @@
     font-family: 'Montserrat', sans-serif;
 }
 
-.nav-item:hover, 
+.nav-item:hover,
 .nav-item.active {
     background: rgba(236, 178, 195, 0.1);
     color: var(--rosa-joyeria);
     border-left: 4px solid var(--rosa-joyeria);
 }
 
-.nav-icon {
-    font-size: 1.2rem;
-    min-width: 24px;
-}
+.nav-icon { font-size: 1.2rem; min-width: 24px; }
 
 .logout-item {
     margin-top: auto;
@@ -106,10 +89,7 @@
     color: #ff6b6b;
 }
 
-/* ============================================
-   MENÚ DESPLEGABLE
-   ============================================ */
-
+/* ── Dropdowns ── */
 .nav-item-group {
     position: relative;
     display: flex;
@@ -130,9 +110,7 @@
     color: rgba(236, 178, 195, 0.5);
 }
 
-.dropdown-arrow.open {
-    transform: rotate(180deg);
-}
+.dropdown-arrow.open { transform: rotate(180deg); }
 
 .dropdown-menu {
     background: rgba(236, 178, 195, 0.08);
@@ -171,19 +149,15 @@
     border-left: 3px solid var(--rosa-joyeria);
 }
 
-.dropdown-icon {
-    font-size: 1.1rem;
-    min-width: 20px;
-}
+.dropdown-icon { font-size: 1.1rem; min-width: 20px; }
 
-/* Divisor */
 .sidebar-divider {
     height: 1px;
     background: rgba(236, 178, 195, 0.2);
     margin: 0.8rem 0;
 }
 
-/* Header Superior */
+/* ── Header superior ── */
 .header-top-privado {
     grid-column: 2;
     grid-row: 1;
@@ -199,14 +173,8 @@
     top: 0;
 }
 
-.header-welcome {
-    color: #fff;
-    font-size: 0.9rem;
-}
-
-.header-welcome strong {
-    color: var(--rosa-joyeria);
-}
+.header-welcome { color: #fff; font-size: 0.9rem; }
+.header-welcome strong { color: var(--rosa-joyeria); }
 
 .user-profile-info {
     display: flex;
@@ -218,9 +186,7 @@
     transition: var(--transition);
 }
 
-.user-profile-info:hover {
-    background: rgba(236, 178, 195, 0.1);
-}
+.user-profile-info:hover { background: rgba(236, 178, 195, 0.1); }
 
 .user-avatar {
     width: 38px;
@@ -232,51 +198,119 @@
     justify-content: center;
     color: #000;
     font-weight: bold;
+    flex-shrink: 0;
 }
 
-.user-details {
-    display: flex;
+.user-details { display: flex; flex-direction: column; line-height: 1.2; }
+.user-name { color: #fff; font-size: 0.85rem; }
+.user-role { color: #666; font-size: 0.7rem; }
+
+/* ── Botón hamburguesa (oculto en desktop) ── */
+.hamburger-btn {
+    display: none;
     flex-direction: column;
-    line-height: 1.2;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    z-index: 300;
+    flex-shrink: 0;
 }
 
-.user-name {
-    color: #fff;
-    font-size: 0.85rem;
+.hamburger-btn:hover { background: rgba(236, 178, 195, 0.1); }
+
+.hamburger-line {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--rosa-joyeria);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform-origin: center;
 }
 
-.user-role {
-    color: #666;
-    font-size: 0.7rem;
+/* Animación X al abrir */
+.hamburger-line.open:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger-line.open:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger-line.open:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Overlay oscuro en móvil ── */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 150;
+    backdrop-filter: blur(2px);
 }
 
-/* Responsive */
+/* ══════════════════════════════
+   RESPONSIVE — MÓVIL
+══════════════════════════════ */
 @media (max-width: 768px) {
+
+    /* Sidebar se convierte en drawer flotante */
     .sidebar-privado {
-        width: 240px;
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100dvh;         /* dvh para móviles con barra de URL */
+        width: 260px;
         transform: translateX(-100%);
         transition: transform 0.3s ease;
+        z-index: 200;
+        box-shadow: none;
     }
 
     .sidebar-privado.open {
         transform: translateX(0);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
     }
 
+    /* Overlay visible solo cuando sidebar está abierto */
+    .sidebar-overlay {
+        display: block;
+    }
+
+    /* Header ocupa todo el ancho */
     .header-top-privado {
-        left: 0;
+        grid-column: 1;
         padding: 0 15px;
+        gap: 10px;
     }
 
-    .user-details {
-        display: none;
+    /* Mostrar hamburguesa */
+    .hamburger-btn {
+        display: flex;
     }
 
-    .user-profile-info {
-        padding: 3px;
-    }
+    /* Ocultar texto del usuario, solo mostrar avatar */
+    .user-details { display: none; }
+
+    .user-profile-info { padding: 3px; }
 
     .user-avatar {
-        width: 35px;
-        height: 35px;
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
     }
+
+    /* Texto de bienvenida más compacto */
+    .header-welcome {
+        font-size: 0.8rem;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+/* Pantallas muy pequeñas (< 400px) */
+@media (max-width: 400px) {
+    .sidebar-privado { width: 80vw; }
+    .header-welcome { display: none; }
 }

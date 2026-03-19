@@ -1,4 +1,5 @@
-/* Estructura Global de la App Privada */
+/* Frontend/src/styles/PrivateLayout.css */
+
 :root {
     --sidebar-width: 260px;
     --header-height: 75px;
@@ -7,7 +8,7 @@
     --negro-panel: #0a0a0a;
 }
 
-/* Contenedor Maestro usando Grid */
+/* ── Contenedor maestro ── */
 .app-private-wrapper {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr;
@@ -15,27 +16,54 @@
     height: 100vh;
     width: 100vw;
     background-color: var(--negro-fondo);
-    overflow: hidden; /* Evita que toda la página scrollee */
+    overflow: hidden;
 }
 
-/* El contenido donde se cargan las pantallas (Inicio, Catálogo, etc.) */
+/* ── Área de contenido ── */
 .content-area {
     grid-column: 2;
     grid-row: 2;
     padding: 40px;
-    overflow-y: auto; /* Solo el contenido tiene scroll */
+    overflow-y: auto;
     background-color: var(--negro-fondo);
     color: #ffffff;
+    /* Scroll suave en móvil */
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Ajuste para dispositivos móviles */
+.page-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ══════════════════════════════
+   RESPONSIVE — MÓVIL
+══════════════════════════════ */
 @media (max-width: 768px) {
+
     .app-private-wrapper {
-        grid-template-columns: 1fr; /* Sidebar se oculta o se vuelve menú */
+        /* Sidebar flota encima — no ocupa columna */
+        grid-template-columns: 1fr;
+        grid-template-rows: var(--header-height) 1fr;
+        height: 100dvh;
     }
+
+    /* Header y contenido ocupan todo el ancho */
     .content-area {
         grid-column: 1;
-        padding: 20px;
+        grid-row: 2;
+        padding: 20px 15px;
+        overflow-y: auto;
+    }
+
+    .page-container {
+        max-width: 100%;
     }
 }
 
+@media (max-width: 400px) {
+    .content-area {
+        padding: 15px 10px;
+    }
+}

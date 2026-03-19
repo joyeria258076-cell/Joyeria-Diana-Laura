@@ -40,14 +40,31 @@ interface DatabaseStats {
 type Tab = 'rendimiento'|'endpoints'|'errores'|'actividad'|'database';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-// ✅ FIX: timeZone explícito para evitar doble conversión UTC→México
-const fmtHora = (iso: string) => new Date(iso).toLocaleTimeString('es-MX', {
-  hour: '2-digit', minute: '2-digit',
+
+/**
+ * El servidor (Render) guarda los timestamps con 6 horas de adelanto respecto
+ * a la hora real de México. Este helper corrige eso restando 6h antes de mostrar.
+ * No usar timeZone en toLocaleString para evitar doble conversión.
+ */
+const fmtFecha = (iso: string) => {
+  const d = new Date(iso);
+  d.setHours(d.getHours() - 6);
+  return d.toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+};
+
+const fmtHora = (iso: string) => {
+  const d = new Date(iso);
+  d.setHours(d.getHours() - 6);
+  return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+};
+
+// Para rendimiento y errores (el backend hace AT TIME ZONE México, llegan correctos)
+const fmtFechaUTC = (iso: string) => new Date(iso).toLocaleString('es-MX', {
+  day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
   timeZone: 'America/Mexico_City'
 });
-
-const fmtFecha = (iso: string) => new Date(iso).toLocaleString('es-MX', {
-  day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+const fmtHoraUTC = (iso: string) => new Date(iso).toLocaleTimeString('es-MX', {
+  hour: '2-digit', minute: '2-digit',
   timeZone: 'America/Mexico_City'
 });
 
@@ -89,9 +106,9 @@ const AdminMonitoreoScreen: React.FC = () => {
   const [actividad,   setActividad]   = useState<Actividad|null>(null);
   const [dbStats,     setDbStats]     = useState<DatabaseStats|null>(null);
 
-  const [horasRend,       setHorasRend]      = useState(24);
-  const [soloNoResueltos, setSoloNoResueltos] = useState(false);
-  const [diasActividad,   setDiasActividad]  = useState(7);
+  const [horasRend,       setHorasRend]       = useState(24);
+  const [soloNoResueltos, setSoloNoResueltos]  = useState(false);
+  const [diasActividad,   setDiasActividad]   = useState(7);
   const [pageErr, setPageErr] = useState(1);
   const [pageSes, setPageSes] = useState(1);
   const [pageAud, setPageAud] = useState(1);
@@ -241,9 +258,9 @@ const AdminMonitoreoScreen: React.FC = () => {
               : <div className="linea-tiempo">
                   {rendimiento.map((p,i)=>(
                     <div key={i} className="lt-columna"
-                      title={`${fmtHora(p.hora)} — ${p.total_requests} req · prom ${fmtMs(Number(p.avg_ms))} · ${p.errores} errores`}>
+                      title={`${fmtHoraUTC(p.hora)} — ${p.total_requests} req · prom ${fmtMs(Number(p.avg_ms))} · ${p.errores} errores`}>
                       <div className="lt-barra" style={{height:`${Math.max(4,(Number(p.total_requests)/maxRequests)*76)}px`,background:Number(p.errores)>0?'#f87171':'#ecb2c3'}}/>
-                      <span className="lt-hora">{fmtHora(p.hora).split(':')[0]}h</span>
+                      <span className="lt-hora">{fmtHoraUTC(p.hora).split(':')[0]}h</span>
                     </div>
                   ))}
                 </div>
@@ -258,7 +275,7 @@ const AdminMonitoreoScreen: React.FC = () => {
                   ? <tr><td colSpan={6} style={{textAlign:'center',color:'#334155'}}>Sin datos</td></tr>
                   : rendimiento.slice().reverse().map((p,i)=>(
                     <tr key={i}>
-                      <td style={{color:'#64748b',fontSize:12}}>{fmtFecha(p.hora)}</td>
+                      <td style={{color:'#64748b',fontSize:12}}>{fmtFechaUTC(p.hora)}</td>
                       <td>{p.total_requests}</td>
                       <td><MsBadge ms={Number(p.avg_ms)}/></td>
                       <td><MsBadge ms={Number(p.max_ms)}/></td>
@@ -339,13 +356,10 @@ const AdminMonitoreoScreen: React.FC = () => {
                       <td style={{fontSize:11,color:'#94a3b8',fontFamily:'monospace'}}>{e.tipo}</td>
                       <td style={{maxWidth:220,fontSize:12,color:'#cbd5e1'}} title={e.mensaje}>
                         {e.mensaje.length>55?e.mensaje.slice(0,55)+'…':e.mensaje}
-                        {e.ocurrencias && e.ocurrencias > 1 && (
-                          <span className="badge warn" style={{marginLeft:6,fontSize:10}}>×{e.ocurrencias}</span>
-                        )}
                       </td>
                       <td style={{fontFamily:'monospace',fontSize:11,color:'#64748b'}}>{e.method&&e.endpoint?`${e.method} ${e.endpoint}`:'—'}</td>
                       <td style={{fontSize:12,color:'#64748b'}}>{e.usuario_email??'—'}</td>
-                      <td style={{fontSize:12,color:'#475569',whiteSpace:'nowrap'}}>{fmtFecha(e.fecha)}</td>
+                      <td style={{fontSize:12,color:'#475569',whiteSpace:'nowrap'}}>{fmtFechaUTC(e.fecha)}</td>
                       <td><span className={`badge ${e.resuelta?'resuelto':'pendiente'}`}>{e.resuelta?'Resuelto':'Pendiente'}</span></td>
                       <td>{e.fuente==='sistema'&&!e.resuelta&&<button className="btn-resolver" onClick={()=>handleResolverError(e.id)}>✓</button>}</td>
                     </tr>
@@ -367,6 +381,7 @@ const AdminMonitoreoScreen: React.FC = () => {
               <option value={30}>Últimos 30 días</option>
             </select>
           </div>
+
           <p className="seccion-titulo">Sesiones activas ahora <span>— {actividad.paginacion.sesiones.total} usuarios conectados</span></p>
           <Paginacion page={pageSes} totalPages={actividad.paginacion.sesiones.totalPages} total={actividad.paginacion.sesiones.total} label="Sesiones" onPage={cambiarPagSes}/>
           <div className="tabla-wrapper" style={{marginBottom:24}}>
@@ -389,17 +404,19 @@ const AdminMonitoreoScreen: React.FC = () => {
               </tbody>
             </table>
           </div>
+
           <p className="seccion-titulo">Intentos de login por día</p>
           <div className="grafica-barras">
             {actividad.logins.length===0 ? <div className="estado-carga">Sin datos</div>
               : actividad.logins.map((l,i)=>(
                 <div key={i} className="barra-fila">
-                  <span className="barra-label">{new Date(l.dia).toLocaleDateString('es-MX',{day:'2-digit',month:'short',timeZone:'America/Mexico_City'})}</span>
+                  <span className="barra-label">{fmtFecha(l.dia).split(',')[0]}</span>
                   <div className="barra-track"><div className="barra-fill" style={{width:`${(l.exitosos/Math.max(l.exitosos+l.fallidos,1))*100}%`}}/></div>
                   <span className="barra-valor" style={{fontSize:11}}><span style={{color:'#4ade80'}}>✓{l.exitosos}</span>{' '}<span style={{color:'#f87171'}}>✗{l.fallidos}</span></span>
                 </div>
               ))}
           </div>
+
           <p className="seccion-titulo">Últimas acciones registradas</p>
           <Paginacion page={pageAud} totalPages={actividad.paginacion.auditoria.totalPages} total={actividad.paginacion.auditoria.total} label="Acciones" onPage={cambiarPagAud}/>
           <div className="tabla-wrapper">
@@ -419,6 +436,7 @@ const AdminMonitoreoScreen: React.FC = () => {
               </tbody>
             </table>
           </div>
+
           <p className="seccion-titulo">Sesiones nuevas por día</p>
           <div className="tabla-wrapper">
             <table>
@@ -427,7 +445,7 @@ const AdminMonitoreoScreen: React.FC = () => {
                 {actividad.sesiones.length===0 ? <tr><td colSpan={3} style={{textAlign:'center',color:'#334155'}}>Sin datos</td></tr>
                   : actividad.sesiones.slice().reverse().map((s,i)=>(
                     <tr key={i}>
-                      <td style={{color:'#64748b'}}>{new Date(s.dia).toLocaleDateString('es-MX',{weekday:'short',day:'2-digit',month:'short',timeZone:'America/Mexico_City'})}</td>
+                      <td style={{color:'#64748b'}}>{fmtFecha(s.dia).split(',')[0]}</td>
                       <td>{s.nuevas_sesiones}</td>
                       <td>{s.usuarios_unicos}</td>
                     </tr>
@@ -475,7 +493,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                   </div>
                 </div>
 
-                {/* VACUUM */}
                 <div className="db-mantenimiento-card">
                   <div className="db-mant-header">
                     <span className="db-mant-titulo">🧹 VACUUM — Limpieza de Filas Muertas</span>
@@ -514,7 +531,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                   </div>
                 </div>
 
-                {/* ANALYZE */}
                 <div className="db-mantenimiento-card">
                   <div className="db-mant-header">
                     <span className="db-mant-titulo">📊 ANALYZE — Estadísticas del Planificador</span>

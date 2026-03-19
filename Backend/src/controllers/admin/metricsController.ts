@@ -10,7 +10,8 @@ export const getResumen = async (_req: Request, res: Response): Promise<void> =>
     const { rows } = await pool.query(`
       SELECT
         COUNT(*)                                                   AS total_requests,
-        COUNT(*) FILTER (WHERE status_code >= 400)                 AS total_errores,
+        COUNT(DISTINCT CASE WHEN status_code >= 400 
+        THEN endpoint || method || status_code::text END)          AS total_errores,
         ROUND(AVG(duration_ms))                                    AS avg_respuesta_ms,
         COUNT(*) FILTER (WHERE duration_ms > 1000)                 AS requests_lentos,
         ROUND(AVG(memoria_mb)::numeric, 2)                         AS avg_memoria_mb
@@ -90,7 +91,6 @@ export const getErrores = async (req: Request, res: Response): Promise<void> => 
     const offset          = (page - 1) * limit;
     const soloNoResueltos = req.query.soloNoResueltos === 'true';
 
-    // Conteo: system_errors individuales + grupos HTTP únicos
     const { rows: countRows } = await pool.query(`
       SELECT
         (SELECT COUNT(*) FROM system_errors WHERE ($1 = FALSE OR resuelta = FALSE)) +
@@ -103,7 +103,6 @@ export const getErrores = async (req: Request, res: Response): Promise<void> => 
     const total      = parseInt(countRows[0].total);
     const totalPages = Math.ceil(total / limit);
 
-    // Errores de sistema (uno por fila, sin agrupar)
     const { rows: errSistema } = await pool.query(`
       SELECT se.id, 'sistema' AS fuente, se.tipo, se.mensaje, se.endpoint, se.method,
         se.resuelta, (se.fecha AT TIME ZONE 'UTC' AT TIME ZONE $1) AS fecha,
@@ -115,7 +114,6 @@ export const getErrores = async (req: Request, res: Response): Promise<void> => 
       ORDER BY se.fecha DESC
     `, [TZ, soloNoResueltos]);
 
-    // ✅ Errores HTTP agrupados por endpoint+method+status_code
     let errHTTP: any[] = [];
     if (!soloNoResueltos) {
       const { rows } = await pool.query(`
@@ -167,53 +165,86 @@ export const resolverError = async (req: Request, res: Response): Promise<void> 
 // ─── 6. Actividad con paginación ─────────────────────────────────────────────
 export const getActividad = async (req: Request, res: Response): Promise<void> => {
   try {
-    const dias      = Math.min(parseInt(req.query.dias as string) || 7, 30);
-    const pageSes   = Math.max(parseInt(req.query.pageSes as string) || 1, 1);
-    const pageAud   = Math.max(parseInt(req.query.pageAud as string) || 1, 1);
-    const limitSes  = 10;
-    const limitAud  = 10;
+    const dias     = Math.min(parseInt(req.query.dias as string) || 7, 30);
+    const pageSes  = Math.max(parseInt(req.query.pageSes as string) || 1, 1);
+    const pageAud  = Math.max(parseInt(req.query.pageAud as string) || 1, 1);
+    const limitSes = 10;
+    const limitAud = 10;
 
-    const { rows: totalSesRows } = await pool.query(`SELECT COUNT(*) AS total FROM user_sessions WHERE is_revoked = FALSE AND expires_at > NOW()`);
-    const { rows: totalAudRows } = await pool.query(`SELECT COUNT(*) AS total FROM auditoria`);
+    const { rows: totalSesRows } = await pool.query(
+      `SELECT COUNT(*) AS total FROM user_sessions WHERE is_revoked = FALSE AND expires_at > NOW()`
+    );
+    const { rows: totalAudRows } = await pool.query(
+      `SELECT COUNT(*) AS total FROM auditoria`
+    );
 
+    // ✅ Sin AT TIME ZONE — el frontend convierte con timeZone: 'America/Mexico_City'
     const { rows: sesionesActivas } = await pool.query(`
       SELECT us.id, u.email, u.nombre, u.rol,
-        COALESCE(us.device_name,'Desconocido') AS device_name,
-        COALESCE(us.browser,'—') AS browser, COALESCE(us.os,'—') AS os, us.ip_address,
-        (us.created_at    AT TIME ZONE 'UTC' AT TIME ZONE $1) AS created_at,
-        (us.last_activity AT TIME ZONE 'UTC' AT TIME ZONE $1) AS last_activity,
-        (us.expires_at    AT TIME ZONE 'UTC' AT TIME ZONE $1) AS expires_at
-      FROM user_sessions us JOIN usuarios u ON u.id = us.user_id
+        COALESCE(us.device_name, 'Desconocido') AS device_name,
+        COALESCE(us.browser, '—')               AS browser,
+        COALESCE(us.os, '—')                    AS os,
+        us.ip_address,
+        us.created_at,
+        us.last_activity,
+        us.expires_at
+      FROM user_sessions us
+      JOIN usuarios u ON u.id = us.user_id
       WHERE us.is_revoked = FALSE AND us.expires_at > NOW()
-      ORDER BY us.last_activity DESC LIMIT $2 OFFSET $3
-    `, [TZ, limitSes, (pageSes - 1) * limitSes]);
+      ORDER BY us.last_activity DESC
+      LIMIT $1 OFFSET $2
+    `, [limitSes, (pageSes - 1) * limitSes]);
 
+    // ✅ Sin AT TIME ZONE
     const { rows: auditoria } = await pool.query(`
-      SELECT a.operacion, a.tabla, a.usuario_email, a.ip_address,
-        (a.fecha_operacion AT TIME ZONE 'UTC' AT TIME ZONE $1) AS fecha_operacion
-      FROM auditoria a ORDER BY a.fecha_operacion DESC LIMIT $2 OFFSET $3
-    `, [TZ, limitAud, (pageAud - 1) * limitAud]);
+      SELECT a.operacion, a.tabla, a.usuario_email, a.ip_address, a.fecha_operacion
+      FROM auditoria a
+      ORDER BY a.fecha_operacion DESC
+      LIMIT $1 OFFSET $2
+    `, [limitAud, (pageAud - 1) * limitAud]);
 
+    // ✅ Sin AT TIME ZONE
     const { rows: logins } = await pool.query(`
-      SELECT DATE_TRUNC('day', attempt_time AT TIME ZONE 'UTC' AT TIME ZONE $2) AS dia,
+      SELECT
+        DATE_TRUNC('day', attempt_time) AS dia,
         COUNT(*) FILTER (WHERE success = TRUE)  AS exitosos,
         COUNT(*) FILTER (WHERE success = FALSE) AS fallidos
-      FROM login_attempts WHERE attempt_time >= NOW() - ($1 || ' days')::INTERVAL
-      GROUP BY DATE_TRUNC('day', attempt_time AT TIME ZONE 'UTC' AT TIME ZONE $2) ORDER BY dia ASC
-    `, [dias, TZ]);
+      FROM login_attempts
+      WHERE attempt_time >= NOW() - ($1 || ' days')::INTERVAL
+      GROUP BY DATE_TRUNC('day', attempt_time)
+      ORDER BY dia ASC
+    `, [dias]);
 
+    // ✅ Sin AT TIME ZONE
     const { rows: sesiones } = await pool.query(`
-      SELECT DATE_TRUNC('day', created_at AT TIME ZONE 'UTC' AT TIME ZONE $2) AS dia,
-        COUNT(*) AS nuevas_sesiones, COUNT(DISTINCT user_id) AS usuarios_unicos
-      FROM user_sessions WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
-      GROUP BY DATE_TRUNC('day', created_at AT TIME ZONE 'UTC' AT TIME ZONE $2) ORDER BY dia ASC
-    `, [dias, TZ]);
+      SELECT
+        DATE_TRUNC('day', created_at) AS dia,
+        COUNT(*)                      AS nuevas_sesiones,
+        COUNT(DISTINCT user_id)       AS usuarios_unicos
+      FROM user_sessions
+      WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
+      GROUP BY DATE_TRUNC('day', created_at)
+      ORDER BY dia ASC
+    `, [dias]);
 
     res.json({
-      sesiones, logins, auditoria, sesionesActivas,
+      sesiones,
+      logins,
+      auditoria,
+      sesionesActivas,
       paginacion: {
-        sesiones:  { total: parseInt(totalSesRows[0].total), page: pageSes, totalPages: Math.ceil(parseInt(totalSesRows[0].total) / limitSes), limit: limitSes },
-        auditoria: { total: parseInt(totalAudRows[0].total), page: pageAud, totalPages: Math.ceil(parseInt(totalAudRows[0].total) / limitAud), limit: limitAud },
+        sesiones: {
+          total:      parseInt(totalSesRows[0].total),
+          page:       pageSes,
+          totalPages: Math.ceil(parseInt(totalSesRows[0].total) / limitSes),
+          limit:      limitSes,
+        },
+        auditoria: {
+          total:      parseInt(totalAudRows[0].total),
+          page:       pageAud,
+          totalPages: Math.ceil(parseInt(totalAudRows[0].total) / limitAud),
+          limit:      limitAud,
+        },
       },
     });
   } catch (err) {
@@ -238,7 +269,6 @@ export const getDatabase = async (_req: Request, res: Response): Promise<void> =
         COALESCE(s.n_dead_tup, 0) AS filas_muertas,
         COALESCE(s.seq_scan,   0) AS escaneos_secuenciales,
         COALESCE(s.idx_scan,   0) AS escaneos_indice,
-        -- ✅ FIX: cast a timestamptz para conversión correcta de UTC a México
         to_char(
           GREATEST(s.last_vacuum, s.last_autovacuum)::timestamptz AT TIME ZONE 'America/Mexico_City',
           'DD-Mon HH24:MI'
@@ -270,9 +300,9 @@ export const getDatabase = async (_req: Request, res: Response): Promise<void> =
 
     const { rows: negocio } = await pool.query(`
       SELECT
-        (SELECT COUNT(*) FROM usuarios)   AS total_usuarios,
-        (SELECT COUNT(*) FROM productos)  AS total_productos,
-        (SELECT COUNT(*) FROM ventas)     AS total_ventas,
+        (SELECT COUNT(*) FROM usuarios)     AS total_usuarios,
+        (SELECT COUNT(*) FROM productos)    AS total_productos,
+        (SELECT COUNT(*) FROM ventas)       AS total_ventas,
         (SELECT COUNT(*) FROM request_logs) AS total_logs,
         (SELECT COUNT(*) FROM user_sessions WHERE is_revoked = FALSE AND expires_at > NOW()) AS sesiones_activas
     `);
@@ -295,18 +325,12 @@ export const getDatabase = async (_req: Request, res: Response): Promise<void> =
 export const runVacuum = async (req: Request, res: Response): Promise<void> => {
   try {
     const { tabla } = req.body;
-
     if (tabla) {
       const { rows: check } = await pool.query(`
         SELECT table_name FROM information_schema.tables
         WHERE table_schema = 'public' AND table_name = $1
       `, [tabla]);
-
-      if (check.length === 0) {
-        res.status(400).json({ error: `Tabla "${tabla}" no encontrada` });
-        return;
-      }
-
+      if (check.length === 0) { res.status(400).json({ error: `Tabla "${tabla}" no encontrada` }); return; }
       await pool.query(`VACUUM ANALYZE public."${tabla}"`);
       res.json({ mensaje: `VACUUM ANALYZE ejecutado en tabla: ${tabla}` });
     } else {
@@ -314,9 +338,7 @@ export const runVacuum = async (req: Request, res: Response): Promise<void> => {
         SELECT table_name FROM information_schema.tables
         WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
       `);
-      for (const t of tablas) {
-        await pool.query(`VACUUM ANALYZE public."${t.table_name}"`);
-      }
+      for (const t of tablas) { await pool.query(`VACUUM ANALYZE public."${t.table_name}"`); }
       res.json({ mensaje: `VACUUM ANALYZE ejecutado en ${tablas.length} tablas` });
     }
   } catch (err: any) {
@@ -333,18 +355,12 @@ export const runVacuum = async (req: Request, res: Response): Promise<void> => {
 export const runAnalyze = async (req: Request, res: Response): Promise<void> => {
   try {
     const { tabla } = req.body;
-
     if (tabla) {
       const { rows: check } = await pool.query(`
         SELECT table_name FROM information_schema.tables
         WHERE table_schema = 'public' AND table_name = $1
       `, [tabla]);
-
-      if (check.length === 0) {
-        res.status(400).json({ error: `Tabla "${tabla}" no encontrada` });
-        return;
-      }
-
+      if (check.length === 0) { res.status(400).json({ error: `Tabla "${tabla}" no encontrada` }); return; }
       await pool.query(`ANALYZE public."${tabla}"`);
       res.json({ mensaje: `ANALYZE ejecutado en tabla: ${tabla}` });
     } else {
@@ -352,9 +368,7 @@ export const runAnalyze = async (req: Request, res: Response): Promise<void> => 
         SELECT table_name FROM information_schema.tables
         WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
       `);
-      for (const t of tablas) {
-        await pool.query(`ANALYZE public."${t.table_name}"`);
-      }
+      for (const t of tablas) { await pool.query(`ANALYZE public."${t.table_name}"`); }
       res.json({ mensaje: `ANALYZE ejecutado en ${tablas.length} tablas` });
     }
   } catch (err: any) {
