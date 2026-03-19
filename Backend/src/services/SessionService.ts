@@ -144,7 +144,7 @@ static async createSession(
       
       // Actualizar last_activity y expires_at
       const newExpiresAt = new Date();
-      newExpiresAt.setDate(newExpiresAt.getDate() + 30);
+      newExpiresAt.setDate(newExpiresAt.getDate() + 1);
       
       await pool.query(
         `UPDATE user_sessions 
@@ -183,7 +183,7 @@ static async createSession(
       });
 
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 30);
+    expiresAt.setDate(expiresAt.getDate() + 1);
 
     const result = await pool.query(
       `INSERT INTO user_sessions 

@@ -40,9 +40,18 @@ interface DatabaseStats {
 type Tab = 'rendimiento'|'endpoints'|'errores'|'actividad'|'database';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmtHora  = (iso: string) => new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-const fmtFecha = (iso: string) => new Date(iso).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-const fmtMs    = (ms: number)  => ms >= 1000 ? `${(ms/1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
+// ✅ FIX: timeZone explícito para evitar doble conversión UTC→México
+const fmtHora = (iso: string) => new Date(iso).toLocaleTimeString('es-MX', {
+  hour: '2-digit', minute: '2-digit',
+  timeZone: 'America/Mexico_City'
+});
+
+const fmtFecha = (iso: string) => new Date(iso).toLocaleString('es-MX', {
+  day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+  timeZone: 'America/Mexico_City'
+});
+
+const fmtMs = (ms: number) => ms >= 1000 ? `${(ms/1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
 
 const MsBadge = ({ ms }: { ms: number }) => {
   const v = Number(ms);
@@ -170,7 +179,7 @@ const AdminMonitoreoScreen: React.FC = () => {
       <div className="monitoreo-header">
         <div>
           <div className="monitoreo-titulo"><h1>🖥️ Monitoreo del sistema</h1></div>
-          <p>Última actualización: {ultimaAct.toLocaleTimeString('es-MX')}</p>
+          <p>Última actualización: {ultimaAct.toLocaleTimeString('es-MX', { timeZone: 'America/Mexico_City' })}</p>
         </div>
         <button className="btn-refresh" onClick={cargarTodo} disabled={cargando}>
           {cargando ? <><span className="spinner"/> Cargando…</> : '↺ Actualizar'}
@@ -328,7 +337,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                     <tr key={i}>
                       <td><span className={`badge ${e.fuente==='sistema'?'error':'warn'}`}>{e.fuente==='sistema'?'⚠ sistema':`HTTP ${e.status_code}`}</span></td>
                       <td style={{fontSize:11,color:'#94a3b8',fontFamily:'monospace'}}>{e.tipo}</td>
-                      {/* ✅ Mensaje con badge de ocurrencias */}
                       <td style={{maxWidth:220,fontSize:12,color:'#cbd5e1'}} title={e.mensaje}>
                         {e.mensaje.length>55?e.mensaje.slice(0,55)+'…':e.mensaje}
                         {e.ocurrencias && e.ocurrencias > 1 && (
@@ -386,7 +394,7 @@ const AdminMonitoreoScreen: React.FC = () => {
             {actividad.logins.length===0 ? <div className="estado-carga">Sin datos</div>
               : actividad.logins.map((l,i)=>(
                 <div key={i} className="barra-fila">
-                  <span className="barra-label">{new Date(l.dia).toLocaleDateString('es-MX',{day:'2-digit',month:'short'})}</span>
+                  <span className="barra-label">{new Date(l.dia).toLocaleDateString('es-MX',{day:'2-digit',month:'short',timeZone:'America/Mexico_City'})}</span>
                   <div className="barra-track"><div className="barra-fill" style={{width:`${(l.exitosos/Math.max(l.exitosos+l.fallidos,1))*100}%`}}/></div>
                   <span className="barra-valor" style={{fontSize:11}}><span style={{color:'#4ade80'}}>✓{l.exitosos}</span>{' '}<span style={{color:'#f87171'}}>✗{l.fallidos}</span></span>
                 </div>
@@ -419,7 +427,7 @@ const AdminMonitoreoScreen: React.FC = () => {
                 {actividad.sesiones.length===0 ? <tr><td colSpan={3} style={{textAlign:'center',color:'#334155'}}>Sin datos</td></tr>
                   : actividad.sesiones.slice().reverse().map((s,i)=>(
                     <tr key={i}>
-                      <td style={{color:'#64748b'}}>{new Date(s.dia).toLocaleDateString('es-MX',{weekday:'short',day:'2-digit',month:'short'})}</td>
+                      <td style={{color:'#64748b'}}>{new Date(s.dia).toLocaleDateString('es-MX',{weekday:'short',day:'2-digit',month:'short',timeZone:'America/Mexico_City'})}</td>
                       <td>{s.nuevas_sesiones}</td>
                       <td>{s.usuarios_unicos}</td>
                     </tr>
@@ -437,7 +445,6 @@ const AdminMonitoreoScreen: React.FC = () => {
             ? <div className="estado-carga"><span className="spinner"/> Cargando estadísticas…</div>
             : (
               <>
-                {/* Conexión y salud */}
                 <div className="db-salud-grid">
                   <div className="db-salud-card">
                     <div className="db-salud-card-titulo">🔗 Conexión</div>
@@ -546,7 +553,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Índices */}
                 <p className="seccion-titulo">Índices más usados</p>
                 <div className="tabla-wrapper">
                   <table>
@@ -564,7 +570,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                   </table>
                 </div>
 
-                {/* Tablas por tamaño */}
                 <p className="seccion-titulo">Tablas por tamaño <span>— top 15</span></p>
                 <div className="grafica-barras">
                   {dbStats.tablas.map((t,i)=>(
