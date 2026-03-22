@@ -41,6 +41,11 @@ interface DatabaseStats {
 type Tab = 'rendimiento'|'endpoints'|'errores'|'actividad'|'database';
 
 // ─── Helpers de fecha ─────────────────────────────────────────────────────────
+// El backend convierte fechas a America/Mexico_City con AT TIME ZONE.
+// El string llega como timestamp naive, ej: "2026-03-21T15:00:00"
+// import.meta.env.DEV = true en local (Vite), false en producción (Vercel).
+//   LOCAL (DEV=true,  UTC-6): timeZone Mexico_City corrige la doble conversión
+//   PROD  (DEV=false, UTC+0): timeZone UTC evita re-convertir lo ya convertido
 const _TZ = import.meta.env.DEV ? 'America/Mexico_City' : 'UTC';
 
 const fmtFecha = (iso: string) =>
@@ -58,15 +63,10 @@ const fmtHora = (iso: string) =>
     hour: '2-digit', minute: '2-digit',
     timeZone: _TZ
   });
-
-const fmtHoraUTC = (iso: string) => new Date(iso).toLocaleTimeString('es-MX', {
-  hour: '2-digit', minute: '2-digit',
-  timeZone: 'America/Mexico_City'
-});
-const fmtFechaUTC = (iso: string) => new Date(iso).toLocaleString('es-MX', {
-  day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
-  timeZone: 'America/Mexico_City'
-});
+// Alias para compatibilidad con el JSX que usa fmtFechaUTC / fmtHoraUTC
+const fmtFechaUTC = fmtFecha;
+const fmtHoraUTC  = fmtHora;
+// ─────────────────────────────────────────────────────────────────────────────
 
 const fmtMs = (ms: number) => ms >= 1000 ? `${(ms/1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
 const MsBadge = ({ ms }: { ms: number }) => {
@@ -605,7 +605,6 @@ const AdminMonitoreoScreen: React.FC = () => {
         <>
           {!dbStats ? <div className="estado-carga"><span className="spinner"/> Cargando estadísticas…</div> : (
             <>
-              {/* Tarjetas de Salud y Datos de Negocio */}
               <div className="db-salud-grid">
                 <div className="db-salud-card">
                   <div className="db-salud-card-titulo">🔗 Estado de BD</div>
@@ -636,10 +635,7 @@ const AdminMonitoreoScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* 🟢 FILA 1 DE GRÁFICAS: Circulares (Caché, Índices, Conexiones, Tamaño) 🟢 */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginTop: '20px', marginBottom: '20px' }}>
-                
-                {/* Gauge 1: Eficiencia de Caché */}
                 <div className="db-salud-card" style={{ alignItems: 'center', textAlign: 'center' }}>
                   <div className="db-salud-card-titulo">Eficiencia de Caché</div>
                   <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>Consultas en memoria (Hit Rate)</p>
@@ -650,7 +646,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                   </svg>
                 </div>
 
-                {/* Gauge 2: Eficiencia de Índices */}
                 <div className="db-salud-card" style={{ alignItems: 'center', textAlign: 'center' }}>
                   <div className="db-salud-card-titulo">Uso Global de Índices</div>
                   <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>Salud general de las consultas</p>
@@ -669,7 +664,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                   })()}
                 </div>
 
-                {/* 🟢 NUEVO: Dona de Pool de Conexiones 🟢 */}
                 <div className="db-salud-card">
                   <div className="db-salud-card-titulo" style={{ textAlign: 'center' }}>Pool de Conexiones</div>
                   <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px', textAlign: 'center' }}>Uso actual de las conexiones a BD</p>
@@ -677,29 +671,21 @@ const AdminMonitoreoScreen: React.FC = () => {
                     {(() => {
                       const { activas, inactivas, idle_in_transaction, total_conexiones } = dbStats.conexiones;
                       const total = Number(total_conexiones) || (Number(activas) + Number(inactivas) + Number(idle_in_transaction)) || 1;
-                      
                       let currentDeg = 0;
                       const stops = [];
-                      
                       const degAct = (Number(activas) / total) * 360;
                       if (degAct > 0) { stops.push(`#4ade80 ${currentDeg}deg ${currentDeg + degAct}deg`); currentDeg += degAct; }
-                      
                       const degIdle = (Number(idle_in_transaction) / total) * 360;
                       if (degIdle > 0) { stops.push(`#f87171 ${currentDeg}deg ${currentDeg + degIdle}deg`); currentDeg += degIdle; }
-                      
                       const degInac = (Number(inactivas) / total) * 360;
                       if (degInac > 0) { stops.push(`#64748b ${currentDeg}deg ${currentDeg + degInac}deg`); currentDeg += degInac; }
-                      
                       if (currentDeg < 360) { stops.push(`#252540 ${currentDeg}deg 360deg`); }
-
                       const gradient = stops.join(', ');
-
                       return (
                         <>
                           <div style={{ position: 'relative', minWidth: '90px', width: '90px', height: '90px', borderRadius: '50%', background: `conic-gradient(${gradient})` }}>
-                            {/* El "huequito" para hacerla Dona */}
                             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '55px', height: '55px', background: '#16162a', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                                <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#f1f5f9' }}>{total}</span>
+                              <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#f1f5f9' }}>{total}</span>
                             </div>
                           </div>
                           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -724,8 +710,7 @@ const AdminMonitoreoScreen: React.FC = () => {
                     })()}
                   </div>
                 </div>
-                
-                {/* Dona: Top 5 Tablas por Tamaño (Ajustada para tener hueco) */}
+
                 <div className="db-salud-card">
                   <div className="db-salud-card-titulo" style={{ textAlign: 'center' }}>Top 5 Tablas (Tamaño)</div>
                   <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px', textAlign: 'center' }}>Distribución del almacenamiento</p>
@@ -744,8 +729,7 @@ const AdminMonitoreoScreen: React.FC = () => {
                       return (
                         <>
                           <div style={{ position: 'relative', minWidth: '90px', width: '90px', height: '90px', borderRadius: '50%', background: `conic-gradient(${gradientStops}, #252540 ${currentDeg}deg 360deg)` }}>
-                             {/* El "huequito" para hacerla Dona */}
-                             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '55px', height: '55px', background: '#16162a', borderRadius: '50%' }}></div>
+                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '55px', height: '55px', background: '#16162a', borderRadius: '50%' }}></div>
                           </div>
                           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             {top5.map((t, i) => (
@@ -763,10 +747,7 @@ const AdminMonitoreoScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* 🟢 FILA 2 DE GRÁFICAS: Análisis Avanzado (Filas y Escaneos) 🟢 */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-                
-                {/* Top 5 Tablas con más filas */}
                 <div className="db-salud-card">
                   <div className="db-salud-card-titulo">Top 5 Tablas (Volumen de Registros)</div>
                   <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 12px 0' }}>Tablas que más crecen en cantidad de datos</p>
@@ -774,14 +755,13 @@ const AdminMonitoreoScreen: React.FC = () => {
                     {(() => {
                       const top5Rows = [...dbStats.tablas].sort((a,b) => Number(b.filas_aprox) - Number(a.filas_aprox)).slice(0, 5);
                       const maxRows = top5Rows.length > 0 ? Number(top5Rows[0].filas_aprox) : 1;
-                      
                       return top5Rows.map((t, i) => (
                         <div key={i} className="tabla-bar-row" style={{ padding: '6px 0' }}>
                           <span className="tb-col-name" style={{ minWidth: '120px' }}>{t.tabla}</span>
                           <div className="tb-col-bar" style={{ padding: '0 10px' }}>
-                             <div className="barra-track">
-                               <div className="barra-fill" style={{ width: `${(Number(t.filas_aprox) / maxRows) * 100}%`, background: 'linear-gradient(90deg, #3b82f6, #60a5fa)' }}></div>
-                             </div>
+                            <div className="barra-track">
+                              <div className="barra-fill" style={{ width: `${(Number(t.filas_aprox) / maxRows) * 100}%`, background: 'linear-gradient(90deg, #3b82f6, #60a5fa)' }}></div>
+                            </div>
                           </div>
                           <span className="tb-col-rows" style={{ width: '80px', color: '#f1f5f9' }}>{Number(t.filas_aprox).toLocaleString()}</span>
                         </div>
@@ -790,7 +770,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Salud de Consultas (Índice vs Secuencial) */}
                 <div className="db-salud-card">
                   <div className="db-salud-card-titulo">Salud de Consultas (Top 5 Tablas más leídas)</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '4px 0 12px 0' }}>
@@ -800,29 +779,25 @@ const AdminMonitoreoScreen: React.FC = () => {
                       <span className="leyenda-item" style={{ fontSize: '10px' }}><span className="leyenda-dot" style={{background:'#f87171'}}/> Secuencial</span>
                     </div>
                   </div>
-                  
                   <div className="todas-tablas-lista" style={{ marginTop: 0 }}>
                     {(() => {
                       const topScans = [...dbStats.tablas]
                         .sort((a,b) => (Number(b.escaneos_indice) + Number(b.escaneos_secuenciales)) - (Number(a.escaneos_indice) + Number(a.escaneos_secuenciales)))
                         .slice(0, 5);
-                      
                       const maxScans = Math.max(...topScans.map(t => Number(t.escaneos_indice) + Number(t.escaneos_secuenciales)), 1);
-                      
                       return topScans.map((t, i) => {
                         const total = Number(t.escaneos_indice) + Number(t.escaneos_secuenciales);
                         const widthTotal = (total / maxScans) * 100;
                         const pctIdx = total > 0 ? (Number(t.escaneos_indice) / total) * 100 : 0;
                         const pctSeq = total > 0 ? (Number(t.escaneos_secuenciales) / total) * 100 : 0;
-
                         return (
                           <div key={i} className="tabla-bar-row" style={{ padding: '6px 0' }}>
                             <span className="tb-col-name" style={{ minWidth: '120px' }} title={t.tabla}>{t.tabla}</span>
                             <div className="tb-col-bar" style={{ padding: '0 10px' }}>
-                               <div className="barra-track" style={{ display: 'flex', width: `${widthTotal}%`, background: 'transparent' }}>
-                                 {pctIdx > 0 && <div className="barra-fill indice" style={{ width: `${pctIdx}%`, background: '#4ade80', borderRadius: pctSeq === 0 ? '4px' : '4px 0 0 4px' }} title={`Índice: ${Number(t.escaneos_indice).toLocaleString()}`}></div>}
-                                 {pctSeq > 0 && <div className="barra-fill secuencial" style={{ width: `${pctSeq}%`, background: '#f87171', borderRadius: pctIdx === 0 ? '4px' : '0 4px 4px 0' }} title={`Secuencial (ALERTA): ${Number(t.escaneos_secuenciales).toLocaleString()}`}></div>}
-                               </div>
+                              <div className="barra-track" style={{ display: 'flex', width: `${widthTotal}%`, background: 'transparent' }}>
+                                {pctIdx > 0 && <div className="barra-fill indice" style={{ width: `${pctIdx}%`, background: '#4ade80', borderRadius: pctSeq === 0 ? '4px' : '4px 0 0 4px' }} title={`Índice: ${Number(t.escaneos_indice).toLocaleString()}`}></div>}
+                                {pctSeq > 0 && <div className="barra-fill secuencial" style={{ width: `${pctSeq}%`, background: '#f87171', borderRadius: pctIdx === 0 ? '4px' : '0 4px 4px 0' }} title={`Secuencial: ${Number(t.escaneos_secuenciales).toLocaleString()}`}></div>}
+                              </div>
                             </div>
                             <span className="tb-col-rows" style={{ width: '80px', color: '#f1f5f9', fontSize: '11px' }}>{total.toLocaleString()}</span>
                           </div>
@@ -831,10 +806,8 @@ const AdminMonitoreoScreen: React.FC = () => {
                     })()}
                   </div>
                 </div>
-
               </div>
 
-              {/* Acordeón: Explorador de Todas las Tablas */}
               <div className="db-todas-tablas-card">
                 <div className="db-mant-header" style={{ cursor: 'pointer' }} onClick={() => setMostrarTodasTablas(!mostrarTodasTablas)}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -843,7 +816,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                   </div>
                   <button className="btn-resolver">{mostrarTodasTablas ? 'Ocultar detalles ▲' : 'Ver todas las tablas ▼'}</button>
                 </div>
-                
                 {mostrarTodasTablas && (
                   <div className="todas-tablas-lista">
                     <div className="tabla-bar-header">
@@ -852,18 +824,16 @@ const AdminMonitoreoScreen: React.FC = () => {
                       <span className="tb-col-size">Tamaño</span>
                       <span className="tb-col-rows">Filas (Aprox.)</span>
                     </div>
-                    
                     {(() => {
                       const allTables = [...dbStats.tablas].sort((a,b) => Number(b.tamano_bytes) - Number(a.tamano_bytes));
                       const maxBytes = allTables.length > 0 ? Number(allTables[0].tamano_bytes) : 1;
-                      
                       return allTables.map((t, i) => (
                         <div key={i} className="tabla-bar-row">
                           <span className="tb-col-name" title={t.tabla}>{t.tabla}</span>
                           <div className="tb-col-bar">
-                             <div className="barra-track">
-                               <div className="barra-fill" style={{ width: `${(Number(t.tamano_bytes) / maxBytes) * 100}%` }}></div>
-                             </div>
+                            <div className="barra-track">
+                              <div className="barra-fill" style={{ width: `${(Number(t.tamano_bytes) / maxBytes) * 100}%` }}></div>
+                            </div>
                           </div>
                           <span className="tb-col-size">{t.tamano}</span>
                           <span className="tb-col-rows">{Number(t.filas_aprox).toLocaleString()} filas</span>
@@ -874,7 +844,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                 )}
               </div>
 
-              {/* Mantenimiento: Vacuum */}
               <div className="db-mantenimiento-card">
                 <div className="db-mant-header">
                   <span className="db-mant-titulo">🧹 VACUUM — Limpieza de Filas Muertas</span>
@@ -913,7 +882,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Mantenimiento: Analyze */}
               <div className="db-mantenimiento-card">
                 <div className="db-mant-header">
                   <span className="db-mant-titulo">📊 ANALYZE — Estadísticas del Planificador</span>
