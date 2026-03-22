@@ -41,20 +41,29 @@ interface DatabaseStats {
 type Tab = 'rendimiento'|'endpoints'|'errores'|'actividad'|'database';
 
 // ─── Helpers de fecha ─────────────────────────────────────────────────────────
-// El backend convierte TODO a America/Mexico_City antes de mandar.
-// El frontend solo formatea — sin conversión adicional de timezone.
+// El backend convierte TODO a America/Mexico_City con AT TIME ZONE.
+// El string ISO que llega ya representa hora México pero sin offset (naive).
+// Usamos timeZone: 'UTC' para que el navegador NO aplique conversión adicional
+// y muestre exactamente la hora que mandó el backend.
 // Esto funciona igual en local y en producción (Render/Vercel).
 
 const fmtFecha = (iso: string) =>
   new Date(iso).toLocaleString('es-MX', {
-    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+    timeZone: 'UTC'
   });
 
 const fmtFechaCorta = (iso: string) =>
-  new Date(iso).toLocaleString('es-MX', { day: '2-digit', month: 'short' });
+  new Date(iso).toLocaleString('es-MX', {
+    day: '2-digit', month: 'short',
+    timeZone: 'UTC'
+  });
 
 const fmtHora = (iso: string) =>
-  new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  new Date(iso).toLocaleTimeString('es-MX', {
+    hour: '2-digit', minute: '2-digit',
+    timeZone: 'UTC'
+  });
 // ─────────────────────────────────────────────────────────────────────────────
 
 const fmtMs = (ms: number) => ms >= 1000 ? `${(ms/1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
