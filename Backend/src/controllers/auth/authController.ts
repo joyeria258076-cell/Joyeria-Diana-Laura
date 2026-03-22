@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-// 👇 Importaciones corregidas (subiendo 2 niveles)
 import * as userModel from '../../models/userModel';
 import admin from '../../config/firebase';
 import { LoginSecurityService } from '../../services/loginSecurityService';
@@ -35,7 +34,6 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Email es requerido' });
     }
 
-    // 1. Validaciones de Seguridad (Inyección SQL/Scripts)
     const emailSecurityCheck = validateEmailSecurity(email);
     if (!emailSecurityCheck.valid) {
       console.log(`🚫 Intento de inyección detectado en email: ${emailSecurityCheck.message}`);
@@ -50,7 +48,6 @@ export const login = async (req: Request, res: Response) => {
 
     console.log(`🔐 Procesando login para: ${email} desde IP: ${clientIp}`);
 
-    // 2. Verificar si la cuenta está bloqueada por intentos fallidos
     const lockCheck = await LoginSecurityService.isAccountLocked(email);
     if (lockCheck.locked) {
       const remainingTime = Math.ceil((new Date(lockCheck.lockedUntil!).getTime() - Date.now()) / 60000);
@@ -65,7 +62,6 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // 3. Simulación de error (Honeypot para bots o pruebas)
     if (password === 'wrong_password_to_trigger_failure') {
       const lockResult = await LoginSecurityService.handleFailedAttempt(email);
       await LoginSecurityService.recordLoginAttempt({ 
@@ -78,11 +74,9 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // 4. Autenticación con Firebase y Base de Datos
     try {
       const userRecord = await admin.auth().getUserByEmail(email);
       
-      // Verificar Email
       if (!userRecord.emailVerified) {
         await LoginSecurityService.recordLoginAttempt({ 
           email, ip_address: clientIp, user_agent: userAgent, success: false, failure_reason: 'email_not_verified' 
@@ -90,7 +84,6 @@ export const login = async (req: Request, res: Response) => {
         return res.status(401).json({ success: false, message: '📧 Tu email no está verificado.' });
       }
 
-      // 5. Verificar MFA (Autenticación de dos factores)
       const userCheck = await pool.query('SELECT id, mfa_enabled FROM usuarios WHERE email = $1', [email]);
       if (userCheck.rows.length > 0 && userCheck.rows[0].mfa_enabled) {
         await LoginSecurityService.recordLoginAttempt({ 
@@ -106,7 +99,6 @@ export const login = async (req: Request, res: Response) => {
         });
       }
 
-      // LOGIN EXITOSO - Registrar éxito y limpiar intentos fallidos
       await LoginSecurityService.recordLoginAttempt({ email, ip_address: clientIp, user_agent: userAgent, success: true });
       await LoginSecurityService.clearFailedAttempts(email);
 
@@ -115,16 +107,24 @@ export const login = async (req: Request, res: Response) => {
       
       let dbUser: any = null;
       try {
-        // Obtener datos completos de PostgreSQL
         dbUser = await userModel.getUserByEmail(userEmail);
         
         if (dbUser?.id) {
-          // Crear Sesión en BD
           const deviceInfo = SessionService.parseUserAgent(userAgent);
-          const sessionResult = await SessionService.createSession(dbUser.id, userRecord.uid, deviceInfo, clientIp, userAgent);
+
+          // ─── CAMBIO: pasar el rol para calcular expiración correcta ──────────
+          const userRol: string = String(dbUser.rol || 'cliente');
+          const sessionResult = await SessionService.createSession(
+            dbUser.id,
+            userRecord.uid,
+            deviceInfo,
+            clientIp,
+            userAgent,
+            userRol   // ← rol del usuario
+          );
+          // ─────────────────────────────────────────────────────────────────────
           
           if (sessionResult.success && sessionResult.sessionToken) {
-            // Generar JWT
             const token = JWTService.generateToken({ 
               userId: dbUser.id, 
               firebaseUid: userRecord.uid, 
@@ -133,9 +133,10 @@ export const login = async (req: Request, res: Response) => {
               sessionId: sessionResult.sessionToken 
             });
             
-            // Establecer Cookie HTTP-Only
             res.cookie('auth_token', token, CookieConfig.getConfig());
             
+            console.log(`✅ Sesión creada — rol: ${userRol}, expira según política de rol`);
+
             return res.json({ 
               success: true, 
               message: 'Login exitoso', 
@@ -145,7 +146,7 @@ export const login = async (req: Request, res: Response) => {
                   email: userEmail, 
                   nombre: userName, 
                   dbId: dbUser.id, 
-                  rol: String(dbUser.rol || 'cliente') 
+                  rol: userRol
                 }, 
                 token: token, 
                 sessionToken: sessionResult.sessionToken 
@@ -263,14 +264,11 @@ export const logout = async (req: any, res: Response) => {
   try {
     const sessionToken = req.headers['x-session-token'] as string;
     
-    // Invalidar sesión en Base de Datos
     if (sessionToken) {
-        await SessionService.revokeSessionByToken(sessionToken);
+      await SessionService.revokeSessionByToken(sessionToken);
     }
     
-    // Limpiar Cookie del navegador
     res.clearCookie('auth_token', CookieConfig.getClearConfig());
-    
     res.json({ success: true, message: 'Sesión cerrada exitosamente' });
   } catch (error) { 
     res.json({ success: true, message: 'Sesión cerrada (error revocando)' }); 

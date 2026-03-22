@@ -26,7 +26,7 @@
   gap: 2rem;
 }
 
-/* Logo y marca */
+/* ── Logo ── */
 .header-brand {
   display: flex;
   align-items: center;
@@ -42,10 +42,7 @@
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.brand-link:hover {
-  opacity: 1;
-  transform: scale(1.05);
-}
+.brand-link:hover { transform: scale(1.05); }
 
 .brand-initials {
   font-size: 1.5rem;
@@ -67,7 +64,7 @@
   letter-spacing: 0.5px;
 }
 
-/* Navegación */
+/* ── Navegación desktop ── */
 .header-nav {
   display: flex;
   gap: 1.2rem;
@@ -85,7 +82,6 @@
   border-top: 2px solid transparent;
   font-family: 'Montserrat', sans-serif;
   letter-spacing: 0.3px;
-  position: relative;
 }
 
 .nav-link:hover,
@@ -95,7 +91,7 @@
   transform: translateY(-2px);
 }
 
-/* Botón de acceso */
+/* ── Botón acceso desktop ── */
 .header-auth {
   display: flex;
   align-items: center;
@@ -119,50 +115,117 @@
 }
 
 .btn-acceso:hover {
-  background: linear-gradient(135deg, #f5c5d8 0%, #ECB2C3 100%);
   transform: translateY(-4px) scale(1.02);
   box-shadow: 0 12px 30px rgba(236, 178, 195, 0.5);
 }
 
-/* Responsive */
+/* ── Hamburguesa — oculta en desktop ── */
+.public-hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.pub-ham-line {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: #ECB2C3;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.pub-ham-line.open:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.pub-ham-line.open:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.pub-ham-line.open:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Overlay móvil ── */
+.pub-nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 98;
+  backdrop-filter: blur(2px);
+}
+
+/* ── Menú móvil desplegable ── */
+.pub-nav-mobile {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #0a0a0a;
+  border-bottom: 1px solid rgba(236,178,195,0.2);
+  flex-direction: column;
+  padding: 1rem 0;
+  z-index: 99;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+.pub-nav-mobile.open {
+  display: flex;
+}
+
+.pub-nav-mobile-link {
+  color: #d4b5c8;
+  text-decoration: none;
+  padding: 0.9rem 1.5rem;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.pub-nav-mobile-link:hover,
+.pub-nav-mobile-link.active {
+  color: #ECB2C3;
+  border-left-color: #ECB2C3;
+  background: rgba(236,178,195,0.08);
+}
+
+.pub-nav-mobile-acceso {
+  margin: 0.8rem 1.5rem 0.3rem;
+  background: linear-gradient(135deg, #ECB2C3 0%, #f5c5d8 100%);
+  color: #0f0f12;
+  text-decoration: none;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 12px;
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+  transition: all 0.3s ease;
+}
+
+.pub-nav-mobile-acceso:hover {
+  box-shadow: 0 4px 15px rgba(236,178,195,0.4);
+}
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
 @media (max-width: 768px) {
-  .header-content {
-    gap: 1rem;
-  }
+  .header-nav        { display: none; }
+  .header-auth       { display: none; }
+  .public-hamburger-btn { display: flex; }
 
-  .header-nav {
-    display: none;
-  }
+  .header-content { gap: 1rem; }
 
-  .brand-initials {
-    font-size: 1.2rem;
-  }
-
-  .brand-name {
-    font-size: 1rem;
-  }
-
-  .btn-acceso {
-    padding: 8px 20px;
-    font-size: 0.9rem;
-  }
+  .brand-initials { font-size: 1.2rem; }
+  .brand-name     { font-size: 1rem; }
 }
 
 @media (max-width: 576px) {
-  .header-content {
-    gap: 0.5rem;
-  }
-
-  .brand-initials {
-    font-size: 1rem;
-  }
-
-  .brand-name {
-    font-size: 0.85rem;
-  }
-
-  .btn-acceso {
-    padding: 6px 15px;
-    font-size: 0.8rem;
-  }
+  .brand-initials { font-size: 1rem; }
+  .brand-name     { font-size: 0.85rem; }
 }

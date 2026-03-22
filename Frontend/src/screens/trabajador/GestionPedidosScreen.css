@@ -306,3 +306,35 @@
 }
 .gp-btn-cancelar-confirm:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(224,90,106,0.3); }
 .gp-btn-cancelar-confirm:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+@media (max-width: 768px) {
+  .gp-container { padding: 0.8rem; }
+
+  .gp-header { flex-direction: column; align-items: stretch; gap: 0.8rem; }
+  .gp-titulo { font-size: 1.4rem; }
+  .gp-btn-refrescar { width: 100%; text-align: center; }
+
+  .gp-filtros { flex-direction: column; align-items: stretch; }
+  .gp-select { width: 100%; }
+
+  /* Tabla scrolleable */
+  .gp-tabla-wrap { overflow-x: auto; }
+  .gp-tabla { min-width: 600px; }
+
+  /* Ocultar columnas menos importantes */
+  .gp-tabla th:nth-child(4),
+  .gp-tabla td:nth-child(4) { display: none; }
+
+  /* Modal full screen */
+  .gp-modal { width: 100%; max-width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+
+  .gp-form-fila2 { grid-template-columns: 1fr !important; }
+
+  .gp-toast { left: 1rem; right: 1rem; max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .gp-acciones-col { flex-direction: column; align-items: stretch; }
+  .gp-btn-ver,
+  .gp-btn-tomar { width: 100%; text-align: center; justify-content: center; }
+}

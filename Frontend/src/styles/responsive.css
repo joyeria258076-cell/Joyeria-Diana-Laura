@@ -1,0 +1,357 @@
+/* ============================================================
+   RESPONSIVE GLOBAL — Joyería Diana Laura
+   Importar en main.tsx o App.tsx DESPUÉS de index.css
+   ============================================================ */
+
+/* ── Reset base móvil ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+img, video, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+table {
+  width: 100%;
+}
+
+/* ── Utilidades responsivas globales ── */
+.hide-mobile  { display: block; }
+.show-mobile  { display: none; }
+
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: block !important; }
+}
+
+/* ============================================================
+   PANTALLAS PÚBLICAS — Header con menú hamburguesa
+   ============================================================ */
+
+/* Botón hamburguesa para el header público */
+.public-nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 200;
+}
+
+.public-nav-toggle span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: #ECB2C3;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Menú móvil desplegable */
+.header-nav-mobile {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10,10,10,0.98);
+  z-index: 150;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.header-nav-mobile.open {
+  display: flex;
+}
+
+.header-nav-mobile .nav-link {
+  font-size: 1.4rem;
+  color: #ECB2C3;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(236,178,195,0.2);
+  width: 80%;
+  text-align: center;
+}
+
+.header-nav-mobile .btn-cerrar-menu {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: none;
+  border: none;
+  color: #ECB2C3;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .public-nav-toggle {
+    display: flex;
+  }
+}
+
+/* ============================================================
+   TABLAS — scroll horizontal en móvil
+   ============================================================ */
+.tabla-wrapper,
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  table {
+    min-width: 600px;
+  }
+
+  th, td {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* ============================================================
+   FORMULARIOS — full width en móvil
+   ============================================================ */
+@media (max-width: 768px) {
+  input, select, textarea, button {
+    font-size: 16px !important; /* evita zoom automático en iOS */
+  }
+
+  .form-group,
+  .input-group {
+    width: 100% !important;
+  }
+
+  /* Grids de formulario de 2 columnas → 1 columna */
+  .form-grid-2,
+  .form-row {
+    grid-template-columns: 1fr !important;
+    flex-direction: column !important;
+  }
+}
+
+/* ============================================================
+   GRIDS GENÉRICOS — adaptar columnas
+   ============================================================ */
+@media (max-width: 992px) {
+  .grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+@media (max-width: 768px) {
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ============================================================
+   MODALES — full screen en móvil
+   ============================================================ */
+@media (max-width: 768px) {
+  .modal-content,
+  .modal-box,
+  [class*="modal"] > div {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 10px auto !important;
+    padding: 20px 15px !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* ============================================================
+   BOTONES — full width en móvil cuando son de acción principal
+   ============================================================ */
+@media (max-width: 480px) {
+  .btn-full-mobile {
+    width: 100% !important;
+    text-align: center !important;
+  }
+}
+
+/* ============================================================
+   TARJETAS / CARDS — adaptar padding
+   ============================================================ */
+@media (max-width: 768px) {
+  .card,
+  [class*="-card"],
+  [class*="card-"] {
+    padding: 16px !important;
+  }
+}
+
+/* ============================================================
+   TIPOGRAFÍA — escalar en móvil
+   ============================================================ */
+@media (max-width: 768px) {
+  h1 { font-size: clamp(1.4rem, 5vw, 2rem) !important; }
+  h2 { font-size: clamp(1.2rem, 4vw, 1.6rem) !important; }
+  h3 { font-size: clamp(1rem, 3.5vw, 1.3rem) !important; }
+}
+
+/* ============================================================
+   PANTALLAS DE AUTH — Login, Registro, etc.
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Contenedor centrado de auth */
+  .auth-container,
+  .login-container,
+  .registro-container {
+    padding: 20px 15px !important;
+    min-height: 100dvh !important;
+  }
+
+  .auth-card,
+  .login-card,
+  .registro-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 24px 16px !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* ============================================================
+   PANTALLAS DE CATÁLOGO — grid de productos
+   ============================================================ */
+@media (max-width: 992px) {
+  .productos-grid,
+  .catalogo-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .productos-grid,
+  .catalogo-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .productos-grid,
+  .catalogo-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ============================================================
+   PANTALLAS ADMIN — tablas y grids
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Tarjetas de resumen del dashboard */
+  .tarjetas-grid,
+  .stats-grid,
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* Filtros en columna */
+  .filtros-row,
+  .filters-row {
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+
+  .filtros-row select,
+  .filtros-row input {
+    width: 100% !important;
+  }
+
+  /* Paginación compacta */
+  .paginacion-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .tarjetas-grid,
+  .stats-grid,
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ============================================================
+   CARRITO — layout
+   ============================================================ */
+@media (max-width: 768px) {
+  .carrito-layout,
+  .cart-layout {
+    flex-direction: column !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .carrito-resumen,
+  .cart-summary {
+    width: 100% !important;
+    position: static !important;
+  }
+}
+
+/* ============================================================
+   DETALLE DE PRODUCTO — layout
+   ============================================================ */
+@media (max-width: 768px) {
+  .producto-detalle-layout,
+  .product-detail-layout {
+    flex-direction: column !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .producto-imagen-principal,
+  .product-main-image {
+    width: 100% !important;
+    max-height: 350px !important;
+    object-fit: contain !important;
+  }
+}
+
+/* ============================================================
+   SCROLL — mejorar en iOS
+   ============================================================ */
+.content-area,
+.page-container,
+main,
+[class*="screen"],
+[class*="Screen"] {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================================
+   FIXES GENERALES
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Evitar overflow horizontal */
+  body, #root {
+    overflow-x: hidden;
+  }
+
+  /* Espaciado de secciones */
+  section,
+  .section {
+    padding: 2rem 0 !important;
+  }
+}

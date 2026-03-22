@@ -30,14 +30,13 @@ const auth = getAuth(app);
 auth.languageCode = 'es';
 
 interface User {
-  id: string; // Firebase UID
+  id: string;
   email: string;
   nombre: string;
-  dbId?: number; // 🆕 ID numérico de PostgreSQL
-  rol?: 'admin' | 'trabajador' | 'cliente'; // 🆕 Rol del usuario
+  dbId?: number;
+  rol?: 'admin' | 'trabajador' | 'cliente';
 }
 
-// 🆕 INTERFAZ para sesiones activas
 interface ActiveSession {
   id: number;
   device_name: string;
@@ -54,7 +53,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<any>;
-  register: (email: string, password: string, nombre: string, questionType: string, customQuestion: string, securityAnswer: string) => Promise<void>; // 🆕 Actualizado
+  register: (email: string, password: string, nombre: string, questionType: string, customQuestion: string, securityAnswer: string) => Promise<void>;
   logout: () => void;
   sendPasswordReset: (email: string) => Promise<{
     success: boolean;
@@ -64,13 +63,11 @@ interface AuthContextType {
     remainingTime?: number;
   }>;
   verifyEmail: (oobCode: string) => Promise<void>;
-  // 🆕 NUEVAS FUNCIONES PARA GESTIÓN DE SESIONES (YA EXISTENTES - SIN CAMBIOS)
   getActiveSessions: () => Promise<ActiveSession[]>;
   revokeSession: (sessionId: number) => Promise<void>;
   revokeAllOtherSessions: () => Promise<{ revokedCount: number }>;
   revokeAllSessions: () => Promise<{ revokedCount: number }>;
-  currentSessionToken: string | null; // 🆕 Token de sesión actual
-  // 🆕 NUEVA FUNCIÓN OPCIONAL: Validar sesión
+  currentSessionToken: string | null;
   validateSession?: () => Promise<boolean>;
 }
 
@@ -88,65 +85,48 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-// 🎯 VARIABLES GLOBALES PARA DEBOUNCING (CÓDIGO EXISTENTE)
 let activityUpdateTimeout: NodeJS.Timeout | null = null;
 let lastActivityUpdate = 0;
-const UPDATE_INTERVAL = 30000; // 30 segundos entre updates reales
-const DEBOUNCE_DELAY = 1000; // 1 segundo de debounce
+const UPDATE_INTERVAL = 30000;
+const DEBOUNCE_DELAY = 1000;
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentSessionToken, setCurrentSessionToken] = useState<string | null>(null); // 🆕 Token de sesión actual
+  const [currentSessionToken, setCurrentSessionToken] = useState<string | null>(null);
   
-  // 🎯 USAR useRef PARA TIMERS (no causan re-renders) - CÓDIGO EXISTENTE
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isSettingUpRef = useRef<boolean>(false);
 
-  // 🎯 CONFIGURACIÓN OPTIMIZADA de inactividad - CÓDIGO EXISTENTE
-  //const INACTIVITY_TIMEOUT = 1 * 60 * 1000; // 1 minuto para pruebas
-
-  // 🎯 FUNCIÓN: Obtener tiempo de inactividad según el rol
+  // ─── ÚNICO CAMBIO: cliente → 1 hora (antes era 24 horas) ─────────────────
   const getTimeoutByRole = () => {
-    if (!user) return 24 * 60 * 60 * 1000; // Por defecto 24h si no hay user
-    
+    if (!user) return 60 * 60 * 1000; // Por defecto 1h si no hay user
+
     if (user.rol === 'admin' || user.rol === 'trabajador') {
       return 15 * 60 * 1000; // 🔒 15 minutos para personal
     }
-    
-    return 24 * 60 * 60 * 1000; // ✅ 24 horas para clientes
-  };
 
-  // 🎯 FUNCIÓN: Manejar logout automático - CÓDIGO EXISTENTE
+    return 60 * 60 * 1000; // ✅ 1 hora para clientes
+  };
+  // ─────────────────────────────────────────────────────────────────────────
+
   const handleAutoLogout = async () => {
     console.log('🔒 🔥 🔥 🔥 SESIÓN EXPIRADA POR INACTIVIDAD 🔥 🔥 🔥');
-    
     alert('Tu sesión ha expirada por inactividad. Por favor, inicia sesión nuevamente.');
-    
     await auth.signOut();
     setUser(null);
-    setCurrentSessionToken(null); // 🆕 Limpiar session token
+    setCurrentSessionToken(null);
     localStorage.removeItem('diana_laura_user');
-    localStorage.removeItem('diana_laura_session_token'); // 🆕 Limpiar session token del localStorage
-    
+    localStorage.removeItem('diana_laura_session_token');
     window.location.href = '/login';
   };
 
-  // 🎯 FUNCIÓN: Actualizar actividad en backend con debouncing - CÓDIGO EXISTENTE
   const updateBackendActivity = async () => {
     const now = Date.now();
-    
-    // 🚫 Si ya actualizamos hace menos de 30 segundos, IGNORAR
-    if (now - lastActivityUpdate < UPDATE_INTERVAL) {
-      return;
-    }
+    if (now - lastActivityUpdate < UPDATE_INTERVAL) return;
 
-    // 🧹 Limpiar timeout anterior si existe
-    if (activityUpdateTimeout) {
-      clearTimeout(activityUpdateTimeout);
-    }
+    if (activityUpdateTimeout) clearTimeout(activityUpdateTimeout);
 
-    // ⏰ Programar nuevo update con debounce
     activityUpdateTimeout = setTimeout(async () => {
       if (user && user.email) {
         try {
@@ -155,230 +135,140 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log('✅ Actividad actualizada en backend');
         } catch (error) {
           console.log('⚠️ Error silencioso en actividad:', error);
-          // No reintentar - fallo silencioso
         }
       }
     }, DEBOUNCE_DELAY);
   };
 
-  // 🎯 FUNCIÓN: Resetear timer de inactividad - CÓDIGO EXISTENTE
   const resetInactivityTimer = () => {
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
-    }
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
 
     if (user) {
-      const timeout = getTimeoutByRole(); // 👈 Calculamos el tiempo real aquí
-      
-      // Solo para debug:
-      // console.log(`🔄 Timer reseteado para ${user.rol}. Expira en ${timeout / 60000} min`);
-
+      const timeout = getTimeoutByRole();
       inactivityTimerRef.current = setTimeout(() => {
         console.log('⏰ TIMER ACTIVADO - LOGOUT POR INACTIVIDAD');
         handleAutoLogout();
       }, timeout);
     }
-};
+  };
 
-  // 🎯 FUNCIÓN: Manejar actividad del usuario - CÓDIGO EXISTENTE
   const handleUserActivity = () => {
     resetInactivityTimer();
     updateBackendActivity();
   };
 
-// 🎯 EFECTO OPTIMIZADO: Configurar sistema de inactividad (SOLO cuando user cambia) - CÓDIGO EXISTENTE
-useEffect(() => {
-  // Evitar configurar múltiples veces
-  if (isSettingUpRef.current) return;
-  if (!user) return;
+  useEffect(() => {
+    if (isSettingUpRef.current) return;
+    if (!user) return;
 
-  isSettingUpRef.current = true;
-  
-  console.log('🎯 🎯 🎯 INICIANDO SISTEMA DE INACTIVIDAD 🎯 🎯 🎯');
-  //console.log('⏰ Timeout configurado:', INACTIVITY_TIMEOUT / 60000 + ' minutos');
+    isSettingUpRef.current = true;
+    console.log('🎯 🎯 🎯 INICIANDO SISTEMA DE INACTIVIDAD 🎯 🎯 🎯');
 
-  // ✅ SOLO eventos significativos - 🚫 EXCLUIR mousemove
-  const activityEvents = [
-    'click', 'keydown', 'scroll', 'mousedown', 
-    'touchstart', 'focus'
-  ];
+    const activityEvents = ['click', 'keydown', 'scroll', 'mousedown', 'touchstart', 'focus'];
 
-  console.log('🎯 Configurando listeners optimizados para actividad');
-
-// 🎯 NUEVO: Listener para eventos de navegación (flechas back/forward)
-const handlePopState = () => {
-  console.log('🔄 Evento de navegación detectado (flechas del navegador)');
-  
-  // Verificar si estamos en una ruta no autenticada
-  const currentPath = window.location.pathname;
-  const publicRoutes = ['/login', '/registro', '/olvide', '/reiniciar'];
-  
-  if (publicRoutes.includes(currentPath) && user) {
-    console.log('🚨 Usuario navegó a ruta pública con sesión activa - DESACTIVANDO SISTEMA DE INACTIVIDAD');
-    
-    // 🎯 LIMPIAR TODO EL SISTEMA DE INACTIVIDAD
-    // 1. Limpiar timers
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
-      inactivityTimerRef.current = null;
-    }
-    if (activityUpdateTimeout) {
-      clearTimeout(activityUpdateTimeout);
-      activityUpdateTimeout = null;
-    }
-    
-    // 2. Limpiar event listeners de actividad
-    const activityEvents = [
-      'click', 'keydown', 'scroll', 'mousedown', 
-      'touchstart', 'focus'
-    ];
-    
-    activityEvents.forEach(event => {
-      document.removeEventListener(event, handleUserActivity);
-    });
-    
-    // 3. Limpiar listener de navegación
-    window.removeEventListener('popstate', handlePopState);
-    
-    // 4. Marcar como desactivado
-    isSettingUpRef.current = false;
-    
-    console.log('✅ SISTEMA DE INACTIVIDAD COMPLETAMENTE DESACTIVADO POR NAVEGACIÓN');
-  }
-};
-
-  // Agregar event listeners de actividad
-  activityEvents.forEach(event => {
-    document.addEventListener(event, handleUserActivity, { passive: true });
-  });
-
-  // 🎯 NUEVO: Agregar listener de navegación
-  window.addEventListener('popstate', handlePopState);
-
-  // Iniciar timer inicial
-  resetInactivityTimer();
-  
-  // Hacer primer update de actividad después de 1 segundo
-  setTimeout(() => {
-    updateBackendActivity();
-  }, 1000);
-
-  return () => {
-    console.log('🧹 Limpiando sistema de inactividad');
-    isSettingUpRef.current = false;
-    
-    // Limpiar event listeners de actividad
-    activityEvents.forEach(event => {
-      document.removeEventListener(event, handleUserActivity);
-    });
-    
-    // 🎯 NUEVO: Remover listener de navegación
-    window.removeEventListener('popstate', handlePopState);
-    
-    // Limpiar timers
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
-      inactivityTimerRef.current = null;
-    }
-    if (activityUpdateTimeout) {
-      clearTimeout(activityUpdateTimeout);
-      activityUpdateTimeout = null;
-    }
-  };
-}, [user]); // 🎯 SOLO depende de user
-
-useEffect(() => {
-  if (!user || !currentSessionToken) {
-    console.log('⏸️ Validación de sesión desactivada (no hay usuario o token)');
-    return;
-  }
-
-  console.log('🔄 Iniciando verificación periódica de sesión revocada (cada 15 seg)');
-
-  const checkSessionInterval = setInterval(async () => {
-    try {
-      console.log('🔍 [Validación] Verificando estado de sesión...');
+    const handlePopState = () => {
+      console.log('🔄 Evento de navegación detectado (flechas del navegador)');
+      const currentPath = window.location.pathname;
+      const publicRoutes = ['/login', '/registro', '/olvide', '/reiniciar'];
       
-      const response = await authAPI.validateSession();
-      
-      if (!response.success) {
-        console.error('❌ [Validación] SESIÓN REVOCADA REMOTAMENTE');
-        
-        clearInterval(checkSessionInterval);
-        
-        alert('⚠️ Tu sesión ha sido cerrada desde otro dispositivo. Serás redirigido al inicio de sesión.');
-        
-        await auth.signOut();
-        setUser(null);
-        setCurrentSessionToken(null);
-        localStorage.removeItem('diana_laura_user');
-        localStorage.removeItem('diana_laura_session_token');
-        
-        window.location.href = '/login';
-      } else {
-        console.log('✅ [Validación] Sesión válida');
+      if (publicRoutes.includes(currentPath) && user) {
+        console.log('🚨 Usuario navegó a ruta pública - DESACTIVANDO SISTEMA DE INACTIVIDAD');
+        if (inactivityTimerRef.current) { clearTimeout(inactivityTimerRef.current); inactivityTimerRef.current = null; }
+        if (activityUpdateTimeout) { clearTimeout(activityUpdateTimeout); activityUpdateTimeout = null; }
+        activityEvents.forEach(event => document.removeEventListener(event, handleUserActivity));
+        window.removeEventListener('popstate', handlePopState);
+        isSettingUpRef.current = false;
+        console.log('✅ SISTEMA DE INACTIVIDAD COMPLETAMENTE DESACTIVADO POR NAVEGACIÓN');
       }
-      
-    } catch (error: any) {
-      console.log('⚠️ [Validación] Error verificando sesión:', error.message);
-      
-      if (error.message && (
-        error.message.includes('Sesión revocada') || 
-        error.message.includes('Sesión expirada') ||
-        error.message.includes('SESSION_EXPIRED') ||
-        error.message.includes('403')
-      )) {
-        console.error('❌ [Validación] SESIÓN REVOCADA/EXPIRADA DETECTADA');
-        
-        clearInterval(checkSessionInterval);
-        
-        alert('⚠️ Tu sesión ha sido cerrada. Serás redirigido al inicio de sesión.');
-        
-        await auth.signOut();
-        setUser(null);
-        setCurrentSessionToken(null);
-        localStorage.removeItem('diana_laura_user');
-        localStorage.removeItem('diana_laura_session_token');
-        
-        window.location.href = '/login';
-      }
+    };
+
+    activityEvents.forEach(event => document.addEventListener(event, handleUserActivity, { passive: true }));
+    window.addEventListener('popstate', handlePopState);
+    resetInactivityTimer();
+    setTimeout(() => updateBackendActivity(), 1000);
+
+    return () => {
+      console.log('🧹 Limpiando sistema de inactividad');
+      isSettingUpRef.current = false;
+      activityEvents.forEach(event => document.removeEventListener(event, handleUserActivity));
+      window.removeEventListener('popstate', handlePopState);
+      if (inactivityTimerRef.current) { clearTimeout(inactivityTimerRef.current); inactivityTimerRef.current = null; }
+      if (activityUpdateTimeout) { clearTimeout(activityUpdateTimeout); activityUpdateTimeout = null; }
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !currentSessionToken) {
+      console.log('⏸️ Validación de sesión desactivada (no hay usuario o token)');
+      return;
     }
-  }, 15000); // 15 segundos
 
-  return () => {
-    console.log('🧹 Limpiando verificación de sesión periódica');
-    clearInterval(checkSessionInterval);
-  };
-}, [user, currentSessionToken]);
+    console.log('🔄 Iniciando verificación periódica de sesión revocada (cada 15 seg)');
 
-  // 🎯 Cargar usuario desde localStorage - CÓDIGO EXISTENTE
+    const checkSessionInterval = setInterval(async () => {
+      try {
+        console.log('🔍 [Validación] Verificando estado de sesión...');
+        const response = await authAPI.validateSession();
+        
+        if (!response.success) {
+          console.error('❌ [Validación] SESIÓN REVOCADA REMOTAMENTE');
+          clearInterval(checkSessionInterval);
+          alert('⚠️ Tu sesión ha sido cerrada desde otro dispositivo. Serás redirigido al inicio de sesión.');
+          await auth.signOut();
+          setUser(null);
+          setCurrentSessionToken(null);
+          localStorage.removeItem('diana_laura_user');
+          localStorage.removeItem('diana_laura_session_token');
+          window.location.href = '/login';
+        } else {
+          console.log('✅ [Validación] Sesión válida');
+        }
+      } catch (error: any) {
+        console.log('⚠️ [Validación] Error verificando sesión:', error.message);
+        if (error.message && (
+          error.message.includes('Sesión revocada') || 
+          error.message.includes('Sesión expirada') ||
+          error.message.includes('SESSION_EXPIRED') ||
+          error.message.includes('403')
+        )) {
+          console.error('❌ [Validación] SESIÓN REVOCADA/EXPIRADA DETECTADA');
+          clearInterval(checkSessionInterval);
+          alert('⚠️ Tu sesión ha sido cerrada. Serás redirigido al inicio de sesión.');
+          await auth.signOut();
+          setUser(null);
+          setCurrentSessionToken(null);
+          localStorage.removeItem('diana_laura_user');
+          localStorage.removeItem('diana_laura_session_token');
+          window.location.href = '/login';
+        }
+      }
+    }, 15000);
+
+    return () => {
+      console.log('🧹 Limpiando verificación de sesión periódica');
+      clearInterval(checkSessionInterval);
+    };
+  }, [user, currentSessionToken]);
+
   useEffect(() => {
     const savedUser = localStorage.getItem('diana_laura_user');
-    const savedSessionToken = localStorage.getItem('diana_laura_session_token'); // 🆕 Cargar session token
-    
+    const savedSessionToken = localStorage.getItem('diana_laura_session_token');
     if (savedUser) {
       const parsedUser = JSON.parse(savedUser);
       console.log('📦 Usuario restaurado del localStorage:', parsedUser);
       console.log('🎭 Rol del usuario restaurado:', parsedUser.rol);
       setUser(parsedUser);
     }
-    if (savedSessionToken) {
-      setCurrentSessionToken(savedSessionToken);
-    }
+    if (savedSessionToken) setCurrentSessionToken(savedSessionToken);
     setLoading(false);
   }, []);
 
-  // 🆕 FUNCIONES PARA GESTIÓN DE SESIONES - CÓDIGO EXISTENTE (SIN CAMBIOS)
   const getActiveSessions = async (): Promise<ActiveSession[]> => {
     if (!user || !user.dbId) throw new Error('Usuario no autenticado o sin ID de base de datos');
-    
     try {
       const response = await authAPI.getActiveSessions(user.dbId);
-      if (response.success) {
-        return response.data.sessions;
-      } else {
-        throw new Error(response.message || 'Error obteniendo sesiones activas');
-      }
+      if (response.success) return response.data.sessions;
+      throw new Error(response.message || 'Error obteniendo sesiones activas');
     } catch (error: any) {
       console.error('❌ Error obteniendo sesiones activas:', error);
       throw new Error('No se pudieron cargar las sesiones activas: ' + error.message);
@@ -387,12 +277,9 @@ useEffect(() => {
 
   const revokeSession = async (sessionId: number): Promise<void> => {
     if (!user || !user.dbId) throw new Error('Usuario no autenticado o sin ID de base de datos');
-    
     try {
       const response = await authAPI.revokeSession(sessionId, user.dbId);
-      if (!response.success) {
-        throw new Error(response.message || 'Error revocando sesión');
-      }
+      if (!response.success) throw new Error(response.message || 'Error revocando sesión');
     } catch (error: any) {
       console.error('❌ Error revocando sesión:', error);
       throw new Error('No se pudo cerrar la sesión: ' + error.message);
@@ -401,14 +288,10 @@ useEffect(() => {
 
   const revokeAllOtherSessions = async (): Promise<{ revokedCount: number }> => {
     if (!user || !user.dbId || !currentSessionToken) throw new Error('Usuario no autenticado o sin ID de base de datos');
-    
     try {
       const response = await authAPI.revokeAllOtherSessions(user.dbId, currentSessionToken);
-      if (response.success) {
-        return { revokedCount: response.data.revokedCount };
-      } else {
-        throw new Error(response.message || 'Error revocando otras sesiones');
-      }
+      if (response.success) return { revokedCount: response.data.revokedCount };
+      throw new Error(response.message || 'Error revocando otras sesiones');
     } catch (error: any) {
       console.error('❌ Error revocando otras sesiones:', error);
       throw new Error('No se pudieron cerrar las otras sesiones: ' + error.message);
@@ -417,38 +300,30 @@ useEffect(() => {
 
   const revokeAllSessions = async (): Promise<{ revokedCount: number }> => {
     if (!user || !user.dbId) throw new Error('Usuario no autenticado o sin ID de base de datos');
-    
     try {
       const response = await authAPI.revokeAllSessions(user.dbId);
       if (response.success) {
-        // 🆕 Forzar logout local ya que se revocó la sesión actual
         await logout();
         return { revokedCount: response.data.revokedCount };
-      } else {
-        throw new Error(response.message || 'Error revocando todas las sesiones');
       }
+      throw new Error(response.message || 'Error revocando todas las sesiones');
     } catch (error: any) {
       console.error('❌ Error revocando todas las sesiones:', error);
       throw new Error('No se pudieron cerrar todas las sesiones: ' + error.message);
     }
   };
 
-  // 🆕 FUNCIÓN OPCIONAL: Validar sesión (NUEVA - PERO OPCIONAL)
   const validateSession = async (): Promise<boolean> => {
     if (!user) return false;
-    
     try {
       const response = await authAPI.validateSession();
       return response.success;
     } catch (error: any) {
       console.log('❌ Sesión inválida:', error.message);
-      
-      // Si es error de sesión expirada, hacer logout automático
       if (error.message.includes('SESSION_EXPIRED') || error.message.includes('Sesión revocada')) {
         console.log('🔐 Sesión expirada - haciendo logout automático');
         await logout();
       }
-      
       return false;
     }
   };
@@ -457,423 +332,191 @@ useEffect(() => {
     try {
       console.log('📧 Verificando email con código...');
       await checkActionCode(auth, oobCode);
-      console.log('✅ Código de verificación válido');
       await applyActionCode(auth, oobCode);
       console.log('✅ Email verificado exitosamente');
     } catch (error: any) {
       console.error('❌ Error verificando email:', error);
-      if (error.code === 'auth/invalid-action-code') {
-        throw new Error('El enlace de verificación es inválido o ha expirado.');
-      }
-      if (error.code === 'auth/expired-action-code') {
-        throw new Error('El enlace de verificación ha expirado.');
-      }
+      if (error.code === 'auth/invalid-action-code') throw new Error('El enlace de verificación es inválido o ha expirado.');
+      if (error.code === 'auth/expired-action-code') throw new Error('El enlace de verificación ha expirado.');
       throw new Error('Error al verificar el email: ' + error.message);
     }
   };
 
-const sendPasswordReset = async (email: string): Promise<{
-  success: boolean;
-  message: string;
-  remainingAttempts?: number;
-  blocked?: boolean;
-  remainingTime?: number;
-}> => {
-  try {
-    console.log('📧 Iniciando proceso de recuperación para:', email);
-    
-    // 🎯 PRIMERO: Verificar si el usuario existe en nuestro backend
+  const sendPasswordReset = async (email: string): Promise<{
+    success: boolean; message: string; remainingAttempts?: number; blocked?: boolean; remainingTime?: number;
+  }> => {
     try {
-      console.log('🔍 Verificando usuario en el sistema...');
-      const userCheck = await authAPI.checkFirebaseUser(email);
-      
-      if (!userCheck.exists) {
-        console.log('❌ Usuario no encontrado en el sistema');
-        return {
-          success: false,
-          message: 'Este email no está registrado en nuestro sistema. Verifica tu dirección o regístrate primero.',
-          remainingAttempts: 0
-        };
+      console.log('📧 Iniciando proceso de recuperación para:', email);
+      try {
+        const userCheck = await authAPI.checkFirebaseUser(email);
+        if (!userCheck.exists) return { success: false, message: 'Este email no está registrado en nuestro sistema. Verifica tu dirección o regístrate primero.', remainingAttempts: 0 };
+      } catch (checkError: any) { console.log('⚠️ Error verificando usuario:', checkError.message); }
+
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }),
+      });
+
+      if (response.status === 429) {
+        const data = await response.json();
+        return { success: false, message: data.message, blocked: true, remainingTime: data.remainingTime, remainingAttempts: 0 };
       }
-      
-      console.log('✅ Usuario verificado en el sistema');
-    } catch (checkError: any) {
-      console.log('⚠️ Error verificando usuario:', checkError.message);
-    }
 
-    // 🎯 VERIFICAR LÍMITES CON BACKEND
-    console.log('🔄 Verificando límites de recuperación...');
-    
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
-    
-    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email }),
-    });
-
-    // 🚫 SI ESTÁ BLOQUEADO POR NUESTRO SISTEMA
-    if (response.status === 429) {
       const data = await response.json();
-      console.log('🚫 Bloqueado por nuestro sistema:', data);
-      return {
-        success: false,
-        message: data.message,
-        blocked: true,
-        remainingTime: data.remainingTime,
-        remainingAttempts: 0
-      };
-    }
+      if (!response.ok) return { success: false, message: data.message || 'Error en la verificación de límites' };
 
-    const data = await response.json();
-    
-    if (!response.ok) {
-      console.log('❌ Error del backend:', data);
-      return {
-        success: false,
-        message: data.message || 'Error en la verificación de límites'
-      };
-    }
-
-    console.log('✅ Límites verificados:', data);
-    
-    // 🆕 CORRECCIÓN: SOLO enviar email si los límites lo permiten
-    if (data.success && data.remainingAttempts > 0) {
-      console.log('🚀 Enviando email de recuperación con Firebase...');
-      
-      const actionCodeSettings = {
-        url: `${window.location.origin}/reiniciar`,
-        handleCodeInApp: false
-      };
-      
-      console.log('🔗 URL de redirección:', actionCodeSettings.url);
-      
-      await firebaseSendPasswordReset(auth, email, actionCodeSettings);
-      
-      console.log('✅ Email de recuperación enviado por Firebase');
-      
-      return {
-        success: true,
-        message: 'Se ha enviado un enlace de recuperación a tu email. Revisa tu bandeja de entrada y carpeta de spam.',
-        remainingAttempts: data.remainingAttempts
-      };
-    } else {
-      // 🆕 CORRECCIÓN: Si no hay intentos restantes, no enviar email
-      return {
-        success: false,
-        message: 'No se pudo enviar el email. Límite de intentos alcanzado.',
-        remainingAttempts: 0
-      };
-    }
-    
-  } catch (error: any) {
-    console.error('❌ Error en sendPasswordReset:', error);
-    
-    if (error.code === 'auth/user-not-found') {
-      return {
-        success: false,
-        message: 'Este email no está registrado en nuestro sistema. Verifica tu dirección o regístrate primero.'
-      };
-    } else if (error.code === 'auth/invalid-email') {
-      return {
-        success: false,
-        message: 'El formato del email es inválido. Por favor, verifica tu dirección de correo.'
-      };
-    } else if (error.code === 'auth/too-many-requests') {
-      return {
-        success: false,
-        message: 'No se pudo enviar el email en este momento. Por favor, intenta nuevamente.',
-        blocked: false
-      };
-    } else if (error.message.includes('network') || error.message.includes('conexión')) {
-      return {
-        success: false,
-        message: 'Error de conexión. Verifica tu internet e intenta nuevamente.'
-      };
-    }
-    
-    return {
-      success: false,
-      message: 'Error al enviar el email de recuperación: ' + error.message
-    };
-  }
-};
-
-const login = async (email: string, password: string) => {
-  try {
-    console.log('🔐 Iniciando proceso de login...');
-
-    // 🎯 PRIMERO: Verificar con nuestro backend si la cuenta está bloqueada
-    console.log('🛡️ Verificando estado de bloqueo en nuestro backend...');
-    const lockCheckResponse = await authAPI.checkAccountLock({ email });
-    
-    if (lockCheckResponse.data.locked) {
-      const lockedUntil = new Date(lockCheckResponse.data.lockedUntil);
-      const remainingTime = Math.ceil((lockedUntil.getTime() - Date.now()) / 60000);
-      
-      console.log(`🚫 Cuenta bloqueada. Tiempo restante: ${remainingTime} minutos`);
-      throw new Error(`🔒 Cuenta temporalmente bloqueada. Demasiados intentos fallidos. Intenta nuevamente en ${remainingTime} minutos.`);
-    }
-
-    // 🎯 SEGUNDO: Si no está bloqueada, intentar login con Firebase
-    console.log('🔥 Intentando login con Firebase...');
-    await auth.signOut();
-    
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const firebaseUser = userCredential.user;
-    
-    console.log('✅ Login Firebase exitoso');
-    console.log('📧 Estado de verificación:', firebaseUser.emailVerified);
-    
-    if (!firebaseUser.emailVerified) {
-      console.log('❌ Email no verificado');
-      await firebaseUser.reload();
-      const updatedUser = auth.currentUser;
-      
-      if (updatedUser && !updatedUser.emailVerified) {
-        // 🎯 Registrar intento fallido por email no verificado
-        await authAPI.login(email, 'wrong_password_to_trigger_failure');
-        throw new Error('📧 Tu email no está verificado. Revisa tu bandeja de entrada y haz clic en el enlace de verificación.');
+      if (data.success && data.remainingAttempts > 0) {
+        const actionCodeSettings = { url: `${window.location.origin}/reiniciar`, handleCodeInApp: false };
+        await firebaseSendPasswordReset(auth, email, actionCodeSettings);
+        return { success: true, message: 'Se ha enviado un enlace de recuperación a tu email. Revisa tu bandeja de entrada y carpeta de spam.', remainingAttempts: data.remainingAttempts };
       }
+      return { success: false, message: 'No se pudo enviar el email. Límite de intentos alcanzado.', remainingAttempts: 0 };
+    } catch (error: any) {
+      console.error('❌ Error en sendPasswordReset:', error);
+      if (error.code === 'auth/user-not-found') return { success: false, message: 'Este email no está registrado en nuestro sistema.' };
+      if (error.code === 'auth/invalid-email') return { success: false, message: 'El formato del email es inválido.' };
+      if (error.code === 'auth/too-many-requests') return { success: false, message: 'No se pudo enviar el email en este momento.', blocked: false };
+      if (error.message.includes('network') || error.message.includes('conexión')) return { success: false, message: 'Error de conexión. Verifica tu internet e intenta nuevamente.' };
+      return { success: false, message: 'Error al enviar el email de recuperación: ' + error.message };
     }
+  };
 
-    console.log('✅ Email verificado, completando login...');
-    
-    // 🎯 TERCERO: Login exitoso en nuestro backend
-    const backendResponse = await authAPI.login(email, password);
+  const login = async (email: string, password: string) => {
+    try {
+      console.log('🔐 Iniciando proceso de login...');
+      const lockCheckResponse = await authAPI.checkAccountLock({ email });
+      if (lockCheckResponse.data.locked) {
+        const lockedUntil = new Date(lockCheckResponse.data.lockedUntil);
+        const remainingTime = Math.ceil((lockedUntil.getTime() - Date.now()) / 60000);
+        throw new Error(`🔒 Cuenta temporalmente bloqueada. Demasiados intentos fallidos. Intenta nuevamente en ${remainingTime} minutos.`);
+      }
 
-    // 🆕 CORRECCIÓN: DETECTAR SI SE REQUIERE MFA
-    if (backendResponse.mfaRequired || backendResponse.requiresMFA) {
-      console.log('🔐 MFA requerido - redirigiendo a verificación');
-      
-      // 🆕 CORRECCIÓN: Lanzar error específico para MFA que será capturado en LoginScreen
-      const mfaError = new Error('Se requiere código MFA');
-      (mfaError as any).mfaRequired = true;
-      (mfaError as any).userId = backendResponse.userId;
-      (mfaError as any).email = email;
-      throw mfaError;
-    }
-    
-    // 🆕 SI NO HAY MFA, CONTINUAR CON LOGIN NORMAL
-    if (backendResponse.success) {
-      const userData = backendResponse.data.user;
-      const token = backendResponse.data.token;
-      const sessionToken = backendResponse.data.sessionToken;
-      
-      // 🆕 OBTENER EL USUARIO DE POSTGRESQL PARA EL ID NUMÉRICO
-      try {
-        console.log('🔍 Obteniendo ID numérico de PostgreSQL...');
-        const dbUserResponse = await authAPI.checkFirebaseUser(email);
-        if (dbUserResponse.exists && dbUserResponse.data) {
-          userData.dbId = dbUserResponse.data.id;
-          console.log(`✅ ID numérico obtenido: ${userData.dbId}`);
+      await auth.signOut();
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+      console.log('✅ Login Firebase exitoso');
+
+      if (!firebaseUser.emailVerified) {
+        await firebaseUser.reload();
+        const updatedUser = auth.currentUser;
+        if (updatedUser && !updatedUser.emailVerified) {
+          await authAPI.login(email, 'wrong_password_to_trigger_failure');
+          throw new Error('📧 Tu email no está verificado. Revisa tu bandeja de entrada y haz clic en el enlace de verificación.');
         }
-      } catch (dbError) {
-        console.warn('⚠️ No se pudo obtener el ID numérico:', dbError);
+      }
+
+      const backendResponse = await authAPI.login(email, password);
+
+      if (backendResponse.mfaRequired || backendResponse.requiresMFA) {
+        const mfaError = new Error('Se requiere código MFA');
+        (mfaError as any).mfaRequired = true;
+        (mfaError as any).userId = backendResponse.userId;
+        (mfaError as any).email = email;
+        throw mfaError;
       }
       
-      const userWithToken = {
-        ...userData,
-        token: token,
-        rol: userData.rol || 'cliente'
-      };
-      
-      console.log('💾 Guardando usuario en contexto y localStorage:', userWithToken);
-      console.log('🎭 Rol que se va a guardar:', userWithToken.rol);
-      
-      setUser(userWithToken);
-      setCurrentSessionToken(sessionToken);
-      
-      localStorage.setItem('diana_laura_user', JSON.stringify(userWithToken));
-      localStorage.setItem('diana_laura_session_token', sessionToken);
-      
-      console.log('✅ Login completo exitoso - SESIÓN INICIADA CON JWT');
-      
-      handleUserActivity();
-
-      return backendResponse;
-    } else {
-      throw new Error(backendResponse.message);
-    }
-    
-  } catch (error: any) {
-    console.error('❌ Error en login:', error);
-    
-    // 🆕 CORRECCIÓN: PROPAGAR ERROR DE MFA SIN MANIPULARLO
-    if (error.mfaRequired) {
-      throw error; // 🎯 Dejar que LoginScreen maneje la redirección
-    }
-    
-    // 🎯 MANEJAR ERRORES DE CREDENCIALES - Registrar intento fallido
-    if (error.code === 'auth/invalid-credential' || 
-        error.code === 'auth/wrong-password' ||
-        error.code === 'auth/user-not-found') {
-      
-      try {
-        console.log('📝 Registrando intento fallido en nuestro sistema...');
-        const failureResponse = await authAPI.login(email, 'wrong_password_to_trigger_failure');
+      if (backendResponse.success) {
+        const userData = backendResponse.data.user;
+        const token = backendResponse.data.token;
+        const sessionToken = backendResponse.data.sessionToken;
         
-        if (!failureResponse.success && failureResponse.remainingAttempts !== undefined) {
-          const errorWithAttempts = new Error('Email o contraseña incorrectos.');
-          (errorWithAttempts as any).remainingAttempts = failureResponse.remainingAttempts;
-          (errorWithAttempts as any).attempts = failureResponse.attempts;
-          (errorWithAttempts as any).maxAttempts = failureResponse.maxAttempts;
-          throw errorWithAttempts;
-        }
-      } catch (backendError: any) {
-        console.log('⚠️ Error registrando intento fallido:', backendError);
-      }
-      
-      // Mensaje por defecto si no hay información de intentos
-      if (error.code === 'auth/user-not-found') {
-        throw new Error('Esta cuenta no existe. Por favor, regístrate primero.');
+        try {
+          const dbUserResponse = await authAPI.checkFirebaseUser(email);
+          if (dbUserResponse.exists && dbUserResponse.data) userData.dbId = dbUserResponse.data.id;
+        } catch (dbError) { console.warn('⚠️ No se pudo obtener el ID numérico:', dbError); }
+        
+        const userWithToken = { ...userData, token, rol: userData.rol || 'cliente' };
+        console.log('🎭 Rol que se va a guardar:', userWithToken.rol);
+        
+        setUser(userWithToken);
+        setCurrentSessionToken(sessionToken);
+        localStorage.setItem('diana_laura_user', JSON.stringify(userWithToken));
+        localStorage.setItem('diana_laura_session_token', sessionToken);
+        console.log('✅ Login completo exitoso - SESIÓN INICIADA CON JWT');
+        handleUserActivity();
+        return backendResponse;
       } else {
+        throw new Error(backendResponse.message);
+      }
+    } catch (error: any) {
+      console.error('❌ Error en login:', error);
+      if (error.mfaRequired) throw error;
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        try {
+          const failureResponse = await authAPI.login(email, 'wrong_password_to_trigger_failure');
+          if (!failureResponse.success && failureResponse.remainingAttempts !== undefined) {
+            const errorWithAttempts = new Error('Email o contraseña incorrectos.');
+            (errorWithAttempts as any).remainingAttempts = failureResponse.remainingAttempts;
+            (errorWithAttempts as any).attempts = failureResponse.attempts;
+            (errorWithAttempts as any).maxAttempts = failureResponse.maxAttempts;
+            throw errorWithAttempts;
+          }
+        } catch (backendError: any) { console.log('⚠️ Error registrando intento fallido:', backendError); }
+        if (error.code === 'auth/user-not-found') throw new Error('Esta cuenta no existe. Por favor, regístrate primero.');
         throw new Error('Email o contraseña incorrectos.');
       }
+      if (error.message.includes('bloqueada') || error.locked) throw error;
+      if (error.remainingAttempts !== undefined) throw error;
+      if (error.code === 'auth/too-many-requests') throw new Error('⏳ Cuenta temporalmente bloqueada por Firebase. Espera 15 minutos e intenta nuevamente.');
+      if (error.code === 'auth/network-request-failed') throw new Error('🌐 Error de conexión. Verifica tu internet.');
+      if (error.code === 'auth/invalid-email') throw new Error('📧 El formato del email es inválido.');
+      throw new Error(error.message || 'Error al iniciar sesión');
     }
-    
-    // 🎯 PROPAGAR ERRORES DE BLOQUEO E INTENTOS
-    if (error.message.includes('bloqueada') || error.locked) {
-      throw error;
-    }
-    if (error.remainingAttempts !== undefined) {
-      throw error;
-    }
-    
-    if (error.code === 'auth/too-many-requests') {
-      throw new Error('⏳ Cuenta temporalmente bloqueada por Firebase. Espera 15 minutos e intenta nuevamente.');
-    }
-    if (error.code === 'auth/network-request-failed') {
-      throw new Error('🌐 Error de conexión. Verifica tu internet.');
-    }
-    if (error.code === 'auth/invalid-email') {
-      throw new Error('📧 El formato del email es inválido.');
-    }
-    
-    throw new Error(error.message || 'Error al iniciar sesión');
-  }
-};
+  };
 
-const register = async (email: string, password: string, nombre: string, questionType: string, customQuestion: string, securityAnswer: string) => {
+  const register = async (email: string, password: string, nombre: string, questionType: string, customQuestion: string, securityAnswer: string) => {
     try {
-        console.log('🚀 Iniciando proceso de registro...');
+      console.log('🚀 Iniciando proceso de registro...');
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+      console.log('✅ Usuario creado en Firebase');
 
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const firebaseUser = userCredential.user;
-        
-        console.log('✅ Usuario creado en Firebase');
+      try {
+        await updateProfile(firebaseUser, { displayName: nombre });
+        console.log('✅ Nombre actualizado en Firebase');
+      } catch (profileError: any) { console.log('⚠️ Error actualizando perfil:', profileError.message); }
 
-        try {
-            console.log('👤 Actualizando perfil con nombre...');
-            await updateProfile(firebaseUser, {
-                displayName: nombre
-            });
-            console.log('✅ Nombre actualizado en Firebase');
-        } catch (profileError: any) {
-            console.log('⚠️ Error actualizando perfil:', profileError.message);
-        }
+      const verificationActionCodeSettings = {
+        url: `${window.location.origin}/login?verified=true&email=${encodeURIComponent(email)}`,
+        handleCodeInApp: false
+      };
+      await sendEmailVerification(firebaseUser, verificationActionCodeSettings);
+      console.log('✅ Email de verificación enviado por Firebase');
 
-        console.log('📧 Enviando email de verificación...');
-        const verificationActionCodeSettings = {
-            url: `${window.location.origin}/login?verified=true&email=${encodeURIComponent(email)}`,
-            handleCodeInApp: false
-        };
-        
-        await sendEmailVerification(firebaseUser, verificationActionCodeSettings);
-        console.log('✅ Email de verificación enviado por Firebase');
+      try {
+        await authAPI.syncUser(email, firebaseUser.uid, nombre);
+        console.log('✅ Usuario sincronizado con PostgreSQL');
+        const questionResponse = await securityQuestionAPI.setSecurityQuestion(email, questionType, customQuestion, securityAnswer);
+        if (questionResponse.success) console.log('✅ Pregunta secreta configurada correctamente');
+        else console.log('⚠️ Pregunta secreta no configurada:', questionResponse.message);
+      } catch (syncError: any) { console.log('⚠️ Error en PostgreSQL/pregunta secreta:', syncError.message); }
 
-        try {
-            console.log('💾 Intentando sincronizar con PostgreSQL...');
-            await authAPI.syncUser(email, firebaseUser.uid, nombre);
-            console.log('✅ Usuario sincronizado con PostgreSQL');
-
-            // 🆕 CONFIGURAR PREGUNTA SECRETA
-            console.log('🔐 Configurando pregunta secreta...');
-            const questionResponse = await securityQuestionAPI.setSecurityQuestion(
-                email,
-                questionType,
-                customQuestion,
-                securityAnswer
-            );
-
-            if (questionResponse.success) {
-                console.log('✅ Pregunta secreta configurada correctamente');
-            } else {
-                console.log('⚠️ Usuario registrado pero pregunta secreta no configurada:', questionResponse.message);
-            }
-
-        } catch (syncError: any) {
-            console.log('⚠️ Usuario en Firebase pero error en PostgreSQL/pregunta secreta:', syncError.message);
-        }
-
-        console.log('🔒 Cerrando sesión...');
-        await auth.signOut();
-        console.log('✅ Sesión cerrada exitosamente');
-
-        console.log('🎉 REGISTRO COMPLETADO EXITOSAMENTE');
-
+      await auth.signOut();
+      console.log('🎉 REGISTRO COMPLETADO EXITOSAMENTE');
     } catch (error: any) {
-        console.error('❌ ERROR EN REGISTRO:', error);
-        
-        if (error.code === 'auth/email-already-in-use') {
-            throw new Error('El email ya está registrado en el sistema. Si es tu cuenta, intenta recuperar tu contraseña.');
-        }
-        
-        if (error.code === 'auth/invalid-email') {
-            throw new Error('El formato del email es inválido. Por favor, verifica tu dirección de correo.');
-        }
-        
-        if (error.code === 'auth/weak-password') {
-            throw new Error('La contraseña es demasiado débil. Debe tener al menos 6 caracteres.');
-        }
-        
-        throw new Error(error.message || 'Error inesperado al registrar usuario. Por favor, intenta nuevamente.');
+      console.error('❌ ERROR EN REGISTRO:', error);
+      if (error.code === 'auth/email-already-in-use') throw new Error('El email ya está registrado en el sistema. Si es tu cuenta, intenta recuperar tu contraseña.');
+      if (error.code === 'auth/invalid-email') throw new Error('El formato del email es inválido. Por favor, verifica tu dirección de correo.');
+      if (error.code === 'auth/weak-password') throw new Error('La contraseña es demasiado débil. Debe tener al menos 6 caracteres.');
+      throw new Error(error.message || 'Error inesperado al registrar usuario. Por favor, intenta nuevamente.');
     }
-};
+  };
 
   const logout = async () => {
-    // 🎯 Limpiar timers al hacer logout manual - CÓDIGO EXISTENTE
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
-      inactivityTimerRef.current = null;
-    }
-    if (activityUpdateTimeout) {
-      clearTimeout(activityUpdateTimeout);
-      activityUpdateTimeout = null;
-    }
-    
-    // 🆕 OPCIONAL: Llamar al endpoint de logout del backend
-    try {
-      await authAPI.logout(); // Esto es opcional, no afecta si falla
-    } catch (error) {
-      console.log('⚠️ Error en logout del backend (no crítico):', error);
-    }
-    
+    if (inactivityTimerRef.current) { clearTimeout(inactivityTimerRef.current); inactivityTimerRef.current = null; }
+    if (activityUpdateTimeout) { clearTimeout(activityUpdateTimeout); activityUpdateTimeout = null; }
+    try { await authAPI.logout(); } catch (error) { console.log('⚠️ Error en logout del backend (no crítico):', error); }
     await auth.signOut();
     setUser(null);
-    setCurrentSessionToken(null); // 🆕 Limpiar session token
+    setCurrentSessionToken(null);
     localStorage.removeItem('diana_laura_user');
-    localStorage.removeItem('diana_laura_session_token'); // 🆕 Limpiar session token
+    localStorage.removeItem('diana_laura_session_token');
   };
 
   const value: AuthContextType = {
-    user,
-    loading,
-    login,
-    register,
-    logout,
-    sendPasswordReset,
-    verifyEmail,
-    // 🆕 AGREGAR LAS NUEVAS FUNCIONES (TODAS EXISTENTES)
-    getActiveSessions,
-    revokeSession,
-    revokeAllOtherSessions,
-    revokeAllSessions,
-    currentSessionToken,
-    // 🆕 AGREGAR FUNCIÓN OPCIONAL
-    validateSession
+    user, loading, login, register, logout, sendPasswordReset, verifyEmail,
+    getActiveSessions, revokeSession, revokeAllOtherSessions, revokeAllSessions,
+    currentSessionToken, validateSession
   };
 
   return (

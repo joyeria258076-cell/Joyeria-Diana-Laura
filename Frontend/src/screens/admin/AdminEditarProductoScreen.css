@@ -392,3 +392,14 @@
     width: 100%;
   }
 }
+
+@media (max-width: 480px) {
+  .admin-editar-container { padding: 0.8rem; }
+
+  .editar-header h1 { font-size: 1.3rem; }
+
+  .image-preview { max-width: 100%; }
+  .image-preview-actions { flex-direction: column; width: 100%; }
+  .btn-upload,
+  .btn-remove-image { width: 100%; justify-content: center; }
+}

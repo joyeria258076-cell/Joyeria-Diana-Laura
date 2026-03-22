@@ -402,3 +402,17 @@
     flex-wrap: wrap;
   }
 }
+
+@media (max-width: 480px) {
+  .proveedores-container { padding: 0.8rem; }
+  .proveedores-header h1 { font-size: 1.4rem; }
+
+  .proveedores-table { min-width: 560px; }
+
+  /* Ocultar columna contacto en móvil pequeño */
+  .proveedores-table th:nth-child(3),
+  .proveedores-table td:nth-child(3) { display: none; }
+
+  .filtros-estado { flex-wrap: wrap; }
+  .filtro-btn { flex: 1; text-align: center; }
+}

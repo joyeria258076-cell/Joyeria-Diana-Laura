@@ -523,3 +523,15 @@
         font-size: 0.8rem;
     }
 }
+
+@media (max-width: 480px) {
+  .admin-categorias-container { padding: 0.8rem !important; }
+
+  .header-title-section h2 { font-size: 1.4rem !important; }
+
+  .header-buttons { flex-direction: column !important; }
+  .btn-refresh-lux,
+  .btn-new-lux { width: 100%; justify-content: center; }
+
+  .admin-page-header { margin-bottom: 1.5rem !important; }
+}

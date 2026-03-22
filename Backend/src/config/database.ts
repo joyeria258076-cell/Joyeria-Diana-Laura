@@ -32,6 +32,16 @@ const getDatabaseConfig = () => {
 // Creamos el pool
 const pool = new Pool(getDatabaseConfig());
 
+// ─── FIX TIMEZONE: forzar UTC en cada conexión del pool ──────────────────────
+// Evita que el driver pg convierta fechas a la timezone local del servidor
+// (problema en local con UTC-6 y en Render con cualquier offset)
+pool.on('connect', (client) => {
+  client.query("SET timezone = 'UTC'").catch((err) => {
+    console.error('❌ Error estableciendo timezone UTC:', err.message);
+  });
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Función para probar la conexión
 export const testConnection = async (): Promise<boolean> => {
   try {

@@ -1,0 +1,187 @@
+/* ============================================================
+   ADMIN RESPONSIVE — Joyería Diana Laura
+   Importar en main.tsx después de responsive.css
+   ============================================================ */
+
+/* ══ Dashboard ══ */
+@media (max-width: 768px) {
+  .dashboard-container     { padding: 0.8rem; }
+  .dashboard-title         { font-size: 1.4rem; margin-bottom: 1.2rem; }
+  .dashboard-cards         { grid-template-columns: 1fr !important; gap: 1rem; }
+  .dashboard-card          { padding: 1rem; }
+  .stat-number             { font-size: 1.8rem; }
+  .quick-actions-section   { padding: 1rem; }
+  .quick-actions-grid      { grid-template-columns: repeat(2,1fr) !important; gap: 0.7rem; }
+  .btn-action-outline      { padding: 10px 8px; font-size: 0.82rem; }
+}
+@media (max-width: 400px) {
+  .quick-actions-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ══ Inventario ══ */
+@media (max-width: 768px) {
+  .inventario-container    { padding: 0.8rem !important; }
+  .inventario-header       { flex-direction: column !important; align-items: stretch !important; gap: 1rem; margin-bottom: 1.5rem; }
+  .inventario-header h1    { font-size: 1.4rem !important; }
+  .btn-new-product         { width: 100%; justify-content: center; }
+  .inventory-section       { padding: 0.8rem !important; }
+
+  /* Section header: título + búsqueda + botón recargar en columna */
+  .section-header          { flex-direction: column !important; align-items: stretch !important; gap: 0.8rem; }
+  .section-header h2       { font-size: 1.1rem !important; }
+  .search-box              { max-width: 100% !important; width: 100%; }
+  .btn-refresh             { width: 100%; justify-content: center; }
+
+  /* Tabla scrolleable */
+  .table-wrapper           { overflow-x: auto !important; }
+  .inventory-table         { min-width: 560px; }
+
+  /* Ocultar columna fecha en móvil */
+  .inventory-table th:nth-child(5),
+  .inventory-table td:nth-child(5) { display: none; }
+}
+
+/* ══ Trabajadores ══ */
+@media (max-width: 768px) {
+  .at-wrap              { padding: 0.8rem !important; }
+  .at-header            { flex-direction: column !important; align-items: stretch !important; gap: 1rem; margin-bottom: 1.2rem; }
+  .at-title             { font-size: 1.4rem !important; }
+  .at-header-actions    { width: 100%; }
+  .at-btn-primary       { width: 100%; justify-content: center; }
+  .at-stats             { grid-template-columns: repeat(2,1fr) !important; gap: 0.7rem; margin-bottom: 1rem; }
+  .at-stat              { padding: 0.9rem 1rem !important; }
+  .at-stat strong       { font-size: 1.5rem !important; }
+  .at-toolbar           { flex-direction: column !important; align-items: stretch !important; gap: 0.7rem; }
+  .at-search-box        { min-width: unset !important; width: 100%; }
+  .at-filter-tabs       { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+  .at-filter-tab        { white-space: nowrap; flex-shrink: 0; }
+  .at-table-wrap        { overflow-x: auto; }
+  .at-table             { min-width: 520px; }
+}
+
+/* ══ Categorías ══ */
+@media (max-width: 768px) {
+  .admin-categorias-container { padding: 0.8rem !important; }
+  .categorias-header    { flex-direction: column !important; align-items: stretch !important; gap: 1rem; }
+}
+
+/* ══ Proveedores ══ */
+@media (max-width: 768px) {
+  [class*="proveedores-container"],
+  [class*="proveedor-container"] { padding: 0.8rem !important; }
+
+  [class*="proveedores-header"],
+  [class*="proveedor-header"]    { flex-direction: column !important; align-items: stretch !important; gap: 1rem !important; }
+}
+
+/* ══ Formularios de producto / proveedor ══ */
+@media (max-width: 768px) {
+  .nuevo-producto-container,
+  .editar-producto-container,
+  [class*="nuevo-proveedor"],
+  [class*="editar-proveedor"]    { padding: 0.8rem !important; }
+
+  .product-form,
+  [class*="form-grid"],
+  [class*="form-row"]            { grid-template-columns: 1fr !important; flex-direction: column !important; }
+
+  [class*="form-actions"]        { flex-direction: column !important; gap: 0.8rem !important; }
+  [class*="form-actions"] button,
+  [class*="form-actions"] a      { width: 100% !important; text-align: center !important; }
+}
+
+/* ══ Gestión BD — tabs ══ */
+@media (max-width: 768px) {
+  .tabs-nav             { overflow-x: auto !important; flex-wrap: nowrap !important; padding-bottom: 4px !important; gap: 0.3rem !important; }
+  .tab-btn              { white-space: nowrap !important; flex-shrink: 0 !important; padding: 8px 10px !important; font-size: 0.78rem !important; }
+
+  [class*="backups"],
+  [class*="import"],
+  [class*="export"],
+  [class*="database"],
+  [class*="automation"] { padding: 0.8rem !important; }
+}
+
+/* ══ Monitoreo ══ */
+@media (max-width: 768px) {
+  .monitoreo-screen     { padding: 0.8rem !important; }
+  .monitoreo-header     { flex-direction: column !important; gap: 0.8rem !important; align-items: stretch !important; }
+  .btn-refresh          { width: 100%; justify-content: center; }
+
+  .tarjetas-grid        { grid-template-columns: repeat(2,1fr) !important; gap: 0.7rem !important; }
+  .tarjeta              { padding: 0.8rem !important; }
+  .tarjeta-valor        { font-size: 1.3rem !important; }
+  .tarjeta-label        { font-size: 0.7rem !important; }
+
+  .db-salud-grid        { grid-template-columns: 1fr !important; gap: 1rem !important; }
+
+  .grafica-barras .barra-label { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+/* ══ Pedidos ══ */
+@media (max-width: 768px) {
+  [class*="pedidos-container"],
+  [class*="gestion-pedidos"]     { padding: 0.8rem !important; }
+
+  [class*="pedidos-header"]      { flex-direction: column !important; align-items: stretch !important; gap: 1rem !important; }
+
+  [class*="pedidos-table"],
+  [class*="pedidos"] table       { min-width: 560px; }
+}
+
+/* ══ Reportes ══ */
+@media (max-width: 768px) {
+  [class*="reportes-container"]  { padding: 0.8rem !important; }
+  [class*="reportes-grid"]       { grid-template-columns: 1fr !important; }
+}
+
+/* ══ Configuración ══ */
+@media (max-width: 768px) {
+  [class*="configuracion-container"],
+  [class*="variables-container"] { padding: 0.8rem !important; }
+  [class*="config-grid"]         { grid-template-columns: 1fr !important; }
+}
+
+/* ══ Contenido / CMS ══ */
+@media (max-width: 768px) {
+  [class*="content-manager"],
+  [class*="page-management"],
+  [class*="section-management"]  { padding: 0.8rem !important; }
+}
+
+/* ══ Perfil ══ */
+@media (max-width: 768px) {
+  [class*="perfil-container"]    { padding: 0.8rem !important; }
+  [class*="perfil-grid"]         { grid-template-columns: 1fr !important; }
+}
+
+/* ══ Dashboard Trabajador ══ */
+@media (max-width: 768px) {
+  [class*="trabajador-container"],
+  [class*="dashboard-trabajador"] { padding: 0.8rem !important; }
+  [class*="actividades"]          { padding: 0.8rem !important; }
+}
+
+/* ══ Fixes globales para TODAS las pantallas privadas ══ */
+@media (max-width: 768px) {
+  /* Títulos */
+  [class*="-header"] h1,
+  [class*="-header"] h2 { font-size: clamp(1.2rem, 4vw, 1.8rem) !important; }
+
+  /* Tablas siempre scrolleables */
+  .table-wrapper,
+  [class*="-table-wrap"],
+  [class*="table-wrapper"] { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+
+  /* Paginación en columna */
+  .paginacion-row { flex-direction: column !important; align-items: center !important; gap: 8px !important; }
+
+  /* Filtros en columna */
+  .filtros-row,
+  [class*="filtros-row"] { flex-direction: column !important; align-items: stretch !important; gap: 8px !important; }
+  .filtros-row select,
+  .filtros-row input     { width: 100% !important; }
+
+  /* Badges no se parten */
+  .badge, [class*="badge"], [class*="-pill"] { white-space: nowrap; }
+}

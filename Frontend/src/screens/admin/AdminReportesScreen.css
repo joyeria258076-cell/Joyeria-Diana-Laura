@@ -77,3 +77,26 @@
   margin-left: 8px;
   font-size: 0.75rem;
 }
+
+@media (max-width: 768px) {
+  .admin-reportes-container { padding: 0.8rem; }
+
+  .report-cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px;
+  }
+
+  .report-item-card { padding: 20px; }
+  .report-icon-wrapper { width: 55px; height: 55px; font-size: 1.4rem; }
+  .report-item-card h4 { font-size: 1.1rem; }
+}
+
+@media (max-width: 480px) {
+  .report-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+  }
+
+  .report-item-card { padding: 15px; }
+  .report-item-card p { font-size: 0.8rem; }
+}
