@@ -1,3 +1,4 @@
+// src/screens/admin/basedatos/AdminMonitoreoScreen.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import { metricsAPI } from '../../../services/metricsAPI';
 import './styles/AdminMonitoreoScreen.css';
@@ -39,30 +40,23 @@ interface DatabaseStats {
 }
 type Tab = 'rendimiento'|'endpoints'|'errores'|'actividad'|'database';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmtFecha = (iso: string) => {
-  const d = new Date(iso);
-  d.setHours(d.getHours() - 6);
-  return d.toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-};
-const fmtFechaCorta = (iso: string) => {
-  const d = new Date(iso);
-  d.setHours(d.getHours() - 6);
-  return d.toLocaleString('es-MX', { day: '2-digit', month: 'short' });
-};
-const fmtHora = (iso: string) => {
-  const d = new Date(iso);
-  d.setHours(d.getHours() - 6);
-  return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-};
-const fmtFechaUTC = (iso: string) => new Date(iso).toLocaleString('es-MX', {
-  day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
-  timeZone: 'America/Mexico_City'
-});
-const fmtHoraUTC = (iso: string) => new Date(iso).toLocaleTimeString('es-MX', {
-  hour: '2-digit', minute: '2-digit',
-  timeZone: 'America/Mexico_City'
-});
+// ─── Helpers de fecha ─────────────────────────────────────────────────────────
+// El backend convierte TODO a America/Mexico_City antes de mandar.
+// El frontend solo formatea — sin conversión adicional de timezone.
+// Esto funciona igual en local y en producción (Render/Vercel).
+
+const fmtFecha = (iso: string) =>
+  new Date(iso).toLocaleString('es-MX', {
+    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+  });
+
+const fmtFechaCorta = (iso: string) =>
+  new Date(iso).toLocaleString('es-MX', { day: '2-digit', month: 'short' });
+
+const fmtHora = (iso: string) =>
+  new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+// ─────────────────────────────────────────────────────────────────────────────
+
 const fmtMs = (ms: number) => ms >= 1000 ? `${(ms/1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
 
 const MsBadge = ({ ms }: { ms: number }) => {
@@ -204,12 +198,12 @@ const AdminMonitoreoScreen: React.FC = () => {
       ) : resumen && (
         <div className="tarjetas-grid">
           {[
-            {clase:'t-purple',icono:'purple',emoji:'📊',valor:Number(resumen.total_requests).toLocaleString(),    label:'Requests (24h)'},
-            {clase:'t-red',   icono:'red',   emoji:'🔴',valor:Number(resumen.total_errores).toLocaleString(),     label:'Errores HTTP'},
-            {clase:'t-blue',  icono:'blue',  emoji:'⚡',valor:fmtMs(Number(resumen.avg_respuesta_ms)),            label:'Tiempo promedio'},
-            {clase:'t-amber', icono:'amber', emoji:'🐢',valor:Number(resumen.requests_lentos).toLocaleString(),   label:'Requests lentos'},
-            {clase:'t-teal',  icono:'teal',  emoji:'🧠',valor:`${Number(resumen.avg_memoria_mb).toFixed(1)} MB`,  label:'Memoria promedio'},
-            {clase:'t-green', icono:'green', emoji:'👥',valor:Number(resumen.sesiones_activas).toLocaleString(),  label:'Sesiones activas'},
+            {clase:'t-purple',icono:'purple',emoji:'📊',valor:Number(resumen.total_requests).toLocaleString(),     label:'Requests (24h)'},
+            {clase:'t-red',   icono:'red',   emoji:'🔴',valor:Number(resumen.total_errores).toLocaleString(),      label:'Errores HTTP'},
+            {clase:'t-blue',  icono:'blue',  emoji:'⚡',valor:fmtMs(Number(resumen.avg_respuesta_ms)),             label:'Tiempo promedio'},
+            {clase:'t-amber', icono:'amber', emoji:'🐢',valor:Number(resumen.requests_lentos).toLocaleString(),    label:'Requests lentos'},
+            {clase:'t-teal',  icono:'teal',  emoji:'🧠',valor:`${Number(resumen.avg_memoria_mb).toFixed(1)} MB`,   label:'Memoria promedio'},
+            {clase:'t-green', icono:'green', emoji:'👥',valor:Number(resumen.sesiones_activas).toLocaleString(),   label:'Sesiones activas'},
             {clase:'t-rose',  icono:'rose',  emoji:'🚨',valor:Number(resumen.errores_sin_resolver).toLocaleString(),label:'Sin resolver'},
           ].map((t,i)=>(
             <div key={i} className={`tarjeta ${t.clase}`}>
@@ -229,9 +223,7 @@ const AdminMonitoreoScreen: React.FC = () => {
         ))}
       </div>
 
-      {/* ═════════════════════════════════════════════════════════════════════════
-          TAB 1: RENDIMIENTO
-      ═════════════════════════════════════════════════════════════════════════ */}
+      {/* ═══ TAB 1: RENDIMIENTO ═══ */}
       {tab==='rendimiento' && (
         <>
           <div className="filtros-row">
@@ -249,32 +241,26 @@ const AdminMonitoreoScreen: React.FC = () => {
               <span className="leyenda-item"><span className="leyenda-dot" style={{background:'#ecb2c3'}}/> Normal</span>
               <span className="leyenda-item"><span className="leyenda-dot" style={{background:'#f87171'}}/> Con errores</span>
             </div>
-
             {rendimiento.length > 0 ? (
               <div className="svg-scroll-wrapper">
                 {(() => {
-                  const width = 900; const height = 320; 
-                  const padding = { top: 20, right: 30, bottom: 80, left: 70 }; // Espacio para X-axis title
+                  const width = 900; const height = 320;
+                  const padding = { top: 20, right: 30, bottom: 80, left: 70 };
                   const chartData = [...rendimiento].reverse();
-                  
                   const pointsReq = chartData.map((d, i) => ({
                     x: padding.left + (i * (width - padding.left - padding.right) / Math.max(chartData.length - 1, 1)),
                     y: height - padding.bottom - ((Number(d.total_requests) / maxRequests) * (height - padding.top - padding.bottom)),
                     val: Number(d.total_requests), hora: d.hora
                   }));
-
                   const pointsErr = chartData.map((d, i) => ({
                     x: padding.left + (i * (width - padding.left - padding.right) / Math.max(chartData.length - 1, 1)),
                     y: height - padding.bottom - ((Number(d.errores) / maxRequests) * (height - padding.top - padding.bottom)),
                     val: Number(d.errores)
                   }));
-
                   const pathReq = pointsReq.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ');
                   const areaReq = `${pathReq} L ${pointsReq[pointsReq.length - 1]?.x},${height - padding.bottom} L ${pointsReq[0]?.x},${height - padding.bottom} Z`;
                   const pathErr = pointsErr.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ');
-
                   const stepX = Math.max(1, Math.ceil(chartData.length / 15));
-
                   return (
                     <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="grafica-svg-responsive">
                       <defs>
@@ -283,12 +269,8 @@ const AdminMonitoreoScreen: React.FC = () => {
                           <stop offset="100%" stopColor="#ecb2c3" stopOpacity="0.01" />
                         </linearGradient>
                       </defs>
-
-                      {/* Ejes Y / X Títulos */}
                       <text transform="rotate(-90)" x={-(height/2)} y="20" textAnchor="middle" className="svg-axis-title">CANTIDAD DE REQUESTS</text>
                       <text x={width/2 + padding.left/2} y={height - 10} textAnchor="middle" className="svg-axis-title">TIEMPO (HORAS)</text>
-
-                      {/* Cuadrícula Y */}
                       {[0, 0.5, 1].map(ratio => {
                         const y = height - padding.bottom - (ratio * (height - padding.top - padding.bottom));
                         return (
@@ -298,24 +280,24 @@ const AdminMonitoreoScreen: React.FC = () => {
                           </g>
                         );
                       })}
-                      
                       <path d={areaReq} fill="url(#areaGradient)" />
                       <path d={pathReq} fill="none" stroke="#ecb2c3" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                       <path d={pathErr} fill="none" stroke="#f87171" strokeWidth="2" strokeDasharray="5 5" strokeLinecap="round" />
-                      
                       {pointsReq.map((p, i) => (
                         <g key={`p-${i}`}>
                           {i % stepX === 0 && (
-                            <text 
-                              transform={`rotate(-45, ${p.x}, ${height - padding.bottom + 15})`} 
-                              x={p.x} y={height - padding.bottom + 15} 
-                              className="svg-axis-label" textAnchor="end"
-                            >
-                              {fmtHoraUTC(p.hora).substring(0,5)}
+                            <text transform={`rotate(-45, ${p.x}, ${height - padding.bottom + 15})`} x={p.x} y={height - padding.bottom + 15} className="svg-axis-label" textAnchor="end">
+                              {fmtHora(p.hora).substring(0,5)}
                             </text>
                           )}
-                          <circle cx={p.x} cy={p.y} r="4" fill="#16162a" stroke="#ecb2c3" strokeWidth="2"><title>{`${p.val} reqs a las ${fmtHoraUTC(p.hora)}`}</title></circle>
-                          {pointsErr[i].val > 0 && <circle cx={pointsErr[i].x} cy={pointsErr[i].y} r="3" fill="#f87171"><title>{`${pointsErr[i].val} errores`}</title></circle>}
+                          <circle cx={p.x} cy={p.y} r="4" fill="#16162a" stroke="#ecb2c3" strokeWidth="2">
+                            <title>{`${p.val} reqs a las ${fmtHora(p.hora)}`}</title>
+                          </circle>
+                          {pointsErr[i].val > 0 && (
+                            <circle cx={pointsErr[i].x} cy={pointsErr[i].y} r="3" fill="#f87171">
+                              <title>{`${pointsErr[i].val} errores`}</title>
+                            </circle>
+                          )}
                         </g>
                       ))}
                     </svg>
@@ -334,7 +316,7 @@ const AdminMonitoreoScreen: React.FC = () => {
                   ? <tr><td colSpan={6} style={{textAlign:'center',color:'#334155'}}>Sin datos</td></tr>
                   : rendimiento.slice().reverse().map((p,i)=>(
                     <tr key={i}>
-                      <td style={{color:'#64748b',fontSize:12}}>{fmtFechaUTC(p.hora)}</td>
+                      <td style={{color:'#64748b',fontSize:12}}>{fmtFecha(p.hora)}</td>
                       <td>{p.total_requests}</td>
                       <td><MsBadge ms={Number(p.avg_ms)}/></td>
                       <td><MsBadge ms={Number(p.max_ms)}/></td>
@@ -348,26 +330,20 @@ const AdminMonitoreoScreen: React.FC = () => {
         </>
       )}
 
-      {/* ═════════════════════════════════════════════════════════════════════════
-          TAB 2: ENDPOINTS
-      ═════════════════════════════════════════════════════════════════════════ */}
+      {/* ═══ TAB 2: ENDPOINTS ═══ */}
       {tab==='endpoints' && (
         <>
           <p className="seccion-titulo">Top endpoints más lentos <span>— últimos 7 días</span></p>
-          
           {endpoints.length > 0 && (
             <div className="svg-scroll-wrapper">
               {(() => {
-                const width = 900; const height = 360; 
-                const padding = { top: 20, right: 30, bottom: 120, left: 70 }; // Espacio para endpoints y título
+                const width = 900; const height = 360;
+                const padding = { top: 20, right: 30, bottom: 120, left: 70 };
                 const maxMs = Math.max(...endpoints.map(e => Number(e.avg_ms)), 100);
-
                 return (
                   <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="grafica-svg-responsive">
-                    {/* Ejes Y / X Títulos */}
                     <text transform="rotate(-90)" x={-(height/2)} y="20" textAnchor="middle" className="svg-axis-title">TIEMPO PROMEDIO (ms)</text>
                     <text x={width/2 + padding.left/2} y={height - 10} textAnchor="middle" className="svg-axis-title">ENDPOINTS DEL SISTEMA</text>
-
                     {[0, 0.5, 1].map(ratio => {
                       const y = height - padding.bottom - (ratio * (height - padding.top - padding.bottom));
                       return (
@@ -377,16 +353,14 @@ const AdminMonitoreoScreen: React.FC = () => {
                         </g>
                       );
                     })}
-
                     {endpoints.map((ep, i) => {
                       const sectionWidth = (width - padding.left - padding.right) / endpoints.length;
-                      const barWidth = Math.min(sectionWidth * 0.5, 40); 
+                      const barWidth = Math.min(sectionWidth * 0.5, 40);
                       const x = padding.left + (sectionWidth * i) + (sectionWidth / 2);
-                      const barH = Math.max((Number(ep.avg_ms) / maxMs) * (height - padding.top - padding.bottom), 2); 
+                      const barH = Math.max((Number(ep.avg_ms) / maxMs) * (height - padding.top - padding.bottom), 2);
                       const y = height - padding.bottom - barH;
                       const isLento = Number(ep.avg_ms) > 1000;
                       const shortEp = ep.endpoint.length > 20 ? ep.endpoint.substring(0, 18) + '...' : ep.endpoint;
-
                       return (
                         <g key={`bar-${i}`}>
                           <rect x={x - barWidth/2} y={y} width={barWidth} height={barH} fill={isLento ? '#f87171' : '#3b82f6'} rx="4" className="svg-bar">
@@ -404,7 +378,6 @@ const AdminMonitoreoScreen: React.FC = () => {
               })()}
             </div>
           )}
-
           <div className="tabla-wrapper">
             <table>
               <thead><tr><th>Método</th><th>Endpoint</th><th>Llamadas</th><th>Prom.</th><th>Máx.</th><th>Errores</th></tr></thead>
@@ -427,9 +400,7 @@ const AdminMonitoreoScreen: React.FC = () => {
         </>
       )}
 
-      {/* ═════════════════════════════════════════════════════════════════════════
-          TAB 3: ERRORES
-      ═════════════════════════════════════════════════════════════════════════ */}
+      {/* ═══ TAB 3: ERRORES ═══ */}
       {tab==='errores' && (
         <>
           <div className="filtros-row">
@@ -441,14 +412,12 @@ const AdminMonitoreoScreen: React.FC = () => {
               Incluye excepciones del servidor y requests HTTP fallidos
             </span>
           </div>
-
           {erroresPag && erroresPag.data.length > 0 && (
             <div className="svg-scroll-wrapper">
               <p className="seccion-titulo" style={{ marginTop: 0 }}>Distribución de Errores (Página Actual)</p>
               {(() => {
-                const width = 800; const height = 300; 
-                const padding = { top: 30, right: 30, bottom: 80, left: 60 }; 
-                
+                const width = 800; const height = 300;
+                const padding = { top: 30, right: 30, bottom: 80, left: 60 };
                 const conteo: Record<string, number> = {};
                 erroresPag.data.forEach(e => {
                   const key = e.fuente === 'sistema' ? 'Sistema / Internos' : 'HTTP / Peticiones';
@@ -456,13 +425,10 @@ const AdminMonitoreoScreen: React.FC = () => {
                 });
                 const labels = Object.keys(conteo);
                 const maxErr = Math.max(...Object.values(conteo), 5);
-
                 return (
                   <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="grafica-svg-responsive" style={{ minWidth: '500px' }}>
-                    {/* Ejes Y / X Títulos */}
                     <text transform="rotate(-90)" x={-(height/2)} y="20" textAnchor="middle" className="svg-axis-title">CANTIDAD DE ERRORES</text>
                     <text x={width/2 + padding.left/2} y={height - 10} textAnchor="middle" className="svg-axis-title">CATEGORÍA DEL ERROR</text>
-
                     {[0, 0.5, 1].map(ratio => {
                       const y = height - padding.bottom - (ratio * (height - padding.top - padding.bottom));
                       return (
@@ -472,7 +438,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                         </g>
                       );
                     })}
-
                     {labels.map((label, i) => {
                       const val = conteo[label];
                       const sectionWidth = (width - padding.left - padding.right) / labels.length;
@@ -480,7 +445,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                       const x = padding.left + (sectionWidth * i) + (sectionWidth / 2);
                       const barH = (val / maxErr) * (height - padding.top - padding.bottom);
                       const y = height - padding.bottom - barH;
-
                       return (
                         <g key={`bar-err-${i}`}>
                           <rect x={x - barWidth/2} y={y} width={barWidth} height={barH} fill={label.includes('Sistema') ? '#f59e0b' : '#f87171'} rx="4" className="svg-bar" />
@@ -494,7 +458,6 @@ const AdminMonitoreoScreen: React.FC = () => {
               })()}
             </div>
           )}
-
           {erroresPag && <Paginacion page={erroresPag.page} totalPages={erroresPag.totalPages} total={erroresPag.total} label="Errores" onPage={cambiarPagErr}/>}
           <div className="tabla-wrapper">
             <table>
@@ -513,7 +476,7 @@ const AdminMonitoreoScreen: React.FC = () => {
                       </td>
                       <td style={{fontFamily:'monospace',fontSize:11,color:'#64748b'}}>{e.method&&e.endpoint?`${e.method} ${e.endpoint}`:'—'}</td>
                       <td style={{fontSize:12,color:'#64748b'}}>{e.usuario_email??'—'}</td>
-                      <td style={{fontSize:12,color:'#475569',whiteSpace:'nowrap'}}>{fmtFechaUTC(e.fecha)}</td>
+                      <td style={{fontSize:12,color:'#475569',whiteSpace:'nowrap'}}>{fmtFecha(e.fecha)}</td>
                       <td><span className={`badge ${e.resuelta?'resuelto':'pendiente'}`}>{e.resuelta?'Resuelto':'Pendiente'}</span></td>
                       <td>{e.fuente==='sistema'&&!e.resuelta&&<button className="btn-resolver" onClick={()=>handleResolverError(e.id)}>✓</button>}</td>
                     </tr>
@@ -524,9 +487,7 @@ const AdminMonitoreoScreen: React.FC = () => {
         </>
       )}
 
-      {/* ═════════════════════════════════════════════════════════════════════════
-          TAB 4: ACTIVIDAD
-      ═════════════════════════════════════════════════════════════════════════ */}
+      {/* ═══ TAB 4: ACTIVIDAD ═══ */}
       {tab==='actividad' && actividad && (
         <>
           <div className="filtros-row">
@@ -562,25 +523,21 @@ const AdminMonitoreoScreen: React.FC = () => {
           </div>
 
           <p className="seccion-titulo">Intentos de login por día</p>
-          
           {actividad.logins.length > 0 && (
             <div className="svg-scroll-wrapper">
-               <div className="grafica-leyenda">
-                  <div className="leyenda-item"><div className="leyenda-dot" style={{ background: '#4ade80' }}></div><span>Exitosos</span></div>
-                  <div className="leyenda-item"><div className="leyenda-dot" style={{ background: '#f87171' }}></div><span>Fallidos</span></div>
-                </div>
+              <div className="grafica-leyenda">
+                <div className="leyenda-item"><div className="leyenda-dot" style={{ background: '#4ade80' }}></div><span>Exitosos</span></div>
+                <div className="leyenda-item"><div className="leyenda-dot" style={{ background: '#f87171' }}></div><span>Fallidos</span></div>
+              </div>
               {(() => {
                 const width = 900; const height = 310;
-                const padding = { top: 20, right: 30, bottom: 80, left: 60 }; 
+                const padding = { top: 20, right: 30, bottom: 80, left: 60 };
                 const chartData = [...actividad.logins].reverse();
                 const maxLogins = Math.max(...chartData.map(l => Number(l.exitosos) + Number(l.fallidos)), 5);
-
                 return (
                   <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="grafica-svg-responsive">
-                    {/* Ejes Y / X Títulos */}
                     <text transform="rotate(-90)" x={-(height/2)} y="20" textAnchor="middle" className="svg-axis-title">CANTIDAD DE LOGINS</text>
                     <text x={width/2 + padding.left/2} y={height - 10} textAnchor="middle" className="svg-axis-title">FECHA DEL REGISTRO</text>
-                    
                     {[0, 0.5, 1].map(ratio => {
                       const y = height - padding.bottom - (ratio * (height - padding.top - padding.bottom));
                       return (
@@ -590,7 +547,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                         </g>
                       );
                     })}
-
                     {chartData.map((l, i) => {
                       const sectionWidth = (width - padding.left - padding.right) / chartData.length;
                       const barWidth = Math.min(sectionWidth * 0.6, 30);
@@ -599,12 +555,10 @@ const AdminMonitoreoScreen: React.FC = () => {
                       const hFallidos = (Number(l.fallidos) / maxLogins) * (height - padding.top - padding.bottom);
                       const yExitosos = height - padding.bottom - hExitosos;
                       const yFallidos = yExitosos - hFallidos;
-
                       return (
                         <g key={`log-${i}`}>
                           {hExitosos > 0 && <rect x={x - barWidth/2} y={yExitosos} width={barWidth} height={hExitosos} fill="#4ade80" className="svg-bar"><title>{`${l.exitosos} Exitosos`}</title></rect>}
                           {hFallidos > 0 && <rect x={x - barWidth/2} y={yFallidos} width={barWidth} height={hFallidos} fill="#f87171" className="svg-bar"><title>{`${l.fallidos} Fallidos`}</title></rect>}
-                          
                           <text transform={`rotate(-45, ${x}, ${height - padding.bottom + 15})`} x={x} y={height - padding.bottom + 15} className="svg-axis-label" textAnchor="end">
                             {fmtFechaCorta(l.dia)}
                           </text>
@@ -623,7 +577,8 @@ const AdminMonitoreoScreen: React.FC = () => {
             <table>
               <thead><tr><th>Operación</th><th>Tabla</th><th>Usuario</th><th>IP</th><th>Fecha</th></tr></thead>
               <tbody>
-                {actividad.auditoria.length===0 ? <tr><td colSpan={5} style={{textAlign:'center',color:'#334155'}}>Sin actividad</td></tr>
+                {actividad.auditoria.length===0
+                  ? <tr><td colSpan={5} style={{textAlign:'center',color:'#334155'}}>Sin actividad</td></tr>
                   : actividad.auditoria.map((a,i)=>(
                     <tr key={i}>
                       <td><span className={`badge ${a.operacion==='INSERT'?'ok':a.operacion==='DELETE'?'error':'info'}`}>{a.operacion}</span></td>
@@ -639,9 +594,7 @@ const AdminMonitoreoScreen: React.FC = () => {
         </>
       )}
 
-      {/* ═════════════════════════════════════════════════════════════════════════
-          TAB 5: BASE DE DATOS
-      ═════════════════════════════════════════════════════════════════════════ */}
+      {/* ═══ TAB 5: BASE DE DATOS ═══ */}
       {tab==='database' && (
         <>
           {!dbStats
@@ -684,7 +637,12 @@ const AdminMonitoreoScreen: React.FC = () => {
                     <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>Porcentaje de consultas en memoria</p>
                     <svg width="120" height="120" viewBox="0 0 120 120">
                       <circle cx="60" cy="60" r="50" fill="none" stroke="#252540" strokeWidth="12" strokeDasharray="235.6 314.1" strokeDashoffset="-39.2" strokeLinecap="round" />
-                      <circle cx="60" cy="60" r="50" fill="none" stroke={Number(dbStats.cache_hit_rate) > 95 ? '#4ade80' : Number(dbStats.cache_hit_rate) > 85 ? '#fbbf24' : '#f87171'} strokeWidth="12" strokeDasharray={`${(Number(dbStats.cache_hit_rate) / 100) * 235.6} 314.1`} strokeDashoffset="-39.2" strokeLinecap="round" style={{ transition: 'stroke-dasharray 1s ease-out' }} />
+                      <circle cx="60" cy="60" r="50" fill="none"
+                        stroke={Number(dbStats.cache_hit_rate) > 95 ? '#4ade80' : Number(dbStats.cache_hit_rate) > 85 ? '#fbbf24' : '#f87171'}
+                        strokeWidth="12"
+                        strokeDasharray={`${(Number(dbStats.cache_hit_rate) / 100) * 235.6} 314.1`}
+                        strokeDashoffset="-39.2" strokeLinecap="round"
+                        style={{ transition: 'stroke-dasharray 1s ease-out' }} />
                       <text x="60" y="65" fill="#f1f5f9" fontSize="22" fontWeight="bold" textAnchor="middle">{Number(dbStats.cache_hit_rate).toFixed(1)}%</text>
                     </svg>
                   </div>
@@ -702,7 +660,6 @@ const AdminMonitoreoScreen: React.FC = () => {
                           currentDeg += deg;
                           return stop;
                         }).join(', ');
-
                         return (
                           <>
                             <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: `conic-gradient(${gradientStops}, #252540 ${currentDeg}deg 360deg)` }}></div>

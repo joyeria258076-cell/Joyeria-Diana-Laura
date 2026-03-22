@@ -2,6 +2,9 @@
 import { Request, Response } from 'express';
 import pool from '../../config/database';
 
+// Todas las fechas se convierten a America/Mexico_City EN EL BACKEND.
+// El frontend las muestra directamente sin conversión adicional.
+// Esto funciona igual en local y en producción (Render).
 const TZ = 'America/Mexico_City';
 
 // ─── 1. Resumen ───────────────────────────────────────────────────────────────
@@ -37,6 +40,7 @@ export const getResumen = async (_req: Request, res: Response): Promise<void> =>
 };
 
 // ─── 2. Rendimiento por hora ──────────────────────────────────────────────────
+// Las fechas se agrupan y devuelven en hora México
 export const getRendimiento = async (req: Request, res: Response): Promise<void> => {
   try {
     const horas = Math.min(parseInt(req.query.horas as string) || 24, 168);
@@ -84,6 +88,7 @@ export const getEndpointsLentos = async (req: Request, res: Response): Promise<v
 };
 
 // ─── 4. Errores con paginación ────────────────────────────────────────────────
+// Fechas convertidas a México en el backend
 export const getErrores = async (req: Request, res: Response): Promise<void> => {
   try {
     const page            = Math.max(parseInt(req.query.page as string) || 1, 1);
@@ -105,7 +110,8 @@ export const getErrores = async (req: Request, res: Response): Promise<void> => 
 
     const { rows: errSistema } = await pool.query(`
       SELECT se.id, 'sistema' AS fuente, se.tipo, se.mensaje, se.endpoint, se.method,
-        se.resuelta, (se.fecha AT TIME ZONE 'UTC' AT TIME ZONE $1) AS fecha,
+        se.resuelta,
+        (se.fecha AT TIME ZONE 'UTC' AT TIME ZONE $1) AS fecha,
         u.email AS usuario_email, NULL::integer AS status_code,
         NULL::integer AS duration_ms, 1 AS ocurrencias
       FROM system_errors se
@@ -118,15 +124,15 @@ export const getErrores = async (req: Request, res: Response): Promise<void> => 
     if (!soloNoResueltos) {
       const { rows } = await pool.query(`
         SELECT
-          MIN(rl.id)                                       AS id,
-          'http'                                           AS fuente,
-          (rl.status_code::text || ' ' || rl.method)       AS tipo,
-          COALESCE(MIN(rl.error_message), 'Sin detalle')   AS mensaje,
+          MIN(rl.id)                                              AS id,
+          'http'                                                  AS fuente,
+          (rl.status_code::text || ' ' || rl.method)              AS tipo,
+          COALESCE(MIN(rl.error_message), 'Sin detalle')          AS mensaje,
           rl.endpoint, rl.method, FALSE AS resuelta,
-          MAX(rl.fecha AT TIME ZONE 'UTC' AT TIME ZONE $1) AS fecha,
-          NULL                                             AS usuario_email,
+          MAX(rl.fecha AT TIME ZONE 'UTC' AT TIME ZONE $1)        AS fecha,
+          NULL                                                    AS usuario_email,
           rl.status_code, NULL::integer AS duration_ms,
-          COUNT(*)::integer                                AS ocurrencias
+          COUNT(*)::integer                                       AS ocurrencias
         FROM request_logs rl
         WHERE rl.status_code >= 400
           AND rl.fecha >= NOW() - INTERVAL '24 hours'
@@ -163,6 +169,7 @@ export const resolverError = async (req: Request, res: Response): Promise<void> 
 };
 
 // ─── 6. Actividad con paginación ─────────────────────────────────────────────
+// Fechas convertidas a México en el backend
 export const getActividad = async (req: Request, res: Response): Promise<void> => {
   try {
     const dias     = Math.min(parseInt(req.query.dias as string) || 7, 30);
@@ -178,54 +185,51 @@ export const getActividad = async (req: Request, res: Response): Promise<void> =
       `SELECT COUNT(*) AS total FROM auditoria`
     );
 
-    // ✅ Sin AT TIME ZONE — el frontend convierte con timeZone: 'America/Mexico_City'
     const { rows: sesionesActivas } = await pool.query(`
       SELECT us.id, u.email, u.nombre, u.rol,
         COALESCE(us.device_name, 'Desconocido') AS device_name,
         COALESCE(us.browser, '—')               AS browser,
         COALESCE(us.os, '—')                    AS os,
         us.ip_address,
-        us.created_at,
-        us.last_activity,
-        us.expires_at
+        (us.created_at  AT TIME ZONE 'UTC' AT TIME ZONE $3) AS created_at,
+        (us.last_activity AT TIME ZONE 'UTC' AT TIME ZONE $3) AS last_activity,
+        (us.expires_at  AT TIME ZONE 'UTC' AT TIME ZONE $3) AS expires_at
       FROM user_sessions us
       JOIN usuarios u ON u.id = us.user_id
       WHERE us.is_revoked = FALSE AND us.expires_at > NOW()
       ORDER BY us.last_activity DESC
       LIMIT $1 OFFSET $2
-    `, [limitSes, (pageSes - 1) * limitSes]);
+    `, [limitSes, (pageSes - 1) * limitSes, TZ]);
 
-    // ✅ Sin AT TIME ZONE
     const { rows: auditoria } = await pool.query(`
-      SELECT a.operacion, a.tabla, a.usuario_email, a.ip_address, a.fecha_operacion
+      SELECT a.operacion, a.tabla, a.usuario_email, a.ip_address,
+        (a.fecha_operacion AT TIME ZONE 'UTC' AT TIME ZONE $3) AS fecha_operacion
       FROM auditoria a
       ORDER BY a.fecha_operacion DESC
       LIMIT $1 OFFSET $2
-    `, [limitAud, (pageAud - 1) * limitAud]);
+    `, [limitAud, (pageAud - 1) * limitAud, TZ]);
 
-    // ✅ Sin AT TIME ZONE
     const { rows: logins } = await pool.query(`
       SELECT
-        DATE_TRUNC('day', attempt_time) AS dia,
+        DATE_TRUNC('day', attempt_time AT TIME ZONE 'UTC' AT TIME ZONE $2) AS dia,
         COUNT(*) FILTER (WHERE success = TRUE)  AS exitosos,
         COUNT(*) FILTER (WHERE success = FALSE) AS fallidos
       FROM login_attempts
       WHERE attempt_time >= NOW() - ($1 || ' days')::INTERVAL
-      GROUP BY DATE_TRUNC('day', attempt_time)
+      GROUP BY DATE_TRUNC('day', attempt_time AT TIME ZONE 'UTC' AT TIME ZONE $2)
       ORDER BY dia ASC
-    `, [dias]);
+    `, [dias, TZ]);
 
-    // ✅ Sin AT TIME ZONE
     const { rows: sesiones } = await pool.query(`
       SELECT
-        DATE_TRUNC('day', created_at) AS dia,
+        DATE_TRUNC('day', created_at AT TIME ZONE 'UTC' AT TIME ZONE $2) AS dia,
         COUNT(*)                      AS nuevas_sesiones,
         COUNT(DISTINCT user_id)       AS usuarios_unicos
       FROM user_sessions
       WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
-      GROUP BY DATE_TRUNC('day', created_at)
+      GROUP BY DATE_TRUNC('day', created_at AT TIME ZONE 'UTC' AT TIME ZONE $2)
       ORDER BY dia ASC
-    `, [dias]);
+    `, [dias, TZ]);
 
     res.json({
       sesiones,
