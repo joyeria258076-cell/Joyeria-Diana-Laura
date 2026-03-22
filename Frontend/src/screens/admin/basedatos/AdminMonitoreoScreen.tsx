@@ -41,19 +41,6 @@ interface DatabaseStats {
 type Tab = 'rendimiento'|'endpoints'|'errores'|'actividad'|'database';
 
 // ─── Helpers de fecha ─────────────────────────────────────────────────────────
-// El backend convierte fechas a America/Mexico_City con AT TIME ZONE.
-// El string llega como timestamp naive, ej: "2026-03-21T15:00:00"
-//
-// Problema de doble conversión:
-//   - En LOCAL (UTC-6): new Date("2026-03-21T15:00:00") interpreta como UTC-6
-//     → el navegador resta 6h → muestra 09:00 en vez de 15:00
-//   - En PROD (Vercel/UTC): new Date("2026-03-21T15:00:00") interpreta como UTC
-//     → no hay desfase → muestra 15:00 correctamente con timeZone:'UTC'
-//
-// Solución: import.meta.env.DEV (Vite) = true en local, false en producción.
-//   - LOCAL: timeZone:'America/Mexico_City' corrige la doble conversión
-//   - PROD:  timeZone:'UTC' evita re-convertir lo que el backend ya convirtió
-
 const _TZ = import.meta.env.DEV ? 'America/Mexico_City' : 'UTC';
 
 const fmtFecha = (iso: string) =>
@@ -61,22 +48,27 @@ const fmtFecha = (iso: string) =>
     day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
     timeZone: _TZ
   });
-
 const fmtFechaCorta = (iso: string) =>
   new Date(iso).toLocaleString('es-MX', {
     day: '2-digit', month: 'short',
     timeZone: _TZ
   });
-
 const fmtHora = (iso: string) =>
   new Date(iso).toLocaleTimeString('es-MX', {
     hour: '2-digit', minute: '2-digit',
     timeZone: _TZ
   });
-// ─────────────────────────────────────────────────────────────────────────────
+
+const fmtHoraUTC = (iso: string) => new Date(iso).toLocaleTimeString('es-MX', {
+  hour: '2-digit', minute: '2-digit',
+  timeZone: 'America/Mexico_City'
+});
+const fmtFechaUTC = (iso: string) => new Date(iso).toLocaleString('es-MX', {
+  day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+  timeZone: 'America/Mexico_City'
+});
 
 const fmtMs = (ms: number) => ms >= 1000 ? `${(ms/1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
-
 const MsBadge = ({ ms }: { ms: number }) => {
   const v = Number(ms);
   if (v < 300)  return <span className="badge ok">{fmtMs(v)}</span>;
@@ -124,6 +116,8 @@ const AdminMonitoreoScreen: React.FC = () => {
   const [ejecutandoVacuum,  setEjecutandoVacuum]  = useState<string|null>(null);
   const [ejecutandoAnalyze, setEjecutandoAnalyze] = useState<string|null>(null);
   const [resultados, setResultados] = useState<Record<string,{tipo:'ok'|'error';msg:string}>>({});
+  
+  const [mostrarTodasTablas, setMostrarTodasTablas] = useState(false);
 
   const cargarTodo = useCallback(async () => {
     setCargando(true); setError(null);
@@ -305,17 +299,11 @@ const AdminMonitoreoScreen: React.FC = () => {
                         <g key={`p-${i}`}>
                           {i % stepX === 0 && (
                             <text transform={`rotate(-45, ${p.x}, ${height - padding.bottom + 15})`} x={p.x} y={height - padding.bottom + 15} className="svg-axis-label" textAnchor="end">
-                              {fmtHora(p.hora).substring(0,5)}
+                              {fmtHoraUTC(p.hora).substring(0,5)}
                             </text>
                           )}
-                          <circle cx={p.x} cy={p.y} r="4" fill="#16162a" stroke="#ecb2c3" strokeWidth="2">
-                            <title>{`${p.val} reqs a las ${fmtHora(p.hora)}`}</title>
-                          </circle>
-                          {pointsErr[i].val > 0 && (
-                            <circle cx={pointsErr[i].x} cy={pointsErr[i].y} r="3" fill="#f87171">
-                              <title>{`${pointsErr[i].val} errores`}</title>
-                            </circle>
-                          )}
+                          <circle cx={p.x} cy={p.y} r="4" fill="#16162a" stroke="#ecb2c3" strokeWidth="2"><title>{`${p.val} reqs a las ${fmtHoraUTC(p.hora)}`}</title></circle>
+                          {pointsErr[i].val > 0 && <circle cx={pointsErr[i].x} cy={pointsErr[i].y} r="3" fill="#f87171"><title>{`${pointsErr[i].val} errores`}</title></circle>}
                         </g>
                       ))}
                     </svg>
@@ -334,7 +322,7 @@ const AdminMonitoreoScreen: React.FC = () => {
                   ? <tr><td colSpan={6} style={{textAlign:'center',color:'#334155'}}>Sin datos</td></tr>
                   : rendimiento.slice().reverse().map((p,i)=>(
                     <tr key={i}>
-                      <td style={{color:'#64748b',fontSize:12}}>{fmtFecha(p.hora)}</td>
+                      <td style={{color:'#64748b',fontSize:12}}>{fmtFechaUTC(p.hora)}</td>
                       <td>{p.total_requests}</td>
                       <td><MsBadge ms={Number(p.avg_ms)}/></td>
                       <td><MsBadge ms={Number(p.max_ms)}/></td>
@@ -355,7 +343,8 @@ const AdminMonitoreoScreen: React.FC = () => {
           {endpoints.length > 0 && (
             <div className="svg-scroll-wrapper">
               {(() => {
-                const width = 900; const height = 360;
+                const width = 900;
+                const height = 360;
                 const padding = { top: 20, right: 30, bottom: 120, left: 70 };
                 const maxMs = Math.max(...endpoints.map(e => Number(e.avg_ms)), 100);
                 return (
@@ -434,7 +423,8 @@ const AdminMonitoreoScreen: React.FC = () => {
             <div className="svg-scroll-wrapper">
               <p className="seccion-titulo" style={{ marginTop: 0 }}>Distribución de Errores (Página Actual)</p>
               {(() => {
-                const width = 800; const height = 300;
+                const width = 800;
+                const height = 300;
                 const padding = { top: 30, right: 30, bottom: 80, left: 60 };
                 const conteo: Record<string, number> = {};
                 erroresPag.data.forEach(e => {
@@ -494,7 +484,7 @@ const AdminMonitoreoScreen: React.FC = () => {
                       </td>
                       <td style={{fontFamily:'monospace',fontSize:11,color:'#64748b'}}>{e.method&&e.endpoint?`${e.method} ${e.endpoint}`:'—'}</td>
                       <td style={{fontSize:12,color:'#64748b'}}>{e.usuario_email??'—'}</td>
-                      <td style={{fontSize:12,color:'#475569',whiteSpace:'nowrap'}}>{fmtFecha(e.fecha)}</td>
+                      <td style={{fontSize:12,color:'#475569',whiteSpace:'nowrap'}}>{fmtFechaUTC(e.fecha)}</td>
                       <td><span className={`badge ${e.resuelta?'resuelto':'pendiente'}`}>{e.resuelta?'Resuelto':'Pendiente'}</span></td>
                       <td>{e.fuente==='sistema'&&!e.resuelta&&<button className="btn-resolver" onClick={()=>handleResolverError(e.id)}>✓</button>}</td>
                     </tr>
@@ -516,7 +506,6 @@ const AdminMonitoreoScreen: React.FC = () => {
               <option value={30}>Últimos 30 días</option>
             </select>
           </div>
-
           <p className="seccion-titulo">Sesiones activas ahora <span>— {actividad.paginacion.sesiones.total} usuarios conectados</span></p>
           <Paginacion page={pageSes} totalPages={actividad.paginacion.sesiones.totalPages} total={actividad.paginacion.sesiones.total} label="Sesiones" onPage={cambiarPagSes}/>
           <div className="tabla-wrapper" style={{marginBottom:24}}>
@@ -543,10 +532,10 @@ const AdminMonitoreoScreen: React.FC = () => {
           <p className="seccion-titulo">Intentos de login por día</p>
           {actividad.logins.length > 0 && (
             <div className="svg-scroll-wrapper">
-              <div className="grafica-leyenda">
-                <div className="leyenda-item"><div className="leyenda-dot" style={{ background: '#4ade80' }}></div><span>Exitosos</span></div>
-                <div className="leyenda-item"><div className="leyenda-dot" style={{ background: '#f87171' }}></div><span>Fallidos</span></div>
-              </div>
+               <div className="grafica-leyenda">
+                  <div className="leyenda-item"><div className="leyenda-dot" style={{ background: '#4ade80' }}></div><span>Exitosos</span></div>
+                  <div className="leyenda-item"><div className="leyenda-dot" style={{ background: '#f87171' }}></div><span>Fallidos</span></div>
+                </div>
               {(() => {
                 const width = 900; const height = 310;
                 const padding = { top: 20, right: 30, bottom: 80, left: 60 };
@@ -595,8 +584,7 @@ const AdminMonitoreoScreen: React.FC = () => {
             <table>
               <thead><tr><th>Operación</th><th>Tabla</th><th>Usuario</th><th>IP</th><th>Fecha</th></tr></thead>
               <tbody>
-                {actividad.auditoria.length===0
-                  ? <tr><td colSpan={5} style={{textAlign:'center',color:'#334155'}}>Sin actividad</td></tr>
+                {actividad.auditoria.length===0 ? <tr><td colSpan={5} style={{textAlign:'center',color:'#334155'}}>Sin actividad</td></tr>
                   : actividad.auditoria.map((a,i)=>(
                     <tr key={i}>
                       <td><span className={`badge ${a.operacion==='INSERT'?'ok':a.operacion==='DELETE'?'error':'info'}`}>{a.operacion}</span></td>
@@ -615,165 +603,356 @@ const AdminMonitoreoScreen: React.FC = () => {
       {/* ═══ TAB 5: BASE DE DATOS ═══ */}
       {tab==='database' && (
         <>
-          {!dbStats
-            ? <div className="estado-carga"><span className="spinner"/> Cargando estadísticas…</div>
-            : (
-              <>
-                <div className="db-salud-grid">
-                  <div className="db-salud-card">
-                    <div className="db-salud-card-titulo">🔗 Conexión</div>
-                    <div className="db-salud-row"><span>Estado</span><span className="badge ok">✅ Activa</span></div>
-                    <div className="db-salud-row"><span>Conexiones activas</span><b style={{color:'#f1f5f9'}}>{dbStats.conexiones.activas}</b></div>
-                    <div className="db-salud-row"><span>Conexiones inactivas</span><b style={{color:'#64748b'}}>{dbStats.conexiones.inactivas}</b></div>
-                    <div className="db-salud-row"><span>Tamaño total BD</span><b style={{color:'#60a5fa'}}>{dbStats.tamano_db.tamano_total}</b></div>
-                    <div className="db-salud-row">
-                      <span>Cache hit rate</span>
-                      <span className={`badge ${Number(dbStats.cache_hit_rate)>=90?'ok':Number(dbStats.cache_hit_rate)>=70?'warn':'error'}`}>
-                        {dbStats.cache_hit_rate??0}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="db-salud-card">
-                    <div className="db-salud-card-titulo">💼 Datos del negocio</div>
-                    {[
-                      {emoji:'👤',label:'Usuarios',  valor:Number(dbStats.negocio.total_usuarios).toLocaleString()},
-                      {emoji:'💍',label:'Productos',  valor:Number(dbStats.negocio.total_productos).toLocaleString()},
-                      {emoji:'🛍️',label:'Ventas',     valor:Number(dbStats.negocio.total_ventas).toLocaleString()},
-                      {emoji:'📋',label:'Logs acum.', valor:Number(dbStats.negocio.total_logs).toLocaleString()},
-                    ].map((item,i)=>(
-                      <div key={i} className="db-salud-row">
-                        <span>{item.emoji} {item.label}</span>
-                        <b style={{color:'#f1f5f9'}}>{item.valor}</b>
-                      </div>
-                    ))}
+          {!dbStats ? <div className="estado-carga"><span className="spinner"/> Cargando estadísticas…</div> : (
+            <>
+              {/* Tarjetas de Salud y Datos de Negocio */}
+              <div className="db-salud-grid">
+                <div className="db-salud-card">
+                  <div className="db-salud-card-titulo">🔗 Estado de BD</div>
+                  <div className="db-salud-row"><span>Estado</span><span className="badge ok">✅ Activa</span></div>
+                  <div className="db-salud-row"><span>Conexiones activas</span><b style={{color:'#f1f5f9'}}>{dbStats.conexiones.activas}</b></div>
+                  <div className="db-salud-row"><span>Conexiones inactivas</span><b style={{color:'#64748b'}}>{dbStats.conexiones.inactivas}</b></div>
+                  <div className="db-salud-row"><span>Tamaño total BD</span><b style={{color:'#60a5fa'}}>{dbStats.tamano_db.tamano_total}</b></div>
+                  <div className="db-salud-row">
+                    <span>Cache hit rate</span>
+                    <span className={`badge ${Number(dbStats.cache_hit_rate)>=90?'ok':Number(dbStats.cache_hit_rate)>=70?'warn':'error'}`}>
+                      {dbStats.cache_hit_rate??0}%
+                    </span>
                   </div>
                 </div>
+                <div className="db-salud-card">
+                  <div className="db-salud-card-titulo">💼 Datos del negocio</div>
+                  {[
+                    {emoji:'👤',label:'Usuarios',  valor:Number(dbStats.negocio.total_usuarios).toLocaleString()},
+                    {emoji:'💍',label:'Productos',  valor:Number(dbStats.negocio.total_productos).toLocaleString()},
+                    {emoji:'🛍️',label:'Ventas',     valor:Number(dbStats.negocio.total_ventas).toLocaleString()},
+                    {emoji:'📋',label:'Logs acum.', valor:Number(dbStats.negocio.total_logs).toLocaleString()},
+                  ].map((item,i)=>(
+                    <div key={i} className="db-salud-row">
+                      <span>{item.emoji} {item.label}</span>
+                      <b style={{color:'#f1f5f9'}}>{item.valor}</b>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '20px', marginBottom: '24px' }}>
-                  <div className="db-salud-card" style={{ alignItems: 'center', textAlign: 'center' }}>
-                    <div className="db-salud-card-titulo">Eficiencia de Caché</div>
-                    <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>Porcentaje de consultas en memoria</p>
-                    <svg width="120" height="120" viewBox="0 0 120 120">
-                      <circle cx="60" cy="60" r="50" fill="none" stroke="#252540" strokeWidth="12" strokeDasharray="235.6 314.1" strokeDashoffset="-39.2" strokeLinecap="round" />
-                      <circle cx="60" cy="60" r="50" fill="none"
-                        stroke={Number(dbStats.cache_hit_rate) > 95 ? '#4ade80' : Number(dbStats.cache_hit_rate) > 85 ? '#fbbf24' : '#f87171'}
-                        strokeWidth="12"
-                        strokeDasharray={`${(Number(dbStats.cache_hit_rate) / 100) * 235.6} 314.1`}
-                        strokeDashoffset="-39.2" strokeLinecap="round"
-                        style={{ transition: 'stroke-dasharray 1s ease-out' }} />
-                      <text x="60" y="65" fill="#f1f5f9" fontSize="22" fontWeight="bold" textAnchor="middle">{Number(dbStats.cache_hit_rate).toFixed(1)}%</text>
-                    </svg>
-                  </div>
-                  <div className="db-salud-card">
-                    <div className="db-salud-card-titulo">Top 5 Tablas por Tamaño</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginTop: '10px' }}>
-                      {(() => {
-                        const totalBytes = dbStats.tablas.reduce((acc, t) => acc + Number(t.tamano_bytes), 0);
-                        let currentDeg = 0;
-                        const colores = ['#ecb2c3', '#8b5cf6', '#3b82f6', '#14b8a6', '#f59e0b'];
-                        const top5 = [...dbStats.tablas].sort((a,b) => Number(b.tamano_bytes) - Number(a.tamano_bytes)).slice(0, 5);
-                        const gradientStops = top5.map((t, i) => {
-                          const deg = (Number(t.tamano_bytes) / totalBytes) * 360;
-                          const stop = `${colores[i]} ${currentDeg}deg ${currentDeg + deg}deg`;
-                          currentDeg += deg;
-                          return stop;
-                        }).join(', ');
-                        return (
-                          <>
-                            <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: `conic-gradient(${gradientStops}, #252540 ${currentDeg}deg 360deg)` }}></div>
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                              {top5.map((t, i) => (
-                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#cbd5e1' }}>
-                                  <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: colores[i] }}></div>
-                                  <span style={{ flex: 1, fontFamily: 'monospace' }}>{t.tabla}</span>
-                                  <span style={{ color: '#64748b' }}>{t.tamano}</span>
-                                </div>
-                              ))}
+              {/* 🟢 FILA 1 DE GRÁFICAS: Circulares (Caché, Índices, Conexiones, Tamaño) 🟢 */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginTop: '20px', marginBottom: '20px' }}>
+                
+                {/* Gauge 1: Eficiencia de Caché */}
+                <div className="db-salud-card" style={{ alignItems: 'center', textAlign: 'center' }}>
+                  <div className="db-salud-card-titulo">Eficiencia de Caché</div>
+                  <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>Consultas en memoria (Hit Rate)</p>
+                  <svg width="120" height="120" viewBox="0 0 120 120">
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="#252540" strokeWidth="12" strokeDasharray="235.6 314.1" strokeDashoffset="-39.2" strokeLinecap="round" />
+                    <circle cx="60" cy="60" r="50" fill="none" stroke={Number(dbStats.cache_hit_rate) > 95 ? '#4ade80' : Number(dbStats.cache_hit_rate) > 85 ? '#fbbf24' : '#f87171'} strokeWidth="12" strokeDasharray={`${(Number(dbStats.cache_hit_rate) / 100) * 235.6} 314.1`} strokeDashoffset="-39.2" strokeLinecap="round" style={{ transition: 'stroke-dasharray 1s ease-out' }} />
+                    <text x="60" y="65" fill="#f1f5f9" fontSize="22" fontWeight="bold" textAnchor="middle">{Number(dbStats.cache_hit_rate).toFixed(1)}%</text>
+                  </svg>
+                </div>
+
+                {/* Gauge 2: Eficiencia de Índices */}
+                <div className="db-salud-card" style={{ alignItems: 'center', textAlign: 'center' }}>
+                  <div className="db-salud-card-titulo">Uso Global de Índices</div>
+                  <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>Salud general de las consultas</p>
+                  {(() => {
+                    const totalIdx = dbStats.tablas.reduce((acc, t) => acc + Number(t.escaneos_indice), 0);
+                    const totalSeq = dbStats.tablas.reduce((acc, t) => acc + Number(t.escaneos_secuenciales), 0);
+                    const totalScans = totalIdx + totalSeq;
+                    const indexHitRate = totalScans > 0 ? (totalIdx / totalScans) * 100 : 0;
+                    return (
+                      <svg width="120" height="120" viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" r="50" fill="none" stroke="#252540" strokeWidth="12" strokeDasharray="235.6 314.1" strokeDashoffset="-39.2" strokeLinecap="round" />
+                        <circle cx="60" cy="60" r="50" fill="none" stroke={indexHitRate > 90 ? '#4ade80' : indexHitRate > 75 ? '#fbbf24' : '#f87171'} strokeWidth="12" strokeDasharray={`${(indexHitRate / 100) * 235.6} 314.1`} strokeDashoffset="-39.2" strokeLinecap="round" style={{ transition: 'stroke-dasharray 1s ease-out' }} />
+                        <text x="60" y="65" fill="#f1f5f9" fontSize="22" fontWeight="bold" textAnchor="middle">{indexHitRate.toFixed(1)}%</text>
+                      </svg>
+                    );
+                  })()}
+                </div>
+
+                {/* 🟢 NUEVO: Dona de Pool de Conexiones 🟢 */}
+                <div className="db-salud-card">
+                  <div className="db-salud-card-titulo" style={{ textAlign: 'center' }}>Pool de Conexiones</div>
+                  <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px', textAlign: 'center' }}>Uso actual de las conexiones a BD</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: 'auto', marginBottom: 'auto' }}>
+                    {(() => {
+                      const { activas, inactivas, idle_in_transaction, total_conexiones } = dbStats.conexiones;
+                      const total = Number(total_conexiones) || (Number(activas) + Number(inactivas) + Number(idle_in_transaction)) || 1;
+                      
+                      let currentDeg = 0;
+                      const stops = [];
+                      
+                      const degAct = (Number(activas) / total) * 360;
+                      if (degAct > 0) { stops.push(`#4ade80 ${currentDeg}deg ${currentDeg + degAct}deg`); currentDeg += degAct; }
+                      
+                      const degIdle = (Number(idle_in_transaction) / total) * 360;
+                      if (degIdle > 0) { stops.push(`#f87171 ${currentDeg}deg ${currentDeg + degIdle}deg`); currentDeg += degIdle; }
+                      
+                      const degInac = (Number(inactivas) / total) * 360;
+                      if (degInac > 0) { stops.push(`#64748b ${currentDeg}deg ${currentDeg + degInac}deg`); currentDeg += degInac; }
+                      
+                      if (currentDeg < 360) { stops.push(`#252540 ${currentDeg}deg 360deg`); }
+
+                      const gradient = stops.join(', ');
+
+                      return (
+                        <>
+                          <div style={{ position: 'relative', minWidth: '90px', width: '90px', height: '90px', borderRadius: '50%', background: `conic-gradient(${gradient})` }}>
+                            {/* El "huequito" para hacerla Dona */}
+                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '55px', height: '55px', background: '#16162a', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#f1f5f9' }}>{total}</span>
                             </div>
-                          </>
+                          </div>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#cbd5e1' }}>
+                              <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#4ade80' }}></div>
+                              <span style={{ flex: 1 }}>Activas</span>
+                              <span style={{ color: '#f1f5f9', fontWeight: 'bold' }}>{activas}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#cbd5e1' }}>
+                              <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#f87171' }}></div>
+                              <span style={{ flex: 1 }}>Idle</span>
+                              <span style={{ color: Number(idle_in_transaction) > 0 ? '#f87171' : '#f1f5f9', fontWeight: 'bold' }}>{idle_in_transaction}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#cbd5e1' }}>
+                              <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#64748b' }}></div>
+                              <span style={{ flex: 1 }}>Inactivas</span>
+                              <span style={{ color: '#f1f5f9', fontWeight: 'bold' }}>{inactivas}</span>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+                
+                {/* Dona: Top 5 Tablas por Tamaño (Ajustada para tener hueco) */}
+                <div className="db-salud-card">
+                  <div className="db-salud-card-titulo" style={{ textAlign: 'center' }}>Top 5 Tablas (Tamaño)</div>
+                  <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px', textAlign: 'center' }}>Distribución del almacenamiento</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: 'auto', marginBottom: 'auto' }}>
+                    {(() => {
+                      const totalBytes = dbStats.tablas.reduce((acc, t) => acc + Number(t.tamano_bytes), 0);
+                      let currentDeg = 0;
+                      const colores = ['#ecb2c3', '#8b5cf6', '#3b82f6', '#14b8a6', '#f59e0b'];
+                      const top5 = [...dbStats.tablas].sort((a,b) => Number(b.tamano_bytes) - Number(a.tamano_bytes)).slice(0, 5);
+                      const gradientStops = top5.map((t, i) => {
+                        const deg = (Number(t.tamano_bytes) / totalBytes) * 360;
+                        const stop = `${colores[i]} ${currentDeg}deg ${currentDeg + deg}deg`;
+                        currentDeg += deg;
+                        return stop;
+                      }).join(', ');
+                      return (
+                        <>
+                          <div style={{ position: 'relative', minWidth: '90px', width: '90px', height: '90px', borderRadius: '50%', background: `conic-gradient(${gradientStops}, #252540 ${currentDeg}deg 360deg)` }}>
+                             {/* El "huequito" para hacerla Dona */}
+                             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '55px', height: '55px', background: '#16162a', borderRadius: '50%' }}></div>
+                          </div>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {top5.map((t, i) => (
+                              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#cbd5e1' }}>
+                                <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: colores[i] }}></div>
+                                <span style={{ flex: 1, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis' }} title={t.tabla}>{t.tabla}</span>
+                                <span style={{ color: '#64748b' }}>{t.tamano}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+
+              {/* 🟢 FILA 2 DE GRÁFICAS: Análisis Avanzado (Filas y Escaneos) 🟢 */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+                
+                {/* Top 5 Tablas con más filas */}
+                <div className="db-salud-card">
+                  <div className="db-salud-card-titulo">Top 5 Tablas (Volumen de Registros)</div>
+                  <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 12px 0' }}>Tablas que más crecen en cantidad de datos</p>
+                  <div className="todas-tablas-lista" style={{ marginTop: 0 }}>
+                    {(() => {
+                      const top5Rows = [...dbStats.tablas].sort((a,b) => Number(b.filas_aprox) - Number(a.filas_aprox)).slice(0, 5);
+                      const maxRows = top5Rows.length > 0 ? Number(top5Rows[0].filas_aprox) : 1;
+                      
+                      return top5Rows.map((t, i) => (
+                        <div key={i} className="tabla-bar-row" style={{ padding: '6px 0' }}>
+                          <span className="tb-col-name" style={{ minWidth: '120px' }}>{t.tabla}</span>
+                          <div className="tb-col-bar" style={{ padding: '0 10px' }}>
+                             <div className="barra-track">
+                               <div className="barra-fill" style={{ width: `${(Number(t.filas_aprox) / maxRows) * 100}%`, background: 'linear-gradient(90deg, #3b82f6, #60a5fa)' }}></div>
+                             </div>
+                          </div>
+                          <span className="tb-col-rows" style={{ width: '80px', color: '#f1f5f9' }}>{Number(t.filas_aprox).toLocaleString()}</span>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </div>
+
+                {/* Salud de Consultas (Índice vs Secuencial) */}
+                <div className="db-salud-card">
+                  <div className="db-salud-card-titulo">Salud de Consultas (Top 5 Tablas más leídas)</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '4px 0 12px 0' }}>
+                    <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>Tipo de escaneo utilizado por tabla</p>
+                    <div className="grafica-leyenda" style={{ margin: 0 }}>
+                      <span className="leyenda-item" style={{ fontSize: '10px' }}><span className="leyenda-dot" style={{background:'#4ade80'}}/> Índice</span>
+                      <span className="leyenda-item" style={{ fontSize: '10px' }}><span className="leyenda-dot" style={{background:'#f87171'}}/> Secuencial</span>
+                    </div>
+                  </div>
+                  
+                  <div className="todas-tablas-lista" style={{ marginTop: 0 }}>
+                    {(() => {
+                      const topScans = [...dbStats.tablas]
+                        .sort((a,b) => (Number(b.escaneos_indice) + Number(b.escaneos_secuenciales)) - (Number(a.escaneos_indice) + Number(a.escaneos_secuenciales)))
+                        .slice(0, 5);
+                      
+                      const maxScans = Math.max(...topScans.map(t => Number(t.escaneos_indice) + Number(t.escaneos_secuenciales)), 1);
+                      
+                      return topScans.map((t, i) => {
+                        const total = Number(t.escaneos_indice) + Number(t.escaneos_secuenciales);
+                        const widthTotal = (total / maxScans) * 100;
+                        const pctIdx = total > 0 ? (Number(t.escaneos_indice) / total) * 100 : 0;
+                        const pctSeq = total > 0 ? (Number(t.escaneos_secuenciales) / total) * 100 : 0;
+
+                        return (
+                          <div key={i} className="tabla-bar-row" style={{ padding: '6px 0' }}>
+                            <span className="tb-col-name" style={{ minWidth: '120px' }} title={t.tabla}>{t.tabla}</span>
+                            <div className="tb-col-bar" style={{ padding: '0 10px' }}>
+                               <div className="barra-track" style={{ display: 'flex', width: `${widthTotal}%`, background: 'transparent' }}>
+                                 {pctIdx > 0 && <div className="barra-fill indice" style={{ width: `${pctIdx}%`, background: '#4ade80', borderRadius: pctSeq === 0 ? '4px' : '4px 0 0 4px' }} title={`Índice: ${Number(t.escaneos_indice).toLocaleString()}`}></div>}
+                                 {pctSeq > 0 && <div className="barra-fill secuencial" style={{ width: `${pctSeq}%`, background: '#f87171', borderRadius: pctIdx === 0 ? '4px' : '0 4px 4px 0' }} title={`Secuencial (ALERTA): ${Number(t.escaneos_secuenciales).toLocaleString()}`}></div>}
+                               </div>
+                            </div>
+                            <span className="tb-col-rows" style={{ width: '80px', color: '#f1f5f9', fontSize: '11px' }}>{total.toLocaleString()}</span>
+                          </div>
                         );
-                      })()}
-                    </div>
+                      });
+                    })()}
                   </div>
                 </div>
 
-                <div className="db-mantenimiento-card">
-                  <div className="db-mant-header">
-                    <span className="db-mant-titulo">🧹 VACUUM — Limpieza de Filas Muertas</span>
-                    <button className="btn-vacuum" disabled={!!ejecutandoVacuum} onClick={()=>handleVacuum()}>
-                      {ejecutandoVacuum==='all'?<><span className="spinner"/> Ejecutando…</>:'Ejecutar en todas'}
-                    </button>
-                  </div>
-                  {resultados['v_all'] && (
-                    <div className={`db-accion-resultado ${resultados['v_all'].tipo}`}>
-                      {resultados['v_all'].tipo==='ok'?'✅':'⚠️'} {resultados['v_all'].msg}
-                    </div>
-                  )}
-                  <div className="tabla-wrapper" style={{marginTop:12}}>
-                    <table>
-                      <thead><tr><th>Tabla</th><th>Último vacuum</th><th>Filas muertas</th><th>Estado</th><th>Acción</th></tr></thead>
-                      <tbody>
-                        {dbStats.tablas.map((t,i)=>(
-                          <tr key={i}>
-                            <td style={{fontFamily:'monospace',fontSize:12,color:'#94a3b8'}}>{t.tabla}</td>
-                            <td style={{fontSize:12,color:'#64748b'}}>{t.ultimo_vacuum??'—'}</td>
-                            <td>{Number(t.filas_muertas)>0?<span className="badge warn">{Number(t.filas_muertas).toLocaleString()}</span>:<span style={{color:'#334155'}}>0</span>}</td>
-                            <td>
-                              {resultados[`v_${t.tabla}`]
-                                ? <span className={`badge ${resultados[`v_${t.tabla}`].tipo==='ok'?'ok':'error'}`}>{resultados[`v_${t.tabla}`].tipo==='ok'?'✅ OK':'⚠️ Ver'}</span>
-                                : <span className="badge ok">✅ OK</span>}
-                            </td>
-                            <td>
-                              <button className="btn-resolver" disabled={!!ejecutandoVacuum} onClick={()=>handleVacuum(t.tabla)} title="VACUUM ANALYZE esta tabla">
-                                {ejecutandoVacuum===t.tabla?<span className="spinner"/>:'🧹'}
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+              </div>
 
-                <div className="db-mantenimiento-card">
-                  <div className="db-mant-header">
-                    <span className="db-mant-titulo">📊 ANALYZE — Estadísticas del Planificador</span>
-                    <button className="btn-analyze" disabled={!!ejecutandoAnalyze} onClick={()=>handleAnalyze()}>
-                      {ejecutandoAnalyze==='all'?<><span className="spinner"/> Ejecutando…</>:'Ejecutar en todas'}
-                    </button>
+              {/* Acordeón: Explorador de Todas las Tablas */}
+              <div className="db-todas-tablas-card">
+                <div className="db-mant-header" style={{ cursor: 'pointer' }} onClick={() => setMostrarTodasTablas(!mostrarTodasTablas)}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span className="db-mant-titulo">📂 Explorador avanzado: Todas las tablas y su volumen</span>
+                    <span className="badge info">{dbStats.tablas.length} tablas en total</span>
                   </div>
-                  {resultados['a_all'] && (
-                    <div className={`db-accion-resultado ${resultados['a_all'].tipo}`}>
-                      {resultados['a_all'].tipo==='ok'?'✅':'⚠️'} {resultados['a_all'].msg}
-                    </div>
-                  )}
-                  <div className="tabla-wrapper" style={{marginTop:12}}>
-                    <table>
-                      <thead><tr><th>Tabla</th><th>Último analyze</th><th>Esc. secuencial</th><th>Estado</th><th>Acción</th></tr></thead>
-                      <tbody>
-                        {dbStats.tablas.map((t,i)=>(
-                          <tr key={i}>
-                            <td style={{fontFamily:'monospace',fontSize:12,color:'#94a3b8'}}>{t.tabla}</td>
-                            <td style={{fontSize:12,color:'#64748b'}}>{t.ultimo_vacuum??'—'}</td>
-                            <td style={{color:Number(t.escaneos_secuenciales)>1000?'#fbbf24':'#64748b'}}>{Number(t.escaneos_secuenciales).toLocaleString()}</td>
-                            <td>
-                              {resultados[`a_${t.tabla}`]
-                                ? <span className={`badge ${resultados[`a_${t.tabla}`].tipo==='ok'?'ok':'error'}`}>{resultados[`a_${t.tabla}`].tipo==='ok'?'✅ OK':'❌ Error'}</span>
-                                : <span className="badge ok">✅ OK</span>}
-                            </td>
-                            <td>
-                              <button className="btn-resolver" disabled={!!ejecutandoAnalyze} onClick={()=>handleAnalyze(t.tabla)} title="ANALYZE esta tabla">
-                                {ejecutandoAnalyze===t.tabla?<span className="spinner"/>:'📊'}
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <button className="btn-resolver">{mostrarTodasTablas ? 'Ocultar detalles ▲' : 'Ver todas las tablas ▼'}</button>
                 </div>
-              </>
-            )}
+                
+                {mostrarTodasTablas && (
+                  <div className="todas-tablas-lista">
+                    <div className="tabla-bar-header">
+                      <span className="tb-col-name">Nombre de Tabla</span>
+                      <span className="tb-col-bar">Proporción de Tamaño</span>
+                      <span className="tb-col-size">Tamaño</span>
+                      <span className="tb-col-rows">Filas (Aprox.)</span>
+                    </div>
+                    
+                    {(() => {
+                      const allTables = [...dbStats.tablas].sort((a,b) => Number(b.tamano_bytes) - Number(a.tamano_bytes));
+                      const maxBytes = allTables.length > 0 ? Number(allTables[0].tamano_bytes) : 1;
+                      
+                      return allTables.map((t, i) => (
+                        <div key={i} className="tabla-bar-row">
+                          <span className="tb-col-name" title={t.tabla}>{t.tabla}</span>
+                          <div className="tb-col-bar">
+                             <div className="barra-track">
+                               <div className="barra-fill" style={{ width: `${(Number(t.tamano_bytes) / maxBytes) * 100}%` }}></div>
+                             </div>
+                          </div>
+                          <span className="tb-col-size">{t.tamano}</span>
+                          <span className="tb-col-rows">{Number(t.filas_aprox).toLocaleString()} filas</span>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                )}
+              </div>
+
+              {/* Mantenimiento: Vacuum */}
+              <div className="db-mantenimiento-card">
+                <div className="db-mant-header">
+                  <span className="db-mant-titulo">🧹 VACUUM — Limpieza de Filas Muertas</span>
+                  <button className="btn-vacuum" disabled={!!ejecutandoVacuum} onClick={()=>handleVacuum()}>
+                    {ejecutandoVacuum==='all'?<><span className="spinner"/> Ejecutando…</>:'Ejecutar en todas'}
+                  </button>
+                </div>
+                {resultados['v_all'] && (
+                  <div className={`db-accion-resultado ${resultados['v_all'].tipo}`}>
+                    {resultados['v_all'].tipo==='ok'?'✅':'⚠️'} {resultados['v_all'].msg}
+                  </div>
+                )}
+                <div className="tabla-wrapper" style={{marginTop:12}}>
+                  <table>
+                    <thead><tr><th>Tabla</th><th>Último vacuum</th><th>Filas muertas</th><th>Estado</th><th>Acción</th></tr></thead>
+                    <tbody>
+                      {dbStats.tablas.map((t,i)=>(
+                        <tr key={i}>
+                          <td style={{fontFamily:'monospace',fontSize:12,color:'#94a3b8'}}>{t.tabla}</td>
+                          <td style={{fontSize:12,color:'#64748b'}}>{t.ultimo_vacuum??'—'}</td>
+                          <td>{Number(t.filas_muertas)>0?<span className="badge warn">{Number(t.filas_muertas).toLocaleString()}</span>:<span style={{color:'#334155'}}>0</span>}</td>
+                          <td>
+                            {resultados[`v_${t.tabla}`]
+                              ? <span className={`badge ${resultados[`v_${t.tabla}`].tipo==='ok'?'ok':'error'}`}>{resultados[`v_${t.tabla}`].tipo==='ok'?'✅ OK':'⚠️ Ver'}</span>
+                              : <span className="badge ok">✅ OK</span>}
+                          </td>
+                          <td>
+                            <button className="btn-resolver" disabled={!!ejecutandoVacuum} onClick={()=>handleVacuum(t.tabla)} title="VACUUM ANALYZE esta tabla">
+                              {ejecutandoVacuum===t.tabla?<span className="spinner"/>:'🧹'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Mantenimiento: Analyze */}
+              <div className="db-mantenimiento-card">
+                <div className="db-mant-header">
+                  <span className="db-mant-titulo">📊 ANALYZE — Estadísticas del Planificador</span>
+                  <button className="btn-analyze" disabled={!!ejecutandoAnalyze} onClick={()=>handleAnalyze()}>
+                    {ejecutandoAnalyze==='all'?<><span className="spinner"/> Ejecutando…</>:'Ejecutar en todas'}
+                  </button>
+                </div>
+                {resultados['a_all'] && (
+                  <div className={`db-accion-resultado ${resultados['a_all'].tipo}`}>
+                    {resultados['a_all'].tipo==='ok'?'✅':'⚠️'} {resultados['a_all'].msg}
+                  </div>
+                )}
+                <div className="tabla-wrapper" style={{marginTop:12}}>
+                  <table>
+                    <thead><tr><th>Tabla</th><th>Último analyze</th><th>Esc. secuencial</th><th>Estado</th><th>Acción</th></tr></thead>
+                    <tbody>
+                      {dbStats.tablas.map((t,i)=>(
+                        <tr key={i}>
+                          <td style={{fontFamily:'monospace',fontSize:12,color:'#94a3b8'}}>{t.tabla}</td>
+                          <td style={{fontSize:12,color:'#64748b'}}>{t.ultimo_vacuum??'—'}</td>
+                          <td style={{color:Number(t.escaneos_secuenciales)>1000?'#f87171':'#64748b'}}>{Number(t.escaneos_secuenciales).toLocaleString()}</td>
+                          <td>
+                            {resultados[`a_${t.tabla}`]
+                              ? <span className={`badge ${resultados[`a_${t.tabla}`].tipo==='ok'?'ok':'error'}`}>{resultados[`a_${t.tabla}`].tipo==='ok'?'✅ OK':'❌ Error'}</span>
+                              : <span className="badge ok">✅ OK</span>}
+                          </td>
+                          <td>
+                            <button className="btn-resolver" disabled={!!ejecutandoAnalyze} onClick={()=>handleAnalyze(t.tabla)} title="ANALYZE esta tabla">
+                              {ejecutandoAnalyze===t.tabla?<span className="spinner"/>:'📊'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
