@@ -41,28 +41,37 @@ interface DatabaseStats {
 type Tab = 'rendimiento'|'endpoints'|'errores'|'actividad'|'database';
 
 // ─── Helpers de fecha ─────────────────────────────────────────────────────────
-// El backend convierte TODO a America/Mexico_City con AT TIME ZONE.
-// El string ISO que llega ya representa hora México pero sin offset (naive).
-// Usamos timeZone: 'UTC' para que el navegador NO aplique conversión adicional
-// y muestre exactamente la hora que mandó el backend.
-// Esto funciona igual en local y en producción (Render/Vercel).
+// El backend convierte fechas a America/Mexico_City con AT TIME ZONE.
+// El string llega como timestamp naive, ej: "2026-03-21T15:00:00"
+//
+// Problema de doble conversión:
+//   - En LOCAL (UTC-6): new Date("2026-03-21T15:00:00") interpreta como UTC-6
+//     → el navegador resta 6h → muestra 09:00 en vez de 15:00
+//   - En PROD (Vercel/UTC): new Date("2026-03-21T15:00:00") interpreta como UTC
+//     → no hay desfase → muestra 15:00 correctamente con timeZone:'UTC'
+//
+// Solución: import.meta.env.DEV (Vite) = true en local, false en producción.
+//   - LOCAL: timeZone:'America/Mexico_City' corrige la doble conversión
+//   - PROD:  timeZone:'UTC' evita re-convertir lo que el backend ya convirtió
+
+const _TZ = import.meta.env.DEV ? 'America/Mexico_City' : 'UTC';
 
 const fmtFecha = (iso: string) =>
   new Date(iso).toLocaleString('es-MX', {
     day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
-    timeZone: 'UTC'
+    timeZone: _TZ
   });
 
 const fmtFechaCorta = (iso: string) =>
   new Date(iso).toLocaleString('es-MX', {
     day: '2-digit', month: 'short',
-    timeZone: 'UTC'
+    timeZone: _TZ
   });
 
 const fmtHora = (iso: string) =>
   new Date(iso).toLocaleTimeString('es-MX', {
     hour: '2-digit', minute: '2-digit',
-    timeZone: 'UTC'
+    timeZone: _TZ
   });
 // ─────────────────────────────────────────────────────────────────────────────
 
