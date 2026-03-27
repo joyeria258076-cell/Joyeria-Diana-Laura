@@ -1,4 +1,8 @@
 // Backend/src/server.ts
+//import 'newrelic';
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+  require('newrelic');
+}
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -28,8 +32,11 @@ import metricsRoutes from './routes/metricsRoutes';
 import { metricsMiddleware, setupErrorMonitoring, expressErrorMiddleware, cleanupOldLogs } from './middleware/metricsMiddleware';
 import exportRoutes from './routes/exportRoutes';
 import bulkUpdateRoutes from './routes/bulkUpdateRoutes';
+import predictiveRoutes from './routes/predictiveRoutes';
 import { AuthRequest } from './middleware/authMiddleware';
 import pool from './config/database';
+// IAST Agent
+import { iastMiddleware, createIASTRouter, initializeIAST } from './iast/IASTMiddleware';
 
 dotenv.config();
 
@@ -61,6 +68,9 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser()); 
 app.use(metricsMiddleware);
+
+app.use(iastMiddleware);
+app.use('/iast', createIASTRouter());
 
 // 🌟 Middleware condicional para rutas públicas/privadas
 app.use((req, res, next) => {
@@ -162,6 +172,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/configuracion', configuracionRoutes);
 app.use('/api/proveedores', proveedoresRoutes);
 app.use('/api/metrics', metricsRoutes);
+app.use('/api/prediccion', predictiveRoutes);
 
 // 🩺 ENDPOINTS DE SALUD
 app.get('/api/health', (req, res) => {
@@ -227,6 +238,7 @@ app.listen(PORT, async () => {
   
   setupErrorMonitoring();
   await cleanupOldLogs();
+  initializeIAST();
   
   console.log('=================================\n');
 });

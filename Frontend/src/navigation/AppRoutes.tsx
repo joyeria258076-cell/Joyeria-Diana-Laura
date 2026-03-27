@@ -83,6 +83,8 @@ import AdminNuevoProveedorScreen from "../screens/admin/proveedores/AdminNuevoPr
 import AdminEditarProveedorScreen from "../screens/admin/proveedores/AdminEditarProveedorScreen";
 import AdminProveedorDetalleScreen from "../screens/admin/proveedores/AdminProveedorDetalleScreen";
 
+import AdminPrediccionScreen from "../screens/admin/AdminPrediccionScreen";
+
 // PANTALLAS DE ERROR
 import NotFoundScreen from '../screens/general/NotFoundScreen';
 import ForbiddenScreen from '../screens/general/ForbiddenScreen';
@@ -205,6 +207,8 @@ export default function AppRoutes() {
             <Route path="/admin/importar-csv" element={<AdminSimpleImportScreen />} />
             {/* ✅ NUEVO */}
             <Route path="/admin-monitoreo"    element={<AdminMonitoreoScreen />} />
+
+            <Route path="/admin-prediccion"   element={<AdminPrediccionScreen />} />
 
             {/* 📁 RUTAS DE CONFIGURACIÓN */}
             <Route path="/admin/configuracion/variables" element={<AdminVariablesConfigScreen />} />

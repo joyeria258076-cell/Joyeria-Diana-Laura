@@ -135,3 +135,9 @@ Backend/backups_automaticos/
 
 # Ignorar escáner de SonarQube
 .scannerwork/
+
+# New Relic
+newrelic_agent.log
+
+# IAST Reports
+iast-reports/

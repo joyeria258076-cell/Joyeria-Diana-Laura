@@ -1146,6 +1146,43 @@ export const bulkUpdateAPI = {
   }
 };
 
+
+// ==========================================
+// 📈 API PARA MÓDULO PREDICTIVO
+// ==========================================
+export const prediccionAPI = {
+  // Obtener categorías con unidades vendidas
+  getCategorias: async (anio?: number) => {
+    const q = anio ? `?anio=${anio}` : '';
+    return enhancedApi.get(`/prediccion/categorias${q}`);
+  },
+ 
+  // Obtener producto estrella de una categoría
+  getProductoEstrella: async (categoriaId: number, anio?: number) => {
+    const q = anio ? `?anio=${anio}` : '';
+    return enhancedApi.get(`/prediccion/producto-estrella/${categoriaId}${q}`);
+  },
+ 
+  // Obtener histórico mensual de un producto
+  getHistorico: async (productoId: number, anio?: number) => {
+    const q = anio ? `?anio=${anio}` : '';
+    return enhancedApi.get(`/prediccion/historico/${productoId}${q}`);
+  },
+ 
+  // Calcular proyección y fecha de agotamiento
+  getProyeccion: async (params: {
+    productoId: number;
+    q0: number;
+    qT: number;
+    T_historico?: number;
+    stock_actual: number;
+    lead_time_dias?: number;
+    meses_proyeccion?: number;
+  }) => {
+    return enhancedApi.post('/prediccion/proyeccion', params);
+  },
+};
+
 // ==========================================
 // 📥 EXPORTACIÓN DE API (opcional, para tener todo en un solo objeto)
 // ==========================================
@@ -1162,6 +1199,7 @@ export const api = {
   import: importAPI,
   templates: templateAPI,
   carrito: carritoAPI,
+  prediccion: prediccionAPI,
 };
 
 export default api;

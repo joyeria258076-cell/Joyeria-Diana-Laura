@@ -212,6 +212,9 @@ const HeaderPrivado: React.FC = () => {
                             <button className={`nav-item ${isActive("/admin-reportes")}`} onClick={() => goTo("/admin-reportes")}>
                                 <span className="nav-icon">📈</span> Reportes
                             </button>
+                            <button className={`nav-item ${isActive("/admin-prediccion")}`} onClick={() => goTo("/admin-prediccion")}>
+                                <span className="nav-icon">🔮</span> Modelo Predictivo
+                            </button>
                         </>
                     ) : userRole === 'trabajador' ? (
                         <>
