@@ -9,7 +9,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { IASTFinding } from './IASTContext';
 
-const REPORTS_DIR = path.join(process.cwd(), 'iast-reports');
+const IS_RENDER = !!process.env.RENDER;
+const REPORTS_DIR = IS_RENDER ? '/tmp/iast-reports' : path.join(process.cwd(), 'iast-reports');
 const REPORT_FILE = path.join(REPORTS_DIR, 'findings.json');
 const MAX_FINDINGS_IN_MEMORY = 500;
 
@@ -26,7 +27,7 @@ export class IASTReporter {
 
     // Crear directorio de reportes si no existe
     if (!fs.existsSync(REPORTS_DIR)) {
-      fs.mkdirSync(REPORTS_DIR, { recursive: true });
+      try { fs.mkdirSync(REPORTS_DIR, { recursive: true }); } catch (_e) { console.warn("[IAST] No se pudo crear directorio de reportes, solo memoria."); }
     }
 
     // Cargar hallazgos previos si existen
