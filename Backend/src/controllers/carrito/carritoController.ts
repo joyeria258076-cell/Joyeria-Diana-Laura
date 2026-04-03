@@ -21,19 +21,21 @@ const getRolFromDB = async (usuario_id: number): Promise<string> => {
     } catch { return 'cliente'; }
 };
 
+// ✅ Helper para mostrar nombres legibles de estados
+const labelEstado = (value: string) =>
+    value.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+
 // ── Descontar stock al confirmar pedido ───────────────────────
 const descontarStock = async (venta_id: number): Promise<void> => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
 
-        // Obtener items del pedido
         const items = await client.query(`
             SELECT producto_id, cantidad FROM detalle_ventas WHERE venta_id = $1
         `, [venta_id]);
 
         for (const item of items.rows) {
-            // Verificar stock disponible
             const prod = await client.query(
                 `SELECT stock_actual FROM productos WHERE id = $1 FOR UPDATE`, [item.producto_id]
             );
@@ -280,32 +282,37 @@ export const actualizarEstadoPedido = async (req: Request, res: Response) => {
         const { id } = req.params;
         const { estado, notas_internas } = req.body;
 
-        const estadosValidos = ['pendiente','confirmado','en_proceso','listo','enviado','entregado','cancelado'];
+        const estadosValidos = ['pendiente','confirmado','en_preparacion','enviado','entregado','cancelado'];
         if (!estadosValidos.includes(estado))
             return res.status(400).json({ success: false, message: 'Estado inválido' });
 
-        // Obtener estado actual antes de actualizar
         const ventaActual = await VentaModel.getById(parseInt(id));
         if (!ventaActual) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
 
-        const estadoAnterior = ventaActual.estado;
-
-        // Actualizar estado
-        const venta = await VentaModel.updateEstado(parseInt(id), estado, usuario.id!, notas_internas);
-
-        // ── Lógica de stock ──────────────────────────────────
-        // Al confirmar: descontar stock (solo si viene de pendiente)
-        if (estado === 'confirmado' && estadoAnterior === 'pendiente') {
-            try {
-                await descontarStock(parseInt(id));
-                console.log(`✅ Stock descontado para venta ${id}`);
-            } catch (stockErr) {
-                console.error('⚠️ Error descontando stock:', stockErr);
-                // No falla el endpoint — solo loguea el error
-            }
+        // ✅ No permitir regresar a estados anteriores
+        const ORDEN_ESTADOS = ['pendiente', 'confirmado', 'en_preparacion', 'enviado', 'entregado'];
+        const indexActual = ORDEN_ESTADOS.indexOf(ventaActual.estado);
+        const indexNuevo  = ORDEN_ESTADOS.indexOf(estado);
+        if (indexActual >= 0 && indexNuevo >= 0 && indexNuevo < indexActual) {
+            return res.status(400).json({
+                success: false,
+                message: `No puedes regresar el pedido de "${labelEstado(ventaActual.estado)}" a "${labelEstado(estado)}". Solo puedes avanzar el estado.`
+            });
         }
 
-        // Al cancelar: restaurar stock (solo si ya estaba confirmado o más avanzado)
+        // ✅ Validar que el cliente haya pagado antes de marcar como enviado o entregado
+        if (['enviado', 'entregado'].includes(estado) && ventaActual.estado_pago !== 'aprobado') {
+            return res.status(400).json({ 
+                success: false, 
+                message: `No puedes marcar como "${labelEstado(estado)}" — el cliente aún no ha realizado el pago.`
+            });
+        }
+
+        const estadoAnterior = ventaActual.estado;
+
+        const venta = await VentaModel.updateEstado(parseInt(id), estado, usuario.id!, notas_internas);
+
+        // Stock se descuenta al pagar (en webhook), no al confirmar manualmente
         if (estado === 'cancelado' && !['pendiente', 'cancelado'].includes(estadoAnterior)) {
             try {
                 await restaurarStock(parseInt(id));
@@ -315,7 +322,7 @@ export const actualizarEstadoPedido = async (req: Request, res: Response) => {
             }
         }
 
-        res.json({ success: true, message: `Pedido actualizado a: ${estado}`, data: venta });
+        res.json({ success: true, message: `Pedido actualizado a: ${labelEstado(estado)}`, data: venta });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -336,8 +343,8 @@ export const crearPreferenciaMercadoPago = async (req: Request, res: Response) =
         if (venta.creado_por !== usuario.id)
             return res.status(403).json({ success: false, message: 'Acceso denegado' });
 
-        // Solo pedidos confirmados pueden pagarse
-        if (!['confirmado','en_proceso','listo'].includes(venta.estado))
+        // ✅ Corregido: estados válidos para pagar
+        if (!['confirmado','en_preparacion','enviado'].includes(venta.estado))
             return res.status(400).json({ success: false, message: 'El pedido aún no está confirmado por el trabajador' });
 
         const mpToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
@@ -352,9 +359,12 @@ export const crearPreferenciaMercadoPago = async (req: Request, res: Response) =
             picture_url: item.producto_imagen || undefined
         }));
 
-        const backUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const backUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-        const body = {
+        // ✅ FIX: isLocal depende solo de BACKEND_URL
+        const isLocal = (process.env.BACKEND_URL || '').includes('localhost');
+
+        const body: any = {
             items,
             payer:              { email: usuario.email },
             external_reference: String(venta.id),
@@ -363,10 +373,15 @@ export const crearPreferenciaMercadoPago = async (req: Request, res: Response) =
                 failure: `${backUrl}/pedidos?pago=fallido&pedido=${venta.id}`,
                 pending: `${backUrl}/pedidos?pago=pendiente&pedido=${venta.id}`
             },
-            auto_return:          'approved',
-            notification_url:     `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/carrito/webhook/mercadopago`,
             statement_descriptor: 'Joyeria Diana Laura'
         };
+
+        if (!isLocal) {
+            //body.auto_return = 'approved';
+            body.notification_url = `${process.env.BACKEND_URL}/api/carrito/webhook/mercadopago`;
+        }
+
+        console.log(`🔔 notification_url: ${body.notification_url || 'NO CONFIGURADA (isLocal=true)'}`);
 
         const mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
             method: 'POST',
@@ -416,7 +431,8 @@ export const crearOrdenPayPal = async (req: Request, res: Response) => {
         if (venta.creado_por !== usuario.id)
             return res.status(403).json({ success: false, message: 'Acceso denegado' });
 
-        if (!['confirmado','en_proceso','listo'].includes(venta.estado))
+        // ✅ Corregido: estados válidos para pagar
+        if (!['confirmado','en_preparacion','enviado'].includes(venta.estado))
             return res.status(400).json({ success: false, message: 'El pedido aún no está confirmado' });
 
         const ppClientId = process.env.PAYPAL_CLIENT_ID;
@@ -425,7 +441,6 @@ export const crearOrdenPayPal = async (req: Request, res: Response) => {
         if (!ppClientId || !ppSecret)
             return res.status(503).json({ success: false, message: 'PayPal no configurado' });
 
-        // Obtener token de acceso PayPal
         const ppBase = process.env.PAYPAL_MODE === 'production'
             ? 'https://api-m.paypal.com'
             : 'https://api-m.sandbox.paypal.com';
@@ -441,9 +456,8 @@ export const crearOrdenPayPal = async (req: Request, res: Response) => {
         const tokenData = await tokenRes.json();
         const ppToken = tokenData.access_token;
 
-        const backUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const backUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-        // Crear orden PayPal
         const orderRes = await fetch(`${ppBase}/v2/checkout/orders`, {
             method: 'POST',
             headers: {
@@ -534,8 +548,6 @@ export const capturarPagoPayPal = async (req: Request, res: Response) => {
     }
 };
 
-
-
 // ── EDITAR DETALLES DE VENTA ──────────────────────────────────
 
 export const editarDetallesVenta = async (req: Request, res: Response) => {
@@ -547,7 +559,6 @@ export const editarDetallesVenta = async (req: Request, res: Response) => {
         const venta = await VentaModel.getById(parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
 
-        // Solo trabajador asignado o admin
         if (venta.trabajador_id !== usuario.id && usuario.rol !== 'admin') {
             const rolReal = await getRolFromDB(usuario.id);
             if (rolReal !== 'admin')
@@ -627,7 +638,6 @@ export const tomarPedido = async (req: Request, res: Response) => {
 
         const { id } = req.params;
 
-        // Verificar que el pedido existe y está pendiente
         const venta = await VentaModel.getById(parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
 
@@ -640,7 +650,6 @@ export const tomarPedido = async (req: Request, res: Response) => {
                 message: `Este pedido ya está siendo atendido por ${venta.trabajador_nombre || 'otro trabajador'}` 
             });
 
-        // Asignar trabajador con UPDATE atómico
         const result = await pool.query(`
             UPDATE ventas 
             SET trabajador_id = $1,
@@ -666,6 +675,8 @@ export const tomarPedido = async (req: Request, res: Response) => {
 
 export const webhookMercadoPago = async (req: Request, res: Response) => {
     try {
+        console.log('🔔 Webhook MP recibido:', JSON.stringify(req.body));
+
         const { type, data } = req.body;
 
         if (type === 'payment' && data?.id) {
@@ -677,9 +688,19 @@ export const webhookMercadoPago = async (req: Request, res: Response) => {
             });
             const pago = await pagoRes.json();
 
-            if (pago.status === 'approved') {
-                await VentaModel.confirmarPago(String(pago.id), pago.preference_id);
-                console.log(`✅ Pago MP confirmado: payment_id=${pago.id}`);
+            console.log(`💳 Pago MP: id=${pago.id} status=${pago.status} external_ref=${pago.external_reference}`);
+
+            if (pago.status === 'approved' && pago.external_reference) {
+                const venta_id = parseInt(pago.external_reference);
+                await VentaModel.confirmarPago(String(pago.id), venta_id);
+                // ✅ Stock se descuenta al pagar, no al confirmar manualmente
+                try {
+                    await descontarStock(venta_id);
+                    console.log(`📦 Stock descontado por pago MP: venta_id=${venta_id}`);
+                } catch (stockErr) {
+                    console.error('⚠️ Error descontando stock en webhook:', stockErr);
+                }
+                console.log(`✅ Pago MP confirmado: payment_id=${pago.id} venta_id=${venta_id}`);
             }
         }
 
@@ -697,7 +718,6 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
         const { id } = req.params;
         const { token } = req.query;
 
-        // Verificar token desde query string (para apertura directa en navegador)
         let usuarioId: number | null = null;
         let usuarioRol: string = 'cliente';
 
@@ -726,7 +746,6 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
         if (!esOwner && !esStaff)
             return res.status(403).json({ success: false, message: 'Acceso denegado' });
 
-        // Generar HTML del recibo
         const itemsHTML = (venta.items || []).map((item: any) => `
             <tr>
                 <td>
@@ -774,7 +793,6 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
             box-shadow: 0 4px 40px rgba(0,0,0,0.10);
         }
 
-        /* ── Header ── */
         .header {
             background: linear-gradient(135deg, #0f0f12 0%, #1a1a2e 100%);
             color: white;
@@ -817,10 +835,8 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
             border-radius: 20px;
         }
 
-        /* ── Body ── */
         .body { padding: 40px 48px; }
 
-        /* ── Info grid ── */
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -857,7 +873,6 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
             text-transform: capitalize;
         }
 
-        /* ── Productos ── */
         .seccion-titulo {
             font-size: 10px;
             font-weight: 700;
@@ -873,9 +888,7 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
             border-collapse: collapse;
             margin-bottom: 28px;
         }
-        thead tr {
-            background: #0f0f12;
-        }
+        thead tr { background: #0f0f12; }
         thead th {
             padding: 12px 14px;
             font-size: 11px;
@@ -898,7 +911,6 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
         .prod-nombre { font-weight: 600; }
         .prod-detalle { font-size: 11px; color: #999; margin-top: 2px; }
 
-        /* ── Totales ── */
         .totales-wrap {
             display: flex;
             justify-content: flex-end;
@@ -929,7 +941,6 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
         }
         .totales-fila:last-child span:last-child { color: #ecb2c3; }
 
-        /* ── Footer ── */
         .footer {
             background: #faf8f9;
             border-top: 2px solid #f0e6ea;
@@ -945,18 +956,14 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
         .footer-sub { font-size: 12px; color: #aaa; line-height: 1.6; }
         .footer-folio { font-size: 11px; color: #ccc; margin-top: 12px; font-family: monospace; }
 
-        /* ── Print ── */
         @media print {
             body { background: white; padding: 0; }
             .recibo { box-shadow: none; border-radius: 0; }
-            .btn-imprimir { display: none !important; }
         }
     </style>
 </head>
 <body>
     <div class="recibo">
-
-        <!-- Header -->
         <div class="header">
             <div class="header-emoji">💎</div>
             <h1>Joyería Diana Laura</h1>
@@ -965,8 +972,6 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
         </div>
 
         <div class="body">
-
-            <!-- Info grid -->
             <div class="info-grid">
                 <div class="info-card">
                     <h3>Datos del pedido</h3>
@@ -996,7 +1001,6 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
                 </div>
             </div>
 
-            <!-- Productos -->
             <p class="seccion-titulo">Productos</p>
             <table>
                 <thead>
@@ -1012,7 +1016,6 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
                 </tbody>
             </table>
 
-            <!-- Totales -->
             <div class="totales-wrap">
                 <div class="totales-tabla">
                     <div class="totales-fila"><span>Subtotal</span><span>$${parseFloat(venta.subtotal).toLocaleString('es-MX')} MXN</span></div>
@@ -1020,10 +1023,8 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
                     <div class="totales-fila"><span>Total</span><span>$${parseFloat(venta.total).toLocaleString('es-MX')} MXN</span></div>
                 </div>
             </div>
-
         </div>
 
-        <!-- Footer -->
         <div class="footer">
             <p class="footer-titulo">¡Gracias por tu compra! 💎</p>
             <p class="footer-sub">
@@ -1036,7 +1037,6 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
 </body>
 </html>`;
 
-        // Retornar HTML — el frontend lo convierte a PDF con la API del navegador
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.send(html);
 

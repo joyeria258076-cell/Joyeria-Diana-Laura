@@ -19,6 +19,7 @@ interface Pedido {
     id: number;
     folio: string;
     estado: string;
+    estado_pago: string;
     cliente_nombre_completo: string;
     cliente_email: string;
     total: number;
@@ -47,17 +48,79 @@ interface ClienteInfo {
     fecha_nacimiento?: string;
 }
 
+interface EstadoConfig {
+    value: string;
+    label: string;
+    color: string;
+}
+
 type ModalTipo = 'detalle' | 'editar' | 'cancelar' | 'cliente' | 'estado' | null;
 
-const ESTADOS = [
-    { value: 'pendiente',  label: 'Pendiente',  color: '#f5c842' },
-    { value: 'confirmado', label: 'Confirmado', color: '#6bcb77' },
-    { value: 'en_proceso', label: 'En proceso', color: '#4d96ff' },
-    { value: 'listo',      label: 'Listo',      color: '#c77dff' },
-    { value: 'enviado',    label: 'Enviado',    color: '#f5d8e8' },
-    { value: 'entregado',  label: 'Entregado',  color: '#ecb2c3' },
-    { value: 'cancelado',  label: 'Cancelado',  color: '#e05a6a' },
+const COLORES_ESTADO: Record<string, string> = {
+    pendiente:      '#f5c842',
+    confirmado:     '#6bcb77',
+    en_preparacion: '#4d96ff',
+    enviado:        '#f5d8e8',
+    entregado:      '#ecb2c3',
+    cancelado:      '#e05a6a',
+};
+
+const COLOR_DEFAULT = '#888888';
+
+const labelEstado = (value: string) =>
+    value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+// ── Descripción por estado ───────────────────────────────────
+const DESCRIPCION_ESTADO: Record<string, string> = {
+    pendiente:      '📋 El pedido fue creado y espera ser tomado por un trabajador.',
+    confirmado:     '✅ El trabajador tomó el pedido. El cliente puede realizar el pago.',
+    en_preparacion: '🔧 El pago fue recibido. Estás preparando el pedido para envío.',
+    enviado:        '🚚 El pedido fue enviado. Comparte el número de guía con el cliente.',
+    entregado:      '📦 El pedido llegó al cliente. Proceso completado.',
+    cancelado:      '🚫 El pedido será cancelado. El stock será restaurado.',
+};
+
+// ── Stepper de fases ─────────────────────────────────────────
+const FASES_STEPPER = [
+    { key: 'pendiente',      label: 'Pedido',     icon: '📋' },
+    { key: 'confirmado',     label: 'Confirmado', icon: '✅' },
+    { key: 'pago',           label: 'Pago',       icon: '💳' },
+    { key: 'en_preparacion', label: 'Preparando', icon: '🔧' },
+    { key: 'enviado',        label: 'Enviado',    icon: '🚚' },
+    { key: 'entregado',      label: 'Entregado',  icon: '📦' },
 ];
+
+const getFaseIndex = (estado: string, estado_pago: string): number => {
+    if (estado === 'cancelado') return -1;
+    if (estado === 'entregado') return 5;
+    if (estado === 'enviado') return 4;
+    if (estado === 'en_preparacion') return 3;
+    if (estado === 'confirmado' && estado_pago === 'aprobado') return 2;
+    if (estado === 'confirmado') return 1;
+    return 0;
+};
+
+const StepperPedido: React.FC<{ estado: string; estado_pago: string }> = ({ estado, estado_pago }) => {
+    if (estado === 'cancelado') {
+        return <div className="gp-stepper-cancelado">🚫 Pedido cancelado</div>;
+    }
+    const faseActual = getFaseIndex(estado, estado_pago);
+    return (
+        <div className="gp-stepper">
+            {FASES_STEPPER.map((fase, i) => (
+                <div key={fase.key} className="gp-step-wrap">
+                    <div className={`gp-step ${i < faseActual ? 'completado' : i === faseActual ? 'activo' : 'inactivo'}`}>
+                        <div className="gp-step-icono">{i < faseActual ? '✓' : fase.icon}</div>
+                        <div className="gp-step-label">{fase.label}</div>
+                    </div>
+                    {i < FASES_STEPPER.length - 1 && (
+                        <div className={`gp-step-linea ${i < faseActual ? 'completada' : ''}`} />
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+};
 
 const PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjMWExYTJlIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiNlY2IyYzMiPvCfp6s8L3RleHQ+PC9zdmc+';
 
@@ -68,28 +131,48 @@ const GestionPedidosScreen: React.FC = () => {
     const [pedidos, setPedidos]           = useState<Pedido[]>([]);
     const [loading, setLoading]           = useState(true);
     const [filtroEstado, setFiltroEstado] = useState('');
+    const [filtroPagoPendiente, setFiltroPagoPendiente] = useState(false);
     const [pedidoSel, setPedidoSel]       = useState<Pedido | null>(null);
     const [modalTipo, setModalTipo]       = useState<ModalTipo>(null);
     const [cargando, setCargando]         = useState(false);
     const [msg, setMsg]                   = useState('');
     const [tomando, setTomando]           = useState(false);
+    const [estados, setEstados]           = useState<EstadoConfig[]>([]);
 
-    // Estados editar detalles
-    const [editDireccion, setEditDireccion]     = useState('');
-    const [editNotas, setEditNotas]             = useState('');
-    const [editGuia, setEditGuia]               = useState('');
-    const [editPaqueteria, setEditPaqueteria]   = useState('');
-    const [editFechaEst, setEditFechaEst]       = useState('');
-
-    // Estados cambiar estado
-    const [nuevoEstado, setNuevoEstado]         = useState('');
-    const [notasTrabajador, setNotasTrabajador] = useState('');
+    const [editDireccion, setEditDireccion]         = useState('');
+    const [editNotas, setEditNotas]                 = useState('');
+    const [editGuia, setEditGuia]                   = useState('');
+    const [editPaqueteria, setEditPaqueteria]       = useState('');
+    const [editFechaEst, setEditFechaEst]           = useState('');
+    const [nuevoEstado, setNuevoEstado]             = useState('');
+    const [notasTrabajador, setNotasTrabajador]     = useState('');
     const [motivoCancelacion, setMotivoCancelacion] = useState('');
+    const [clienteInfo, setClienteInfo]             = useState<ClienteInfo | null>(null);
 
-    // Datos cliente
-    const [clienteInfo, setClienteInfo]         = useState<ClienteInfo | null>(null);
-
+    useEffect(() => { cargarEstados(); }, []);
     useEffect(() => { cargarPedidos(); }, [filtroEstado]);
+
+    const cargarEstados = async () => {
+        try {
+            const data = await carritoAPI.getEstadosPedido();
+            if (data.success) {
+                setEstados(data.data.map((valor: string) => ({
+                    value: valor,
+                    label: labelEstado(valor),
+                    color: COLORES_ESTADO[valor] || COLOR_DEFAULT,
+                })));
+            }
+        } catch {
+            setEstados([
+                { value: 'pendiente',      label: 'Pendiente',      color: '#f5c842' },
+                { value: 'confirmado',     label: 'Confirmado',     color: '#6bcb77' },
+                { value: 'en_preparacion', label: 'En Preparacion', color: '#4d96ff' },
+                { value: 'enviado',        label: 'Enviado',        color: '#f5d8e8' },
+                { value: 'entregado',      label: 'Entregado',      color: '#ecb2c3' },
+                { value: 'cancelado',      label: 'Cancelado',      color: '#e05a6a' },
+            ]);
+        }
+    };
 
     const cargarPedidos = async () => {
         setLoading(true);
@@ -104,7 +187,6 @@ const GestionPedidosScreen: React.FC = () => {
         setPedidoSel(pedido);
         setModalTipo(tipo);
         setMsg('');
-
         if (tipo === 'editar') {
             setEditDireccion(pedido.notas_cliente || '');
             setEditNotas(pedido.notas_internas || '');
@@ -112,12 +194,10 @@ const GestionPedidosScreen: React.FC = () => {
             setEditPaqueteria(pedido.paqueteria || '');
             setEditFechaEst(pedido.fecha_estimada_entrega?.split('T')[0] || '');
         }
-
         if (tipo === 'estado') {
             setNuevoEstado(pedido.estado);
             setNotasTrabajador(pedido.notas_internas || '');
         }
-
         if (tipo === 'detalle') {
             setCargando(true);
             try {
@@ -125,7 +205,6 @@ const GestionPedidosScreen: React.FC = () => {
                 if (data.success) setPedidoSel(data.data);
             } catch { } finally { setCargando(false); }
         }
-
         if (tipo === 'cliente') {
             setCargando(true);
             try {
@@ -137,7 +216,6 @@ const GestionPedidosScreen: React.FC = () => {
 
     const cerrar = () => { setModalTipo(null); setPedidoSel(null); setMsg(''); };
 
-    // ── Tomar pedido ──────────────────────────────────────────
     const tomarPedido = async (pedido: Pedido) => {
         setTomando(true);
         try {
@@ -154,7 +232,6 @@ const GestionPedidosScreen: React.FC = () => {
         finally { setTomando(false); }
     };
 
-    // ── Guardar edición de detalles ───────────────────────────
     const guardarDetalles = async () => {
         if (!pedidoSel) return;
         setCargando(true); setMsg('');
@@ -174,7 +251,6 @@ const GestionPedidosScreen: React.FC = () => {
         finally { setCargando(false); }
     };
 
-    // ── Cancelar pedido ──────────────────────────────────────
     const cancelarPedido = async () => {
         if (!pedidoSel) return;
         if (!motivoCancelacion.trim()) { setMsg('❌ Debes escribir el motivo de cancelación'); return; }
@@ -188,22 +264,29 @@ const GestionPedidosScreen: React.FC = () => {
         finally { setCargando(false); }
     };
 
-    // ── Actualizar estado ─────────────────────────────────────
     const actualizarEstado = async () => {
         if (!pedidoSel) return;
         setCargando(true); setMsg('');
         try {
             await carritoAPI.actualizarEstado(pedidoSel.id, nuevoEstado, notasTrabajador);
-            const label = ESTADOS.find(e => e.value === nuevoEstado)?.label || nuevoEstado;
+            const label = estados.find(e => e.value === nuevoEstado)?.label || nuevoEstado;
             setPedidos(prev => prev.map(p => p.id === pedidoSel.id ? { ...p, estado: nuevoEstado } : p));
             setPedidoSel(prev => prev ? { ...prev, estado: nuevoEstado, notas_internas: notasTrabajador } : prev);
             setMsg(`✅ ¡Listo! Estado actualizado a "${label}". Puedes cerrar esta ventana.`);
-        } catch (err: any) { setMsg(`❌ ${err.message}`); }
+        } catch (err: any) {
+            // ✅ Mensaje amigable para error de pago pendiente
+            const rawMsg = err.message || '';
+            if (rawMsg.includes('pago') || rawMsg.includes('pagado')) {
+                setMsg(`⚠️ No puedes marcar como "${labelEstado(nuevoEstado)}" — el cliente aún no ha realizado el pago. Espera a que complete el pago antes de continuar.`);
+            } else {
+                setMsg(`❌ ${rawMsg}`);
+            }
+        }
         finally { setCargando(false); }
     };
 
     const getBadge = (estado: string) => {
-        const cfg = ESTADOS.find(e => e.value === estado) || { label: estado, color: '#555' };
+        const cfg = estados.find(e => e.value === estado) || { label: labelEstado(estado), color: COLOR_DEFAULT };
         return <span className="gp-badge" style={{ background: cfg.color, color: '#0f0f12' }}>{cfg.label}</span>;
     };
 
@@ -229,36 +312,32 @@ const GestionPedidosScreen: React.FC = () => {
                 <button className="gp-btn-refrescar" onClick={cargarPedidos}>🔄 Refrescar</button>
             </div>
 
-            {/* Resumen */}
             <div className="gp-resumen">
-                {[
-                    { label: 'Pendientes',  value: contar('pendiente'),  color: '#f5c842', idx: 0 },
-                    { label: 'Confirmados', value: contar('confirmado'), color: '#6bcb77', idx: 1 },
-                    { label: 'En proceso',  value: contar('en_proceso'), color: '#4d96ff', idx: 2 },
-                    { label: 'Listos',      value: contar('listo'),      color: '#c77dff', idx: 3 },
-                    { label: 'Enviados',    value: contar('enviado'),    color: '#f5d8e8', idx: 4 },
-                    { label: 'Entregados',  value: contar('entregado'),  color: '#ecb2c3', idx: 5 },
-                ].map((s) => (
-                    <div key={s.idx} className="gp-stat"
-                        style={{ borderTop: `3px solid ${s.color}`, cursor: 'pointer' }}
-                        onClick={() => setFiltroEstado(filtroEstado === ESTADOS[s.idx].value ? '' : ESTADOS[s.idx].value)}
-                    >
-                        <p className="gp-stat-val" style={{ color: s.color }}>{loading ? '…' : s.value}</p>
-                        <p className="gp-stat-label">{s.label}</p>
+                {estados.filter(e => e.value !== 'cancelado').map((e) => (
+                    <div key={e.value} className="gp-stat"
+                        style={{ borderTop: `3px solid ${e.color}`, cursor: 'pointer' }}
+                        onClick={() => setFiltroEstado(filtroEstado === e.value ? '' : e.value)}>
+                        <p className="gp-stat-val" style={{ color: e.color }}>{loading ? '…' : contar(e.value)}</p>
+                        <p className="gp-stat-label">{e.label}</p>
                     </div>
                 ))}
             </div>
 
-            {/* Filtros */}
             <div className="gp-filtros">
                 <select className="gp-select" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
                     <option value="">Todos los estados</option>
-                    {ESTADOS.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
+                    {estados.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
                 </select>
-                {filtroEstado && <button className="gp-btn-limpiar" onClick={() => setFiltroEstado('')}>✕ Limpiar</button>}
+                <label className="gp-filtro-pago">
+                    <input type="checkbox" checked={filtroPagoPendiente}
+                        onChange={e => setFiltroPagoPendiente(e.target.checked)} />
+                    💳 Solo pago pendiente
+                </label>
+                {(filtroEstado || filtroPagoPendiente) && (
+                    <button className="gp-btn-limpiar" onClick={() => { setFiltroEstado(''); setFiltroPagoPendiente(false); }}>✕ Limpiar</button>
+                )}
             </div>
 
-            {/* Tabla */}
             {loading ? (
                 <div className="gp-loading"><div className="gp-spinner" /><p>Cargando pedidos...</p></div>
             ) : pedidos.length === 0 ? (
@@ -268,77 +347,81 @@ const GestionPedidosScreen: React.FC = () => {
                     <table className="gp-tabla">
                         <thead>
                             <tr>
-                                <th>Folio</th>
-                                <th>Cliente</th>
-                                <th>Prods.</th>
-                                <th>Fecha</th>
-                                <th>Total</th>
-                                <th>Estado</th>
-                                <th>Asignado</th>
-                                <th>Acciones</th>
+                                <th>Folio</th><th>Cliente</th><th>Prods.</th>
+                                <th>Fecha</th><th>Total</th><th>Estado</th>
+                                <th>Asignado</th><th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {pedidos.map(pedido => (
-                                <tr key={pedido.id} className={esMio(pedido) ? 'gp-fila-mia' : ''}>
-                                    <td className="gp-folio">{pedido.folio}</td>
-                                    <td>
-                                        <p className="gp-cliente-nombre">{pedido.cliente_nombre_completo}</p>
-                                        <p className="gp-cliente-email">{pedido.cliente_email}</p>
-                                    </td>
-                                    <td className="gp-num-items">{pedido.total_items}</td>
-                                    <td className="gp-fecha">{formatFecha(pedido.fecha_creacion)}</td>
-                                    <td className="gp-total">${parseFloat(String(pedido.total)).toLocaleString('es-MX')}</td>
-                                    <td>{getBadge(pedido.estado)}</td>
-                                    <td>
-                                        {pedido.trabajador_asignado_nombre ? (
-                                            <span className={`gp-asignado ${esMio(pedido) ? 'gp-asignado-mio' : ''}`}>
-                                                {esMio(pedido) ? '👤 Yo' : `👤 ${pedido.trabajador_asignado_nombre}`}
-                                            </span>
-                                        ) : (
-                                            <span className="gp-sin-asignar">Sin asignar</span>
-                                        )}
-                                    </td>
-                                    <td className="gp-acciones-col">
-                                        {puedoTomar(pedido) && (
-                                            <button className="gp-btn-tomar" onClick={() => tomarPedido(pedido)}>
-                                                🙋 Tomar
-                                            </button>
-                                        )}
-                                        {/* 4 botones de acción */}
-                                        <div className="gp-acciones-menu">
-                                            <button className="gp-btn-accion" title="Ver detalle" onClick={() => abrirModal(pedido, 'detalle')}>👁</button>
-                                            {puedoEditar(pedido) && (
-                                                <>
-                                                    <button className="gp-btn-accion" title="Editar detalles" onClick={() => abrirModal(pedido, 'editar')}>✏️</button>
-                                                    <button className="gp-btn-accion gp-btn-cancelar" title="Cancelar pedido" onClick={() => abrirModal(pedido, 'cancelar')} disabled={['cancelado','entregado'].includes(pedido.estado)}>🚫</button>
-                                                    <button className="gp-btn-accion gp-btn-estado" title="Cambiar estado" onClick={() => abrirModal(pedido, 'estado')}>🔄</button>
-                                                </>
+                            {pedidos
+                                .filter(p => {
+                                    if (filtroPagoPendiente)
+                                        return !['cancelado','entregado'].includes(p.estado) && p.estado_pago !== 'aprobado';
+                                    return true;
+                                })
+                                .map(pedido => (
+                                    <tr key={pedido.id} className={esMio(pedido) ? 'gp-fila-mia' : ''}>
+                                        <td className="gp-folio">{pedido.folio}</td>
+                                        <td>
+                                            <p className="gp-cliente-nombre">{pedido.cliente_nombre_completo}</p>
+                                            <p className="gp-cliente-email">{pedido.cliente_email}</p>
+                                        </td>
+                                        <td className="gp-num-items">{pedido.total_items}</td>
+                                        <td className="gp-fecha">{formatFecha(pedido.fecha_creacion)}</td>
+                                        <td className="gp-total">${parseFloat(String(pedido.total)).toLocaleString('es-MX')}</td>
+                                        <td>
+                                            {getBadge(pedido.estado)}
+                                            {pedido.estado_pago === 'aprobado' ? (
+                                                <span className="gp-pago-badge gp-pago-aprobado">💳 Pagado</span>
+                                            ) : (
+                                                <span className="gp-pago-badge gp-pago-pendiente">⏳ Sin pago</span>
                                             )}
-                                            <button className="gp-btn-accion" title="Datos cliente" onClick={() => abrirModal(pedido, 'cliente')}>👤</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                        </td>
+                                        <td>
+                                            {pedido.trabajador_asignado_nombre ? (
+                                                <span className={`gp-asignado ${esMio(pedido) ? 'gp-asignado-mio' : ''}`}>
+                                                    {esMio(pedido) ? '👤 Yo' : `👤 ${pedido.trabajador_asignado_nombre}`}
+                                                </span>
+                                            ) : (
+                                                <span className="gp-sin-asignar">Sin asignar</span>
+                                            )}
+                                        </td>
+                                        <td className="gp-acciones-col">
+                                            {puedoTomar(pedido) && (
+                                                <button className="gp-btn-tomar" onClick={() => tomarPedido(pedido)} disabled={tomando}>
+                                                    🙋 Tomar
+                                                </button>
+                                            )}
+                                            <div className="gp-acciones-menu">
+                                                <button className="gp-btn-accion" title="Ver detalle" onClick={() => abrirModal(pedido, 'detalle')}>👁</button>
+                                                {puedoEditar(pedido) && (
+                                                    <>
+                                                        <button className="gp-btn-accion" title="Editar detalles" onClick={() => abrirModal(pedido, 'editar')}>✏️</button>
+                                                        <button className="gp-btn-accion gp-btn-cancelar" title="Cancelar pedido" onClick={() => abrirModal(pedido, 'cancelar')} disabled={['cancelado','entregado'].includes(pedido.estado)}>🚫</button>
+                                                        <button className="gp-btn-accion gp-btn-estado" title="Cambiar estado" onClick={() => abrirModal(pedido, 'estado')}>🔄</button>
+                                                    </>
+                                                )}
+                                                <button className="gp-btn-accion" title="Datos cliente" onClick={() => abrirModal(pedido, 'cliente')}>👤</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
                         </tbody>
                     </table>
                 </div>
             )}
 
-            {/* ── MODALES ── */}
             {modalTipo && pedidoSel && (
                 <div className="gp-modal-overlay" onClick={cerrar}>
                     <div className="gp-modal" onClick={e => e.stopPropagation()}>
-
-                        {/* Header común */}
                         <div className="gp-modal-header">
                             <div>
                                 <h3>
-                                    {modalTipo === 'detalle'   && '📋 Detalle del pedido'}
-                                    {modalTipo === 'editar'    && '✏️ Editar detalles'}
-                                    {modalTipo === 'cancelar'  && '🚫 Cancelar pedido'}
-                                    {modalTipo === 'cliente'   && '👤 Datos del cliente'}
-                                    {modalTipo === 'estado'    && '🔄 Cambiar estado'}
+                                    {modalTipo === 'detalle'  && '📋 Detalle del pedido'}
+                                    {modalTipo === 'editar'   && '✏️ Editar detalles'}
+                                    {modalTipo === 'cancelar' && '🚫 Cancelar pedido'}
+                                    {modalTipo === 'cliente'  && '👤 Datos del cliente'}
+                                    {modalTipo === 'estado'   && '🔄 Cambiar estado'}
                                 </h3>
                                 <p className="gp-modal-sub">{pedidoSel.folio} · {formatFecha(pedidoSel.fecha_creacion)}</p>
                             </div>
@@ -350,9 +433,13 @@ const GestionPedidosScreen: React.FC = () => {
                                 <div className="gp-loading"><div className="gp-spinner" /></div>
                             ) : (
                                 <>
-                                    {/* ── MODAL DETALLE ── */}
                                     {modalTipo === 'detalle' && (
                                         <>
+                                            {/* ✅ Stepper */}
+                                            <StepperPedido
+                                                estado={pedidoSel.estado}
+                                                estado_pago={pedidoSel.estado_pago || 'pendiente'}
+                                            />
                                             <div className="gp-modal-estado">
                                                 {getBadge(pedidoSel.estado)}
                                                 {pedidoSel.trabajador_asignado_nombre && (
@@ -403,7 +490,6 @@ const GestionPedidosScreen: React.FC = () => {
                                         </>
                                     )}
 
-                                    {/* ── MODAL EDITAR DETALLES ── */}
                                     {modalTipo === 'editar' && (
                                         <div className="gp-modal-form">
                                             <div className="gp-form-grupo">
@@ -445,35 +531,27 @@ const GestionPedidosScreen: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* ── MODAL CANCELAR PEDIDO ── */}
                                     {modalTipo === 'cancelar' && (
                                         <div className="gp-modal-form">
                                             <div className="gp-cancelar-aviso">
-                                                ⚠️ <strong>¿Estás seguro?</strong> Esta acción cancelará el pedido y restaurará el stock si ya estaba confirmado.
-                                                El cliente verá el estado como "Cancelado" en su pantalla.
+                                                ⚠️ <strong>¿Estás seguro?</strong> Esta acción cancelará el pedido y restaurará el stock.
+                                                El cliente verá el estado como "Cancelado".
                                             </div>
                                             <div className="gp-form-grupo">
                                                 <label>Motivo de cancelación <span style={{color:'#e05a6a'}}>*</span></label>
                                                 <textarea className="gp-textarea" rows={4}
-                                                    placeholder="Ej: Producto sin stock, cliente solicitó cancelación, problema con la personalización..."
+                                                    placeholder="Ej: Producto sin stock, cliente solicitó cancelación..."
                                                     value={motivoCancelacion}
                                                     onChange={e => setMotivoCancelacion(e.target.value)} />
-                                                <small style={{ color: '#8a7a82', fontSize: '0.75rem' }}>
-                                                    Este motivo será visible para el cliente como nota del pedido.
-                                                </small>
                                             </div>
                                             {msg && <div className={`gp-msg ${msg.startsWith('✅') ? 'ok' : 'error'}`}>{msg}</div>}
-                                            <button
-                                                className="gp-btn-cancelar-confirm"
-                                                onClick={cancelarPedido}
-                                                disabled={cargando || msg.startsWith('✅')}
-                                            >
+                                            <button className="gp-btn-cancelar-confirm" onClick={cancelarPedido}
+                                                disabled={cargando || msg.startsWith('✅')}>
                                                 {cargando ? '⏳ Cancelando...' : msg.startsWith('✅') ? '✅ Cancelado' : '🚫 Confirmar cancelación'}
                                             </button>
                                         </div>
                                     )}
 
-                                    {/* ── MODAL DATOS CLIENTE ── */}
                                     {modalTipo === 'cliente' && clienteInfo && (
                                         <div className="gp-cliente-info">
                                             <div className="gp-cliente-avatar">
@@ -505,7 +583,6 @@ const GestionPedidosScreen: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* ── MODAL CAMBIAR ESTADO ── */}
                                     {modalTipo === 'estado' && (
                                         <div className="gp-modal-form">
                                             <div className="gp-estado-actual">
@@ -513,9 +590,18 @@ const GestionPedidosScreen: React.FC = () => {
                                             </div>
                                             <div className="gp-form-grupo">
                                                 <label>Nuevo estado</label>
-                                                <select className="gp-select" value={nuevoEstado} onChange={e => setNuevoEstado(e.target.value)}>
-                                                    {ESTADOS.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
+                                                <select className="gp-select" value={nuevoEstado}
+                                                    onChange={e => setNuevoEstado(e.target.value)}>
+                                                    {estados.map(e => (
+                                                        <option key={e.value} value={e.value}>{e.label}</option>
+                                                    ))}
                                                 </select>
+                                                {/* ✅ Descripción del estado seleccionado */}
+                                                {nuevoEstado && DESCRIPCION_ESTADO[nuevoEstado] && (
+                                                    <div className="gp-estado-desc">
+                                                        {DESCRIPCION_ESTADO[nuevoEstado]}
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="gp-form-grupo">
                                                 <label>Nota para el cliente (opcional)</label>
@@ -523,7 +609,11 @@ const GestionPedidosScreen: React.FC = () => {
                                                     onChange={e => setNotasTrabajador(e.target.value)}
                                                     placeholder="Ej: Tu pedido está listo para envío..." />
                                             </div>
-                                            {msg && <div className={`gp-msg ${msg.startsWith('✅') ? 'ok' : 'error'}`}>{msg}</div>}
+                                            {msg && (
+                                                <div className={`gp-msg ${msg.startsWith('✅') ? 'ok' : msg.startsWith('⚠️') ? 'warning' : 'error'}`}>
+                                                    {msg}
+                                                </div>
+                                            )}
                                             <button className={`gp-btn-actualizar ${msg.startsWith('✅') ? 'gp-btn-guardado' : ''}`}
                                                 onClick={actualizarEstado} disabled={cargando || msg.startsWith('✅')}>
                                                 {cargando ? '⏳ Guardando...' : msg.startsWith('✅') ? '✅ Guardado' : '💾 Guardar cambios'}

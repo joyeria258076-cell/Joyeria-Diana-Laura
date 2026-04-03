@@ -4,7 +4,6 @@ import { AiOutlineClose, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, A
 import { useCart } from '../../contexts/CartContext';
 import './DetalleProductoModal.css';
 
-// Detectar sesión activa leyendo localStorage directamente
 const estaLogueado = (): boolean => {
   try {
     const userData = localStorage.getItem('diana_laura_user');
@@ -28,6 +27,7 @@ interface Producto {
   es_nuevo?: boolean;
   dias_fabricacion?: number;
   permite_personalizacion?: boolean;
+  tiene_medidas?: boolean;
 }
 
 interface DetalleProductoModalProps {
@@ -37,10 +37,13 @@ interface DetalleProductoModalProps {
 }
 
 const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, producto, onClose }) => {
-  const [cantidad, setCantidad] = React.useState(1);
+  const [cantidad, setCantidad]           = React.useState(1);
+  const [talla, setTalla]                 = React.useState('');
+  const [nota, setNota]                   = React.useState('');
+  const [tallaError, setTallaError]       = React.useState('');
   const [showLoginAlert, setShowLoginAlert] = React.useState(false);
-  const [agregando, setAgregando] = React.useState(false);
-  const [exitoso, setExitoso] = React.useState(false);
+  const [agregando, setAgregando]         = React.useState(false);
+  const [exitoso, setExitoso]             = React.useState(false);
   const navigate = useNavigate();
   const logueado = estaLogueado();
   const { agregarAlCarrito } = useCart();
@@ -48,17 +51,27 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
   if (!isOpen || !producto) return null;
 
   const placeholderImage = 'https://placehold.co/400x400/1a1a1a/ecb2c3?text=Joya';
-  const imagenUrl = producto.imagen_principal || placeholderImage;
-  const precioFinal = producto.precio_oferta || producto.precio_venta;
-  const hayDescuento = producto.precio_oferta && producto.precio_oferta < producto.precio_venta;
+  const imagenUrl        = producto.imagen_principal || placeholderImage;
+  const precioFinal      = producto.precio_oferta || producto.precio_venta;
+  const hayDescuento     = producto.precio_oferta && producto.precio_oferta < producto.precio_venta;
+  const requiereTalla    = producto.tiene_medidas || producto.permite_personalizacion;
 
   const handleAgregar = async () => {
     if (!logueado) { setShowLoginAlert(true); return; }
+
+    // ✅ Validar talla si el producto la requiere
+    if (requiereTalla && !talla.trim()) {
+      setTallaError('Por favor indica la talla o medida');
+      return;
+    }
+    setTallaError('');
     setAgregando(true);
     try {
-      await agregarAlCarrito(producto.id, cantidad);
+      await agregarAlCarrito(producto.id, cantidad, talla.trim() || undefined, nota.trim() || undefined);
       setExitoso(true);
       setCantidad(1);
+      setTalla('');
+      setNota('');
       setTimeout(() => setExitoso(false), 2500);
     } catch (err: any) {
       alert(err?.message || 'No se pudo agregar. Intenta de nuevo.');
@@ -82,7 +95,6 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
   };
 
   const handleIrLogin = () => { onClose(); navigate('/login'); };
-
   const incrementar = () => { if (cantidad < producto.stock_actual) setCantidad(cantidad + 1); };
   const decrementar = () => { if (cantidad > 1) setCantidad(cantidad - 1); };
 
@@ -98,7 +110,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
           </button>
         </div>
 
-        {/* ── Alerta de login (inline, dentro del modal) ── */}
+        {/* ── Alerta de login ── */}
         {showLoginAlert && (
           <div className="modal-login-alert">
             <div className="modal-login-alert-content">
@@ -109,6 +121,13 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                 <button className="btn-alerta-cancelar" onClick={() => setShowLoginAlert(false)}>Cancelar</button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ✅ Confirmación visual al agregar */}
+        {exitoso && (
+          <div className="modal-agregado-ok">
+            🛒 ¡<strong>{producto.nombre}</strong> agregado al carrito!
           </div>
         )}
 
@@ -171,32 +190,69 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
             </div>
 
             {producto.stock_actual > 0 && (
-              <div className="detalle-cantidad">
-                <label>Cantidad:</label>
-                <div className="cantidad-control">
-                  <button className="btn-cantidad" onClick={decrementar} disabled={cantidad === 1}>
-                    <AiOutlineMinus size={16} />
-                  </button>
-                  <input
-                    type="number" value={cantidad}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value) || 1;
-                      if (val > 0 && val <= producto.stock_actual) setCantidad(val);
-                    }}
-                    min="1" max={producto.stock_actual}
-                  />
-                  <button className="btn-cantidad" onClick={incrementar} disabled={cantidad === producto.stock_actual}>
-                    <AiOutlinePlus size={16} />
-                  </button>
+              <>
+                {/* ✅ Campo de talla/medida si el producto lo requiere */}
+                {requiereTalla && (
+                  <div className="detalle-talla">
+                    <label>
+                      Talla / Medida <span style={{ color: '#e05a6a' }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className={`detalle-talla-input ${tallaError ? 'input-error' : ''}`}
+                      placeholder="Ej: 7, M, 15cm, personalización..."
+                      value={talla}
+                      onChange={e => { setTalla(e.target.value); setTallaError(''); }}
+                    />
+                    {tallaError && <span className="detalle-talla-error">⚠️ {tallaError}</span>}
+                  </div>
+                )}
+
+                {/* Campo de nota opcional */}
+                {producto.permite_personalizacion && (
+                  <div className="detalle-talla">
+                    <label>Notas de personalización (opcional)</label>
+                    <input
+                      type="text"
+                      className="detalle-talla-input"
+                      placeholder="Ej: grabado con nombre 'Ana', color dorado..."
+                      value={nota}
+                      onChange={e => setNota(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                <div className="detalle-cantidad">
+                  <label>Cantidad:</label>
+                  <div className="cantidad-control">
+                    <button className="btn-cantidad" onClick={decrementar} disabled={cantidad === 1}>
+                      <AiOutlineMinus size={16} />
+                    </button>
+                    <input
+                      type="number" value={cantidad}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 1;
+                        if (val > 0 && val <= producto.stock_actual) setCantidad(val);
+                      }}
+                      min="1" max={producto.stock_actual}
+                    />
+                    <button className="btn-cantidad" onClick={incrementar} disabled={cantidad === producto.stock_actual}>
+                      <AiOutlinePlus size={16} />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
             <div className="detalle-acciones">
               {producto.stock_actual > 0 ? (
-                <button className="btn btn-primary" onClick={handleAgregar} disabled={agregando}>
+                <button
+                  className={`btn btn-primary ${exitoso ? 'btn-exitoso' : ''}`}
+                  onClick={handleAgregar}
+                  disabled={agregando || exitoso}
+                >
                   <AiOutlineShoppingCart size={20} />
-                  {agregando ? 'Agregando...' : exitoso ? '¡Agregado! ✓' : 'Agregar al Carrito'}
+                  {agregando ? 'Agregando...' : exitoso ? '¡Agregado al carrito! ✓' : 'Agregar al Carrito'}
                   {!logueado && <AiOutlineLock size={13} style={{marginLeft: 4, opacity: 0.7}} />}
                 </button>
               ) : (

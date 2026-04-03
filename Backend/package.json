@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "commonjs",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/server.ts",
+    "dev": "nodemon --ignore iast-reports/ --ignore backups_automaticos/ --ignore *.log --exec ts-node src/server.ts",
     "start": "node dist/server.js",
     "build": "tsc",
     "test-db": "ts-node src/scripts/test-railway.ts",

@@ -338,3 +338,134 @@
   .gp-btn-ver,
   .gp-btn-tomar { width: 100%; text-align: center; justify-content: center; }
 }
+
+/* ── Badge estado pago ── */
+.gp-pago-badge {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-top: 4px;
+    width: fit-content;
+}
+
+.gp-pago-aprobado {
+    background: rgba(107, 203, 119, 0.15);
+    color: #6bcb77;
+    border: 1px solid #6bcb7755;
+}
+
+.gp-pago-pendiente {
+    background: rgba(245, 200, 66, 0.15);
+    color: #f5c842;
+    border: 1px solid #f5c84255;
+}
+
+.gp-filtro-pago {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.gp-filtro-pago input { cursor: pointer; }
+
+/* ── Stepper ── */
+.gp-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 16px 0 24px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+.gp-step-wrap {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+.gp-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 64px;
+}
+.gp-step-icono {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    border: 2px solid #2a2a3e;
+    background: #1a1a2e;
+    color: #555;
+    transition: all 0.3s;
+}
+.gp-step.completado .gp-step-icono {
+    background: #6bcb77;
+    border-color: #6bcb77;
+    color: #0f0f12;
+    font-weight: 700;
+}
+.gp-step.activo .gp-step-icono {
+    background: #ecb2c3;
+    border-color: #ecb2c3;
+    color: #0f0f12;
+    box-shadow: 0 0 10px rgba(236,178,195,0.5);
+}
+.gp-step-label {
+    font-size: 0.65rem;
+    color: #555;
+    text-align: center;
+}
+.gp-step.completado .gp-step-label,
+.gp-step.activo .gp-step-label {
+    color: #ccc;
+}
+.gp-step-linea {
+    width: 32px;
+    height: 2px;
+    background: #2a2a3e;
+    flex-shrink: 0;
+    transition: background 0.3s;
+}
+.gp-step-linea.completada { background: #6bcb77; }
+.gp-stepper-cancelado {
+    text-align: center;
+    color: #e05a6a;
+    font-size: 0.9rem;
+    padding: 12px;
+    background: rgba(224,90,106,0.1);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+/* ── Descripción de estado ── */
+.gp-estado-desc {
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: rgba(236,178,195,0.08);
+    border-left: 3px solid #ecb2c3;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.82rem;
+    color: #bbb;
+    line-height: 1.5;
+}
+
+/* ── Mensaje warning ── */
+.gp-msg.warning {
+    background: rgba(245,200,66,0.12);
+    color: #f5c842;
+    border: 1px solid rgba(245,200,66,0.3);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}

@@ -207,3 +207,96 @@
     transition: 0.2s;
 }
 .cp-btn-recibo:hover { background: rgba(236,178,195,0.08); }
+
+/* ── Badge estado pago ── */
+.cp-pago-badge {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-top: 4px;
+    width: fit-content;
+}
+.cp-pago-ok {
+    background: rgba(107, 203, 119, 0.15);
+    color: #6bcb77;
+    border: 1px solid #6bcb7755;
+}
+.cp-pago-pendiente {
+    background: rgba(245, 200, 66, 0.15);
+    color: #f5c842;
+    border: 1px solid #f5c84255;
+}
+
+/* ── Stepper ── */
+.cp-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 16px 0 20px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+.cp-step-wrap {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+.cp-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 64px;
+}
+.cp-step-icono {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    border: 2px solid #2a2a3e;
+    background: #1a1a2e;
+    color: #555;
+    transition: all 0.3s;
+}
+.cp-step.completado .cp-step-icono {
+    background: #6bcb77;
+    border-color: #6bcb77;
+    color: #0f0f12;
+    font-weight: 700;
+}
+.cp-step.activo .cp-step-icono {
+    background: #ecb2c3;
+    border-color: #ecb2c3;
+    color: #0f0f12;
+    box-shadow: 0 0 10px rgba(236,178,195,0.5);
+}
+.cp-step-label {
+    font-size: 0.65rem;
+    color: #555;
+    text-align: center;
+}
+.cp-step.completado .cp-step-label,
+.cp-step.activo .cp-step-label { color: #ccc; }
+.cp-step-linea {
+    width: 32px;
+    height: 2px;
+    background: #2a2a3e;
+    flex-shrink: 0;
+    transition: background 0.3s;
+}
+.cp-step-linea.completada { background: #6bcb77; }
+.cp-stepper-cancelado {
+    text-align: center;
+    color: #e05a6a;
+    font-size: 0.9rem;
+    padding: 12px;
+    background: rgba(224,90,106,0.1);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}

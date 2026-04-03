@@ -85,15 +85,15 @@ class EnhancedApiService {
       console.log(`📡 Enviando ${options.method || 'GET'} a ${endpoint}`);
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
       
-      if (!response.ok) {
-        try {
-          const errorData = await response.json();
-          console.error('❌ Error del servidor:', errorData);
-          throw new Error(errorData.message || `Error ${response.status}`);
-        } catch {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-      }
+    if (!response.ok) {
+            let errorMsg = `Error ${response.status}: ${response.statusText}`;
+            try {
+              const errorData = await response.json();
+              console.error('❌ Error del servidor:', errorData);
+              errorMsg = errorData.message || errorMsg;
+            } catch { }
+            throw new Error(errorMsg);
+          }
       
       const data = await response.json();
       console.log('✅ Respuesta exitosa:', endpoint);
@@ -1082,6 +1082,10 @@ export const carritoAPI = {
         try { return JSON.parse(localStorage.getItem('diana_laura_user') || '{}').token || ''; } catch { return ''; }
     })();
     return `${API_BASE_URL}/carrito/pedidos/${venta_id}/recibo?token=${token}`;
+  },
+  // Estados dinámicos desde la BD
+  getEstadosPedido: async () => {
+      return enhancedApi.get('/carrito/estados-pedido');
   },
 };
 

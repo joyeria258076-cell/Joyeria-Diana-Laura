@@ -77,16 +77,13 @@ export const CarritoModel = {
 // ── VENTAS (usando tablas existentes) ─────────────────────────
 export const VentaModel = {
 
-    // Obtener o crear registro en tabla clientes para un usuario
     getOrCreateCliente: async (usuario_id: number, email: string, nombre: string): Promise<number> => {
-        // Buscar cliente existente
         const existing = await pool.query(
             `SELECT id FROM clientes WHERE user_id = $1 LIMIT 1`,
             [usuario_id]
         );
         if (existing.rows.length > 0) return existing.rows[0].id;
 
-        // Crear cliente nuevo
         const created = await pool.query(`
             INSERT INTO clientes (user_id, nombre, email, activo, fecha_creacion, fecha_actualizacion)
             VALUES ($1, $2, $3, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
@@ -95,7 +92,6 @@ export const VentaModel = {
         return created.rows[0].id;
     },
 
-    // Obtener ID del método de pago MercadoPago
     getMetodoPagoId: async (): Promise<number | null> => {
         const result = await pool.query(
             `SELECT id FROM metodos_pago WHERE codigo = 'mercadopago' AND activo = true LIMIT 1`
@@ -103,7 +99,6 @@ export const VentaModel = {
         return result.rows.length > 0 ? result.rows[0].id : null;
     },
 
-    // Crear venta desde carrito
     create: async (data: {
         cliente_id:     number;
         usuario_id:     number;
@@ -125,12 +120,11 @@ export const VentaModel = {
         try {
             await client.query('BEGIN');
 
-            const subtotal = data.items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
-            const iva      = subtotal * 0.16;
-            const total    = subtotal + iva;
+            const total    = data.items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+            const subtotal = parseFloat((total / 1.16).toFixed(2));
+            const iva      = parseFloat((total - subtotal).toFixed(2));
             const folio    = 'DL-' + Date.now();
 
-            // Insertar venta
             const ventaResult = await client.query(`
                 INSERT INTO ventas (
                     folio, cliente_id, metodo_pago_id,
@@ -150,13 +144,12 @@ export const VentaModel = {
                 data.cliente_nombre, data.cliente_email,
                 subtotal, iva, total,
                 data.items.reduce((s, i) => s + i.cantidad, 0),
-                data.notas_cliente || null,
+                [data.direccion_envio, data.notas_cliente].filter(Boolean).join(' | ') || null,
                 data.usuario_id
             ]);
 
             const venta = ventaResult.rows[0];
 
-            // Insertar detalle
             for (const item of data.items) {
                 await client.query(`
                     INSERT INTO detalle_ventas (
@@ -172,7 +165,6 @@ export const VentaModel = {
                 ]);
             }
 
-            // Vaciar carrito
             await client.query(`DELETE FROM carrito WHERE usuario_id = $1`, [data.usuario_id]);
 
             await client.query('COMMIT');
@@ -186,7 +178,6 @@ export const VentaModel = {
         }
     },
 
-    // Obtener ventas de un cliente (para la pantalla "Mis Pedidos")
     getByUsuario: async (usuario_id: number) => {
         const result = await pool.query(`
             SELECT
@@ -218,7 +209,6 @@ export const VentaModel = {
         return result.rows;
     },
 
-    // Obtener todas las ventas (para trabajador/admin)
     getAll: async (filtros?: { estado?: string }) => {
         let query = `
             SELECT
@@ -227,7 +217,13 @@ export const VentaModel = {
                 c.email             AS cliente_email,
                 ut.nombre           AS trabajador_nombre,
                 tw.nombre           AS trabajador_asignado_nombre,
-                (SELECT COUNT(*) FROM detalle_ventas dv WHERE dv.venta_id = v.id) AS total_items
+                (SELECT COUNT(*) FROM detalle_ventas dv WHERE dv.venta_id = v.id) AS total_items,
+                COALESCE(
+                    (SELECT tp.estado FROM transacciones_pago tp
+                    WHERE tp.venta_id = v.id
+                    ORDER BY tp.fecha_creacion DESC LIMIT 1),
+                    'pendiente'
+                ) AS estado_pago
             FROM ventas v
             JOIN clientes c ON v.cliente_id = c.id
             LEFT JOIN usuarios ut ON v.actualizado_por = ut.id
@@ -244,7 +240,6 @@ export const VentaModel = {
         return result.rows;
     },
 
-    // Obtener venta por ID con detalle completo
     getById: async (id: number) => {
         const result = await pool.query(`
             SELECT
@@ -278,7 +273,6 @@ export const VentaModel = {
         return result.rows[0];
     },
 
-    // Actualizar estado (para trabajador/admin)
     updateEstado: async (id: number, estado: string, trabajador_id: number, notas_internas?: string) => {
         const campos = ['estado = $2', 'actualizado_por = $3', 'fecha_actualizacion = CURRENT_TIMESTAMP'];
         const valores: any[] = [id, estado, trabajador_id];
@@ -295,7 +289,6 @@ export const VentaModel = {
         return result.rows[0];
     },
 
-    // Guardar preference_id de MercadoPago en transacciones_pago
     crearTransaccion: async (venta_id: number, metodo_pago_id: number, monto: number, preference_id: string) => {
         const result = await pool.query(`
             INSERT INTO transacciones_pago (
@@ -308,8 +301,6 @@ export const VentaModel = {
         return result.rows[0];
     },
 
-
-    // ── Editar detalles de venta ──────────────────────────────
     editarDetalles: async (id: number, data: {
         direccion_envio?: string;
         notas_internas?: string;
@@ -349,7 +340,6 @@ export const VentaModel = {
         return result.rows[0];
     },
 
-    // ── Modificar cantidad de un item ─────────────────────────
     editarCantidadItem: async (detalle_id: number, venta_id: number, cantidad: number) => {
         const client = await pool.connect();
         try {
@@ -368,14 +358,13 @@ export const VentaModel = {
                 UPDATE detalle_ventas SET cantidad = $1, subtotal = $2 WHERE id = $3
             `, [cantidad, nuevoSubtotal, detalle_id]);
 
-            // Recalcular totales de la venta
             const totales = await client.query(`
-                SELECT SUM(subtotal) AS subtotal FROM detalle_ventas WHERE venta_id = $1
+                SELECT SUM(subtotal) AS total FROM detalle_ventas WHERE venta_id = $1
             `, [venta_id]);
 
-            const subtotal = parseFloat(totales.rows[0].subtotal);
-            const iva      = subtotal * 0.16;
-            const total    = subtotal + iva;
+            const total    = parseFloat(totales.rows[0].total);
+            const subtotal = parseFloat((total / 1.16).toFixed(2));
+            const iva      = parseFloat((total - subtotal).toFixed(2));
 
             await client.query(`
                 UPDATE ventas SET subtotal = $1, iva = $2, total = $3, fecha_actualizacion = CURRENT_TIMESTAMP
@@ -392,13 +381,11 @@ export const VentaModel = {
         }
     },
 
-    // ── Eliminar item de venta ────────────────────────────────
     eliminarItem: async (detalle_id: number, venta_id: number) => {
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
 
-            // Verificar que no sea el último item
             const count = await client.query(
                 `SELECT COUNT(*) FROM detalle_ventas WHERE venta_id = $1`, [venta_id]
             );
@@ -409,13 +396,12 @@ export const VentaModel = {
                 `DELETE FROM detalle_ventas WHERE id = $1 AND venta_id = $2`, [detalle_id, venta_id]
             );
 
-            // Recalcular totales
             const totales = await client.query(
-                `SELECT SUM(subtotal) AS subtotal FROM detalle_ventas WHERE venta_id = $1`, [venta_id]
+                `SELECT SUM(subtotal) AS total FROM detalle_ventas WHERE venta_id = $1`, [venta_id]
             );
-            const subtotal = parseFloat(totales.rows[0].subtotal);
-            const iva      = subtotal * 0.16;
-            const total    = subtotal + iva;
+            const total    = parseFloat(totales.rows[0].total);
+            const subtotal = parseFloat((total / 1.16).toFixed(2));
+            const iva      = parseFloat((total - subtotal).toFixed(2));
 
             await client.query(`
                 UPDATE ventas SET subtotal = $1, iva = $2, total = $3,
@@ -433,7 +419,6 @@ export const VentaModel = {
         }
     },
 
-    // ── Obtener datos del cliente de una venta ────────────────
     getClienteByVenta: async (venta_id: number) => {
         const result = await pool.query(`
             SELECT
@@ -452,24 +437,32 @@ export const VentaModel = {
         `, [venta_id]);
         return result.rows[0];
     },
-    // Confirmar pago recibido de MercadoPago
-    confirmarPago: async (payment_id: string, preference_id: string) => {
+
+    // ✅ FIX: confirmarPago ahora busca por venta_id (external_reference)
+    // en lugar de preference_id, que puede variar en formato
+    confirmarPago: async (payment_id: string, venta_id: number) => {
+        // Actualizar la transacción más reciente de esa venta
         const result = await pool.query(`
             UPDATE transacciones_pago
             SET estado = 'aprobado',
                 transaction_id = $1,
                 fecha_aprobacion = CURRENT_TIMESTAMP,
                 fecha_actualizacion = CURRENT_TIMESTAMP
-            WHERE transaction_id = $2
+            WHERE venta_id = $2
+              AND estado = 'pendiente'
             RETURNING venta_id
-        `, [payment_id, preference_id]);
+        `, [payment_id, venta_id]);
 
         if (result.rows.length > 0) {
             await pool.query(`
                 UPDATE ventas
-                SET estado = 'confirmado', fecha_actualizacion = CURRENT_TIMESTAMP
+                SET estado = 'confirmado',
+                    fecha_actualizacion = CURRENT_TIMESTAMP
                 WHERE id = $1
-            `, [result.rows[0].venta_id]);
+            `, [venta_id]);
+            console.log(`✅ BD actualizada: transaccion aprobada, venta ${venta_id} → confirmado`);
+        } else {
+            console.warn(`⚠️ No se encontró transacción pendiente para venta_id=${venta_id}`);
         }
 
         return result.rows[0];

@@ -11,14 +11,27 @@ import {
     generarReciboPDF
 } from '../controllers/carrito/carritoController';
 import { authenticateToken } from '../middleware/authMiddleware';
+import { pool } from '../config/database';
 
 const router = Router();
 
 // ── Webhook MercadoPago (público) ─────────────────────────────
 router.post('/webhook/mercadopago', webhookMercadoPago);
+router.get('/webhook/mercadopago', (req, res) => res.sendStatus(200)); // verificación GET de MP
 
 // ── Recibo PDF — público con token en query string ───────────
 router.get('/pedidos/:id/recibo', generarReciboPDF);
+
+router.get('/estados-pedido', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT unnest(enum_range(NULL::estado_pedido_enum))::text AS estado
+        `);
+        res.json({ success: true, data: result.rows.map((r: any) => r.estado) });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 // ── Todo lo demás requiere autenticación ─────────────────────
 router.use(authenticateToken);

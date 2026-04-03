@@ -8,12 +8,13 @@ import './CarritoScreen.css';
 
 const PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzFhMWEyZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQwIiBmaWxsPSIjZWNiMmMzIj7oo6s8L3RleHQ+PC9zdmc+';
 
-// ── Selector de dirección por CP (zippopotam.us — gratis, sin token) ──
+// ── Selector de dirección por CP ──────────────────────────────
 const SelectorDireccion: React.FC<{ onChange: (dir: string) => void }> = ({ onChange }) => {
     const [cp, setCp]               = useState('');
     const [estado, setEstado]       = useState('');
     const [municipio, setMunicipio] = useState('');
     const [colonia, setColonia]     = useState('');
+    const [colonias, setColonias]   = useState<string[]>([]);
     const [calle, setCalle]         = useState('');
     const [numero, setNumero]       = useState('');
     const [cargando, setCargando]   = useState(false);
@@ -23,23 +24,38 @@ const SelectorDireccion: React.FC<{ onChange: (dir: string) => void }> = ({ onCh
     const buscarCP = async (codigo: string) => {
         if (codigo.length !== 5) {
             setEstado(''); setMunicipio(''); setColonia('');
-            setCpValido(false); setCpError('');
+            setColonias([]); setCpValido(false); setCpError('');
             return;
         }
         setCargando(true); setCpError('');
         try {
             const res = await fetch(`https://api.zippopotam.us/mx/${codigo}`);
-            if (!res.ok) { setCpError('CP no encontrado. Verifica e intenta de nuevo.'); setCpValido(false); return; }
+            if (!res.ok) {
+                setCpError('CP no encontrado. Verifica e intenta de nuevo.');
+                setCpValido(false);
+                setColonias([]);
+                return;
+            }
             const data = await res.json();
-            const lugar = data.places?.[0];
-            if (!lugar) { setCpError('CP no encontrado.'); setCpValido(false); return; }
-            setEstado(lugar['state'] || '');
-            setMunicipio(lugar['place name'] || '');
-            setColonia('');
+            const places = data.places || [];
+            if (!places.length) {
+                setCpError('CP no encontrado.');
+                setCpValido(false);
+                setColonias([]);
+                return;
+            }
+            setEstado(places[0]['state'] || '');
+            setMunicipio(places[0]['place name'] || '');
+            // ✅ Todas las colonias como opciones del dropdown
+            // ✅ Si solo hay una colonia, seleccionarla automáticamente
+            if (places.length === 1) setColonia(places[0]['place name']);
+            else setColonia('');
+            setColonias(places.map((p: any) => p['place name']));
             setCpValido(true);
         } catch {
             setCpError('Error al buscar el CP. Verifica tu conexión.');
             setCpValido(false);
+            setColonias([]);
         } finally {
             setCargando(false);
         }
@@ -70,12 +86,12 @@ const SelectorDireccion: React.FC<{ onChange: (dir: string) => void }> = ({ onCh
             <div className="carrito-dir-campo">
                 <label>Código Postal <span className="carrito-requerido">*</span></label>
                 <input
-                    type="text" className={ic} placeholder="Ej: 06600"
+                    type="text" className={ic} placeholder="Ej: 43000"
                     value={cp} onChange={e => handleCpChange(e.target.value)}
                     maxLength={5}
                 />
                 {cargando && <span className="carrito-dir-cargando">⏳ Buscando...</span>}
-                {cpValido && !cargando && <span className="carrito-cp-ok">✅ CP encontrado</span>}
+                {cpValido && !cargando && <span className="carrito-cp-ok">✅ CP encontrado — {colonias.length} colonias disponibles</span>}
                 {cpError  && <span className="carrito-cp-error">⚠️ {cpError}</span>}
             </div>
 
@@ -95,13 +111,30 @@ const SelectorDireccion: React.FC<{ onChange: (dir: string) => void }> = ({ onCh
                 </div>
             )}
 
-            {/* Colonia — texto libre */}
             {cpValido && (
                 <div className="carrito-dir-campo">
                     <label>Colonia <span className="carrito-requerido">*</span></label>
-                    <input type="text" className={ic}
-                        placeholder="Ej: Juárez, Roma Norte, Centro..."
-                        value={colonia} onChange={e => setColonia(e.target.value)} />
+                    <select
+                        className={ic}
+                        value={colonia}
+                        onChange={e => setColonia(e.target.value)}
+                    >
+                        <option value="">— Selecciona una colonia —</option>
+                        {colonias.map((c, i) => (
+                            <option key={i} value={c}>{c}</option>
+                        ))}
+                        <option value="__otra__">✏️ Mi colonia no aparece (escribir manualmente)</option>
+                    </select>
+                    {/* Campo de texto libre si selecciona "otra" */}
+                    {colonia === '__otra__' && (
+                        <input
+                            type="text"
+                            className={ic}
+                            style={{ marginTop: '8px' }}
+                            placeholder="Escribe tu colonia"
+                            onChange={e => setColonia(e.target.value === '' ? '__otra__' : e.target.value)}
+                        />
+                    )}
                 </div>
             )}
 
@@ -150,6 +183,10 @@ const CarritoScreen: React.FC = () => {
     const handleSolicitarPedido = async () => {
         if (!direccion.trim() || direccion.split(',').length < 3) {
             setErrorMsg('Por favor completa el CP, colonia y calle');
+            return;
+        }
+        if (direccion.includes('__otra__')) {
+            setErrorMsg('Por favor escribe el nombre de tu colonia');
             return;
         }
         setSolicitando(true);
