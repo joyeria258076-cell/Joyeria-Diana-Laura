@@ -182,7 +182,7 @@ export const crearPedido = async (req: Request, res: Response) => {
         const usuario = getUsuario(req);
         if (!usuario.id) return res.status(401).json({ success: false, message: 'No autenticado' });
 
-        const { direccion_envio, notas_cliente } = req.body;
+        const { direccion_envio, notas_cliente, metodo_pago_id } = req.body;
         if (!direccion_envio)
             return res.status(400).json({ success: false, message: 'Dirección de envío requerida' });
 
@@ -191,9 +191,11 @@ export const crearPedido = async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, message: 'El carrito está vacío' });
 
         const cliente_id = await VentaModel.getOrCreateCliente(usuario.id, usuario.email, usuario.nombre);
-        const metodo_pago_id = await VentaModel.getMetodoPagoId();
         if (!metodo_pago_id)
-            return res.status(503).json({ success: false, message: 'Método de pago no configurado' });
+            return res.status(400).json({ success: false, message: 'Método de pago requerido' });
+        const metodoPago = await VentaModel.getMetodoPagoById(parseInt(metodo_pago_id));
+        if (!metodoPago)
+            return res.status(400).json({ success: false, message: 'Método de pago inválido' });
 
         const productIds = items.map(i => i.producto_id);
         const prodsResult = await pool.query(
@@ -1040,6 +1042,119 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.send(html);
 
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const confirmarPagoEfectivo = async (req: Request, res: Response) => {
+    try {
+        const usuario = getUsuario(req);
+        const { id } = req.params;
+        const venta = await VentaModel.getById(parseInt(id));
+        if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
+
+        const transactionId = `MANUAL-${usuario.id}-${Date.now()}`;
+
+        // ✅ Insertar transacción aprobada directamente
+        await pool.query(`
+            INSERT INTO transacciones_pago (
+                venta_id, metodo_pago_id, monto, moneda, monto_neto,
+                estado, transaction_id, fecha_aprobacion,
+                fecha_creacion, fecha_actualizacion
+            ) VALUES ($1, $2, $3, 'MXN', $3, 'aprobado', $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `, [parseInt(id), venta.metodo_pago_id, parseFloat(venta.total), transactionId]);
+
+        // ✅ Avanzar estado a en_preparacion
+        await pool.query(`
+            UPDATE ventas 
+            SET estado = 'en_preparacion', fecha_actualizacion = CURRENT_TIMESTAMP 
+            WHERE id = $1
+        `, [parseInt(id)]);
+
+        res.json({ success: true, message: 'Pago confirmado correctamente' });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const subirComprobante = async (req: Request, res: Response) => {
+    try {
+        const usuario = getUsuario(req);
+        const { id } = req.params;
+
+        const venta = await VentaModel.getById(parseInt(id));
+        if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
+        if (venta.creado_por !== usuario.id)
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        if (venta.metodo_pago_codigo !== 'transferencia')
+            return res.status(400).json({ success: false, message: 'Este pedido no es por transferencia' });
+
+        if (!req.file)
+            return res.status(400).json({ success: false, message: 'No se recibió ningún archivo' });
+
+        // Subir a Cloudinary
+        const cloudinary = require('../../config/cloudinary').default;
+        const uploadResult = await new Promise<any>((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+                {
+                    folder: 'joyeria-diana-laura/comprobantes',
+                    public_id: `comprobante-${venta.folio}-${Date.now()}`,
+                    resource_type: 'image',
+                },
+                (error: any, result: any) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+            stream.end(req.file!.buffer);
+        });
+
+        // Guardar URL en la BD
+        await pool.query(`
+            UPDATE ventas 
+            SET comprobante_transferencia_url = $1, fecha_actualizacion = CURRENT_TIMESTAMP
+            WHERE id = $2
+        `, [uploadResult.secure_url, parseInt(id)]);
+
+        console.log(`📎 Comprobante subido para venta ${id}: ${uploadResult.secure_url}`);
+
+        res.json({
+            success: true,
+            message: 'Comprobante subido correctamente. El trabajador lo revisará pronto.',
+            data: { url: uploadResult.secure_url }
+        });
+    } catch (error: any) {
+        console.error('Error subiendo comprobante:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// ── ENDPOINT DE POLLING PARA NOTIFICACIONES ───────────────────
+export const getEstadosPedidosCliente = async (req: Request, res: Response) => {
+    try {
+        const usuario = getUsuario(req);
+        if (!usuario.id) return res.status(401).json({ success: false, message: 'No autenticado' });
+
+        const result = await pool.query(`
+            SELECT 
+                v.id,
+                v.folio,
+                v.estado,
+                v.fecha_actualizacion,
+                COALESCE(
+                    (SELECT tp.estado FROM transacciones_pago tp
+                     WHERE tp.venta_id = v.id
+                     ORDER BY tp.fecha_creacion DESC LIMIT 1),
+                    'pendiente'
+                ) AS estado_pago
+            FROM ventas v
+            WHERE v.creado_por = $1
+            AND v.estado NOT IN ('cancelado', 'entregado')
+            ORDER BY v.fecha_creacion DESC
+        `, [usuario.id]);
+
+        res.json({ success: true, data: result.rows });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }

@@ -74,7 +74,7 @@ export const CarritoModel = {
     }
 };
 
-// ── VENTAS (usando tablas existentes) ─────────────────────────
+// ── VENTAS ────────────────────────────────────────────────────
 export const VentaModel = {
 
     getOrCreateCliente: async (usuario_id: number, email: string, nombre: string): Promise<number> => {
@@ -92,6 +92,16 @@ export const VentaModel = {
         return created.rows[0].id;
     },
 
+    getMetodosPago: async () => {
+        const result = await pool.query(`
+            SELECT id, nombre, codigo, tipo, es_pasarela, instrucciones_cliente
+            FROM metodos_pago
+            WHERE activo = true
+            ORDER BY orden ASC, id ASC
+        `);
+        return result.rows;
+    },
+
     getMetodoPagoId: async (): Promise<number | null> => {
         const result = await pool.query(
             `SELECT id FROM metodos_pago WHERE codigo = 'mercadopago' AND activo = true LIMIT 1`
@@ -99,14 +109,22 @@ export const VentaModel = {
         return result.rows.length > 0 ? result.rows[0].id : null;
     },
 
+    getMetodoPagoById: async (id: number) => {
+        const result = await pool.query(
+            `SELECT id, nombre, codigo, tipo, es_pasarela FROM metodos_pago WHERE id = $1 AND activo = true LIMIT 1`,
+            [id]
+        );
+        return result.rows[0] || null;
+    },
+
     create: async (data: {
-        cliente_id:     number;
-        usuario_id:     number;
-        cliente_nombre: string;
-        cliente_email:  string;
-        metodo_pago_id: number;
+        cliente_id:      number;
+        usuario_id:      number;
+        cliente_nombre:  string;
+        cliente_email:   string;
+        metodo_pago_id:  number;
         direccion_envio: string;
-        notas_cliente?: string;
+        notas_cliente?:  string;
         items: {
             producto_id:     number;
             producto_codigo: string;
@@ -166,7 +184,6 @@ export const VentaModel = {
             }
 
             await client.query(`DELETE FROM carrito WHERE usuario_id = $1`, [data.usuario_id]);
-
             await client.query('COMMIT');
             return venta;
 
@@ -182,7 +199,12 @@ export const VentaModel = {
         const result = await pool.query(`
             SELECT
                 v.*,
-                ut.nombre AS trabajador_nombre,
+                mp.nombre      AS metodo_pago_nombre,
+                mp.codigo      AS metodo_pago_codigo,
+                mp.tipo        AS metodo_pago_tipo,
+                mp.es_pasarela AS metodo_es_pasarela,
+                -- ✅ Usar trabajador_id para el nombre del trabajador asignado
+                tw.nombre AS trabajador_nombre,
                 COALESCE(
                     (SELECT tp.estado FROM transacciones_pago tp
                      WHERE tp.venta_id = v.id
@@ -202,7 +224,9 @@ export const VentaModel = {
                     FROM detalle_ventas dv WHERE dv.venta_id = v.id
                 ) AS items
             FROM ventas v
-            LEFT JOIN usuarios ut ON v.actualizado_por = ut.id
+            LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
+            -- ✅ JOIN con trabajador_id, no actualizado_por
+            LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
             WHERE v.creado_por = $1
             ORDER BY v.fecha_creacion DESC
         `, [usuario_id]);
@@ -213,10 +237,13 @@ export const VentaModel = {
         let query = `
             SELECT
                 v.*,
-                c.nombre            AS cliente_nombre,
-                c.email             AS cliente_email,
-                ut.nombre           AS trabajador_nombre,
-                tw.nombre           AS trabajador_asignado_nombre,
+                mp.nombre      AS metodo_pago_nombre,
+                mp.codigo      AS metodo_pago_codigo,
+                mp.tipo        AS metodo_pago_tipo,
+                c.nombre       AS cliente_nombre,
+                c.email        AS cliente_email,
+                ut.nombre      AS trabajador_nombre,
+                tw.nombre      AS trabajador_asignado_nombre,
                 (SELECT COUNT(*) FROM detalle_ventas dv WHERE dv.venta_id = v.id) AS total_items,
                 COALESCE(
                     (SELECT tp.estado FROM transacciones_pago tp
@@ -226,6 +253,7 @@ export const VentaModel = {
                 ) AS estado_pago
             FROM ventas v
             JOIN clientes c ON v.cliente_id = c.id
+            LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
             LEFT JOIN usuarios ut ON v.actualizado_por = ut.id
             LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
             WHERE 1=1
@@ -244,9 +272,15 @@ export const VentaModel = {
         const result = await pool.query(`
             SELECT
                 v.*,
+                mp.nombre                AS metodo_pago_nombre,
+                mp.codigo                AS metodo_pago_codigo,
+                mp.tipo                  AS metodo_pago_tipo,
+                mp.es_pasarela           AS metodo_es_pasarela,
+                mp.instrucciones_cliente AS metodo_instrucciones,
                 c.nombre  AS cliente_nombre_reg,
                 c.email   AS cliente_email_reg,
-                ut.nombre AS trabajador_nombre,
+                -- ✅ Usar trabajador_id para el nombre del trabajador asignado
+                tw.nombre AS trabajador_nombre,
                 COALESCE(
                     (SELECT tp.estado FROM transacciones_pago tp
                      WHERE tp.venta_id = v.id
@@ -267,7 +301,9 @@ export const VentaModel = {
                 ) AS items
             FROM ventas v
             JOIN clientes c ON v.cliente_id = c.id
-            LEFT JOIN usuarios ut ON v.actualizado_por = ut.id
+            LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
+            -- ✅ JOIN con trabajador_id, no actualizado_por
+            LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
             WHERE v.id = $1
         `, [id]);
         return result.rows[0];
@@ -307,12 +343,16 @@ export const VentaModel = {
         fecha_estimada_entrega?: string;
         numero_guia?: string;
         paqueteria?: string;
-        trabajador_id: number;
+        trabajador_id?: number;
     }) => {
-        const campos: string[] = ['fecha_actualizacion = CURRENT_TIMESTAMP', 'actualizado_por = $2'];
-        const valores: any[] = [id, data.trabajador_id];
-        let i = 3;
+        const campos: string[] = ['fecha_actualizacion = CURRENT_TIMESTAMP'];
+        const valores: any[] = [id];
+        let i = 2;
 
+        if (data.trabajador_id !== undefined) {
+            campos.push(`actualizado_por = $${i++}`);
+            valores.push(data.trabajador_id);
+        }
         if (data.direccion_envio !== undefined) {
             campos.push(`notas_cliente = $${i++}`);
             valores.push(data.direccion_envio);
@@ -438,10 +478,7 @@ export const VentaModel = {
         return result.rows[0];
     },
 
-    // ✅ FIX: confirmarPago ahora busca por venta_id (external_reference)
-    // en lugar de preference_id, que puede variar en formato
     confirmarPago: async (payment_id: string, venta_id: number) => {
-        // Actualizar la transacción más reciente de esa venta
         const result = await pool.query(`
             UPDATE transacciones_pago
             SET estado = 'aprobado',

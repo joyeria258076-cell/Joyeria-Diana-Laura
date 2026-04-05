@@ -134,3 +134,45 @@
     .carrito-dir-fila-2 { grid-template-columns: 1fr; }
     .carrito-dir-fila { grid-template-columns: 1fr 100px; }
 }
+
+/* ── Métodos de pago ── */
+.carrito-metodos-pago { display: flex; flex-direction: column; gap: 16px; }
+.carrito-metodos-grupo { display: flex; flex-direction: column; gap: 8px; }
+.carrito-metodos-titulo { font-size: 0.78rem; font-weight: 700; color: #ecb2c3; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.carrito-metodos-opciones { display: flex; flex-direction: column; gap: 8px; }
+.carrito-metodo-opcion {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: 10px;
+    border: 1px solid #2a2a3e; background: #1a1a2e;
+    cursor: pointer; transition: all 0.2s;
+}
+.carrito-metodo-opcion:hover { border-color: #ecb2c3; }
+.carrito-metodo-opcion.seleccionado { border-color: #ecb2c3; background: rgba(236,178,195,0.08); }
+.carrito-metodo-opcion input[type="radio"] { accent-color: #ecb2c3; width: 16px; height: 16px; }
+.carrito-metodo-icono { font-size: 1.3rem; }
+.carrito-metodo-nombre { font-size: 0.9rem; color: #fff; font-weight: 500; }
+.carrito-metodo-info {
+    padding: 10px 14px; border-radius: 8px;
+    background: rgba(236,178,195,0.08);
+    border-left: 3px solid #ecb2c3;
+    font-size: 0.82rem; color: #bbb; line-height: 1.5;
+}
+/* ── Stock en carrito ── */
+.carrito-stock { display: block; font-size: 0.75rem; font-weight: 600; margin-top: 4px; }
+.carrito-stock-ok { color: #6bcb77; }
+.carrito-stock-poco { color: #f5c842; }
+.carrito-stock-agotado { color: #e05a6a; }
+
+/* ── Guía de checkout ── */
+.carrito-checkout-guia {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(236,178,195,0.08); border: 1px solid rgba(236,178,195,0.15);
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.carrito-guia-paso { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #ccc; }
+.carrito-guia-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #ecb2c3; color: #0f0f12; font-weight: 700;
+    font-size: 0.72rem; display: flex; align-items: center; justify-content: center;
+}
+.carrito-guia-sep { color: #555; font-size: 0.9rem; }
