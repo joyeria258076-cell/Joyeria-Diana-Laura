@@ -78,6 +78,31 @@ const restaurarStock = async (venta_id: number): Promise<void> => {
     }
 };
 
+// ── CALCULAR FECHA DE ENTREGA ESTIMADA SUMANDO DIAS HABILES───────────────────────────────────────
+const calcularFechaEntrega = async (diasDefault: number = 7): Promise<string> => {
+    try {
+        const result = await pool.query(
+            `SELECT valor FROM configuracion WHERE clave = 'dias_entrega_default'`
+        );
+        const dias = result.rows.length > 0 ? parseInt(result.rows[0].valor) : diasDefault;
+
+        // ✅ Usar hora México para el cálculo
+        const ahoraMx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+        //console.log('📅 Fecha base México:', ahoraMx.toISOString(), 'Día semana:', ahoraMx.getDay());
+        const fecha = new Date(ahoraMx);
+        let diasContados = 0;
+        while (diasContados < dias) {
+            fecha.setDate(fecha.getDate() + 1);
+            diasContados++; // ✅ Cuenta todos los días incluyendo fines de semana
+        }
+        return `${fecha.getFullYear()}-${String(fecha.getMonth()+1).padStart(2,'0')}-${String(fecha.getDate()).padStart(2,'0')}`;
+    } catch {
+        const fecha = new Date();
+        fecha.setDate(fecha.getDate() + 7);
+        return fecha.toISOString().split('T')[0];
+    }
+};
+
 // ── CARRITO ───────────────────────────────────────────────────
 
 export const getCarrito = async (req: Request, res: Response) => {
@@ -213,6 +238,20 @@ export const crearPedido = async (req: Request, res: Response) => {
             precio_unitario: parseFloat(item.precio_oferta || item.precio_venta)
         }));
 
+        // ✅ Verificar stock disponible antes de crear el pedido
+        for (const item of itemsPedido) {
+            const stockCheck = await pool.query(
+                `SELECT stock_actual, nombre FROM productos WHERE id = $1`, [item.producto_id]
+            );
+            if (!stockCheck.rows.length) 
+                return res.status(400).json({ success: false, message: `Producto no encontrado` });
+            if (stockCheck.rows[0].stock_actual < item.cantidad)
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Stock insuficiente para "${stockCheck.rows[0].nombre}". Solo quedan ${stockCheck.rows[0].stock_actual} unidades.` 
+                });
+        }
+
         const venta = await VentaModel.create({
             cliente_id,
             usuario_id:     usuario.id,
@@ -241,6 +280,7 @@ export const getMisPedidos = async (req: Request, res: Response) => {
         if (!id) return res.status(401).json({ success: false, message: 'No autenticado' });
 
         const ventas = await VentaModel.getByUsuario(id);
+        console.log('FECHA RAW:', ventas[0]?.fecha_creacion);
         res.json({ success: true, data: ventas });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
@@ -540,6 +580,20 @@ export const capturarPagoPayPal = async (req: Request, res: Response) => {
 
         if (captureData.status === 'COMPLETED') {
             await VentaModel.confirmarPago(order_id, order_id);
+
+            try {
+                await descontarStock(venta_id);
+
+                // ✅ Calcular fecha estimada al pagar con PayPal
+                const fechaEntrega = await calcularFechaEntrega();
+                await pool.query(`
+                    UPDATE ventas SET fecha_estimada_entrega = $1 WHERE id = $2 AND fecha_estimada_entrega IS NULL
+                `, [fechaEntrega, parseInt(String(venta_id))]);
+
+                console.log(`📦 Stock descontado por pago PayPal: venta_id=${venta_id}`);
+            } catch (stockErr) {
+                console.error('⚠️ Error descontando stock PayPal:', stockErr);
+            }
             console.log(`✅ Pago PayPal capturado: orden ${order_id}`);
             res.json({ success: true, message: 'Pago capturado correctamente' });
         } else {
@@ -698,6 +752,13 @@ export const webhookMercadoPago = async (req: Request, res: Response) => {
                 // ✅ Stock se descuenta al pagar, no al confirmar manualmente
                 try {
                     await descontarStock(venta_id);
+
+                    // ✅ Calcular fecha estimada al pagar con MP
+                    const fechaEntrega = await calcularFechaEntrega();
+                    await pool.query(`
+                        UPDATE ventas SET fecha_estimada_entrega = $1 WHERE id = $2 AND fecha_estimada_entrega IS NULL
+                    `, [fechaEntrega, venta_id]);
+
                     console.log(`📦 Stock descontado por pago MP: venta_id=${venta_id}`);
                 } catch (stockErr) {
                     console.error('⚠️ Error descontando stock en webhook:', stockErr);
@@ -761,7 +822,13 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
             </tr>
         `).join('');
 
-        const fechaFormato = new Date(venta.fecha_creacion).toLocaleString('es-MX', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone:'America/Mexico_City' });
+        const fechaStr = venta.fecha_creacion;
+        const fechaUTC = /Z|[+-]\d{2}:?\d{2}$/.test(fechaStr) ? fechaStr : fechaStr.replace(' ', 'T') + 'Z';
+        const fechaFormato = new Intl.DateTimeFormat('es-MX', {
+            day: '2-digit', month: 'long', year: 'numeric',
+            hour: '2-digit', minute: '2-digit',
+            timeZone: 'America/Mexico_City'
+        }).format(new Date(fechaUTC));
         const fechaHoy = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric', timeZone:'America/Mexico_City' });
 
         const html = `<!DOCTYPE html>
@@ -989,6 +1056,10 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
                         <p class="info-label">Estado</p>
                         <span class="estado-badge">${venta.estado}</span>
                     </div>
+                    <div class="info-row">
+                        <p class="info-label">Método de pago</p>
+                        <p class="info-value">${venta.metodo_pago_nombre || 'No especificado'}</p>
+                    </div>
                 </div>
                 <div class="info-card">
                     <h3>Cliente</h3>
@@ -1054,6 +1125,13 @@ export const confirmarPagoEfectivo = async (req: Request, res: Response) => {
         const venta = await VentaModel.getById(parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
 
+        if (venta.metodo_pago_codigo === 'transferencia' && !venta.comprobante_transferencia_url) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'El cliente aún no ha subido el comprobante de transferencia.' 
+            });
+        }
+        
         const transactionId = `MANUAL-${usuario.id}-${Date.now()}`;
 
         // ✅ Insertar transacción aprobada directamente
@@ -1071,6 +1149,21 @@ export const confirmarPagoEfectivo = async (req: Request, res: Response) => {
             SET estado = 'en_preparacion', fecha_actualizacion = CURRENT_TIMESTAMP 
             WHERE id = $1
         `, [parseInt(id)]);
+
+        // ✅ Calcular y guardar fecha estimada de entrega
+        const fechaEntrega = await calcularFechaEntrega();
+        //console.log(`📅 Fecha entrega calculada: ${fechaEntrega}`);
+        await pool.query(`
+            UPDATE ventas SET fecha_estimada_entrega = $1 WHERE id = $2 AND fecha_estimada_entrega IS NULL
+        `, [fechaEntrega, parseInt(id)]);
+        
+        // ✅ Descontar stock al confirmar pago manual
+        try {
+            await descontarStock(parseInt(id));
+            console.log(`📦 Stock descontado por pago manual: venta_id=${id}`);
+        } catch (stockErr) {
+            console.error('⚠️ Error descontando stock:', stockErr);
+        }
 
         res.json({ success: true, message: 'Pago confirmado correctamente' });
     } catch (error: any) {

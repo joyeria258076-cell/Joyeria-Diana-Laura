@@ -76,7 +76,6 @@ const DESCRIPCION_ESTADO: Record<string, string> = {
     cancelado:      '🚫 El pedido será cancelado. El stock será restaurado.',
 };
 
-// ✅ Guía de pasos por estado para el trabajador
 const GUIA_ESTADO: Record<string, string> = {
     pendiente:      '1️⃣ Revisa los productos · 2️⃣ Toma el pedido · 3️⃣ Confírmalo para que el cliente pueda pagar',
     confirmado:     '1️⃣ Espera el pago del cliente · 2️⃣ Verifica el pago en "Ver detalle" · 3️⃣ Avanza a "En preparación"',
@@ -133,23 +132,31 @@ const StepperPedido: React.FC<{ estado: string; estado_pago: string }> = ({ esta
     );
 };
 
+const toUTC = (f: string) => {
+    if (!f) return '';
+    if (!/Z|[+-]\d{2}:?\d{2}$/.test(f)) return f.replace(' ', 'T') + 'Z';
+    return f;
+};
+
 const agruparPorFecha = (pedidos: Pedido[]): { label: string; pedidos: Pedido[] }[] => {
     const hoy    = new Date(); hoy.setHours(0,0,0,0);
     const ayer   = new Date(hoy); ayer.setDate(ayer.getDate() - 1);
     const semana = new Date(hoy); semana.setDate(semana.getDate() - 7);
     const grupos: Record<string, Pedido[]> = { 'Hoy': [], 'Ayer': [], 'Esta semana': [], 'Más antiguos': [] };
     pedidos.forEach(p => {
-        const fecha = new Date(p.fecha_creacion); fecha.setHours(0,0,0,0);
-        if (fecha.getTime() === hoy.getTime())       grupos['Hoy'].push(p);
-        else if (fecha.getTime() === ayer.getTime()) grupos['Ayer'].push(p);
-        else if (fecha >= semana)                    grupos['Esta semana'].push(p);
-        else                                         grupos['Más antiguos'].push(p);
+        const fUTC = toUTC(p.fecha_creacion);
+        const fechaMx = new Date(new Date(fUTC).toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+        fechaMx.setHours(0,0,0,0);
+        if (fechaMx.getTime() === hoy.getTime())       grupos['Hoy'].push(p);
+        else if (fechaMx.getTime() === ayer.getTime()) grupos['Ayer'].push(p);
+        else if (fechaMx >= semana)                    grupos['Esta semana'].push(p);
+        else                                           grupos['Más antiguos'].push(p);
     });
     return Object.entries(grupos).filter(([, ps]) => ps.length > 0).map(([label, ps]) => ({ label, pedidos: ps }));
 };
 
 const PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjMWExYTJlIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiNlY2IyYzMiPvCfp6s8L3RleHQ+PC9zdmc+';
-const POLLING_INTERVAL = 20000; // 20 segundos
+const POLLING_INTERVAL = 20000;
 
 const GestionPedidosScreen: React.FC = () => {
     const { user } = useAuth();
@@ -167,8 +174,15 @@ const GestionPedidosScreen: React.FC = () => {
     const [tomando, setTomando]           = useState(false);
     const [estados, setEstados]           = useState<EstadoConfig[]>([]);
     const pollingRef                      = useRef<ReturnType<typeof setInterval> | null>(null);
-    // ✅ Rastrear estados anteriores para polling
     const estadosRef                      = useRef<Record<number, string>>({});
+
+    // ✅ Configuración de días de entrega
+    const [diasEntrega, setDiasEntrega]         = useState<number>(7);
+    const [diasEntregaEdit, setDiasEntregaEdit] = useState<number>(7);
+    const [showConfigDias, setShowConfigDias]   = useState(false);
+    const [guardandoDias, setGuardandoDias]     = useState(false);
+    const [msgDias, setMsgDias]                 = useState('');
+    const configDiasRef                         = useRef<HTMLDivElement>(null);
 
     const [editNotas, setEditNotas]             = useState('');
     const [editFechaEst, setEditFechaEst]       = useState('');
@@ -181,14 +195,52 @@ const GestionPedidosScreen: React.FC = () => {
     useEffect(() => {
         cargarEstados();
         cargarPedidos();
-        // ✅ Polling para detectar nuevos comprobantes o cambios
+        cargarDiasEntrega();
         pollingRef.current = setInterval(() => pollPedidos(), POLLING_INTERVAL);
         return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
     }, []);
 
     useEffect(() => { cargarPedidos(); }, [filtroEstado]);
 
-    // ✅ Polling ligero para detectar comprobantes nuevos y cambios en pedidos
+    // Cerrar popover al click fuera
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (configDiasRef.current && !configDiasRef.current.contains(e.target as Node))
+                setShowConfigDias(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    // ✅ Cargar días de entrega desde BD
+    const cargarDiasEntrega = async () => {
+        try {
+            const data = await carritoAPI.getConfiguracion('dias_entrega_default');
+            if (data.success) {
+                const dias = parseInt(data.data.valor) || 7;
+                setDiasEntrega(dias);
+                setDiasEntregaEdit(dias);
+            }
+        } catch { /* usar default 7 */ }
+    };
+
+    // ✅ Guardar días de entrega en BD
+    const guardarDiasEntrega = async () => {
+        if (diasEntregaEdit < 1 || diasEntregaEdit > 60) {
+            setMsgDias('❌ Ingresa un valor entre 1 y 60 días');
+            return;
+        }
+        setGuardandoDias(true); setMsgDias('');
+        try {
+            await carritoAPI.setConfiguracion('dias_entrega_default', String(diasEntregaEdit));
+            setDiasEntrega(diasEntregaEdit);
+            setMsgDias('✅ Guardado');
+            setTimeout(() => { setMsgDias(''); setShowConfigDias(false); }, 1500);
+        } catch {
+            setMsgDias('❌ Error al guardar');
+        } finally { setGuardandoDias(false); }
+    };
+
     const pollPedidos = async () => {
         try {
             const data = await carritoAPI.getAllPedidos(undefined);
@@ -196,13 +248,11 @@ const GestionPedidosScreen: React.FC = () => {
             const nuevos: Pedido[] = data.data || [];
             let hayCambios = false;
             nuevos.forEach(p => {
-                if (estadosRef.current[p.id] !== p.estado) {
-                    hayCambios = true;
-                }
+                if (estadosRef.current[p.id] !== p.estado) hayCambios = true;
                 estadosRef.current[p.id] = p.estado;
             });
             if (hayCambios) setPedidos(nuevos);
-        } catch { /* silencioso */ }
+        } catch { }
     };
 
     const cargarEstados = async () => {
@@ -251,7 +301,6 @@ const GestionPedidosScreen: React.FC = () => {
                 ? pedido.estado : disponibles[0]?.value || pedido.estado;
             setNuevoEstado(estadoInicial);
             setNotasTrabajador(pedido.notas_internas || '');
-            // ✅ Solo pre-llenar fecha si ya tiene una
             setFechaEstModal(pedido.fecha_estimada_entrega?.split('T')[0] || '');
         }
         if (tipo === 'detalle') {
@@ -320,7 +369,6 @@ const GestionPedidosScreen: React.FC = () => {
         setCargando(true); setMsg('');
         try {
             await carritoAPI.actualizarEstado(pedidoSel.id, nuevoEstado, notasTrabajador);
-            // ✅ Guardar fecha estimada solo si se proporcionó una nueva
             if (fechaEstModal && fechaEstModal !== (pedidoSel.fecha_estimada_entrega?.split('T')[0] || '')) {
                 await carritoAPI.editarDetalles(pedidoSel.id, { fecha_estimada_entrega: fechaEstModal });
             }
@@ -372,26 +420,21 @@ const GestionPedidosScreen: React.FC = () => {
         return <span className="gp-pago-badge gp-pago-pendiente">⏳ Sin pago</span>;
     };
 
-    // ✅ Fix UTC — hora correcta México
     const formatFecha = (f: string) => {
         if (!f) return '—';
-        return new Date(f).toLocaleString('es-MX', {
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit',
-            timeZone: 'America/Mexico_City'
-        });
+        if (/^\d{4}-\d{2}-\d{2}$/.test(f)) { const [y,m,d] = f.split('-'); return `${d}/${m}/${y}`; }
+        return new Date(toUTC(f)).toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'America/Mexico_City' });
+    };
+
+    const formatFechaHora = (f: string) => {
+        if (!f) return '—';
+        return new Date(toUTC(f)).toLocaleString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone:'America/Mexico_City' });
     };
 
     const formatFechaSolo = (f: string) => {
         if (!f) return '—';
-        if (/^\d{4}-\d{2}-\d{2}$/.test(f)) {
-            const [y, m, d] = f.split('-');
-            return `${d}/${m}/${y}`;
-        }
-        return new Date(f).toLocaleDateString('es-MX', {
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            timeZone: 'America/Mexico_City'
-        });
+        if (/^\d{4}-\d{2}-\d{2}$/.test(f)) { const [y,m,d] = f.split('-'); return `${d}/${m}/${y}`; }
+        return new Date(f).toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'America/Mexico_City' });
     };
 
     const contar = (estado: string) => pedidos.filter(p => p.estado === estado).length;
@@ -416,7 +459,7 @@ const GestionPedidosScreen: React.FC = () => {
                 <p className="gp-cliente-email">{pedido.cliente_email}</p>
             </td>
             <td className="gp-num-items">{pedido.total_items}</td>
-            <td className="gp-fecha">{formatFecha(pedido.fecha_creacion)}</td>
+            <td className="gp-fecha">{formatFechaHora(pedido.fecha_creacion)}</td>
             <td className="gp-total">${parseFloat(String(pedido.total)).toLocaleString('es-MX')}</td>
             <td>
                 {getBadge(pedido.estado)}
@@ -457,7 +500,55 @@ const GestionPedidosScreen: React.FC = () => {
         <div className="gp-container">
             <div className="gp-header">
                 <h2 className="gp-titulo">Gestión de Pedidos</h2>
-                <button className="gp-btn-refrescar" onClick={cargarPedidos}>🔄 Refrescar</button>
+                <div className="gp-header-acciones">
+                    {/* ✅ Panel de configuración de días de entrega */}
+                    <div className="gp-config-dias-wrap" ref={configDiasRef}>
+                        <button
+                            className="gp-btn-config-dias"
+                            onClick={() => { setShowConfigDias(!showConfigDias); setMsgDias(''); setDiasEntregaEdit(diasEntrega); }}
+                            title="Configurar días de entrega estimada"
+                        >
+                            ⚙️ {diasEntrega} día{diasEntrega !== 1 ? 's' : ''} de entrega
+                        </button>
+                        {showConfigDias && (
+                            <div className="gp-config-dias-popover">
+                                <p className="gp-config-dias-titulo">📅 Días hábiles de entrega</p>
+                                <p className="gp-config-dias-desc">Se asigna automáticamente al confirmar el pago.</p>
+                                <div className="gp-config-dias-input-wrap">
+                                    <button className="gp-config-dias-btn"
+                                        onClick={() => setDiasEntregaEdit(d => Math.max(1, d - 1))}>−</button>
+                                    <input
+                                        type="number" min={1} max={60}
+                                        className="gp-config-dias-input"
+                                        value={diasEntregaEdit}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (val === '' || val === '0') {
+                                                setDiasEntregaEdit('' as any);
+                                                return;
+                                            }
+                                            const num = parseInt(val);
+                                            if (!isNaN(num) && num >= 1 && num <= 60)
+                                                setDiasEntregaEdit(num);
+                                        }}
+                                        onBlur={() => {
+                                            if (!diasEntregaEdit || diasEntregaEdit < 1) setDiasEntregaEdit(1);
+                                        }}
+                                    />
+                                    <button className="gp-config-dias-btn"
+                                        onClick={() => setDiasEntregaEdit(d => Math.min(60, d + 1))}>+</button>
+                                </div>
+                                {msgDias && (
+                                    <p className={`gp-config-dias-msg ${msgDias.startsWith('✅') ? 'ok' : 'error'}`}>{msgDias}</p>
+                                )}
+                                <button className="gp-config-dias-guardar" onClick={guardarDiasEntrega} disabled={guardandoDias}>
+                                    {guardandoDias ? '⏳ Guardando...' : '💾 Guardar'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    <button className="gp-btn-refrescar" onClick={cargarPedidos}>🔄 Refrescar</button>
+                </div>
             </div>
 
             <div className="gp-resumen">
@@ -545,15 +636,12 @@ const GestionPedidosScreen: React.FC = () => {
                                     {modalTipo === 'detalle' && (
                                         <>
                                             <StepperPedido estado={pedidoSel.estado} estado_pago={pedidoSel.estado_pago || 'pendiente'} />
-
-                                            {/* ✅ Guía paso a paso para el trabajador */}
                                             {GUIA_ESTADO[pedidoSel.estado] && (
                                                 <div className="gp-guia-pasos">
                                                     <span className="gp-guia-titulo">📌 ¿Qué sigue?</span>
                                                     <p>{GUIA_ESTADO[pedidoSel.estado]}</p>
                                                 </div>
                                             )}
-
                                             <div className="gp-modal-estado">
                                                 {getBadge(pedidoSel.estado)}
                                                 {getBadgePago(pedidoSel)}
@@ -563,26 +651,20 @@ const GestionPedidosScreen: React.FC = () => {
                                                     </span>
                                                 )}
                                             </div>
-
                                             {pedidoSel.metodo_pago_nombre && (
                                                 <div className="gp-modal-seccion">
                                                     <h4>💳 Método de pago</h4>
                                                     <p>{pedidoSel.metodo_pago_nombre}</p>
                                                 </div>
                                             )}
-
-                                            {/* ✅ Comprobante de transferencia */}
                                             {pedidoSel.metodo_pago_codigo === 'transferencia' && (
                                                 <div className="gp-modal-seccion">
                                                     <h4>📎 Comprobante de transferencia</h4>
                                                     {(pedidoSel as any).comprobante_transferencia_url ? (
                                                         <div className="gp-comprobante-wrap">
-                                                            <img
-                                                                src={(pedidoSel as any).comprobante_transferencia_url}
-                                                                alt="Comprobante de transferencia"
-                                                                className="gp-comprobante-img"
-                                                                onClick={() => window.open((pedidoSel as any).comprobante_transferencia_url, '_blank')}
-                                                            />
+                                                            <img src={(pedidoSel as any).comprobante_transferencia_url}
+                                                                alt="Comprobante" className="gp-comprobante-img"
+                                                                onClick={() => window.open((pedidoSel as any).comprobante_transferencia_url, '_blank')} />
                                                             <p className="gp-comprobante-hint">🔍 Clic para ver en tamaño completo</p>
                                                         </div>
                                                     ) : (
@@ -590,8 +672,6 @@ const GestionPedidosScreen: React.FC = () => {
                                                     )}
                                                 </div>
                                             )}
-
-                                            {/* ✅ Confirmar pago efectivo/transferencia */}
                                             {pedidoSel.estado_pago !== 'aprobado' &&
                                              ['efectivo','transferencia'].includes(pedidoSel.metodo_pago_codigo || '') &&
                                              ['confirmado','en_preparacion','enviado'].includes(pedidoSel.estado) && (
@@ -608,7 +688,6 @@ const GestionPedidosScreen: React.FC = () => {
                                                     </button>
                                                 </div>
                                             )}
-
                                             <div className="gp-modal-seccion">
                                                 <h4>👤 Cliente</h4>
                                                 <p>{pedidoSel.cliente_nombre_completo} — {pedidoSel.cliente_email}</p>
@@ -660,9 +739,12 @@ const GestionPedidosScreen: React.FC = () => {
                                                     placeholder="Notas visibles para el cliente..." />
                                             </div>
                                             <div className="gp-form-grupo">
-                                                <label>Fecha estimada de entrega</label>
+                                                <label>📅 Fecha estimada de entrega (ajuste manual)</label>
                                                 <input className="gp-input" type="date" value={editFechaEst}
                                                     onChange={e => setEditFechaEst(e.target.value)} />
+                                                <small style={{ color: '#8a7a82', fontSize: '0.72rem' }}>
+                                                    La fecha se asigna automáticamente al confirmar el pago. Usa esto para ajustarla si es necesario.
+                                                </small>
                                             </div>
                                             {msg && <div className={`gp-msg ${msg.startsWith('✅') ? 'ok' : 'error'}`}>{msg}</div>}
                                             <button className={`gp-btn-actualizar ${msg.startsWith('✅') ? 'gp-btn-guardado' : ''}`}
@@ -741,8 +823,6 @@ const GestionPedidosScreen: React.FC = () => {
                                                     <div className="gp-estado-desc">{DESCRIPCION_ESTADO[nuevoEstado]}</div>
                                                 )}
                                             </div>
-
-                                            {/* ✅ Aviso para confirmar pago primero */}
                                             {['efectivo','transferencia'].includes(pedidoSel.metodo_pago_codigo || '') &&
                                              pedidoSel.estado_pago !== 'aprobado' &&
                                              ['en_preparacion','enviado','entregado'].includes(nuevoEstado) && (
@@ -750,21 +830,16 @@ const GestionPedidosScreen: React.FC = () => {
                                                     💡 Para avanzar a este estado, primero confirma el pago del cliente en <strong>👁 Ver detalle</strong> del pedido.
                                                 </div>
                                             )}
-
-                                            {/* ✅ Fecha estimada — solo si no tiene o si es la primera vez */}
-                                            {['confirmado','en_preparacion','enviado','entregado'].includes(nuevoEstado) && (
+                                            {['confirmado','en_preparacion','enviado','entregado'].includes(nuevoEstado) && !pedidoSel.fecha_estimada_entrega && (
                                                 <div className="gp-form-grupo">
-                                                    <label>📅 Fecha estimada de entrega {pedidoSel.fecha_estimada_entrega ? '(actualizar)' : '(opcional)'}</label>
+                                                    <label>📅 Fecha estimada de entrega (opcional)</label>
                                                     <input className="gp-input" type="date" value={fechaEstModal}
                                                         onChange={e => setFechaEstModal(e.target.value)} />
-                                                    {!pedidoSel.fecha_estimada_entrega && (
-                                                        <small style={{ color: '#8a7a82', fontSize: '0.72rem' }}>
-                                                            Puedes indicar cuándo estará listo el pedido. El cliente lo verá en sus pedidos.
-                                                        </small>
-                                                    )}
+                                                    <small style={{ color: '#8a7a82', fontSize: '0.72rem' }}>
+                                                        💡 Si no indicas una fecha, el sistema la calculará automáticamente al confirmar el pago ({diasEntrega} días a partir de ese momento).
+                                                    </small>
                                                 </div>
                                             )}
-
                                             <div className="gp-form-grupo">
                                                 <label>Nota para el cliente (opcional)</label>
                                                 <textarea className="gp-textarea" rows={3} value={notasTrabajador}

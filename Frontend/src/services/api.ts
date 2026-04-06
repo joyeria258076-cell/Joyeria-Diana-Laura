@@ -1112,6 +1112,12 @@ export const carritoAPI = {
   getEstadosPedidosCliente: async () => {
       return enhancedApi.get('/carrito/pedidos/mis-estados');
   },
+  getConfiguracion: async (clave: string) => {
+    return enhancedApi.get(`/configuracion/${clave}`);
+  },
+  setConfiguracion: async (clave: string, valor: string) => {
+      return enhancedApi.put(`/configuracion/${clave}`, { valor });
+  },
 };
 
 export const exportAPI = {
