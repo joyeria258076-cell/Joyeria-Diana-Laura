@@ -141,9 +141,23 @@ const toUTC = (f: string) => {
 
 const formatFecha = (f: string) => {
     if (!f) return '—';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(f)) { const [y,m,d] = f.split('-'); return `${d}/${m}/${y}`; }
-    return new Date(toUTC(f)).toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', timeZone:'America/Mexico_City' });
+    // Solo fecha YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(f)) {
+        const [y, m, d] = f.split('-');
+        return `${d}/${m}/${y}`;
+    }
+    // ✅ Fecha con T00:00:00 — tratar como fecha pura sin conversión TZ
+    if (f.includes('T00:00:00')) {
+        const solo = f.split('T')[0];
+        const [y, m, d] = solo.split('-');
+        return `${d}/${m}/${y}`;
+    }
+    return new Date(toUTC(f)).toLocaleDateString('es-MX', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        timeZone: 'America/Mexico_City'
+    });
 };
+
 const formatFechaHora = (f: string) => {
     if (!f) return '—';
     return new Date(toUTC(f)).toLocaleString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone:'America/Mexico_City' });
