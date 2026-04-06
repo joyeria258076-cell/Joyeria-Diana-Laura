@@ -336,7 +336,7 @@ export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFu
         }
 
         // 2. Consultamos el rol en la BD (Usando tu pool existente)
-        const result = await pool.query('SELECT rol FROM usuarios WHERE id = $1', [userId]);
+        const result = await pool.query('SELECT rol FROM seguridad.usuarios WHERE id = $1', [userId]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });

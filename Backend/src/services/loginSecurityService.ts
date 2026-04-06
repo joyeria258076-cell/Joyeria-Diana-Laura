@@ -12,31 +12,22 @@ export interface LoginAttempt {
 }
 
 export class LoginSecurityService {
-  // 🎯 MISMOS PARÁMETROS QUE RECUPERACIÓN: 3 intentos, 2 minutos
   public static readonly MAX_ATTEMPTS = 3;
-  public static readonly LOCK_DURATION_MINUTES = 5; // 🎯 CAMBIADO A 5 MINUTOS
+  public static readonly LOCK_DURATION_MINUTES = 5;
 
-  /**
-   * Obtener duración del bloqueo
-   */
   static getLockDurationMinutes(): number {
     return this.LOCK_DURATION_MINUTES;
   }
 
-  /**
-   * Obtener máximo de intentos
-   */
   static getMaxAttempts(): number {
     return this.MAX_ATTEMPTS;
   }
 
-  /**
-   * Registrar intento de login (solo para auditoría)
-   */
   static async recordLoginAttempt(attempt: LoginAttempt): Promise<void> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       await pool.query(
-        `INSERT INTO login_attempts (email, ip_address, user_agent, success, failure_reason) 
+        `INSERT INTO seguridad.login_attempts (email, ip_address, user_agent, success, failure_reason) 
          VALUES ($1, $2, $3, $4, $5)`,
         [attempt.email, attempt.ip_address, attempt.user_agent, attempt.success, attempt.failure_reason]
       );
@@ -45,9 +36,6 @@ export class LoginSecurityService {
     }
   }
 
-  /**
-   * Verificar si la cuenta está bloqueada - NUEVO ENFOQUE
-   */
   static async isAccountLocked(email: string): Promise<{ 
     locked: boolean; 
     lockedUntil?: Date; 
@@ -55,10 +43,10 @@ export class LoginSecurityService {
     remainingAttempts?: number;
   }> {
     try {
-      // Buscar en la tabla login_security
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
         `SELECT login_attempts, login_blocked_until 
-         FROM login_security 
+         FROM seguridad.login_security 
          WHERE email = $1`,
         [email]
       );
@@ -74,10 +62,7 @@ export class LoginSecurityService {
       const security = result.rows[0];
       const now = new Date();
 
-      // Verificar si está bloqueado
       if (security.login_blocked_until && new Date(security.login_blocked_until) > now) {
-        const remainingTime = Math.ceil((new Date(security.login_blocked_until).getTime() - now.getTime()) / 60000);
-        
         return {
           locked: true,
           lockedUntil: security.login_blocked_until,
@@ -86,7 +71,6 @@ export class LoginSecurityService {
         };
       }
 
-      // Si no está bloqueado, calcular intentos restantes
       const remainingAttempts = Math.max(0, this.MAX_ATTEMPTS - security.login_attempts);
       
       return { 
@@ -101,9 +85,6 @@ export class LoginSecurityService {
     }
   }
 
-  /**
-   * Incrementar intentos fallidos y bloquear si es necesario
-   */
   static async handleFailedAttempt(
     email: string
   ): Promise<{ 
@@ -113,10 +94,8 @@ export class LoginSecurityService {
     justLocked?: boolean;
   }> {
     try {
-      // Obtener estado actual
       const currentState = await this.isAccountLocked(email);
       
-      // Si ya está bloqueado, retornar estado actual
       if (currentState.locked) {
         return { 
           locked: true, 
@@ -125,20 +104,18 @@ export class LoginSecurityService {
         };
       }
 
-      // Incrementar intentos
       const newAttempts = (currentState.attempts || 0) + 1;
       let locked = false;
       let justLocked = false;
 
-      // Si supera el límite, bloquear cuenta
       if (newAttempts >= this.MAX_ATTEMPTS) {
         const lockUntil = new Date(Date.now() + this.LOCK_DURATION_MINUTES * 60 * 1000);
         locked = true;
         justLocked = true;
         
-        // Insertar o actualizar en login_security
+        // ✅ CORREGIDO: agregar esquema seguridad
         await pool.query(
-          `INSERT INTO login_security (email, login_attempts, last_login_attempt, login_blocked_until) 
+          `INSERT INTO seguridad.login_security (email, login_attempts, last_login_attempt, login_blocked_until) 
            VALUES ($1, $2, $3, $4) 
            ON CONFLICT (email) 
            DO UPDATE SET 
@@ -151,9 +128,9 @@ export class LoginSecurityService {
 
         console.log(`🔒 CUENTA BLOQUEADA: ${email} por ${this.LOCK_DURATION_MINUTES} minutos`);
       } else {
-        // Solo incrementar intentos
+        // ✅ CORREGIDO: agregar esquema seguridad
         await pool.query(
-          `INSERT INTO login_security (email, login_attempts, last_login_attempt) 
+          `INSERT INTO seguridad.login_security (email, login_attempts, last_login_attempt) 
            VALUES ($1, $2, $3) 
            ON CONFLICT (email) 
            DO UPDATE SET 
@@ -183,13 +160,11 @@ export class LoginSecurityService {
     }
   }
 
-  /**
-   * Limpiar intentos fallidos después de login exitoso
-   */
   static async clearFailedAttempts(email: string): Promise<void> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       await pool.query(
-        'DELETE FROM login_security WHERE email = $1',
+        'DELETE FROM seguridad.login_security WHERE email = $1',
         [email]
       );
     } catch (error) {
@@ -197,13 +172,11 @@ export class LoginSecurityService {
     }
   }
 
-  /**
-   * Limpiar bloqueos expirados automáticamente
-   */
   static async cleanupExpiredLocks(): Promise<void> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        'DELETE FROM login_security WHERE login_blocked_until < NOW()'
+        'DELETE FROM seguridad.login_security WHERE login_blocked_until < NOW()'
       );
       
       if (result.rowCount && result.rowCount > 0) {
@@ -214,9 +187,6 @@ export class LoginSecurityService {
     }
   }
 
-  /**
-   * Obtener estadísticas de seguridad
-   */
   static async getSecurityStats(email: string): Promise<{
     attempts: number;
     remainingAttempts: number;
@@ -225,8 +195,9 @@ export class LoginSecurityService {
     lastAttempt?: Date;
   }> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        'SELECT login_attempts, last_login_attempt, login_blocked_until FROM login_security WHERE email = $1',
+        'SELECT login_attempts, last_login_attempt, login_blocked_until FROM seguridad.login_security WHERE email = $1',
         [email]
       );
 

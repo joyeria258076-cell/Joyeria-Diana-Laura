@@ -1188,6 +1188,96 @@ export const prediccionAPI = {
 };
 
 // ==========================================
+// 🗄️ API PARA GESTIÓN DE USUARIOS DE BD
+// ==========================================
+export const userManagementAPI = {
+  // Obtener usuarios de la base de datos
+  getDatabaseUsers: async () => {
+    return enhancedApi.get('/user-management/database-users');
+  },
+  
+  // Crear usuario de base de datos
+  createDatabaseUser: async (data: { username: string; password: string; role: string; schemas?: string }) => {
+    return enhancedApi.post('/user-management/database-user', data);
+  },
+  
+  // Revocar acceso de usuario
+  revokeUserAccess: async (username: string) => {
+    return enhancedApi.delete(`/user-management/database-user/${username}`);
+  },
+  
+  // Obtener esquemas disponibles
+  getSchemas: async () => {
+    return enhancedApi.get('/user-management/schemas');
+  },
+  
+  // Crear esquema
+  createSchema: async (schemaName: string, owner?: string) => {
+    return enhancedApi.post('/user-management/schema', { schemaName, owner });
+  }
+};
+
+// ==========================================
+// 🗄️ API PARA GESTIÓN DE USUARIOS DE BD
+// ==========================================
+export const userManagementAPI = {
+  // Obtener usuarios de la base de datos
+  getDatabaseUsers: async () => {
+    return enhancedApi.get('/user-management/database-users');
+  },
+  
+  // Crear usuario de base de datos
+  createDatabaseUser: async (data: { username: string; password: string; role: string; schemas?: string }) => {
+    return enhancedApi.post('/user-management/database-user', data);
+  },
+  
+  // Revocar acceso de usuario
+  revokeUserAccess: async (username: string) => {
+    return enhancedApi.delete(`/user-management/database-user/${username}`);
+  },
+  
+  // Obtener esquemas disponibles
+  getSchemas: async () => {
+    return enhancedApi.get('/user-management/schemas');
+  },
+  
+  // Crear esquema
+  createSchema: async (schemaName: string, owner?: string) => {
+    return enhancedApi.post('/user-management/schema', { schemaName, owner });
+  }
+};
+
+// ==========================================
+// 🗄️ API PARA GESTIÓN DE USUARIOS DE BD
+// ==========================================
+export const userManagementAPI = {
+  // Obtener usuarios de la base de datos
+  getDatabaseUsers: async () => {
+    return enhancedApi.get('/user-management/database-users');
+  },
+  
+  // Crear usuario de base de datos
+  createDatabaseUser: async (data: { username: string; password: string; role: string; schemas?: string }) => {
+    return enhancedApi.post('/user-management/database-user', data);
+  },
+  
+  // Revocar acceso de usuario
+  revokeUserAccess: async (username: string) => {
+    return enhancedApi.delete(`/user-management/database-user/${username}`);
+  },
+  
+  // Obtener esquemas disponibles
+  getSchemas: async () => {
+    return enhancedApi.get('/user-management/schemas');
+  },
+  
+  // Crear esquema
+  createSchema: async (schemaName: string, owner?: string) => {
+    return enhancedApi.post('/user-management/schema', { schemaName, owner });
+  }
+};
+
+// ==========================================
 // 📥 EXPORTACIÓN DE API (opcional, para tener todo en un solo objeto)
 // ==========================================
 export const api = {

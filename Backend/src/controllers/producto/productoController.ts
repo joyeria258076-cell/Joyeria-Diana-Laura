@@ -1,3 +1,4 @@
+// Backend/src/controllers/producto/productoController.ts
 import { Request, Response } from 'express';
 import { pool } from '../../config/database';
 import { CategoryModel, ProductModel, ProveedorModel, TemporadaModel, TipoProductoModel, ConfiguracionModel } from '../../models/productModel';
@@ -439,44 +440,39 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
         let query = `
             SELECT 
                 id, nombre, descripcion, categoria_id, categoria_nombre,
-                tipo_producto_id, tipo_nombre, material_principal,
+                tipo_producto_id, material_principal,
                 precio_venta, precio_oferta, imagen_principal,
                 stock_actual, es_nuevo, es_destacado
-            FROM productos
+            FROM catalogo.productos
             WHERE activo = true
         `;
         const params: any[] = [];
         let paramCount = 1;
 
-        // Filtrar por nombre
         if (nombre && typeof nombre === 'string') {
             query += ` AND LOWER(nombre) LIKE LOWER($${paramCount})`;
             params.push(`%${nombre}%`);
             paramCount++;
         }
 
-        // Filtrar por categoría
         if (categoria_id && categoria_id !== '') {
             query += ` AND categoria_id = $${paramCount}`;
             params.push(parseInt(categoria_id as string));
             paramCount++;
         }
 
-        // Filtrar por tipo de producto
         if (tipo_producto_id && tipo_producto_id !== '') {
             query += ` AND tipo_producto_id = $${paramCount}`;
             params.push(parseInt(tipo_producto_id as string));
             paramCount++;
         }
 
-        // Filtrar por material
         if (material_principal && material_principal !== '') {
             query += ` AND LOWER(material_principal) = LOWER($${paramCount})`;
             params.push(material_principal as string);
             paramCount++;
         }
 
-        // Filtrar por rango de precio (precio_venta)
         if (precio_min && precio_min !== '') {
             query += ` AND precio_venta >= $${paramCount}`;
             params.push(parseFloat(precio_min as string));
@@ -489,7 +485,6 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
             paramCount++;
         }
 
-        // Ordenar y paginar
         query += ` ORDER BY es_destacado DESC, nombre ASC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
         params.push(parseInt(limit as string));
         params.push(parseInt(offset as string));
@@ -502,6 +497,7 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
             total: result.rows.length
         });
     } catch (error: any) {
+        console.error('Error en searchAndFilterProducts:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -515,9 +511,9 @@ export const getProductsByCategory = async (req: Request, res: Response) => {
         const result = await pool.query(
             `SELECT 
                 id, nombre, descripcion, categoria_id, categoria_nombre,
-                tipo_producto_id, material_principal, precio_venta, precio_oferta,
+                material_principal, precio_venta, precio_oferta,
                 imagen_principal, stock_actual, es_nuevo
-            FROM productos
+            FROM catalogo.productos
             WHERE categoria_id = $1 AND activo = true
             ORDER BY es_nuevo DESC, nombre ASC
             LIMIT $2`,
@@ -526,11 +522,11 @@ export const getProductsByCategory = async (req: Request, res: Response) => {
 
         res.status(200).json({ success: true, data: result.rows });
     } catch (error: any) {
+        console.error('Error en getProductsByCategory:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// --- OBTENER PRODUCTOS PARA VISTA PÚBLICA (Categorías con productos) ---
 export const getProductsByCategories = async (req: Request, res: Response) => {
     try {
         const { limit = 4 } = req.query;
@@ -547,9 +543,8 @@ export const getProductsByCategories = async (req: Request, res: Response) => {
             total: number;
         }
 
-        // Obtener todas las categorías activas
         const categoriasResult = await pool.query(
-            `SELECT DISTINCT id, nombre FROM categorias WHERE activo = true ORDER BY nombre ASC`
+            `SELECT DISTINCT id, nombre FROM catalogo.categorias WHERE activo = true ORDER BY nombre ASC`
         );
 
         const respuesta = await Promise.all(
@@ -559,7 +554,7 @@ export const getProductsByCategories = async (req: Request, res: Response) => {
                         id, nombre, descripcion, categoria_id, categoria_nombre,
                         material_principal, precio_venta, precio_oferta,
                         imagen_principal, stock_actual, es_nuevo
-                    FROM productos
+                    FROM catalogo.productos
                     WHERE categoria_id = $1 AND activo = true
                     ORDER BY es_nuevo DESC, nombre ASC
                     LIMIT $2`,
@@ -575,7 +570,6 @@ export const getProductsByCategories = async (req: Request, res: Response) => {
             })
         );
 
-        // Filtrar solo categorías con productos
         const categoriasConProductos = respuesta.filter((cat: ProductoAgregado) => cat.total > 0);
 
         res.status(200).json({ 
@@ -583,6 +577,7 @@ export const getProductsByCategories = async (req: Request, res: Response) => {
             data: categoriasConProductos 
         });
     } catch (error: any) {
+        console.error('Error en getProductsByCategories:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

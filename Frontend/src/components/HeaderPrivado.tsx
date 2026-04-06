@@ -22,6 +22,8 @@ const HeaderPrivado: React.FC = () => {
     const userRole = user?.rol?.toLowerCase().trim() || 'cliente';
     const isActive = (path: string) => location.pathname.startsWith(path) ? "active" : "";
 
+    const [isSecurityMenuOpen, setIsSecurityMenuOpen] = useState(false);
+
     // Cerrar sidebar al navegar en móvil
     const goTo = (path: string) => {
         navigate(path);
@@ -164,6 +166,33 @@ const HeaderPrivado: React.FC = () => {
                                         <button className={`dropdown-item ${isActive("/admin/configuracion/variables") ? "active" : ""}`} onClick={() => goTo("/admin/configuracion/variables")}>
                                             <span className="dropdown-icon">🔧</span> Variables del Sistema
                                         </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="nav-item-group">
+                                <button 
+                                    className={`nav-item ${isActive("/admin/seguridad") ? "active" : ""} dropdown-toggle`}
+                                    onClick={() => setIsSecurityMenuOpen(!isSecurityMenuOpen)}
+                                >
+                                    <span className="nav-icon">🔒</span> Seguridad BD
+                                    <span className={`dropdown-arrow ${isSecurityMenuOpen ? 'open' : ''}`}>▼</span>
+                                </button>
+                                
+                                {isSecurityMenuOpen && (
+                                    <div className="dropdown-menu">
+                                    <button 
+                                        className={`dropdown-item ${isActive("/admin/seguridad/usuarios-bd") ? "active" : ""}`}
+                                        onClick={() => navigate("/admin/seguridad/usuarios-bd")}
+                                    >
+                                        <span className="dropdown-icon">👥</span> Usuarios y Roles
+                                    </button>
+                                    <button 
+                                        className={`dropdown-item ${isActive("/admin/seguridad/esquemas") ? "active" : ""}`}
+                                        onClick={() => navigate("/admin/seguridad/esquemas")}
+                                    >
+                                        <span className="dropdown-icon">📁</span> Esquemas
+                                    </button>
                                     </div>
                                 )}
                             </div>

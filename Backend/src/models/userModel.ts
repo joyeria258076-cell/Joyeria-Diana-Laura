@@ -20,8 +20,9 @@ export const createUser = async (email: string, password: string, nombre: string
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     
+    // ✅ CORREGIDO: especificar esquema seguridad
     const result = await pool.query(
-      'INSERT INTO usuarios (email, password_hash, nombre, firebase_uid) VALUES ($1, $2, $3, $4) RETURNING id',
+      'INSERT INTO seguridad.usuarios (email, password_hash, nombre, firebase_uid) VALUES ($1, $2, $3, $4) RETURNING id',
       [email, hashedPassword, nombre, firebase_uid]
     );
     
@@ -34,8 +35,9 @@ export const createUser = async (email: string, password: string, nombre: string
 
 export const verifyUser = async (email: string, password: string): Promise<User | null> => {
   try {
+    // ✅ CORREGIDO: especificar esquema seguridad
     const result = await pool.query(
-      'SELECT * FROM usuarios WHERE email = $1 AND activo = true',
+      'SELECT * FROM seguridad.usuarios WHERE email = $1 AND activo = true',
       [email]
     );
     
@@ -53,8 +55,9 @@ export const verifyUser = async (email: string, password: string): Promise<User 
 
 export const emailExists = async (email: string): Promise<boolean> => {
   try {
+    // ✅ CORREGIDO: especificar esquema seguridad
     const result = await pool.query(
-      'SELECT id FROM usuarios WHERE email = $1 AND activo = true',
+      'SELECT id FROM seguridad.usuarios WHERE email = $1 AND activo = true',
       [email]
     );
     return result.rows.length > 0;
@@ -67,8 +70,9 @@ export const emailExists = async (email: string): Promise<boolean> => {
 // Obtener usuario por ID
 export const getUserById = async (id: number): Promise<User | null> => {
   try {
+    // ✅ CORREGIDO: especificar esquema seguridad
     const result = await pool.query(
-      'SELECT id, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE id = $1',
+      'SELECT id, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion FROM seguridad.usuarios WHERE id = $1',
       [id]
     );
     
@@ -82,11 +86,10 @@ export const getUserById = async (id: number): Promise<User | null> => {
 // Obtener todos los usuarios
 export const getAllUsers = async (): Promise<User[]> => {
   try {
-    // QUITAMOS el "WHERE activo = true" para que el Admin vea a TODOS
-    // Ordenamos por activo para que los vigentes salgan primero
-  const result = await pool.query(
-        'SELECT id, firebase_uid, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios ORDER BY activo DESC, nombre ASC'
-      );
+    // ✅ CORREGIDO: especificar esquema seguridad
+    const result = await pool.query(
+      'SELECT id, firebase_uid, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion FROM seguridad.usuarios ORDER BY activo DESC, nombre ASC'
+    );
     
     return result.rows;
   } catch (error) {
@@ -120,7 +123,8 @@ export const updateUser = async (id: number, updates: { nombre?: string; email?:
     
     values.push(id);
     
-    const query = `UPDATE usuarios SET ${fields.join(', ')} WHERE id = $${paramCount}`;
+    // ✅ CORREGIDO: especificar esquema seguridad
+    const query = `UPDATE seguridad.usuarios SET ${fields.join(', ')} WHERE id = $${paramCount}`;
     const result = await pool.query(query, values);
     
     return result.rowCount ? result.rowCount > 0 : false;
@@ -133,8 +137,9 @@ export const updateUser = async (id: number, updates: { nombre?: string; email?:
 // Eliminar usuario (soft delete)
 export const deleteUser = async (id: number): Promise<boolean> => {
   try {
+    // ✅ CORREGIDO: especificar esquema seguridad
     const result = await pool.query(
-      'UPDATE usuarios SET activo = false WHERE id = $1',
+      'UPDATE seguridad.usuarios SET activo = false WHERE id = $1',
       [id]
     );
     
@@ -147,8 +152,9 @@ export const deleteUser = async (id: number): Promise<boolean> => {
 
 export const getUserByEmail = async (email: string): Promise<User | null> => {
   try {
+    // ✅ CORREGIDO: especificar esquema seguridad
     const result = await pool.query(
-      'SELECT * FROM usuarios WHERE email = $1 AND activo = true',
+      'SELECT * FROM seguridad.usuarios WHERE email = $1 AND activo = true',
       [email]
     );
     
@@ -163,8 +169,9 @@ export const updatePassword = async (userId: number, newPassword: string): Promi
   try {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     
+    // ✅ CORREGIDO: especificar esquema seguridad
     const result = await pool.query(
-      'UPDATE usuarios SET password_hash = $1 WHERE id = $2',
+      'UPDATE seguridad.usuarios SET password_hash = $1 WHERE id = $2',
       [hashedPassword, userId]
     );
     
@@ -176,39 +183,12 @@ export const updatePassword = async (userId: number, newPassword: string): Promi
   }
 };
 
-/*
-// Funciones para recuperación de contraseña
-export const setPasswordResetToken = async (email: string, token: string, expires: Date): Promise<boolean> => {
-  try {
-    const [result]: any = await pool.execute(
-      'UPDATE usuarios SET reset_password_token = ?, reset_password_expires = ? WHERE email = ?',
-      [token, expires, email]
-    );
-    return result.affectedRows > 0;
-  } catch (error) {
-    console.error('Error setting reset token:', error);
-    return false;
-  }
-};
-
-export const getUserByResetToken = async (token: string): Promise<User | null> => {
-  try {
-    const [rows]: any = await pool.execute(
-      'SELECT * FROM usuarios WHERE reset_password_token = ? AND reset_password_expires > NOW()',
-      [token]
-    );
-    return rows.length > 0 ? rows[0] : null;
-  } catch (error) {
-    console.error('Error getting user by reset token:', error);
-    return null;
-  }
-};*/
-
-// 🎯 NUEVO: Actualizar timestamp de última actividad
+// Actualizar timestamp de última actividad
 export const updateUserActivity = async (email: string): Promise<boolean> => {
   try {
+    // ✅ CORREGIDO: especificar esquema seguridad
     const result = await pool.query(
-      'UPDATE usuarios SET last_activity = CURRENT_TIMESTAMP WHERE email = $1',
+      'UPDATE seguridad.usuarios SET last_activity = CURRENT_TIMESTAMP WHERE email = $1',
       [email]
     );
     
@@ -219,11 +199,12 @@ export const updateUserActivity = async (email: string): Promise<boolean> => {
   }
 };
 
-// 🎯 NUEVO: Obtener usuario por email con last_activity
+// Obtener usuario por email con last_activity
 export const getUserByEmailWithActivity = async (email: string): Promise<(User & { last_activity: Date }) | null> => {
   try {
+    // ✅ CORREGIDO: especificar esquema seguridad
     const result = await pool.query(
-      'SELECT *, last_activity FROM usuarios WHERE email = $1 AND activo = true',
+      'SELECT *, last_activity FROM seguridad.usuarios WHERE email = $1 AND activo = true',
       [email]
     );
     
@@ -234,7 +215,7 @@ export const getUserByEmailWithActivity = async (email: string): Promise<(User &
   }
 };
 
-// 🎯 NUEVO: Verificar si usuario está inactivo
+// Verificar si usuario está inactivo
 export const isUserInactive = async (email: string, maxInactivityMinutes: number = 15): Promise<boolean> => {
   try {
     const user = await getUserByEmailWithActivity(email);
@@ -248,7 +229,7 @@ export const isUserInactive = async (email: string, maxInactivityMinutes: number
     return inactivityTime > maxInactivityMs;
   } catch (error) {
     console.error('Error verificando inactividad:', error);
-    return true; // Por seguridad, considerar inactivo si hay error
+    return true;
   }
 };
 
@@ -258,14 +239,14 @@ export const createWorker = async (userData: {
   password_hash: string;
   nombre: string;
   firebase_uid: string;
-  rol: string; // Solo usaremos el rol
+  rol: string;
 }): Promise<boolean> => {
   try {
     const { email, password_hash, nombre, firebase_uid, rol } = userData;
     
-    // 🎯 Quitamos 'puesto' de la lista de columnas y de los valores ($)
+    // ✅ CORREGIDO: especificar esquema seguridad
     const result = await pool.query(
-      `INSERT INTO usuarios (email, password_hash, nombre, firebase_uid, rol, activo) 
+      `INSERT INTO seguridad.usuarios (email, password_hash, nombre, firebase_uid, rol, activo) 
        VALUES ($1, $2, $3, $4, $5, true) RETURNING id`,
       [email, password_hash, nombre, firebase_uid, rol]
     );
@@ -282,19 +263,12 @@ export const getAvailableRoles = async () => {
     const query = `SELECT unnest(enum_range(NULL::rol_enum))::text AS rol`;
     const result = await pool.query(query); 
     
-    // 1. Obtenemos todos los roles de la base de datos
     const todosLosRoles = result.rows.map((row: any) => row.rol);
-
-    // 2. Definimos AQUÍ MISMOS los roles que NO deben aparecer en el panel
-    // Puedes agregar más separándolos por comas, ej: ['cliente', 'invitado']
     const rolesExcluidos = ['cliente'];
-
-    // 3. Filtramos: Dejamos solo los que NO estén en la lista de excluidos
     const rolesOperacion = todosLosRoles.filter(
       (rol: string) => !rolesExcluidos.includes(rol)
     );
     
-    // 4. Devolvemos la lista limpia al Frontend
     return rolesOperacion;
     
   } catch (error) {
@@ -303,11 +277,11 @@ export const getAvailableRoles = async () => {
   }
 };
 
-// 1. Buscar un trabajador por ID para obtener su firebase_uid
+// Buscar un trabajador por ID para obtener su firebase_uid
 export const getWorkerById = async (id: number) => {
   try {
-    // QUITAMOS "AND activo = true" para poder encontrarlo y reactivarlo
-    const query = `SELECT id, firebase_uid, activo, nombre, email, rol FROM usuarios WHERE id = $1`;
+    // ✅ CORREGIDO: especificar esquema seguridad
+    const query = `SELECT id, firebase_uid, activo, nombre, email, rol FROM seguridad.usuarios WHERE id = $1`;
     const result = await pool.query(query, [id]);
     return result.rows[0]; 
   } catch (error) {
@@ -316,10 +290,11 @@ export const getWorkerById = async (id: number) => {
   }
 };
 
-// 2. Cambiar el estado activo/inactivo en PostgreSQL
+// Cambiar el estado activo/inactivo en PostgreSQL
 export const toggleWorkerStatus = async (id: number, activo: boolean) => {
   try {
-    const query = `UPDATE usuarios SET activo = $1 WHERE id = $2`;
+    // ✅ CORREGIDO: especificar esquema seguridad
+    const query = `UPDATE seguridad.usuarios SET activo = $1 WHERE id = $2`;
     await pool.query(query, [activo, id]);
     return true;
   } catch (error) {
@@ -328,15 +303,14 @@ export const toggleWorkerStatus = async (id: number, activo: boolean) => {
   }
 };
 
-/**
- * Actualiza el nombre y el rol de un trabajador en PostgreSQL
- */
+// Actualiza el nombre y el rol de un trabajador en PostgreSQL
 export const updateWorkerInfo = async (id: number, nombre: string, rol: string, email: string) => {
+  // ✅ CORREGIDO: especificar esquema seguridad
   const query = `
-    UPDATE usuarios 
+    UPDATE seguridad.usuarios 
     SET nombre = $1, rol = $2, email = $3 
     WHERE id = $4 
-    RETURNING id, nombre, email, rol, activo`; // <-- Retorna 'rol' explícitamente
+    RETURNING id, nombre, email, rol, activo`;
     
   const values = [nombre, rol, email, id];
   const { rows } = await pool.query(query, values);

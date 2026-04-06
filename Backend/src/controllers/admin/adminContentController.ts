@@ -1,5 +1,6 @@
+// Backend/src/controllers/admin/adminContentController.ts
 import { Request, Response } from 'express';
-import { pool } from '../../config/database'; // Tu conexión real a Supabase
+import { pool } from '../../config/database';
 
 export const adminContentController = {
   // ==========================================
@@ -8,14 +9,14 @@ export const adminContentController = {
   getPageConfig: async (req: Request, res: Response): Promise<void> => {
     try {
       const { pageName } = req.params;
-      const result = await pool.query('SELECT * FROM page_content WHERE page_name = $1', [pageName]);
+      // ✅ CORREGIDO: agregar esquema contenido
+      const result = await pool.query('SELECT * FROM contenido.page_content WHERE page_name = $1', [pageName]);
 
       if (result.rows.length === 0) {
         res.status(404).json({ message: "Página no encontrada" });
         return;
       }
 
-      // Extraemos la fecha en formato YYYY-MM-DD
       const data = result.rows[0];
       data.fecha = new Date(data.fecha).toISOString().split('T')[0];
       
@@ -31,8 +32,9 @@ export const adminContentController = {
       const { pageName } = req.params;
       const { titulo, contenido, imagen } = req.body;
 
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        'UPDATE page_content SET titulo = $1, contenido = $2, imagen = $3, fecha = CURRENT_TIMESTAMP WHERE page_name = $4 RETURNING *',
+        'UPDATE contenido.page_content SET titulo = $1, contenido = $2, imagen = $3, fecha = CURRENT_TIMESTAMP WHERE page_name = $4 RETURNING *',
         [titulo, contenido, imagen, pageName]
       );
 
@@ -48,9 +50,9 @@ export const adminContentController = {
   // ==========================================
   getNoticias: async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await pool.query('SELECT * FROM noticias ORDER BY fecha DESC');
+      // ✅ CORREGIDO: agregar esquema contenido
+      const result = await pool.query('SELECT * FROM contenido.noticias ORDER BY fecha DESC');
       
-      // Formatear la fecha para enviarla bonita al frontend
       const noticias = result.rows.map(n => ({
         ...n,
         fecha: new Date(n.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -67,8 +69,9 @@ export const adminContentController = {
     try {
       const { titulo, contenido, imagen } = req.body;
 
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        'INSERT INTO noticias (titulo, contenido, imagen) VALUES ($1, $2, $3) RETURNING *',
+        'INSERT INTO contenido.noticias (titulo, contenido, imagen) VALUES ($1, $2, $3) RETURNING *',
         [titulo, contenido, imagen]
       );
 
@@ -87,7 +90,8 @@ export const adminContentController = {
       const { id } = req.params;
       const { activa } = req.body;
 
-      await pool.query('UPDATE noticias SET activa = $1 WHERE id = $2', [activa, id]);
+      // ✅ CORREGIDO: agregar esquema contenido
+      await pool.query('UPDATE contenido.noticias SET activa = $1 WHERE id = $2', [activa, id]);
       res.json({ message: "Estado actualizado exitosamente" });
     } catch (error) {
       console.error('Error en toggleNoticiaStatus:', error);
@@ -98,7 +102,8 @@ export const adminContentController = {
   deleteNoticia: async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      await pool.query('DELETE FROM noticias WHERE id = $1', [id]);
+      // ✅ CORREGIDO: agregar esquema contenido
+      await pool.query('DELETE FROM contenido.noticias WHERE id = $1', [id]);
       res.json({ message: "Noticia eliminada correctamente" });
     } catch (error) {
       console.error('Error en deleteNoticia:', error);
@@ -111,7 +116,8 @@ export const adminContentController = {
   // ==========================================
   getCarrusel: async (req: Request, res: Response) => {
     try {
-      const result = await pool.query('SELECT * FROM carrusel ORDER BY id ASC');
+      // ✅ CORREGIDO: agregar esquema contenido
+      const result = await pool.query('SELECT * FROM contenido.carrusel ORDER BY id ASC');
       res.status(200).json(result.rows);
     } catch (error) {
       console.error('Error obteniendo carrusel:', error);
@@ -122,8 +128,9 @@ export const adminContentController = {
   createCarruselItem: async (req: Request, res: Response) => {
     const { titulo, descripcion, imagen, enlace } = req.body;
     try {
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        'INSERT INTO carrusel (titulo, descripcion, imagen, enlace) VALUES ($1, $2, $3, $4) RETURNING *',
+        'INSERT INTO contenido.carrusel (titulo, descripcion, imagen, enlace) VALUES ($1, $2, $3, $4) RETURNING *',
         [titulo, descripcion, imagen, enlace || '']
       );
       res.status(201).json(result.rows[0]);
@@ -136,7 +143,8 @@ export const adminContentController = {
   deleteCarruselItem: async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-      await pool.query('DELETE FROM carrusel WHERE id = $1', [id]);
+      // ✅ CORREGIDO: agregar esquema contenido
+      await pool.query('DELETE FROM contenido.carrusel WHERE id = $1', [id]);
       res.status(200).json({ message: 'Item eliminado correctamente' });
     } catch (error) {
       console.error('Error eliminando item de carrusel:', error);
@@ -149,7 +157,8 @@ export const adminContentController = {
   // ==========================================
   getPromociones: async (req: Request, res: Response) => {
     try {
-      const result = await pool.query('SELECT * FROM promociones ORDER BY id DESC');
+      // ✅ CORREGIDO: agregar esquema ventas
+      const result = await pool.query('SELECT * FROM ventas.promociones ORDER BY id DESC');
       res.status(200).json(result.rows);
     } catch (error) {
       console.error('Error obteniendo promociones:', error);
@@ -160,8 +169,9 @@ export const adminContentController = {
   createPromocion: async (req: Request, res: Response) => {
     const { titulo, descripcion, descuento, activa } = req.body;
     try {
+      // ✅ CORREGIDO: agregar esquema ventas
       const result = await pool.query(
-        'INSERT INTO promociones (titulo, descripcion, descuento, activa) VALUES ($1, $2, $3, $4) RETURNING *',
+        'INSERT INTO ventas.promociones (titulo, descripcion, descuento, activa) VALUES ($1, $2, $3, $4) RETURNING *',
         [titulo, descripcion, descuento, activa ?? true]
       );
       res.status(201).json(result.rows[0]);
@@ -175,8 +185,9 @@ export const adminContentController = {
     const { id } = req.params;
     const { activa } = req.body;
     try {
+      // ✅ CORREGIDO: agregar esquema ventas
       const result = await pool.query(
-        'UPDATE promociones SET activa = $1 WHERE id = $2 RETURNING *',
+        'UPDATE ventas.promociones SET activa = $1 WHERE id = $2 RETURNING *',
         [activa, id]
       );
       res.status(200).json(result.rows[0]);
@@ -189,7 +200,8 @@ export const adminContentController = {
   deletePromocion: async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-      await pool.query('DELETE FROM promociones WHERE id = $1', [id]);
+      // ✅ CORREGIDO: agregar esquema ventas
+      await pool.query('DELETE FROM ventas.promociones WHERE id = $1', [id]);
       res.status(200).json({ message: 'Promoción eliminada correctamente' });
     } catch (error) {
       console.error('Error eliminando promocion:', error);
@@ -202,8 +214,9 @@ export const adminContentController = {
   // ==========================================
   getPaginas: async (req: Request, res: Response): Promise<void> => {
     try {
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        'SELECT * FROM paginas WHERE activo = true ORDER BY orden ASC, nombre ASC'
+        'SELECT * FROM contenido.paginas WHERE activo = true ORDER BY orden ASC, nombre ASC'
       );
       res.json(result.rows);
     } catch (error) {
@@ -215,8 +228,9 @@ export const adminContentController = {
   getPaginaById: async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        'SELECT * FROM paginas WHERE id = $1',
+        'SELECT * FROM contenido.paginas WHERE id = $1',
         [id]
       );
       
@@ -237,9 +251,9 @@ export const adminContentController = {
       const { nombre, slug, descripcion, icono, orden, mostrar_en_menu, mostrar_en_footer, requiere_autenticacion } = req.body;
       const userId = (req as any).user?.id;
       
-      // Validar que el slug sea único
+      // ✅ CORREGIDO: agregar esquema contenido
       const slugExists = await pool.query(
-        'SELECT id FROM paginas WHERE slug = $1',
+        'SELECT id FROM contenido.paginas WHERE slug = $1',
         [slug]
       );
       
@@ -249,7 +263,7 @@ export const adminContentController = {
       }
 
       const result = await pool.query(
-        `INSERT INTO paginas 
+        `INSERT INTO contenido.paginas 
          (nombre, slug, descripcion, icono, orden, mostrar_en_menu, mostrar_en_footer, requiere_autenticacion, creado_por, activo)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)
          RETURNING *`,
@@ -269,9 +283,9 @@ export const adminContentController = {
       const { nombre, slug, descripcion, icono, orden, mostrar_en_menu, mostrar_en_footer, requiere_autenticacion } = req.body;
       const userId = (req as any).user?.id;
 
-      // Validar que el slug sea único (si cambió)
+      // ✅ CORREGIDO: agregar esquema contenido
       const slugExists = await pool.query(
-        'SELECT id FROM paginas WHERE slug = $1 AND id != $2',
+        'SELECT id FROM contenido.paginas WHERE slug = $1 AND id != $2',
         [slug, id]
       );
       
@@ -281,7 +295,7 @@ export const adminContentController = {
       }
 
       const result = await pool.query(
-        `UPDATE paginas 
+        `UPDATE contenido.paginas 
          SET nombre = $1, slug = $2, descripcion = $3, icono = $4, orden = $5, 
              mostrar_en_menu = $6, mostrar_en_footer = $7, requiere_autenticacion = $8, 
              actualizado_por = $9, fecha_actualizacion = CURRENT_TIMESTAMP
@@ -306,9 +320,9 @@ export const adminContentController = {
     try {
       const { id } = req.params;
       
-      // Verificar si tiene secciones
+      // ✅ CORREGIDO: agregar esquema contenido
       const sectionCount = await pool.query(
-        'SELECT COUNT(*) as count FROM secciones WHERE pagina_id = $1',
+        'SELECT COUNT(*) as count FROM contenido.secciones WHERE pagina_id = $1',
         [id]
       );
 
@@ -318,7 +332,7 @@ export const adminContentController = {
       }
 
       const result = await pool.query(
-        'DELETE FROM paginas WHERE id = $1 RETURNING id',
+        'DELETE FROM contenido.paginas WHERE id = $1 RETURNING id',
         [id]
       );
 
@@ -340,8 +354,9 @@ export const adminContentController = {
   getSeccionesByPagina: async (req: Request, res: Response): Promise<void> => {
     try {
       const { paginaId } = req.params;
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        'SELECT * FROM secciones WHERE pagina_id = $1 AND activo = true ORDER BY orden ASC',
+        'SELECT * FROM contenido.secciones WHERE pagina_id = $1 AND activo = true ORDER BY orden ASC',
         [paginaId]
       );
       res.json(result.rows);
@@ -354,8 +369,9 @@ export const adminContentController = {
   getSeccionById: async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        'SELECT * FROM secciones WHERE id = $1',
+        'SELECT * FROM contenido.secciones WHERE id = $1',
         [id]
       );
       
@@ -376,8 +392,9 @@ export const adminContentController = {
       const { pagina_id, nombre, descripcion, imagen_url, color_fondo, orden } = req.body;
       const userId = (req as any).user?.id;
 
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        `INSERT INTO secciones
+        `INSERT INTO contenido.secciones
          (pagina_id, nombre, descripcion, imagen_url, color_fondo, orden, creado_por, activo)
          VALUES ($1, $2, $3, $4, $5, $6, $7, true)
          RETURNING *`,
@@ -397,8 +414,9 @@ export const adminContentController = {
       const { nombre, descripcion, imagen_url, color_fondo, orden } = req.body;
       const userId = (req as any).user?.id;
 
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        `UPDATE secciones
+        `UPDATE contenido.secciones
          SET nombre = $1, descripcion = $2, imagen_url = $3, color_fondo = $4, orden = $5, fecha_actualizacion = CURRENT_TIMESTAMP
          WHERE id = $6
          RETURNING *`,
@@ -421,9 +439,9 @@ export const adminContentController = {
     try {
       const { id } = req.params;
 
-      // Verificar si tiene contenidos
+      // ✅ CORREGIDO: agregar esquema contenido
       const contentCount = await pool.query(
-        'SELECT COUNT(*) as count FROM contenidos WHERE seccion_id = $1',
+        'SELECT COUNT(*) as count FROM contenido.contenidos WHERE seccion_id = $1',
         [id]
       );
 
@@ -433,7 +451,7 @@ export const adminContentController = {
       }
 
       const result = await pool.query(
-        'DELETE FROM secciones WHERE id = $1 RETURNING id',
+        'DELETE FROM contenido.secciones WHERE id = $1 RETURNING id',
         [id]
       );
 
@@ -455,8 +473,9 @@ export const adminContentController = {
   getContenidosBySeccion: async (req: Request, res: Response): Promise<void> => {
     try {
       const { seccionId } = req.params;
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        'SELECT * FROM contenidos WHERE seccion_id = $1 AND activo = true ORDER BY orden ASC',
+        'SELECT * FROM contenido.contenidos WHERE seccion_id = $1 AND activo = true ORDER BY orden ASC',
         [seccionId]
       );
       res.json(result.rows);
@@ -469,8 +488,9 @@ export const adminContentController = {
   getContenidoById: async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        'SELECT * FROM contenidos WHERE id = $1',
+        'SELECT * FROM contenido.contenidos WHERE id = $1',
         [id]
       );
       
@@ -491,8 +511,9 @@ export const adminContentController = {
       const { seccion_id, titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden } = req.body;
       const userId = (req as any).user?.id;
 
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        `INSERT INTO contenidos
+        `INSERT INTO contenido.contenidos
          (seccion_id, titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden, creado_por, activo)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)
          RETURNING *`,
@@ -512,8 +533,9 @@ export const adminContentController = {
       const { titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden } = req.body;
       const userId = (req as any).user?.id;
 
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        `UPDATE contenidos
+        `UPDATE contenido.contenidos
          SET titulo = $1, descripcion = $2, imagen_url = $3, enlace_url = $4, enlace_nueva_ventana = $5, orden = $6, fecha_actualizacion = CURRENT_TIMESTAMP
          WHERE id = $7
          RETURNING *`,
@@ -536,8 +558,9 @@ export const adminContentController = {
     try {
       const { id } = req.params;
 
+      // ✅ CORREGIDO: agregar esquema contenido
       const result = await pool.query(
-        'DELETE FROM contenidos WHERE id = $1 RETURNING id',
+        'DELETE FROM contenido.contenidos WHERE id = $1 RETURNING id',
         [id]
       );
 
@@ -553,4 +576,3 @@ export const adminContentController = {
     }
   }
 };
-

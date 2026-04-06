@@ -1,3 +1,4 @@
+// Backend/src/models/productModel.ts
 import { pool } from '../config/database';
 
 // ==========================================
@@ -22,7 +23,7 @@ export const CategoryModel = {
         const result = await pool.query(
             `SELECT id, nombre, descripcion, categoria_padre_id, imagen_url, orden, activo, 
                     creado_por, fecha_creacion, fecha_actualizacion 
-             FROM categorias 
+             FROM catalogo.categorias 
              ORDER BY orden ASC, nombre ASC`
         );
         return result.rows;
@@ -33,7 +34,7 @@ export const CategoryModel = {
         const result = await pool.query(
             `SELECT id, nombre, descripcion, categoria_padre_id, imagen_url, orden, activo, 
                     creado_por, fecha_creacion, fecha_actualizacion 
-             FROM categorias 
+             FROM catalogo.categorias 
              WHERE id = $1`,
             [id]
         );
@@ -45,7 +46,7 @@ export const CategoryModel = {
         const result = await pool.query(
             `SELECT id, nombre, descripcion, categoria_padre_id, imagen_url, orden, activo, 
                     creado_por, fecha_creacion, fecha_actualizacion 
-             FROM categorias 
+             FROM catalogo.categorias 
              WHERE categoria_padre_id = $1 
              ORDER BY orden ASC, nombre ASC`,
             [categoriaPadreId]
@@ -58,7 +59,7 @@ export const CategoryModel = {
         const { nombre, descripcion, categoria_padre_id, imagen_url, orden, creado_por } = data;
         
         const result = await pool.query(
-            `INSERT INTO categorias (nombre, descripcion, categoria_padre_id, imagen_url, orden, activo, creado_por, fecha_creacion, fecha_actualizacion) 
+            `INSERT INTO catalogo.categorias (nombre, descripcion, categoria_padre_id, imagen_url, orden, activo, creado_por, fecha_creacion, fecha_actualizacion) 
              VALUES ($1, $2, $3, $4, $5, true, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
              RETURNING *`,
             [nombre, descripcion || null, categoria_padre_id || null, imagen_url || null, orden || 0, creado_por || null]
@@ -70,7 +71,6 @@ export const CategoryModel = {
     update: async (id: number, data: CategoriaUpdateData) => {
         const { nombre, descripcion, categoria_padre_id, imagen_url, orden, activo } = data;
         
-        // Construir dinámicamente la consulta UPDATE
         const campos: string[] = [];
         const valores: any[] = [];
         let paramCount = 1;
@@ -100,20 +100,19 @@ export const CategoryModel = {
             valores.push(activo);
         }
 
-        // Siempre actualizar la fecha de actualización
         campos.push(`fecha_actualizacion = CURRENT_TIMESTAMP`);
         valores.push(id);
 
-        const query = `UPDATE categorias SET ${campos.join(', ')} WHERE id = $${paramCount} RETURNING *`;
+        const query = `UPDATE catalogo.categorias SET ${campos.join(', ')} WHERE id = $${paramCount} RETURNING *`;
         
         const result = await pool.query(query, valores);
         return result.rows[0];
     },
 
-    // 🔄 Cambiar estado (Activo / Inactivo)
+    // Cambiar estado (Activo / Inactivo)
     toggleStatus: async (id: number, activo: boolean) => {
         const result = await pool.query(
-            `UPDATE categorias 
+            `UPDATE catalogo.categorias 
              SET activo = $2, fecha_actualizacion = CURRENT_TIMESTAMP 
              WHERE id = $1 
              RETURNING *`,
@@ -122,19 +121,9 @@ export const CategoryModel = {
         return result.rows[0];
     },
 
-    // 🗑️ Eliminar categoría definitivamente (soft delete mediante actualización de fecha y estado)
+    // Eliminar categoría definitivamente
     delete: async (id: number) => {
-        // Opción 1: Eliminar en cascada (elimina productos también)
-        // await pool.query('DELETE FROM productos WHERE categoria_id = $1', [id]);
-        
-        // Opción 2: Soft delete (solo marca como inactivo)
-        // const result = await pool.query(
-        //     'UPDATE categorias SET activo = false, fecha_actualizacion = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *',
-        //     [id]
-        // );
-
-        // Opción 3: Hard delete definitivo (descomenta si lo necesitas)
-        const result = await pool.query('DELETE FROM categorias WHERE id = $1', [id]);
+        const result = await pool.query('DELETE FROM catalogo.categorias WHERE id = $1', [id]);
         return result.rowCount;
     }
 };
@@ -179,10 +168,10 @@ export const ProductModel = {
                 c.nombre as categoria_nombre,
                 pr.nombre as proveedor_nombre,
                 t.nombre as temporada_nombre
-            FROM productos p
-            LEFT JOIN categorias c ON p.categoria_id = c.id
-            LEFT JOIN proveedores pr ON p.proveedor_id = pr.id
-            LEFT JOIN temporadas t ON p.temporada_id = t.id
+            FROM catalogo.productos p
+            LEFT JOIN catalogo.categorias c ON p.categoria_id = c.id
+            LEFT JOIN catalogo.proveedores pr ON p.proveedor_id = pr.id
+            LEFT JOIN catalogo.temporadas t ON p.temporada_id = t.id
             WHERE p.activo = true
             ORDER BY p.fecha_creacion DESC
         `;
@@ -197,10 +186,10 @@ export const ProductModel = {
                 c.nombre as categoria_nombre,
                 pr.nombre as proveedor_nombre,
                 t.nombre as temporada_nombre
-            FROM productos p
-            LEFT JOIN categorias c ON p.categoria_id = c.id
-            LEFT JOIN proveedores pr ON p.proveedor_id = pr.id
-            LEFT JOIN temporadas t ON p.temporada_id = t.id
+            FROM catalogo.productos p
+            LEFT JOIN catalogo.categorias c ON p.categoria_id = c.id
+            LEFT JOIN catalogo.proveedores pr ON p.proveedor_id = pr.id
+            LEFT JOIN catalogo.temporadas t ON p.temporada_id = t.id
             WHERE p.activo = true 
                 AND p.fecha_creacion >= NOW() - INTERVAL '7 days'
             ORDER BY p.fecha_creacion DESC
@@ -217,10 +206,10 @@ export const ProductModel = {
                 c.nombre as categoria_nombre,
                 pr.nombre as proveedor_nombre,
                 t.nombre as temporada_nombre
-            FROM productos p
-            LEFT JOIN categorias c ON p.categoria_id = c.id
-            LEFT JOIN proveedores pr ON p.proveedor_id = pr.id
-            LEFT JOIN temporadas t ON p.temporada_id = t.id
+            FROM catalogo.productos p
+            LEFT JOIN catalogo.categorias c ON p.categoria_id = c.id
+            LEFT JOIN catalogo.proveedores pr ON p.proveedor_id = pr.id
+            LEFT JOIN catalogo.temporadas t ON p.temporada_id = t.id
             WHERE p.id = $1 AND p.activo = true
         `;
         const result = await pool.query(query, [id]);
@@ -234,10 +223,10 @@ export const ProductModel = {
                 c.nombre as categoria_nombre,
                 pr.nombre as proveedor_nombre,
                 t.nombre as temporada_nombre
-            FROM productos p
-            LEFT JOIN categorias c ON p.categoria_id = c.id
-            LEFT JOIN proveedores pr ON p.proveedor_id = pr.id
-            LEFT JOIN temporadas t ON p.temporada_id = t.id
+            FROM catalogo.productos p
+            LEFT JOIN catalogo.categorias c ON p.categoria_id = c.id
+            LEFT JOIN catalogo.proveedores pr ON p.proveedor_id = pr.id
+            LEFT JOIN catalogo.temporadas t ON p.temporada_id = t.id
             WHERE p.activo = true 
                 AND (p.nombre ILIKE $1 OR p.descripcion ILIKE $1 OR p.codigo ILIKE $1)
             ORDER BY p.nombre ASC
@@ -276,11 +265,10 @@ export const ProductModel = {
             actualizado_por
         } = data;
 
-        // Generar código único si no existe
         const codigo = `PROD-${Date.now()}`;
 
         const query = `
-            INSERT INTO productos (
+            INSERT INTO catalogo.productos (
                 codigo,
                 nombre,
                 descripcion,
@@ -369,7 +357,6 @@ export const ProductModel = {
         fieldsToUpdate.forEach(field => {
             if (data[field as keyof ProductoData] !== undefined) {
                 let value = data[field as keyof ProductoData];
-                // Convertir objetos a JSON
                 if (field === 'medidas' && typeof value === 'object') {
                     value = JSON.stringify(value);
                 }
@@ -385,7 +372,7 @@ export const ProductModel = {
         campos.push(`fecha_actualizacion = CURRENT_TIMESTAMP`);
         valores.push(id);
 
-        const query = `UPDATE productos SET ${campos.join(', ')} WHERE id = $${paramCount} RETURNING *`;
+        const query = `UPDATE catalogo.productos SET ${campos.join(', ')} WHERE id = $${paramCount} RETURNING *`;
         const result = await pool.query(query, valores);
         return result.rows[0];
     },
@@ -393,7 +380,7 @@ export const ProductModel = {
     // Dar de baja lógica a un producto
     delete: async (id: number) => {
         const result = await pool.query(
-            'UPDATE productos SET activo = false, fecha_actualizacion = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *',
+            'UPDATE catalogo.productos SET activo = false, fecha_actualizacion = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *',
             [id]
         );
         return result.rows[0];
@@ -401,7 +388,7 @@ export const ProductModel = {
 
     // Contar productos
     count: async () => {
-        const result = await pool.query('SELECT COUNT(*) FROM productos WHERE activo = true');
+        const result = await pool.query('SELECT COUNT(*) FROM catalogo.productos WHERE activo = true');
         return parseInt(result.rows[0].count);
     }
 };
@@ -414,7 +401,7 @@ export const ProveedorModel = {
         const result = await pool.query(
             `SELECT id, nombre, razon_social, rfc, direccion, telefono, email, sitio_web, 
                     persona_contacto, notas, activo, creado_por, fecha_creacion, fecha_actualizacion 
-             FROM proveedores 
+             FROM catalogo.proveedores 
              WHERE activo = true 
              ORDER BY nombre ASC`
         );
@@ -425,7 +412,7 @@ export const ProveedorModel = {
         const result = await pool.query(
             `SELECT id, nombre, razon_social, rfc, direccion, telefono, email, sitio_web, 
                     persona_contacto, notas, activo, creado_por, fecha_creacion, fecha_actualizacion 
-             FROM proveedores 
+             FROM catalogo.proveedores 
              WHERE id = $1`,
             [id]
         );
@@ -440,7 +427,7 @@ export const TemporadaModel = {
     getAll: async () => {
         const result = await pool.query(
             `SELECT id, nombre, descripcion, fecha_inicio, fecha_fin, imagen_url, activo, creado_por, fecha_creacion, fecha_actualizacion 
-             FROM temporadas 
+             FROM catalogo.temporadas 
              WHERE activo = true 
              ORDER BY fecha_inicio DESC`
         );
@@ -450,7 +437,7 @@ export const TemporadaModel = {
     getById: async (id: number) => {
         const result = await pool.query(
             `SELECT id, nombre, descripcion, fecha_inicio, fecha_fin, imagen_url, activo, creado_por, fecha_creacion, fecha_actualizacion 
-             FROM temporadas 
+             FROM catalogo.temporadas 
              WHERE id = $1`,
             [id]
         );
@@ -465,7 +452,7 @@ export const TipoProductoModel = {
     getAll: async () => {
         const result = await pool.query(
             `SELECT id, nombre, descripcion, activo, creado_por, fecha_creacion 
-             FROM tipos_producto 
+             FROM catalogo.tipos_producto 
              WHERE activo = true 
              ORDER BY nombre ASC`
         );
@@ -475,7 +462,7 @@ export const TipoProductoModel = {
     getById: async (id: number) => {
         const result = await pool.query(
             `SELECT id, nombre, descripcion, activo, creado_por, fecha_creacion 
-             FROM tipos_producto 
+             FROM catalogo.tipos_producto 
              WHERE id = $1`,
             [id]
         );
@@ -490,7 +477,7 @@ export const ConfiguracionModel = {
     getAll: async () => {
         const result = await pool.query(
             `SELECT id, clave, valor, tipo_dato, descripcion, categoria 
-             FROM configuracion 
+             FROM configuracion.configuracion 
              ORDER BY categoria ASC, clave ASC`
         );
         return result.rows;
@@ -499,7 +486,7 @@ export const ConfiguracionModel = {
     getByClave: async (clave: string) => {
         const result = await pool.query(
             `SELECT id, clave, valor, tipo_dato, descripcion, categoria 
-             FROM configuracion 
+             FROM configuracion.configuracion 
              WHERE clave = $1`,
             [clave]
         );
@@ -509,7 +496,7 @@ export const ConfiguracionModel = {
     getByCategoria: async (categoria: string) => {
         const result = await pool.query(
             `SELECT id, clave, valor, tipo_dato, descripcion, categoria 
-             FROM configuracion 
+             FROM configuracion.configuracion 
              WHERE categoria = $1 
              ORDER BY clave ASC`,
             [categoria]

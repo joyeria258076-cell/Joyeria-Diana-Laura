@@ -21,12 +21,12 @@ export class SecurityQuestionModel {
     answer: string
   ): Promise<boolean> {
     try {
-      // Encriptar la respuesta (igual que las contraseñas)
       const saltRounds = 10;
       const answerHash = await bcrypt.hash(answer, saltRounds);
       
+      // ✅ CORREGIDO: especificar esquema seguridad
       const result = await pool.query(
-        `INSERT INTO security_questions (user_id, question_text, answer_hash) 
+        `INSERT INTO seguridad.security_questions (user_id, question_text, answer_hash) 
          VALUES ($1, $2, $3) 
          ON CONFLICT (user_id) 
          DO UPDATE SET 
@@ -52,9 +52,10 @@ export class SecurityQuestionModel {
     answer: string
   ): Promise<{ valid: boolean; question?: string }> {
     try {
+      // ✅ CORREGIDO: especificar esquema seguridad
       const result = await pool.query(
         `SELECT question_text, answer_hash 
-         FROM security_questions 
+         FROM seguridad.security_questions 
          WHERE user_id = $1`,
         [userId]
       );
@@ -81,8 +82,9 @@ export class SecurityQuestionModel {
    */
   static async getSecurityQuestionByUserId(userId: number): Promise<SecurityQuestion | null> {
     try {
+      // ✅ CORREGIDO: especificar esquema seguridad
       const result = await pool.query(
-        `SELECT * FROM security_questions WHERE user_id = $1`,
+        `SELECT * FROM seguridad.security_questions WHERE user_id = $1`,
         [userId]
       );
       
@@ -102,10 +104,11 @@ export class SecurityQuestionModel {
     exists: boolean 
   }> {
     try {
+      // ✅ CORREGIDO: especificar esquema seguridad
       const result = await pool.query(
         `SELECT sq.question_text, u.id as user_id
-         FROM security_questions sq
-         JOIN usuarios u ON sq.user_id = u.id
+         FROM seguridad.security_questions sq
+         JOIN seguridad.usuarios u ON sq.user_id = u.id
          WHERE u.email = $1 AND u.activo = true`,
         [email]
       );
@@ -130,8 +133,9 @@ export class SecurityQuestionModel {
    */
   static async deleteSecurityQuestion(userId: number): Promise<boolean> {
     try {
+      // ✅ CORREGIDO: especificar esquema seguridad
       const result = await pool.query(
-        'DELETE FROM security_questions WHERE user_id = $1',
+        'DELETE FROM seguridad.security_questions WHERE user_id = $1',
         [userId]
       );
       

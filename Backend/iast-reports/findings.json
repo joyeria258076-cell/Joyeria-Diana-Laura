@@ -1,0 +1,592 @@
+[
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "POST",
+    "path": "/update-activity",
+    "description": "La respuesta de POST /update-activity no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775355378146_95bn",
+    "timestamp": "2026-04-05T02:16:18.146Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Auth / Login",
+    "method": "GET",
+    "path": "/api/auth/validate-session",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "SELECT * FROM seguridad.user_sessions \n         WHERE session_token = $1 AND is_revoked = false AND expires_at > NOW()",
+    "stackTrace": "at Function.getSessionByToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:197:33)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:85:48)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355381337_xa4o",
+    "timestamp": "2026-04-05T02:16:21.337Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Auth / Login",
+    "method": "GET",
+    "path": "/api/auth/validate-session",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "UPDATE seguridad.user_sessions us\n         SET \n           last_activity = CURRENT_TIMESTAMP,\n           expires_at = CURRENT_TIMESTAMP + (\n             CASE \n               WHEN u.rol = 'trabajador' OR u.rol = 'admin' \n                 THEN interval '15 minutes'\n               ELSE \n               ",
+    "stackTrace": "at Function.updateLastActivity (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:254:33)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:120:26)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355381536_26uj",
+    "timestamp": "2026-04-05T02:16:21.536Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "GET",
+    "path": "/validate-session",
+    "description": "La respuesta de GET /validate-session no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775355382312_62tr",
+    "timestamp": "2026-04-05T02:16:22.312Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Auth / Login",
+    "method": "POST",
+    "path": "/api/auth/logout",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "SELECT * FROM seguridad.user_sessions \n         WHERE session_token = $1 AND is_revoked = false AND expires_at > NOW()",
+    "stackTrace": "at Function.getSessionByToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:197:33)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:85:48)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355391988_kqm4",
+    "timestamp": "2026-04-05T02:16:31.988Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Auth / Login",
+    "method": "POST",
+    "path": "/api/auth/logout",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "UPDATE seguridad.user_sessions us\n         SET \n           last_activity = CURRENT_TIMESTAMP,\n           expires_at = CURRENT_TIMESTAMP + (\n             CASE \n               WHEN u.rol = 'trabajador' OR u.rol = 'admin' \n                 THEN interval '15 minutes'\n               ELSE \n               ",
+    "stackTrace": "at Function.updateLastActivity (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:254:33)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:120:26)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355392235_59mv",
+    "timestamp": "2026-04-05T02:16:32.235Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Auth / Login",
+    "method": "POST",
+    "path": "/api/auth/logout",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "UPDATE seguridad.user_sessions \n         SET is_revoked = true, revoked_at = CURRENT_TIMESTAMP \n         WHERE session_token = $1 AND is_revoked = false",
+    "stackTrace": "at Function.revokeSessionByToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:309:33)\n    at logout (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\controllers\\auth\\authController.ts:268:28)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:127:5)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355392524_ui6l",
+    "timestamp": "2026-04-05T02:16:32.524Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "POST",
+    "path": "/logout",
+    "description": "La respuesta de POST /logout no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775355392972_1kse",
+    "timestamp": "2026-04-05T02:16:32.972Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "POST",
+    "path": "/check-account-lock",
+    "description": "La respuesta de POST /check-account-lock no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775355439657_2dgd",
+    "timestamp": "2026-04-05T02:17:19.657Z"
+  },
+  {
+    "severity": "INFO",
+    "type": "Endpoint de autenticación detectado",
+    "module": "Auth / Login",
+    "method": "POST",
+    "path": "/api/auth/login",
+    "description": "Request de login detectada. Verificando protecciones: LoginSecurityService encontrado en server.ts. Confirma que el rate limiting esté activo para este endpoint.",
+    "evidence": "Campos detectados: email, password",
+    "remediation": "Verifica que LoginSecurityService.checkLoginAttempts() se llame en authController.ts antes de verificar credenciales. Considera agregar CAPTCHA después de 3 intentos fallidos.",
+    "id": "finding_1775355440459_tfea",
+    "timestamp": "2026-04-05T02:17:20.459Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Auth / Login",
+    "method": "POST",
+    "path": "/api/auth/login",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "SELECT id, mfa_enabled FROM seguridad.usuarios WHERE email = $1",
+    "stackTrace": "at login (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\controllers\\auth\\authController.ts:87:36)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355443035_5j02",
+    "timestamp": "2026-04-05T02:17:23.035Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Auth / Login",
+    "method": "POST",
+    "path": "/api/auth/login",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "INSERT INTO seguridad.login_attempts (email, ip_address, user_agent, success, failure_reason) \n         VALUES ($1, $2, $3, $4, $5)",
+    "stackTrace": "at Function.recordLoginAttempt (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\loginSecurityService.ts:29:18)\n    at login (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\controllers\\auth\\authController.ts:102:34)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355443216_ll8r",
+    "timestamp": "2026-04-05T02:17:23.216Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection (parámetro sospechoso)",
+    "module": "Auth / Login",
+    "method": "POST",
+    "path": "/api/auth/login",
+    "description": "Parámetro $3 contiene patrones de SQLi aunque está parametrizado. Verificar validación de entrada.",
+    "evidence": "Param $3: \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Sa\"",
+    "stackTrace": "at Array.forEach (<anonymous>)\n    at Function.recordLoginAttempt (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\loginSecurityService.ts:29:18)\n    at login (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\controllers\\auth\\authController.ts:102:34)",
+    "taintSource": {
+      "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "source": "headers",
+      "field": "user-agent"
+    },
+    "remediation": "Valida y sanitiza inputs antes de pasarlos como parámetros. Usa allowlists para campos como nombres, categorías, etc.",
+    "id": "finding_1775355443216_nbo6",
+    "timestamp": "2026-04-05T02:17:23.216Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Auth / Login",
+    "method": "POST",
+    "path": "/api/auth/login",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "SELECT id, session_token, expires_at FROM seguridad.user_sessions \n         WHERE user_id = $1 AND device_fingerprint = $2 \n         AND is_revoked = false AND expires_at > NOW()\n         ORDER BY created_at DESC LIMIT 1",
+    "stackTrace": "at Function.createSession (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:113:42)\n    at login (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\controllers\\auth\\authController.ts:117:54)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355444262_5x1w",
+    "timestamp": "2026-04-05T02:17:24.262Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Auth / Login",
+    "method": "POST",
+    "path": "/api/auth/login",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "INSERT INTO seguridad.user_sessions \n         (user_id, session_token, device_fingerprint, firebase_uid, device_name, browser, os, ip_address, user_agent, location, expires_at) \n         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW() + $11::interval) \n         RETURNING id",
+    "stackTrace": "at Function.createSession (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:155:33)\n    at async login (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\controllers\\auth\\authController.ts:117:33)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355444502_v4ys",
+    "timestamp": "2026-04-05T02:17:24.502Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection (parámetro sospechoso)",
+    "module": "Auth / Login",
+    "method": "POST",
+    "path": "/api/auth/login",
+    "description": "Parámetro $9 contiene patrones de SQLi aunque está parametrizado. Verificar validación de entrada.",
+    "evidence": "Param $9: \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Sa\"",
+    "stackTrace": "at Array.forEach (<anonymous>)\n    at Function.createSession (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:155:33)\n    at async login (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\controllers\\auth\\authController.ts:117:33)",
+    "taintSource": {
+      "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "source": "headers",
+      "field": "user-agent"
+    },
+    "remediation": "Valida y sanitiza inputs antes de pasarlos como parámetros. Usa allowlists para campos como nombres, categorías, etc.",
+    "id": "finding_1775355444503_l4f9",
+    "timestamp": "2026-04-05T02:17:24.503Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Auth / Login",
+    "method": "POST",
+    "path": "/api/auth/login",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "UPDATE seguridad.user_sessions SET location = $1 WHERE session_token = $2",
+    "stackTrace": "at C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:147:16",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355444503_oqu6",
+    "timestamp": "2026-04-05T02:17:24.503Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "Auth / Login",
+    "method": "POST",
+    "path": "/login",
+    "description": "La respuesta de POST /login no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775355444803_hm6g",
+    "timestamp": "2026-04-05T02:17:24.803Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "POST",
+    "path": "/check-firebase-user",
+    "description": "La respuesta de POST /check-firebase-user no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775355447999_oxdk",
+    "timestamp": "2026-04-05T02:17:27.999Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Carrito",
+    "method": "GET",
+    "path": "/api/carrito",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "SELECT * FROM seguridad.user_sessions \n         WHERE session_token = $1 AND is_revoked = false AND expires_at > NOW()",
+    "stackTrace": "at Function.getSessionByToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:197:33)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:85:48)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355448086_op8d",
+    "timestamp": "2026-04-05T02:17:28.086Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Carrito",
+    "method": "GET",
+    "path": "/api/carrito",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "UPDATE seguridad.user_sessions us\n         SET \n           last_activity = CURRENT_TIMESTAMP,\n           expires_at = CURRENT_TIMESTAMP + (\n             CASE \n               WHEN u.rol = 'trabajador' OR u.rol = 'admin' \n                 THEN interval '15 minutes'\n               ELSE \n               ",
+    "stackTrace": "at Function.updateLastActivity (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:254:33)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:120:26)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355448279_9ddo",
+    "timestamp": "2026-04-05T02:17:28.279Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Carrito",
+    "method": "GET",
+    "path": "/api/carrito",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "SELECT\n                c.id,\n                c.usuario_id,\n                c.producto_id,\n                c.cantidad,\n                c.talla_medida,\n                c.nota,\n                c.fecha_agregado,\n                p.nombre            AS producto_nombre,\n                p.imagen_principal  ",
+    "stackTrace": "at Object.getByUsuario (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\models\\carritoModel.ts:8:35)\n    at getCarrito (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\controllers\\carrito\\carritoController.ts:91:42)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:127:5)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355448642_vcjh",
+    "timestamp": "2026-04-05T02:17:28.642Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "GET",
+    "path": "/",
+    "description": "La respuesta de GET / no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775355448814_fj4v",
+    "timestamp": "2026-04-05T02:17:28.814Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Inventario / Productos",
+    "method": "GET",
+    "path": "/api/products/categorias",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "SELECT id, nombre, descripcion, categoria_padre_id, imagen_url, orden, activo, \n                    creado_por, fecha_creacion, fecha_actualizacion \n             FROM catalogo.categorias \n             ORDER BY orden ASC, nombre ASC",
+    "stackTrace": "at Object.getAll (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\models\\productModel.ts:23:35)\n    at getCategories (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\controllers\\producto\\productoController.ts:9:48)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355461682_67jx",
+    "timestamp": "2026-04-05T02:17:41.682Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "GET",
+    "path": "/categorias",
+    "description": "La respuesta de GET /categorias no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775355462137_tb7a",
+    "timestamp": "2026-04-05T02:17:42.137Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Proveedores",
+    "method": "GET",
+    "path": "/api/proveedores",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "SELECT * FROM seguridad.user_sessions \n         WHERE session_token = $1 AND is_revoked = false AND expires_at > NOW()",
+    "stackTrace": "at Function.getSessionByToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:197:33)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:85:48)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355480755_bzp4",
+    "timestamp": "2026-04-05T02:18:00.755Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "Proveedores",
+    "method": "GET",
+    "path": "/api/proveedores",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "UPDATE seguridad.user_sessions us\n         SET \n           last_activity = CURRENT_TIMESTAMP,\n           expires_at = CURRENT_TIMESTAMP + (\n             CASE \n               WHEN u.rol = 'trabajador' OR u.rol = 'admin' \n                 THEN interval '15 minutes'\n               ELSE \n               ",
+    "stackTrace": "at Function.updateLastActivity (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:254:33)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:120:26)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355481040_a56c",
+    "timestamp": "2026-04-05T02:18:01.040Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "General",
+    "method": "GET",
+    "path": "/api/configuracion",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "SELECT * FROM seguridad.user_sessions \n         WHERE session_token = $1 AND is_revoked = false AND expires_at > NOW()",
+    "stackTrace": "at Function.getSessionByToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:197:33)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:85:48)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355486293_oiq7",
+    "timestamp": "2026-04-05T02:18:06.293Z"
+  },
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "module": "General",
+    "method": "GET",
+    "path": "/api/configuracion",
+    "description": "Valor del usuario (cookies.language) interpolado directamente en query SQL sin usar parámetros ($1, $2...).",
+    "evidence": "UPDATE seguridad.user_sessions us\n         SET \n           last_activity = CURRENT_TIMESTAMP,\n           expires_at = CURRENT_TIMESTAMP + (\n             CASE \n               WHEN u.rol = 'trabajador' OR u.rol = 'admin' \n                 THEN interval '15 minutes'\n               ELSE \n               ",
+    "stackTrace": "at Function.updateLastActivity (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\SessionService.ts:254:33)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:120:26)",
+    "taintSource": {
+      "value": "en",
+      "source": "cookies",
+      "field": "language"
+    },
+    "remediation": "Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.",
+    "id": "finding_1775355486584_92ae",
+    "timestamp": "2026-04-05T02:18:06.584Z"
+  },
+  {
+    "severity": "MEDIUM",
+    "type": "Acceso a tabla sensible",
+    "module": "General",
+    "method": "GET",
+    "path": "/api/configuracion",
+    "description": "Query accede a tabla sensible \"configuracion\" desde ruta no privilegiada.",
+    "evidence": "SELECT * FROM configuracion.configuracion ORDER BY categoria, clave",
+    "stackTrace": "at getAll (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\controllers\\admin\\configuracionController.ts:11:33)\n    at authenticateToken (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\middleware\\authMiddleware.ts:127:5)",
+    "remediation": "Verifica que el acceso a la tabla configuracion esté protegido por roleMiddleware y authenticateToken.",
+    "id": "finding_1775355486740_wivb",
+    "timestamp": "2026-04-05T02:18:06.740Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "GET",
+    "path": "/history",
+    "description": "La respuesta de GET /history no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775355506571_uadk",
+    "timestamp": "2026-04-05T02:18:26.571Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "GET",
+    "path": "/scheduler/status",
+    "description": "La respuesta de GET /scheduler/status no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775355506762_7loz",
+    "timestamp": "2026-04-05T02:18:26.762Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "POST",
+    "path": "/scheduler/run-now",
+    "description": "La respuesta de POST /scheduler/run-now no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775357735056_2obo",
+    "timestamp": "2026-04-05T02:55:35.056Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "GET",
+    "path": "/direct-download",
+    "description": "La respuesta de GET /direct-download no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775357830213_td9m",
+    "timestamp": "2026-04-05T02:57:10.213Z"
+  },
+  {
+    "severity": "MEDIUM",
+    "type": "Acceso a tabla sensible",
+    "module": "General",
+    "method": "GET",
+    "path": "/api/backups/scheduler/status",
+    "description": "Query accede a tabla sensible \"configuracion\" desde ruta no privilegiada.",
+    "evidence": "SELECT valor FROM configuracion.configuracion_sistema WHERE clave = 'backup_scheduler' LIMIT 1",
+    "stackTrace": "at Function.getConfig (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\BackupSchedulerService.ts:42:33)\n    at Function.getStatus (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\services\\BackupSchedulerService.ts:352:31)\n    at getSchedulerStatus (C:\\Users\\delfi\\Documents\\GitHub\\Joyeria-Diana-Laura\\Backend\\src\\controllers\\backup\\backupController.ts:197:53)",
+    "remediation": "Verifica que el acceso a la tabla configuracion esté protegido por roleMiddleware y authenticateToken.",
+    "id": "finding_1775358211393_n8qz",
+    "timestamp": "2026-04-05T03:03:31.393Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "GET",
+    "path": "/estados-pedido",
+    "description": "La respuesta de GET /estados-pedido no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775359096827_s7jj",
+    "timestamp": "2026-04-05T03:18:16.827Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "GET",
+    "path": "/pedidos/mis",
+    "description": "La respuesta de GET /pedidos/mis no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775359097394_5jx1",
+    "timestamp": "2026-04-05T03:18:17.394Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "GET",
+    "path": "/por-categorias",
+    "description": "La respuesta de GET /por-categorias no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775359122112_rtbf",
+    "timestamp": "2026-04-05T03:18:42.112Z"
+  },
+  {
+    "severity": "LOW",
+    "type": "Security Headers faltantes",
+    "module": "General",
+    "method": "GET",
+    "path": "/tipos-producto",
+    "description": "La respuesta de GET /tipos-producto no incluye 4 header(s) de seguridad recomendados.",
+    "evidence": "x-content-type-options: nosniff | x-frame-options: DENY o SAMEORIGIN | strict-transport-security: max-age=... | content-security-policy: default-src 'self'",
+    "remediation": "Agrega en server.ts: app.use(helmet()). Instala con: npm install helmet. O agrega manualmente los headers en un middleware global.",
+    "id": "finding_1775359124034_6mav",
+    "timestamp": "2026-04-05T03:18:44.034Z"
+  }
+]

@@ -1,5 +1,4 @@
 // Ruta: Backend/src/services/BackupSchedulerService.ts
-
 import * as cron from 'node-cron';
 import { spawn } from 'child_process';
 import pool from '../config/database';
@@ -39,8 +38,9 @@ export class BackupSchedulerService {
   // ─── LEER CONFIG DESDE LA BD ─────────────────────────────────────────────
   static async getConfig(): Promise<SchedulerConfig> {
     try {
+      // ✅ CORREGIDO: agregar esquema configuracion
       const result = await pool.query(
-        `SELECT valor FROM configuracion_sistema WHERE clave = 'backup_scheduler' LIMIT 1`
+        `SELECT valor FROM configuracion.configuracion_sistema WHERE clave = 'backup_scheduler' LIMIT 1`
       );
       if (result.rows.length > 0) {
         return JSON.parse(result.rows[0].valor) as SchedulerConfig;
@@ -57,8 +57,9 @@ export class BackupSchedulerService {
 
   // ─── GUARDAR CONFIG EN LA BD ──────────────────────────────────────────────
   static async saveConfig(config: SchedulerConfig): Promise<void> {
+    // ✅ CORREGIDO: agregar esquema configuracion
     await pool.query(
-      `INSERT INTO configuracion_sistema (clave, valor)
+      `INSERT INTO configuracion.configuracion_sistema (clave, valor)
        VALUES ('backup_scheduler', $1)
        ON CONFLICT (clave) DO UPDATE SET valor = $1`,
       [JSON.stringify(config)]
@@ -101,8 +102,9 @@ export class BackupSchedulerService {
     // Guardia en BD: evitar duplicados si el proceso se reinició (hot-reload)
     // y hay otro respaldo creado en los últimos 2 minutos
     try {
+      // ✅ CORREGIDO: agregar esquema auditoria
       const reciente = await pool.query(
-        `SELECT id FROM respaldos_historial
+        `SELECT id FROM auditoria.respaldos_historial
          WHERE tipo = 'automatico'
            AND fecha_creacion > NOW() - interval '2 minutes'
          LIMIT 1`
@@ -112,8 +114,8 @@ export class BackupSchedulerService {
         return;
       }
     } catch (error) { 
-  console.warn('⚠️ [BackupScheduler] No se pudo verificar duplicados, continuando...', error); 
-}
+      console.warn('⚠️ [BackupScheduler] No se pudo verificar duplicados, continuando...', error); 
+    }
 
     this.isRunning = true;
 
@@ -132,16 +134,17 @@ export class BackupSchedulerService {
 
     try {
       // ── Resumen de tablas ──────────────────────────────────────────────
+      // ✅ CORREGIDO: incluir todos los esquemas
       const stats = await pool.query(`
-        SELECT relname as tabla, n_live_tup as filas
+        SELECT schemaname, relname as tabla, n_live_tup as filas
         FROM pg_stat_user_tables
-        WHERE schemaname = 'public'
+        WHERE schemaname IN ('seguridad', 'catalogo', 'ventas', 'inventario', 'contenido', 'configuracion', 'auditoria', 'publico')
         ORDER BY n_live_tup DESC
       `);
 
       logAcumulado += `\n[RESUMEN DE DATOS]:\n`;
       stats.rows.forEach(row => {
-        logAcumulado += ` > ${row.tabla.padEnd(25)} | ${row.filas} registros\n`;
+        logAcumulado += ` > ${row.schemaname}.${row.tabla.padEnd(25)} | ${row.filas} registros\n`;
       });
       logAcumulado += `\n--- PROCESO PG_DUMP ---\n`;
 
@@ -186,8 +189,9 @@ export class BackupSchedulerService {
       console.log(`✅ [BackupScheduler] Subido a Cloudinary: ${urlArchivo}`);
 
       // ── Guardar registro en BD ─────────────────────────────────────────
+      // ✅ CORREGIDO: agregar esquema auditoria
       await pool.query(
-        `INSERT INTO respaldos_historial
+        `INSERT INTO auditoria.respaldos_historial
           (nombre_archivo, tipo, estado, tamano, usuario_id, detalles_log, url_archivo)
          VALUES ($1, 'automatico', 'completed', $2, NULL, $3, $4)`,
         [fileName, fileSizeMB, logAcumulado, urlArchivo]
@@ -203,8 +207,9 @@ export class BackupSchedulerService {
       console.error(`❌ [BackupScheduler] Error en respaldo automático:`, error.message);
 
       try {
+        // ✅ CORREGIDO: agregar esquema auditoria
         await pool.query(
-          `INSERT INTO respaldos_historial
+          `INSERT INTO auditoria.respaldos_historial
             (nombre_archivo, tipo, estado, usuario_id, detalles_log)
            VALUES ($1, 'automatico', 'failed', NULL, $2)`,
           [fileName, logAcumulado]
@@ -219,21 +224,15 @@ export class BackupSchedulerService {
   }
 
   // ─── LIMPIAR REGISTROS VIEJOS EN BD + CLOUDINARY ─────────────────────────
-  //
-  //  Reglas:
-  //    1. Si solo hay 1 respaldo automático → no se borra nada (conservar siempre el último).
-  //    2. Si hay más de 1 → se elimina DE UNO EN UNO el más antiguo que ya haya vencido.
-  //    3. Si ninguno ha vencido aún → no se borra nada.
-  //
   static async cleanOldDbRecords(configOverride?: SchedulerConfig): Promise<{ deleted: number }> {
     try {
       const config = configOverride ?? await this.getConfig();
 
       console.log(`🧹 [Limpieza] Verificando retención de ${config.retencion_dias} días...`);
 
-      // Regla 1: contar cuántos respaldos automáticos existen
+      // ✅ CORREGIDO: agregar esquema auditoria
       const countResult = await pool.query(
-        `SELECT COUNT(*) as total FROM respaldos_historial WHERE tipo = 'automatico'`
+        `SELECT COUNT(*) as total FROM auditoria.respaldos_historial WHERE tipo = 'automatico'`
       );
       const total = Number.parseInt(countResult.rows[0].total, 10);
 
@@ -242,9 +241,9 @@ export class BackupSchedulerService {
         return { deleted: 0 };
       }
 
-      // Regla 2 y 3: buscar el MÁS ANTIGUO que ya venció, solo 1
+      // ✅ CORREGIDO: agregar esquema auditoria
       const vencido = await pool.query(
-        `SELECT id, url_archivo, nombre_archivo FROM respaldos_historial
+        `SELECT id, url_archivo, nombre_archivo FROM auditoria.respaldos_historial
          WHERE tipo = 'automatico'
            AND fecha_creacion < NOW() - (interval '1 day' * $1::float)
          ORDER BY fecha_creacion ASC
@@ -259,7 +258,6 @@ export class BackupSchedulerService {
 
       const registro = vencido.rows[0];
 
-      // Eliminar de Cloudinary si tiene URL
       if (registro.url_archivo) {
         try {
           const publicId = this.extractPublicIdFromCloudinary(registro.url_archivo);
@@ -272,8 +270,8 @@ export class BackupSchedulerService {
         }
       }
 
-      // Eliminar de BD — solo 1 registro
-      await pool.query(`DELETE FROM respaldos_historial WHERE id = $1`, [registro.id]);
+      // ✅ CORREGIDO: agregar esquema auditoria
+      await pool.query(`DELETE FROM auditoria.respaldos_historial WHERE id = $1`, [registro.id]);
 
       console.log(`🧹 [Limpieza] 1 respaldo eliminado: ${registro.nombre_archivo}. Quedan ${total - 1} en total.`);
       return { deleted: 1 };
@@ -328,7 +326,6 @@ export class BackupSchedulerService {
     else if (config.frecuencia === 'cada5min') this.taskCada5min = task;
     else                                       this.taskMensual  = task;
 
-    // Limpieza: si retención < 1 día → cada hora; si no → diario a las 4AM
     const cronLimpieza = config.retencion_dias < 1 ? '0 * * * *' : '0 4 * * *';
     this.taskLimpieza = cron.schedule(cronLimpieza, async () => {
       console.log('🧹 [BackupScheduler] Ejecutando limpieza programada...');
@@ -357,9 +354,10 @@ export class BackupSchedulerService {
 
     let lastRun: string | null = null;
     try {
+      // ✅ CORREGIDO: agregar esquema auditoria
       const res = await pool.query(
         `SELECT to_char(fecha_creacion AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS') as fecha
-         FROM respaldos_historial
+         FROM auditoria.respaldos_historial
          WHERE tipo = 'automatico'
          ORDER BY fecha_creacion DESC LIMIT 1`
       );

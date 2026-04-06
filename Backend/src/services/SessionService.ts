@@ -27,33 +27,22 @@ export interface DeviceInfo {
   os: string;
 }
 
-// ─── HELPER: interval SQL según rol ───────────────────────────────────────────
-// La fecha se calcula con NOW() en PostgreSQL (siempre UTC) — Node no toca fechas
 function getIntervalByRol(rol?: string): string {
   return (rol === 'trabajador' || rol === 'admin')
-    ? '15 minutes'  // personal
-    : '1 hour';     // cliente (o sin rol)
+    ? '15 minutes'
+    : '1 hour';
 }
 
 export class SessionService {
-  /**
-   * Generar token de sesión seguro
-   */
   static generateSessionToken(): string {
     return crypto.randomBytes(32).toString('hex');
   }
 
-  /**
-   * Generar fingerprint único del dispositivo
-   */
   static generateDeviceFingerprint(userAgent: string, ipAddress: string): string {
     const fingerprintData = `${userAgent}`;
     return crypto.createHash('sha256').update(fingerprintData).digest('hex').substring(0, 16);
   }
 
-  /**
-   * Obtener ubicación real desde IP usando ipgeolocation.io
-   */
   static async getLocationFromIp(ipAddress: string): Promise<string> {
     try {
       if (ipAddress === '127.0.0.1' || ipAddress === '::1') {
@@ -103,19 +92,13 @@ export class SessionService {
     }
   }
 
-  /**
-   * Crear nueva sesión de usuario con fingerprint.
-   * El parámetro `rol` determina el tiempo de expiración:
-   *   - admin / trabajador → 15 minutos
-   *   - cliente (o sin rol) → 1 hora
-   */
   static async createSession(
     userId: number,
     firebaseUid: string,
     deviceInfo: DeviceInfo,
     ipAddress: string,
     userAgent: string,
-    rol?: string                          // ← NUEVO parámetro
+    rol?: string
   ): Promise<{ success: boolean; sessionId?: number; sessionToken?: string; error?: string }> {
     try {
       if (!userId || !firebaseUid) {
@@ -126,23 +109,24 @@ export class SessionService {
 
       console.log(`🔍 Verificando sesión existente para dispositivo: ${deviceFingerprint}`);
 
+      // ✅ CORREGIDO: agregar esquema seguridad
       const existingSession = await pool.query(
-        `SELECT id, session_token, expires_at FROM user_sessions 
+        `SELECT id, session_token, expires_at FROM seguridad.user_sessions 
          WHERE user_id = $1 AND device_fingerprint = $2 
          AND is_revoked = false AND expires_at > NOW()
          ORDER BY created_at DESC LIMIT 1`,
         [userId, deviceFingerprint]
       );
 
-      // Si ya existe sesión activa → renovarla con el nuevo tiempo según rol
       if (existingSession.rows.length > 0) {
         const existingToken = existingSession.rows[0].session_token;
         const existingId    = existingSession.rows[0].id;
 
         console.log(`♻️ REUTILIZANDO sesión existente ID: ${existingId}`);
 
+        // ✅ CORREGIDO: agregar esquema seguridad
         await pool.query(
-          `UPDATE user_sessions 
+          `UPDATE seguridad.user_sessions 
            SET last_activity = NOW(), expires_at = NOW() + $1::interval
            WHERE id = $2`,
           [getIntervalByRol(rol), existingId]
@@ -151,25 +135,25 @@ export class SessionService {
         return { success: true, sessionId: existingId, sessionToken: existingToken };
       }
 
-      // No existe → crear nueva sesión
       console.log(`🆕 Creando nueva sesión para dispositivo: ${deviceFingerprint}, rol: ${rol || 'cliente'}`);
 
       const sessionToken = this.generateSessionToken();
       const intervalo    = getIntervalByRol(rol);
 
-      // Obtener ubicación de forma no bloqueante
       let location = 'Obteniendo ubicación...';
       this.getLocationFromIp(ipAddress)
         .then(realLocation => {
+          // ✅ CORREGIDO: agregar esquema seguridad
           pool.query(
-            `UPDATE user_sessions SET location = $1 WHERE session_token = $2`,
+            `UPDATE seguridad.user_sessions SET location = $1 WHERE session_token = $2`,
             [realLocation, sessionToken]
           ).catch(err => console.error('❌ Error actualizando ubicación:', err));
         })
         .catch(err => console.error('❌ Error obteniendo ubicación:', err));
 
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        `INSERT INTO user_sessions 
+        `INSERT INTO seguridad.user_sessions 
          (user_id, session_token, device_fingerprint, firebase_uid, device_name, browser, os, ip_address, user_agent, location, expires_at) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW() + $11::interval) 
          RETURNING id`,
@@ -207,13 +191,11 @@ export class SessionService {
     }
   }
 
-  /**
-   * Obtener sesión por token
-   */
   static async getSessionByToken(sessionToken: string): Promise<{ success: boolean; session?: UserSession; error?: string }> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        `SELECT * FROM user_sessions 
+        `SELECT * FROM seguridad.user_sessions 
          WHERE session_token = $1 AND is_revoked = false AND expires_at > NOW()`,
         [sessionToken]
       );
@@ -229,13 +211,11 @@ export class SessionService {
     }
   }
 
-  /**
-   * Obtener sesión actual por fingerprint
-   */
   static async getCurrentSessionByFingerprint(userId: number, fingerprint: string): Promise<{ success: boolean; session?: UserSession; error?: string }> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        `SELECT * FROM user_sessions 
+        `SELECT * FROM seguridad.user_sessions 
          WHERE user_id = $1 AND device_fingerprint = $2 AND is_revoked = false AND expires_at > NOW()`,
         [userId, fingerprint]
       );
@@ -251,13 +231,11 @@ export class SessionService {
     }
   }
 
-  /**
-   * Obtener todas las sesiones activas de un usuario
-   */
   static async getActiveSessionsByUserId(userId: number): Promise<{ success: boolean; sessions: UserSession[]; error?: string }> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        `SELECT * FROM user_sessions 
+        `SELECT * FROM seguridad.user_sessions 
          WHERE user_id = $1 AND is_revoked = false AND expires_at > NOW()
          ORDER BY last_activity DESC`,
         [userId]
@@ -270,15 +248,11 @@ export class SessionService {
     }
   }
 
-  /**
-   * Actualizar última actividad de una sesión
-   */
   static async updateLastActivity(sessionToken: string): Promise<{ success: boolean; error?: string }> {
     try {
-      // Renovar last_activity Y extender expires_at según el rol del usuario
-      // Si está activo, su sesión se renueva automáticamente
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        `UPDATE user_sessions us
+        `UPDATE seguridad.user_sessions us
          SET 
            last_activity = CURRENT_TIMESTAMP,
            expires_at = CURRENT_TIMESTAMP + (
@@ -289,7 +263,7 @@ export class SessionService {
                  interval '1 hour'
              END
            )
-         FROM usuarios u
+         FROM seguridad.usuarios u
          WHERE us.session_token = $1 
            AND us.user_id = u.id
            AND us.is_revoked = false`,
@@ -307,13 +281,11 @@ export class SessionService {
     }
   }
 
-  /**
-   * Revocar una sesión específica por ID
-   */
   static async revokeSessionById(sessionId: number): Promise<{ success: boolean; error?: string }> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        `UPDATE user_sessions 
+        `UPDATE seguridad.user_sessions 
          SET is_revoked = true, revoked_at = CURRENT_TIMESTAMP 
          WHERE id = $1 AND is_revoked = false`,
         [sessionId]
@@ -331,13 +303,11 @@ export class SessionService {
     }
   }
 
-  /**
-   * Revocar una sesión específica por token
-   */
   static async revokeSessionByToken(sessionToken: string): Promise<{ success: boolean; error?: string }> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        `UPDATE user_sessions 
+        `UPDATE seguridad.user_sessions 
          SET is_revoked = true, revoked_at = CURRENT_TIMESTAMP 
          WHERE session_token = $1 AND is_revoked = false`,
         [sessionToken]
@@ -355,13 +325,11 @@ export class SessionService {
     }
   }
 
-  /**
-   * Revocar todas las sesiones de un usuario EXCEPTO la actual
-   */
   static async revokeAllOtherSessions(userId: number, currentSessionToken: string): Promise<{ success: boolean; revokedCount: number; error?: string }> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        `UPDATE user_sessions 
+        `UPDATE seguridad.user_sessions 
          SET is_revoked = true, revoked_at = CURRENT_TIMESTAMP 
          WHERE user_id = $1 AND session_token != $2 AND is_revoked = false`,
         [userId, currentSessionToken]
@@ -375,13 +343,11 @@ export class SessionService {
     }
   }
 
-  /**
-   * Revocar TODAS las sesiones de un usuario
-   */
   static async revokeAllSessions(userId: number): Promise<{ success: boolean; revokedCount: number; error?: string }> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        `UPDATE user_sessions 
+        `UPDATE seguridad.user_sessions 
          SET is_revoked = true, revoked_at = CURRENT_TIMESTAMP 
          WHERE user_id = $1 AND is_revoked = false`,
         [userId]
@@ -395,13 +361,11 @@ export class SessionService {
     }
   }
 
-  /**
-   * Limpiar sesiones expiradas
-   */
   static async cleanupExpiredSessions(): Promise<{ success: boolean; cleanedCount: number; error?: string }> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        `DELETE FROM user_sessions WHERE expires_at <= NOW() OR is_revoked = true`
+        `DELETE FROM seguridad.user_sessions WHERE expires_at <= NOW() OR is_revoked = true`
       );
 
       console.log(`🧹 Limpiadas ${result.rowCount} sesiones expiradas/revocadas`);
@@ -412,9 +376,6 @@ export class SessionService {
     }
   }
 
-  /**
-   * Obtener información del dispositivo desde User-Agent
-   */
   static parseUserAgent(userAgent: string): DeviceInfo {
     if (!userAgent || userAgent === 'unknown') {
       return { deviceName: 'Dispositivo Desconocido', browser: 'Desconocido', os: 'Desconocido' };
@@ -445,8 +406,9 @@ export class SessionService {
     try {
       const deviceFingerprint = this.generateDeviceFingerprint(userAgent, ipAddress);
 
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
-        `SELECT session_token FROM user_sessions 
+        `SELECT session_token FROM seguridad.user_sessions 
          WHERE user_id = $1 AND device_fingerprint = $2 
          AND is_revoked = false AND expires_at > NOW()
          ORDER BY created_at DESC LIMIT 1`,

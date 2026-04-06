@@ -84,7 +84,7 @@ export const login = async (req: Request, res: Response) => {
         return res.status(401).json({ success: false, message: '📧 Tu email no está verificado.' });
       }
 
-      const userCheck = await pool.query('SELECT id, mfa_enabled FROM usuarios WHERE email = $1', [email]);
+      const userCheck = await pool.query('SELECT id, mfa_enabled FROM seguridad.usuarios WHERE email = $1', [email]);
       if (userCheck.rows.length > 0 && userCheck.rows[0].mfa_enabled) {
         await LoginSecurityService.recordLoginAttempt({ 
           email, ip_address: clientIp, user_agent: userAgent, success: true, failure_reason: 'mfa_required' 

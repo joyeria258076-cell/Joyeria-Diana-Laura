@@ -1,3 +1,4 @@
+// Backend/src/controllers/usuario/userController.ts
 import { Request, Response } from 'express';
 import * as userModel from '../../models/userModel';
 import bcrypt from 'bcryptjs';

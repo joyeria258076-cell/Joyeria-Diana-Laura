@@ -7,8 +7,9 @@ export const configuracionController = {
   // Obtener todas las configuraciones
   async getAll(req: AuthRequest, res: Response) {
     try {
+      // ✅ CORREGIDO: agregar esquema configuracion
       const result = await pool.query(
-        'SELECT * FROM configuracion ORDER BY categoria, clave'
+        'SELECT * FROM configuracion.configuracion ORDER BY categoria, clave'
       );
       
       res.json({
@@ -28,8 +29,9 @@ export const configuracionController = {
   async getByCategoria(req: AuthRequest, res: Response) {
     try {
       const { categoria } = req.params;
+      // ✅ CORREGIDO: agregar esquema configuracion
       const result = await pool.query(
-        'SELECT * FROM configuracion WHERE categoria = $1 ORDER BY clave',
+        'SELECT * FROM configuracion.configuracion WHERE categoria = $1 ORDER BY clave',
         [categoria]
       );
       
@@ -50,8 +52,9 @@ export const configuracionController = {
   async getByClave(req: AuthRequest, res: Response) {
     try {
       const { clave } = req.params;
+      // ✅ CORREGIDO: agregar esquema configuracion
       const result = await pool.query(
-        'SELECT * FROM configuracion WHERE clave = $1',
+        'SELECT * FROM configuracion.configuracion WHERE clave = $1',
         [clave]
       );
       
@@ -82,8 +85,9 @@ export const configuracionController = {
       const { valor } = req.body;
       const userId = req.user?.userId;
 
+      // ✅ CORREGIDO: agregar esquema configuracion
       const result = await pool.query(
-        `UPDATE configuracion 
+        `UPDATE configuracion.configuracion 
          SET valor = $1, actualizado_por = $2, fecha_actualizacion = CURRENT_TIMESTAMP
          WHERE clave = $3
          RETURNING *`,
@@ -123,8 +127,9 @@ export const configuracionController = {
 
       const resultados = [];
       for (const config of configuraciones) {
+        // ✅ CORREGIDO: agregar esquema configuracion
         const result = await client.query(
-          `UPDATE configuracion 
+          `UPDATE configuracion.configuracion 
            SET valor = $1, actualizado_por = $2, fecha_actualizacion = CURRENT_TIMESTAMP
            WHERE clave = $3
            RETURNING clave, valor`,

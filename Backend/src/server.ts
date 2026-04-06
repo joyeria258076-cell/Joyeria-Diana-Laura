@@ -37,6 +37,7 @@ import { AuthRequest } from './middleware/authMiddleware';
 import pool from './config/database';
 // IAST Agent
 import { iastMiddleware, createIASTRouter, initializeIAST } from './iast/IASTMiddleware';
+import userManagementRoutes from './routes/userManagementRoutes';
 
 dotenv.config();
 
@@ -139,7 +140,7 @@ app.get('/api/debug/my-role', authenticateToken, async (req: AuthRequest, res) =
       });
     }
 
-    const result = await pool.query('SELECT id, email, rol FROM usuarios WHERE id = $1', [userId]);
+    const result = await pool.query('SELECT id, email, rol FROM seguridad.usuarios WHERE id = $1', [userId]);
     
     res.json({
       success: true,
@@ -173,6 +174,7 @@ app.use('/api/configuracion', configuracionRoutes);
 app.use('/api/proveedores', proveedoresRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/prediccion', predictiveRoutes);
+app.use('/api/user-management', userManagementRoutes);
 
 // 🩺 ENDPOINTS DE SALUD
 app.get('/api/health', (req, res) => {

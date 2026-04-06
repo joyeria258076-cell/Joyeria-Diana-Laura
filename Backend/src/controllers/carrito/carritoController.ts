@@ -14,9 +14,10 @@ const getUsuario = (req: Request) => {
     };
 };
 
+
 const getRolFromDB = async (usuario_id: number): Promise<string> => {
     try {
-        const result = await pool.query('SELECT rol FROM usuarios WHERE id = $1', [usuario_id]);
+        const result = await pool.query('SELECT rol FROM seguridad.usuarios WHERE id = $1', [usuario_id]);
         return result.rows[0]?.rol?.toLowerCase() || 'cliente';
     } catch { return 'cliente'; }
 };
@@ -32,12 +33,13 @@ const descontarStock = async (venta_id: number): Promise<void> => {
         await client.query('BEGIN');
 
         const items = await client.query(`
-            SELECT producto_id, cantidad FROM detalle_ventas WHERE venta_id = $1
+            SELECT producto_id, cantidad FROM ventas.detalle_ventas WHERE venta_id = $1
         `, [venta_id]);
 
         for (const item of items.rows) {
+            // ✅ CORREGIDO: agregar esquema catalogo
             const prod = await client.query(
-                `SELECT stock_actual FROM productos WHERE id = $1 FOR UPDATE`, [item.producto_id]
+                `SELECT stock_actual FROM catalogo.productos WHERE id = $1 FOR UPDATE`, [item.producto_id]
             );
             if (!prod.rows.length) continue;
 
@@ -45,7 +47,7 @@ const descontarStock = async (venta_id: number): Promise<void> => {
             const nuevoStock  = Math.max(0, stockActual - item.cantidad);
 
             await client.query(`
-                UPDATE productos 
+                UPDATE catalogo.productos 
                 SET stock_actual = $1, fecha_actualizacion = CURRENT_TIMESTAMP
                 WHERE id = $2
             `, [nuevoStock, item.producto_id]);
@@ -64,13 +66,14 @@ const descontarStock = async (venta_id: number): Promise<void> => {
 
 // ── Restaurar stock al cancelar ───────────────────────────────
 const restaurarStock = async (venta_id: number): Promise<void> => {
+    // ✅ CORREGIDO: agregar esquema ventas y catalogo
     const items = await pool.query(`
-        SELECT producto_id, cantidad FROM detalle_ventas WHERE venta_id = $1
+        SELECT producto_id, cantidad FROM ventas.detalle_ventas WHERE venta_id = $1
     `, [venta_id]);
 
     for (const item of items.rows) {
         await pool.query(`
-            UPDATE productos
+            UPDATE catalogo.productos
             SET stock_actual = stock_actual + $1, fecha_actualizacion = CURRENT_TIMESTAMP
             WHERE id = $2
         `, [item.cantidad, item.producto_id]);
@@ -105,8 +108,9 @@ export const agregarAlCarrito = async (req: Request, res: Response) => {
         const { producto_id, cantidad = 1, talla_medida, nota } = req.body;
         if (!producto_id) return res.status(400).json({ success: false, message: 'producto_id requerido' });
 
+        // ✅ CORREGIDO: agregar esquema catalogo
         const prod = await pool.query(
-            `SELECT stock_actual, activo FROM productos WHERE id = $1`, [producto_id]
+            `SELECT stock_actual, activo FROM catalogo.productos WHERE id = $1`, [producto_id]
         );
         if (!prod.rows.length || !prod.rows[0].activo)
             return res.status(404).json({ success: false, message: 'Producto no disponible' });
@@ -195,9 +199,10 @@ export const crearPedido = async (req: Request, res: Response) => {
         if (!metodo_pago_id)
             return res.status(503).json({ success: false, message: 'Método de pago no configurado' });
 
+        // ✅ CORREGIDO: agregar esquema catalogo
         const productIds = items.map(i => i.producto_id);
         const prodsResult = await pool.query(
-            `SELECT id, codigo, nombre, imagen_principal FROM productos WHERE id = ANY($1)`,
+            `SELECT id, codigo, nombre, imagen_principal FROM catalogo.productos WHERE id = ANY($1)`,
             [productIds]
         );
         const prodsMap = new Map(prodsResult.rows.map(p => [p.id, p]));
@@ -650,8 +655,9 @@ export const tomarPedido = async (req: Request, res: Response) => {
                 message: `Este pedido ya está siendo atendido por ${venta.trabajador_nombre || 'otro trabajador'}` 
             });
 
+        // ✅ CORREGIDO: agregar esquema ventas
         const result = await pool.query(`
-            UPDATE ventas 
+            UPDATE ventas.ventas 
             SET trabajador_id = $1,
                 actualizado_por = $1,
                 fecha_actualizacion = CURRENT_TIMESTAMP

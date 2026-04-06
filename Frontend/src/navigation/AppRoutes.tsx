@@ -70,6 +70,7 @@ import AdminAutomationScreen from "../screens/admin/basedatos/AdminAutomationScr
 import AdminSimpleImportScreen from "../screens/admin/basedatos/AdminSimpleImportScreen";
 import AdminExportScreen from "../screens/admin/basedatos/AdminExportScreen";
 import AdminBulkUpdateScreen from "../screens/admin/basedatos/AdminBulkUpdateScreen";
+import AdminDatabaseUsers from "../screens/admin/seguridad/AdminDatabaseUsers";
 
 // ✅ NUEVO: Pantalla de monitoreo
 import AdminMonitoreoScreen from "../screens/admin/basedatos/AdminMonitoreoScreen";
@@ -207,6 +208,7 @@ export default function AppRoutes() {
             <Route path="/admin/importar-csv" element={<AdminSimpleImportScreen />} />
             {/* ✅ NUEVO */}
             <Route path="/admin-monitoreo"    element={<AdminMonitoreoScreen />} />
+            <Route path="/admin/seguridad/usuarios-bd" element={<AdminDatabaseUsers />} />
 
             <Route path="/admin-prediccion"   element={<AdminPrediccionScreen />} />
 

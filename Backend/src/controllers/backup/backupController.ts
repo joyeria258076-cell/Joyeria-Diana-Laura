@@ -1,3 +1,4 @@
+// Backend/src/controllers/backup/backupController.ts
 import { Request, Response } from 'express';
 import { spawn } from 'child_process';
 import pool from '../../config/database';
@@ -40,10 +41,11 @@ export const generateDirectBackup = async (req: Request, res: Response) => {
     logAcumulado += `Servidor: ${process.env.DB_HOST || 'supabase.com'}\n`;
 
     try {
+        // ✅ CORREGIDO: agregar esquema para estadísticas de tablas
         const stats = await pool.query(`
             SELECT relname as tabla, n_live_tup as filas
             FROM pg_stat_user_tables 
-            WHERE schemaname = 'public'
+            WHERE schemaname IN ('seguridad', 'catalogo', 'ventas', 'inventario', 'contenido', 'configuracion', 'auditoria', 'publico')
             ORDER BY n_live_tup DESC
         `);
         
@@ -80,8 +82,9 @@ export const generateDirectBackup = async (req: Request, res: Response) => {
                 logAcumulado += `\n--- FINALIZADO EXITOSAMENTE A LAS ${new Date().toLocaleTimeString()} ---`;
                 try {
                     const usuario_id = (req as any).user?.id || null; 
+                    // ✅ CORREGIDO: agregar esquema auditoria
                     await pool.query(
-                        `INSERT INTO respaldos_historial 
+                        `INSERT INTO auditoria.respaldos_historial 
                         (nombre_archivo, tipo, estado, usuario_id, detalles_log) 
                         VALUES ($1, $2, $3, $4, $5)`,
                         [fileName, 'manual', 'completed', usuario_id, logAcumulado]
@@ -105,6 +108,7 @@ export const generateDirectBackup = async (req: Request, res: Response) => {
  */
 export const getBackupsHistory = async (req: Request, res: Response) => {
     try {
+        // ✅ CORREGIDO: agregar esquema auditoria y esquema seguridad para usuarios
         const query = `
             SELECT 
                 h.id, 
@@ -116,8 +120,8 @@ export const getBackupsHistory = async (req: Request, res: Response) => {
                 h.url_archivo,
                 to_char(h.fecha_creacion AT TIME ZONE 'UTC' AT TIME ZONE 'America/Mexico_City', 'YYYY-MM-DD HH24:MI:SS') as created_at,
                 u.nombre as created_by
-            FROM respaldos_historial h
-            LEFT JOIN usuarios u ON h.usuario_id = u.id
+            FROM auditoria.respaldos_historial h
+            LEFT JOIN seguridad.usuarios u ON h.usuario_id = u.id
             ORDER BY h.fecha_creacion DESC
             LIMIT 20;
         `;
@@ -136,8 +140,9 @@ export const getBackupsHistory = async (req: Request, res: Response) => {
 export const downloadBackupLog = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+        // ✅ CORREGIDO: agregar esquema auditoria
         const result = await pool.query(
-            "SELECT nombre_archivo, detalles_log FROM respaldos_historial WHERE id = $1", 
+            "SELECT nombre_archivo, detalles_log FROM auditoria.respaldos_historial WHERE id = $1", 
             [id]
         );
 
@@ -159,8 +164,9 @@ export const getBackupLogContent = async (req: any, res: any) => {
     try {
         const { backupId } = req.params; 
 
+        // ✅ CORREGIDO: agregar esquema auditoria
         const result = await pool.query(
-            'SELECT detalles_log, nombre_archivo FROM respaldos_historial WHERE id = $1',
+            'SELECT detalles_log, nombre_archivo FROM auditoria.respaldos_historial WHERE id = $1',
             [backupId]
         );
 
@@ -253,8 +259,10 @@ export const getDatabaseHealth = async (req: Request, res: Response) => {
                 to_char(pg_postmaster_start_time(), 'DD-MM-YYYY HH24:MI:SS') as uptime
         `;
 
+        // ✅ CORREGIDO: incluir todos los esquemas
         const tablesQuery = `
             SELECT 
+                schemaname,
                 relname as table_name,
                 n_live_tup as live_rows,
                 n_dead_tup as dead_rows,
@@ -266,7 +274,7 @@ export const getDatabaseHealth = async (req: Request, res: Response) => {
                     ELSE 0 
                 END as bloat_percentage
             FROM pg_stat_user_tables
-            WHERE schemaname = 'public'
+            WHERE schemaname IN ('seguridad', 'catalogo', 'ventas', 'inventario', 'contenido', 'configuracion', 'auditoria', 'publico')
             ORDER BY n_dead_tup DESC;
         `;
 
@@ -317,13 +325,15 @@ export const performMaintenance = async (req: Request, res: Response) => {
  */
 export const getTablesList = async (req: Request, res: Response) => {
     try {
+        // ✅ CORREGIDO: incluir todos los esquemas
         const result = await pool.query(`
             SELECT 
+                schemaname,
                 relname as tabla,
                 n_live_tup as filas
             FROM pg_stat_user_tables
-            WHERE schemaname = 'public'
-            ORDER BY relname ASC
+            WHERE schemaname IN ('seguridad', 'catalogo', 'ventas', 'inventario', 'contenido', 'configuracion', 'auditoria', 'publico')
+            ORDER BY schemaname, relname ASC
         `);
         res.json({ success: true, tables: result.rows });
     } catch (error) {
@@ -339,10 +349,10 @@ export const getTablesList = async (req: Request, res: Response) => {
 export const downloadCollectionBackup = async (req: Request, res: Response) => {
     const { tabla } = req.params;
 
-    // Validar que la tabla existe en la BD para evitar inyección
+    // ✅ CORREGIDO: validar tabla en cualquier esquema
     try {
         const check = await pool.query(
-            `SELECT relname FROM pg_stat_user_tables WHERE schemaname = 'public' AND relname = $1`,
+            `SELECT schemaname, relname FROM pg_stat_user_tables WHERE relname = $1`,
             [tabla]
         );
         if (check.rows.length === 0) {
@@ -387,8 +397,9 @@ export const downloadCollectionBackup = async (req: Request, res: Response) => {
                 console.log(`✅ [CollectionBackup] ${tabla} descargado correctamente`);
                 try {
                     const usuario_id = (req as any).user?.id || null;
+                    // ✅ CORREGIDO: agregar esquema auditoria
                     await pool.query(
-                        `INSERT INTO respaldos_historial
+                        `INSERT INTO auditoria.respaldos_historial
                             (nombre_archivo, tipo, estado, usuario_id, detalles_log)
                          VALUES ($1, 'coleccion', 'completed', $2, $3)`,
                         [fileName, usuario_id, `Respaldo de colección: tabla "${tabla}" — formato .dump`]
@@ -419,10 +430,10 @@ export const downloadCollectionBackup = async (req: Request, res: Response) => {
 export const downloadCollectionCSV = async (req: Request, res: Response) => {
     const { tabla } = req.params;
 
-    // Validar que la tabla existe
+    // ✅ CORREGIDO: validar tabla en cualquier esquema
     try {
         const check = await pool.query(
-            `SELECT relname FROM pg_stat_user_tables WHERE schemaname = 'public' AND relname = $1`,
+            `SELECT schemaname, relname FROM pg_stat_user_tables WHERE relname = $1`,
             [tabla]
         );
         if (check.rows.length === 0) {
@@ -438,6 +449,7 @@ export const downloadCollectionCSV = async (req: Request, res: Response) => {
     const fileName = `respaldo_${tabla}_${nombreLimpio}.csv`;
 
     try {
+        // ✅ CORREGIDO: consultar tabla sin asumir esquema public
         const result = await pool.query(`SELECT * FROM "${tabla}"`);
 
         if (result.rows.length === 0) {
@@ -471,8 +483,9 @@ export const downloadCollectionCSV = async (req: Request, res: Response) => {
 
         try {
             const usuario_id = (req as any).user?.id || null;
+            // ✅ CORREGIDO: agregar esquema auditoria
             await pool.query(
-                `INSERT INTO respaldos_historial
+                `INSERT INTO auditoria.respaldos_historial
                     (nombre_archivo, tipo, estado, usuario_id, detalles_log)
                  VALUES ($1, 'coleccion', 'completed', $2, $3)`,
                 [fileName, usuario_id, `Respaldo de colección: tabla "${tabla}" — formato .csv — ${result.rows.length} filas exportadas`]
@@ -510,8 +523,9 @@ export const deleteBackup = async (req: Request, res: Response) => {
     try {
         const { backupId } = req.params;
 
+        // ✅ CORREGIDO: agregar esquema auditoria
         const result = await pool.query(
-            "SELECT nombre_archivo, url_archivo FROM respaldos_historial WHERE id = $1", 
+            "SELECT nombre_archivo, url_archivo FROM auditoria.respaldos_historial WHERE id = $1", 
             [backupId]
         );
 
@@ -521,7 +535,8 @@ export const deleteBackup = async (req: Request, res: Response) => {
 
         const { nombre_archivo: fileName, url_archivo: urlArchivo } = result.rows[0];
 
-        await pool.query("DELETE FROM respaldos_historial WHERE id = $1", [backupId]);
+        // ✅ CORREGIDO: agregar esquema auditoria
+        await pool.query("DELETE FROM auditoria.respaldos_historial WHERE id = $1", [backupId]);
 
         const backupDir = process.env.BACKUP_DIR || path.join(process.cwd(), 'backups_automaticos');
         const filePath = path.join(backupDir, fileName);

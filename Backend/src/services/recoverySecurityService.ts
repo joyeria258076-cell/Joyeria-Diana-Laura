@@ -1,13 +1,10 @@
+// Backend/src/services/recoverySecurityService.ts
 import { pool } from '../config/database';
 
 export class RecoverySecurityService {
-  // Límites para recuperación de contraseña
   public static readonly MAX_RECOVERY_ATTEMPTS = 3;
   public static readonly LOCK_DURATION_MINUTES = 2;
 
-  /**
-   * Verificar límites de recuperación - CORREGIDO
-   */
   static async checkRecoveryLimits(email: string): Promise<{
     allowed: boolean;
     remainingAttempts: number;
@@ -17,9 +14,10 @@ export class RecoverySecurityService {
     try {
       console.log(`🔍 Verificando límites para: ${email}`);
 
+      // ✅ CORREGIDO: agregar esquema seguridad
       const result = await pool.query(
         `SELECT recovery_attempts, last_recovery_attempt, recovery_blocked_until 
-         FROM usuarios WHERE email = $1`,
+         FROM seguridad.usuarios WHERE email = $1`,
         [email]
       );
 
@@ -37,7 +35,6 @@ export class RecoverySecurityService {
         ahora: now
       });
 
-      // Verificar si está bloqueado
       if (user.recovery_blocked_until) {
         const blockedUntil = new Date(user.recovery_blocked_until);
         if (blockedUntil > now) {
@@ -50,14 +47,12 @@ export class RecoverySecurityService {
             blockedUntil 
           };
         } else {
-          // Bloqueo expirado, resetear
           console.log(`🔄 Bloqueo expirado, liberando automáticamente: ${email}`);
           await this.resetRecoveryAttempts(email);
           return { allowed: true, remainingAttempts: this.MAX_RECOVERY_ATTEMPTS };
         }
       }
 
-      // Calcular intentos restantes
       const currentAttempts = user.recovery_attempts || 0;
       const remainingAttempts = Math.max(0, this.MAX_RECOVERY_ATTEMPTS - currentAttempts);
       
@@ -70,21 +65,17 @@ export class RecoverySecurityService {
 
     } catch (error: any) {
       console.error('❌ Error en checkRecoveryLimits:', error);
-      // En caso de error, permitir por seguridad
       return { allowed: true, remainingAttempts: this.MAX_RECOVERY_ATTEMPTS };
     }
   }
 
-  /**
-   * Incrementar intentos de recuperación - CORREGIDO
-   */
   static async incrementRecoveryAttempts(email: string): Promise<void> {
     try {
       console.log(`📈 Incrementando intentos para: ${email}`);
       
-      // Primero obtener el estado actual
+      // ✅ CORREGIDO: agregar esquema seguridad
       const currentResult = await pool.query(
-        `SELECT recovery_attempts FROM usuarios WHERE email = $1`,
+        `SELECT recovery_attempts FROM seguridad.usuarios WHERE email = $1`,
         [email]
       );
 
@@ -97,12 +88,12 @@ export class RecoverySecurityService {
       
       console.log(`📈 Incrementando intentos: ${currentAttempts} -> ${newAttempts}`);
 
-      // Si alcanza el máximo, bloquear
       if (newAttempts >= this.MAX_RECOVERY_ATTEMPTS) {
         const blockedUntil = new Date(Date.now() + this.LOCK_DURATION_MINUTES * 60 * 1000);
         
+        // ✅ CORREGIDO: agregar esquema seguridad
         await pool.query(
-          `UPDATE usuarios 
+          `UPDATE seguridad.usuarios 
            SET recovery_attempts = $1, 
                last_recovery_attempt = CURRENT_TIMESTAMP,
                recovery_blocked_until = $2
@@ -112,9 +103,9 @@ export class RecoverySecurityService {
         
         console.log(`🔒 Usuario bloqueado por recuperación: ${email} por ${this.LOCK_DURATION_MINUTES} minutos`);
       } else {
-        // Solo incrementar intentos
+        // ✅ CORREGIDO: agregar esquema seguridad
         await pool.query(
-          `UPDATE usuarios 
+          `UPDATE seguridad.usuarios 
            SET recovery_attempts = $1, 
                last_recovery_attempt = CURRENT_TIMESTAMP 
            WHERE email = $2`,
@@ -125,17 +116,15 @@ export class RecoverySecurityService {
       }
     } catch (error: any) {
       console.error('❌ Error en incrementRecoveryAttempts:', error);
-      throw error; // Propagar el error para manejarlo en el controlador
+      throw error;
     }
   }
 
-  /**
-   * Resetear intentos de recuperación
-   */
   static async resetRecoveryAttempts(email: string): Promise<void> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       await pool.query(
-        `UPDATE usuarios 
+        `UPDATE seguridad.usuarios 
          SET recovery_attempts = 0, 
              recovery_blocked_until = NULL,
              last_recovery_attempt = NULL 
@@ -150,13 +139,11 @@ export class RecoverySecurityService {
     }
   }
 
-  /**
-   * Resetear intentos después de recuperación exitosa
-   */
   static async resetAfterSuccessfulRecovery(email: string): Promise<void> {
     try {
+      // ✅ CORREGIDO: agregar esquema seguridad
       await pool.query(
-        `UPDATE usuarios 
+        `UPDATE seguridad.usuarios 
           SET recovery_attempts = 0, 
               recovery_blocked_until = NULL,
               last_recovery_attempt = NULL 

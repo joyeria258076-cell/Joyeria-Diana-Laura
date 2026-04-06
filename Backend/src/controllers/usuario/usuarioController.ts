@@ -1,3 +1,4 @@
+// Backend/src/controllers/usuario/userController.ts
 import { Request, Response } from 'express';
 // 👇 Importaciones corregidas subiendo 2 niveles
 import * as userModel from '../../models/userModel';

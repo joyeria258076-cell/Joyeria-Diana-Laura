@@ -21,28 +21,27 @@ function getClientIP(req: Request): string {
 const RUTAS_IGNORADAS = [
   '/favicon.ico',
   '/health',
-  '/api/metrics', // las propias rutas de métricas no se auto-loggean
+  '/api/metrics',
 ];
 
 // ─── Middleware principal ────────────────────────────────────────────────────
 
 export function metricsMiddleware(req: Request, res: Response, next: NextFunction): void {
-  // Ignorar rutas de bajo interés
   if (RUTAS_IGNORADAS.some(r => req.path.startsWith(r))) {
     return next();
   }
 
   const inicio = Date.now();
 
-  // Capturar respuesta cuando termina
   res.on('finish', async () => {
     const duracion = Date.now() - inicio;
     const statusCode = res.statusCode;
-    const userId = (req as any).user?.id ?? null; // viene del authMiddleware
+    const userId = (req as any).user?.id ?? null;
 
     try {
+      // ✅ CORREGIDO: agregar esquema auditoria
       await pool.query(
-        `INSERT INTO request_logs
+        `INSERT INTO auditoria.request_logs
            (method, endpoint, status_code, duration_ms, user_id, ip_address, user_agent, error_message, memoria_mb)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         [
@@ -58,16 +57,12 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
         ]
       );
     } catch (err) {
-      // Nunca debe romper la aplicación si falla el log
       console.error('[metricsMiddleware] Error guardando log:', err);
     }
   });
 
   next();
 }
-
-// ─── Capturador de errores no controlados ────────────────────────────────────
-// Llama a setupErrorMonitoring() una sola vez en server.ts
 
 export function setupErrorMonitoring(): void {
   process.on('unhandledRejection', async (reason: any) => {
@@ -78,7 +73,6 @@ export function setupErrorMonitoring(): void {
   process.on('uncaughtException', async (error: Error) => {
     console.error('[Monitor] uncaughtException:', error);
     await saveSystemError('uncaughtException', error);
-    // No cerramos el proceso para no derribar el servidor en producción
   });
 }
 
@@ -87,8 +81,9 @@ async function saveSystemError(tipo: string, error: any): Promise<void> {
     const mensaje = error instanceof Error ? error.message : String(error);
     const stack   = error instanceof Error ? error.stack   : null;
 
+    // ✅ CORREGIDO: agregar esquema auditoria
     await pool.query(
-      `INSERT INTO system_errors (tipo, mensaje, stack_trace)
+      `INSERT INTO auditoria.system_errors (tipo, mensaje, stack_trace)
        VALUES ($1, $2, $3)`,
       [tipo, mensaje, stack]
     );
@@ -96,10 +91,6 @@ async function saveSystemError(tipo: string, error: any): Promise<void> {
     console.error('[Monitor] No se pudo guardar el error del sistema:', err);
   }
 }
-
-// ─── Middleware de errores Express (para rutas que lanzan excepciones) ───────
-// Agregar DESPUÉS de todas las rutas en server.ts:
-//   app.use(expressErrorMiddleware);
 
 export function expressErrorMiddleware(
   err: any,
@@ -109,9 +100,9 @@ export function expressErrorMiddleware(
 ): void {
   const userId = (req as any).user?.id ?? null;
 
-  // Guardar en system_errors con contexto de la ruta
+  // ✅ CORREGIDO: agregar esquema auditoria
   pool.query(
-    `INSERT INTO system_errors (tipo, mensaje, stack_trace, endpoint, method, user_id, ip_address)
+    `INSERT INTO auditoria.system_errors (tipo, mensaje, stack_trace, endpoint, method, user_id, ip_address)
      VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     [
       err.name ?? 'Error',
@@ -124,7 +115,6 @@ export function expressErrorMiddleware(
     ]
   ).catch(e => console.error('[Monitor] Error guardando excepción:', e));
 
-  // Pasar el mensaje al metricsMiddleware para que lo incluya en request_logs
   res.locals.errorMessage = err.message ?? 'Error interno';
 
   res.status(err.status ?? 500).json({
@@ -133,21 +123,20 @@ export function expressErrorMiddleware(
   });
 }
 
-// Al final de metricsMiddleware.ts
 export async function cleanupOldLogs(): Promise<void> {
   try {
+    // ✅ CORREGIDO: agregar esquema auditoria
     await pool.query(`
-      DELETE FROM request_logs 
+      DELETE FROM auditoria.request_logs 
       WHERE fecha < NOW() - INTERVAL '7 days'
     `);
     await pool.query(`
-      DELETE FROM request_logs 
+      DELETE FROM auditoria.request_logs 
       WHERE status_code >= 400 
         AND fecha < NOW() - INTERVAL '3 days'
     `);
     console.log('🧹 Logs antiguos limpiados');
 
-    // Repetir cada 24 horas sin necesidad de reiniciar
     setTimeout(cleanupOldLogs, 24 * 60 * 60 * 1000);
   } catch (e) {
     console.error('[Monitor] Error limpiando logs:', e);

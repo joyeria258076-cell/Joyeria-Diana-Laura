@@ -8,7 +8,7 @@ export const proveedoresController = {
   async getAll(req: AuthRequest, res: Response) {
     try {
       const result = await pool.query(
-        'SELECT * FROM proveedores ORDER BY nombre ASC'
+        'SELECT * FROM catalogo.proveedores ORDER BY nombre ASC'
       );
       
       res.json({
@@ -29,7 +29,7 @@ export const proveedoresController = {
     try {
       const { id } = req.params;
       const result = await pool.query(
-        'SELECT * FROM proveedores WHERE id = $1',
+        'SELECT * FROM catalogo.proveedores WHERE id = $1',
         [id]
       );
       
@@ -76,7 +76,7 @@ export const proveedoresController = {
       await client.query('BEGIN');
 
       const result = await client.query(
-        `INSERT INTO proveedores (
+        `INSERT INTO catalogo.proveedores (
           nombre, razon_social, rfc, direccion, telefono, email, 
           sitio_web, persona_contacto, notas, activo, creado_por
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -138,7 +138,7 @@ export const proveedoresController = {
 
       // Verificar que existe
       const checkResult = await client.query(
-        'SELECT id FROM proveedores WHERE id = $1',
+        'SELECT id FROM catalogo.proveedores WHERE id = $1',
         [id]
       );
 
@@ -152,7 +152,7 @@ export const proveedoresController = {
       await client.query('BEGIN');
 
       const result = await client.query(
-        `UPDATE proveedores SET
+        `UPDATE catalogo.proveedores SET
           nombre = $1,
           razon_social = $2,
           rfc = $3,
@@ -211,7 +211,7 @@ export const proveedoresController = {
 
       // Verificar si tiene productos asociados
       const productCheck = await client.query(
-        'SELECT COUNT(*) as count FROM productos WHERE proveedor_id = $1',
+        'SELECT COUNT(*) as count FROM catalogo.productos WHERE proveedor_id = $1',
         [id]
       );
 
@@ -224,7 +224,7 @@ export const proveedoresController = {
 
       // Verificar si tiene compras asociadas
       const comprasCheck = await client.query(
-        'SELECT COUNT(*) as count FROM compras WHERE proveedor_id = $1',
+        'SELECT COUNT(*) as count FROM inventario.compras WHERE proveedor_id = $1',
         [id]
       );
 
@@ -238,7 +238,7 @@ export const proveedoresController = {
       await client.query('BEGIN');
 
       const result = await client.query(
-        'DELETE FROM proveedores WHERE id = $1 RETURNING id',
+        'DELETE FROM catalogo.proveedores WHERE id = $1 RETURNING id',
         [id]
       );
 
@@ -278,7 +278,7 @@ export const proveedoresController = {
       const userId = req.user?.userId;
 
       const result = await client.query(
-        `UPDATE proveedores 
+        `UPDATE catalogo.proveedores 
          SET activo = $1, actualizado_por = $2, fecha_actualizacion = CURRENT_TIMESTAMP
          WHERE id = $3
          RETURNING id, nombre, activo`,
