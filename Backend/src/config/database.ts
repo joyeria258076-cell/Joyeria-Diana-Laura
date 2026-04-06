@@ -1,6 +1,10 @@
 // Backend/src/config/database.ts
-import { Pool, PoolConfig } from 'pg';
+import { Pool, PoolConfig, types } from 'pg';
 import dotenv from 'dotenv';
+
+// ✅ Evitar que pg convierta timestamps automáticamente a hora local
+types.setTypeParser(1114, (str: string) => str); // timestamp without timezone
+types.setTypeParser(1184, (str: string) => str); // timestamp with timezone
 
 dotenv.config();
 

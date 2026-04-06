@@ -176,6 +176,12 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                   {producto.stock_actual === 0 ? 'Agotado' : `${producto.stock_actual} unidades`}
                 </span>
               </div>
+              {producto.stock_actual > 0 && producto.stock_actual <= 5 && (
+              <div className="caracteristica-item">
+                  <span className="label" style={{color:'#f5c842'}}>⚠️ Quedan solo</span>
+                  <span className="valor" style={{color:'#f5c842', fontWeight:700}}>{producto.stock_actual} unidades</span>
+              </div>
+          )}
             </div>
 
             <div className="detalle-precios">

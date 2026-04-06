@@ -167,6 +167,13 @@ const CatalogoScreen: React.FC = () => {
                 )}
                 {producto.es_nuevo && <span className="badge-nuevo">Nuevo</span>}
                 {producto.precio_oferta && <span className="badge-oferta">Oferta</span>}
+                {/* ✅ Badges de stock */}
+                {producto.stock_actual === 0 && (
+                    <span className="badge-agotado">Agotado</span>
+                )}
+                {producto.stock_actual > 0 && producto.stock_actual <= 5 && (
+                    <span className="badge-poco-stock">¡Últimas {producto.stock_actual}!</span>
+                )}
             </div>
             <div className="producto-info">
                 <h4>{producto.nombre}</h4>
@@ -179,6 +186,15 @@ const CatalogoScreen: React.FC = () => {
                         </>
                     ) : (
                         <span className="precio">${producto.precio_venta?.toLocaleString('es-MX')}</span>
+                    )}
+                </div>
+                <div className="producto-stock">
+                    {producto.stock_actual === 0 ? (
+                        <span className="stock-agotado">❌ Agotado</span>
+                    ) : producto.stock_actual <= 5 ? (
+                        <span className="stock-poco">⚠️ Quedan {producto.stock_actual} unidades</span>
+                    ) : (
+                        <span className="stock-ok">✅ {producto.stock_actual} disponibles</span>
                     )}
                 </div>
             </div>

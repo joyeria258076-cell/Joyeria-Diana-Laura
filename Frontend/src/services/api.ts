@@ -1024,8 +1024,8 @@ export const carritoAPI = {
   vaciar: async () => {
     return enhancedApi.delete('/carrito/vaciar');
   },
-  crearPedido: async (data: { direccion_envio: string; notas_cliente?: string }) => {
-    return enhancedApi.post('/carrito/pedidos', data);
+  crearPedido: async (data: { direccion_envio: string; notas_cliente?: string; metodo_pago_id: number }) => {
+      return enhancedApi.post('/carrito/pedidos', data);
   },
   getMisPedidos: async () => {
     return enhancedApi.get('/carrito/pedidos/mis');
@@ -1086,6 +1086,37 @@ export const carritoAPI = {
   // Estados dinámicos desde la BD
   getEstadosPedido: async () => {
       return enhancedApi.get('/carrito/estados-pedido');
+  },
+  // Métodos de pago disponibles
+  getMetodosPago: async () => {
+    return enhancedApi.get('/carrito/metodos-pago');
+  },
+  confirmarPagoEfectivo: async (venta_id: number) => {
+      return enhancedApi.post(`/carrito/pedidos/${venta_id}/confirmar-pago-efectivo`, {});
+  },
+  subirComprobante: async (venta_id: number, file: File) => {
+    const formData = new FormData();
+    formData.append('imagen', file);
+    const token = (() => { try { return JSON.parse(localStorage.getItem('diana_laura_user') || '{}').token || ''; } catch { return ''; } })();
+    const session = localStorage.getItem('diana_laura_session_token') || '';
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (session) headers['X-Session-Token'] = session;
+    const res = await fetch(`${API_BASE_URL}/carrito/pedidos/${venta_id}/comprobante`, {
+        method: 'POST', headers, credentials: 'include', body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Error al subir comprobante');
+    return data;
+  },
+  getEstadosPedidosCliente: async () => {
+      return enhancedApi.get('/carrito/pedidos/mis-estados');
+  },
+  getConfiguracion: async (clave: string) => {
+    return enhancedApi.get(`/configuracion/${clave}`);
+  },
+  setConfiguracion: async (clave: string, valor: string) => {
+      return enhancedApi.put(`/configuracion/${clave}`, { valor });
   },
 };
 
