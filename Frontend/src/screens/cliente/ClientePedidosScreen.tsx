@@ -132,6 +132,9 @@ const PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iO
 
 const toUTC = (f: string) => {
     if (!f) return '';
+    // Producción envía "2026-04-06 10:39:55.583193+" — normalizar
+    if (f.endsWith('+')) return f.slice(0, -1).replace(' ', 'T') + 'Z';
+    // Sin offset — asumir UTC
     if (!/Z|[+-]\d{2}:?\d{2}$/.test(f)) return f.replace(' ', 'T') + 'Z';
     return f;
 };
