@@ -27,9 +27,8 @@ interface RequestWithFile extends AuthRequest {
 // Configuración de multer para archivos temporales
 const upload = multer({ 
   dest: 'uploads/',
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-    // Aceptar tanto CSV como Excel
     const allowedMimes = [
       'text/csv',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -48,14 +47,11 @@ const upload = multer({
 });
 
 export const importController = {
-  // Middleware para upload
   uploadMiddleware: upload.single('file'),
 
-  // Obtener todas las tablas disponibles (solo las permitidas)
   async getTables(req: AuthRequest, res: Response) {
     try {
       const todasLasTablas = await importModel.getTables();
-      // Filtrar solo las tablas permitidas
       const tablasPermitidas = todasLasTablas.filter(table => 
         TABLAS_PERMITIDAS.includes(table)
       );
@@ -74,12 +70,10 @@ export const importController = {
     }
   },
 
-  // Obtener información de una tabla específica (solo si está permitida)
   async getTableInfo(req: AuthRequest, res: Response) {
     try {
       const { tableName } = req.params;
       
-      // Verificar si la tabla está permitida
       if (!TABLAS_PERMITIDAS.includes(tableName)) {
         return res.status(403).json({
           success: false,
@@ -109,7 +103,6 @@ export const importController = {
     }
   },
 
-  // Procesar archivo (CSV o Excel) y validar columnas requeridas
   async previewFile(req: RequestWithFile, res: Response) {
     if (!req.file) {
       return res.status(400).json({
@@ -120,9 +113,7 @@ export const importController = {
 
     const { tableName } = req.body;
     
-    // Verificar si la tabla está permitida
     if (!TABLAS_PERMITIDAS.includes(tableName)) {
-      // Limpiar archivo temporal
       if (fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
       }
@@ -141,16 +132,13 @@ export const importController = {
       let warnings: string[] = [];
       let totalRows = 0;
 
-      // Procesar según tipo de archivo
       if (fileExt === '.csv') {
-        // Mantener compatibilidad con CSV
         const csvData = await this.processCSV(filePath);
         headers = csvData.headers;
         data = csvData.data;
         totalRows = csvData.totalRows;
         warnings = csvData.warnings;
       } else {
-        // Procesar Excel (.xlsx, .xls)
         const excelData = await ExcelImportService.processExcel(filePath, tableName);
         headers = excelData.headers;
         data = excelData.data;
@@ -158,12 +146,10 @@ export const importController = {
         warnings = excelData.warnings;
       }
 
-      // Eliminar archivo temporal
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
 
-      // Devolver preview
       res.json({
         success: true,
         headers,
@@ -175,7 +161,6 @@ export const importController = {
       });
 
     } catch (error) {
-      // Limpiar archivo en caso de error
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
@@ -188,7 +173,6 @@ export const importController = {
     }
   },
 
-  // Helper para procesar CSV (mantener compatibilidad)
   async processCSV(filePath: string): Promise<{ headers: string[]; data: any[]; totalRows: number; warnings: string[] }> {
     const csv = require('csv-parser');
     const fs = require('fs');
@@ -214,7 +198,6 @@ export const importController = {
     };
   },
 
-  // Importar datos a la base de datos (con validaciones adicionales)
   async importData(req: AuthRequest, res: Response) {
     const { tableName, data, columns } = req.body;
 
@@ -225,7 +208,6 @@ export const importController = {
       });
     }
 
-    // Verificar si la tabla está permitida
     if (!TABLAS_PERMITIDAS.includes(tableName)) {
       return res.status(403).json({
         success: false,
@@ -233,7 +215,6 @@ export const importController = {
       });
     }
 
-    // Validar tamaño del lote
     if (data.length > 5000) {
       return res.status(400).json({
         success: false,
@@ -242,7 +223,6 @@ export const importController = {
     }
 
     try {
-      // Validar datos
       const validation = await importModel.validateData(tableName, data);
       if (!validation.valid) {
         return res.status(400).json({
@@ -252,12 +232,10 @@ export const importController = {
         });
       }
 
-      // Convertir datos a formato para inserción (array de arrays)
       const values = data.map((row: any) => 
         columns.map((col: string) => row[col] !== undefined ? row[col] : null)
       );
 
-      // Insertar datos usando el nuevo bulkInsert que maneja auto-generados
       const result = await importModel.bulkInsert(tableName, columns, values);
 
       res.json({
@@ -276,7 +254,6 @@ export const importController = {
     }
   },
 
-  // ✅ MÉTODO AGREGADO: Validar datos sin importar
   async validateImport(req: AuthRequest, res: Response) {
     const { tableName, data } = req.body;
 
@@ -287,7 +264,6 @@ export const importController = {
       });
     }
 
-    // Verificar si la tabla está permitida
     if (!TABLAS_PERMITIDAS.includes(tableName)) {
       return res.status(403).json({
         success: false,
@@ -295,7 +271,6 @@ export const importController = {
       });
     }
 
-    // Validar tamaño del lote
     if (data.length > 5000) {
       return res.status(400).json({
         success: false,
@@ -306,11 +281,9 @@ export const importController = {
     try {
       const validation = await importModel.validateData(tableName, data);
       
-      // Validaciones adicionales específicas por tabla
       const advertencias: string[] = [];
       
       if (tableName === 'productos') {
-        // Verificar que los registros tengan los campos mínimos
         data.forEach((row: any, index: number) => {
           if (!row.nombre) {
             advertencias.push(`Fila ${index + 1}: Falta el nombre del producto`);
@@ -347,7 +320,6 @@ export const importController = {
     }
   },
 
-  // Obtener lista de tablas permitidas
   async getTablasPermitidas(req: AuthRequest, res: Response) {
     res.json({
       success: true,

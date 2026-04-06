@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../../middleware/authMiddleware';
 import { ExportService } from '../../services/exportService';
 import { FilterCondition } from '../../utils/queryBuilder';
-import { QueryBuilder } from '../../utils/queryBuilder'; // 👈 IMPORT en lugar de require
+import { QueryBuilder } from '../../utils/queryBuilder';
 import pool from '../../config/database';
 
 export const exportController = {
@@ -27,17 +27,17 @@ export const exportController = {
       
       if (tableName === 'productos') {
         const categorias = await pool.query(
-          'SELECT id, nombre FROM categorias WHERE activo = true ORDER BY nombre'
+          'SELECT id, nombre FROM catalogo.categorias WHERE activo = true ORDER BY nombre'
         );
         filterOptions.categorias = categorias.rows;
         
         const proveedores = await pool.query(
-          'SELECT id, nombre FROM proveedores WHERE activo = true ORDER BY nombre'
+          'SELECT id, nombre FROM catalogo.proveedores WHERE activo = true ORDER BY nombre'
         );
         filterOptions.proveedores = proveedores.rows;
         
         const temporadas = await pool.query(
-          'SELECT id, nombre FROM temporadas WHERE activo = true ORDER BY nombre'
+          'SELECT id, nombre FROM catalogo.temporadas WHERE activo = true ORDER BY nombre'
         );
         filterOptions.temporadas = temporadas.rows;
       }
@@ -106,7 +106,6 @@ export const exportController = {
         parsedFilters = JSON.parse(filters);
       }
       
-      // 👈 AHORA USA IMPORT en lugar de require
       const { query, params } = QueryBuilder.buildSelectQuery({
         tableName,
         conditions: parsedFilters || [],

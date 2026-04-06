@@ -18,15 +18,15 @@ export const getResumen = async (_req: Request, res: Response): Promise<void> =>
         ROUND(AVG(duration_ms))                                    AS avg_respuesta_ms,
         COUNT(*) FILTER (WHERE duration_ms > 1000)                 AS requests_lentos,
         ROUND(AVG(memoria_mb)::numeric, 2)                         AS avg_memoria_mb
-      FROM request_logs
+      FROM auditoria.request_logs
       WHERE fecha >= NOW() - INTERVAL '24 hours'
     `);
     const { rows: sesiones } = await pool.query(`
-      SELECT COUNT(*) AS sesiones_activas FROM user_sessions
+      SELECT COUNT(*) AS sesiones_activas FROM seguridad.user_sessions
       WHERE is_revoked = FALSE AND expires_at > NOW()
     `);
     const { rows: errSistema } = await pool.query(`
-      SELECT COUNT(*) AS errores_sin_resolver FROM system_errors WHERE resuelta = FALSE
+      SELECT COUNT(*) AS errores_sin_resolver FROM auditoria.system_errors WHERE resuelta = FALSE
     `);
     res.json({
       ...rows[0],
@@ -40,7 +40,6 @@ export const getResumen = async (_req: Request, res: Response): Promise<void> =>
 };
 
 // ─── 2. Rendimiento por hora ──────────────────────────────────────────────────
-// Las fechas se agrupan y devuelven en hora México
 export const getRendimiento = async (req: Request, res: Response): Promise<void> => {
   try {
     const horas = Math.min(parseInt(req.query.horas as string) || 24, 168);
@@ -52,7 +51,7 @@ export const getRendimiento = async (req: Request, res: Response): Promise<void>
         MAX(duration_ms)                                               AS max_ms,
         COUNT(*) FILTER (WHERE status_code >= 400)                     AS errores,
         ROUND(AVG(memoria_mb)::numeric, 2)                             AS avg_memoria_mb
-      FROM request_logs
+      FROM auditoria.request_logs
       WHERE fecha >= NOW() - ($1 || ' hours')::INTERVAL
       GROUP BY DATE_TRUNC('hour', fecha AT TIME ZONE 'UTC' AT TIME ZONE $2)
       ORDER BY hora ASC
@@ -74,7 +73,7 @@ export const getEndpointsLentos = async (req: Request, res: Response): Promise<v
         ROUND(AVG(duration_ms))                    AS avg_ms,
         MAX(duration_ms)                           AS max_ms,
         COUNT(*) FILTER (WHERE status_code >= 400) AS errores
-      FROM request_logs
+      FROM auditoria.request_logs
       WHERE fecha >= NOW() - INTERVAL '7 days'
       GROUP BY endpoint, method
       ORDER BY avg_ms DESC
@@ -88,7 +87,6 @@ export const getEndpointsLentos = async (req: Request, res: Response): Promise<v
 };
 
 // ─── 4. Errores con paginación ────────────────────────────────────────────────
-// Fechas convertidas a México en el backend
 export const getErrores = async (req: Request, res: Response): Promise<void> => {
   try {
     const page            = Math.max(parseInt(req.query.page as string) || 1, 1);
@@ -98,9 +96,9 @@ export const getErrores = async (req: Request, res: Response): Promise<void> => 
 
     const { rows: countRows } = await pool.query(`
       SELECT
-        (SELECT COUNT(*) FROM system_errors WHERE ($1 = FALSE OR resuelta = FALSE)) +
+        (SELECT COUNT(*) FROM auditoria.system_errors WHERE ($1 = FALSE OR resuelta = FALSE)) +
         (SELECT COUNT(DISTINCT (endpoint, method, status_code))
-         FROM request_logs WHERE status_code >= 400
+         FROM auditoria.request_logs WHERE status_code >= 400
            AND fecha >= NOW() - INTERVAL '24 hours' AND $1 = FALSE)
         AS total
     `, [soloNoResueltos]);
@@ -114,8 +112,8 @@ export const getErrores = async (req: Request, res: Response): Promise<void> => 
         (se.fecha AT TIME ZONE 'UTC' AT TIME ZONE $1) AS fecha,
         u.email AS usuario_email, NULL::integer AS status_code,
         NULL::integer AS duration_ms, 1 AS ocurrencias
-      FROM system_errors se
-      LEFT JOIN usuarios u ON u.id = se.user_id
+      FROM auditoria.system_errors se
+      LEFT JOIN seguridad.usuarios u ON u.id = se.user_id
       WHERE ($2 = FALSE OR se.resuelta = FALSE)
       ORDER BY se.fecha DESC
     `, [TZ, soloNoResueltos]);
@@ -133,7 +131,7 @@ export const getErrores = async (req: Request, res: Response): Promise<void> => 
           NULL                                                    AS usuario_email,
           rl.status_code, NULL::integer AS duration_ms,
           COUNT(*)::integer                                       AS ocurrencias
-        FROM request_logs rl
+        FROM auditoria.request_logs rl
         WHERE rl.status_code >= 400
           AND rl.fecha >= NOW() - INTERVAL '24 hours'
         GROUP BY rl.endpoint, rl.method, rl.status_code
@@ -159,7 +157,7 @@ export const resolverError = async (req: Request, res: Response): Promise<void> 
     const { id } = req.params;
     const userId = (req as any).user?.userId || (req as any).user?.id;
     await pool.query(`
-      UPDATE system_errors SET resuelta = TRUE, resuelta_por = $1, fecha_resolucion = NOW() WHERE id = $2
+      UPDATE auditoria.system_errors SET resuelta = TRUE, resuelta_por = $1, fecha_resolucion = NOW() WHERE id = $2
     `, [userId, id]);
     res.json({ mensaje: 'Error marcado como resuelto' });
   } catch (err) {
@@ -169,7 +167,6 @@ export const resolverError = async (req: Request, res: Response): Promise<void> 
 };
 
 // ─── 6. Actividad con paginación ─────────────────────────────────────────────
-// Fechas convertidas a México en el backend
 export const getActividad = async (req: Request, res: Response): Promise<void> => {
   try {
     const dias     = Math.min(parseInt(req.query.dias as string) || 7, 30);
@@ -179,10 +176,10 @@ export const getActividad = async (req: Request, res: Response): Promise<void> =
     const limitAud = 10;
 
     const { rows: totalSesRows } = await pool.query(
-      `SELECT COUNT(*) AS total FROM user_sessions WHERE is_revoked = FALSE AND expires_at > NOW()`
+      `SELECT COUNT(*) AS total FROM seguridad.user_sessions WHERE is_revoked = FALSE AND expires_at > NOW()`
     );
     const { rows: totalAudRows } = await pool.query(
-      `SELECT COUNT(*) AS total FROM auditoria`
+      `SELECT COUNT(*) AS total FROM auditoria.auditoria`
     );
 
     const { rows: sesionesActivas } = await pool.query(`
@@ -194,8 +191,8 @@ export const getActividad = async (req: Request, res: Response): Promise<void> =
         (us.created_at  AT TIME ZONE 'UTC' AT TIME ZONE $3) AS created_at,
         (us.last_activity AT TIME ZONE 'UTC' AT TIME ZONE $3) AS last_activity,
         (us.expires_at  AT TIME ZONE 'UTC' AT TIME ZONE $3) AS expires_at
-      FROM user_sessions us
-      JOIN usuarios u ON u.id = us.user_id
+      FROM seguridad.user_sessions us
+      JOIN seguridad.usuarios u ON u.id = us.user_id
       WHERE us.is_revoked = FALSE AND us.expires_at > NOW()
       ORDER BY us.last_activity DESC
       LIMIT $1 OFFSET $2
@@ -204,7 +201,7 @@ export const getActividad = async (req: Request, res: Response): Promise<void> =
     const { rows: auditoria } = await pool.query(`
       SELECT a.operacion, a.tabla, a.usuario_email, a.ip_address,
         (a.fecha_operacion AT TIME ZONE 'UTC' AT TIME ZONE $3) AS fecha_operacion
-      FROM auditoria a
+      FROM auditoria.auditoria a
       ORDER BY a.fecha_operacion DESC
       LIMIT $1 OFFSET $2
     `, [limitAud, (pageAud - 1) * limitAud, TZ]);
@@ -214,7 +211,7 @@ export const getActividad = async (req: Request, res: Response): Promise<void> =
         DATE_TRUNC('day', attempt_time AT TIME ZONE 'UTC' AT TIME ZONE $2) AS dia,
         COUNT(*) FILTER (WHERE success = TRUE)  AS exitosos,
         COUNT(*) FILTER (WHERE success = FALSE) AS fallidos
-      FROM login_attempts
+      FROM seguridad.login_attempts
       WHERE attempt_time >= NOW() - ($1 || ' days')::INTERVAL
       GROUP BY DATE_TRUNC('day', attempt_time AT TIME ZONE 'UTC' AT TIME ZONE $2)
       ORDER BY dia ASC
@@ -225,7 +222,7 @@ export const getActividad = async (req: Request, res: Response): Promise<void> =
         DATE_TRUNC('day', created_at AT TIME ZONE 'UTC' AT TIME ZONE $2) AS dia,
         COUNT(*)                      AS nuevas_sesiones,
         COUNT(DISTINCT user_id)       AS usuarios_unicos
-      FROM user_sessions
+      FROM seguridad.user_sessions
       WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
       GROUP BY DATE_TRUNC('day', created_at AT TIME ZONE 'UTC' AT TIME ZONE $2)
       ORDER BY dia ASC
@@ -278,8 +275,9 @@ export const getDatabase = async (_req: Request, res: Response): Promise<void> =
           'DD-Mon HH24:MI'
         ) AS ultimo_vacuum
       FROM information_schema.tables t
-      LEFT JOIN pg_stat_user_tables s ON s.relname = t.table_name
-      WHERE t.table_schema = 'public' AND t.table_type = 'BASE TABLE'
+      LEFT JOIN pg_stat_user_tables s ON s.relname = t.table_name AND s.schemaname = t.table_schema
+      WHERE t.table_schema IN ('seguridad', 'catalogo', 'ventas', 'inventario', 'contenido', 'configuracion', 'auditoria')
+      AND t.table_type = 'BASE TABLE'
       ORDER BY tamano_bytes DESC NULLS LAST LIMIT 15
     `);
 
@@ -304,11 +302,11 @@ export const getDatabase = async (_req: Request, res: Response): Promise<void> =
 
     const { rows: negocio } = await pool.query(`
       SELECT
-        (SELECT COUNT(*) FROM usuarios)     AS total_usuarios,
-        (SELECT COUNT(*) FROM productos)    AS total_productos,
-        (SELECT COUNT(*) FROM ventas)       AS total_ventas,
-        (SELECT COUNT(*) FROM request_logs) AS total_logs,
-        (SELECT COUNT(*) FROM user_sessions WHERE is_revoked = FALSE AND expires_at > NOW()) AS sesiones_activas
+        (SELECT COUNT(*) FROM seguridad.usuarios)     AS total_usuarios,
+        (SELECT COUNT(*) FROM catalogo.productos)    AS total_productos,
+        (SELECT COUNT(*) FROM ventas.ventas)       AS total_ventas,
+        (SELECT COUNT(*) FROM auditoria.request_logs) AS total_logs,
+        (SELECT COUNT(*) FROM seguridad.user_sessions WHERE is_revoked = FALSE AND expires_at > NOW()) AS sesiones_activas
     `);
 
     res.json({
@@ -331,18 +329,21 @@ export const runVacuum = async (req: Request, res: Response): Promise<void> => {
     const { tabla } = req.body;
     if (tabla) {
       const { rows: check } = await pool.query(`
-        SELECT table_name FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_name = $1
+        SELECT table_name, table_schema FROM information_schema.tables
+        WHERE table_schema IN ('seguridad', 'catalogo', 'ventas', 'inventario', 'contenido', 'configuracion', 'auditoria')
+        AND table_name = $1
       `, [tabla]);
       if (check.length === 0) { res.status(400).json({ error: `Tabla "${tabla}" no encontrada` }); return; }
-      await pool.query(`VACUUM ANALYZE public."${tabla}"`);
+      const schema = check[0].table_schema;
+      await pool.query(`VACUUM ANALYZE ${schema}."${tabla}"`);
       res.json({ mensaje: `VACUUM ANALYZE ejecutado en tabla: ${tabla}` });
     } else {
       const { rows: tablas } = await pool.query(`
-        SELECT table_name FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+        SELECT table_name, table_schema FROM information_schema.tables
+        WHERE table_schema IN ('seguridad', 'catalogo', 'ventas', 'inventario', 'contenido', 'configuracion', 'auditoria')
+        AND table_type = 'BASE TABLE'
       `);
-      for (const t of tablas) { await pool.query(`VACUUM ANALYZE public."${t.table_name}"`); }
+      for (const t of tablas) { await pool.query(`VACUUM ANALYZE ${t.table_schema}."${t.table_name}"`); }
       res.json({ mensaje: `VACUUM ANALYZE ejecutado en ${tablas.length} tablas` });
     }
   } catch (err: any) {
@@ -361,18 +362,21 @@ export const runAnalyze = async (req: Request, res: Response): Promise<void> => 
     const { tabla } = req.body;
     if (tabla) {
       const { rows: check } = await pool.query(`
-        SELECT table_name FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_name = $1
+        SELECT table_name, table_schema FROM information_schema.tables
+        WHERE table_schema IN ('seguridad', 'catalogo', 'ventas', 'inventario', 'contenido', 'configuracion', 'auditoria')
+        AND table_name = $1
       `, [tabla]);
       if (check.length === 0) { res.status(400).json({ error: `Tabla "${tabla}" no encontrada` }); return; }
-      await pool.query(`ANALYZE public."${tabla}"`);
+      const schema = check[0].table_schema;
+      await pool.query(`ANALYZE ${schema}."${tabla}"`);
       res.json({ mensaje: `ANALYZE ejecutado en tabla: ${tabla}` });
     } else {
       const { rows: tablas } = await pool.query(`
-        SELECT table_name FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+        SELECT table_name, table_schema FROM information_schema.tables
+        WHERE table_schema IN ('seguridad', 'catalogo', 'ventas', 'inventario', 'contenido', 'configuracion', 'auditoria')
+        AND table_type = 'BASE TABLE'
       `);
-      for (const t of tablas) { await pool.query(`ANALYZE public."${t.table_name}"`); }
+      for (const t of tablas) { await pool.query(`ANALYZE ${t.table_schema}."${t.table_name}"`); }
       res.json({ mensaje: `ANALYZE ejecutado en ${tablas.length} tablas` });
     }
   } catch (err: any) {

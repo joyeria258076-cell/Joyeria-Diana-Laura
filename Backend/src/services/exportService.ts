@@ -54,17 +54,17 @@ export class ExportService {
       
       if (tableName === 'productos') {
         const categorias = await pool.query(
-          'SELECT id, nombre FROM categorias WHERE activo = true ORDER BY nombre'
+          'SELECT id, nombre FROM catalogo.categorias WHERE activo = true ORDER BY nombre'
         );
         relations['categorias'] = categorias.rows;
         
         const proveedores = await pool.query(
-          'SELECT id, nombre FROM proveedores WHERE activo = true ORDER BY nombre'
+          'SELECT id, nombre FROM catalogo.proveedores WHERE activo = true ORDER BY nombre'
         );
         relations['proveedores'] = proveedores.rows;
         
         const temporadas = await pool.query(
-          'SELECT id, nombre FROM temporadas WHERE activo = true ORDER BY nombre'
+          'SELECT id, nombre FROM catalogo.temporadas WHERE activo = true ORDER BY nombre'
         );
         relations['temporadas'] = temporadas.rows;
       }

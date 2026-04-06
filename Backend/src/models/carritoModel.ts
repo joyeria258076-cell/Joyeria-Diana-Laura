@@ -22,9 +22,9 @@ export const CarritoModel = {
                 p.permite_personalizacion,
                 p.tiene_medidas,
                 cat.nombre          AS categoria_nombre
-            FROM carrito c
-            JOIN productos  p   ON c.producto_id  = p.id
-            JOIN categorias cat ON p.categoria_id = cat.id
+            FROM ventas.carrito c
+            JOIN catalogo.productos  p   ON c.producto_id  = p.id
+            JOIN catalogo.categorias cat ON p.categoria_id = cat.id
             WHERE c.usuario_id = $1 AND p.activo = true
             ORDER BY c.fecha_agregado DESC
         `, [usuario_id]);
@@ -33,12 +33,12 @@ export const CarritoModel = {
 
     upsert: async (usuario_id: number, producto_id: number, cantidad: number, talla_medida?: string, nota?: string) => {
         const result = await pool.query(`
-            INSERT INTO carrito (usuario_id, producto_id, cantidad, talla_medida, nota)
+            INSERT INTO ventas.carrito (usuario_id, producto_id, cantidad, talla_medida, nota)
             VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT (usuario_id, producto_id, talla_medida)
             DO UPDATE SET
-                cantidad       = carrito.cantidad + EXCLUDED.cantidad,
-                nota           = COALESCE(EXCLUDED.nota, carrito.nota),
+                cantidad       = ventas.carrito.cantidad + EXCLUDED.cantidad,
+                nota           = COALESCE(EXCLUDED.nota, ventas.carrito.nota),
                 fecha_agregado = CURRENT_TIMESTAMP
             RETURNING *
         `, [usuario_id, producto_id, cantidad, talla_medida || null, nota || null]);
@@ -47,7 +47,7 @@ export const CarritoModel = {
 
     updateCantidad: async (id: number, usuario_id: number, cantidad: number) => {
         const result = await pool.query(`
-            UPDATE carrito SET cantidad = $1
+            UPDATE ventas.carrito SET cantidad = $1
             WHERE id = $2 AND usuario_id = $3
             RETURNING *
         `, [cantidad, id, usuario_id]);
@@ -56,19 +56,19 @@ export const CarritoModel = {
 
     deleteItem: async (id: number, usuario_id: number) => {
         const result = await pool.query(`
-            DELETE FROM carrito WHERE id = $1 AND usuario_id = $2 RETURNING id
+            DELETE FROM ventas.carrito WHERE id = $1 AND usuario_id = $2 RETURNING id
         `, [id, usuario_id]);
         return result.rowCount;
     },
 
     clearByUsuario: async (usuario_id: number) => {
-        await pool.query(`DELETE FROM carrito WHERE usuario_id = $1`, [usuario_id]);
+        await pool.query(`DELETE FROM ventas.carrito WHERE usuario_id = $1`, [usuario_id]);
     },
 
     countByUsuario: async (usuario_id: number): Promise<number> => {
         const result = await pool.query(`
             SELECT COALESCE(SUM(cantidad), 0) AS total
-            FROM carrito WHERE usuario_id = $1
+            FROM ventas.carrito WHERE usuario_id = $1
         `, [usuario_id]);
         return parseInt(result.rows[0].total);
     }
@@ -79,13 +79,13 @@ export const VentaModel = {
 
     getOrCreateCliente: async (usuario_id: number, email: string, nombre: string): Promise<number> => {
         const existing = await pool.query(
-            `SELECT id FROM clientes WHERE user_id = $1 LIMIT 1`,
+            `SELECT id FROM ventas.clientes WHERE user_id = $1 LIMIT 1`,
             [usuario_id]
         );
         if (existing.rows.length > 0) return existing.rows[0].id;
 
         const created = await pool.query(`
-            INSERT INTO clientes (user_id, nombre, email, activo, fecha_creacion, fecha_actualizacion)
+            INSERT INTO ventas.clientes (user_id, nombre, email, activo, fecha_creacion, fecha_actualizacion)
             VALUES ($1, $2, $3, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING id
         `, [usuario_id, nombre, email]);
@@ -95,7 +95,7 @@ export const VentaModel = {
     getMetodosPago: async () => {
         const result = await pool.query(`
             SELECT id, nombre, codigo, tipo, es_pasarela, instrucciones_cliente
-            FROM metodos_pago
+            FROM ventas.metodos_pago
             WHERE activo = true
             ORDER BY orden ASC, id ASC
         `);
@@ -104,14 +104,14 @@ export const VentaModel = {
 
     getMetodoPagoId: async (): Promise<number | null> => {
         const result = await pool.query(
-            `SELECT id FROM metodos_pago WHERE codigo = 'mercadopago' AND activo = true LIMIT 1`
+            `SELECT id FROM ventas.metodos_pago WHERE codigo = 'mercadopago' AND activo = true LIMIT 1`
         );
         return result.rows.length > 0 ? result.rows[0].id : null;
     },
 
     getMetodoPagoById: async (id: number) => {
         const result = await pool.query(
-            `SELECT id, nombre, codigo, tipo, es_pasarela FROM metodos_pago WHERE id = $1 AND activo = true LIMIT 1`,
+            `SELECT id, nombre, codigo, tipo, es_pasarela FROM ventas.metodos_pago WHERE id = $1 AND activo = true LIMIT 1`,
             [id]
         );
         return result.rows[0] || null;
@@ -144,7 +144,7 @@ export const VentaModel = {
             const folio    = 'DL-' + Date.now();
 
             const ventaResult = await client.query(`
-                INSERT INTO ventas (
+                INSERT INTO ventas.ventas (
                     folio, cliente_id, metodo_pago_id,
                     cliente_nombre_completo, cliente_email,
                     subtotal, iva, total,
@@ -170,7 +170,7 @@ export const VentaModel = {
 
             for (const item of data.items) {
                 await client.query(`
-                    INSERT INTO detalle_ventas (
+                    INSERT INTO ventas.detalle_ventas (
                         venta_id, producto_id, producto_codigo,
                         producto_nombre, producto_imagen,
                         cantidad, precio_unitario, subtotal
@@ -183,7 +183,7 @@ export const VentaModel = {
                 ]);
             }
 
-            await client.query(`DELETE FROM carrito WHERE usuario_id = $1`, [data.usuario_id]);
+            await client.query(`DELETE FROM ventas.carrito WHERE usuario_id = $1`, [data.usuario_id]);
             await client.query('COMMIT');
             return venta;
 
@@ -203,10 +203,9 @@ export const VentaModel = {
                 mp.codigo      AS metodo_pago_codigo,
                 mp.tipo        AS metodo_pago_tipo,
                 mp.es_pasarela AS metodo_es_pasarela,
-                -- ✅ Usar trabajador_id para el nombre del trabajador asignado
                 tw.nombre AS trabajador_nombre,
                 COALESCE(
-                    (SELECT tp.estado FROM transacciones_pago tp
+                    (SELECT tp.estado FROM ventas.transacciones_pago tp
                      WHERE tp.venta_id = v.id
                      ORDER BY tp.fecha_creacion DESC LIMIT 1),
                     'pendiente'
@@ -221,12 +220,11 @@ export const VentaModel = {
                         'precio_unitario',  dv.precio_unitario,
                         'subtotal',         dv.subtotal
                     ))
-                    FROM detalle_ventas dv WHERE dv.venta_id = v.id
+                    FROM ventas.detalle_ventas dv WHERE dv.venta_id = v.id
                 ) AS items
-            FROM ventas v
-            LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
-            -- ✅ JOIN con trabajador_id, no actualizado_por
-            LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
+            FROM ventas.ventas v
+            LEFT JOIN ventas.metodos_pago mp ON v.metodo_pago_id = mp.id
+            LEFT JOIN seguridad.usuarios tw ON v.trabajador_id = tw.id
             WHERE v.creado_por = $1
             ORDER BY v.fecha_creacion DESC
         `, [usuario_id]);
@@ -244,18 +242,18 @@ export const VentaModel = {
                 c.email        AS cliente_email,
                 ut.nombre      AS trabajador_nombre,
                 tw.nombre      AS trabajador_asignado_nombre,
-                (SELECT COUNT(*) FROM detalle_ventas dv WHERE dv.venta_id = v.id) AS total_items,
+                (SELECT COUNT(*) FROM ventas.detalle_ventas dv WHERE dv.venta_id = v.id) AS total_items,
                 COALESCE(
-                    (SELECT tp.estado FROM transacciones_pago tp
+                    (SELECT tp.estado FROM ventas.transacciones_pago tp
                     WHERE tp.venta_id = v.id
                     ORDER BY tp.fecha_creacion DESC LIMIT 1),
                     'pendiente'
                 ) AS estado_pago
-            FROM ventas v
-            JOIN clientes c ON v.cliente_id = c.id
-            LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
-            LEFT JOIN usuarios ut ON v.actualizado_por = ut.id
-            LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
+            FROM ventas.ventas v
+            JOIN ventas.clientes c ON v.cliente_id = c.id
+            LEFT JOIN ventas.metodos_pago mp ON v.metodo_pago_id = mp.id
+            LEFT JOIN seguridad.usuarios ut ON v.actualizado_por = ut.id
+            LEFT JOIN seguridad.usuarios tw ON v.trabajador_id = tw.id
             WHERE 1=1
         `;
         const params: any[] = [];
@@ -279,10 +277,9 @@ export const VentaModel = {
                 mp.instrucciones_cliente AS metodo_instrucciones,
                 c.nombre  AS cliente_nombre_reg,
                 c.email   AS cliente_email_reg,
-                -- ✅ Usar trabajador_id para el nombre del trabajador asignado
                 tw.nombre AS trabajador_nombre,
                 COALESCE(
-                    (SELECT tp.estado FROM transacciones_pago tp
+                    (SELECT tp.estado FROM ventas.transacciones_pago tp
                      WHERE tp.venta_id = v.id
                      ORDER BY tp.fecha_creacion DESC LIMIT 1),
                     'pendiente'
@@ -297,13 +294,12 @@ export const VentaModel = {
                         'precio_unitario',  dv.precio_unitario,
                         'subtotal',         dv.subtotal
                     ))
-                    FROM detalle_ventas dv WHERE dv.venta_id = v.id
+                    FROM ventas.detalle_ventas dv WHERE dv.venta_id = v.id
                 ) AS items
-            FROM ventas v
-            JOIN clientes c ON v.cliente_id = c.id
-            LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
-            -- ✅ JOIN con trabajador_id, no actualizado_por
-            LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
+            FROM ventas.ventas v
+            JOIN ventas.clientes c ON v.cliente_id = c.id
+            LEFT JOIN ventas.metodos_pago mp ON v.metodo_pago_id = mp.id
+            LEFT JOIN seguridad.usuarios tw ON v.trabajador_id = tw.id
             WHERE v.id = $1
         `, [id]);
         return result.rows[0];
@@ -320,14 +316,14 @@ export const VentaModel = {
         }
 
         const result = await pool.query(`
-            UPDATE ventas SET ${campos.join(', ')} WHERE id = $1 RETURNING *
+            UPDATE ventas.ventas SET ${campos.join(', ')} WHERE id = $1 RETURNING *
         `, valores);
         return result.rows[0];
     },
 
     crearTransaccion: async (venta_id: number, metodo_pago_id: number, monto: number, preference_id: string) => {
         const result = await pool.query(`
-            INSERT INTO transacciones_pago (
+            INSERT INTO ventas.transacciones_pago (
                 venta_id, metodo_pago_id, monto, moneda,
                 monto_neto, estado, transaction_id,
                 fecha_creacion, fecha_actualizacion
@@ -375,7 +371,7 @@ export const VentaModel = {
         }
 
         const result = await pool.query(`
-            UPDATE ventas SET ${campos.join(', ')} WHERE id = $1 RETURNING *
+            UPDATE ventas.ventas SET ${campos.join(', ')} WHERE id = $1 RETURNING *
         `, valores);
         return result.rows[0];
     },
@@ -386,7 +382,7 @@ export const VentaModel = {
             await client.query('BEGIN');
 
             const detalle = await client.query(
-                `SELECT * FROM detalle_ventas WHERE id = $1 AND venta_id = $2`,
+                `SELECT * FROM ventas.detalle_ventas WHERE id = $1 AND venta_id = $2`,
                 [detalle_id, venta_id]
             );
             if (!detalle.rows.length) throw new Error('Item no encontrado');
@@ -395,11 +391,11 @@ export const VentaModel = {
             const nuevoSubtotal = item.precio_unitario * cantidad;
 
             await client.query(`
-                UPDATE detalle_ventas SET cantidad = $1, subtotal = $2 WHERE id = $3
+                UPDATE ventas.detalle_ventas SET cantidad = $1, subtotal = $2 WHERE id = $3
             `, [cantidad, nuevoSubtotal, detalle_id]);
 
             const totales = await client.query(`
-                SELECT SUM(subtotal) AS total FROM detalle_ventas WHERE venta_id = $1
+                SELECT SUM(subtotal) AS total FROM ventas.detalle_ventas WHERE venta_id = $1
             `, [venta_id]);
 
             const total    = parseFloat(totales.rows[0].total);
@@ -407,7 +403,7 @@ export const VentaModel = {
             const iva      = parseFloat((total - subtotal).toFixed(2));
 
             await client.query(`
-                UPDATE ventas SET subtotal = $1, iva = $2, total = $3, fecha_actualizacion = CURRENT_TIMESTAMP
+                UPDATE ventas.ventas SET subtotal = $1, iva = $2, total = $3, fecha_actualizacion = CURRENT_TIMESTAMP
                 WHERE id = $4
             `, [subtotal, iva, total, venta_id]);
 
@@ -427,25 +423,25 @@ export const VentaModel = {
             await client.query('BEGIN');
 
             const count = await client.query(
-                `SELECT COUNT(*) FROM detalle_ventas WHERE venta_id = $1`, [venta_id]
+                `SELECT COUNT(*) FROM ventas.detalle_ventas WHERE venta_id = $1`, [venta_id]
             );
             if (parseInt(count.rows[0].count) <= 1)
                 throw new Error('No puedes eliminar el único producto del pedido');
 
             await client.query(
-                `DELETE FROM detalle_ventas WHERE id = $1 AND venta_id = $2`, [detalle_id, venta_id]
+                `DELETE FROM ventas.detalle_ventas WHERE id = $1 AND venta_id = $2`, [detalle_id, venta_id]
             );
 
             const totales = await client.query(
-                `SELECT SUM(subtotal) AS total FROM detalle_ventas WHERE venta_id = $1`, [venta_id]
+                `SELECT SUM(subtotal) AS total FROM ventas.detalle_ventas WHERE venta_id = $1`, [venta_id]
             );
             const total    = parseFloat(totales.rows[0].total);
             const subtotal = parseFloat((total / 1.16).toFixed(2));
             const iva      = parseFloat((total - subtotal).toFixed(2));
 
             await client.query(`
-                UPDATE ventas SET subtotal = $1, iva = $2, total = $3,
-                total_articulos = (SELECT COUNT(*) FROM detalle_ventas WHERE venta_id = $4),
+                UPDATE ventas.ventas SET subtotal = $1, iva = $2, total = $3,
+                total_articulos = (SELECT COUNT(*) FROM ventas.detalle_ventas WHERE venta_id = $4),
                 fecha_actualizacion = CURRENT_TIMESTAMP WHERE id = $4
             `, [subtotal, iva, total, venta_id]);
 
@@ -470,9 +466,9 @@ export const VentaModel = {
                 c.celular,
                 c.fecha_nacimiento,
                 u.email AS usuario_email
-            FROM ventas v
-            JOIN clientes c ON v.cliente_id = c.id
-            JOIN usuarios u ON c.user_id = u.id
+            FROM ventas.ventas v
+            JOIN ventas.clientes c ON v.cliente_id = c.id
+            JOIN seguridad.usuarios u ON c.user_id = u.id
             WHERE v.id = $1
         `, [venta_id]);
         return result.rows[0];
@@ -480,7 +476,7 @@ export const VentaModel = {
 
     confirmarPago: async (payment_id: string, venta_id: number) => {
         const result = await pool.query(`
-            UPDATE transacciones_pago
+            UPDATE ventas.transacciones_pago
             SET estado = 'aprobado',
                 transaction_id = $1,
                 fecha_aprobacion = CURRENT_TIMESTAMP,
@@ -492,7 +488,7 @@ export const VentaModel = {
 
         if (result.rows.length > 0) {
             await pool.query(`
-                UPDATE ventas
+                UPDATE ventas.ventas
                 SET estado = 'confirmado',
                     fecha_actualizacion = CURRENT_TIMESTAMP
                 WHERE id = $1

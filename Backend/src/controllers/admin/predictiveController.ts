@@ -35,10 +35,10 @@ export const getCategorias = async (req: Request, res: Response) => {
         c.id                          AS categoria_id,
         c.nombre                      AS categoria,
         COALESCE(SUM(dv.cantidad), 0) AS total_unidades
-      FROM categorias c
-      LEFT JOIN productos p    ON p.categoria_id = c.id AND p.activo = true
-      LEFT JOIN detalle_ventas dv ON dv.producto_id = p.id
-      LEFT JOIN ventas v       ON v.id = dv.venta_id
+      FROM catalogo.categorias c
+      LEFT JOIN catalogo.productos p    ON p.categoria_id = c.id AND p.activo = true
+      LEFT JOIN ventas.detalle_ventas dv ON dv.producto_id = p.id
+      LEFT JOIN ventas.ventas v       ON v.id = dv.venta_id
                                AND EXTRACT(YEAR FROM v.fecha_creacion) = $1
                                AND v.estado != 'cancelado'
       WHERE c.activo = true
@@ -84,17 +84,17 @@ export const getProductoEstrella = async (req: Request, res: Response) => {
           COALESCE(SUM(dv.cantidad), 0)::numeric /
           NULLIF((
             SELECT SUM(dv2.cantidad)
-            FROM detalle_ventas dv2
-            JOIN productos p2 ON p2.id = dv2.producto_id
-            JOIN ventas v2    ON v2.id = dv2.venta_id
+            FROM ventas.detalle_ventas dv2
+            JOIN catalogo.productos p2 ON p2.id = dv2.producto_id
+            JOIN ventas.ventas v2    ON v2.id = dv2.venta_id
             WHERE p2.categoria_id = $1
               AND EXTRACT(YEAR FROM v2.fecha_creacion) = $2
               AND v2.estado != 'cancelado'
           ), 0) * 100, 1
         ) AS participacion_pct
-      FROM productos p
-      LEFT JOIN detalle_ventas dv ON dv.producto_id = p.id
-      LEFT JOIN ventas v          ON v.id = dv.venta_id
+      FROM catalogo.productos p
+      LEFT JOIN ventas.detalle_ventas dv ON dv.producto_id = p.id
+      LEFT JOIN ventas.ventas v          ON v.id = dv.venta_id
                                  AND EXTRACT(YEAR FROM v.fecha_creacion) = $2
                                  AND v.estado != 'cancelado'
       WHERE p.categoria_id = $1 AND p.activo = true
@@ -140,10 +140,10 @@ export const getHistorico = async (req: Request, res: Response) => {
         mes_serie.mes                          AS mes,
         COALESCE(SUM(dv.cantidad), 0)          AS unidades
       FROM generate_series(1, 12) AS mes_serie(mes)
-      LEFT JOIN ventas v ON EXTRACT(MONTH FROM v.fecha_creacion) = mes_serie.mes
+      LEFT JOIN ventas.ventas v ON EXTRACT(MONTH FROM v.fecha_creacion) = mes_serie.mes
                         AND EXTRACT(YEAR  FROM v.fecha_creacion) = $2
                         AND v.estado != 'cancelado'
-      LEFT JOIN detalle_ventas dv ON dv.venta_id = v.id 
+      LEFT JOIN ventas.detalle_ventas dv ON dv.venta_id = v.id 
                                  AND dv.producto_id = $1
       GROUP BY mes_serie.mes
       ORDER BY mes_serie.mes
