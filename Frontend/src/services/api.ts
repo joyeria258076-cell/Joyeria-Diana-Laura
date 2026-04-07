@@ -1091,8 +1091,8 @@ export const carritoAPI = {
   getMetodosPago: async () => {
     return enhancedApi.get('/carrito/metodos-pago');
   },
-  confirmarPagoEfectivo: async (venta_id: number) => {
-      return enhancedApi.post(`/carrito/pedidos/${venta_id}/confirmar-pago-efectivo`, {});
+  confirmarPagoEfectivo: async (venta_id: number, fecha_estimada?: string) => {
+    return enhancedApi.post(`/carrito/pedidos/${venta_id}/confirmar-pago-efectivo`, { fecha_estimada });
   },
   subirComprobante: async (venta_id: number, file: File) => {
     const formData = new FormData();
@@ -1117,6 +1117,12 @@ export const carritoAPI = {
   },
   setConfiguracion: async (clave: string, valor: string) => {
       return enhancedApi.put(`/configuracion/${clave}`, { valor });
+  },
+  validarCodigoEntrega: async (codigo: string) => {
+    return enhancedApi.post('/carrito/pedidos/validar-codigo', { codigo });
+  },
+  confirmarEntregaCodigo: async (codigo: string) => {
+      return enhancedApi.post('/carrito/pedidos/confirmar-entrega', { codigo });
   },
 };
 

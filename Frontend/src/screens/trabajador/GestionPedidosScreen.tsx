@@ -38,6 +38,7 @@ interface Pedido {
     fecha_estimada_entrega?: string;
     comprobante_transferencia_url?: string;
     items?: ItemPedido[];
+    codigo_entrega?: string; 
 }
 
 interface ClienteInfo {
@@ -195,6 +196,11 @@ const GestionPedidosScreen: React.FC = () => {
     const [motivoCancelacion, setMotivoCancelacion] = useState('');
     const [clienteInfo, setClienteInfo]         = useState<ClienteInfo | null>(null);
 
+    const [codigoInput, setCodigoInput]         = useState('');
+    const [validandoCodigo, setValidandoCodigo] = useState(false);
+    const [msgCodigo, setMsgCodigo]             = useState('');
+    const [pedidoValidado, setPedidoValidado]   = useState<any>(null);
+
     useEffect(() => {
         cargarEstados();
         cargarPedidos();
@@ -307,6 +313,10 @@ const GestionPedidosScreen: React.FC = () => {
             setFechaEstModal(pedido.fecha_estimada_entrega?.split('T')[0] || '');
         }
         if (tipo === 'detalle') {
+            setFechaEstModal('');
+            setCodigoInput('');
+            setMsgCodigo('');
+            setPedidoValidado(null);
             setCargando(true);
             try {
                 const data = await carritoAPI.getPedidoById(pedido.id);
@@ -322,7 +332,7 @@ const GestionPedidosScreen: React.FC = () => {
         }
     };
 
-    const cerrar = () => { setModalTipo(null); setPedidoSel(null); setMsg(''); };
+    const cerrar = () => { setModalTipo(null); setPedidoSel(null); setMsg(''); setFechaEstModal(''); };
 
     const tomarPedido = async (pedido: Pedido) => {
         setTomando(true);
@@ -401,12 +411,26 @@ const GestionPedidosScreen: React.FC = () => {
         if (!pedidoSel) return;
         setCargando(true); setMsg('');
         try {
-            await carritoAPI.confirmarPagoEfectivo(pedidoSel.id);
+            await carritoAPI.confirmarPagoEfectivo(pedidoSel.id, fechaEstModal || undefined);
             setPedidos(prev => prev.map(p => p.id === pedidoSel.id ? { ...p, estado_pago: 'aprobado', estado: 'en_preparacion' } : p));
             setPedidoSel(prev => prev ? { ...prev, estado_pago: 'aprobado', estado: 'en_preparacion' } : prev);
             setMsg('✅ Pago confirmado correctamente.');
         } catch (err: any) { setMsg(`❌ ${err.message}`); }
         finally { setCargando(false); }
+    };
+
+    const confirmarEntregaConCodigo = async () => {
+    if (!codigoInput.trim()) { setMsgCodigo('❌ Ingresa el código'); return; }
+    setValidandoCodigo(true); setMsgCodigo('');
+    try {
+        const data = await carritoAPI.confirmarEntregaCodigo(codigoInput.trim());
+        if (!data.success) throw new Error(data.message);
+        setMsgCodigo('✅ Entrega confirmada correctamente');
+        setPedidos(prev => prev.map(p => p.id === pedidoSel?.id ? { ...p, estado: 'entregado' } : p));
+        setPedidoSel(prev => prev ? { ...prev, estado: 'entregado' } : prev);
+        setCodigoInput('');
+    } catch (err: any) { setMsgCodigo(err.message); }
+    finally { setValidandoCodigo(false); }
     };
 
     const getBadge = (estado: string) => {
@@ -697,6 +721,16 @@ const GestionPedidosScreen: React.FC = () => {
                                                             ? '💵 Confirma que recibiste el pago en efectivo del cliente.'
                                                             : '🏦 Revisa el comprobante y confirma que la transferencia fue recibida.'}
                                                     </p>
+                                                    {/* ✅ Fecha estimada opcional al confirmar pago */}
+                                                    {!pedidoSel.fecha_estimada_entrega && (
+                                                        <div className="gp-form-grupo" style={{marginTop:'10px'}}>
+                                                            <label style={{fontSize:'0.78rem', color:'#8a7a82'}}>
+                                                                📅 Fecha estimada de entrega (opcional — si no indicas una, se calculará automáticamente)
+                                                            </label>
+                                                            <input className="gp-input" type="date" value={fechaEstModal}
+                                                                onChange={e => setFechaEstModal(e.target.value)} />
+                                                        </div>
+                                                    )}
                                                     {msg && <div className={`gp-msg ${msg.startsWith('✅') ? 'ok' : 'error'}`}>{msg}</div>}
                                                     <button className="gp-btn-confirmar-pago" onClick={confirmarPagoEfectivo}
                                                         disabled={cargando || msg.startsWith('✅')}>
@@ -743,6 +777,28 @@ const GestionPedidosScreen: React.FC = () => {
                                                 <div className="gp-total-fila"><span>IVA (16%)</span><span>${parseFloat(String(pedidoSel.iva)).toLocaleString('es-MX')}</span></div>
                                                 <div className="gp-total-fila gp-total-final"><span>Total</span><span>${parseFloat(String(pedidoSel.total)).toLocaleString('es-MX')}</span></div>
                                             </div>
+
+                                            {/* ✅ Confirmar entrega con código */}
+                                            {['en_preparacion','enviado'].includes(pedidoSel.estado) && 
+                                            pedidoSel.estado_pago === 'aprobado' &&
+                                            ['efectivo','transferencia'].includes(pedidoSel.metodo_pago_codigo || '') && (
+                                                <div className="gp-confirmar-entrega">
+                                                    <h4>🎟️ Confirmar entrega</h4>
+                                                    <p className="gp-confirmar-entrega-desc">Solicita al cliente su código de entrega e ingrésalo aquí para confirmar la recepción.</p>
+                                                    <div className="gp-codigo-input-wrap">
+                                                        <input className="gp-input gp-codigo-input" type="text" maxLength={6}
+                                                            placeholder="Ej: A3X9K2" value={codigoInput}
+                                                            onChange={e => setCodigoInput(e.target.value.toUpperCase())} />
+                                                        <button className="gp-btn-confirmar-entrega" onClick={confirmarEntregaConCodigo}
+                                                            disabled={validandoCodigo || msgCodigo.startsWith('✅')}>
+                                                            {validandoCodigo ? '⏳ Verificando...' : '✅ Confirmar entrega'}
+                                                        </button>
+                                                    </div>
+                                                    {msgCodigo && (
+                                                        <div className={`gp-msg ${msgCodigo.startsWith('✅') ? 'ok' : 'error'}`}>{msgCodigo}</div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </>
                                     )}
 
@@ -846,7 +902,7 @@ const GestionPedidosScreen: React.FC = () => {
                                                     💡 Para avanzar a este estado, primero confirma el pago del cliente en <strong>👁 Ver detalle</strong> del pedido.
                                                 </div>
                                             )}
-                                            {['confirmado','en_preparacion','enviado','entregado'].includes(nuevoEstado) && !pedidoSel.fecha_estimada_entrega && (
+                                            {['en_preparacion','enviado','entregado'].includes(nuevoEstado) && !pedidoSel.fecha_estimada_entrega && (
                                                 <div className="gp-form-grupo">
                                                     <label>📅 Fecha estimada de entrega (opcional)</label>
                                                     <input className="gp-input" type="date" value={fechaEstModal}

@@ -106,6 +106,23 @@ const calcularFechaEntrega = async (diasDefault: number = 7): Promise<string> =>
     }
 };
 
+// ── GENERAR CODIGO DE ENTREGA ÚNICO PARA CADA PEDIDO (6 CARACTERES ALFANUMÉRICOS) ───────────────────────────────────────
+const generarCodigoEntrega = async (): Promise<string> => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sin I,O,0,1 para evitar confusión
+    let codigo = '';
+    let intentos = 0;
+    while (intentos < 10) {
+        codigo = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        // Verificar que no exista
+        const existe = await pool.query(
+            `SELECT id FROM ventas WHERE codigo_entrega = $1`, [codigo]
+        );
+        if (existe.rows.length === 0) return codigo;
+        intentos++;
+    }
+    return codigo;
+};
+
 // ── CARRITO ───────────────────────────────────────────────────
 
 export const getCarrito = async (req: Request, res: Response) => {
@@ -589,6 +606,12 @@ export const capturarPagoPayPal = async (req: Request, res: Response) => {
             try {
                 await descontarStock(venta_id);
 
+                // ✅ Generar código de entrega
+                const codigoEntrega = await generarCodigoEntrega();
+                await pool.query(`
+                    UPDATE ventas SET codigo_entrega = $1 WHERE id = $2 AND codigo_entrega IS NULL
+                `, [codigoEntrega, venta_id]);
+
                 // ✅ Calcular fecha estimada al pagar con PayPal
                 const fechaEntrega = await calcularFechaEntrega();
                 await pool.query(`
@@ -758,6 +781,12 @@ export const webhookMercadoPago = async (req: Request, res: Response) => {
                 // ✅ Stock se descuenta al pagar, no al confirmar manualmente
                 try {
                     await descontarStock(venta_id);
+
+                    // ✅ Generar código de entrega
+                    const codigoEntrega = await generarCodigoEntrega();
+                    await pool.query(`
+                        UPDATE ventas SET codigo_entrega = $1 WHERE id = $2 AND codigo_entrega IS NULL
+                    `, [codigoEntrega, venta_id]);
 
                     // ✅ Calcular fecha estimada al pagar con MP
                     const fechaEntrega = await calcularFechaEntrega();
@@ -1138,6 +1167,7 @@ export const confirmarPagoEfectivo = async (req: Request, res: Response) => {
             });
         }
         
+        const { fecha_estimada } = req.body;
         const transactionId = `MANUAL-${usuario.id}-${Date.now()}`;
 
         // ✅ Insertar transacción aprobada directamente
@@ -1156,8 +1186,14 @@ export const confirmarPagoEfectivo = async (req: Request, res: Response) => {
             WHERE id = $1
         `, [parseInt(id)]);
 
+        // ✅ Generar código de entrega
+        const codigoEntrega = await generarCodigoEntrega();
+        await pool.query(`
+            UPDATE ventas SET codigo_entrega = $1 WHERE id = $2 AND codigo_entrega IS NULL
+        `, [codigoEntrega, parseInt(id)]);
+
         // ✅ Calcular y guardar fecha estimada de entrega
-        const fechaEntrega = await calcularFechaEntrega();
+        const fechaEntrega = fecha_estimada || await calcularFechaEntrega();
         //console.log(`📅 Fecha entrega calculada: ${fechaEntrega}`);
         await pool.query(`
             UPDATE ventas SET fecha_estimada_entrega = $1 WHERE id = $2 AND fecha_estimada_entrega IS NULL
@@ -1254,6 +1290,66 @@ export const getEstadosPedidosCliente = async (req: Request, res: Response) => {
         `, [usuario.id]);
 
         res.json({ success: true, data: result.rows });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const validarCodigoEntrega = async (req: Request, res: Response) => {
+    try {
+        const { codigo } = req.body;
+        if (!codigo) return res.status(400).json({ success: false, message: 'Código requerido' });
+
+        const result = await pool.query(`
+            SELECT v.id, v.folio, v.cliente_nombre_completo, v.estado, v.codigo_entrega_usado
+            FROM ventas v
+            WHERE v.codigo_entrega = $1
+        `, [codigo.toUpperCase().trim()]);
+
+        if (!result.rows.length)
+            return res.status(404).json({ success: false, message: '❌ Código inválido — no corresponde a ningún pedido' });
+
+        const venta = result.rows[0];
+
+        if (venta.codigo_entrega_usado)
+            return res.status(400).json({ success: false, message: '⚠️ Este código ya fue usado' });
+
+        if (venta.estado === 'entregado')
+            return res.status(400).json({ success: false, message: '⚠️ Este pedido ya fue entregado' });
+
+        res.json({ success: true, data: venta });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const confirmarEntregaCodigo = async (req: Request, res: Response) => {
+    try {
+        const usuario = getUsuario(req);
+        const { codigo } = req.body;
+
+        const result = await pool.query(`
+            SELECT id, folio, estado, codigo_entrega_usado FROM ventas WHERE codigo_entrega = $1
+        `, [codigo.toUpperCase().trim()]);
+
+        if (!result.rows.length)
+            return res.status(404).json({ success: false, message: 'Código inválido' });
+
+        const venta = result.rows[0];
+        if (venta.codigo_entrega_usado)
+            return res.status(400).json({ success: false, message: 'Código ya utilizado' });
+
+        // ✅ Marcar como entregado y código usado
+        await pool.query(`
+            UPDATE ventas 
+            SET estado = 'entregado',
+                codigo_entrega_usado = TRUE,
+                actualizado_por = $1,
+                fecha_actualizacion = CURRENT_TIMESTAMP
+            WHERE id = $2
+        `, [usuario.id, venta.id]);
+
+        res.json({ success: true, message: '✅ Entrega confirmada correctamente', data: { folio: venta.folio } });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }

@@ -404,7 +404,6 @@
     font-size: 0.82rem; color: #ccc; cursor: pointer;
 }
 .cp-filtro-agrupar input { cursor: pointer; }
-
 .cp-grupo-label {
     display: flex; justify-content: space-between; align-items: center;
     padding: 8px 12px; margin-top: 16px; margin-bottom: 4px;
@@ -415,3 +414,17 @@
     color: #ecb2c3; text-transform: uppercase; letter-spacing: 0.08em;
 }
 .cp-grupo-count { font-size: 0.72rem; color: #8a7a82; font-weight: 400; text-transform: none; }
+.cp-codigo-entrega {
+    background: rgba(107,203,119,0.08);
+    border: 1px solid rgba(107,203,119,0.25);
+    border-radius: 12px; padding: 16px;
+    text-align: center; margin-top: 16px;
+}
+.cp-codigo-entrega h4 { color: #6bcb77; font-size: 0.85rem; margin-bottom: 6px; }
+.cp-codigo-entrega-desc { font-size: 0.75rem; color: #8a7a82; margin-bottom: 12px; }
+.cp-codigo-valor {
+    font-size: 2rem; font-weight: 900; letter-spacing: 0.3em;
+    color: #6bcb77; font-family: monospace;
+    background: rgba(107,203,119,0.1); padding: 10px 20px;
+    border-radius: 8px; display: inline-block;
+}

@@ -590,3 +590,23 @@
     font-size: 0.8rem; cursor: pointer; font-family: 'Montserrat', sans-serif;
 }
 .gp-config-dias-guardar:disabled { opacity: 0.5; cursor: not-allowed; }
+.gp-confirmar-entrega {
+    background: rgba(236,178,195,0.06);
+    border: 1px solid rgba(236,178,195,0.2);
+    border-radius: 12px; padding: 16px; margin-top: 16px;
+}
+.gp-confirmar-entrega h4 { color: #ecb2c3; font-size: 0.85rem; margin-bottom: 6px; }
+.gp-confirmar-entrega-desc { font-size: 0.75rem; color: #8a7a82; margin-bottom: 12px; line-height: 1.5; }
+.gp-codigo-input-wrap { display: flex; gap: 8px; }
+.gp-codigo-input {
+    text-align: center; font-size: 1.2rem; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase; flex: 1;
+}
+.gp-btn-confirmar-entrega {
+    background: linear-gradient(135deg, #6bcb77, #4da85a);
+    color: #0f0f12; border: none; border-radius: 8px;
+    padding: 10px 16px; font-weight: 700; cursor: pointer;
+    font-size: 0.82rem; font-family: 'Montserrat', sans-serif;
+    white-space: nowrap;
+}
+.gp-btn-confirmar-entrega:disabled { opacity: 0.5; cursor: not-allowed; }

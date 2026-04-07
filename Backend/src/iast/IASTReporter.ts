@@ -10,8 +10,10 @@ import * as path from 'path';
 import { IASTFinding } from './IASTContext';
 
 const IS_RENDER = !!process.env.RENDER;
-const REPORTS_DIR = IS_RENDER ? '/tmp/iast-reports' : path.join(process.cwd(), 'iast-reports');
-const REPORT_FILE = path.join(REPORTS_DIR, 'findings.json');
+//const REPORTS_DIR = IS_RENDER ? '/tmp/iast-reports' : path.join(process.cwd(), 'iast-reports');
+const REPORTS_DIR = IS_RENDER ? '/tmp' : path.join(process.cwd(), 'iast-reports');
+//const REPORT_FILE = path.join(REPORTS_DIR, 'findings.json');
+const REPORT_FILE = path.join(REPORTS_DIR, 'iast-findings.json');
 const MAX_FINDINGS_IN_MEMORY = 500;
 
 export class IASTReporter {
