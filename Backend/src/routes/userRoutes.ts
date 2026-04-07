@@ -1,6 +1,5 @@
 // Backend/src/routes/userRoutes.ts
 import express from 'express';
-// 👇 CORRECCIÓN: Agregamos '/usuario/' a la ruta porque movimos el archivo ahí
 import {
   getUserProfile,
   updateUserProfile,

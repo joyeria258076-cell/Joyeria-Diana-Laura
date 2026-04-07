@@ -50,7 +50,6 @@ export default function MFAVerifyScreen() {
       if (response.success && response.verified) {
         console.log('✅ MFA verificado correctamente');
         
-        // 🆕 CORRECCIÓN: MANEJAR LA RESPUESTA COMPLETA
         if (response.data) {
           console.log('✅ Datos de sesión recibidos:', response.data);
           

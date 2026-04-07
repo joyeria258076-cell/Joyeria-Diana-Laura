@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-// 👇 CORRECCIONES: Agregamos '../' extra a todos los imports
 import { SecurityQuestionModel } from '../../models/securityQuestionModel';
 import { getUserByEmail, updatePassword } from '../../models/userModel'; 
 import admin from '../../config/firebase'; 

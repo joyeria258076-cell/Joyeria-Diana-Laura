@@ -158,7 +158,6 @@ const OlvideContraseniaScreen: React.FC = () => {
 
     const attemptsMessage = getAttemptsMessage();
     
-    // 🎯 CORRECCIÓN: Convertir a boolean explícitamente
     const isBlocked = Boolean(blockedUntil && blockedUntil > new Date());
 
     const onSubmit = async (data: FormData) => {

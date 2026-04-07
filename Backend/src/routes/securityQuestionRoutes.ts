@@ -1,5 +1,4 @@
 import express from 'express';
-// 👇 CORRECCIÓN: Apuntamos a la carpeta 'seguridad'
 import { 
   setSecurityQuestion, 
   getSecurityQuestion, 

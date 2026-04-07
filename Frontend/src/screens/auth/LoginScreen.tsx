@@ -183,7 +183,6 @@ const onSubmit = async (data: FormData) => {
   } catch (error: any) {
     console.log('🔍 Error en login:', error);
     
-    // 🆕 CORRECCIÓN: MANEJAR REDIRECCIÓN MFA DE FORMA ESPECÍFICA
     if (error.mfaRequired) {
       console.log('🔐 MFA detectado - redirigiendo a verificación');
       navigate('/verify-mfa', { 

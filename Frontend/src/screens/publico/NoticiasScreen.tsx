@@ -38,7 +38,6 @@ const NoticiasScreen: React.FC = () => {
   }, []);
 
   const renderTituloConSpan = (titulo: string) => {
-    // <-- CORRECCIÓN: Si no hay título, devolvemos null para que no ponga "Novedades" por defecto
     if (!titulo) return null; 
     const palabras = titulo.trim().split(" ");
     if (palabras.length === 1) return <span>{titulo}</span>;

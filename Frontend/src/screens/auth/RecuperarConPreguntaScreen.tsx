@@ -265,7 +265,6 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                     </div>
                 )}
 
-                {/* 🆕 CORRECCIÓN: Formularios separados para cada paso */}
                 {step === 'question' && (
                     <form onSubmit={handleVerifyAnswer} className="recuperar-pregunta-form">
                         <div className="question-step">
