@@ -46,22 +46,23 @@ type Tab = 'rendimiento'|'endpoints'|'errores'|'actividad'|'database';
 // import.meta.env.DEV = true en local (Vite), false en producción (Vercel).
 //   LOCAL (DEV=true,  UTC-6): timeZone Mexico_City corrige la doble conversión
 //   PROD  (DEV=false, UTC+0): timeZone UTC evita re-convertir lo ya convertido
-const _TZ = import.meta.env.DEV ? 'America/Mexico_City' : 'UTC';
+// Quitar timeZone porque el backend ya convirtió
+const _TZ = undefined; // ya no se necesita
 
 const fmtFecha = (iso: string) =>
   new Date(iso).toLocaleString('es-MX', {
-    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
-    timeZone: _TZ
+    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    // ✅ Sin timeZone — backend ya hizo la conversión
   });
+
 const fmtFechaCorta = (iso: string) =>
   new Date(iso).toLocaleString('es-MX', {
-    day: '2-digit', month: 'short',
-    timeZone: _TZ
+    day: '2-digit', month: 'short'
   });
+
 const fmtHora = (iso: string) =>
   new Date(iso).toLocaleTimeString('es-MX', {
-    hour: '2-digit', minute: '2-digit',
-    timeZone: _TZ
+    hour: '2-digit', minute: '2-digit'
   });
 // Alias para compatibilidad con el JSX que usa fmtFechaUTC / fmtHoraUTC
 const fmtFechaUTC = fmtFecha;
