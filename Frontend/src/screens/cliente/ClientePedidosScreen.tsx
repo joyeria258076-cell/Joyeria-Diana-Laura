@@ -32,6 +32,7 @@ interface Pedido {
     metodo_pago_codigo?: string;
     comprobante_transferencia_url?: string;
     items: ItemPedido[];
+    codigo_entrega?: string;
 }
 
 interface EstadoConfig { value: string; label: string; color: string; bg: string; }
@@ -399,7 +400,9 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
             <td className="cp-folio">{pedido.folio}</td>
             <td>{formatFechaHora(pedido.fecha_creacion)}</td>
             <td className="cp-fecha-est">
-                {pedido.fecha_estimada_entrega ? formatFecha(pedido.fecha_estimada_entrega) : <span className="cp-fecha-est-vacia">Por confirmar</span>}
+                {pedido.fecha_estimada_entrega && ['aprobado','pagado'].includes(pedido.estado_pago)
+                    ? formatFecha(pedido.fecha_estimada_entrega)
+                    : <span className="cp-fecha-est-vacia">Por confirmar</span>}
             </td>
             <td>
                 {getBadge(pedido.estado)}
@@ -574,6 +577,19 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
                                     {['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && (
                                         <div className="cp-pago-completado">✅ <strong>Pago completado</strong></div>
                                     )}
+
+                                    {/* ✅ Código de entrega */}
+                                    {['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && 
+                                    pedidoDetalle.codigo_entrega &&
+                                    !['entregado','cancelado'].includes(pedidoDetalle.estado) && (
+                                        <div className="cp-codigo-entrega">
+                                            <h4>🎟️ Tu código de entrega</h4>
+                                            <p className="cp-codigo-entrega-desc">Muestra este código al trabajador al momento de recibir tu pedido</p>
+                                            <div className="cp-codigo-valor">{pedidoDetalle.codigo_entrega}</div>
+                                        </div>
+                                    )}
+
+
                                     {(['aprobado','pagado'].includes(pedidoDetalle.estado_pago) || pedidoDetalle.estado === 'entregado') && (
                                         <button className="cp-btn-recibo" onClick={() => descargarRecibo(pedidoDetalle)}>📄 Ver / Descargar recibo</button>
                                     )}

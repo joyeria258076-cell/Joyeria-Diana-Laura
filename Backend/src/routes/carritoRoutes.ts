@@ -9,7 +9,8 @@ import {
     crearPreferenciaMercadoPago, webhookMercadoPago,
     crearOrdenPayPal, capturarPagoPayPal,
     generarReciboPDF, confirmarPagoEfectivo,
-    subirComprobante, getEstadosPedidosCliente
+    subirComprobante, getEstadosPedidosCliente, validarCodigoEntrega,
+    confirmarEntregaCodigo
 } from '../controllers/carrito/carritoController';
 import { authenticateToken } from '../middleware/authMiddleware';
 import { uploadSingleImage, handleUploadError } from '../middleware/uploadMiddleware';
@@ -58,12 +59,14 @@ router.delete('/vaciar',   vaciarCarrito);
 router.delete('/:id',      eliminarDelCarrito);
 
 // ── Pedidos — rutas específicas ANTES que /:id ────────────────
-router.post('/pedidos',          crearPedido);
-router.get('/pedidos/mis',       getMisPedidos);
-// ✅ mis-estados ANTES de /:id para evitar conflicto de rutas
-router.get('/pedidos/mis-estados', getEstadosPedidosCliente);
-router.get('/pedidos',           getAllPedidos);
-router.get('/pedidos/:id',       getPedidoById);
+router.post('/pedidos',                   crearPedido);
+router.get('/pedidos/mis',                getMisPedidos);
+router.get('/pedidos/mis-estados',        getEstadosPedidosCliente);
+// ✅ rutas de código ANTES de /:id para evitar conflictos
+router.post('/pedidos/validar-codigo',    validarCodigoEntrega);
+router.post('/pedidos/confirmar-entrega', confirmarEntregaCodigo);
+router.get('/pedidos',                    getAllPedidos);
+router.get('/pedidos/:id',                getPedidoById);
 
 // ── Pagos ─────────────────────────────────────────────────────
 router.post('/pago/mercadopago',      crearPreferenciaMercadoPago);
