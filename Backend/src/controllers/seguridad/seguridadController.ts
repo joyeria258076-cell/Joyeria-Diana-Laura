@@ -1,3 +1,4 @@
+// Backend/src/controllers/seguridad/seguridadController.ts
 import { Request, Response } from 'express';
 // 👇 Importaciones corregidas subiendo 2 niveles
 import { LoginSecurityService } from '../../services/loginSecurityService';

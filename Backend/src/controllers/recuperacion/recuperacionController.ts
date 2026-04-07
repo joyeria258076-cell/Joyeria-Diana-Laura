@@ -1,3 +1,4 @@
+// Backend/src/controllers/recuperacion/recuperacionController.ts
 import { Request, Response } from 'express';
 import * as userModel from '../../models/userModel';
 import admin from '../../config/firebase';

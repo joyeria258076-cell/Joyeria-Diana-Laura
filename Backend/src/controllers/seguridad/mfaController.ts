@@ -1,5 +1,5 @@
+// Backend/src/controllers/seguridad/mfaController.ts
 import { Request, Response } from 'express';
-// 👇 CORRECCIÓN 1: Subir dos niveles (../../) para encontrar los servicios y config
 import { MFAService } from '../../services/MFAService';
 import { pool } from '../../config/database';
 import { SessionService } from '../../services/SessionService';
@@ -23,19 +23,17 @@ export const mfaController = {
 
       console.log(`🔐 Iniciando configuración MFA para usuario: ${userId}, email: ${email}`);
       
-      // Generar secreto y códigos de respaldo
       const secret = MFAService.generateSecret(email);
       const backupCodes = MFAService.generateBackupCodes();
       const qrCodeUrl = await MFAService.generateQRCode(secret.otpauth_url!);
 
-      // 🆕 CORRECCIÓN 2: Especificar el tipo (code: string) para evitar error de TypeScript
       const backupCodesFormatted = `{${backupCodes.map((code: string) => `"${code}"`).join(',')}}`;
       
       console.log(`📦 Backup codes formateados: ${backupCodesFormatted}`);
 
-      // Guardar en BD (sin activar MFA aún)
+      // ✅ CORREGIDO: agregar esquema seguridad
       await pool.query(
-        `UPDATE usuarios SET mfa_secret = $1, mfa_backup_codes = $2 WHERE id = $3`,
+        `UPDATE seguridad.usuarios SET mfa_secret = $1, mfa_backup_codes = $2 WHERE id = $3`,
         [secret.base32, backupCodesFormatted, userId]
       );
 
@@ -83,9 +81,9 @@ export const mfaController = {
 
       console.log(`🔐 Verificando MFA para usuario: ${userId}`);
 
-      // Obtener secreto del usuario
+      // ✅ CORREGIDO: agregar esquema seguridad
       const userResult = await pool.query(
-        'SELECT mfa_secret FROM usuarios WHERE id = $1',
+        'SELECT mfa_secret FROM seguridad.usuarios WHERE id = $1',
         [userId]
       );
 
@@ -97,7 +95,6 @@ export const mfaController = {
         });
       }
 
-      // Verificar token
       const isValid = MFAService.verifyToken(secret, token);
       if (!isValid) {
         console.log(`❌ Código MFA inválido para usuario: ${userId}`);
@@ -107,9 +104,9 @@ export const mfaController = {
         });
       }
 
-      // Activar MFA
+      // ✅ CORREGIDO: agregar esquema seguridad
       await pool.query(
-        'UPDATE usuarios SET mfa_enabled = true WHERE id = $1',
+        'UPDATE seguridad.usuarios SET mfa_enabled = true WHERE id = $1',
         [userId]
       );
 
@@ -151,9 +148,10 @@ export const mfaController = {
 
       console.log(`🔐 Verificando MFA para login usuario: ${userId}`);
 
+      // ✅ CORREGIDO: agregar esquema seguridad
       const userResult = await pool.query(
         `SELECT u.id, u.email, u.nombre, u.mfa_secret, u.mfa_enabled, u.firebase_uid 
-         FROM usuarios u 
+         FROM seguridad.usuarios u 
          WHERE u.id = $1`,
         [userId]
       );
@@ -167,7 +165,6 @@ export const mfaController = {
 
       const user = userResult.rows[0];
       
-      // Si el usuario no tiene MFA activado, permitir acceso
       if (!user.mfa_enabled) {
         console.log(`⚠️ MFA no activado para usuario: ${userId}`);
         return res.json({ 
@@ -177,7 +174,6 @@ export const mfaController = {
         });
       }
 
-      // Verificar código MFA
       const isValid = MFAService.verifyToken(user.mfa_secret, token);
       if (!isValid) {
         console.log(`❌ Código MFA inválido en login para usuario: ${userId}`);
@@ -189,7 +185,6 @@ export const mfaController = {
 
       console.log(`✅ MFA verificado para login usuario: ${userId}`);
 
-      // Crear sesión después de MFA exitoso
       try {
         const clientIp = req.headers['x-forwarded-for'] || 
                         req.connection.remoteAddress || 
@@ -210,7 +205,6 @@ export const mfaController = {
         );
 
         if (sessionResult.success && sessionResult.sessionToken) {
-          // Generar JWT seguro
           const jwtToken = JWTService.generateToken({
             userId: userId,
             firebaseUid: user.firebase_uid,
@@ -271,8 +265,9 @@ export const mfaController = {
 
       console.log(`🔐 Desactivando MFA para usuario: ${userId}`);
 
+      // ✅ CORREGIDO: agregar esquema seguridad
       await pool.query(
-        `UPDATE usuarios SET mfa_enabled = false, mfa_secret = NULL, mfa_backup_codes = NULL 
+        `UPDATE seguridad.usuarios SET mfa_enabled = false, mfa_secret = NULL, mfa_backup_codes = NULL 
          WHERE id = $1`,
         [userId]
       );
@@ -306,8 +301,9 @@ export const mfaController = {
         });
       }
 
+      // ✅ CORREGIDO: agregar esquema seguridad
       const userResult = await pool.query(
-        'SELECT mfa_enabled FROM usuarios WHERE id = $1',
+        'SELECT mfa_enabled FROM seguridad.usuarios WHERE id = $1',
         [userId]
       );
 

@@ -1,4 +1,5 @@
 // Backend/src/controllers/admin/bulkUpdateController.ts
+// Backend/src/controllers/admin/bulkUpdateController.ts
 import { Request, Response } from 'express';
 import { AuthRequest } from '../../middleware/authMiddleware';
 import multer, { FileFilterCallback } from 'multer';
@@ -9,6 +10,15 @@ import pool from '../../config/database';
 interface RequestWithFile extends AuthRequest {
   file?: Express.Multer.File;
 }
+
+// Mapeo de tablas a sus esquemas
+const TABLE_SCHEMAS: { [key: string]: string } = {
+  productos: 'catalogo',
+  proveedores: 'catalogo',
+  categorias: 'catalogo',
+  temporadas: 'catalogo',
+  clientes: 'ventas',
+};
 
 const upload = multer({ 
   dest: 'uploads/',
@@ -41,6 +51,9 @@ export const bulkUpdateController = {
       if (!validTables.includes(tableName)) {
         throw new Error(`Tabla no válida: ${tableName}`);
       }
+      
+      const schema = TABLE_SCHEMAS[tableName] || 'public';
+      const fullTableName = `${schema}.${tableName}`;
       
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.readFile(filePath);
@@ -105,7 +118,7 @@ export const bulkUpdateController = {
           updates.push(updatedRow);
           
           const currentQuery = await pool.query(
-            `SELECT * FROM ${tableName} WHERE id = $1`,
+            `SELECT * FROM ${fullTableName} WHERE id = $1`,
             [id]
           );
           
@@ -148,6 +161,9 @@ export const bulkUpdateController = {
     if (!tableName || !updates || !Array.isArray(updates) || updates.length === 0) {
       return res.status(400).json({ success: false, message: 'Datos inválidos' });
     }
+    
+    const schema = TABLE_SCHEMAS[tableName] || 'public';
+    const fullTableName = `${schema}.${tableName}`;
     
     const client = await pool.connect();
     
@@ -192,7 +208,7 @@ export const bulkUpdateController = {
           values.push(id);
           
           const query = `
-            UPDATE ${tableName}
+            UPDATE ${fullTableName}
             SET ${setClauses.join(', ')}
             WHERE id = $${paramIndex}
             RETURNING id
