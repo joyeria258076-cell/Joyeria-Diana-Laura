@@ -47,7 +47,7 @@ export class CodeGenerator {
       let sequence = 1;
       if (lastCodeResult.rows.length > 0) {
         const lastCode = lastCodeResult.rows[0].codigo;
-        const lastSeq = parseInt(lastCode.split('-')[2] || '0');
+        const lastSeq = Number.parseInt(lastCode.split('-')[2] || '0');
         sequence = lastSeq + 1;
       }
       
@@ -90,7 +90,7 @@ export class CodeGenerator {
     if (lastCodeResult.rows.length > 0) {
       const lastCode = lastCodeResult.rows[0].codigo;
       const parts = lastCode.split('-');
-      const lastSeq = parseInt(parts[parts.length - 1] || '0');
+      const lastSeq = Number.parseInt(parts[parts.length - 1] || '0');
       sequence = lastSeq + 1;
     }
     

@@ -159,10 +159,10 @@ const AdminNuevoProductoScreen: React.FC = () => {
           if (iva) setIvaConfig(parseFloat(iva.valor));
           if (margen) setMargenConfig(parseFloat(margen.valor));
           if (stockMinimo) {
-            setStockMinimoDefault(parseInt(stockMinimo.valor));
-            setFormData(prev => ({ ...prev, stock_actual: parseInt(stockMinimo.valor) }));
+            setStockMinimoDefault(Number.parseInt(stockMinimo.valor));
+            setFormData(prev => ({ ...prev, stock_actual: Number.parseInt(stockMinimo.valor) }));
           }
-          if (stockMaximo) setStockMaximoDefault(parseInt(stockMaximo.valor));
+          if (stockMaximo) setStockMaximoDefault(Number.parseInt(stockMaximo.valor));
         }
       } catch (err: any) {
         console.error('Error cargando datos:', err);

@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { CarritoModel, VentaModel } from '../../models/carritoModel';
 import { pool } from '../../config/database';
+import crypto from 'crypto';
 
 const getUsuario = (req: Request) => {
     const user = (req as any).user;
@@ -84,7 +85,7 @@ const calcularFechaEntrega = async (diasDefault: number = 7): Promise<string> =>
         const result = await pool.query(
             `SELECT valor FROM configuracion WHERE clave = 'dias_entrega_default'`
         );
-        const dias = result.rows.length > 0 ? parseInt(result.rows[0].valor) : diasDefault;
+        const dias = result.rows.length > 0 ? Number.parseInt(result.rows[0].valor) : diasDefault;
 
         // ✅ Usar hora México para el cálculo
         const ahoraMx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
@@ -109,7 +110,7 @@ const generarCodigoEntrega = async (): Promise<string> => {
     let codigo = '';
     let intentos = 0;
     while (intentos < 10) {
-        codigo = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        codigo = Array.from({ length: 6 }, () => chars[crypto.randomInt(0, chars.length)]).join('');
         // Verificar que no exista
         const existe = await pool.query(
             `SELECT id FROM ventas WHERE codigo_entrega = $1`, [codigo]
@@ -172,7 +173,7 @@ export const actualizarCantidad = async (req: Request, res: Response) => {
         if (!cantidad || cantidad < 1)
             return res.status(400).json({ success: false, message: 'Cantidad inválida' });
 
-        const item = await CarritoModel.updateCantidad(parseInt(id), usuario_id, cantidad);
+        const item = await CarritoModel.updateCantidad(Number.parseInt(id), usuario_id, cantidad);
         if (!item) return res.status(404).json({ success: false, message: 'Item no encontrado' });
 
         res.json({ success: true, data: item });
@@ -186,7 +187,7 @@ export const eliminarDelCarrito = async (req: Request, res: Response) => {
         const { id: usuario_id } = getUsuario(req);
         if (!usuario_id) return res.status(401).json({ success: false, message: 'No autenticado' });
 
-        await CarritoModel.deleteItem(parseInt(req.params.id), usuario_id);
+        await CarritoModel.deleteItem(Number.parseInt(req.params.id), usuario_id);
         res.json({ success: true, message: 'Item eliminado' });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
@@ -235,7 +236,7 @@ export const crearPedido = async (req: Request, res: Response) => {
         const cliente_id = await VentaModel.getOrCreateCliente(usuario.id, usuario.email, usuario.nombre);
         if (!metodo_pago_id)
             return res.status(400).json({ success: false, message: 'Método de pago requerido' });
-        const metodoPago = await VentaModel.getMetodoPagoById(parseInt(metodo_pago_id));
+        const metodoPago = await VentaModel.getMetodoPagoById(Number.parseInt(metodo_pago_id));
         if (!metodoPago)
             return res.status(400).json({ success: false, message: 'Método de pago inválido' });
 
@@ -307,7 +308,7 @@ export const getMisPedidos = async (req: Request, res: Response) => {
 export const getPedidoById = async (req: Request, res: Response) => {
     try {
         const usuario = getUsuario(req);
-        const venta = await VentaModel.getById(parseInt(req.params.id));
+        const venta = await VentaModel.getById(Number.parseInt(req.params.id));
 
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
 
@@ -345,7 +346,7 @@ export const actualizarEstadoPedido = async (req: Request, res: Response) => {
         if (!estadosValidos.includes(estado))
             return res.status(400).json({ success: false, message: 'Estado inválido' });
 
-        const ventaActual = await VentaModel.getById(parseInt(id));
+        const ventaActual = await VentaModel.getById(Number.parseInt(id));
         if (!ventaActual) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
 
         // ✅ No permitir regresar a estados anteriores
@@ -369,12 +370,12 @@ export const actualizarEstadoPedido = async (req: Request, res: Response) => {
 
         const estadoAnterior = ventaActual.estado;
 
-        const venta = await VentaModel.updateEstado(parseInt(id), estado, usuario.id!, notas_internas);
+        const venta = await VentaModel.updateEstado(Number.parseInt(id), estado, usuario.id!, notas_internas);
 
         // Stock se descuenta al pagar (en webhook), no al confirmar manualmente
         if (estado === 'cancelado' && !['pendiente', 'cancelado'].includes(estadoAnterior)) {
             try {
-                await restaurarStock(parseInt(id));
+                await restaurarStock(Number.parseInt(id));
                 console.log(`✅ Stock restaurado para venta ${id}`);
             } catch (stockErr) {
                 console.error('⚠️ Error restaurando stock:', stockErr);
@@ -611,7 +612,7 @@ export const capturarPagoPayPal = async (req: Request, res: Response) => {
                 const fechaEntrega = await calcularFechaEntrega();
                 await pool.query(`
                     UPDATE ventas SET fecha_estimada_entrega = $1 WHERE id = $2 AND fecha_estimada_entrega IS NULL
-                `, [fechaEntrega, parseInt(String(venta_id))]);
+                `, [fechaEntrega, Number.parseInt(String(venta_id))]);
 
                 console.log(`📦 Stock descontado por pago PayPal: venta_id=${venta_id}`);
             } catch (stockErr) {
@@ -635,7 +636,7 @@ export const editarDetallesVenta = async (req: Request, res: Response) => {
         const { id } = req.params;
         const { direccion_envio, notas_internas, fecha_estimada_entrega, numero_guia, paqueteria } = req.body;
 
-        const venta = await VentaModel.getById(parseInt(id));
+        const venta = await VentaModel.getById(Number.parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
 
         if (venta.trabajador_id !== usuario.id && usuario.rol !== 'admin') {
@@ -644,7 +645,7 @@ export const editarDetallesVenta = async (req: Request, res: Response) => {
                 return res.status(403).json({ success: false, message: 'Solo el trabajador asignado puede editar este pedido' });
         }
 
-        const resultado = await VentaModel.editarDetalles(parseInt(id), {
+        const resultado = await VentaModel.editarDetalles(Number.parseInt(id), {
             direccion_envio, notas_internas, fecha_estimada_entrega, numero_guia, paqueteria,
             trabajador_id: usuario.id!
         });
@@ -666,12 +667,12 @@ export const editarCantidadItem = async (req: Request, res: Response) => {
         if (!cantidad || cantidad < 1)
             return res.status(400).json({ success: false, message: 'Cantidad inválida' });
 
-        const venta = await VentaModel.getById(parseInt(id));
+        const venta = await VentaModel.getById(Number.parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
         if (venta.trabajador_id !== usuario.id && usuario.rol !== 'admin')
             return res.status(403).json({ success: false, message: 'Sin permiso para modificar este pedido' });
 
-        const resultado = await VentaModel.editarCantidadItem(parseInt(item_id), parseInt(id), cantidad);
+        const resultado = await VentaModel.editarCantidadItem(Number.parseInt(item_id), Number.parseInt(id), cantidad);
         res.json({ success: true, message: 'Cantidad actualizada', data: resultado });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
@@ -683,12 +684,12 @@ export const eliminarItemVenta = async (req: Request, res: Response) => {
         const usuario = getUsuario(req);
         const { id, item_id } = req.params;
 
-        const venta = await VentaModel.getById(parseInt(id));
+        const venta = await VentaModel.getById(Number.parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
         if (venta.trabajador_id !== usuario.id && usuario.rol !== 'admin')
             return res.status(403).json({ success: false, message: 'Sin permiso para modificar este pedido' });
 
-        const resultado = await VentaModel.eliminarItem(parseInt(item_id), parseInt(id));
+        const resultado = await VentaModel.eliminarItem(Number.parseInt(item_id), Number.parseInt(id));
         res.json({ success: true, message: 'Producto eliminado del pedido', data: resultado });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
@@ -700,7 +701,7 @@ export const eliminarItemVenta = async (req: Request, res: Response) => {
 export const getClienteVenta = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const cliente = await VentaModel.getClienteByVenta(parseInt(id));
+        const cliente = await VentaModel.getClienteByVenta(Number.parseInt(id));
         if (!cliente) return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
         res.json({ success: true, data: cliente });
     } catch (error: any) {
@@ -717,7 +718,7 @@ export const tomarPedido = async (req: Request, res: Response) => {
 
         const { id } = req.params;
 
-        const venta = await VentaModel.getById(parseInt(id));
+        const venta = await VentaModel.getById(Number.parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
 
         if (venta.estado !== 'pendiente')
@@ -736,7 +737,7 @@ export const tomarPedido = async (req: Request, res: Response) => {
                 fecha_actualizacion = CURRENT_TIMESTAMP
             WHERE id = $2 AND (trabajador_id IS NULL) AND estado = 'pendiente'
             RETURNING *
-        `, [usuario.id, parseInt(id)]);
+        `, [usuario.id, Number.parseInt(id)]);
 
         if (!result.rows.length)
             return res.status(409).json({ 
@@ -770,7 +771,7 @@ export const webhookMercadoPago = async (req: Request, res: Response) => {
             console.log(`💳 Pago MP: id=${pago.id} status=${pago.status} external_ref=${pago.external_reference}`);
 
             if (pago.status === 'approved' && pago.external_reference) {
-                const venta_id = parseInt(pago.external_reference);
+                const venta_id = Number.parseInt(pago.external_reference);
                 await VentaModel.confirmarPago(String(pago.id), venta_id);
                 // ✅ Stock se descuenta al pagar, no al confirmar manualmente
                 try {
@@ -830,7 +831,7 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
 
         if (!usuarioId) return res.status(401).json({ success: false, message: 'No autenticado' });
 
-        const venta = await VentaModel.getById(parseInt(id));
+        const venta = await VentaModel.getById(Number.parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
 
         const esOwner = venta.creado_por === usuarioId;
@@ -1151,7 +1152,7 @@ export const confirmarPagoEfectivo = async (req: Request, res: Response) => {
     try {
         const usuario = getUsuario(req);
         const { id } = req.params;
-        const venta = await VentaModel.getById(parseInt(id));
+        const venta = await VentaModel.getById(Number.parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
 
         if (venta.metodo_pago_codigo === 'transferencia' && !venta.comprobante_transferencia_url) {
@@ -1171,31 +1172,31 @@ export const confirmarPagoEfectivo = async (req: Request, res: Response) => {
                 estado, transaction_id, fecha_aprobacion,
                 fecha_creacion, fecha_actualizacion
             ) VALUES ($1, $2, $3, 'MXN', $3, 'aprobado', $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `, [parseInt(id), venta.metodo_pago_id, parseFloat(venta.total), transactionId]);
+        `, [Number.parseInt(id), venta.metodo_pago_id, parseFloat(venta.total), transactionId]);
 
         // ✅ Avanzar estado a en_preparacion
         await pool.query(`
             UPDATE ventas 
             SET estado = 'en_preparacion', fecha_actualizacion = CURRENT_TIMESTAMP 
             WHERE id = $1
-        `, [parseInt(id)]);
+        `, [Number.parseInt(id)]);
 
         // ✅ Generar código de entrega
         const codigoEntrega = await generarCodigoEntrega();
         await pool.query(`
             UPDATE ventas SET codigo_entrega = $1 WHERE id = $2 AND codigo_entrega IS NULL
-        `, [codigoEntrega, parseInt(id)]);
+        `, [codigoEntrega, Number.parseInt(id)]);
 
         // ✅ Calcular y guardar fecha estimada de entrega
         const fechaEntrega = fecha_estimada || await calcularFechaEntrega();
         //console.log(`📅 Fecha entrega calculada: ${fechaEntrega}`);
         await pool.query(`
             UPDATE ventas SET fecha_estimada_entrega = $1 WHERE id = $2 AND fecha_estimada_entrega IS NULL
-        `, [fechaEntrega, parseInt(id)]);
+        `, [fechaEntrega, Number.parseInt(id)]);
         
         // ✅ Descontar stock al confirmar pago manual
         try {
-            await descontarStock(parseInt(id));
+            await descontarStock(Number.parseInt(id));
             console.log(`📦 Stock descontado por pago manual: venta_id=${id}`);
         } catch (stockErr) {
             console.error('⚠️ Error descontando stock:', stockErr);
@@ -1212,7 +1213,7 @@ export const subirComprobante = async (req: Request, res: Response) => {
         const usuario = getUsuario(req);
         const { id } = req.params;
 
-        const venta = await VentaModel.getById(parseInt(id));
+        const venta = await VentaModel.getById(Number.parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
         if (venta.creado_por !== usuario.id)
             return res.status(403).json({ success: false, message: 'Acceso denegado' });
@@ -1244,7 +1245,7 @@ export const subirComprobante = async (req: Request, res: Response) => {
             UPDATE ventas 
             SET comprobante_transferencia_url = $1, fecha_actualizacion = CURRENT_TIMESTAMP
             WHERE id = $2
-        `, [uploadResult.secure_url, parseInt(id)]);
+        `, [uploadResult.secure_url, Number.parseInt(id)]);
 
         console.log(`📎 Comprobante subido para venta ${id}: ${uploadResult.secure_url}`);
 

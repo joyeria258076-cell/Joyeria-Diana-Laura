@@ -148,7 +148,7 @@ export class EmailValidationService {
       let credits = 0;
       
       if (typeof response.data === 'object' && response.data.Credits) {
-        credits = parseInt(response.data.Credits) || 0;
+        credits = Number.parseInt(response.data.Credits) || 0;
       }
       
       console.log(`💰 Créditos ZeroBounce disponibles: ${credits}`);

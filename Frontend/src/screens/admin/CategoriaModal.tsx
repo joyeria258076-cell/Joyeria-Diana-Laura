@@ -66,7 +66,7 @@ const CategoriaModal: React.FC<CategoriaModalProps> = ({
     } else if (name === 'orden' || name === 'categoria_padre_id') {
       setFormData(prev => ({
         ...prev,
-        [name]: value === '' ? null : parseInt(value)
+        [name]: value === '' ? null : Number.parseInt(value)
       }));
     } else {
       setFormData(prev => ({

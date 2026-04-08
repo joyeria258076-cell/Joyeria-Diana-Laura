@@ -312,7 +312,7 @@ export const adminContentController = {
         [id]
       );
 
-      if (parseInt(sectionCount.rows[0].count) > 0) {
+      if (Number.parseInt(sectionCount.rows[0].count) > 0) {
         res.status(400).json({ message: "No se puede eliminar una página que tiene secciones. Elimina las secciones primero." });
         return;
       }
@@ -427,7 +427,7 @@ export const adminContentController = {
         [id]
       );
 
-      if (parseInt(contentCount.rows[0].count) > 0) {
+      if (Number.parseInt(contentCount.rows[0].count) > 0) {
         res.status(400).json({ message: "No se puede eliminar una sección que tiene contenidos. Elimina los contenidos primero." });
         return;
       }

@@ -184,7 +184,7 @@ const AdminSectionManagementScreen: React.FC = () => {
           className="page-selector"
           value={selectedPaginaId || ''}
           onChange={(e) => {
-            setSelectedPaginaId(e.target.value ? parseInt(e.target.value) : null);
+            setSelectedPaginaId(e.target.value ? Number.parseInt(e.target.value) : null);
             resetForm();
           }}
         >

@@ -215,7 +215,7 @@ export const proveedoresController = {
         [id]
       );
 
-      if (parseInt(productCheck.rows[0].count) > 0) {
+      if (Number.parseInt(productCheck.rows[0].count) > 0) {
         return res.status(400).json({
           success: false,
           message: 'No se puede eliminar el proveedor porque tiene productos asociados'
@@ -228,7 +228,7 @@ export const proveedoresController = {
         [id]
       );
 
-      if (parseInt(comprasCheck.rows[0].count) > 0) {
+      if (Number.parseInt(comprasCheck.rows[0].count) > 0) {
         return res.status(400).json({
           success: false,
           message: 'No se puede eliminar el proveedor porque tiene compras asociadas'

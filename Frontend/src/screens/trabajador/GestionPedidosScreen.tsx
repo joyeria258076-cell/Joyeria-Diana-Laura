@@ -226,7 +226,7 @@ const GestionPedidosScreen: React.FC = () => {
         try {
             const data = await carritoAPI.getConfiguracion('dias_entrega_default');
             if (data.success) {
-                const dias = parseInt(data.data.valor) || 7;
+                const dias = Number.parseInt(data.data.valor) || 7;
                 setDiasEntrega(dias);
                 setDiasEntregaEdit(dias);
             }
@@ -567,7 +567,7 @@ const GestionPedidosScreen: React.FC = () => {
                                                 setDiasEntregaEdit('' as any);
                                                 return;
                                             }
-                                            const num = parseInt(val);
+                                            const num = Number.parseInt(val);
                                             if (!isNaN(num) && num >= 1 && num <= 60)
                                                 setDiasEntregaEdit(num);
                                         }}

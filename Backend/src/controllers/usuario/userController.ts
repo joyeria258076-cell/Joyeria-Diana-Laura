@@ -7,7 +7,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
-    const user = await userModel.getUserById(parseInt(id));
+    const user = await userModel.getUserById(Number.parseInt(id));
     
     if (!user) {
       return res.status(404).json({
@@ -46,7 +46,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     }
     
     // Validar que id sea número válido
-    const userId = parseInt(id);
+    const userId = Number.parseInt(id);
     if (isNaN(userId)) {
         return res.status(400).json({ success: false, message: 'ID de usuario inválido' });
     }
@@ -79,7 +79,7 @@ export const deleteUserProfile = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
-    const success = await userModel.deleteUser(parseInt(id));
+    const success = await userModel.deleteUser(Number.parseInt(id));
     
     if (success) {
       res.json({

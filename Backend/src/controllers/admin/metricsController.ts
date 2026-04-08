@@ -43,7 +43,7 @@ export const getResumen = async (_req: Request, res: Response): Promise<void> =>
 // Las fechas se agrupan y devuelven en hora México
 export const getRendimiento = async (req: Request, res: Response): Promise<void> => {
   try {
-    const horas = Math.min(parseInt(req.query.horas as string) || 24, 168);
+    const horas = Math.min(Number.parseInt(req.query.horas as string) || 24, 168);
     const { rows } = await pool.query(`
       SELECT
         DATE_TRUNC('hour', fecha AT TIME ZONE 'UTC' AT TIME ZONE $2) AS hora,
@@ -67,7 +67,7 @@ export const getRendimiento = async (req: Request, res: Response): Promise<void>
 // ─── 3. Endpoints más lentos ──────────────────────────────────────────────────
 export const getEndpointsLentos = async (req: Request, res: Response): Promise<void> => {
   try {
-    const limite = Math.min(parseInt(req.query.limite as string) || 10, 50);
+    const limite = Math.min(Number.parseInt(req.query.limite as string) || 10, 50);
     const { rows } = await pool.query(`
       SELECT endpoint, method,
         COUNT(*)                                   AS total_llamadas,
@@ -91,8 +91,8 @@ export const getEndpointsLentos = async (req: Request, res: Response): Promise<v
 // Fechas convertidas a México en el backend
 export const getErrores = async (req: Request, res: Response): Promise<void> => {
   try {
-    const page            = Math.max(parseInt(req.query.page as string) || 1, 1);
-    const limit           = Math.min(parseInt(req.query.limit as string) || 15, 50);
+    const page            = Math.max(Number.parseInt(req.query.page as string) || 1, 1);
+    const limit           = Math.min(Number.parseInt(req.query.limit as string) || 15, 50);
     const offset          = (page - 1) * limit;
     const soloNoResueltos = req.query.soloNoResueltos === 'true';
 
@@ -105,7 +105,7 @@ export const getErrores = async (req: Request, res: Response): Promise<void> => 
         AS total
     `, [soloNoResueltos]);
 
-    const total      = parseInt(countRows[0].total);
+    const total      = Number.parseInt(countRows[0].total);
     const totalPages = Math.ceil(total / limit);
 
     const { rows: errSistema } = await pool.query(`
@@ -172,9 +172,9 @@ export const resolverError = async (req: Request, res: Response): Promise<void> 
 // Fechas convertidas a México en el backend
 export const getActividad = async (req: Request, res: Response): Promise<void> => {
   try {
-    const dias     = Math.min(parseInt(req.query.dias as string) || 7, 30);
-    const pageSes  = Math.max(parseInt(req.query.pageSes as string) || 1, 1);
-    const pageAud  = Math.max(parseInt(req.query.pageAud as string) || 1, 1);
+    const dias     = Math.min(Number.parseInt(req.query.dias as string) || 7, 30);
+    const pageSes  = Math.max(Number.parseInt(req.query.pageSes as string) || 1, 1);
+    const pageAud  = Math.max(Number.parseInt(req.query.pageAud as string) || 1, 1);
     const limitSes = 10;
     const limitAud = 10;
 
@@ -238,15 +238,15 @@ export const getActividad = async (req: Request, res: Response): Promise<void> =
       sesionesActivas,
       paginacion: {
         sesiones: {
-          total:      parseInt(totalSesRows[0].total),
+          total:      Number.parseInt(totalSesRows[0].total),
           page:       pageSes,
-          totalPages: Math.ceil(parseInt(totalSesRows[0].total) / limitSes),
+          totalPages: Math.ceil(Number.parseInt(totalSesRows[0].total) / limitSes),
           limit:      limitSes,
         },
         auditoria: {
-          total:      parseInt(totalAudRows[0].total),
+          total:      Number.parseInt(totalAudRows[0].total),
           page:       pageAud,
-          totalPages: Math.ceil(parseInt(totalAudRows[0].total) / limitAud),
+          totalPages: Math.ceil(Number.parseInt(totalAudRows[0].total) / limitAud),
           limit:      limitAud,
         },
       },

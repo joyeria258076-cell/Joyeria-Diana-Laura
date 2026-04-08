@@ -206,7 +206,7 @@ const ClientePedidosScreen: React.FC = () => {
         if (pago === 'pendiente') setNotifPago(`⏳ El pago del pedido #${pedidoId} está pendiente de confirmación.`);
         if (pago === 'exitoso' && metodo === 'paypal') {
             const orderId = searchParams.get('token');
-            if (orderId && pedidoId) carritoAPI.capturarPagoPayPal(orderId, parseInt(pedidoId)).catch(console.error);
+            if (orderId && pedidoId) carritoAPI.capturarPagoPayPal(orderId, Number.parseInt(pedidoId)).catch(console.error);
         }
     }, []);
 

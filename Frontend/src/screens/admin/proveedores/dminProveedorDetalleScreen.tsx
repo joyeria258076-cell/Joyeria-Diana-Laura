@@ -30,7 +30,7 @@ const AdminProveedorDetalleScreen: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      cargarProveedor(parseInt(id));
+      cargarProveedor(Number.parseInt(id));
     }
   }, [id]);
 

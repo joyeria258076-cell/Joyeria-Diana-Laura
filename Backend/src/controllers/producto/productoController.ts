@@ -15,7 +15,7 @@ export const getCategories = async (req: Request, res: Response) => {
 export const getCategoryById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const categoria = await CategoryModel.getById(parseInt(id));
+        const categoria = await CategoryModel.getById(Number.parseInt(id));
         
         if (!categoria) {
             return res.status(404).json({ success: false, message: 'Categoría no encontrada' });
@@ -30,7 +30,7 @@ export const getCategoryById = async (req: Request, res: Response) => {
 export const getSubcategorias = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const subcategorias = await CategoryModel.getSubcategorias(parseInt(id));
+        const subcategorias = await CategoryModel.getSubcategorias(Number.parseInt(id));
         res.status(200).json({ success: true, data: subcategorias });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
@@ -79,7 +79,7 @@ export const updateCategory = async (req: Request, res: Response) => {
         const { id } = req.params;
         const { nombre, descripcion, categoria_padre_id, imagen_url, orden, activo } = req.body;
 
-        const categoria = await CategoryModel.getById(parseInt(id));
+        const categoria = await CategoryModel.getById(Number.parseInt(id));
         if (!categoria) {
             return res.status(404).json({ success: false, message: 'Categoría no encontrada' });
         }
@@ -88,7 +88,7 @@ export const updateCategory = async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, message: 'El nombre no puede exceder 100 caracteres' });
         }
 
-        const categoriaActualizada = await CategoryModel.update(parseInt(id), {
+        const categoriaActualizada = await CategoryModel.update(Number.parseInt(id), {
             nombre: nombre?.trim(),
             descripcion: descripcion?.trim(),
             categoria_padre_id,
@@ -115,7 +115,7 @@ export const toggleCategoryStatus = async (req: Request, res: Response) => {
         const { id } = req.params;
         const { activo } = req.body;
         
-        const categoria = await CategoryModel.toggleStatus(parseInt(id), activo);
+        const categoria = await CategoryModel.toggleStatus(Number.parseInt(id), activo);
         
         res.status(200).json({ 
             success: true, 
@@ -131,12 +131,12 @@ export const deleteCategory = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         
-        const categoria = await CategoryModel.getById(parseInt(id));
+        const categoria = await CategoryModel.getById(Number.parseInt(id));
         if (!categoria) {
             return res.status(404).json({ success: false, message: 'Categoría no encontrada' });
         }
         
-        await CategoryModel.delete(parseInt(id));
+        await CategoryModel.delete(Number.parseInt(id));
         res.status(200).json({ success: true, message: 'Categoría eliminada exitosamente' });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
@@ -155,7 +155,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
 export const getRecentProducts = async (req: Request, res: Response) => {
     try {
-        const limit = parseInt(req.query.limit as string) || 10;
+        const limit = Number.parseInt(req.query.limit as string) || 10;
         const productos = await ProductModel.getRecent(limit);
         res.status(200).json({ success: true, data: productos });
     } catch (error: any) {
@@ -166,7 +166,7 @@ export const getRecentProducts = async (req: Request, res: Response) => {
 export const getProductById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const producto = await ProductModel.getById(parseInt(id));
+        const producto = await ProductModel.getById(Number.parseInt(id));
         
         if (!producto) {
             return res.status(404).json({ success: false, message: 'Producto no encontrado' });
@@ -239,28 +239,28 @@ export const createProduct = async (req: Request, res: Response) => {
         const nuevoProducto = await ProductModel.create({
             nombre: nombre.trim(),
             descripcion: descripcion?.trim(),
-            categoria_id: parseInt(categoria_id),
-            proveedor_id: proveedor_id ? parseInt(proveedor_id) : undefined,
-            temporada_id: temporada_id ? parseInt(temporada_id) : undefined,
-            tipo_producto_id: tipo_producto_id ? parseInt(tipo_producto_id) : undefined,
+            categoria_id: Number.parseInt(categoria_id),
+            proveedor_id: proveedor_id ? Number.parseInt(proveedor_id) : undefined,
+            temporada_id: temporada_id ? Number.parseInt(temporada_id) : undefined,
+            tipo_producto_id: tipo_producto_id ? Number.parseInt(tipo_producto_id) : undefined,
             material_principal,
             peso_gramos: peso_gramos ? parseFloat(peso_gramos) : undefined,
             precio_compra: precio_compra ? parseFloat(precio_compra) : undefined,
             margen_ganancia: margen_ganancia ? parseFloat(margen_ganancia) : undefined,
             precio_venta: parseFloat(precio_venta),
             precio_oferta: precio_oferta ? parseFloat(precio_oferta) : undefined,
-            stock_actual: stock_actual ? parseInt(stock_actual) : 0,
-            stock_minimo: stock_minimo ? parseInt(stock_minimo) : 5,
-            stock_maximo: stock_maximo ? parseInt(stock_maximo) : 999,
+            stock_actual: stock_actual ? Number.parseInt(stock_actual) : 0,
+            stock_minimo: stock_minimo ? Number.parseInt(stock_minimo) : 5,
+            stock_maximo: stock_maximo ? Number.parseInt(stock_maximo) : 999,
             ubicacion_fisica,
             tiene_medidas: tiene_medidas === 'true' || tiene_medidas === true,
             medidas: medidas ? (typeof medidas === 'string' ? JSON.parse(medidas) : medidas) : undefined,
             permite_personalizacion: permite_personalizacion === 'true' || permite_personalizacion === true,
-            dias_fabricacion: dias_fabricacion ? parseInt(dias_fabricacion) : 0,
+            dias_fabricacion: dias_fabricacion ? Number.parseInt(dias_fabricacion) : 0,
             imagen_principal,
             es_nuevo: es_nuevo === 'true' || es_nuevo === true,
             es_destacado: es_destacado === 'true' || es_destacado === true,
-            creado_por: creado_por ? parseInt(creado_por) : undefined
+            creado_por: creado_por ? Number.parseInt(creado_por) : undefined
         });
 
         res.status(201).json({
@@ -277,13 +277,13 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const producto = await ProductModel.getById(parseInt(id));
+        const producto = await ProductModel.getById(Number.parseInt(id));
 
         if (!producto) {
             return res.status(404).json({ success: false, message: 'Producto no encontrado' });
         }
 
-        const productoActualizado = await ProductModel.update(parseInt(id), req.body);
+        const productoActualizado = await ProductModel.update(Number.parseInt(id), req.body);
 
         res.status(200).json({
             success: true,
@@ -299,13 +299,13 @@ export const updateProduct = async (req: Request, res: Response) => {
 export const deleteProduct = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const producto = await ProductModel.getById(parseInt(id));
+        const producto = await ProductModel.getById(Number.parseInt(id));
 
         if (!producto) {
             return res.status(404).json({ success: false, message: 'Producto no encontrado' });
         }
 
-        await ProductModel.delete(parseInt(id));
+        await ProductModel.delete(Number.parseInt(id));
         res.status(200).json({ success: true, message: 'Producto eliminado exitosamente' });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
@@ -325,7 +325,7 @@ export const getProveedores = async (req: Request, res: Response) => {
 export const getProveedorById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const proveedor = await ProveedorModel.getById(parseInt(id));
+        const proveedor = await ProveedorModel.getById(Number.parseInt(id));
         
         if (!proveedor) {
             return res.status(404).json({ success: false, message: 'Proveedor no encontrado' });
@@ -350,7 +350,7 @@ export const getTemporadas = async (req: Request, res: Response) => {
 export const getTemporadaById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const temporada = await TemporadaModel.getById(parseInt(id));
+        const temporada = await TemporadaModel.getById(Number.parseInt(id));
         
         if (!temporada) {
             return res.status(404).json({ success: false, message: 'Temporada no encontrada' });
@@ -375,7 +375,7 @@ export const getTiposProducto = async (req: Request, res: Response) => {
 export const getTipoProductoById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const tipo = await TipoProductoModel.getById(parseInt(id));
+        const tipo = await TipoProductoModel.getById(Number.parseInt(id));
         
         if (!tipo) {
             return res.status(404).json({ success: false, message: 'Tipo de producto no encontrado' });
@@ -458,14 +458,14 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
         // Filtrar por categoría
         if (categoria_id && categoria_id !== '') {
             query += ` AND categoria_id = $${paramCount}`;
-            params.push(parseInt(categoria_id as string));
+            params.push(Number.parseInt(categoria_id as string));
             paramCount++;
         }
 
         // Filtrar por tipo de producto
         if (tipo_producto_id && tipo_producto_id !== '') {
             query += ` AND tipo_producto_id = $${paramCount}`;
-            params.push(parseInt(tipo_producto_id as string));
+            params.push(Number.parseInt(tipo_producto_id as string));
             paramCount++;
         }
 
@@ -491,8 +491,8 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
 
         // Ordenar y paginar
         query += ` ORDER BY es_destacado DESC, nombre ASC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-        params.push(parseInt(limit as string));
-        params.push(parseInt(offset as string));
+        params.push(Number.parseInt(limit as string));
+        params.push(Number.parseInt(offset as string));
 
         const result = await pool.query(query, params);
         
@@ -521,7 +521,7 @@ export const getProductsByCategory = async (req: Request, res: Response) => {
             WHERE categoria_id = $1 AND activo = true
             ORDER BY es_nuevo DESC, nombre ASC
             LIMIT $2`,
-            [parseInt(categoria_id as string), parseInt(limit as string)]
+            [Number.parseInt(categoria_id as string), Number.parseInt(limit as string)]
         );
 
         res.status(200).json({ success: true, data: result.rows });
@@ -563,7 +563,7 @@ export const getProductsByCategories = async (req: Request, res: Response) => {
                     WHERE categoria_id = $1 AND activo = true
                     ORDER BY es_nuevo DESC, nombre ASC
                     LIMIT $2`,
-                    [cat.id, parseInt(limit as string)]
+                    [cat.id, Number.parseInt(limit as string)]
                 );
 
                 return {

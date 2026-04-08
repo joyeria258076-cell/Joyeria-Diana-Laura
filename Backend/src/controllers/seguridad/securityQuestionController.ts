@@ -44,9 +44,9 @@ export const setSecurityQuestion = async (req: Request, res: Response) => {
         });
       }
       questionText = trimmedCustomQuestion;
-    } else if (questionType !== 'custom' && SECURE_QUESTIONS[parseInt(questionType)]) {
+    } else if (questionType !== 'custom' && SECURE_QUESTIONS[Number.parseInt(questionType)]) {
       // Usar pregunta predefinida
-      questionText = SECURE_QUESTIONS[parseInt(questionType)];
+      questionText = SECURE_QUESTIONS[Number.parseInt(questionType)];
     } else {
       return res.status(400).json({
         success: false,

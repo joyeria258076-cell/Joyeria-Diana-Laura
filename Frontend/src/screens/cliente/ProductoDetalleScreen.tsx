@@ -51,7 +51,7 @@ const ProductoDetalleScreen: React.FC = () => {
                 setTabActiva('descripcion');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
 
-                const resp = await productsAPI.getById(parseInt(id));
+                const resp = await productsAPI.getById(Number.parseInt(id));
                 const prod: Producto = resp?.data;
                 if (!prod) { navigate('/catalogo'); return; }
                 setProducto(prod);

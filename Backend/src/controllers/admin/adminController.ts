@@ -89,7 +89,7 @@ export const getRoles = async (req: Request, res: Response) => {
  */
 export const toggleWorkerAccountStatus = async (req: Request, res: Response) => {
   try {
-    const workerId = parseInt(req.params.id);
+    const workerId = Number.parseInt(req.params.id);
     const { activo } = req.body;
 
     // 1. Buscar al trabajador
@@ -134,7 +134,7 @@ export const toggleWorkerAccountStatus = async (req: Request, res: Response) => 
 
 export const updateWorker = async (req: Request, res: Response) => {
   try {
-    const workerId = parseInt(req.params.id);
+    const workerId = Number.parseInt(req.params.id);
     const { nombre, rol, email } = req.body;
 
     if (!nombre || !rol || !email) {

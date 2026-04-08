@@ -51,7 +51,7 @@ export const getCategorias = async (req: Request, res: Response) => {
     const categorias = result.rows.map((row: any) => ({
       categoria_id: row.categoria_id,
       categoria: row.categoria,
-      total_unidades: parseInt(row.total_unidades),
+      total_unidades: Number.parseInt(row.total_unidades),
     }));
 
     const categoriaEstrella = categorias.length > 0 ? categorias[0] : null;
@@ -112,8 +112,8 @@ export const getProductoEstrella = async (req: Request, res: Response) => {
     const productos = result.rows.map((row: any) => ({
       producto_id: row.producto_id,
       producto: row.producto,
-      stock_actual: parseInt(row.stock_actual ?? 0),
-      total_unidades: parseInt(row.total_unidades),
+      stock_actual: Number.parseInt(row.stock_actual ?? 0),
+      total_unidades: Number.parseInt(row.total_unidades),
       participacion_pct: parseFloat(row.participacion_pct ?? 0),
     }));
 
@@ -154,9 +154,9 @@ export const getHistorico = async (req: Request, res: Response) => {
     const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     const historico = result.rows.map((row: any, idx: number) => ({
       t: idx,
-      mes: MESES[parseInt(row.mes) - 1],
-      mes_num: parseInt(row.mes),
-      unidades: parseInt(row.unidades),
+      mes: MESES[Number.parseInt(row.mes) - 1],
+      mes_num: Number.parseInt(row.mes),
+      unidades: Number.parseInt(row.unidades),
     }));
 
     // Estadísticas descriptivas
@@ -183,7 +183,7 @@ export const getHistorico = async (req: Request, res: Response) => {
         estadisticas: {
           total_anual: suma,
           promedio_mensual: Math.round(promedio * 10) / 10,
-          moda_mensual: parseInt(moda as string),
+          moda_mensual: Number.parseInt(moda as string),
           min: unidades.length > 0 ? Math.min(...unidades) : 0,
           max: unidades.length > 0 ? Math.max(...unidades) : 0,
           q0,

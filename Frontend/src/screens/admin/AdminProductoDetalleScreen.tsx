@@ -49,7 +49,7 @@ const AdminProductoDetalleScreen: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      cargarProducto(parseInt(id));
+      cargarProducto(Number.parseInt(id));
     }
   }, [id]);
 

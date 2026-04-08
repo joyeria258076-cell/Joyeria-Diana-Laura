@@ -402,7 +402,7 @@ export const ProductModel = {
     // Contar productos
     count: async () => {
         const result = await pool.query('SELECT COUNT(*) FROM productos WHERE activo = true');
-        return parseInt(result.rows[0].count);
+        return Number.parseInt(result.rows[0].count);
     }
 };
 

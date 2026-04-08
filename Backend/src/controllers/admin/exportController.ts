@@ -116,7 +116,7 @@ export const exportController = {
       const result = await pool.query(query, params);
       const row = result.rows[0] as any;
       const totalStr = row?.total || row?.count || '0';
-      const total = parseInt(totalStr);
+      const total = Number.parseInt(totalStr);
       
       const sampleQuery = QueryBuilder.buildSelectQuery({
         tableName,

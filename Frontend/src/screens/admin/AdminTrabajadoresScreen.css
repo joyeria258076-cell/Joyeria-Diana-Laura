@@ -127,7 +127,7 @@
 /* ─── TABLA ESTILOS ── */
 .at-table-section { margin-bottom: 40px; }
 .at-table-title { color: #fff; font-size: 1.1rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-.at-table-count { font-size: 0.8rem; opacity: 0.5; background: rgba(255,255,255,0.1); padding: 2px 8px; borderRadius: 10px; }
+.at-table-count { font-size: 0.8rem; opacity: 0.5; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; }
 
 .at-table-wrap { background:var(--surface-3); border:1px solid var(--gold-border); border-radius:var(--radius); overflow-x:auto; }
 .at-table { width:100%; border-collapse:collapse; font-size:.875rem; }

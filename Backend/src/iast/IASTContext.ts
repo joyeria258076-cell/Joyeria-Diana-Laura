@@ -4,6 +4,7 @@
 // a través de llamadas asíncronas usando AsyncLocalStorage de Node.js
 // ─────────────────────────────────────────────────────────────────
 import { AsyncLocalStorage } from 'async_hooks';
+import crypto from 'crypto';
 
 export type TaintSource =
   | 'body'
@@ -50,7 +51,7 @@ export const iastStorage = new AsyncLocalStorage<IASTRequestContext>();
 
 // Genera un ID único por request
 export function generateRequestId(): string {
-  return `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  return `req_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
 }
 
 // Obtiene el contexto actual de forma segura
@@ -86,7 +87,7 @@ export function recordFinding(finding: Omit<IASTFinding, 'id' | 'timestamp'>): v
 
   const full: IASTFinding = {
     ...finding,
-    id: `finding_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    id: `finding_${Date.now()}_${crypto.randomBytes(2).toString('hex')}`,
     timestamp: new Date().toISOString(),
   };
 

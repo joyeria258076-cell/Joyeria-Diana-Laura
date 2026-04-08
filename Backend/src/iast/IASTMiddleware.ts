@@ -215,7 +215,7 @@ export function createIASTRouter(): Router {
     if (severity) findings = findings.filter(f => f.severity === severity);
     if (mod)      findings = findings.filter(f => f.module === String(mod));
     if (type)     findings = findings.filter(f => f.type.toLowerCase().includes(String(type).toLowerCase()));
-    if (limit)    findings = findings.slice(0, parseInt(String(limit)));
+    if (limit)    findings = findings.slice(0, Number.parseInt(String(limit)));
     res.json({ success: true, total: findings.length, findings });
   });
 

@@ -116,7 +116,7 @@ const AdminEditarProductoScreen: React.FC = () => {
         setLoadingData(true);
         
         // Cargar producto
-        const productResponse = await productsAPI.getById(parseInt(id));
+        const productResponse = await productsAPI.getById(Number.parseInt(id));
         if (!productResponse.success) {
           setError('No se pudo cargar el producto');
           return;
@@ -181,8 +181,8 @@ const AdminEditarProductoScreen: React.FC = () => {
           
           if (iva) setIvaConfig(parseFloat(iva.valor));
           if (margen) setMargenConfig(parseFloat(margen.valor));
-          if (stockMinimo) setStockMinimoDefault(parseInt(stockMinimo.valor));
-          if (stockMaximo) setStockMaximoDefault(parseInt(stockMaximo.valor));
+          if (stockMinimo) setStockMinimoDefault(Number.parseInt(stockMinimo.valor));
+          if (stockMaximo) setStockMaximoDefault(Number.parseInt(stockMaximo.valor));
         }
         
       } catch (err: any) {
@@ -351,7 +351,7 @@ const AdminEditarProductoScreen: React.FC = () => {
         stock_maximo: stockMaximoDefault
       };
 
-      const response = await productsAPI.update(parseInt(id!), dataToSend);
+      const response = await productsAPI.update(Number.parseInt(id!), dataToSend);
 
       if (response.success) {
         setSuccess(true);

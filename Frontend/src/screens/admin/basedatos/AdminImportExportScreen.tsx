@@ -332,7 +332,7 @@ const AdminImportExportScreen: React.FC = () => {
                   type="number"
                   className="form-input"
                   value={exportConfig.limit}
-                  onChange={(e) => setExportConfig({ ...exportConfig, limit: parseInt(e.target.value) })}
+                  onChange={(e) => setExportConfig({ ...exportConfig, limit: Number.parseInt(e.target.value) })}
                   min="0"
                 />
               </div>

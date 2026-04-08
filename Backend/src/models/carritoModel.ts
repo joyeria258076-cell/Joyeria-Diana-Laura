@@ -70,7 +70,7 @@ export const CarritoModel = {
             SELECT COALESCE(SUM(cantidad), 0) AS total
             FROM carrito WHERE usuario_id = $1
         `, [usuario_id]);
-        return parseInt(result.rows[0].total);
+        return Number.parseInt(result.rows[0].total);
     }
 };
 
@@ -429,7 +429,7 @@ export const VentaModel = {
             const count = await client.query(
                 `SELECT COUNT(*) FROM detalle_ventas WHERE venta_id = $1`, [venta_id]
             );
-            if (parseInt(count.rows[0].count) <= 1)
+            if (Number.parseInt(count.rows[0].count) <= 1)
                 throw new Error('No puedes eliminar el único producto del pedido');
 
             await client.query(

@@ -41,7 +41,7 @@ const AdminEditarProveedorScreen: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      cargarProveedor(parseInt(id));
+      cargarProveedor(Number.parseInt(id));
     }
   }, [id]);
 
@@ -116,7 +116,7 @@ const AdminEditarProveedorScreen: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await proveedoresAPI.update(parseInt(id!), formData);
+      const response = await proveedoresAPI.update(Number.parseInt(id!), formData);
 
       if (response.success) {
         setSuccess(true);

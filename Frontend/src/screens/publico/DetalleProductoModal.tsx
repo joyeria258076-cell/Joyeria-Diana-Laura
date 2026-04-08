@@ -237,7 +237,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                     <input
                       type="number" value={cantidad}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value) || 1;
+                        const val = Number.parseInt(e.target.value) || 1;
                         if (val > 0 && val <= producto.stock_actual) setCantidad(val);
                       }}
                       min="1" max={producto.stock_actual}

@@ -10,7 +10,7 @@ import './styles/AccessibilityFonts.css';
 function App(): React.JSX.Element {
   const [fontSize, setFontSize] = useState(() => {
     const saved = localStorage.getItem('fontSize');
-    return saved ? parseInt(saved) : 16;
+    return saved ? Number.parseInt(saved) : 16;
   });
 
   const [showControls, setShowControls] = useState(() => {

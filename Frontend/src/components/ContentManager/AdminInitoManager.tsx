@@ -292,7 +292,7 @@ const AdminInitoManager: React.FC = () => {
                         </div>
                         <div className="form-group-lux">
                             <label>✦ % Descuento</label>
-                            <input type="number" min="0" max="100" placeholder="Ej: 20" value={newPromocion.descuento || ''} onChange={e => setNewPromocion({ ...newPromocion, descuento: parseInt(e.target.value) || 0 })} required />
+                            <input type="number" min="0" max="100" placeholder="Ej: 20" value={newPromocion.descuento || ''} onChange={e => setNewPromocion({ ...newPromocion, descuento: Number.parseInt(e.target.value) || 0 })} required />
                         </div>
                     </div>
                     <div className="form-group-lux full-width">
