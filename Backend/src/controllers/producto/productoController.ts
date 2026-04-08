@@ -244,11 +244,11 @@ export const createProduct = async (req: Request, res: Response) => {
             temporada_id: temporada_id ? Number.parseInt(temporada_id) : undefined,
             tipo_producto_id: tipo_producto_id ? Number.parseInt(tipo_producto_id) : undefined,
             material_principal,
-            peso_gramos: peso_gramos ? parseFloat(peso_gramos) : undefined,
-            precio_compra: precio_compra ? parseFloat(precio_compra) : undefined,
-            margen_ganancia: margen_ganancia ? parseFloat(margen_ganancia) : undefined,
-            precio_venta: parseFloat(precio_venta),
-            precio_oferta: precio_oferta ? parseFloat(precio_oferta) : undefined,
+            peso_gramos: peso_gramos ? Number.parseFloat(peso_gramos) : undefined,
+            precio_compra: precio_compra ? Number.parseFloat(precio_compra) : undefined,
+            margen_ganancia: margen_ganancia ? Number.parseFloat(margen_ganancia) : undefined,
+            precio_venta: Number.parseFloat(precio_venta),
+            precio_oferta: precio_oferta ? Number.parseFloat(precio_oferta) : undefined,
             stock_actual: stock_actual ? Number.parseInt(stock_actual) : 0,
             stock_minimo: stock_minimo ? Number.parseInt(stock_minimo) : 5,
             stock_maximo: stock_maximo ? Number.parseInt(stock_maximo) : 999,
@@ -479,13 +479,13 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
         // Filtrar por rango de precio (precio_venta)
         if (precio_min && precio_min !== '') {
             query += ` AND precio_venta >= $${paramCount}`;
-            params.push(parseFloat(precio_min as string));
+            params.push(Number.parseFloat(precio_min as string));
             paramCount++;
         }
 
         if (precio_max && precio_max !== '') {
             query += ` AND precio_venta <= $${paramCount}`;
-            params.push(parseFloat(precio_max as string));
+            params.push(Number.parseFloat(precio_max as string));
             paramCount++;
         }
 

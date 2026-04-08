@@ -438,8 +438,8 @@ export default function AdminPrediccionScreen() {
                             <td><strong>{h.unidades}</strong></td>
                             <td>
                               {variacion !== null && (
-                                <span className={`pred-var ${parseFloat(variacion) >= 0 ? 'pred-var--up' : 'pred-var--down'}`}>
-                                  {parseFloat(variacion) >= 0 ? '▲' : '▼'} {Math.abs(parseFloat(variacion))}%
+                                <span className={`pred-var ${Number.parseFloat(variacion) >= 0 ? 'pred-var--up' : 'pred-var--down'}`}>
+                                  {Number.parseFloat(variacion) >= 0 ? '▲' : '▼'} {Math.abs(Number.parseFloat(variacion))}%
                                 </span>
                               )}
                             </td>

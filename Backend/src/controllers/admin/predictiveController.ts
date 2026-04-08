@@ -114,7 +114,7 @@ export const getProductoEstrella = async (req: Request, res: Response) => {
       producto: row.producto,
       stock_actual: Number.parseInt(row.stock_actual ?? 0),
       total_unidades: Number.parseInt(row.total_unidades),
-      participacion_pct: parseFloat(row.participacion_pct ?? 0),
+      participacion_pct: Number.parseFloat(row.participacion_pct ?? 0),
     }));
 
     return res.json({
@@ -223,7 +223,7 @@ export const getProyeccion = async (req: Request, res: Response) => {
     const MESES_NOMBRES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     const ahora = new Date();
     const proyeccion: any[] = [];
-    let stockRestante = parseFloat(stock_actual);
+    let stockRestante = Number.parseFloat(stock_actual);
     let mesAgotamiento: number | null = null;
     let stockAcumulado = 0;
 
@@ -249,7 +249,7 @@ export const getProyeccion = async (req: Request, res: Response) => {
     }
 
     const stockNec = Math.round(stockNecesario(Number(qT), k, Number(meses_proyeccion)));
-    const deficit = Math.max(stockNec - parseFloat(stock_actual), 0);
+    const deficit = Math.max(stockNec - Number.parseFloat(stock_actual), 0);
 
     let fechaAgotamiento = null;
     let fechaLimitePedido = null;
@@ -275,7 +275,7 @@ export const getProyeccion = async (req: Request, res: Response) => {
         },
         proyeccion,
         resumen: {
-          stock_actual: parseFloat(stock_actual),
+          stock_actual: Number.parseFloat(stock_actual),
           stock_necesario_semestre: stockNec,
           deficit_proyectado: deficit,
           fecha_agotamiento: fechaAgotamiento,

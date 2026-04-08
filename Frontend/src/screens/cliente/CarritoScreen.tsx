@@ -247,10 +247,10 @@ const CarritoScreen: React.FC = () => {
                         <div className="carrito-loading"><div className="carrito-spinner" /><p>Cargando carrito...</p></div>
                     ) : (
                         items.map(item => {
-                            const precio       = parseFloat(String(item.precio_oferta || item.precio_venta));
+                            const precio       = Number.parseFloat(String(item.precio_oferta || item.precio_venta));
                             const subtotal     = precio * item.cantidad;
                             const hayDescuento = item.precio_oferta &&
-                                parseFloat(String(item.precio_oferta)) < parseFloat(String(item.precio_venta));
+                                Number.parseFloat(String(item.precio_oferta)) < Number.parseFloat(String(item.precio_venta));
                             const pocoPoco     = item.stock_actual <= STOCK_POCO && item.stock_actual > 0;
                             const sinStock     = item.stock_actual === 0;
                             return (
@@ -265,7 +265,7 @@ const CarritoScreen: React.FC = () => {
                                         {item.talla_medida && <p className="carrito-item-detalle">Talla/Medida: <strong>{item.talla_medida}</strong></p>}
                                         {item.nota && <p className="carrito-item-detalle carrito-item-nota">📝 {item.nota}</p>}
                                         <div className="carrito-item-precios">
-                                            {hayDescuento && <span className="carrito-precio-tachado">${parseFloat(String(item.precio_venta)).toLocaleString('es-MX')}</span>}
+                                            {hayDescuento && <span className="carrito-precio-tachado">${Number.parseFloat(String(item.precio_venta)).toLocaleString('es-MX')}</span>}
                                             <span className="carrito-precio-final">${precio.toLocaleString('es-MX')}</span>
                                         </div>
                                         {/* ✅ Indicador de stock */}

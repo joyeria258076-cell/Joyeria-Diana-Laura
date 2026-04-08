@@ -500,7 +500,7 @@ const GestionPedidosScreen: React.FC = () => {
             </td>
             <td className="gp-num-items">{pedido.total_items}</td>
             <td className="gp-fecha">{formatFechaHora(pedido.fecha_creacion)}</td>
-            <td className="gp-total">${parseFloat(String(pedido.total)).toLocaleString('es-MX')}</td>
+            <td className="gp-total">${Number.parseFloat(String(pedido.total)).toLocaleString('es-MX')}</td>
             <td>
                 {getBadge(pedido.estado)}
                 {getBadgePago(pedido)}
@@ -765,17 +765,17 @@ const GestionPedidosScreen: React.FC = () => {
                                                                 <p className="gp-modal-item-nombre">{item.producto_nombre}</p>
                                                                 {item.talla_medida && <p className="gp-modal-item-sub">Talla: {item.talla_medida}</p>}
                                                                 {item.nota && <p className="gp-modal-item-sub">Nota: {item.nota}</p>}
-                                                                <p className="gp-modal-item-sub">{item.cantidad} × ${parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')}</p>
+                                                                <p className="gp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')}</p>
                                                             </div>
-                                                            <p className="gp-modal-item-total">${parseFloat(String(item.subtotal)).toLocaleString('es-MX')}</p>
+                                                            <p className="gp-modal-item-total">${Number.parseFloat(String(item.subtotal)).toLocaleString('es-MX')}</p>
                                                         </div>
                                                     ))}
                                                 </div>
                                             </div>
                                             <div className="gp-modal-totales">
-                                                <div className="gp-total-fila"><span>Subtotal</span><span>${parseFloat(String(pedidoSel.subtotal)).toLocaleString('es-MX')}</span></div>
-                                                <div className="gp-total-fila"><span>IVA (16%)</span><span>${parseFloat(String(pedidoSel.iva)).toLocaleString('es-MX')}</span></div>
-                                                <div className="gp-total-fila gp-total-final"><span>Total</span><span>${parseFloat(String(pedidoSel.total)).toLocaleString('es-MX')}</span></div>
+                                                <div className="gp-total-fila"><span>Subtotal</span><span>${Number.parseFloat(String(pedidoSel.subtotal)).toLocaleString('es-MX')}</span></div>
+                                                <div className="gp-total-fila"><span>IVA (16%)</span><span>${Number.parseFloat(String(pedidoSel.iva)).toLocaleString('es-MX')}</span></div>
+                                                <div className="gp-total-fila gp-total-final"><span>Total</span><span>${Number.parseFloat(String(pedidoSel.total)).toLocaleString('es-MX')}</span></div>
                                             </div>
 
                                             {/* ✅ Confirmar entrega con código */}

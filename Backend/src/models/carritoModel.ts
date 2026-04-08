@@ -139,8 +139,8 @@ export const VentaModel = {
             await client.query('BEGIN');
 
             const total    = data.items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
-            const subtotal = parseFloat((total / 1.16).toFixed(2));
-            const iva      = parseFloat((total - subtotal).toFixed(2));
+            const subtotal = Number.parseFloat((total / 1.16).toFixed(2));
+            const iva      = Number.parseFloat((total - subtotal).toFixed(2));
             const folio    = 'DL-' + Date.now();
 
             const ventaResult = await client.query(`
@@ -402,9 +402,9 @@ export const VentaModel = {
                 SELECT SUM(subtotal) AS total FROM detalle_ventas WHERE venta_id = $1
             `, [venta_id]);
 
-            const total    = parseFloat(totales.rows[0].total);
-            const subtotal = parseFloat((total / 1.16).toFixed(2));
-            const iva      = parseFloat((total - subtotal).toFixed(2));
+            const total    = Number.parseFloat(totales.rows[0].total);
+            const subtotal = Number.parseFloat((total / 1.16).toFixed(2));
+            const iva      = Number.parseFloat((total - subtotal).toFixed(2));
 
             await client.query(`
                 UPDATE ventas SET subtotal = $1, iva = $2, total = $3, fecha_actualizacion = CURRENT_TIMESTAMP
@@ -439,9 +439,9 @@ export const VentaModel = {
             const totales = await client.query(
                 `SELECT SUM(subtotal) AS total FROM detalle_ventas WHERE venta_id = $1`, [venta_id]
             );
-            const total    = parseFloat(totales.rows[0].total);
-            const subtotal = parseFloat((total / 1.16).toFixed(2));
-            const iva      = parseFloat((total - subtotal).toFixed(2));
+            const total    = Number.parseFloat(totales.rows[0].total);
+            const subtotal = Number.parseFloat((total / 1.16).toFixed(2));
+            const iva      = Number.parseFloat((total - subtotal).toFixed(2));
 
             await client.query(`
                 UPDATE ventas SET subtotal = $1, iva = $2, total = $3,

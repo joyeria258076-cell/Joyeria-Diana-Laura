@@ -130,7 +130,7 @@ export const getCarrito = async (req: Request, res: Response) => {
 
         const items = await CarritoModel.getByUsuario(id);
         const total = items.reduce((sum, item) => {
-            const precio = parseFloat(item.precio_oferta || item.precio_venta);
+            const precio = Number.parseFloat(item.precio_oferta || item.precio_venta);
             return sum + (precio * item.cantidad);
         }, 0);
 
@@ -253,7 +253,7 @@ export const crearPedido = async (req: Request, res: Response) => {
             producto_nombre: item.producto_nombre,
             producto_imagen: item.producto_imagen,
             cantidad:        item.cantidad,
-            precio_unitario: parseFloat(item.precio_oferta || item.precio_venta)
+            precio_unitario: Number.parseFloat(item.precio_oferta || item.precio_venta)
         }));
 
         // ✅ Verificar stock disponible antes de crear el pedido
@@ -414,7 +414,7 @@ export const crearPreferenciaMercadoPago = async (req: Request, res: Response) =
             id:          String(item.producto_id),
             title:       item.producto_nombre,
             quantity:    item.cantidad,
-            unit_price:  parseFloat(item.precio_unitario),
+            unit_price:  Number.parseFloat(item.precio_unitario),
             currency_id: 'MXN',
             picture_url: item.producto_imagen || undefined
         }));
@@ -459,7 +459,7 @@ export const crearPreferenciaMercadoPago = async (req: Request, res: Response) =
 
         const metodo_pago_id = await VentaModel.getMetodoPagoId();
         if (metodo_pago_id) {
-            await VentaModel.crearTransaccion(venta.id, metodo_pago_id, parseFloat(venta.total), mpData.id);
+            await VentaModel.crearTransaccion(venta.id, metodo_pago_id, Number.parseFloat(venta.total), mpData.id);
         }
 
         res.json({
@@ -530,7 +530,7 @@ export const crearOrdenPayPal = async (req: Request, res: Response) => {
                     reference_id: String(venta.id),
                     amount: {
                         currency_code: 'MXN',
-                        value: parseFloat(String(venta.total)).toFixed(2)
+                        value: Number.parseFloat(String(venta.total)).toFixed(2)
                     },
                     description: `Pedido ${venta.folio} - Joyería Diana Laura`
                 }],
@@ -847,8 +847,8 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
                     ${item.nota ? `<p class="prod-detalle">Nota: ${item.nota}</p>` : ''}
                 </td>
                 <td>${item.cantidad}</td>
-                <td>$${parseFloat(item.precio_unitario).toLocaleString('es-MX')}</td>
-                <td>$${parseFloat(item.subtotal).toLocaleString('es-MX')}</td>
+                <td>$${Number.parseFloat(item.precio_unitario).toLocaleString('es-MX')}</td>
+                <td>$${Number.parseFloat(item.subtotal).toLocaleString('es-MX')}</td>
             </tr>
         `).join('');
 
@@ -1121,9 +1121,9 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
 
             <div class="totales-wrap">
                 <div class="totales-tabla">
-                    <div class="totales-fila"><span>Subtotal</span><span>$${parseFloat(venta.subtotal).toLocaleString('es-MX')} MXN</span></div>
-                    <div class="totales-fila"><span>IVA (16%)</span><span>$${parseFloat(venta.iva).toLocaleString('es-MX')} MXN</span></div>
-                    <div class="totales-fila"><span>Total</span><span>$${parseFloat(venta.total).toLocaleString('es-MX')} MXN</span></div>
+                    <div class="totales-fila"><span>Subtotal</span><span>$${Number.parseFloat(venta.subtotal).toLocaleString('es-MX')} MXN</span></div>
+                    <div class="totales-fila"><span>IVA (16%)</span><span>$${Number.parseFloat(venta.iva).toLocaleString('es-MX')} MXN</span></div>
+                    <div class="totales-fila"><span>Total</span><span>$${Number.parseFloat(venta.total).toLocaleString('es-MX')} MXN</span></div>
                 </div>
             </div>
         </div>
@@ -1172,7 +1172,7 @@ export const confirmarPagoEfectivo = async (req: Request, res: Response) => {
                 estado, transaction_id, fecha_aprobacion,
                 fecha_creacion, fecha_actualizacion
             ) VALUES ($1, $2, $3, 'MXN', $3, 'aprobado', $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `, [Number.parseInt(id), venta.metodo_pago_id, parseFloat(venta.total), transactionId]);
+        `, [Number.parseInt(id), venta.metodo_pago_id, Number.parseFloat(venta.total), transactionId]);
 
         // ✅ Avanzar estado a en_preparacion
         await pool.query(`

@@ -156,8 +156,8 @@ const AdminNuevoProductoScreen: React.FC = () => {
           const stockMinimo = configs.find((c: Configuracion) => c.clave === 'stock_minimo_default');
           const stockMaximo = configs.find((c: Configuracion) => c.clave === 'stock_maximo_default');
           
-          if (iva) setIvaConfig(parseFloat(iva.valor));
-          if (margen) setMargenConfig(parseFloat(margen.valor));
+          if (iva) setIvaConfig(Number.parseFloat(iva.valor));
+          if (margen) setMargenConfig(Number.parseFloat(margen.valor));
           if (stockMinimo) {
             setStockMinimoDefault(Number.parseInt(stockMinimo.valor));
             setFormData(prev => ({ ...prev, stock_actual: Number.parseInt(stockMinimo.valor) }));
@@ -179,7 +179,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
     const precioConMargen = precioCompra * (1 + margenConfig / 100);
     const precioConIva = precioConMargen * (1 + ivaConfig / 100);
     
-    return parseFloat(precioConIva.toFixed(2));
+    return Number.parseFloat(precioConIva.toFixed(2));
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -191,7 +191,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
         [name]: (e.target as HTMLInputElement).checked
       }));
     } else if (type === 'number') {
-      const numValue = value === '' ? null : parseFloat(value);
+      const numValue = value === '' ? null : Number.parseFloat(value);
       setFormData(prev => ({
         ...prev,
         [name]: numValue

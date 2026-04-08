@@ -415,7 +415,7 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
                     </span>
                 ) : null}
             </td>
-            <td className="cp-total">${parseFloat(String(pedido.total)).toLocaleString('es-MX')}</td>
+            <td className="cp-total">${Number.parseFloat(String(pedido.total)).toLocaleString('es-MX')}</td>
             <td><button className="cp-btn-ver" onClick={() => abrirDetalle(pedido)}>👁 Ver</button></td>
         </tr>
     );
@@ -561,17 +561,17 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
                                                         <p className="cp-modal-item-nombre">{item.producto_nombre}</p>
                                                         {item.talla_medida && <p className="cp-modal-item-sub">Talla: {item.talla_medida}</p>}
                                                         {item.nota && <p className="cp-modal-item-sub">Nota: {item.nota}</p>}
-                                                        <p className="cp-modal-item-sub">{item.cantidad} × ${parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')}</p>
+                                                        <p className="cp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')}</p>
                                                     </div>
-                                                    <p className="cp-modal-item-subtotal">${parseFloat(String(item.subtotal)).toLocaleString('es-MX')}</p>
+                                                    <p className="cp-modal-item-subtotal">${Number.parseFloat(String(item.subtotal)).toLocaleString('es-MX')}</p>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                     <div className="cp-modal-totales">
-                                        <div className="cp-modal-total-fila"><span>Subtotal</span><span>${parseFloat(String(pedidoDetalle.subtotal)).toLocaleString('es-MX')}</span></div>
-                                        <div className="cp-modal-total-fila"><span>IVA (16%)</span><span>${parseFloat(String(pedidoDetalle.iva)).toLocaleString('es-MX')}</span></div>
-                                        <div className="cp-modal-total-fila cp-modal-total-final"><span>Total</span><span>${parseFloat(String(pedidoDetalle.total)).toLocaleString('es-MX')}</span></div>
+                                        <div className="cp-modal-total-fila"><span>Subtotal</span><span>${Number.parseFloat(String(pedidoDetalle.subtotal)).toLocaleString('es-MX')}</span></div>
+                                        <div className="cp-modal-total-fila"><span>IVA (16%)</span><span>${Number.parseFloat(String(pedidoDetalle.iva)).toLocaleString('es-MX')}</span></div>
+                                        <div className="cp-modal-total-fila cp-modal-total-final"><span>Total</span><span>${Number.parseFloat(String(pedidoDetalle.total)).toLocaleString('es-MX')}</span></div>
                                     </div>
                                     {renderSeccionPago(pedidoDetalle)}
                                     {['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && (

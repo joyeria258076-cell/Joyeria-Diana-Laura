@@ -8,7 +8,7 @@ import pool from '../config/database';
 
 function getMemoriaMB(): number {
   const mem = process.memoryUsage();
-  return parseFloat((mem.heapUsed / 1024 / 1024).toFixed(2));
+  return Number.parseFloat((mem.heapUsed / 1024 / 1024).toFixed(2));
 }
 
 function getClientIP(req: Request): string {

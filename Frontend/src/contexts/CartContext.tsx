@@ -52,7 +52,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const calcularTotales = (cartItems: CartItem[]) => {
         setCount(cartItems.reduce((s, i) => s + i.cantidad, 0));
         setTotal(cartItems.reduce((s, i) => {
-            const precio = parseFloat(String(i.precio_oferta || i.precio_venta));
+            const precio = Number.parseFloat(String(i.precio_oferta || i.precio_venta));
             return s + precio * i.cantidad;
         }, 0));
     };
