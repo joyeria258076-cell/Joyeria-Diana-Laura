@@ -2,6 +2,8 @@
 import { Request, Response } from 'express';
 import pool from '../../config/database';
 import { AuthRequest } from '../../middleware/authMiddleware';
+const SQL_INJECTION_PATTERN = /('(\s)*(or|and)(\s)*')|(-{2})|(\bUNION\b.*\bSELECT\b)|(\bDROP\b.*\bTABLE\b)|(\bINSERT\b.*\bINTO\b)|(\bDELETE\b.*\bFROM\b)|(;(\s)*DROP)|(xp_)/i;
+const XSS_PATTERN = /<\s*script|javascript:|on\w+\s*=|<\s*iframe|<\s*object|<\s*embed/i;
 
 export const proveedoresController = {
   // Obtener todos los proveedores
@@ -72,6 +74,13 @@ export const proveedoresController = {
       } = req.body;
 
       const userId = req.user?.userId;
+      if (!nombre) {
+        return res.status(400).json({ success: false, message: 'El nombre es requerido' });
+      }
+      if (SQL_INJECTION_PATTERN.test(nombre) || XSS_PATTERN.test(nombre) ||
+          (notas && (SQL_INJECTION_PATTERN.test(notas) || XSS_PATTERN.test(notas)))) {
+        return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
+      }
 
       await client.query('BEGIN');
 
@@ -147,6 +156,14 @@ export const proveedoresController = {
           success: false,
           message: 'Proveedor no encontrado'
         });
+      }
+
+      if (!nombre) {
+        return res.status(400).json({ success: false, message: 'El nombre es requerido' });
+      }
+      if (SQL_INJECTION_PATTERN.test(nombre) || XSS_PATTERN.test(nombre) ||
+          (notas && (SQL_INJECTION_PATTERN.test(notas) || XSS_PATTERN.test(notas)))) {
+        return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
       }
 
       await client.query('BEGIN');

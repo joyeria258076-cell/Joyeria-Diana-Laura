@@ -3,6 +3,7 @@ import { pool } from '../../config/database';
 import { CategoryModel, ProductModel, ProveedorModel, TemporadaModel, TipoProductoModel, ConfiguracionModel } from '../../models/productModel';
 // ✅ Patrón de validación contra SQL Injection
 const SQL_INJECTION_PATTERN = /('(\s)*(or|and)(\s)*')|(-{2})|(\bUNION\b.*\bSELECT\b)|(\bDROP\b.*\bTABLE\b)|(\bINSERT\b.*\bINTO\b)|(\bDELETE\b.*\bFROM\b)|(;(\s)*DROP)|(xp_)/i;
+const XSS_PATTERN = /<\s*script|javascript:|on\w+\s*=|<\s*iframe|<\s*object|<\s*embed/i;
 
 // --- CATEGORÍAS ---
 export const getCategories = async (req: Request, res: Response) => {
@@ -51,8 +52,9 @@ export const createCategory = async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, message: 'El nombre no puede exceder 100 caracteres' });
         }
 
-        if (SQL_INJECTION_PATTERN.test(nombre) || (descripcion && SQL_INJECTION_PATTERN.test(descripcion))) {
-            return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
+        if (SQL_INJECTION_PATTERN.test(nombre) || XSS_PATTERN.test(nombre) || 
+            (descripcion && (SQL_INJECTION_PATTERN.test(descripcion) || XSS_PATTERN.test(descripcion)))) {
+        return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
         }
 
         const nuevaCategoria = await CategoryModel.create({
@@ -94,8 +96,9 @@ export const updateCategory = async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, message: 'El nombre no puede exceder 100 caracteres' });
         }
 
-        if ((nombre && SQL_INJECTION_PATTERN.test(nombre)) || (descripcion && SQL_INJECTION_PATTERN.test(descripcion))) {
-            return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
+        if (SQL_INJECTION_PATTERN.test(nombre) || XSS_PATTERN.test(nombre) || 
+            (descripcion && (SQL_INJECTION_PATTERN.test(descripcion) || XSS_PATTERN.test(descripcion)))) {
+        return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
         }
 
         const categoriaActualizada = await CategoryModel.update(Number.parseInt(id), {
@@ -246,8 +249,9 @@ export const createProduct = async (req: Request, res: Response) => {
             });
         }
 
-        if (SQL_INJECTION_PATTERN.test(nombre) || (descripcion && SQL_INJECTION_PATTERN.test(descripcion))) {
-            return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
+        if (SQL_INJECTION_PATTERN.test(nombre) || XSS_PATTERN.test(nombre) || 
+            (descripcion && (SQL_INJECTION_PATTERN.test(descripcion) || XSS_PATTERN.test(descripcion)))) {
+        return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
         }
 
         const nuevoProducto = await ProductModel.create({
@@ -298,8 +302,9 @@ export const updateProduct = async (req: Request, res: Response) => {
         }
 
         const { nombre, descripcion } = req.body;
-        if ((nombre && SQL_INJECTION_PATTERN.test(nombre)) || (descripcion && SQL_INJECTION_PATTERN.test(descripcion))) {
-            return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
+        if (SQL_INJECTION_PATTERN.test(nombre) || XSS_PATTERN.test(nombre) || 
+            (descripcion && (SQL_INJECTION_PATTERN.test(descripcion) || XSS_PATTERN.test(descripcion)))) {
+        return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
         }
 
         const productoActualizado = await ProductModel.update(Number.parseInt(id), req.body);
