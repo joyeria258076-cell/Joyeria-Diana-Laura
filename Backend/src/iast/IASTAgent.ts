@@ -157,6 +157,7 @@ function analyzeTableName(queryText: string): void {
     'select * from configuracion where clave =',
     'select * from configuracion order by',
     'select id, clave, valor, tipo_dato, descripcion, categoria from configuracion',
+    'select valor from configuracion where clave =',
   ];
 
     const queryNormalized = queryText.toLowerCase().trim().replace(/\s+/g, ' ');

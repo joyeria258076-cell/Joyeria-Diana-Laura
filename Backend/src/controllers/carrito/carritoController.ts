@@ -329,6 +329,10 @@ export const getPedidoById = async (req: Request, res: Response) => {
 export const getAllPedidos = async (req: Request, res: Response) => {
     try {
         const { estado } = req.query;
+        const ESTADOS_VALIDOS = ['pendiente','confirmado','en_preparacion','enviado','entregado','cancelado'];
+        if (estado && !ESTADOS_VALIDOS.includes(String(estado))) {
+        return res.status(400).json({ success: false, message: 'Estado inválido' });
+        }
         const ventas = await VentaModel.getAll({ estado: estado as string });
         res.json({ success: true, data: ventas });
     } catch (error: any) {
@@ -635,6 +639,11 @@ export const editarDetallesVenta = async (req: Request, res: Response) => {
         const usuario = getUsuario(req);
         const { id } = req.params;
         const { direccion_envio, notas_internas, fecha_estimada_entrega, numero_guia, paqueteria } = req.body;
+
+        const XSS_PATTERN = /<\s*script|javascript:|on\w+\s*=|<\s*iframe|<\s*object|<\s*embed/i;
+        if (notas_internas && XSS_PATTERN.test(notas_internas)) {
+        return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
+        }
 
         const venta = await VentaModel.getById(Number.parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });

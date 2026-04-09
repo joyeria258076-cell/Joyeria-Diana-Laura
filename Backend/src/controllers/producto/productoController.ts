@@ -460,6 +460,12 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
             offset = 0
         } = req.query;
 
+        const SQL_INJECTION_PATTERN = /('(\s)*(or|and)(\s)*')|(-{2})|(\bUNION\b.*\bSELECT\b)|(\bDROP\b.*\bTABLE\b)/i;
+        if ((nombre && SQL_INJECTION_PATTERN.test(String(nombre))) ||
+            (material_principal && SQL_INJECTION_PATTERN.test(String(material_principal)))) {
+        return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
+        }
+
         let query = `
             SELECT 
                 id, nombre, descripcion, categoria_id, categoria_nombre,
