@@ -1,6 +1,13 @@
 import { Request, Response } from 'express';
 import { pool } from '../../config/database'; // Tu conexión real a Supabase
 
+const SQL_INJECTION_PATTERN = /('(\s)*(or|and)(\s)*')|(-{2})|(\bUNION\b.*\bSELECT\b)|(\bDROP\b.*\bTABLE\b)|(\bINSERT\b.*\bINTO\b)|(\bDELETE\b.*\bFROM\b)|(;(\s)*DROP)|(xp_)/i;
+const XSS_PATTERN = /<\s*script|javascript:|on\w+\s*=|<\s*iframe|<\s*object|<\s*embed/i;
+
+function hasInvalidInput(...fields: (string | undefined)[]): boolean {
+  return fields.some(f => f && (SQL_INJECTION_PATTERN.test(f) || XSS_PATTERN.test(f)));
+}
+
 export const adminContentController = {
   // ==========================================
   // 1. CONFIGURACIÓN DE PÁGINAS (Hero/Banner)
@@ -30,6 +37,10 @@ export const adminContentController = {
     try {
       const { pageName } = req.params;
       const { titulo, contenido, imagen } = req.body;
+
+      if (hasInvalidInput(titulo, contenido)) {
+        res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
+      }
 
       const result = await pool.query(
         'UPDATE page_content SET titulo = $1, contenido = $2, imagen = $3, fecha = CURRENT_TIMESTAMP WHERE page_name = $4 RETURNING *',
@@ -66,6 +77,10 @@ export const adminContentController = {
   createNoticia: async (req: Request, res: Response): Promise<void> => {
     try {
       const { titulo, contenido, imagen } = req.body;
+
+      if (hasInvalidInput(titulo, contenido)) {
+        res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
+      }
 
       const result = await pool.query(
         'INSERT INTO noticias (titulo, contenido, imagen) VALUES ($1, $2, $3) RETURNING *',
@@ -235,6 +250,9 @@ export const adminContentController = {
   createPagina: async (req: Request, res: Response): Promise<void> => {
     try {
       const { nombre, slug, descripcion, icono, orden, mostrar_en_menu, mostrar_en_footer, requiere_autenticacion } = req.body;
+      if (hasInvalidInput(nombre, descripcion)) {
+        res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
+      }
       const userId = (req as any).user?.id;
       
       // Validar que el slug sea único
@@ -267,6 +285,9 @@ export const adminContentController = {
     try {
       const { id } = req.params;
       const { nombre, slug, descripcion, icono, orden, mostrar_en_menu, mostrar_en_footer, requiere_autenticacion } = req.body;
+      if (hasInvalidInput(nombre, descripcion)) {
+        res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
+      }
       const userId = (req as any).user?.id;
 
       // Validar que el slug sea único (si cambió)
@@ -374,6 +395,11 @@ export const adminContentController = {
   createSeccion: async (req: Request, res: Response): Promise<void> => {
     try {
       const { pagina_id, nombre, descripcion, imagen_url, color_fondo, orden } = req.body;
+
+      if (hasInvalidInput(nombre, descripcion)) {
+        res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
+      }
+
       const userId = (req as any).user?.id;
 
       const result = await pool.query(
@@ -395,6 +421,11 @@ export const adminContentController = {
     try {
       const { id } = req.params;
       const { nombre, descripcion, imagen_url, color_fondo, orden } = req.body;
+      
+      if (hasInvalidInput(nombre, descripcion)) {
+        res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
+      }
+
       const userId = (req as any).user?.id;
 
       const result = await pool.query(
@@ -489,6 +520,10 @@ export const adminContentController = {
   createContenido: async (req: Request, res: Response): Promise<void> => {
     try {
       const { seccion_id, titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden } = req.body;
+
+      if (hasInvalidInput(titulo, descripcion)) {
+        res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
+      }
       const userId = (req as any).user?.id;
 
       const result = await pool.query(
@@ -510,6 +545,9 @@ export const adminContentController = {
     try {
       const { id } = req.params;
       const { titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden } = req.body;
+      if (hasInvalidInput(titulo, descripcion)) {
+        res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
+      }
       const userId = (req as any).user?.id;
 
       const result = await pool.query(

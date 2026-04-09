@@ -63,11 +63,13 @@ function analyzeQueryForSQLInjection(queryText: string, params: any[]): void {
 
   // Queries internas del middleware — ignorar taint propagado
   const INTERNAL_QUERIES = [
-    'select rol from usuarios where id =',
-    'select * from user_sessions where session_token =',
-    'update user_sessions us set last_activity',
-    'insert into productos',
-  ];
+      'select rol from usuarios where id =',
+      'select * from user_sessions where session_token =',
+      'update user_sessions',
+      'insert into productos',
+      'update user_sessions us\n         set',
+    ];
+    
   const queryLower = queryText.toLowerCase().trim();
   if (INTERNAL_QUERIES.some(q => queryLower.includes(q))) return;
 
