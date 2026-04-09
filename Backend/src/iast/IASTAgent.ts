@@ -130,9 +130,21 @@ function analyzeTableName(queryText: string): void {
     });
   }
 
-  // Detecta acceso a tablas sensibles desde rutas no admin
-  if (SENSITIVE_TABLES.includes(tableName) && !ctx.path.includes('/admin') && !ctx.path.includes('/auth')) {
-    recordFinding({
+  // Queries legítimas del middleware de autenticación — ignorar
+    const QUERY_WHITELIST = [
+      'select rol from usuarios where id = $1',
+      'select * from user_sessions where session_token = $1 and is_revoked = false and expires_at > now()',
+      'update user_sessions us set last_activity = current_timestamp',
+      'select id, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion from usuarios where id = $1',
+      'select id, firebase_uid, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion from usuarios order by activo desc, nombre asc',
+    ];
+
+    const queryNormalized = queryText.toLowerCase().trim().replace(/\s+/g, ' ');
+    const isWhitelisted = QUERY_WHITELIST.some(wq => queryNormalized.includes(wq));
+
+    // Detecta acceso a tablas sensibles desde rutas no admin
+    if (SENSITIVE_TABLES.includes(tableName) && !ctx.path.includes('/admin') && !ctx.path.includes('/auth') && !isWhitelisted) {
+      recordFinding({
       severity: 'MEDIUM',
       type: 'Acceso a tabla sensible',
       module: detectModule(ctx.path),

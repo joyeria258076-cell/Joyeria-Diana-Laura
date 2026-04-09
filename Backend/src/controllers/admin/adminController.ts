@@ -141,6 +141,17 @@ export const updateWorker = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Faltan datos' });
     }
 
+    // ✅ Validación de entrada contra inyección SQL
+    const SQL_INJECTION_PATTERN = /('(\s)*(or|and)(\s)*')|(-{2})|(\bUNION\b.*\bSELECT\b)|(\bDROP\b.*\bTABLE\b)|(\bINSERT\b.*\bINTO\b)|(\bDELETE\b.*\bFROM\b)|(;(\s)*DROP)|(xp_)/i;
+    if (SQL_INJECTION_PATTERN.test(nombre) || SQL_INJECTION_PATTERN.test(email)) {
+      return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
+    }
+
+    const ROLES_PERMITIDOS = ['admin', 'trabajador', 'cliente'];
+    if (!ROLES_PERMITIDOS.includes(rol.toLowerCase())) {
+      return res.status(400).json({ success: false, message: 'Rol no válido' });
+    }
+    
     const updatedUser = await userModel.updateWorkerInfo(workerId, nombre, rol.toLowerCase(), email);
     res.status(200).json({ success: true, data: updatedUser });
   } catch (error) {

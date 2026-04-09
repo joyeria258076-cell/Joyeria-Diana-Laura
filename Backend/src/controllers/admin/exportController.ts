@@ -135,12 +135,14 @@ export const exportController = {
         }
       });
       
-    } catch (error) {
-      console.error('❌ [previewExport] Error:', error);
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Error al previsualizar'
-      });
+      } catch (error) {
+    console.error('❌ [previewExport] Error:', error);
+    const message = error instanceof Error ? error.message : 'Error al previsualizar';
+    const isValidationError = message.includes('Tabla no permitida');
+    res.status(isValidationError ? 400 : 500).json({
+      success: false,
+      message
+    });
     }
   }
 };

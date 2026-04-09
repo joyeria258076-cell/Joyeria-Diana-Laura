@@ -21,6 +21,15 @@ export class QueryBuilder {
   static buildSelectQuery(filters: ExportFilters): { query: string; params: any[] } {
     const { tableName, conditions, selectFields, orderBy, orderDirection, limit, offset } = filters;
     
+     // ✅ VALIDACIÓN: lista blanca de tablas permitidas
+    const TABLAS_PERMITIDAS = [
+      'productos', 'proveedores', 'clientes', 'categorias',
+      'temporadas', 'tipos_producto'
+    ];
+    if (!TABLAS_PERMITIDAS.includes(tableName)) {
+      throw new Error(`Tabla no permitida: '${tableName}'. Las tablas válidas son: ${TABLAS_PERMITIDAS.join(', ')}`);
+    }
+
     let selectClause = '*';
     if (selectFields && selectFields.length > 0) {
       selectClause = selectFields.join(', ');

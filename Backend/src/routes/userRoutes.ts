@@ -7,8 +7,11 @@ import {
   getAllUsers,
   createWorkerAccount
 } from '../controllers/usuario/userController';
+import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
 const router = express.Router();
+router.use(authenticateToken);
+router.use(requireAdmin);
 
 // Rutas de usuarios
 router.get('/', getAllUsers);           // Obtener todos los usuarios

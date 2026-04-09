@@ -1,12 +1,13 @@
 // Backend/src/routes/configuracionRoutes.ts
 import { Router } from 'express';
 import { configuracionController } from '../controllers/admin/configuracionController';
-import { authenticateToken } from '../middleware/authMiddleware';
+import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
 const router = Router();
 
 // Todas las rutas requieren autenticación
 router.use(authenticateToken);
+router.use(requireAdmin);
 
 // Obtener todas las configuraciones
 router.get('/', configuracionController.getAll);

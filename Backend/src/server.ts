@@ -37,10 +37,14 @@ import { AuthRequest } from './middleware/authMiddleware';
 import pool from './config/database';
 // IAST Agent
 import { iastMiddleware, createIASTRouter, initializeIAST } from './iast/IASTMiddleware';
+import helmet from 'helmet';
 
 dotenv.config();
 
 const app = express();
+app.use(helmet({
+  contentSecurityPolicy: false  // desactiva CSP por ahora para no romper recursos externos
+}));
 app.disable('x-powered-by');
 const PORT = process.env.PORT || 5000;
 
