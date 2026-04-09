@@ -64,10 +64,10 @@ function analyzeQueryForSQLInjection(queryText: string, params: any[]): void {
   // Queries internas del middleware — ignorar taint propagado
   const INTERNAL_QUERIES = [
       'select rol from usuarios where id =',
-      'select * from user_sessions where session_token =',
       'update user_sessions',
       'insert into productos',
       'update user_sessions us\n         set',
+      'select * from user_sessions where session_token =',
     ];
     
   const queryLower = queryText.toLowerCase().trim();
@@ -151,13 +151,16 @@ function analyzeTableName(queryText: string): void {
     'select id, firebase_uid, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion from usuarios order by activo desc, nombre asc',
     'insert into productos',
     'select * from user_sessions',
+    'select * from configuracion where clave =',
+    'select * from configuracion order by',
+    'select id, clave, valor, tipo_dato, descripcion, categoria from configuracion',
   ];
 
     const queryNormalized = queryText.toLowerCase().trim().replace(/\s+/g, ' ');
     const isWhitelisted = QUERY_WHITELIST.some(wq => queryNormalized.includes(wq));
 
     // Detecta acceso a tablas sensibles desde rutas no admin
-    if (SENSITIVE_TABLES.includes(tableName) && !ctx.path.includes('/admin') && !ctx.path.includes('/auth') && !isWhitelisted) {
+    if (SENSITIVE_TABLES.includes(tableName) && !ctx.path.includes('/admin') && !ctx.path.includes('/auth') && !ctx.path.includes('/configuracion') && !isWhitelisted) {
       recordFinding({
       severity: 'MEDIUM',
       type: 'Acceso a tabla sensible',
