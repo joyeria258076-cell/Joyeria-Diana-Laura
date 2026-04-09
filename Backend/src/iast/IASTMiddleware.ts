@@ -333,7 +333,10 @@ function renderModules() {
     const activeFindings = allFindings.filter(f => f.module === group);
     const active = isModuleActive(group);
     const dotClass = active ? 'active-dot' : 'inactive-dot';
-    let badgeClass = 'badge-inactive', badgeText = 'Sin actividad', count = 0;
+    const isInternal = ['BackendRoutes','BackendServices','BackendMiddleware'].includes(group);
+    let badgeClass = isInternal ? 'badge-info' : 'badge-inactive';
+    let badgeText = isInternal ? 'Solo referencia' : 'Sin actividad';
+    let count = 0;
     if (activeFindings.length) {
       const order = { CRITICAL:5, HIGH:4, MEDIUM:3, LOW:2, INFO:1 };
       let maxSev = 'INFO';
@@ -353,7 +356,8 @@ function renderModules() {
         '<span style="font-size:11px;color:#718096;margin-right:8px">' + (count ? count + ' hallazgo' + (count > 1 ? 's' : '') : '') + '</span>' +
         '<span class="module-badge ' + badgeClass + '">' + badgeText + '</span>' +
       '</div>' +
-      '<div class="submodules" id="sub_grp_' + group.replace(/[^a-zA-Z0-9]/g, '_') + '">';    
+      '<div class="submodules" id="sub_grp_' + group.replace(/[^a-zA-Z0-9]/g, '_') + '">' +
+      (isInternal ? '<div style="font-size:11px;color:#4a5568;padding:8px 16px;border-bottom:1px solid #1f2937;font-style:italic">⚙️ Módulo interno — el agente IAST no intercepta estos componentes directamente. su actividad y vulnerabilidades se reportan en los módulos funcionales correspondientes (Auth, Cliente, Admin, etc.). Se listan aquí como referencia de la arquitectura del sistema.</div>' : '');
 
     // Lista de pantallas hijas
     const screens = MODULE_GROUPS[group];
