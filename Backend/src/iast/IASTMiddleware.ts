@@ -18,18 +18,60 @@ import pool from '../config/database';
 
 // MODULE_GROUPS (objeto con grupos y sus pantallas)
 const MODULE_GROUPS = {
-  'Publico': ['InicioPublicScreen', 'CatalogoPublicScreen', 'ProductoDetallePublicScreen', 'ContactoPublicScreen', 'AyudaPublicScreen', 'NoticiasScreen', 'UbicacionPublicScreen'],
-  'Auth': ['LoginScreen', 'RegistroScreen', 'MFASetupScreen', 'MFAVerifyScreen', 'OlvideContraseniaScreen', 'ReiniciarContraseniaScreen', 'RecuperarConPreguntaScreen'],
-  'Cliente': ['ClienteInicioScreen', 'ClienteCatalogoScreen', 'ClienteCarritoScreen', 'ClientePedidosScreen', 'ClientePerfilScreen', 'ClienteProductoDetalleScreen', 'ClienteContactoScreen', 'ClienteAyudaScreen', 'ClienteUbicacionScreen', 'ClienteSobreNosotrosScreen'],
-  'Admin': ['AdminDashboardScreen', 'AdminInventarioScreen', 'AdminNuevoProductoScreen', 'AdminEditarProductoScreen', 'AdminProductoDetalleScreen', 'AdminCategoriasScreen', 'AdminTrabajadoresScreen', 'AdminAltaTrabajadorScreen', 'AdminEditarTrabajadorScreen', 'AdminReportesScreen', 'AdminPrediccionScreen', 'AdminPerfilScreen'],
-  'AdminBaseDatos': ['AdminBaseDatosScreen', 'AdminBackupsScreen', 'AdminSimpleImportScreen', 'AdminExportacionScreen', 'AdminBulkUpdateScreen', 'AdminMonitoreoScreen', 'AdminAutomatizacionScreen'],
-  'AdminContenido': ['AdminContentManagerScreen', 'AdminNoticiasScreen'],
-  'AdminConfiguracion': ['AdminVariablesConfigScreen'],
-  'AdminProveedores': ['AdminProveedoresScreen', 'AdminNuevoProveedorScreen', 'AdminEditarProveedorScreen', 'AdminDetalleProveedorScreen'],
-  'Trabajador': ['TrabajadorDashboardScreen', 'TrabajadorGestionPedidosScreen', 'TrabajadorActividadesScreen'],
-  'BackendRoutes': ['authRoutes', 'userRoutes', 'productRoutes', 'carritoRoutes', 'adminRoutes', 'proveedoresRoutes', 'backupRoutes', 'exportRoutes', 'importRoutes', 'bulkUpdateRoutes', 'metricsRoutes', 'predictiveRoutes', 'securityQuestionRoutes', 'adminContentRoutes', 'uploadRoutes', 'configuracionRoutes', 'templateRoutes'],
-  'BackendServices': ['JWTService', 'MFAService', 'SessionService', 'loginSecurityService', 'EmailValidationService', 'cloudinaryService', 'BackupSchedulerService', 'exportService', 'excelImportService', 'firestoreService', 'recoverySecurityService'],
-  'BackendMiddleware': ['authMiddleware', 'roleMiddleware', 'metricsMiddleware', 'activityMiddleware', 'uploadMiddleware']
+  'Publico': [
+    'InicioPublicScreen', 'CatalogoPublicScreen', 'ProductoDetallePublicScreen',
+    'NoticiasScreen', 'ContactoPublicScreen', 'UbicacionPublicScreen', 'AyudaPublicScreen'
+  ],
+  'Auth': [
+    'LoginScreen', 'RegistroScreen', 'OlvideContraseniaScreen',
+    'ReiniciarContraseniaScreen', 'RecuperarConPreguntaScreen', 'MFAVerifyScreen'
+  ],
+  'Cliente': [
+    'InicioScreen', 'CatalogoScreen', 'ProductoDetalleScreen', 'CarritoScreen',
+    'ClientePedidosScreen', 'PerfilScreen', 'SobreNosotros', 'ContactoScreen',
+    'UbicacionScreen', 'AyudaScreen', 'MFASetupScreen', 'ConfiguracionScreen'
+  ],
+  'Admin': [
+    'AdminDashboardScreen', 'AdminInventarioScreen', 'AdminNuevoProductoScreen',
+    'AdminEditarProductoScreen', 'AdminProductoDetalleScreen', 'AdminCategoriasScreen',
+    'AdminTrabajadoresScreen', 'AdminAltaTrabajadorForm', 'AdminEditarTrabajadorScreen',
+    'AdminReportesScreen', 'AdminPrediccionScreen', 'AdminPerfilScreen'
+  ],
+  'AdminBaseDatos': [
+    'AdminDatabaseScreen', 'AdminBackupsScreen', 'AdminImportExportScreen',
+    'AdminSimpleImportScreen', 'AdminExportScreen', 'AdminBulkUpdateScreen',
+    'AdminAutomationScreen', 'AdminMonitoreoScreen'
+  ],
+  'AdminContenido': [
+    'AdminContentManagerScreen', 'AdminPageManagementScreen', 'AdminSectionManagementScreen',
+    'AdminPageContentInitialScreen', 'AdminPageContentNoticiasScreen',
+    'AdminContentInfoScreen', 'AdminContentFAQScreen', 'AdminContentMisionScreen'
+  ],
+  'AdminConfiguracion': [
+    'AdminVariablesConfigScreen'
+  ],
+  'AdminProveedores': [
+    'AdminProveedoresScreen', 'AdminNuevoProveedorScreen',
+    'AdminEditarProveedorScreen', 'AdminProveedorDetalleScreen'
+  ],
+  'Trabajador': [
+    'DashboardTrabajadorScreen', 'GestionPedidosScreen', 'ActividadesTrabajadorScreen'
+  ],
+  'BackendRoutes': [
+    'authRoutes', 'userRoutes', 'productRoutes', 'carritoRoutes', 'adminRoutes',
+    'proveedoresRoutes', 'backupRoutes', 'exportRoutes', 'importRoutes',
+    'bulkUpdateRoutes', 'predictiveRoutes', 'securityQuestionRoutes',
+    'adminContentRoutes', 'uploadRoutes', 'configuracionRoutes', 'templateRoutes'
+  ],
+  'BackendServices': [
+    'JWTService', 'MFAService', 'SessionService', 'loginSecurityService',
+    'EmailValidationService', 'cloudinaryService', 'BackupSchedulerService',
+    'exportService', 'excelImportService', 'firestoreService', 'recoverySecurityService'
+  ],
+  'BackendMiddleware': [
+    'authMiddleware', 'roleMiddleware', 'metricsMiddleware',
+    'activityMiddleware', 'uploadMiddleware'
+  ]
 };
 
 const SKIP_PATHS = ['/api/health', '/api/db-test', '/api/test', '/iast/', '/api/metrics', '/_next/', '/favicon'];
