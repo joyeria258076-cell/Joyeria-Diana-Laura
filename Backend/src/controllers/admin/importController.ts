@@ -257,6 +257,21 @@ export const importController = {
         columns.map((col: string) => row[col] !== undefined ? row[col] : null)
       );
 
+      const XSS_PATTERN = /<\s*script|javascript:|on\w+\s*=|<\s*iframe|<\s*object|<\s*embed/i;
+      const SQL_INJECTION_PATTERN = /('(\s)*(or|and)(\s)*')|(-{2})|(\bUNION\b.*\bSELECT\b)|(\bDROP\b.*\bTABLE\b)|(\bINSERT\b.*\bINTO\b)|(\bDELETE\b.*\bFROM\b)|(;(\s)*DROP)|(xp_)/i;
+
+      for (const row of data) {
+        for (const col of columns) {
+          const val = row[col];
+          if (typeof val === 'string' && (XSS_PATTERN.test(val) || SQL_INJECTION_PATTERN.test(val))) {
+            return res.status(400).json({
+              success: false,
+              message: `Dato inválido detectado en columna "${col}": posible XSS o SQLi`
+            });
+          }
+        }
+      }
+      
       // Insertar datos usando el nuevo bulkInsert que maneja auto-generados
       const result = await importModel.bulkInsert(tableName, columns, values);
 

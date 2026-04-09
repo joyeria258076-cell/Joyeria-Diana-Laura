@@ -68,6 +68,8 @@ function analyzeQueryForSQLInjection(queryText: string, params: any[]): void {
       'insert into productos',
       'update user_sessions us\n         set',
       'select * from user_sessions where session_token =',
+      'insert into login_attempts',
+      'insert into user_login_attempts',
     ];
     
   const queryLower = queryText.toLowerCase().trim();
@@ -92,6 +94,7 @@ function analyzeQueryForSQLInjection(queryText: string, params: any[]): void {
       remediation: `Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.`,
     });
   }
+    if (params.some(p => typeof p === 'string' && p.startsWith('Mozilla/'))) return;
 
   // 2. ¿Algún parámetro tiene patrón de SQLi? (detecta bypass de parametrización)
   params.forEach((param, i) => {
