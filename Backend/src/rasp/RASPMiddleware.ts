@@ -39,7 +39,9 @@ function isAllowedUserAgent(userAgent: string): boolean {
 }
 
 function analyzeAllInputs(req: Request): boolean {
-
+  console.log(`[RASP DEBUG] Analizando: ${req.method} ${req.path}`);
+  console.log(`[RASP DEBUG] Query:`, req.query);
+  console.log(`[RASP DEBUG] Body:`, req.body);
     // Si es GET sin query params, no analizar
   if (req.method === 'GET' && Object.keys(req.query).length === 0) {
     return false;
