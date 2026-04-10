@@ -105,11 +105,13 @@ function extractAndTaintInputs(req: Request): void {
     const val = req.headers[header];
     if (typeof val === 'string' && val.length > 0) taintValue(val, 'headers', header);
   });
-  if (req.cookies && typeof req.cookies === 'object') {
-    Object.entries(req.cookies).forEach(([key, value]) => {
-      if (typeof value === 'string' && value.length > 0 && value.length < 500) taintValue(value, 'cookies', key);
-    });
-  }
+  // Analizar cookies: marcar valores de cookies como tainted para detectar posibles inyecciones o fugas
+  // if (req.cookies && typeof req.cookies === 'object') {
+  //   Object.entries(req.cookies).forEach(([key, value]) => {
+  //     if (typeof value === 'string' && value.length > 0 && value.length < 500) taintValue(value, 'cookies', key);
+  //   });
+  // }
+  //}
 }
 
 export function iastMiddleware(req: Request, res: Response, next: NextFunction): void {

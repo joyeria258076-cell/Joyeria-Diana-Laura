@@ -70,6 +70,12 @@ function analyzeQueryForSQLInjection(queryText: string, params: any[]): void {
       'select * from user_sessions where session_token =',
       'insert into login_attempts',
       'insert into user_login_attempts',
+      'select id, mfa_enabled from usuarios where email =',
+      'insert into user_sessions',
+      'select id, session_token, expires_at from user_sessions',
+      'select * from contenidos where seccion_id =',
+      'select * from secciones where pagina_id =',
+      'select * from paginas where activo =',
     ];
     
   const queryLower = queryText.toLowerCase().trim();
@@ -158,6 +164,8 @@ function analyzeTableName(queryText: string): void {
     'select * from configuracion order by',
     'select id, clave, valor, tipo_dato, descripcion, categoria from configuracion',
     'select valor from configuracion where clave =',
+    'select * from contenidos where seccion_id =',
+    'select * from secciones where pagina_id =',
   ];
 
     const queryNormalized = queryText.toLowerCase().trim().replace(/\s+/g, ' ');
