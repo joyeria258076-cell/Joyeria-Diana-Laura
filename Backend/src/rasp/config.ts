@@ -36,14 +36,35 @@ export interface RASPConfig {
   };
 }
 
+// Leer variables de entorno
+const getLogOnlyMode = (): boolean => {
+  // Si existe variable RASP_LOG_ONLY, usarla
+  if (process.env.RASP_LOG_ONLY !== undefined) {
+    return process.env.RASP_LOG_ONLY === 'true';
+  }
+  // Si existe RASP_BLOCK_MODE, invertir (si es true, logOnlyMode=false)
+  if (process.env.RASP_BLOCK_MODE !== undefined) {
+    return process.env.RASP_BLOCK_MODE !== 'true';
+  }
+  // Por defecto: modo log only en desarrollo, bloqueo en producción
+  return process.env.NODE_ENV === 'development';
+};
+
+const getEnabled = (): boolean => {
+  if (process.env.RASP_ENABLED !== undefined) {
+    return process.env.RASP_ENABLED === 'true';
+  }
+  return true; // Activado por defecto
+};
+
 export const defaultConfig: RASPConfig = {
-  enabled: false,
+  enabled: getEnabled(),
   blockOnDetection: true,
-  logOnlyMode: true,
+  logOnlyMode: getLogOnlyMode(),
   
   rateLimit: {
     windowMs: 15 * 60 * 1000,
-    max: 200,
+    max: parseInt(process.env.RASP_RATE_LIMIT_MAX || '200'),
     skipSuccessfulRequests: false,
   },
   
@@ -51,7 +72,7 @@ export const defaultConfig: RASPConfig = {
     enabled: true,
     block: true,
     patterns: [
-      /(\bSELECT\b.*\bFROM\b|\bUNION\b.*\bSELECT\b)/i,  // Más específico
+      /(\bSELECT\b.*\bFROM\b|\bUNION\b.*\bSELECT\b)/i,
       /('|")\s*(OR|AND)\s*('|")\s*=\s*('|")/i,
       /(--|;|\/\*|\*\/)/i,
     ],
@@ -60,7 +81,7 @@ export const defaultConfig: RASPConfig = {
   xss: {
     enabled: true,
     block: true,
-    sanitizeOutput: false,  // 👈 Desactivar sanitización (más rápido)
+    sanitizeOutput: false,
   },
   
   pathTraversal: {
@@ -73,7 +94,7 @@ export const defaultConfig: RASPConfig = {
   },
   
   commandInjection: {
-    enabled: false, // DESACTIVADO para evitar falsos positivos en User-Agent
+    enabled: false,
     block: false,
     patterns: [
       /(\||;|\$\(|`|\${|\&|\n|\r)/,
@@ -84,7 +105,7 @@ export const defaultConfig: RASPConfig = {
   
   anomalies: {
     enabled: true,
-    blockIp: false, // DESACTIVADO para no bloquear IPs
+    blockIp: false,
     maxConsecutiveBlocks: 5,
     blockDurationMinutes: 30,
   },

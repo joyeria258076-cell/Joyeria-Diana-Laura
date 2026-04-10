@@ -40,17 +40,18 @@ export interface RASPFinding {
   description: string;
 }
 
+// En Render, usar /tmp (persistente durante la vida del contenedor)
 const IS_RENDER = !!process.env.RENDER;
-const REPORTS_DIR = IS_RENDER ? '/tmp' : path.join(process.cwd(), 'rasp-reports');
+const REPORTS_DIR = IS_RENDER ? '/tmp/rasp-reports' : path.join(process.cwd(), 'rasp-reports');
+const FINDINGS_FILE = path.join(REPORTS_DIR, 'rasp-findings.json');
 const BLOCK_LOG_FILE = path.join(REPORTS_DIR, 'rasp-blocks.json');
 const ALERT_FILE = path.join(REPORTS_DIR, 'rasp-alerts.json');
-const FINDINGS_FILE = path.join(REPORTS_DIR, 'rasp-findings.json');
 const MAX_EVENTS_IN_MEMORY = 500;
 
 export class RASPReporter {
+  private static findings: RASPFinding[] = [];
   private static blockEvents: RASPBlockEvent[] = [];
   private static alerts: RASPAlert[] = [];
-  private static findings: RASPFinding[] = [];
   private static initialized = false;
   private static sseClients: Set<any> = new Set();
 
@@ -58,13 +59,13 @@ export class RASPReporter {
     if (this.initialized) return;
     this.initialized = true;
 
-    // ✅ Crear directorio si no existe
+    // Crear directorio si no existe
     if (!fs.existsSync(REPORTS_DIR)) {
-      try { 
-        fs.mkdirSync(REPORTS_DIR, { recursive: true }); 
+      try {
+        fs.mkdirSync(REPORTS_DIR, { recursive: true });
         console.log(`[RASP] 📁 Carpeta creada: ${REPORTS_DIR}`);
-      } catch (err) { 
-        console.error(`[RASP] ❌ Error creando carpeta: ${err}`);
+      } catch (err) {
+        console.error(`[RASP] ❌ Error creando carpeta: ${REPORTS_DIR}`, err);
       }
     }
 
@@ -74,24 +75,10 @@ export class RASPReporter {
         const data = fs.readFileSync(FINDINGS_FILE, 'utf-8');
         this.findings = JSON.parse(data);
         console.log(`[RASP] 📂 Cargados ${this.findings.length} hallazgos previos`);
-      } catch (err) { 
+      } catch (err) {
         console.error('[RASP] Error cargando hallazgos:', err);
-        this.findings = []; 
+        this.findings = [];
       }
-    } else {
-      // ✅ Crear archivo vacío si no existe
-      this.persistFindings();
-    }
-
-    // Cargar bloqueos
-    if (fs.existsSync(BLOCK_LOG_FILE)) {
-      try {
-        const data = fs.readFileSync(BLOCK_LOG_FILE, 'utf-8');
-        this.blockEvents = JSON.parse(data);
-        console.log(`[RASP] 📂 Cargados ${this.blockEvents.length} eventos de bloqueo`);
-      } catch { this.blockEvents = []; }
-    } else {
-      this.persistBlocks();
     }
 
     console.log('[RASP] 📊 Reporter inicializado');
@@ -99,102 +86,127 @@ export class RASPReporter {
   }
 
   static recordFinding(finding: Omit<RASPFinding, 'id' | 'timestamp'>): void {
-    const fullFinding: RASPFinding = {
-      ...finding,
-      id: `finding_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
-      timestamp: new Date().toISOString(),
-    };
+    try {
+      const fullFinding: RASPFinding = {
+        ...finding,
+        id: `finding_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+        timestamp: new Date().toISOString(),
+      };
 
-    this.findings.unshift(fullFinding);
-    
-    // Limitar tamaño
-    if (this.findings.length > MAX_EVENTS_IN_MEMORY) {
-      this.findings = this.findings.slice(0, MAX_EVENTS_IN_MEMORY);
+      // Leer hallazgos existentes
+      let existingFindings: RASPFinding[] = [];
+      if (fs.existsSync(FINDINGS_FILE)) {
+        try {
+          const data = fs.readFileSync(FINDINGS_FILE, 'utf-8');
+          existingFindings = JSON.parse(data);
+        } catch (err) {
+          console.error('[RASP] Error leyendo hallazgos existentes:', err);
+        }
+      }
+
+      // Agregar nuevo hallazgo
+      existingFindings.unshift(fullFinding);
+      
+      // Limitar tamaño
+      if (existingFindings.length > MAX_EVENTS_IN_MEMORY) {
+        existingFindings = existingFindings.slice(0, MAX_EVENTS_IN_MEMORY);
+      }
+      
+      // Guardar
+      fs.writeFileSync(FINDINGS_FILE, JSON.stringify(existingFindings, null, 2), 'utf-8');
+      
+      // Actualizar memoria
+      this.findings = existingFindings;
+      
+      // Emitir via SSE
+      this.broadcastFinding(fullFinding);
+
+      const severityColor = {
+        CRITICAL: '\x1b[41m\x1b[37m',
+        HIGH: '\x1b[31m',
+        MEDIUM: '\x1b[33m',
+        LOW: '\x1b[36m',
+      }[finding.severity] || '';
+
+      console.log(`[RASP] ${severityColor}[${finding.severity}]${'\x1b[0m'} Hallazgo: ${finding.type} | ${finding.path} | ${finding.field}`);
+      console.log(`[RASP] 💾 Hallazgo guardado en: ${FINDINGS_FILE}`);
+    } catch (err) {
+      console.error('[RASP] Error registrando hallazgo:', err);
     }
-    
-    this.persistFindings();
-    this.broadcastFinding(fullFinding);
-
-    const severityColor = {
-      CRITICAL: '\x1b[41m\x1b[37m',
-      HIGH: '\x1b[31m',
-      MEDIUM: '\x1b[33m',
-      LOW: '\x1b[36m',
-    }[finding.severity] || '';
-
-    console.log(`[RASP] ${severityColor}[${finding.severity}]${'\x1b[0m'} Hallazgo: ${finding.type} | ${finding.path} | ${finding.field}`);
   }
 
   static recordBlock(event: Omit<RASPBlockEvent, 'id' | 'timestamp'> & { blocked?: boolean }): void {
-    const fullEvent: RASPBlockEvent = {
-      ...event,
-      id: `block_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
-      timestamp: new Date().toISOString(),
-      blocked: event.blocked !== undefined ? event.blocked : true, // Valor por defecto true
-    };
-
-    if (this.blockEvents.length >= MAX_EVENTS_IN_MEMORY) {
-      this.blockEvents = this.blockEvents.slice(-MAX_EVENTS_IN_MEMORY + 1);
-    }
-
-    this.blockEvents.unshift(fullEvent);
-    this.persistBlocks();
-    this.broadcastBlock(fullEvent);
-
-    console.log(`[RASP] 🔒 Bloqueo registrado: ${fullEvent.reason} | IP: ${fullEvent.ip}`);
-  }
-
-  static recordAlert(alert: Omit<RASPAlert, 'id' | 'timestamp'>): void {
-    const fullAlert: RASPAlert = {
-      ...alert,
-      id: `alert_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
-      timestamp: new Date().toISOString(),
-    };
-
-    if (this.alerts.length >= MAX_EVENTS_IN_MEMORY) {
-      this.alerts = this.alerts.slice(-MAX_EVENTS_IN_MEMORY + 1);
-    }
-
-    this.alerts.unshift(fullAlert);
-    this.persistAlerts();
-    this.broadcastAlert(fullAlert);
-
-    const severityColor = {
-      CRITICAL: '\x1b[41m\x1b[37m',
-      HIGH: '\x1b[31m',
-      MEDIUM: '\x1b[33m',
-      LOW: '\x1b[36m',
-    }[alert.severity] || '';
-
-    console.log(`[RASP] ${severityColor}[${alert.severity}]${'\x1b[0m'} Alerta: ${alert.type} | ${alert.ip}`);
-  }
-
-  static persistFindings(): void {
     try {
-      fs.writeFileSync(FINDINGS_FILE, JSON.stringify(this.findings, null, 2), 'utf-8');
-      console.log(`[RASP] 💾 Hallazgos guardados (${this.findings.length})`);
+      const fullEvent: RASPBlockEvent = {
+        ...event,
+        id: `block_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+        timestamp: new Date().toISOString(),
+        blocked: event.blocked !== undefined ? event.blocked : true,
+      };
+
+      let existingBlocks: RASPBlockEvent[] = [];
+      if (fs.existsSync(BLOCK_LOG_FILE)) {
+        try {
+          const data = fs.readFileSync(BLOCK_LOG_FILE, 'utf-8');
+          existingBlocks = JSON.parse(data);
+        } catch (err) {}
+      }
+
+      existingBlocks.unshift(fullEvent);
+      if (existingBlocks.length > MAX_EVENTS_IN_MEMORY) {
+        existingBlocks = existingBlocks.slice(0, MAX_EVENTS_IN_MEMORY);
+      }
+      
+      fs.writeFileSync(BLOCK_LOG_FILE, JSON.stringify(existingBlocks, null, 2), 'utf-8');
+      this.blockEvents = existingBlocks;
+      this.broadcastBlock(fullEvent);
+
+      console.log(`[RASP] 🔒 Bloqueo registrado: ${fullEvent.reason} | IP: ${fullEvent.ip}`);
     } catch (err) {
-      console.error('[RASP] Error persistiendo hallazgos:', err);
+      console.error('[RASP] Error registrando bloqueo:', err);
     }
   }
 
-  private static persistBlocks(): void {
+  static recordAlert(alert: Omit<RASPAlert, 'id' | 'timestamp'> & { blocked?: boolean }): void {
     try {
-      fs.writeFileSync(BLOCK_LOG_FILE, JSON.stringify(this.blockEvents, null, 2), 'utf-8');
+      const fullAlert: RASPAlert = {
+        ...alert,
+        id: `alert_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+        timestamp: new Date().toISOString(),
+        blocked: alert.blocked !== undefined ? alert.blocked : false,
+      };
+
+      let existingAlerts: RASPAlert[] = [];
+      if (fs.existsSync(ALERT_FILE)) {
+        try {
+          const data = fs.readFileSync(ALERT_FILE, 'utf-8');
+          existingAlerts = JSON.parse(data);
+        } catch (err) {}
+      }
+
+      existingAlerts.unshift(fullAlert);
+      if (existingAlerts.length > MAX_EVENTS_IN_MEMORY) {
+        existingAlerts = existingAlerts.slice(0, MAX_EVENTS_IN_MEMORY);
+      }
+      
+      fs.writeFileSync(ALERT_FILE, JSON.stringify(existingAlerts, null, 2), 'utf-8');
+      this.alerts = existingAlerts;
+      this.broadcastAlert(fullAlert);
+
+      const severityColor = {
+        CRITICAL: '\x1b[41m\x1b[37m',
+        HIGH: '\x1b[31m',
+        MEDIUM: '\x1b[33m',
+        LOW: '\x1b[36m',
+      }[alert.severity] || '';
+
+      console.log(`[RASP] ${severityColor}[${alert.severity}]${'\x1b[0m'} Alerta: ${alert.type} | ${alert.ip}`);
     } catch (err) {
-      console.error('[RASP] Error persistiendo bloqueos:', err);
+      console.error('[RASP] Error registrando alerta:', err);
     }
   }
 
-  private static persistAlerts(): void {
-    try {
-      fs.writeFileSync(ALERT_FILE, JSON.stringify(this.alerts, null, 2), 'utf-8');
-    } catch (err) {
-      console.error('[RASP] Error persistiendo alertas:', err);
-    }
-  }
-
-  // SSE para tiempo real
+  // SSE Methods
   static addSSEClient(res: any): void {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -254,7 +266,7 @@ export class RASPReporter {
     deadClients.forEach(c => this.sseClients.delete(c));
   }
 
-  // Getters para el dashboard
+  // Getters
   static getAllFindings(): RASPFinding[] {
     return [...this.findings];
   }
@@ -272,26 +284,17 @@ export class RASPReporter {
   }
 
   static getSummary() {
-    const blocksBySeverity = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
-    const findingsByType: Record<string, number> = {};
-    
+    const counts = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
     this.findings.forEach(f => {
-      blocksBySeverity[f.severity] = (blocksBySeverity[f.severity] || 0) + 1;
-      findingsByType[f.type] = (findingsByType[f.type] || 0) + 1;
+      counts[f.severity] = (counts[f.severity] || 0) + 1;
     });
-
-    const blockedIPs = [...new Set(this.blockEvents.map(b => b.ip))];
 
     return {
       totalFindings: this.findings.length,
       totalBlocks: this.blockEvents.length,
       totalAlerts: this.alerts.length,
-      bySeverity: blocksBySeverity,
-      byType: findingsByType,
-      blockedIPs,
+      bySeverity: counts,
       lastFinding: this.findings[0] || null,
-      lastBlock: this.blockEvents[0] || null,
-      lastAlert: this.alerts[0] || null,
     };
   }
 
@@ -299,9 +302,9 @@ export class RASPReporter {
     this.findings = [];
     this.blockEvents = [];
     this.alerts = [];
-    this.persistFindings();
-    this.persistBlocks();
-    this.persistAlerts();
+    if (fs.existsSync(FINDINGS_FILE)) fs.unlinkSync(FINDINGS_FILE);
+    if (fs.existsSync(BLOCK_LOG_FILE)) fs.unlinkSync(BLOCK_LOG_FILE);
+    if (fs.existsSync(ALERT_FILE)) fs.unlinkSync(ALERT_FILE);
     console.log('[RASP] 🗑️ Todos los registros limpiados');
   }
 }
