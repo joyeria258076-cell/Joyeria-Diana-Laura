@@ -38,6 +38,7 @@ import bulkUpdateRoutes from './routes/bulkUpdateRoutes';
 import predictiveRoutes from './routes/predictiveRoutes';
 import { AuthRequest } from './middleware/authMiddleware';
 import pool from './config/database';
+import helmet from 'helmet';
 
 // IAST Agent
 import { iastMiddleware, createIASTRouter, initializeIAST } from './iast/IASTMiddleware';
@@ -52,6 +53,11 @@ import {
 import raspRouter from './rasp/RASPRouter';
 
 const app = express();
+
+app.use(helmet({
+  contentSecurityPolicy: false  // desactiva CSP por ahora para no romper recursos externos
+}));
+
 app.disable('x-powered-by');
 const PORT = process.env.PORT || 5000;
 
