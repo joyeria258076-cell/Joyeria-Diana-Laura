@@ -9,6 +9,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import { testConnection } from './config/database';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
@@ -46,7 +47,7 @@ import { iastMiddleware, createIASTRouter, initializeIAST } from './iast/IASTMid
 import { 
   raspMiddleware, 
   rateLimitMiddleware, 
-  helmetMiddleware, 
+  // helmetMiddleware,  // ❌ NO usar el helmetMiddleware de RASP, usar el de helmet directamente
   initializeRASP 
 } from './rasp/RASPMiddleware';
 import raspRouter from './rasp/RASPRouter';
@@ -74,17 +75,43 @@ app.use(cors({
 
 app.options('*', cors());
 
-// ✅ MIDDLEWARES BÁSICOS (ANTES DE SEGURIDAD)
+// ✅ MIDDLEWARES BÁSICOS
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser()); 
 app.use(metricsMiddleware);
 
 // =============================================
-// 🛡️ MIDDLEWARES DE SEGURIDAD (RASP + IAST)
+// 🛡️ HELMET (IAST lo necesita) - Configuración que NO bloquea los dashboards
 // =============================================
-// NOTA: helmetMiddleware ya tiene CSP configurado, no usar otro helmet()
-app.use(helmetMiddleware);      // RASP: Headers de seguridad
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      scriptSrcAttr: ["'unsafe-inline'"],  // 👈 Permitir event handlers para los dashboards
+      imgSrc: ["'self'", "data:", "https:", "http:"],
+      connectSrc: ["'self'", "https:", "http://localhost:5000", "http://localhost:3000"],
+      fontSrc: ["'self'", "https:", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'self'"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: false,
+}));
+
+// =============================================
+// 🛡️ MIDDLEWARES DE SEGURIDAD (RASP - sin helmet duplicado)
+// =============================================
 app.use(rateLimitMiddleware);   // RASP: Rate limiting
 app.use(raspMiddleware);        // RASP: Detección activa
 app.use(iastMiddleware);        // IAST: Monitoreo pasivo
