@@ -49,7 +49,7 @@ function analyzeAllInputs(req: Request): boolean {
   if (req.method === 'POST' && (!req.body || Object.keys(req.body).length === 0)) {
     return false;
   }
-  
+
   // Crear clave única para esta petición
   const cacheKey = `${req.method}:${req.path}:${JSON.stringify(req.query)}:${JSON.stringify(req.params)}`;
   
@@ -180,7 +180,9 @@ export const helmetMiddleware = helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      scriptSrcAttr: ["'unsafe-inline'"],  // 👈 Permitir event handlers inline
       imgSrc: ["'self'", "data:", "https:", "http:"],
+      connectSrc: ["'self'", "https:"],
     },
   },
   hsts: {
@@ -188,6 +190,7 @@ export const helmetMiddleware = helmet({
     includeSubDomains: true,
     preload: true,
   },
+  crossOriginEmbedderPolicy: false,
 });
 
 // Inicialización

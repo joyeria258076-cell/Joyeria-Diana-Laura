@@ -38,7 +38,6 @@ import bulkUpdateRoutes from './routes/bulkUpdateRoutes';
 import predictiveRoutes from './routes/predictiveRoutes';
 import { AuthRequest } from './middleware/authMiddleware';
 import pool from './config/database';
-import helmet from 'helmet';
 
 // IAST Agent
 import { iastMiddleware, createIASTRouter, initializeIAST } from './iast/IASTMiddleware';
@@ -53,15 +52,10 @@ import {
 import raspRouter from './rasp/RASPRouter';
 
 const app = express();
-
-app.use(helmet({
-  contentSecurityPolicy: false  // desactiva CSP por ahora para no romper recursos externos
-}));
-
 app.disable('x-powered-by');
 const PORT = process.env.PORT || 5000;
 
-// ✅ CONFIGURACIÓN CORS
+// ✅ CONFIGURACIÓN CORS (PRIMERO)
 app.use(cors({
   origin: [
     'https://joyeria-diana-laura.vercel.app',
@@ -80,19 +74,20 @@ app.use(cors({
 
 app.options('*', cors());
 
-// =============================================
-// 🛡️ MIDDLEWARES DE SEGURIDAD (RASP + IAST)
-// =============================================
-app.use(helmetMiddleware);      // RASP: Headers de seguridad
-app.use(rateLimitMiddleware);   // RASP: Rate limiting
-app.use(raspMiddleware);        // RASP: Detección activa
-app.use(iastMiddleware);        // IAST: Monitoreo pasivo
-
-// ✅ Middlewares básicos (después de seguridad)
+// ✅ MIDDLEWARES BÁSICOS (ANTES DE SEGURIDAD)
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser()); 
 app.use(metricsMiddleware);
+
+// =============================================
+// 🛡️ MIDDLEWARES DE SEGURIDAD (RASP + IAST)
+// =============================================
+// NOTA: helmetMiddleware ya tiene CSP configurado, no usar otro helmet()
+app.use(helmetMiddleware);      // RASP: Headers de seguridad
+app.use(rateLimitMiddleware);   // RASP: Rate limiting
+app.use(raspMiddleware);        // RASP: Detección activa
+app.use(iastMiddleware);        // IAST: Monitoreo pasivo
 
 // =============================================
 // 📊 DASHBOARDS (IAST y RASP)
