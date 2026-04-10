@@ -66,7 +66,6 @@ const TEMPLATE_CONFIG: { [key: string]: TemplateConfig } = {
     label: 'Productos',
     icon: '💎',
     columnas: [
-      // ❌ ELIMINADO: 'codigo' - Se genera automáticamente
       { name: 'nombre',             type: 'texto',    required: true,  width: 24, description: 'Nombre del producto',                       example: 'Anillo de Oro 18k' },
       { name: 'descripcion',        type: 'texto',    required: false, width: 32, description: 'Descripción detallada del artículo',         example: 'Anillo clásico con diseño elegante' },
       { name: 'categoria_id',       type: 'número',   required: true,  width: 16, description: 'ID de la categoría (ver hoja "Catálogos")',  example: 1 },
@@ -149,15 +148,19 @@ const TEMPLATE_CONFIG: { [key: string]: TemplateConfig } = {
     ],
   },
 
-  // ── PREGUNTAS FRECUENTES ───────────────────
-  preguntas_frecuentes: {
-    label: 'Preguntas Frecuentes',
-    icon: '❓',
+  // ── PROMOCIONES ────────────────────────────
+  promociones: {
+    label: 'Promociones',
+    icon: '🎉',
     columnas: [
-      { name: 'categoria', type: 'texto',  required: false, width: 20, description: 'Categoría de la pregunta (Envíos, Pagos, etc.)', example: 'Envíos' },
-      { name: 'pregunta',  type: 'texto',  required: true,  width: 40, description: 'Pregunta del cliente',                           example: '¿Cuánto tiempo tarda mi pedido?' },
-      { name: 'respuesta', type: 'texto',  required: true,  width: 50, description: 'Respuesta completa',                             example: 'Los pedidos se entregan en 3-5 días hábiles.' },
-      { name: 'orden',     type: 'número', required: false, width: 12, description: 'Orden de aparición (1, 2, 3...)',                 example: 1 },
+      { name: 'nombre',               type: 'texto',  required: true,  width: 26, description: 'Nombre de la promoción',                      example: 'Descuento Primavera' },
+      { name: 'codigo_cupon',         type: 'texto',  required: false, width: 18, description: 'Código único del cupón',                      example: 'PRIMAVERA25' },
+      { name: 'descripcion',          type: 'texto',  required: false, width: 36, description: 'Descripción de la promoción',                  example: '25% de descuento en toda la colección' },
+      { name: 'tipo',                 type: 'texto',  required: true,  width: 16, description: 'porcentaje | monto_fijo | envio_gratis',      example: 'porcentaje' },
+      { name: 'valor_descuento',      type: 'decimal', required: true,  width: 16, description: 'Valor del descuento (ej: 25 para 25%)',       example: 25.00 },
+      { name: 'fecha_inicio',         type: 'fecha',  required: true,  width: 16, description: 'Fecha de inicio (YYYY-MM-DD)',                example: '2025-03-01' },
+      { name: 'fecha_fin',            type: 'fecha',  required: true,  width: 16, description: 'Fecha de fin (YYYY-MM-DD)',                   example: '2025-04-30' },
+      { name: 'monto_minimo_compra',  type: 'decimal', required: false, width: 18, description: 'Monto mínimo para aplicar promoción',         example: 500.00 },
     ],
   },
 
@@ -172,6 +175,72 @@ const TEMPLATE_CONFIG: { [key: string]: TemplateConfig } = {
       { name: 'descripcion', type: 'texto', required: false, width: 36, description: 'Instrucciones adicionales para el cliente', example: 'Pago por SPEI a cuenta CLABE indicada' },
       { name: 'orden',    type: 'número', required: false, width: 12, description: 'Posición en el checkout',                  example: 1 },
     ],
+  },
+
+  // ── PREGUNTAS FRECUENTES ───────────────────
+  preguntas_frecuentes: {
+    label: 'Preguntas Frecuentes',
+    icon: '❓',
+    columnas: [
+      { name: 'categoria', type: 'texto',  required: false, width: 20, description: 'Categoría de la pregunta (Envíos, Pagos, etc.)', example: 'Envíos' },
+      { name: 'pregunta',  type: 'texto',  required: true,  width: 40, description: 'Pregunta del cliente',                           example: '¿Cuánto tiempo tarda mi pedido?' },
+      { name: 'respuesta', type: 'texto',  required: true,  width: 50, description: 'Respuesta completa',                             example: 'Los pedidos se entregan en 3-5 días hábiles.' },
+      { name: 'orden',     type: 'número', required: false, width: 12, description: 'Orden de aparición (1, 2, 3...)',                 example: 1 },
+    ],
+  },
+
+  // ✅ NUEVO: VENTAS ───────────────────────────
+  ventas: {
+    label: 'Ventas',
+    icon: '💰',
+    columnas: [
+      { name: 'cliente_id',               type: 'número',   required: true,  width: 14, description: 'ID del cliente (ver tabla clientes o hoja Catálogos)', example: 1 },
+      { name: 'cliente_nombre_completo',  type: 'texto',    required: false, width: 28, description: 'Nombre completo del cliente (si no tienes ID)',        example: 'María García López' },
+      { name: 'cliente_email',            type: 'texto',    required: true,  width: 28, description: 'Correo electrónico del cliente',                       example: 'maria@email.com' },
+      { name: 'cliente_telefono',         type: 'texto',    required: false, width: 16, description: 'Teléfono de contacto',                                  example: '5512345678' },
+      { name: 'metodo_pago_id',           type: 'número',   required: true,  width: 16, description: 'ID del método de pago (ver hoja Catálogos)',            example: 1 },
+      { name: 'estado',                   type: 'texto',    required: false, width: 18, description: 'pendiente | confirmado | en_preparacion | enviado | entregado | cancelado', example: 'pendiente' },
+      { name: 'subtotal',                 type: 'decimal',  required: true,  width: 16, description: 'Subtotal sin IVA ni envío',                             example: 1000.00 },
+      { name: 'descuento',                type: 'decimal',  required: false, width: 16, description: 'Monto total de descuento aplicado',                     example: 0.00 },
+      { name: 'iva',                      type: 'decimal',  required: true,  width: 14, description: 'Monto de IVA (generalmente 16%)',                       example: 160.00 },
+      { name: 'costo_envio',              type: 'decimal',  required: false, width: 16, description: 'Costo de envío',                                        example: 100.00 },
+      { name: 'total',                    type: 'decimal',  required: true,  width: 16, description: 'Total a pagar (subtotal - descuento + iva + envío)',    example: 1260.00 },
+      { name: 'fecha_creacion',           type: 'fecha',    required: false, width: 16, description: 'Fecha de la venta (YYYY-MM-DD). Si se omite, usa hoy', example: '2024-01-15' },
+      { name: 'notas_cliente',            type: 'texto',    required: false, width: 36, description: 'Notas o instrucciones del cliente',                     example: 'Entregar antes de las 5pm' },
+      { name: 'notas_internas',           type: 'texto',    required: false, width: 36, description: 'Notas internas para el equipo',                         example: 'Cliente frecuente' },
+      { name: 'tipo_entrega',             type: 'texto',    required: false, width: 18, description: 'domicilio | tienda',                                    example: 'domicilio' },
+      { name: 'direccion_entrega_id',     type: 'número',   required: false, width: 18, description: 'ID de dirección del cliente (si aplica)',               example: 1 },
+      { name: 'trabajador_id',            type: 'número',   required: false, width: 16, description: 'ID del trabajador que atendió la venta',                example: 1 },
+      { name: 'numero_guia',              type: 'texto',    required: false, width: 18, description: 'Número de guía de envío',                               example: 'PAK-123456789' },
+      { name: 'paqueteria',               type: 'texto',    required: false, width: 18, description: 'Nombre de la paquetería',                               example: 'Estafeta' },
+      { name: 'fecha_estimada_entrega',   type: 'fecha',    required: false, width: 18, description: 'Fecha estimada de entrega (YYYY-MM-DD)',                example: '2024-01-20' },
+      { name: 'codigo_entrega',           type: 'texto',    required: false, width: 18, description: 'Código único para confirmar entrega',                   example: 'ABC123XYZ' },
+    ],
+    relaciones: {
+      clientes: 'SELECT id, CONCAT(nombre, \' \', COALESCE(apellido, \'\')) as nombre FROM clientes WHERE activo = true ORDER BY nombre',
+      metodos_pago: 'SELECT id, nombre FROM metodos_pago WHERE activo = true ORDER BY orden',
+      trabajadores: 'SELECT id, nombre FROM usuarios WHERE rol IN (\'admin\', \'gestor_pedidos\', \'gestor_ventas\') ORDER BY nombre',
+    },
+  },
+
+  // ✅ NUEVO: DETALLE VENTAS ───────────────────
+  detalle_ventas: {
+    label: 'Detalle de Ventas',
+    icon: '📦',
+    columnas: [
+      { name: 'venta_id',           type: 'número',   required: true,  width: 14, description: 'ID de la venta (debe existir en tabla ventas)',           example: 1 },
+      { name: 'producto_id',        type: 'número',   required: true,  width: 14, description: 'ID del producto (ver hoja Catálogos)',                    example: 101 },
+      { name: 'producto_codigo',    type: 'texto',    required: false, width: 18, description: 'Código del producto (alternativa a producto_id)',         example: 'PROD-001' },
+      { name: 'producto_nombre',    type: 'texto',    required: false, width: 28, description: 'Nombre del producto (snapshot histórico)',                example: 'Anillo de Oro 18k' },
+      { name: 'cantidad',           type: 'número',   required: true,  width: 12, description: 'Cantidad de unidades vendidas',                           example: 2 },
+      { name: 'precio_unitario',    type: 'decimal',  required: true,  width: 16, description: 'Precio por unidad al momento de la venta',                example: 500.00 },
+      { name: 'descuento_unitario', type: 'decimal',  required: false, width: 18, description: 'Descuento aplicado por unidad',                           example: 0.00 },
+      { name: 'personalizacion',    type: 'json',     required: false, width: 40, description: 'Detalles de personalización en formato JSON',             example: '{"talla":"7","grabado":"Te amo"}' },
+    ],
+    relaciones: {
+      productos: 'SELECT id, codigo, nombre FROM productos WHERE activo = true ORDER BY nombre LIMIT 100',
+      ventas: 'SELECT id, folio, cliente_nombre_completo FROM ventas ORDER BY id DESC LIMIT 100',
+    },
   },
 };
 
@@ -291,8 +360,6 @@ function buildDatosSheet(wb: ExcelJS.Workbook, tableName: string, config: Templa
   ws.getRow(7).height = 30;
 
   // ── ROW 8: Fila de ejemplo ────────────────────────────────────────────
-  const exLabel = ws.getCell(8, 1);
-  // Put "Ejemplo →" only in first col if there's space, otherwise just fill
   config.columnas.forEach((col, i) => {
     const cell = ws.getCell(8, i + 1);
     cell.value = col.example;
@@ -360,7 +427,6 @@ function buildInstruccionesSheet(wb: ExcelJS.Workbook, config: TemplateConfig) {
 
   // Column headers
   const headers = ['#', 'Paso', 'Descripción', 'Ejemplo'];
-  const headerBgs = [C.BRAND_DARK, C.BRAND_DARK, C.BRAND_DARK, C.BRAND_DARK];
   headers.forEach((h, i) => {
     const cell = ws.getCell(4, i + 1);
     cell.value = h;
@@ -416,7 +482,7 @@ function buildInstruccionesSheet(wb: ExcelJS.Workbook, config: TemplateConfig) {
   const tips = [
     ['❌ Error',        'Descripción',                                         'Solución'],
     ['Campo requerido', 'Dejaste vacío un campo marcado como REQUERIDO',      'Llena todos los campos en verde antes de importar'],
-    ['ID inválido',     'Usaste un categoria_id o proveedor_id que no existe', 'Consulta la hoja "Catálogos" para ver IDs válidos'],
+    ['ID inválido',     'Usaste un ID que no existe en el sistema',            'Consulta la hoja "Catálogos" para ver IDs válidos'],
     ['Formato decimal', 'Escribiste "1,500" en lugar de "1500.00"',            'Usa punto como separador decimal'],
     ['Columna extra',   'Agregaste o renombraste columnas del encabezado',     'Restaura los nombres de la fila 4 tal como están'],
     ['Archivo vacío',   'El CSV no tiene datos o tiene formato incorrecto',    'Asegúrate de guardar como "CSV UTF-8"'],
@@ -514,7 +580,7 @@ async function buildCatalogosSheet(
     });
 
     ws.getColumn(startCol).width = 8;
-    ws.getColumn(startCol + 1).width = 28;
+    ws.getColumn(startCol + 1).width = 32;
 
     startCol += 3; // leave a gap column between tables
   }
@@ -545,7 +611,8 @@ export const templateController = {
           try {
             const result = await pool.query(query);
             relaciones[campo] = result.rows;
-          } catch {
+          } catch (error) {
+            console.error(`Error loading relation ${campo}:`, error);
             relaciones[campo] = [];
           }
         }
@@ -595,7 +662,8 @@ export const templateController = {
           try {
             const result = await pool.query(query);
             relaciones[campo] = result.rows;
-          } catch {
+          } catch (error) {
+            console.error(`Error loading relation ${campo}:`, error);
             relaciones[campo] = [];
           }
         }
