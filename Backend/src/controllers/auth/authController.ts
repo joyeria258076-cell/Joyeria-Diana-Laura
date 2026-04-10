@@ -34,7 +34,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Email es requerido' });
     }
 
-    const emailSecurityCheck = validateEmailSecurity(email);
+    /*const emailSecurityCheck = validateEmailSecurity(email);
     if (!emailSecurityCheck.valid) {
       console.log(`🚫 Intento de inyección detectado en email: ${emailSecurityCheck.message}`);
       return res.status(400).json({ success: false, message: emailSecurityCheck.message });
@@ -44,7 +44,7 @@ export const login = async (req: Request, res: Response) => {
     if (!passwordSecurityCheck.valid) {
       console.log(`🚫 Intento de inyección detectado en contraseña: ${passwordSecurityCheck.message}`);
       return res.status(400).json({ success: false, message: passwordSecurityCheck.message });
-    }
+    }*/
 
     console.log(`🔐 Procesando login para: ${email} desde IP: ${clientIp}`);
 
