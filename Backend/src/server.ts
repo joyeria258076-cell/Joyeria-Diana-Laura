@@ -9,7 +9,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
+import helmet from 'helmet';  // ✅ Usar helmet directamente
 import { testConnection } from './config/database';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
@@ -47,7 +47,7 @@ import { iastMiddleware, createIASTRouter, initializeIAST } from './iast/IASTMid
 import { 
   raspMiddleware, 
   rateLimitMiddleware, 
-  // helmetMiddleware,  // ❌ NO usar el helmetMiddleware de RASP, usar el de helmet directamente
+  // ❌ NO importar helmetMiddleware de RASP (para evitar conflicto)
   initializeRASP 
 } from './rasp/RASPMiddleware';
 import raspRouter from './rasp/RASPRouter';
@@ -82,23 +82,26 @@ app.use(cookieParser());
 app.use(metricsMiddleware);
 
 // =============================================
-// 🛡️ HELMET (IAST lo necesita) - Configuración que NO bloquea los dashboards
+// 🛡️ HELMET - Configuración completa (IAST + RASP + Servicios externos)
 // =============================================
 app.use(helmet({
   contentSecurityPolicy: {
+    useDefaults: true,
     directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      scriptSrcAttr: ["'unsafe-inline'"],  // 👈 Permitir event handlers para los dashboards
-      imgSrc: ["'self'", "data:", "https:", "http:"],
-      connectSrc: ["'self'", "https:", "http://localhost:5000", "http://localhost:3000"],
-      fontSrc: ["'self'", "https:", "data:"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'self'"],
+      "default-src": ["'self'"],
+      "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      "script-src-attr": ["'unsafe-inline'"],
+      "connect-src": ["*"], // Permite Ngrok, APIs externas, IAST, RASP, etc.
+      "img-src": ["*", "data:"], // Permite fotos de Cloudinary y cualquier origen
+      "style-src": ["'self'", "'unsafe-inline'"],
+      "frame-ancestors": ["'self'"], // Protege contra Clickjacking pero permite tu propio sitio
+      "font-src": ["'self'", "https:", "data:"],
+      "object-src": ["'none'"],
+      "media-src": ["'self'"],
+      "frame-src": ["'self'"],
     },
   },
+  crossOriginResourcePolicy: { policy: "cross-origin" },
   hsts: {
     maxAge: 31536000,
     includeSubDomains: true,
@@ -106,11 +109,10 @@ app.use(helmet({
   },
   crossOriginEmbedderPolicy: false,
   crossOriginOpenerPolicy: false,
-  crossOriginResourcePolicy: false,
 }));
 
 // =============================================
-// 🛡️ MIDDLEWARES DE SEGURIDAD (RASP - sin helmet duplicado)
+// 🛡️ MIDDLEWARES DE SEGURIDAD (RASP - SIN helmet duplicado)
 // =============================================
 app.use(rateLimitMiddleware);   // RASP: Rate limiting
 app.use(raspMiddleware);        // RASP: Detección activa
