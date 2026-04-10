@@ -1,0 +1,12 @@
+[
+  {
+    "ip": "::1",
+    "path": "system",
+    "method": "RATE_LIMIT",
+    "reason": "Comportamiento anómalo",
+    "suspiciousScore": 50,
+    "blocked": true,
+    "id": "block_1775749162086_vbws5a",
+    "timestamp": "2026-04-09T15:39:22.086Z"
+  }
+]

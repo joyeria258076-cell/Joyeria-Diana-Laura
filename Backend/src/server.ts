@@ -1,11 +1,15 @@
 // Backend/src/server.ts
 //import 'newrelic';
+import dotenv from 'dotenv';
+dotenv.config();
+
 if (process.env.NEW_RELIC_LICENSE_KEY) {
   require('newrelic');
 }
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import helmet from 'helmet';  // ✅ Usar helmet directamente
 import { testConnection } from './config/database';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
@@ -35,20 +39,24 @@ import bulkUpdateRoutes from './routes/bulkUpdateRoutes';
 import predictiveRoutes from './routes/predictiveRoutes';
 import { AuthRequest } from './middleware/authMiddleware';
 import pool from './config/database';
+
 // IAST Agent
 import { iastMiddleware, createIASTRouter, initializeIAST } from './iast/IASTMiddleware';
-import helmet from 'helmet';
 
-dotenv.config();
+// RASP Agent
+import { 
+  raspMiddleware, 
+  rateLimitMiddleware, 
+  // ❌ NO importar helmetMiddleware de RASP (para evitar conflicto)
+  initializeRASP 
+} from './rasp/RASPMiddleware';
+import raspRouter from './rasp/RASPRouter';
 
 const app = express();
-app.use(helmet({
-  contentSecurityPolicy: false  // desactiva CSP por ahora para no romper recursos externos
-}));
 app.disable('x-powered-by');
 const PORT = process.env.PORT || 5000;
 
-// ✅ CONFIGURACIÓN CORS
+// ✅ CONFIGURACIÓN CORS (PRIMERO)
 app.use(cors({
   origin: [
     'https://joyeria-diana-laura.vercel.app',
@@ -67,14 +75,54 @@ app.use(cors({
 
 app.options('*', cors());
 
-// ✅ Middlewares básicos
+// ✅ MIDDLEWARES BÁSICOS
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser()); 
 app.use(metricsMiddleware);
 
-app.use(iastMiddleware);
-app.use('/iast', createIASTRouter());
+// =============================================
+// 🛡️ HELMET - Configuración completa (IAST + RASP + Servicios externos)
+// =============================================
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      "default-src": ["'self'"],
+      "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      "script-src-attr": ["'unsafe-inline'"],
+      "connect-src": ["*"], // Permite Ngrok, APIs externas, IAST, RASP, etc.
+      "img-src": ["*", "data:"], // Permite fotos de Cloudinary y cualquier origen
+      "style-src": ["'self'", "'unsafe-inline'"],
+      "frame-ancestors": ["'self'"], // Protege contra Clickjacking pero permite tu propio sitio
+      "font-src": ["'self'", "https:", "data:"],
+      "object-src": ["'none'"],
+      "media-src": ["'self'"],
+      "frame-src": ["'self'"],
+    },
+  },
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
+}));
+
+// =============================================
+// 🛡️ MIDDLEWARES DE SEGURIDAD (RASP - SIN helmet duplicado)
+// =============================================
+app.use(rateLimitMiddleware);   // RASP: Rate limiting
+app.use(raspMiddleware);        // RASP: Detección activa
+app.use(iastMiddleware);        // IAST: Monitoreo pasivo
+
+// =============================================
+// 📊 DASHBOARDS (IAST y RASP)
+// =============================================
+app.use('/iast', createIASTRouter());  // IAST Dashboard
+app.use('/rasp', raspRouter);          // RASP Dashboard
 
 // 🌟 Middleware condicional para rutas públicas/privadas
 app.use((req, res, next) => {
@@ -218,6 +266,8 @@ app.listen(PORT, async () => {
   console.log(`   📤 Export: http://localhost:${PORT}/api/export`);
   console.log(`   🔄 Bulk Update: http://localhost:${PORT}/api/bulk-update`);
   console.log(`   🔍 Debug Role: http://localhost:${PORT}/api/debug/my-role`);
+  console.log(`   🔐 IAST Dashboard: http://localhost:${PORT}/iast/dashboard`);
+  console.log(`   🛡️ RASP Dashboard: http://localhost:${PORT}/rasp/dashboard`);
   console.log(`🔐 CORS Headers permitidos: Content-Type, Authorization, X-Session-Token`);
   console.log(`   🛠️ Admin: http://localhost:${PORT}/api/admin`);
 
@@ -242,7 +292,8 @@ app.listen(PORT, async () => {
   
   setupErrorMonitoring();
   await cleanupOldLogs();
-  initializeIAST();
+  initializeRASP();   // Inicializar RASP
+  initializeIAST();   // Inicializar IAST
   
   console.log('=================================\n');
 });
