@@ -17,7 +17,9 @@ const TABLAS_PERMITIDAS = [
   'tipos_producto',
   'promociones',
   'metodos_pago',
-  'preguntas_frecuentes'
+  'preguntas_frecuentes',
+  'ventas',           // ✅ NUEVA: Permitir importación de ventas
+  'detalle_ventas'    // ✅ NUEVA: Permitir importación de detalle_ventas
 ];
 
 interface RequestWithFile extends AuthRequest {
@@ -340,6 +342,36 @@ export const importController = {
         data.forEach((row: any, index: number) => {
           if (!row.nombre) {
             advertencias.push(`Fila ${index + 1}: Falta el nombre del proveedor`);
+          }
+        });
+      }
+
+      // ✅ VALIDACIONES PARA VENTAS
+      if (tableName === 'ventas') {
+        data.forEach((row: any, index: number) => {
+          if (!row.cliente_id && !row.cliente_nombre_completo) {
+            advertencias.push(`Fila ${index + 1}: Se recomienda tener cliente_id o cliente_nombre_completo`);
+          }
+          if (!row.metodo_pago_id) {
+            advertencias.push(`Fila ${index + 1}: metodo_pago_id es recomendado`);
+          }
+          if (!row.total && !row.subtotal) {
+            advertencias.push(`Fila ${index + 1}: Se recomienda total o subtotal`);
+          }
+        });
+      }
+
+      // ✅ VALIDACIONES PARA DETALLE_VENTAS
+      if (tableName === 'detalle_ventas') {
+        data.forEach((row: any, index: number) => {
+          if (!row.venta_id) {
+            advertencias.push(`Fila ${index + 1}: venta_id es obligatorio`);
+          }
+          if (!row.producto_id && !row.producto_codigo) {
+            advertencias.push(`Fila ${index + 1}: Se requiere producto_id o producto_codigo`);
+          }
+          if (!row.cantidad || row.cantidad <= 0) {
+            advertencias.push(`Fila ${index + 1}: cantidad debe ser mayor a 0`);
           }
         });
       }
