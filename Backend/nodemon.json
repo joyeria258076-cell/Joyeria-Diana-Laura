@@ -1,0 +1,20 @@
+{
+  "watch": ["src"],
+  "ignore": [
+    "src/**/*.test.ts",
+    "iast-reports/**/*",
+    "backups_automaticos/**/*",
+    "rasp-reports/**/*",
+    "*.log",
+    "*.json"
+  ],
+  "ext": "ts,json",
+  "exec": "ts-node src/server.ts",
+  "signal": "SIGTERM",
+  "exitcrash": false,
+  "verbose": false,
+  "quiet": false,
+  "events": {
+    "restart": "echo \"🔄 Servidor reiniciado\""
+  }
+}

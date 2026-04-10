@@ -1,0 +1,80 @@
+[
+  {
+    "severity": "HIGH",
+    "type": "SQL Injection",
+    "ip": "::1",
+    "path": "/api/products/search",
+    "method": "GET",
+    "field": "query.q",
+    "payload": "; ls",
+    "blocked": true,
+    "description": "Intento de inyección SQL detectado en el campo query.q",
+    "id": "finding_1775766860593_no18zk",
+    "timestamp": "2026-04-09T20:34:20.593Z"
+  },
+  {
+    "severity": "MEDIUM",
+    "type": "Path Traversal",
+    "ip": "::1",
+    "path": "/api/products/search",
+    "method": "GET",
+    "field": "query.q",
+    "payload": "..\\..\\..\\config\\database.ts",
+    "blocked": true,
+    "description": "Intento de Path Traversal detectado en el campo query.q",
+    "id": "finding_1775766849374_sqapup",
+    "timestamp": "2026-04-09T20:34:09.374Z"
+  },
+  {
+    "severity": "MEDIUM",
+    "type": "Path Traversal",
+    "ip": "::1",
+    "path": "/api/products/search",
+    "method": "GET",
+    "field": "query.q",
+    "payload": "../../../.env",
+    "blocked": true,
+    "description": "Intento de Path Traversal detectado en el campo query.q",
+    "id": "finding_1775765595256_v3e3ia",
+    "timestamp": "2026-04-09T20:13:15.256Z"
+  },
+  {
+    "severity": "MEDIUM",
+    "type": "XSS",
+    "ip": "::1",
+    "path": "/api/products/search",
+    "method": "GET",
+    "field": "query.q",
+    "payload": "<img src=x onerror=alert(1)>",
+    "blocked": true,
+    "description": "Intento de XSS detectado en el campo query.q",
+    "id": "finding_1775765590967_w9trod",
+    "timestamp": "2026-04-09T20:13:10.967Z"
+  },
+  {
+    "severity": "MEDIUM",
+    "type": "XSS",
+    "ip": "::1",
+    "path": "/api/products/search",
+    "method": "GET",
+    "field": "query.q",
+    "payload": "<img src=x onerror=alert(1)>",
+    "blocked": true,
+    "description": "Intento de XSS detectado en el campo query.q",
+    "id": "finding_1775765582880_grma12",
+    "timestamp": "2026-04-09T20:13:02.880Z"
+  },
+  {
+    "severity": "MEDIUM",
+    "type": "XSS",
+    "ip": "::1",
+    "path": "/api/products/search",
+    "method": "GET",
+    "field": "query.q",
+    "payload": "<script>alert(1)</script>",
+    "blocked": true,
+    "description": "Intento de XSS detectado en el campo query.q",
+    "id": "finding_1775765570619_krsj7q",
+    "timestamp": "2026-04-09T20:12:50.619Z"
+  }
+]
