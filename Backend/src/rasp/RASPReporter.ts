@@ -40,7 +40,7 @@ export interface RASPFinding {
   description: string;
 }
 
-// En Render, usar /tmp (persistente durante la vida del contenedor)
+// ✅ MISMA LÓGICA QUE IAST: usar /tmp en Render
 const IS_RENDER = !!process.env.RENDER;
 const REPORTS_DIR = IS_RENDER ? '/tmp/rasp-reports' : path.join(process.cwd(), 'rasp-reports');
 const FINDINGS_FILE = path.join(REPORTS_DIR, 'rasp-findings.json');
@@ -59,7 +59,7 @@ export class RASPReporter {
     if (this.initialized) return;
     this.initialized = true;
 
-    // Crear directorio si no existe
+    // ✅ Crear directorio igual que IAST
     if (!fs.existsSync(REPORTS_DIR)) {
       try {
         fs.mkdirSync(REPORTS_DIR, { recursive: true });
@@ -69,7 +69,7 @@ export class RASPReporter {
       }
     }
 
-    // Cargar hallazgos previos
+    // ✅ Cargar hallazgos previos (igual que IAST)
     if (fs.existsSync(FINDINGS_FILE)) {
       try {
         const data = fs.readFileSync(FINDINGS_FILE, 'utf-8');
@@ -93,7 +93,7 @@ export class RASPReporter {
         timestamp: new Date().toISOString(),
       };
 
-      // Leer hallazgos existentes
+      // ✅ Leer hallazgos existentes (misma lógica que IAST)
       let existingFindings: RASPFinding[] = [];
       if (fs.existsSync(FINDINGS_FILE)) {
         try {
@@ -112,7 +112,7 @@ export class RASPReporter {
         existingFindings = existingFindings.slice(0, MAX_EVENTS_IN_MEMORY);
       }
       
-      // Guardar
+      // ✅ Guardar (misma lógica que IAST)
       fs.writeFileSync(FINDINGS_FILE, JSON.stringify(existingFindings, null, 2), 'utf-8');
       
       // Actualizar memoria
@@ -192,21 +192,12 @@ export class RASPReporter {
       fs.writeFileSync(ALERT_FILE, JSON.stringify(existingAlerts, null, 2), 'utf-8');
       this.alerts = existingAlerts;
       this.broadcastAlert(fullAlert);
-
-      const severityColor = {
-        CRITICAL: '\x1b[41m\x1b[37m',
-        HIGH: '\x1b[31m',
-        MEDIUM: '\x1b[33m',
-        LOW: '\x1b[36m',
-      }[alert.severity] || '';
-
-      console.log(`[RASP] ${severityColor}[${alert.severity}]${'\x1b[0m'} Alerta: ${alert.type} | ${alert.ip}`);
     } catch (err) {
       console.error('[RASP] Error registrando alerta:', err);
     }
   }
 
-  // SSE Methods
+  // ✅ MÉTODOS SSE (igual que IAST)
   static addSSEClient(res: any): void {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');

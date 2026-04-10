@@ -36,17 +36,14 @@ export interface RASPConfig {
   };
 }
 
-// Leer variables de entorno
+// ✅ Leer variables de entorno como IAST
 const getLogOnlyMode = (): boolean => {
-  // Si existe variable RASP_LOG_ONLY, usarla
   if (process.env.RASP_LOG_ONLY !== undefined) {
     return process.env.RASP_LOG_ONLY === 'true';
   }
-  // Si existe RASP_BLOCK_MODE, invertir (si es true, logOnlyMode=false)
   if (process.env.RASP_BLOCK_MODE !== undefined) {
     return process.env.RASP_BLOCK_MODE !== 'true';
   }
-  // Por defecto: modo log only en desarrollo, bloqueo en producción
   return process.env.NODE_ENV === 'development';
 };
 
@@ -54,7 +51,7 @@ const getEnabled = (): boolean => {
   if (process.env.RASP_ENABLED !== undefined) {
     return process.env.RASP_ENABLED === 'true';
   }
-  return true; // Activado por defecto
+  return true;
 };
 
 export const defaultConfig: RASPConfig = {
@@ -64,7 +61,7 @@ export const defaultConfig: RASPConfig = {
   
   rateLimit: {
     windowMs: 15 * 60 * 1000,
-    max: parseInt(process.env.RASP_RATE_LIMIT_MAX || '200'),
+    max: parseInt(process.env.RASP_RATE_LIMIT_MAX || '500'),
     skipSuccessfulRequests: false,
   },
   
@@ -96,11 +93,7 @@ export const defaultConfig: RASPConfig = {
   commandInjection: {
     enabled: false,
     block: false,
-    patterns: [
-      /(\||;|\$\(|`|\${|\&|\n|\r)/,
-      /\b(exec|system|eval|child_process|require|fs\.|process\.|__dirname|__filename)\b/i,
-      /(curl|wget|nc|bash|sh|powershell|cmd\.exe)/i,
-    ],
+    patterns: [],
   },
   
   anomalies: {
