@@ -294,10 +294,19 @@ const AdminVariablesConfigScreen: React.FC = () => {
                     </div>
 
                     <p className="variable-descripcion">{variable.descripcion}</p>
-
                     {editMode[variable.clave] ? (
-                      <div className="variable-edit">
-                        {variable.tipo_dato === 'boolean' ? (
+                    <div className="variable-edit">
+                        {variable.clave === 'unidad_expiracion_pago' ? (
+                          <select
+                            value={editValues[variable.clave] || variable.valor}
+                            onChange={(e) => handleChange(variable.clave, e.target.value)}
+                            className="variable-input"
+                          >
+                            <option value="minutos">Minutos</option>
+                            <option value="horas">Horas</option>
+                            <option value="dias">Días</option>
+                          </select>
+                        ) : variable.tipo_dato === 'boolean' ? (
                           <select
                             value={editValues[variable.clave] || variable.valor}
                             onChange={(e) => handleChange(variable.clave, e.target.value)}
@@ -307,9 +316,9 @@ const AdminVariablesConfigScreen: React.FC = () => {
                             <option value="false">✗ Falso</option>
                           </select>
                         ) : (
-                          <input
-                            type={variable.es_sensible && !showSensitive[variable.clave] ? 'password' : 
-                                  variable.tipo_dato === 'decimal' || variable.tipo_dato === 'integer' ? 'number' : 'text'}
+                      <input
+                          type={variable.es_sensible && !showSensitive[variable.clave] ? 'password' : 
+                                variable.tipo_dato === 'decimal' || variable.tipo_dato === 'integer' ? 'number' : 'text'}
                             step={variable.tipo_dato === 'decimal' ? '0.01' : '1'}
                             value={editValues[variable.clave] || variable.valor}
                             onChange={(e) => handleChange(variable.clave, e.target.value)}

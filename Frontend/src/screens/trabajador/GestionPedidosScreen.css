@@ -610,3 +610,36 @@
     white-space: nowrap;
 }
 .gp-btn-confirmar-entrega:disabled { opacity: 0.5; cursor: not-allowed; }
+.gp-paginacion {
+    display: flex; align-items: center; justify-content: center;
+    gap: 16px; padding: 16px 0; margin-top: 8px;
+}
+.gp-pag-btn {
+    background: rgba(236,178,195,0.1); border: 1px solid rgba(236,178,195,0.25);
+    color: #ecb2c3; border-radius: 8px; padding: 8px 16px;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    font-family: 'Montserrat', sans-serif; transition: 0.2s;
+}
+.gp-pag-btn:hover:not(:disabled) { background: rgba(236,178,195,0.2); }
+.gp-pag-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.gp-pag-info { font-size: 0.82rem; color: #8a7a82; }
+.gp-busqueda {
+    flex: 1; min-width: 200px; max-width: 300px;
+    padding: 8px 12px; font-size: 0.82rem;
+    width: 100%;
+    max-width: 360px; 
+}
+.gp-fila-vencida { background: rgba(224,90,106,0.06); }
+.gp-badge-vencido {
+    display: inline-block; background: rgba(224,90,106,0.15);
+    color: #e05a6a; border: 1px solid rgba(224,90,106,0.3);
+    border-radius: 6px; padding: 2px 8px; font-size: 0.7rem;
+    font-weight: 700; margin-top: 4px;
+}
+.gp-info-config {
+    background: rgba(236,178,195,0.08);
+    border: 1px solid rgba(236,178,195,0.2);
+    color: #8a7a82; border-radius: 8px;
+    padding: 7px 14px; font-size: 0.78rem;
+    font-weight: 600;
+}

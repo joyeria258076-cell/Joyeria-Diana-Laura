@@ -99,7 +99,11 @@ export const VentaModel = {
             WHERE activo = true
             ORDER BY orden ASC, id ASC
         `);
-        return result.rows;
+        const config = await pool.query(`
+            SELECT valor FROM configuracion WHERE clave = 'costo_envio_default'
+        `);
+        const costo_envio = config.rows.length > 0 ? parseInt(config.rows[0].valor) : 50;
+        return { metodos: result.rows, costo_envio };
     },
 
     getMetodoPagoId: async (): Promise<number | null> => {
@@ -125,6 +129,8 @@ export const VentaModel = {
         metodo_pago_id:  number;
         direccion_envio: string;
         notas_cliente?:  string;
+        tipo_entrega?:   string;
+        costo_envio?:    number;
         items: {
             producto_id:     number;
             producto_codigo: string;
@@ -138,31 +144,36 @@ export const VentaModel = {
         try {
             await client.query('BEGIN');
 
-            const total    = data.items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
-            const subtotal = Number.parseFloat((total / 1.16).toFixed(2));
-            const iva      = Number.parseFloat((total - subtotal).toFixed(2));
+            const totalProductos = data.items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+            const costoEnvio     = data.costo_envio || 0;
+            const total          = totalProductos + costoEnvio;
+            const subtotal       = Number.parseFloat((totalProductos / 1.16).toFixed(2));
+            const iva            = Number.parseFloat((totalProductos - subtotal).toFixed(2));
             const folio    = 'DL-' + Date.now();
 
             const ventaResult = await client.query(`
                 INSERT INTO ventas (
                     folio, cliente_id, metodo_pago_id,
                     cliente_nombre_completo, cliente_email,
-                    subtotal, iva, total,
+                    subtotal, iva, total, costo_envio,
                     total_articulos, notas_cliente,
+                    tipo_entrega,
                     estado, creado_por, actualizado_por,
                     fecha_creacion, fecha_actualizacion
                 ) VALUES (
                     $1, $2, $3, $4, $5,
-                    $6, $7, $8, $9, $10,
-                    'pendiente', $11, $11,
+                    $6, $7, $8, $9, $10, $11,
+                    $12,
+                    'pendiente', $13, $13,
                     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
                 ) RETURNING *
             `, [
                 folio, data.cliente_id, data.metodo_pago_id,
                 data.cliente_nombre, data.cliente_email,
-                subtotal, iva, total,
+                subtotal, iva, total, costoEnvio,
                 data.items.reduce((s, i) => s + i.cantidad, 0),
                 [data.direccion_envio, data.notas_cliente].filter(Boolean).join(' | ') || null,
+                data.tipo_entrega || 'tienda',
                 data.usuario_id
             ]);
 
@@ -250,7 +261,9 @@ export const VentaModel = {
                     WHERE tp.venta_id = v.id
                     ORDER BY tp.fecha_creacion DESC LIMIT 1),
                     'pendiente'
-                ) AS estado_pago
+                ) AS estado_pago,
+                EXTRACT(EPOCH FROM (NOW() - v.fecha_actualizacion))/60 AS minutos_sin_pago,
+                v.fecha_limite_pago
             FROM ventas v
             JOIN clientes c ON v.cliente_id = c.id
             LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
@@ -479,6 +492,17 @@ export const VentaModel = {
     },
 
     confirmarPago: async (payment_id: string, venta_id: number) => {
+        // ✅ Verificar si ya fue procesado para evitar duplicados
+        const yaExiste = await pool.query(`
+            SELECT id FROM transacciones_pago 
+            WHERE transaction_id = $1
+        `, [payment_id]);
+
+        if (yaExiste.rows.length > 0) {
+            console.log(`⚠️ Pago ${payment_id} ya procesado, ignorando duplicado`);
+            return yaExiste.rows[0];
+        }
+
         const result = await pool.query(`
             UPDATE transacciones_pago
             SET estado = 'aprobado',
@@ -486,7 +510,7 @@ export const VentaModel = {
                 fecha_aprobacion = CURRENT_TIMESTAMP,
                 fecha_actualizacion = CURRENT_TIMESTAMP
             WHERE venta_id = $2
-              AND estado = 'pendiente'
+            AND estado = 'pendiente'
             RETURNING venta_id
         `, [payment_id, venta_id]);
 

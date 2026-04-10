@@ -39,6 +39,10 @@ interface Pedido {
     comprobante_transferencia_url?: string;
     items?: ItemPedido[];
     codigo_entrega?: string; 
+    costo_envio?: number;
+    tipo_entrega?: string;
+    minutos_sin_pago?: number;
+    fecha_limite_pago?: string;
 }
 
 interface ClienteInfo {
@@ -62,6 +66,7 @@ const COLORES_ESTADO: Record<string, string> = {
     enviado:        '#f5d8e8',
     entregado:      '#ecb2c3',
     cancelado:      '#e05a6a',
+    vencido:        '#ff8c00', 
 };
 const COLOR_DEFAULT = '#888888';
 
@@ -170,7 +175,11 @@ const GestionPedidosScreen: React.FC = () => {
     const [loading, setLoading]           = useState(true);
     const [filtroEstado, setFiltroEstado] = useState('');
     const [filtroPagoPendiente, setFiltroPagoPendiente] = useState(false);
+    const [filtroVencidos, setFiltroVencidos] = useState(false);
     const [agrupar, setAgrupar]           = useState(true);
+    const [busqueda, setBusqueda] = useState('');
+    const [paginaActual, setPaginaActual] = useState(1);
+    const PEDIDOS_POR_PAGINA = 10;
     const [pedidoSel, setPedidoSel]       = useState<Pedido | null>(null);
     const [modalTipo, setModalTipo]       = useState<ModalTipo>(null);
     const [cargando, setCargando]         = useState(false);
@@ -181,11 +190,20 @@ const GestionPedidosScreen: React.FC = () => {
     const estadosRef                      = useRef<Record<number, string>>({});
 
     // ✅ Configuración de días de entrega
-    const [diasEntrega, setDiasEntrega]         = useState<number>(7);
-    const [diasEntregaEdit, setDiasEntregaEdit] = useState<number>(7);
+    const [diasEntrega, setDiasEntrega]         = useState<number | null>(null);
+    const [diasEntregaEdit, setDiasEntregaEdit] = useState<number | null>(null);
     const [showConfigDias, setShowConfigDias]   = useState(false);
     const [guardandoDias, setGuardandoDias]     = useState(false);
     const [msgDias, setMsgDias]                 = useState('');
+    const [minutosExpiracion, setMinutosExpiracion] = useState<number | null>(null);
+    const [valorExpiracion, setValorExpiracion]     = useState<number | null>(null);
+    const [unidadExpiracion, setUnidadExpiracion]   = useState<string | null>(null);
+    const [valorExpiracionEdit, setValorExpiracionEdit] = useState<number | null>(null);
+    const [unidadExpiracionEdit, setUnidadExpiracionEdit] = useState<string | null>(null);
+    const [showConfigExpiracion, setShowConfigExpiracion] = useState(false);
+    const [guardandoExpiracion, setGuardandoExpiracion]   = useState(false);
+    const [msgExpiracion, setMsgExpiracion]               = useState('');
+    const configExpiracionRef                             = useRef<HTMLDivElement>(null);
     const configDiasRef                         = useRef<HTMLDivElement>(null);
 
     const [editNotas, setEditNotas]             = useState('');
@@ -205,17 +223,21 @@ const GestionPedidosScreen: React.FC = () => {
         cargarEstados();
         cargarPedidos();
         cargarDiasEntrega();
+        cargarMinutosExpiracion();
         pollingRef.current = setInterval(() => pollPedidos(), POLLING_INTERVAL);
         return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
     }, []);
 
-    useEffect(() => { cargarPedidos(); }, [filtroEstado]);
+    useEffect(() => { cargarPedidos(); setPaginaActual(1); }, [filtroEstado]);
+    useEffect(() => { setPaginaActual(1); }, [busqueda]);
 
     // Cerrar popover al click fuera
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (configDiasRef.current && !configDiasRef.current.contains(e.target as Node))
                 setShowConfigDias(false);
+            if (configExpiracionRef.current && !configExpiracionRef.current.contains(e.target as Node))
+                setShowConfigExpiracion(false);
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
@@ -233,9 +255,33 @@ const GestionPedidosScreen: React.FC = () => {
         } catch { /* usar default 7 */ }
     };
 
+    const cargarMinutosExpiracion = async () => {
+        try {
+            const [dataValor, dataUnidad] = await Promise.all([
+                carritoAPI.getConfiguracion('dias_expiracion_pago'),
+                carritoAPI.getConfiguracion('unidad_expiracion_pago')
+            ]);
+            if (dataValor.success && dataUnidad.success) {
+                const valor = parseInt(dataValor.data.valor);
+                const unidad = dataUnidad.data.valor;
+                setValorExpiracion(valor);
+                setUnidadExpiracion(unidad);
+                setValorExpiracionEdit(valor);
+                setUnidadExpiracionEdit(unidad);
+                let minutos = valor;
+                if (unidad === 'horas') minutos = valor * 60;
+                if (unidad === 'dias')  minutos = valor * 60 * 24;
+                setMinutosExpiracion(minutos);
+            }
+        } catch { 
+            // Si falla, dejar null para no mostrar alertas incorrectas
+            setMinutosExpiracion(null);
+        }
+    };
+
     // ✅ Guardar días de entrega en BD
     const guardarDiasEntrega = async () => {
-        if (diasEntregaEdit < 1 || diasEntregaEdit > 60) {
+        if (!diasEntregaEdit || diasEntregaEdit < 1 || diasEntregaEdit > 60) {
             setMsgDias('❌ Ingresa un valor entre 1 y 60 días');
             return;
         }
@@ -248,6 +294,30 @@ const GestionPedidosScreen: React.FC = () => {
         } catch {
             setMsgDias('❌ Error al guardar');
         } finally { setGuardandoDias(false); }
+    };
+
+    const guardarExpiracion = async () => {
+        if (!valorExpiracionEdit || valorExpiracionEdit < 1) {
+            setMsgExpiracion('❌ Ingresa un valor válido');
+            return;
+        }
+        setGuardandoExpiracion(true); setMsgExpiracion('');
+        try {
+            await Promise.all([
+                carritoAPI.setConfiguracion('dias_expiracion_pago', String(valorExpiracionEdit)),
+                carritoAPI.setConfiguracion('unidad_expiracion_pago', unidadExpiracionEdit || 'minutos')
+            ]);
+            setValorExpiracion(valorExpiracionEdit);
+            setUnidadExpiracion(unidadExpiracionEdit);
+            let minutos = valorExpiracionEdit;
+            if (unidadExpiracionEdit === 'horas') minutos = valorExpiracionEdit * 60;
+            if (unidadExpiracionEdit === 'dias')  minutos = valorExpiracionEdit * 60 * 24;
+            setMinutosExpiracion(minutos);
+            setMsgExpiracion('✅ Guardado');
+            setTimeout(() => { setMsgExpiracion(''); setShowConfigExpiracion(false); }, 1500);
+        } catch {
+            setMsgExpiracion('❌ Error al guardar');
+        } finally { setGuardandoExpiracion(false); }
     };
 
     const pollPedidos = async () => {
@@ -433,7 +503,17 @@ const GestionPedidosScreen: React.FC = () => {
     finally { setValidandoCodigo(false); }
     };
 
-    const getBadge = (estado: string) => {
+    const getBadge = (estado: string, pedido?: Pedido) => {
+        if (pedido) {
+            const estaVencido = pedido.estado === 'confirmado' &&
+                pedido.estado_pago !== 'aprobado' &&
+                ['efectivo','transferencia'].includes(pedido.metodo_pago_codigo || '') &&
+                (pedido.fecha_limite_pago
+                    ? new Date() > new Date(pedido.fecha_limite_pago)
+                    : minutosExpiracion !== null && (pedido.minutos_sin_pago || 0) > minutosExpiracion
+                );
+            if (estaVencido) return <span className="gp-badge" style={{ background: '#ff8c00', color: '#0f0f12' }}>⚠️ Pedido vencido</span>;
+        }
         const cfg = estados.find(e => e.value === estado) || { label: labelEstado(estado), color: COLOR_DEFAULT };
         return <span className="gp-badge" style={{ background: cfg.color, color: '#0f0f12' }}>{cfg.label}</span>;
     };
@@ -442,9 +522,11 @@ const GestionPedidosScreen: React.FC = () => {
         if (pedido.estado_pago === 'aprobado')
             return <span className="gp-pago-badge gp-pago-aprobado">💳 Pagado</span>;
         const codigo = pedido.metodo_pago_codigo || '';
-        if (codigo === 'efectivo') return <span className="gp-pago-badge gp-pago-efectivo">💵 Efectivo</span>;
-        if (codigo === 'transferencia') return <span className="gp-pago-badge gp-pago-transferencia">🏦 Transferencia</span>;
-        return <span className="gp-pago-badge gp-pago-pendiente">⏳ Sin pago</span>;
+        if (codigo === 'efectivo') return <span className="gp-pago-badge gp-pago-efectivo">💵 Pago pendiente en efectivo</span>;
+        if (codigo === 'transferencia') return <span className="gp-pago-badge gp-pago-transferencia">🏦 Transferencia pendiente</span>;
+        if (codigo === 'mercadopago') return <span className="gp-pago-badge gp-pago-pendiente">🛒 Pago MP pendiente</span>;
+        if (codigo === 'paypal') return <span className="gp-pago-badge gp-pago-pendiente">🅿️ Pago PayPal pendiente</span>;
+        return <span className="gp-pago-badge gp-pago-pendiente">⏳ Pago pendiente</span>;
     };
 
     const formatFecha = (f: string) => {
@@ -484,15 +566,48 @@ const GestionPedidosScreen: React.FC = () => {
     const puedoEditar = (p: Pedido) => esMio(p) || user?.rol === 'admin';
 
     const pedidosFiltrados = pedidos.filter(p => {
-        if (filtroPagoPendiente)
-            return !['cancelado','entregado'].includes(p.estado) && p.estado_pago !== 'aprobado';
+        if (filtroPagoPendiente && (['cancelado','entregado'].includes(p.estado) || p.estado_pago === 'aprobado'))
+            return false;
+        if (filtroVencidos) {
+            const estaVencido = p.estado === 'confirmado' &&
+                p.estado_pago !== 'aprobado' &&
+                ['efectivo','transferencia'].includes(p.metodo_pago_codigo || '') &&
+                (p.fecha_limite_pago
+                    ? new Date() > new Date(p.fecha_limite_pago)
+                    : minutosExpiracion !== null && (p.minutos_sin_pago || 0) > minutosExpiracion
+                );
+            if (!estaVencido) return false;
+        }
+        if (busqueda.trim()) {
+            const b = busqueda.toLowerCase();
+            return p.folio.toLowerCase().includes(b) ||
+                p.cliente_nombre_completo.toLowerCase().includes(b) ||
+                p.cliente_email.toLowerCase().includes(b) ||
+                formatFecha(p.fecha_creacion).includes(b);
+        }
         return true;
     });
 
-    const grupos = agrupar ? agruparPorFecha(pedidosFiltrados) : [{ label: '', pedidos: pedidosFiltrados }];
+    // ✅ Paginación
+    const totalPaginas = Math.ceil(pedidosFiltrados.length / PEDIDOS_POR_PAGINA);
+    const pedidosPaginados = pedidosFiltrados.slice(
+        (paginaActual - 1) * PEDIDOS_POR_PAGINA,
+        paginaActual * PEDIDOS_POR_PAGINA
+    );
+    const grupos = agrupar ? agruparPorFecha(pedidosPaginados) : [{ label: '', pedidos: pedidosPaginados }];
 
-    const renderFilaPedido = (pedido: Pedido) => (
-        <tr key={pedido.id} className={esMio(pedido) ? 'gp-fila-mia' : ''}>
+
+    const renderFilaPedido = (pedido: Pedido) => {
+    const estaVencido = pedido.estado === 'confirmado' &&
+        pedido.estado_pago !== 'aprobado' &&
+        ['efectivo','transferencia'].includes(pedido.metodo_pago_codigo || '') &&
+        (pedido.fecha_limite_pago 
+            ? new Date() > new Date(pedido.fecha_limite_pago)  // ✅ Usar fecha límite guardada en BD
+            : minutosExpiracion !== null && (pedido.minutos_sin_pago || 0) > minutosExpiracion // fallback para pedidos sin fecha_limite_pago
+        );
+
+    return (
+    <tr key={pedido.id} className={`${esMio(pedido) ? 'gp-fila-mia' : ''} ${estaVencido ? 'gp-fila-vencida' : ''}`}>
             <td className="gp-folio">{pedido.folio}</td>
             <td>
                 <p className="gp-cliente-nombre">{pedido.cliente_nombre_completo}</p>
@@ -502,8 +617,9 @@ const GestionPedidosScreen: React.FC = () => {
             <td className="gp-fecha">{formatFechaHora(pedido.fecha_creacion)}</td>
             <td className="gp-total">${Number.parseFloat(String(pedido.total)).toLocaleString('es-MX')}</td>
             <td>
-                {getBadge(pedido.estado)}
+                {getBadge(pedido.estado, pedido)}
                 {getBadgePago(pedido)}
+                {estaVencido && <span className="gp-badge-vencido">⚠️ Sin pago</span>}
             </td>
             <td>
                 {pedido.trabajador_asignado_nombre ? (
@@ -535,58 +651,21 @@ const GestionPedidosScreen: React.FC = () => {
             </td>
         </tr>
     );
+}
 
     return (
         <div className="gp-container">
             <div className="gp-header">
                 <h2 className="gp-titulo">Gestión de Pedidos</h2>
                 <div className="gp-header-acciones">
-                    {/* ✅ Panel de configuración de días de entrega */}
-                    <div className="gp-config-dias-wrap" ref={configDiasRef}>
-                        <button
-                            className="gp-btn-config-dias"
-                            onClick={() => { setShowConfigDias(!showConfigDias); setMsgDias(''); setDiasEntregaEdit(diasEntrega); }}
-                            title="Configurar días de entrega estimada"
-                        >
-                            ⚙️ {diasEntrega} día{diasEntrega !== 1 ? 's' : ''} de entrega
-                        </button>
-                        {showConfigDias && (
-                            <div className="gp-config-dias-popover">
-                                <p className="gp-config-dias-titulo">📅 Días hábiles de entrega</p>
-                                <p className="gp-config-dias-desc">Se asigna automáticamente al confirmar el pago.</p>
-                                <div className="gp-config-dias-input-wrap">
-                                    <button className="gp-config-dias-btn"
-                                        onClick={() => setDiasEntregaEdit(d => Math.max(1, d - 1))}>−</button>
-                                    <input
-                                        type="number" min={1} max={60}
-                                        className="gp-config-dias-input"
-                                        value={diasEntregaEdit}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            if (val === '' || val === '0') {
-                                                setDiasEntregaEdit('' as any);
-                                                return;
-                                            }
-                                            const num = Number.parseInt(val);
-                                            if (!isNaN(num) && num >= 1 && num <= 60)
-                                                setDiasEntregaEdit(num);
-                                        }}
-                                        onBlur={() => {
-                                            if (!diasEntregaEdit || diasEntregaEdit < 1) setDiasEntregaEdit(1);
-                                        }}
-                                    />
-                                    <button className="gp-config-dias-btn"
-                                        onClick={() => setDiasEntregaEdit(d => Math.min(60, d + 1))}>+</button>
-                                </div>
-                                {msgDias && (
-                                    <p className={`gp-config-dias-msg ${msgDias.startsWith('✅') ? 'ok' : 'error'}`}>{msgDias}</p>
-                                )}
-                                <button className="gp-config-dias-guardar" onClick={guardarDiasEntrega} disabled={guardandoDias}>
-                                    {guardandoDias ? '⏳ Guardando...' : '💾 Guardar'}
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    {/* ✅ Info días de entrega (solo lectura) */}
+                    <span className="gp-info-config" title="Días de entrega configurados por el admin">
+                        📅 Días de entrega: {diasEntrega !== null ? `${diasEntrega}` : '...'}
+                    </span>
+                    {/* ✅ Info alerta expiración (solo lectura) */}
+                    <span className="gp-info-config" title="Tiempo de alerta configurado por el admin">
+                        ⚠️ Alerta: {valorExpiracion} {unidadExpiracion}
+                    </span>
                     <button className="gp-btn-refrescar" onClick={cargarPedidos}>🔄 Refrescar</button>
                 </div>
             </div>
@@ -607,18 +686,30 @@ const GestionPedidosScreen: React.FC = () => {
                     <option value="">Todos los estados</option>
                     {estados.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
                 </select>
+                <input
+                    className="gp-input gp-busqueda"
+                    type="text"
+                    placeholder="🔍 Buscar por folio, cliente o fecha(ej: 09/04/2026)..."
+                    value={busqueda}
+                    onChange={e => setBusqueda(e.target.value)}
+                />
                 <label className="gp-filtro-pago">
                     <input type="checkbox" checked={filtroPagoPendiente}
                         onChange={e => setFiltroPagoPendiente(e.target.checked)} />
                     💳 Solo pago pendiente
                 </label>
                 <label className="gp-filtro-pago">
+                    <input type="checkbox" checked={filtroVencidos}
+                        onChange={e => setFiltroVencidos(e.target.checked)} />
+                    ⚠️ Pedido vencido
+                </label>
+                <label className="gp-filtro-pago">
                     <input type="checkbox" checked={agrupar}
                         onChange={e => setAgrupar(e.target.checked)} />
                     📅 Agrupar por fecha
                 </label>
-                {(filtroEstado || filtroPagoPendiente) && (
-                    <button className="gp-btn-limpiar" onClick={() => { setFiltroEstado(''); setFiltroPagoPendiente(false); }}>✕ Limpiar</button>
+                {(filtroEstado || filtroPagoPendiente || filtroVencidos) && (
+                    <button className="gp-btn-limpiar" onClick={() => { setFiltroEstado(''); setFiltroPagoPendiente(false); setFiltroVencidos(false); }}>✕ Limpiar</button>
                 )}
             </div>
 
@@ -648,6 +739,15 @@ const GestionPedidosScreen: React.FC = () => {
                             </table>
                         </div>
                     ))}
+                    {totalPaginas > 1 && (
+                        <div className="gp-paginacion">
+                            <button className="gp-pag-btn" onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+                                disabled={paginaActual === 1}>← Anterior</button>
+                            <span className="gp-pag-info">Página {paginaActual} de {totalPaginas} · {pedidosFiltrados.length} pedidos</span>
+                            <button className="gp-pag-btn" onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+                                disabled={paginaActual === totalPaginas}>Siguiente →</button>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -773,15 +873,18 @@ const GestionPedidosScreen: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="gp-modal-totales">
-                                                <div className="gp-total-fila"><span>Subtotal</span><span>${Number.parseFloat(String(pedidoSel.subtotal)).toLocaleString('es-MX')}</span></div>
-                                                <div className="gp-total-fila"><span>IVA (16%)</span><span>${Number.parseFloat(String(pedidoSel.iva)).toLocaleString('es-MX')}</span></div>
-                                                <div className="gp-total-fila gp-total-final"><span>Total</span><span>${Number.parseFloat(String(pedidoSel.total)).toLocaleString('es-MX')}</span></div>
+                                                <div className="gp-total-fila"><span>Subtotal</span><span>${parseFloat(String(pedidoSel.subtotal)).toLocaleString('es-MX')}</span></div>
+                                                <div className="gp-total-fila"><span>IVA (16%)</span><span>${parseFloat(String(pedidoSel.iva)).toLocaleString('es-MX')}</span></div>
+                                                {parseFloat(String(pedidoSel.costo_envio)) > 0 && (
+                                                    <div className="gp-total-fila"><span>🚚 Envío a domicilio</span><span>+${parseFloat(String(pedidoSel.costo_envio)).toLocaleString('es-MX')}</span></div>
+                                                )}
+                                                <div className="gp-total-fila gp-total-final"><span>Total</span><span>${parseFloat(String(pedidoSel.total)).toLocaleString('es-MX')}</span></div>
                                             </div>
 
                                             {/* ✅ Confirmar entrega con código */}
                                             {['en_preparacion','enviado'].includes(pedidoSel.estado) && 
                                             pedidoSel.estado_pago === 'aprobado' &&
-                                            ['efectivo','transferencia'].includes(pedidoSel.metodo_pago_codigo || '') && (
+                                            ['efectivo','transferencia','mercadopago','paypal'].includes(pedidoSel.metodo_pago_codigo || '') && (
                                                 <div className="gp-confirmar-entrega">
                                                     <h4>🎟️ Confirmar entrega</h4>
                                                     <p className="gp-confirmar-entrega-desc">Solicita al cliente su código de entrega e ingrésalo aquí para confirmar la recepción.</p>

@@ -151,21 +151,30 @@ const CarritoScreen: React.FC = () => {
     const [errorMsg, setErrorMsg]             = useState('');
     const [metodosPago, setMetodosPago]       = useState<MetodoPago[]>([]);
     const [metodoPagoId, setMetodoPagoId]     = useState<number | null>(null);
+    const [tipoEntrega, setTipoEntrega] = useState<'tienda' | 'domicilio'>('tienda');
+    const [costoEnvio, setCostoEnvio]   = useState<number>(0);
     const [cargandoMetodos, setCargandoMetodos] = useState(false);
 
     useEffect(() => {
-        if (showCheckout) cargarMetodosPago();
+    if (showCheckout) {
+        cargarMetodosPago();    
+    }
     }, [showCheckout]);
 
     const cargarMetodosPago = async () => {
         setCargandoMetodos(true);
         try {
             const data = await carritoAPI.getMetodosPago();
-            if (data.success) {
-                setMetodosPago(data.data || []);
-                const mp = data.data?.find((m: MetodoPago) => m.codigo === 'mercadopago');
-                if (mp) setMetodoPagoId(mp.id);
+        if (data.success) {
+            setMetodosPago(data.data.metodos || []);
+            if (data.data.costo_envio !== undefined) {
+                setCostoEnvio(data.data.costo_envio);
+            } else {
+                setErrorMsg('No se pudo cargar el costo de envío. Intenta de nuevo.');
             }
+            const mp = data.data?.metodos?.find((m: MetodoPago) => m.codigo === 'mercadopago');
+            if (mp) setMetodoPagoId(mp.id);
+        }
         } catch (err) { console.error(err); }
         finally { setCargandoMetodos(false); }
     };
@@ -183,9 +192,11 @@ const CarritoScreen: React.FC = () => {
         setSolicitando(true); setErrorMsg('');
         try {
             const data = await carritoAPI.crearPedido({
-                direccion_envio: direccion,
+                direccion_envio: tipoEntrega === 'domicilio' ? direccion : 'Recoger en tienda',
                 notas_cliente: notasCliente,
-                metodo_pago_id: metodoPagoId
+                metodo_pago_id: metodoPagoId,
+                tipo_entrega: tipoEntrega,
+                costo_envio: tipoEntrega === 'domicilio' ? costoEnvio : 0
             });
             if (!data.success) throw new Error(data.message);
             setFolioPedido(data.data.folio || `#${data.data.id}`);
@@ -345,6 +356,25 @@ const CarritoScreen: React.FC = () => {
                             </div>
 
                             <div className="carrito-form-group">
+                                <label>¿Cómo quieres recibir tu pedido? <span className="carrito-requerido">*</span></label>
+                                <div className="carrito-metodos-opciones">
+                                    <label className={`carrito-metodo-opcion ${tipoEntrega === 'tienda' ? 'seleccionado' : ''}`}>
+                                        <input type="radio" name="tipo_entrega" value="tienda"
+                                            checked={tipoEntrega === 'tienda'}
+                                            onChange={() => { setTipoEntrega('tienda'); }} />
+                                        <span className="carrito-metodo-icono">🏪</span>
+                                        <span className="carrito-metodo-nombre">Recoger en tienda <small style={{color:'#6bcb77'}}>(Sin costo)</small></span>
+                                    </label>
+                                    <label className={`carrito-metodo-opcion ${tipoEntrega === 'domicilio' ? 'seleccionado' : ''}`}>
+                                        <input type="radio" name="tipo_entrega" value="domicilio"
+                                            checked={tipoEntrega === 'domicilio'}
+                                            onChange={() => { setTipoEntrega('domicilio'); }} />
+                                        <span className="carrito-metodo-icono">🚚</span>
+                                        <span className="carrito-metodo-nombre">Envío a domicilio <small style={{color:'#ecb2c3'}}>(+${costoEnvio.toLocaleString('es-MX')} MXN)</small></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="carrito-form-group">
                                 <label>Método de pago <span className="carrito-requerido">*</span></label>
                                 {cargandoMetodos ? (
                                     <div className="carrito-dir-cargando">⏳ Cargando métodos de pago...</div>
@@ -410,8 +440,18 @@ const CarritoScreen: React.FC = () => {
 
                             <div className="carrito-modal-resumen">
                                 <div className="carrito-resumen-fila">
-                                    <span>Total ({count} productos)</span>
-                                    <strong>${total.toLocaleString('es-MX')}</strong>
+                                    <span>Productos ({count})</span>
+                                    <span>${total.toLocaleString('es-MX')}</span>
+                                </div>
+                                {tipoEntrega === 'domicilio' && (
+                                    <div className="carrito-resumen-fila">
+                                        <span>Envío a domicilio</span>
+                                        <span>+${costoEnvio.toLocaleString('es-MX')}</span>
+                                    </div>
+                                )}
+                                <div className="carrito-resumen-fila" style={{fontWeight:700}}>
+                                    <span>Total</span>
+                                    <strong>${(total + (tipoEntrega === 'domicilio' ? costoEnvio : 0)).toLocaleString('es-MX')}</strong>
                                 </div>
                             </div>
                         </div>

@@ -1024,7 +1024,7 @@ export const carritoAPI = {
   vaciar: async () => {
     return enhancedApi.delete('/carrito/vaciar');
   },
-  crearPedido: async (data: { direccion_envio: string; notas_cliente?: string; metodo_pago_id: number }) => {
+  crearPedido: async (data: { direccion_envio: string; notas_cliente?: string; metodo_pago_id: number; tipo_entrega?: string; costo_envio?: number }) => {
       return enhancedApi.post('/carrito/pedidos', data);
   },
   getMisPedidos: async () => {

@@ -225,7 +225,7 @@ export const crearPedido = async (req: Request, res: Response) => {
         const usuario = getUsuario(req);
         if (!usuario.id) return res.status(401).json({ success: false, message: 'No autenticado' });
 
-        const { direccion_envio, notas_cliente, metodo_pago_id } = req.body;
+        const { direccion_envio, notas_cliente, metodo_pago_id, tipo_entrega, costo_envio } = req.body;
         if (!direccion_envio)
             return res.status(400).json({ success: false, message: 'Dirección de envío requerida' });
 
@@ -278,6 +278,8 @@ export const crearPedido = async (req: Request, res: Response) => {
             metodo_pago_id,
             direccion_envio,
             notas_cliente,
+            tipo_entrega:   tipo_entrega || 'tienda',
+            costo_envio:    tipo_entrega === 'domicilio' ? (costo_envio || 0) : 0,
             items: itemsPedido
         });
 
@@ -376,8 +378,40 @@ export const actualizarEstadoPedido = async (req: Request, res: Response) => {
 
         const venta = await VentaModel.updateEstado(Number.parseInt(id), estado, usuario.id!, notas_internas);
 
-        // Stock se descuenta al pagar (en webhook), no al confirmar manualmente
-        if (estado === 'cancelado' && !['pendiente', 'cancelado'].includes(estadoAnterior)) {
+        // ✅ Calcular fecha límite de pago al confirmar
+        if (estado === 'confirmado') {
+            const configResult = await pool.query(`
+                SELECT c1.valor AS tiempo, c2.valor AS unidad
+                FROM configuracion c1, configuracion c2
+                WHERE c1.clave = 'dias_expiracion_pago'
+                AND c2.clave = 'unidad_expiracion_pago'
+            `);
+            if (configResult.rows.length > 0) {
+                const tiempo = parseInt(configResult.rows[0].tiempo);
+                const unidad = configResult.rows[0].unidad;
+                let minutos = tiempo;
+                if (unidad === 'horas') minutos = tiempo * 60;
+                if (unidad === 'dias')  minutos = tiempo * 60 * 24;
+                const ahoraMx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+                ahoraMx.setMinutes(ahoraMx.getMinutes() + minutos);
+                // Formatear sin conversión UTC
+                const fechaLimite = `${ahoraMx.getFullYear()}-${String(ahoraMx.getMonth()+1).padStart(2,'0')}-${String(ahoraMx.getDate()).padStart(2,'0')} ${String(ahoraMx.getHours()).padStart(2,'0')}:${String(ahoraMx.getMinutes()).padStart(2,'0')}:${String(ahoraMx.getSeconds()).padStart(2,'0')}`;
+
+                console.log('AHORA MX:', new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+                console.log('FECHA LIMITE:', fechaLimite);
+
+                await pool.query(`
+                    UPDATE ventas 
+                    SET fecha_limite_pago = $1
+                    WHERE id = $2
+                `, [fechaLimite, Number.parseInt(id)]);
+            }
+        }
+
+        // ✅ Solo restaurar stock si el cliente ya había pagado (stock fue descontado)
+        if (estado === 'cancelado' && 
+            !['pendiente', 'cancelado'].includes(estadoAnterior) &&
+            ventaActual.estado_pago === 'aprobado') {
             try {
                 await restaurarStock(Number.parseInt(id));
                 console.log(`✅ Stock restaurado para venta ${id}`);
@@ -463,7 +497,16 @@ export const crearPreferenciaMercadoPago = async (req: Request, res: Response) =
 
         const metodo_pago_id = await VentaModel.getMetodoPagoId();
         if (metodo_pago_id) {
-            await VentaModel.crearTransaccion(venta.id, metodo_pago_id, Number.parseFloat(venta.total), mpData.id);
+            // ✅ Evitar duplicar transacciones pendientes
+            const transaccionExistente = await pool.query(`
+                SELECT id FROM transacciones_pago 
+                WHERE venta_id = $1 AND estado = 'pendiente'
+                LIMIT 1
+            `, [venta.id]);
+
+            if (transaccionExistente.rows.length === 0) {
+                await VentaModel.crearTransaccion(venta.id, metodo_pago_id, Number.parseFloat(venta.total), mpData.id);
+            }
         }
 
         res.json({
@@ -1099,6 +1142,11 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
                         <p class="info-label">Método de pago</p>
                         <p class="info-value">${venta.metodo_pago_nombre || 'No especificado'}</p>
                     </div>
+                    ${venta.trabajador_nombre ? `
+                    <div class="info-row">
+                        <p class="info-label">Atendido por</p>
+                        <p class="info-value">${venta.trabajador_nombre}</p>
+                    </div>` : ''}
                 </div>
                 <div class="info-card">
                     <h3>Cliente</h3>
@@ -1132,6 +1180,7 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
                 <div class="totales-tabla">
                     <div class="totales-fila"><span>Subtotal</span><span>$${Number.parseFloat(venta.subtotal).toLocaleString('es-MX')} MXN</span></div>
                     <div class="totales-fila"><span>IVA (16%)</span><span>$${Number.parseFloat(venta.iva).toLocaleString('es-MX')} MXN</span></div>
+                    ${Number.parseFloat(venta.costo_envio || '0') > 0 ? `<div class="totales-fila"><span>🚚 Envío a domicilio</span><span>+$${Number.parseFloat(venta.costo_envio).toLocaleString('es-MX')} MXN</span></div>` : ''}
                     <div class="totales-fila"><span>Total</span><span>$${Number.parseFloat(venta.total).toLocaleString('es-MX')} MXN</span></div>
                 </div>
             </div>

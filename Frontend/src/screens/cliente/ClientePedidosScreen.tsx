@@ -33,6 +33,8 @@ interface Pedido {
     comprobante_transferencia_url?: string;
     items: ItemPedido[];
     codigo_entrega?: string;
+    costo_envio?: number;
+    tipo_entrega?: string;
 }
 
 interface EstadoConfig { value: string; label: string; color: string; bg: string; }
@@ -171,6 +173,9 @@ const ClientePedidosScreen: React.FC = () => {
     const [pedidos, setPedidos]                 = useState<Pedido[]>([]);
     const [loading, setLoading]                 = useState(true);
     const [agrupar, setAgrupar]                 = useState(true);
+    const [busqueda, setBusqueda] = useState('');
+    const [paginaActual, setPaginaActual] = useState(1);
+    const PEDIDOS_POR_PAGINA = 10;
     const [pedidoDetalle, setPedidoDetalle]     = useState<Pedido | null>(null);
     const [cargandoDetalle, setCargandoDetalle] = useState(false);
     const [notifPago, setNotifPago]             = useState('');
@@ -215,6 +220,8 @@ const ClientePedidosScreen: React.FC = () => {
         pollingRef.current = setInterval(() => pollEstados(), POLLING_INTERVAL);
         return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
     }, []);
+
+    useEffect(() => { setPaginaActual(1); }, [busqueda]);
 
     useEffect(() => {
         const pago = searchParams.get('pago');
@@ -331,7 +338,18 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
     const contar = (estado: string) => pedidos.filter(p => p.estado === estado).length;
     const enProceso = pedidos.filter(p => !['enviado','entregado','cancelado'].includes(p.estado)).length;
     const esPagable = (pedido: Pedido) => estadosPagables.includes(pedido.estado) && !['aprobado','pagado'].includes(pedido.estado_pago);
-    const grupos = agrupar ? agruparPorFecha(pedidos) : [{ label: '', pedidos }];
+    const pedidosFiltrados = busqueda.trim()
+        ? pedidos.filter(p =>
+            p.folio.toLowerCase().includes(busqueda.toLowerCase()) ||
+            formatFecha(p.fecha_creacion).includes(busqueda))
+        : pedidos;
+
+    const totalPaginas = Math.ceil(pedidosFiltrados.length / PEDIDOS_POR_PAGINA);
+    const pedidosPaginados = pedidosFiltrados.slice(
+        (paginaActual - 1) * PEDIDOS_POR_PAGINA,
+        paginaActual * PEDIDOS_POR_PAGINA
+    );
+    const grupos = agrupar ? agruparPorFecha(pedidosPaginados) : [{ label: '', pedidos: pedidosPaginados }];
 
     const renderSeccionPago = (pedido: Pedido) => {
         if (!esPagable(pedido)) return null;
@@ -476,6 +494,13 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
             {/* ✅ Checkbox agrupar por fecha */}
             {!loading && pedidos.length > 0 && (
                 <div className="cp-filtros">
+                    <input
+                        className="cp-input cp-busqueda"
+                        type="text"
+                        placeholder="🔍 Buscar por folio o fecha (ej: 09/04/2026)..."
+                        value={busqueda}
+                        onChange={e => setBusqueda(e.target.value)}
+                    />
                     <label className="cp-filtro-agrupar">
                         <input type="checkbox" checked={agrupar} onChange={e => setAgrupar(e.target.checked)} />
                         📅 Agrupar por fecha
@@ -512,8 +537,17 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
                             </table>
                         </div>
                     ))}
+            {totalPaginas > 1 && (
+                <div className="cp-paginacion">
+                    <button className="cp-pag-btn" onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+                        disabled={paginaActual === 1}>← Anterior</button>
+                        <span className="cp-pag-info">Página {paginaActual} de {totalPaginas} · {pedidos.length} pedidos</span>
+                        <button className="cp-pag-btn" onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+                        disabled={paginaActual === totalPaginas}>Siguiente →</button>
                 </div>
             )}
+            </div>
+        )}
 
             {pedidoDetalle && (
                 <div className="cp-modal-overlay" onClick={() => setPedidoDetalle(null)}>
@@ -540,7 +574,10 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
                                     </div>
                                     {pedidoDetalle.notas_internas && (
                                         <div className="cp-modal-nota-trabajador">
-                                            <p>💬 <strong>Nota del trabajador:</strong> {pedidoDetalle.notas_internas}</p>
+                                            <p>
+                                                {pedidoDetalle.estado === 'cancelado' ? '🚫' : '💬'}
+                                                <strong> {pedidoDetalle.estado === 'cancelado' ? 'Motivo de cancelación:' : 'Nota del trabajador:'}</strong> {pedidoDetalle.notas_internas.replace('CANCELADO: ', '')}
+                                            </p>
                                         </div>
                                     )}
                                     <div className="cp-modal-seccion">
@@ -571,6 +608,9 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
                                     <div className="cp-modal-totales">
                                         <div className="cp-modal-total-fila"><span>Subtotal</span><span>${Number.parseFloat(String(pedidoDetalle.subtotal)).toLocaleString('es-MX')}</span></div>
                                         <div className="cp-modal-total-fila"><span>IVA (16%)</span><span>${Number.parseFloat(String(pedidoDetalle.iva)).toLocaleString('es-MX')}</span></div>
+                                        {Number.parseFloat(String(pedidoDetalle.costo_envio)) > 0 && (
+                                            <div className="cp-modal-total-fila"><span>🚚 Envío a domicilio</span><span>+${Number.parseFloat(String(pedidoDetalle.costo_envio)).toLocaleString('es-MX')}</span></div>
+                                        )}
                                         <div className="cp-modal-total-fila cp-modal-total-final"><span>Total</span><span>${Number.parseFloat(String(pedidoDetalle.total)).toLocaleString('es-MX')}</span></div>
                                     </div>
                                     {renderSeccionPago(pedidoDetalle)}
