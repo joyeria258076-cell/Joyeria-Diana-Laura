@@ -26,7 +26,7 @@ const AdminSimpleImportScreen: React.FC = () => {
   const [importing, setImporting] = useState(false);
   const [warnings, setWarnings] = useState<string[]>([]);
 
-  // Descripciones de tablas para ayudar al usuario
+  // ✅ ACTUALIZADO: Descripciones de tablas incluyendo ventas y detalle_ventas
   const tableDescriptions: { [key: string]: string } = {
     'productos': 'Catálogo de productos (nombre, categoría, precios, stock)',
     'categorias': 'Categorías para clasificar productos',
@@ -37,7 +37,10 @@ const AdminSimpleImportScreen: React.FC = () => {
     'tipos_producto': 'Tipos de productos (joyería fina, bisutería, etc.)',
     'promociones': 'Promociones y descuentos',
     'metodos_pago': 'Métodos de pago disponibles',
-    'preguntas_frecuentes': 'FAQ para el centro de ayuda'
+    'preguntas_frecuentes': 'FAQ para el centro de ayuda',
+    // ✅ NUEVAS TABLAS
+    'ventas': '💰 Ventas y pedidos realizados por clientes',
+    'detalle_ventas': '📦 Detalle de productos vendidos en cada venta'
   };
 
   // Cargar tablas disponibles
@@ -49,8 +52,12 @@ const AdminSimpleImportScreen: React.FC = () => {
     try {
       setLoadingTables(true);
       const response = await importAPI.getTables();
-      if (response.success) {
+      console.log('📋 Tablas recibidas en SimpleImport:', response);
+      if (response.success && response.tables) {
         setTables(response.tables);
+        console.log('✅ Tablas cargadas:', response.tables);
+      } else {
+        console.error('Respuesta sin tables:', response);
       }
     } catch (error) {
       console.error('Error loading tables:', error);
@@ -63,16 +70,16 @@ const AdminSimpleImportScreen: React.FC = () => {
   const loadColumns = async (tableName: string) => {
     try {
       const response = await importAPI.getTableInfo(tableName);
-      if (response.success) {
+      if (response.success && response.tableInfo) {
         setColumns(response.tableInfo.columns.map((col: string) => ({
           column_name: col,
           data_type: 'text'
         })));
+        console.log(`✅ Columnas cargadas para ${tableName}:`, response.tableInfo.columns);
       }
     } catch (error: any) {
       console.error('Error loading columns:', error);
       showMessage('error', error.message || 'Error al cargar las columnas');
-      setSelectedTable('');
     }
   };
 
@@ -88,6 +95,9 @@ const AdminSimpleImportScreen: React.FC = () => {
     setHeaders([]);
     setWarnings([]);
     setMessage(null);
+    // Limpiar input file
+    const fileInput = document.getElementById('dataFile') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,31 +119,31 @@ const AdminSimpleImportScreen: React.FC = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('tableName', selectedTable);
-
     setLoading(true);
     setMessage(null);
     setWarnings([]);
 
     try {
-      // Usar el mismo endpoint pero ahora acepta Excel
       const response = await importAPI.previewFile(file, selectedTable);
+      console.log('📊 Preview response:', response);
       
       if (response.success) {
-        setHeaders(response.headers);
-        setPreviewData(response.preview);
-        setTotalRows(response.totalRows);
+        setHeaders(response.headers || []);
+        setPreviewData(response.preview || []);
+        setTotalRows(response.totalRows || 0);
         
         if (response.warnings && response.warnings.length > 0) {
           setWarnings(response.warnings);
         }
         
         // Guardar datos completos para importar
-        sessionStorage.setItem('importData', JSON.stringify(response.data));
+        if (response.data) {
+          sessionStorage.setItem('importData', JSON.stringify(response.data));
+        }
         
-        showMessage('success', `✅ Archivo cargado correctamente. ${response.totalRows} filas encontradas.`);
+        showMessage('success', `✅ Archivo cargado correctamente. ${response.totalRows || 0} filas encontradas.`);
+      } else {
+        showMessage('error', response.message || 'Error al procesar el archivo');
       }
     } catch (error: any) {
       console.error('Error previewing file:', error);
@@ -162,11 +172,12 @@ const AdminSimpleImportScreen: React.FC = () => {
 
     try {
       const response = await importAPI.importData(selectedTable, data, headers);
+      console.log('📤 Import response:', response);
 
       if (response.success) {
         showMessage('success', response.message);
-        if (response.warnings && response.warnings.length > 0) {
-          setWarnings(response.warnings);
+        if (response.errors && response.errors.length > 0) {
+          setWarnings(response.errors);
         }
         // Limpiar
         setFile(null);
@@ -202,8 +213,16 @@ const AdminSimpleImportScreen: React.FC = () => {
       return;
     }
 
+    setLoading(true);
     try {
+      console.log(`📥 Descargando plantilla para: ${selectedTable}`);
       const response = await templateAPI.downloadTemplate(selectedTable);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al descargar');
+      }
+      
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -218,6 +237,8 @@ const AdminSimpleImportScreen: React.FC = () => {
     } catch (error: any) {
       console.error('Error downloading template:', error);
       showMessage('error', error.message || 'Error al descargar la plantilla');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -249,9 +270,9 @@ const AdminSimpleImportScreen: React.FC = () => {
           <button 
             className="btn-template"
             onClick={downloadTemplate}
-            disabled={!selectedTable}
+            disabled={!selectedTable || loading}
           >
-            📥 Descargar Plantilla Excel
+            {loading ? '⏳ Descargando...' : '📥 Descargar Plantilla Excel'}
           </button>
         </div>
       )}
@@ -341,16 +362,19 @@ const AdminSimpleImportScreen: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {previewData.map((row, idx) => (
+                  {previewData.slice(0, 10).map((row, idx) => (
                     <tr key={idx}>
                       {headers.map(header => (
-                        <td key={header}>{row[header]?.toString().substring(0, 50)}</td>
+                        <td key={header}>{row[header]?.toString().substring(0, 50) || '-'}</td>
                       ))}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            {previewData.length > 10 && (
+              <p className="preview-note">Mostrando 10 de {totalRows} registros</p>
+            )}
           </div>
         )}
       </div>

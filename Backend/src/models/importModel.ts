@@ -25,7 +25,23 @@ const AUTO_GENERATED_COLUMNS: { [key: string]: string[] } = {
   tipos_producto: ['id', 'fecha_creacion'],
   promociones: ['id', 'usos_actuales', 'fecha_creacion', 'fecha_actualizacion'],
   metodos_pago: ['id', 'fecha_creacion', 'fecha_actualizacion'],
-  preguntas_frecuentes: ['id', 'contador_util', 'fecha_creacion', 'fecha_actualizacion']
+  preguntas_frecuentes: ['id', 'contador_util', 'fecha_creacion', 'fecha_actualizacion'],
+  // ✅ NUEVO: Columnas auto-generadas para ventas
+  ventas: [
+    'id', 
+    'fecha_creacion', 
+    'fecha_actualizacion', 
+    'total_articulos',  // Se calcula automáticamente por trigger
+    'fecha_cancelacion',
+    'cancelado_por',
+    'motivo_cancelacion'
+  ],
+  // ✅ NUEVO: Columnas auto-generadas para detalle_ventas
+  detalle_ventas: [
+    'id',
+    'fecha_creacion'
+    // 'subtotal' se calcula automáticamente en bulkInsert
+  ]
 };
 
 export const importModel = {
@@ -121,10 +137,60 @@ export const importModel = {
             }
           });
           
-          // Generar código automático si es necesario
+          // ✅ GENERAR CÓDIGO para productos si no existe
           if (tableName === 'productos' && !rowData.codigo) {
-            const categoriaId = rowData.categoria_id || 1; // Default a categoría 1 si no existe
+            const categoriaId = rowData.categoria_id || 1;
             rowData.codigo = await CodeGenerator.generateProductCode(categoriaId, client);
+          }
+          
+          // ✅ GENERAR FOLIO para ventas si no existe
+          if (tableName === 'ventas' && !rowData.folio) {
+            // Determinar fecha para el folio
+            let fecha = new Date();
+            if (rowData.fecha_creacion) {
+              fecha = new Date(rowData.fecha_creacion);
+            } else if (rowData.fecha_venta) {
+              fecha = new Date(rowData.fecha_venta);
+            }
+            
+            const fechaStr = fecha.toISOString().slice(0, 10).replace(/-/g, '');
+            
+            // Obtener último folio del día
+            const lastFolio = await client.query(
+              `SELECT folio FROM ventas WHERE folio LIKE $1 ORDER BY id DESC LIMIT 1`,
+              [`VENTA-${fechaStr}-%`]
+            );
+            
+            let nextNum = 1;
+            if (lastFolio.rows.length > 0) {
+              const match = lastFolio.rows[0].folio.match(/VENTA-\d+-(\d+)$/);
+              if (match) nextNum = parseInt(match[1]) + 1;
+            }
+            
+            rowData.folio = `VENTA-${fechaStr}-${String(nextNum).padStart(4, '0')}`;
+          }
+          
+          // ✅ CALCULAR SUBTOTAL para detalle_ventas si no viene
+          if (tableName === 'detalle_ventas') {
+            if (!rowData.subtotal && rowData.cantidad && rowData.precio_unitario) {
+              const cantidad = parseFloat(rowData.cantidad) || 0;
+              const precio = parseFloat(rowData.precio_unitario) || 0;
+              const descuento = parseFloat(rowData.descuento_unitario) || 0;
+              rowData.subtotal = cantidad * (precio - descuento);
+            }
+            
+            // Asegurar que personalizacion sea JSON válido
+            if (rowData.personalizacion && typeof rowData.personalizacion === 'string') {
+              try {
+                // Si es string, intentar parsear
+                rowData.personalizacion = JSON.parse(rowData.personalizacion);
+              } catch (e) {
+                // Si no es JSON válido, mantener como está o convertir a objeto vacío
+                if (typeof rowData.personalizacion === 'string') {
+                  rowData.personalizacion = { valor: rowData.personalizacion };
+                }
+              }
+            }
           }
           
           // Construir INSERT dinámico
@@ -135,7 +201,7 @@ export const importModel = {
           const insertQuery = `
             INSERT INTO ${tableName} (${insertColumns.join(', ')})
             VALUES (${placeholders})
-            ON CONFLICT DO NOTHING
+            ON CONFLICT (id) DO NOTHING
             RETURNING id
           `;
           
@@ -143,6 +209,30 @@ export const importModel = {
           
           if (result.rows.length > 0) {
             recordsProcessed++;
+            const insertedId = result.rows[0].id;
+            
+            // ✅ Si es detalle_ventas, actualizar total_articulos en ventas
+            if (tableName === 'detalle_ventas' && rowData.venta_id) {
+              await client.query(`
+                UPDATE ventas 
+                SET total_articulos = (
+                  SELECT COALESCE(SUM(cantidad), 0) 
+                  FROM detalle_ventas 
+                  WHERE venta_id = $1
+                ),
+                fecha_actualizacion = CURRENT_TIMESTAMP
+                WHERE id = $1
+              `, [rowData.venta_id]);
+            }
+            
+            // ✅ Si es venta, registrar historial de estado si se proporcionó estado
+            if (tableName === 'ventas' && rowData.estado && rowData.estado !== 'pendiente') {
+              await client.query(`
+                INSERT INTO historial_estado_venta 
+                (venta_id, estado_anterior, estado_nuevo, modificado_por)
+                VALUES ($1, 'pendiente', $2, $3)
+              `, [insertedId, rowData.estado, rowData.creado_por || 1]);
+            }
           }
           
         } catch (rowError) {
@@ -203,6 +293,56 @@ export const importModel = {
             errors.push(`Fila ${index + 1}: La columna '${key}' es auto-generada y no debe incluirse en el archivo`);
           }
         });
+        
+        // ✅ VALIDACIONES ESPECÍFICAS PARA VENTAS
+        if (tableName === 'ventas') {
+          // Validar estado
+          const estadosValidos = ['pendiente', 'confirmado', 'en_preparacion', 'enviado', 'entregado', 'cancelado'];
+          if (row.estado && !estadosValidos.includes(row.estado)) {
+            errors.push(`Fila ${index + 1}: Estado inválido. Valores permitidos: ${estadosValidos.join(', ')}`);
+          }
+          
+          // Validar que total sea numérico
+          if (row.total && isNaN(parseFloat(row.total))) {
+            errors.push(`Fila ${index + 1}: total debe ser un número`);
+          }
+          
+          // Validar que subtotal sea numérico
+          if (row.subtotal && isNaN(parseFloat(row.subtotal))) {
+            errors.push(`Fila ${index + 1}: subtotal debe ser un número`);
+          }
+        }
+        
+        // ✅ VALIDACIONES ESPECÍFICAS PARA DETALLE_VENTAS
+        if (tableName === 'detalle_ventas') {
+          if (!row.venta_id) {
+            errors.push(`Fila ${index + 1}: venta_id es obligatorio`);
+          }
+          
+          if (row.venta_id && isNaN(parseInt(row.venta_id))) {
+            errors.push(`Fila ${index + 1}: venta_id debe ser un número`);
+          }
+          
+          if (!row.producto_id && !row.producto_codigo) {
+            errors.push(`Fila ${index + 1}: Se requiere producto_id o producto_codigo`);
+          }
+          
+          if (!row.cantidad) {
+            errors.push(`Fila ${index + 1}: cantidad es obligatoria`);
+          }
+          
+          if (row.cantidad && (parseInt(row.cantidad) <= 0 || isNaN(parseInt(row.cantidad)))) {
+            errors.push(`Fila ${index + 1}: cantidad debe ser un número mayor a 0`);
+          }
+          
+          if (!row.precio_unitario) {
+            errors.push(`Fila ${index + 1}: precio_unitario es obligatorio`);
+          }
+          
+          if (row.precio_unitario && (parseFloat(row.precio_unitario) <= 0 || isNaN(parseFloat(row.precio_unitario)))) {
+            errors.push(`Fila ${index + 1}: precio_unitario debe ser un número mayor a 0`);
+          }
+        }
       });
       
       return {
