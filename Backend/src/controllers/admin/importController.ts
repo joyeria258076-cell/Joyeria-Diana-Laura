@@ -18,8 +18,8 @@ const TABLAS_PERMITIDAS = [
   'promociones',
   'metodos_pago',
   'preguntas_frecuentes',
-  'ventas',           // ✅ NUEVA: Permitir importación de ventas
-  'detalle_ventas'    // ✅ NUEVA: Permitir importación de detalle_ventas
+  'ventas',
+  'detalle_ventas'
 ];
 
 interface RequestWithFile extends AuthRequest {
