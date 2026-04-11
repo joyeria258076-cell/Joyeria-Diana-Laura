@@ -456,7 +456,7 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
             material_principal,
             precio_min,
             precio_max,
-            limit = 20,
+            limit,
             offset = 0
         } = req.query;
 
@@ -469,7 +469,7 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
         let query = `
             SELECT 
                 id, nombre, descripcion, categoria_id, categoria_nombre,
-                tipo_producto_id, tipo_nombre, material_principal,
+                tipo_producto_id, material_principal,
                 precio_venta, precio_oferta, imagen_principal,
                 stock_actual, es_nuevo, es_destacado
             FROM productos
@@ -520,9 +520,13 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
         }
 
         // Ordenar y paginar
-        query += ` ORDER BY es_destacado DESC, nombre ASC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-        params.push(Number.parseInt(limit as string));
-        params.push(Number.parseInt(offset as string));
+        query += ` ORDER BY es_destacado DESC, nombre ASC`;
+        if (limit) {
+            query += ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+            params.push(Number.parseInt(limit as string));
+            params.push(Number.parseInt(offset as string));
+            paramCount += 2;
+        }
 
         const result = await pool.query(query, params);
         
@@ -563,7 +567,7 @@ export const getProductsByCategory = async (req: Request, res: Response) => {
 // --- OBTENER PRODUCTOS PARA VISTA PÚBLICA (Categorías con productos) ---
 export const getProductsByCategories = async (req: Request, res: Response) => {
     try {
-        const { limit = 4 } = req.query;
+        const { limit } = req.query;
 
         interface Categoria {
             id: number;
@@ -584,17 +588,25 @@ export const getProductsByCategories = async (req: Request, res: Response) => {
 
         const respuesta = await Promise.all(
             categoriasResult.rows.map(async (cat: Categoria) => {
-                const productosResult = await pool.query(
-                    `SELECT 
-                        id, nombre, descripcion, categoria_id, categoria_nombre,
-                        material_principal, precio_venta, precio_oferta,
-                        imagen_principal, stock_actual, es_nuevo
-                    FROM productos
-                    WHERE categoria_id = $1 AND activo = true
-                    ORDER BY es_nuevo DESC, nombre ASC
-                    LIMIT $2`,
-                    [cat.id, Number.parseInt(limit as string)]
-                );
+               const productosQuery = limit
+                ? `SELECT id, nombre, descripcion, categoria_id, categoria_nombre,
+                    material_principal, precio_venta, precio_oferta,
+                    imagen_principal, stock_actual, es_nuevo
+                FROM productos
+                WHERE categoria_id = $1 AND activo = true
+                ORDER BY es_nuevo DESC, nombre ASC
+                LIMIT $2`
+                : `SELECT id, nombre, descripcion, categoria_id, categoria_nombre,
+                    material_principal, precio_venta, precio_oferta,
+                    imagen_principal, stock_actual, es_nuevo
+                FROM productos
+                WHERE categoria_id = $1 AND activo = true
+                ORDER BY es_nuevo DESC, nombre ASC`;
+
+            const productosResult = await pool.query(
+                productosQuery,
+                limit ? [cat.id, Number.parseInt(limit as string)] : [cat.id]
+            );
 
                 return {
                     categoria_id: cat.id,

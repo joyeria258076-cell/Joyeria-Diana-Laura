@@ -1812,3 +1812,19 @@
 .stock-ok { color: #6bcb77; }
 .stock-poco { color: #f5c842; font-weight: 600; }
 .stock-agotado { color: #e05a6a; font-weight: 600; }
+.categoria-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.categoria-count {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.5);
+    font-weight: 600;
+}
+.categoria-ver-mas {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+}

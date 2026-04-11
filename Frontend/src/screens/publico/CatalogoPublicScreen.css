@@ -597,3 +597,67 @@
   }
 }
 
+/* ===== AGREGAR AL FINAL DE CatalogoPublicScreen.css ===== */
+
+.categoria-total {
+  font-size: 0.85rem;
+  color: rgba(236, 178, 195, 0.6);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.paginacion-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 3rem;
+  flex-wrap: wrap;
+}
+
+.paginacion-btn {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 0.75rem;
+  background: rgba(13, 13, 13, 0.8);
+  border: 2px solid rgba(236, 178, 195, 0.2);
+  border-radius: 6px;
+  color: rgba(236, 178, 195, 0.8);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.paginacion-btn:hover:not(:disabled) {
+  border-color: var(--gold-lux);
+  color: var(--gold-lux);
+  background: rgba(236, 178, 195, 0.07);
+  transform: translateY(-2px);
+}
+
+.paginacion-btn--activo {
+  background: linear-gradient(135deg, #ECB2C3, #f5c5d8);
+  border-color: transparent;
+  color: #0f0f12 !important;
+  transform: none !important;
+  box-shadow: 0 4px 14px rgba(236, 178, 195, 0.35);
+}
+
+.paginacion-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.paginacion-ellipsis {
+  color: rgba(236, 178, 195, 0.5);
+  font-size: 1rem;
+  padding: 0 0.25rem;
+  line-height: 40px;
+}
+
+@media (max-width: 576px) {
+  .paginacion-container { gap: 0.3rem; }
+  .paginacion-btn { min-width: 34px; height: 34px; font-size: 0.8rem; padding: 0 0.5rem; }
+}

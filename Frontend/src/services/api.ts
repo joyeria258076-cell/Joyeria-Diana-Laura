@@ -561,8 +561,8 @@ export const productsAPI = {
     return enhancedApi.get(`/products/filter?${params.toString()}`);
   },
 
-  getProductsByCategories: async (limit: number = 4) => {
-    return enhancedApi.get(`/products/por-categorias?limit=${limit}`);
+  getProductsByCategories: async () => {
+    return enhancedApi.get(`/products/por-categorias`);
   },
 
   getProductsByCategory: async (categoria_id: number, limit: number = 20) => {

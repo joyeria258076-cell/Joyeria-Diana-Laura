@@ -8,14 +8,15 @@ import DetalleProductoModal from '../publico/DetalleProductoModal';
 interface Producto {
     id: number;
     nombre: string;
-    precio_venta: number;        // ✅ requerido (igual que DetalleProductoModal)
+    precio_venta: number;
     precio_oferta?: number;
     descripcion?: string;
     imagen_principal?: string;
+    categoria_id?: number;
     categoria_nombre?: string;
     tipo_producto_nombre?: string;
     material_principal?: string;
-    stock_actual: number;        // ✅ requerido (igual que DetalleProductoModal)
+    stock_actual: number;
     es_nuevo?: boolean;
     dias_fabricacion?: number;
     permite_personalizacion?: boolean;
@@ -47,15 +48,19 @@ interface TipoProducto {
     nombre: string;
 }
 
+const PAGE_SIZE = 10;
+
 const CatalogoScreen: React.FC = () => {
     // --- ESTADOS DE DATOS ---
-    // ✅ FIX: ahora es un array tipado, no un objeto genérico
-    const [categorias_con_productos, setCategorias_con_productos] = useState<CategoriaConProductos[]>([]);
+    const [productosPorCategoria, setProductosPorCategoria] = useState<{ [key: string]: Producto[] }>({});
     const [resultadosBusqueda, setResultadosBusqueda] = useState<Producto[]>([]);
     const [categorias, setCategorias] = useState<Categoria[]>([]);
     const [tiposProducto, setTiposProducto] = useState<TipoProducto[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchMode, setSearchMode] = useState(false);
+
+    // --- PAGINACIÓN (solo modo búsqueda) ---
+    const [paginaBusqueda, setPaginaBusqueda] = useState(0);
 
     // --- ESTADOS DE FILTRADO ---
     const [filtros, setFiltros] = useState<FiltrosSearch>({
@@ -71,25 +76,29 @@ const CatalogoScreen: React.FC = () => {
     const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
 
-    // 1. CARGAR DATOS INICIALES
+    // --- PLACEHOLDER IMAGE ---
+    const placeholderImg = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzFhMWEyZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4IiBmaWxsPSIjZWNiMmMzIj7oo6s8L3RleHQ+PC9zdmc+';
+
+    // 1. CARGAR DATOS INICIALES — sin límite, trae todos
     useEffect(() => {
         const loadInitialData = async () => {
             try {
                 setLoading(true);
 
-                // ✅ FIX: el backend devuelve { success: true, data: [...] }
-                // donde data es un array de { categoria_id, categoria_nombre, productos, total }
-                const respProductos = await productsAPI.getProductsByCategories(4);
+                const respProductos = await productsAPI.getProductsByCategories();
                 const rawData = Array.isArray(respProductos?.data) ? respProductos.data : [];
-                // Filtrar categorías que tengan al menos 1 producto
-                const categoriasValidas = rawData.filter((c: CategoriaConProductos) => c.total > 0);
-                setCategorias_con_productos(categoriasValidas);
 
-                // Cargar todas las categorías para el filtro
+                const categoriasObj: { [key: string]: Producto[] } = {};
+                rawData
+                    .filter((c: CategoriaConProductos) => c.total > 0)
+                    .forEach((c: CategoriaConProductos) => {
+                        categoriasObj[c.categoria_nombre] = c.productos || [];
+                    });
+                setProductosPorCategoria(categoriasObj);
+
                 const respCategorias = await productsAPI.getCategories();
                 setCategorias(Array.isArray(respCategorias?.data) ? respCategorias.data : []);
 
-                // Cargar todos los tipos de producto para el filtro
                 const respTipos = await productsAPI.getTiposProducto();
                 setTiposProducto(Array.isArray(respTipos?.data) ? respTipos.data : []);
 
@@ -103,11 +112,13 @@ const CatalogoScreen: React.FC = () => {
         loadInitialData();
     }, []);
 
-    // --- MANEJADORES DE BÚSQUEDA Y FILTRO ---
+    // --- BÚSQUEDA ---
     const handleBuscar = async () => {
         try {
             setLoading(true);
             setSearchMode(true);
+            setPaginaBusqueda(0);
+
             const response = await productsAPI.searchAndFilter({
                 nombre: filtros.nombre,
                 categoria_id: filtros.categoria_id as number,
@@ -125,6 +136,23 @@ const CatalogoScreen: React.FC = () => {
         }
     };
 
+    // --- VER MÁS DE UNA CATEGORÍA → entra a modo búsqueda con paginación ---
+    const handleVerMasCategoria = async (categoria_id: number) => {
+        try {
+            setLoading(true);
+            setSearchMode(true);
+            setPaginaBusqueda(0);
+
+            const response = await productsAPI.searchAndFilter({ categoria_id });
+            setResultadosBusqueda(Array.isArray(response?.data) ? response.data : []);
+        } catch (error) {
+            console.error('Error cargando categoría:', error);
+            setResultadosBusqueda([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleLimpiarFiltros = () => {
         setFiltros({
             nombre: '',
@@ -136,9 +164,10 @@ const CatalogoScreen: React.FC = () => {
         });
         setSearchMode(false);
         setResultadosBusqueda([]);
+        setPaginaBusqueda(0);
     };
 
-    // --- MANEJADORES DE MODAL ---
+    // --- MODAL ---
     const verDetalles = (producto: Producto) => {
         setSelectedProducto(producto);
         setModalOpen(true);
@@ -149,10 +178,72 @@ const CatalogoScreen: React.FC = () => {
         setSelectedProducto(null);
     };
 
-    // --- PLACEHOLDER IMAGE ---
-    const placeholderImg = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzFhMWEyZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4IiBmaWxsPSIjZWNiMmMzIj7oo6s8L3RleHQ+PC9zdmc+';
+    // --- CÁLCULOS DE PAGINACIÓN ---
+    const totalPaginas = Math.ceil(resultadosBusqueda.length / PAGE_SIZE);
+    const productosPaginaActual = resultadosBusqueda.slice(
+        paginaBusqueda * PAGE_SIZE,
+        (paginaBusqueda + 1) * PAGE_SIZE
+    );
 
-    // ---- CARD REUTILIZABLE ----
+    // --- RENDER PAGINACIÓN ---
+    const renderPaginacion = () => {
+        if (totalPaginas <= 1) return null;
+
+        const delta = 2;
+        const range: number[] = [];
+        for (
+            let i = Math.max(0, paginaBusqueda - delta);
+            i <= Math.min(totalPaginas - 1, paginaBusqueda + delta);
+            i++
+        ) {
+            range.push(i);
+        }
+
+        const irA = (p: number) => {
+            setPaginaBusqueda(p);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        return (
+            <div className="paginacion-container">
+                <button className="paginacion-btn" onClick={() => irA(0)} disabled={paginaBusqueda === 0}>«</button>
+                <button className="paginacion-btn" onClick={() => irA(paginaBusqueda - 1)} disabled={paginaBusqueda === 0}>‹</button>
+
+                {range[0] > 0 && (
+                    <>
+                        <button className="paginacion-btn" onClick={() => irA(0)}>1</button>
+                        {range[0] > 1 && <span className="paginacion-ellipsis">…</span>}
+                    </>
+                )}
+
+                {range.map((p) => (
+                    <button
+                        key={p}
+                        className={`paginacion-btn${p === paginaBusqueda ? ' paginacion-btn--activo' : ''}`}
+                        onClick={() => irA(p)}
+                    >
+                        {p + 1}
+                    </button>
+                ))}
+
+                {range[range.length - 1] < totalPaginas - 1 && (
+                    <>
+                        {range[range.length - 1] < totalPaginas - 2 && (
+                            <span className="paginacion-ellipsis">…</span>
+                        )}
+                        <button className="paginacion-btn" onClick={() => irA(totalPaginas - 1)}>
+                            {totalPaginas}
+                        </button>
+                    </>
+                )}
+
+                <button className="paginacion-btn" onClick={() => irA(paginaBusqueda + 1)} disabled={paginaBusqueda === totalPaginas - 1}>›</button>
+                <button className="paginacion-btn" onClick={() => irA(totalPaginas - 1)} disabled={paginaBusqueda === totalPaginas - 1}>»</button>
+            </div>
+        );
+    };
+
+    // --- CARD REUTILIZABLE ---
     const ProductoCard = ({ producto }: { producto: Producto }) => (
         <div className="producto-card" onClick={() => verDetalles(producto)}>
             <div className="producto-imagen">
@@ -167,10 +258,7 @@ const CatalogoScreen: React.FC = () => {
                 )}
                 {producto.es_nuevo && <span className="badge-nuevo">Nuevo</span>}
                 {producto.precio_oferta && <span className="badge-oferta">Oferta</span>}
-                {/* ✅ Badges de stock */}
-                {producto.stock_actual === 0 && (
-                    <span className="badge-agotado">Agotado</span>
-                )}
+                {producto.stock_actual === 0 && <span className="badge-agotado">Agotado</span>}
                 {producto.stock_actual > 0 && producto.stock_actual <= 5 && (
                     <span className="badge-poco-stock">¡Últimas {producto.stock_actual}!</span>
                 )}
@@ -181,11 +269,11 @@ const CatalogoScreen: React.FC = () => {
                 <div className="precio-section">
                     {producto.precio_oferta ? (
                         <>
-                            <span className="precio original">${producto.precio_venta?.toLocaleString('es-MX')}</span>
-                            <span className="precio oferta">${producto.precio_oferta?.toLocaleString('es-MX')}</span>
+                            <span className="precio original">${(producto.precio_venta ?? 0).toLocaleString('es-MX')}</span>
+                            <span className="precio oferta">${(producto.precio_oferta ?? 0).toLocaleString('es-MX')}</span>
                         </>
                     ) : (
-                        <span className="precio">${producto.precio_venta?.toLocaleString('es-MX')}</span>
+                        <span className="precio">${(producto.precio_venta ?? 0).toLocaleString('es-MX')}</span>
                     )}
                 </div>
                 <div className="producto-stock">
@@ -210,7 +298,7 @@ const CatalogoScreen: React.FC = () => {
         <main className="catalogo-body">
             <h2 className="page-title">Catálogo de Productos</h2>
 
-            {/* --- SECCIÓN DE FILTROS --- */}
+            {/* --- FILTROS --- */}
             <div className="filtros-container">
                 <div className="search-section">
                     <div className="buscador">
@@ -291,21 +379,44 @@ const CatalogoScreen: React.FC = () => {
                 </div>
             </div>
 
-            {/* --- VISTA POR CATEGORÍAS (modo normal) --- */}
+            {/* --- MODO CATEGORÍAS — primeros 10, botón ver más → paginación --- */}
             {!searchMode && (
-                categorias_con_productos.length > 0 ? (
+                Object.entries(productosPorCategoria).length > 0 ? (
                     <div className="categorias-sections">
-                        {categorias_con_productos.map((catData) => (
-                            <section key={catData.categoria_id} className="categoria-section">
-                                {/* ✅ Ahora usa categoria_nombre del objeto, no el índice */}
-                                <h3 className="categoria-title">{catData.categoria_nombre}</h3>
-                                <div className="productos-grid">
-                                    {catData.productos.map((producto) => (
-                                        <ProductoCard key={producto.id} producto={producto} />
-                                    ))}
-                                </div>
-                            </section>
-                        ))}
+                        {Object.entries(productosPorCategoria).map(([nombreCategoria, productos]) => {
+                            const productosPreview = productos.slice(0, PAGE_SIZE);
+                            const hayMas = productos.length > PAGE_SIZE;
+                            // Obtenemos categoria_id del primer producto para el API call
+                            const categoria_id = productos[0]?.categoria_id || 0;
+
+                            return (
+                                <section key={nombreCategoria} className="categoria-section">
+                                    <div className="categoria-header-row">
+                                        <h3 className="categoria-title">{nombreCategoria}</h3>
+                                        <span className="categoria-count">
+                                            {productos.length} producto{productos.length !== 1 ? 's' : ''}
+                                        </span>
+                                    </div>
+
+                                    <div className="productos-grid">
+                                        {productosPreview.map((producto) => (
+                                            <ProductoCard key={producto.id} producto={producto} />
+                                        ))}
+                                    </div>
+
+                                    {hayMas && (
+                                        <div className="categoria-ver-mas">
+                                            <button
+                                                className="btn-ver-mas"
+                                                onClick={() => handleVerMasCategoria(categoria_id)}
+                                            >
+                                                Ver todos en {nombreCategoria} ({productos.length} productos)
+                                            </button>
+                                        </div>
+                                    )}
+                                </section>
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="no-results">
@@ -314,18 +425,20 @@ const CatalogoScreen: React.FC = () => {
                 )
             )}
 
-            {/* --- RESULTADOS DE BÚSQUEDA --- */}
+            {/* --- MODO BÚSQUEDA — paginación numérica --- */}
             {searchMode && (
                 resultadosBusqueda.length > 0 ? (
                     <div className="resultados-section">
                         <h3 className="resultados-title">
                             Resultados ({resultadosBusqueda.length})
+                            {totalPaginas > 1 && ` — página ${paginaBusqueda + 1} de ${totalPaginas}`}
                         </h3>
                         <div className="productos-grid">
-                            {resultadosBusqueda.map((producto) => (
+                            {productosPaginaActual.map((producto) => (
                                 <ProductoCard key={producto.id} producto={producto} />
                             ))}
                         </div>
+                        {renderPaginacion()}
                     </div>
                 ) : (
                     <div className="no-results">
@@ -337,7 +450,7 @@ const CatalogoScreen: React.FC = () => {
                 )
             )}
 
-            {/* --- MODAL DE DETALLES --- */}
+            {/* --- MODAL --- */}
             {modalOpen && selectedProducto && (
                 <DetalleProductoModal
                     isOpen={modalOpen}
