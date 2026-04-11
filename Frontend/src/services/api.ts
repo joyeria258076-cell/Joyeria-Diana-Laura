@@ -1159,6 +1159,31 @@ export const exportAPI = {
 };
 
 export const bulkUpdateAPI = {
+  // ✅ NUEVO: Descargar plantilla para actualización masiva
+  downloadTemplate: async (tableName: string) => {
+    const jwtToken = localStorage.getItem('diana_laura_user') 
+      ? JSON.parse(localStorage.getItem('diana_laura_user')!).token 
+      : null;
+    const sessionToken = localStorage.getItem('diana_laura_session_token');
+
+    const headers: Record<string, string> = {};
+    if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+    if (sessionToken) headers['X-Session-Token'] = sessionToken;
+
+    const response = await fetch(`${API_BASE_URL}/bulk-update/template/${tableName}`, {
+      method: 'GET',
+      headers,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Error al descargar la plantilla');
+    }
+
+    return response;
+  },
+
   previewUpdate: async (formData: FormData) => {
     const jwtToken = localStorage.getItem('diana_laura_user') 
       ? JSON.parse(localStorage.getItem('diana_laura_user')!).token 
@@ -1182,6 +1207,7 @@ export const bulkUpdateAPI = {
     }
     return data;
   },
+  
   executeUpdate: async (tableName: string, updates: any[]) => {
     return enhancedApi.post('/bulk-update/execute', { tableName, updates });
   }

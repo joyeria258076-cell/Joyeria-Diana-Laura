@@ -67,6 +67,24 @@ export class ExportService {
           'SELECT id, nombre FROM temporadas WHERE activo = true ORDER BY nombre'
         );
         relations['temporadas'] = temporadas.rows;
+        
+        // ✅ NUEVO: Tipos de producto
+        const tiposProducto = await pool.query(
+          'SELECT id, nombre FROM tipos_producto WHERE activo = true ORDER BY nombre'
+        );
+        relations['tipos_producto'] = tiposProducto.rows;
+      }
+      
+      if (tableName === 'ventas') {
+        const metodosPago = await pool.query(
+          'SELECT id, nombre FROM metodos_pago WHERE activo = true ORDER BY orden'
+        );
+        relations['metodos_pago'] = metodosPago.rows;
+        
+        const clientes = await pool.query(
+          'SELECT id, CONCAT(nombre, \' \', COALESCE(apellido, \'\')) as nombre FROM clientes WHERE activo = true ORDER BY nombre LIMIT 100'
+        );
+        relations['clientes'] = clientes.rows;
       }
       
       return { columns, relations };
@@ -104,31 +122,122 @@ export class ExportService {
         !['id', 'fecha_creacion', 'fecha_actualizacion'].includes(key)
       );
       
+      // Configurar encabezados en fila 4
       headers.forEach((header, index) => {
         const cell = dataSheet.getCell(4, index + 1);
         cell.value = header;
-        cell.font = { bold: true };
+        cell.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
           fgColor: { argb: 'FF1A1A2E' }
         };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+          top: { style: 'thin' },
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' }
+        };
       });
       
+      // Datos desde fila 7
       data.forEach((row, rowIndex) => {
         headers.forEach((header, colIndex) => {
           const cell = dataSheet.getCell(rowIndex + 7, colIndex + 1);
-          cell.value = row[header] !== null && row[header] !== undefined ? String(row[header]) : '';
+          let value = row[header];
+          if (value !== null && value !== undefined) {
+            if (value instanceof Date) {
+              value = value.toISOString().split('T')[0];
+            } else if (typeof value === 'object') {
+              value = JSON.stringify(value);
+            } else {
+              value = String(value);
+            }
+          } else {
+            value = '';
+          }
+          cell.value = value;
+          cell.alignment = { vertical: 'middle' };
         });
         
+        // ID en la última columna (opcional)
         const idCell = dataSheet.getCell(rowIndex + 7, headers.length + 1);
         idCell.value = row.id;
-        idCell.font = { color: { argb: 'FFFFFFFF' } };
+        idCell.font = { color: { argb: 'FF666666' } };
       });
       
+      // Ajustar anchos
       headers.forEach((_, index) => {
-        dataSheet.getColumn(index + 1).width = 20;
+        dataSheet.getColumn(index + 1).width = 22;
       });
+      
+      // Título
+      dataSheet.mergeCells(1, 1, 1, headers.length);
+      const titleCell = dataSheet.getCell('A1');
+      titleCell.value = `📊 EXPORTACIÓN DE DATOS - Tabla: ${tableName.toUpperCase()}`;
+      titleCell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A1A2E' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      dataSheet.getRow(1).height = 34;
+      
+      // Subtítulo
+      dataSheet.mergeCells(2, 1, 2, headers.length);
+      const subCell = dataSheet.getCell('A2');
+      subCell.value = `Total de registros: ${data.length} | Exportado: ${new Date().toLocaleString()}`;
+      subCell.font = { italic: true, size: 10, color: { argb: 'FFECB2C3' } };
+      subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF16213E' } };
+      subCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      dataSheet.getRow(2).height = 20;
+      
+      // Franja decorativa
+      dataSheet.mergeCells(3, 1, 3, headers.length);
+      const accentCell = dataSheet.getCell('A3');
+      accentCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECB2C3' } };
+      dataSheet.getRow(3).height = 5;
+    }
+    
+    // Hoja de metadatos (opcional)
+    if (includeRelations && metadata.relations && Object.keys(metadata.relations).length > 0) {
+      const relationsSheet = workbook.addWorksheet('CATÁLOGOS', {
+        properties: { tabColor: { argb: 'FF4CAF50' } }
+      });
+      
+      let startCol = 1;
+      for (const [nombre, rows] of Object.entries(metadata.relations)) {
+        if (rows.length === 0) continue;
+        
+        // Título de la relación
+        relationsSheet.mergeCells(4, startCol, 4, startCol + 1);
+        const titleCellRel = relationsSheet.getCell(4, startCol);
+        titleCellRel.value = `📋 ${nombre.toUpperCase()}`;
+        titleCellRel.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
+        titleCellRel.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F3460' } };
+        titleCellRel.alignment = { horizontal: 'center', vertical: 'middle' };
+        
+        // Encabezados
+        const idHeader = relationsSheet.getCell(5, startCol);
+        idHeader.value = 'ID';
+        idHeader.font = { bold: true };
+        idHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECB2C3' } };
+        
+        const nameHeader = relationsSheet.getCell(5, startCol + 1);
+        nameHeader.value = 'Nombre';
+        nameHeader.font = { bold: true };
+        nameHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECB2C3' } };
+        
+        // Datos
+        rows.forEach((row, idx) => {
+          const idCellRel = relationsSheet.getCell(idx + 6, startCol);
+          idCellRel.value = row.id;
+          const nameCellRel = relationsSheet.getCell(idx + 6, startCol + 1);
+          nameCellRel.value = row.nombre;
+        });
+        
+        relationsSheet.getColumn(startCol).width = 10;
+        relationsSheet.getColumn(startCol + 1).width = 30;
+        startCol += 3;
+      }
     }
     
     return workbook;
@@ -143,6 +252,8 @@ export class ExportService {
       'boolean': 'booleano',
       'date': 'fecha',
       'timestamp': 'fecha/hora',
+      'jsonb': 'JSON',
+      'USER-DEFINED': 'enumerado'
     };
     return map[pgType] || pgType;
   }
@@ -152,12 +263,37 @@ export class ExportService {
       productos: {
         nombre: 'Nombre del producto',
         categoria_id: 'ID de la categoría',
-        precio_compra: 'Precio de compra',
-        stock_actual: 'Stock actual',
+        tipo_producto_id: 'ID del tipo de producto (Joyería Fina, Bisutería, etc.)',
+        precio_compra: 'Precio de compra al proveedor',
+        precio_venta: 'Precio de venta al público',
+        stock_actual: 'Cantidad actual en inventario',
+        proveedor_id: 'ID del proveedor',
+        temporada_id: 'ID de la temporada/colección',
+        genero: 'Género al que va dirigido (unisex, dama, caballero, nino, nina)',
+        material_principal: 'Material principal del producto',
+        peso_gramos: 'Peso en gramos',
+        es_nuevo: 'Indica si es un producto nuevo',
+        es_destacado: 'Indica si debe aparecer como destacado',
+        activo: 'Indica si el producto está activo en la tienda'
       },
       proveedores: {
         nombre: 'Nombre del proveedor',
+        email: 'Correo electrónico de contacto',
+        telefono: 'Teléfono de contacto',
+        persona_contacto: 'Nombre de la persona de contacto'
+      },
+      clientes: {
+        nombre: 'Nombre(s) del cliente',
+        apellido: 'Apellido(s) del cliente',
         email: 'Correo electrónico',
+        telefono: 'Teléfono de contacto'
+      },
+      ventas: {
+        cliente_id: 'ID del cliente',
+        metodo_pago_id: 'ID del método de pago',
+        subtotal: 'Subtotal sin IVA ni envío',
+        total: 'Total a pagar',
+        estado: 'Estado del pedido'
       }
     };
     return descriptions[tableName]?.[columnName] || columnName;
