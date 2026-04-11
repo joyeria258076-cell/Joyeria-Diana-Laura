@@ -35,6 +35,15 @@ interface Pedido {
     codigo_entrega?: string;
     costo_envio?: number;
     tipo_entrega?: string;
+    dir_calle?: string;
+    dir_numero?: string;
+    dir_colonia?: string;
+    dir_ciudad?: string;
+    dir_estado?: string;
+    dir_codigo_postal?: string;
+    dir_numero_interior?: string;
+    dir_referencias?: string;
+    dir_telefono_contacto?: string;
 }
 
 interface EstadoConfig { value: string; label: string; color: string; bg: string; }
@@ -584,8 +593,26 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
                                         <h4>📅 Fecha estimada de entrega</h4>
                                         <p>{pedidoDetalle.fecha_estimada_entrega ? formatFecha(pedidoDetalle.fecha_estimada_entrega) : 'Por confirmar — el trabajador la indicará al procesar tu pedido'}</p>
                                     </div>
+                                    {pedidoDetalle.tipo_entrega === 'domicilio' && pedidoDetalle.dir_calle ? (
+                                        <div className="cp-modal-seccion">
+                                            <h4>📍 Dirección de envío</h4>
+                                            <p>
+                                                {pedidoDetalle.dir_calle} {pedidoDetalle.dir_numero}{pedidoDetalle.dir_numero_interior ? ` Int. ${pedidoDetalle.dir_numero_interior}` : ''}, {pedidoDetalle.dir_colonia}, {pedidoDetalle.dir_ciudad}, {pedidoDetalle.dir_estado}, CP {pedidoDetalle.dir_codigo_postal}
+                                                {pedidoDetalle.dir_telefono_contacto && <><br/>📱 {pedidoDetalle.dir_telefono_contacto}</>}
+                                                {pedidoDetalle.dir_referencias && <><br/>📌 {pedidoDetalle.dir_referencias}</>}
+                                            </p>
+                                        </div>
+                                    ) : pedidoDetalle.tipo_entrega === 'tienda' ? (
+                                        <div className="cp-modal-seccion">
+                                            <h4>📍 Tipo de entrega</h4>
+                                            <p>🏪 Recoger en tienda</p>
+                                        </div>
+                                    ) : null}
                                     {pedidoDetalle.notas_cliente && (
-                                        <div className="cp-modal-seccion"><h4>📍 Dirección de envío</h4><p>{pedidoDetalle.notas_cliente}</p></div>
+                                        <div className="cp-modal-seccion">
+                                            <h4>📝 Notas del pedido</h4>
+                                            <p>{pedidoDetalle.notas_cliente}</p>
+                                        </div>
                                     )}
                                     <div className="cp-modal-seccion">
                                         <h4>🛍 Productos</h4>

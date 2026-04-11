@@ -172,7 +172,7 @@ export const VentaModel = {
                 data.cliente_nombre, data.cliente_email,
                 subtotal, iva, total, costoEnvio,
                 data.items.reduce((s, i) => s + i.cantidad, 0),
-                [data.direccion_envio, data.notas_cliente].filter(Boolean).join(' | ') || null,
+                data.notas_cliente || null,
                 data.tipo_entrega || 'tienda',
                 data.usuario_id
             ]);
@@ -282,45 +282,53 @@ export const VentaModel = {
     },
 
     getById: async (id: number) => {
-        const result = await pool.query(`
-            SELECT
-                v.*,
-                mp.nombre                AS metodo_pago_nombre,
-                mp.codigo                AS metodo_pago_codigo,
-                mp.tipo                  AS metodo_pago_tipo,
-                mp.es_pasarela           AS metodo_es_pasarela,
-                mp.instrucciones_cliente AS metodo_instrucciones,
-                c.nombre  AS cliente_nombre_reg,
-                c.email   AS cliente_email_reg,
-                -- ✅ Usar trabajador_id para el nombre del trabajador asignado
-                tw.nombre AS trabajador_nombre,
-                COALESCE(
-                    (SELECT tp.estado FROM transacciones_pago tp
-                     WHERE tp.venta_id = v.id
-                     ORDER BY tp.fecha_creacion DESC LIMIT 1),
-                    'pendiente'
-                ) AS estado_pago,
-                (
-                    SELECT json_agg(json_build_object(
-                        'id',               dv.id,
-                        'producto_id',      dv.producto_id,
-                        'producto_nombre',  dv.producto_nombre,
-                        'producto_imagen',  dv.producto_imagen,
-                        'cantidad',         dv.cantidad,
-                        'precio_unitario',  dv.precio_unitario,
-                        'subtotal',         dv.subtotal
-                    ))
-                    FROM detalle_ventas dv WHERE dv.venta_id = v.id
-                ) AS items
-            FROM ventas v
-            JOIN clientes c ON v.cliente_id = c.id
-            LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
-            -- ✅ JOIN con trabajador_id, no actualizado_por
-            LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
-            WHERE v.id = $1
-        `, [id]);
-        return result.rows[0];
-    },
+            const result = await pool.query(`
+                SELECT
+                    v.*,
+                    mp.nombre                AS metodo_pago_nombre,
+                    mp.codigo                AS metodo_pago_codigo,
+                    mp.tipo                  AS metodo_pago_tipo,
+                    mp.es_pasarela           AS metodo_es_pasarela,
+                    mp.instrucciones_cliente AS metodo_instrucciones,
+                    c.nombre  AS cliente_nombre_reg,
+                    c.email   AS cliente_email_reg,
+                    tw.nombre AS trabajador_nombre,
+                    dc.calle              AS dir_calle,
+                    dc.numero_exterior    AS dir_numero,
+                    dc.numero_interior    AS dir_numero_interior,
+                    dc.colonia            AS dir_colonia,
+                    dc.ciudad             AS dir_ciudad,
+                    dc.estado             AS dir_estado,
+                    dc.codigo_postal      AS dir_codigo_postal,
+                    dc.telefono_contacto  AS dir_telefono_contacto,
+                    dc.referencias        AS dir_referencias,
+                    COALESCE(
+                        (SELECT tp.estado FROM transacciones_pago tp
+                        WHERE tp.venta_id = v.id
+                        ORDER BY tp.fecha_creacion DESC LIMIT 1),
+                        'pendiente'
+                    ) AS estado_pago,
+                    (
+                        SELECT json_agg(json_build_object(
+                            'id',               dv.id,
+                            'producto_id',      dv.producto_id,
+                            'producto_nombre',  dv.producto_nombre,
+                            'producto_imagen',  dv.producto_imagen,
+                            'cantidad',         dv.cantidad,
+                            'precio_unitario',  dv.precio_unitario,
+                            'subtotal',         dv.subtotal
+                        ))
+                        FROM detalle_ventas dv WHERE dv.venta_id = v.id
+                    ) AS items
+                FROM ventas v
+                JOIN clientes c ON v.cliente_id = c.id
+                LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
+                LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
+                LEFT JOIN direcciones_cliente dc ON v.direccion_entrega_id = dc.id
+                WHERE v.id = $1
+            `, [id]);
+            return result.rows[0];
+        },
 
     updateEstado: async (id: number, estado: string, trabajador_id: number, notas_internas?: string) => {
         const campos = ['estado = $2', 'actualizado_por = $3', 'fecha_actualizacion = CURRENT_TIMESTAMP'];
@@ -478,14 +486,25 @@ export const VentaModel = {
                 v.cliente_nombre_completo,
                 v.cliente_email,
                 v.cliente_telefono,
-                v.notas_cliente AS direccion_envio,
+                v.notas_cliente,
+                v.tipo_entrega,
                 c.telefono,
                 c.celular,
                 c.fecha_nacimiento,
-                u.email AS usuario_email
+                u.email AS usuario_email,
+                dc.calle              AS dir_calle,
+                dc.numero_exterior    AS dir_numero,
+                dc.numero_interior    AS dir_numero_interior,
+                dc.colonia            AS dir_colonia,
+                dc.ciudad             AS dir_ciudad,
+                dc.estado             AS dir_estado,
+                dc.codigo_postal      AS dir_codigo_postal,
+                dc.telefono_contacto  AS dir_telefono_contacto,
+                dc.referencias        AS dir_referencias
             FROM ventas v
             JOIN clientes c ON v.cliente_id = c.id
             JOIN usuarios u ON c.user_id = u.id
+            LEFT JOIN direcciones_cliente dc ON v.direccion_entrega_id = dc.id
             WHERE v.id = $1
         `, [venta_id]);
         return result.rows[0];

@@ -24,8 +24,21 @@ const ICONOS_METODO: Record<string, string> = {
     efectivo:      '💵',
 };
 
+interface DireccionData {
+    calle: string;
+    numero: string;
+    numero_interior?: string;
+    colonia: string;
+    ciudad: string;
+    estado_dir: string;
+    codigo_postal: string;
+    referencias?: string;
+    telefono_contacto?: string;
+    texto_completo: string;
+}
+
 // ── Selector de dirección por CP ──────────────────────────────
-const SelectorDireccion: React.FC<{ onChange: (dir: string) => void }> = ({ onChange }) => {
+const SelectorDireccion: React.FC<{ onChange: (dir: DireccionData) => void }> = ({ onChange }) => {
     const [cp, setCp]               = useState('');
     const [estado, setEstado]       = useState('');
     const [municipio, setMunicipio] = useState('');
@@ -33,6 +46,9 @@ const SelectorDireccion: React.FC<{ onChange: (dir: string) => void }> = ({ onCh
     const [colonias, setColonias]   = useState<string[]>([]);
     const [calle, setCalle]         = useState('');
     const [numero, setNumero]       = useState('');
+    const [numeroInterior, setNumeroInterior] = useState('');
+    const [referencias, setReferencias]       = useState('');
+    const [telefono, setTelefono]             = useState('');
     const [cargando, setCargando]   = useState(false);
     const [cpValido, setCpValido]   = useState(false);
     const [cpError, setCpError]     = useState('');
@@ -72,8 +88,19 @@ const SelectorDireccion: React.FC<{ onChange: (dir: string) => void }> = ({ onCh
             calle && numero ? `${calle} ${numero}` : calle,
             colonia, municipio, estado, cp ? `CP ${cp}` : ''
         ].filter(Boolean);
-        onChange(partes.join(', '));
-    }, [cp, estado, municipio, colonia, calle, numero]);
+        onChange({
+            calle,
+            numero,
+            numero_interior: numeroInterior,
+            colonia,
+            ciudad: municipio,
+            estado_dir: estado,
+            codigo_postal: cp,
+            referencias,
+            telefono_contacto: telefono,
+            texto_completo: partes.join(', ')
+        });
+    }, [cp, estado, municipio, colonia, calle, numero, numeroInterior, referencias, telefono]);
 
     const ic = 'carrito-dir-input';
     return (
@@ -121,12 +148,27 @@ const SelectorDireccion: React.FC<{ onChange: (dir: string) => void }> = ({ onCh
                             value={calle} onChange={e => setCalle(e.target.value)} />
                     </div>
                     <div className="carrito-dir-campo carrito-dir-num">
-                        <label>Número</label>
-                        <input type="text" className={ic} placeholder="Ej: 123 Int. 4"
+                        <label>Número exterior</label>
+                        <input type="text" className={ic} placeholder="Ej: 123"
                             value={numero} onChange={e => setNumero(e.target.value)} />
+                    </div>
+                    <div className="carrito-dir-campo carrito-dir-num">
+                        <label>Número interior</label>
+                        <input type="text" className={ic} placeholder="Ej: Int. 4"
+                            value={numeroInterior} onChange={e => setNumeroInterior(e.target.value)} />
                     </div>
                 </div>
             )}
+            <div className="carrito-dir-campo">
+                <label>Teléfono de contacto</label>
+                <input type="text" className={ic} placeholder="Ej: 7712345678"
+                    value={telefono} onChange={e => setTelefono(e.target.value)} />
+            </div>
+            <div className="carrito-dir-campo">
+                <label>Referencias (opcional)</label>
+                <input type="text" className={ic} placeholder="Ej: Casa azul, frente al parque"
+                    value={referencias} onChange={e => setReferencias(e.target.value)} />
+            </div>
             {cpValido && calle && colonia && (
                 <div className="carrito-dir-preview">
                     <span>📍</span>
@@ -146,7 +188,7 @@ const CarritoScreen: React.FC = () => {
     const [pedidoExitoso, setPedidoExitoso]   = useState(false);
     const [folioPedido, setFolioPedido]       = useState('');
     const [showCheckout, setShowCheckout]     = useState(false);
-    const [direccion, setDireccion]           = useState('');
+    const [direccion, setDireccion] = useState<DireccionData | null>(null);
     const [notasCliente, setNotasCliente]     = useState('');
     const [errorMsg, setErrorMsg]             = useState('');
     const [metodosPago, setMetodosPago]       = useState<MetodoPago[]>([]);
@@ -180,11 +222,13 @@ const CarritoScreen: React.FC = () => {
     };
 
     const handleSolicitarPedido = async () => {
-        if (!direccion.trim() || direccion.split(',').length < 3) {
-            setErrorMsg('Por favor completa el CP, colonia y calle'); return;
-        }
-        if (direccion.includes('__otra__')) {
-            setErrorMsg('Por favor escribe el nombre de tu colonia'); return;
+        if (tipoEntrega === 'domicilio') {
+            if (!direccion || !direccion.calle || !direccion.colonia || !direccion.codigo_postal) {
+                setErrorMsg('Por favor completa el CP, colonia y calle'); return;
+            }
+            if (direccion.colonia === '__otra__') {
+                setErrorMsg('Por favor escribe el nombre de tu colonia'); return;
+            }
         }
         if (!metodoPagoId) {
             setErrorMsg('Por favor selecciona un método de pago'); return;
@@ -192,11 +236,12 @@ const CarritoScreen: React.FC = () => {
         setSolicitando(true); setErrorMsg('');
         try {
             const data = await carritoAPI.crearPedido({
-                direccion_envio: tipoEntrega === 'domicilio' ? direccion : 'Recoger en tienda',
+                direccion_envio: tipoEntrega === 'domicilio' ? direccion!.texto_completo : 'Recoger en tienda',
                 notas_cliente: notasCliente,
                 metodo_pago_id: metodoPagoId,
                 tipo_entrega: tipoEntrega,
-                costo_envio: tipoEntrega === 'domicilio' ? costoEnvio : 0
+                costo_envio: tipoEntrega === 'domicilio' ? costoEnvio : 0,
+                direccion_data: tipoEntrega === 'domicilio' ? direccion : null
             });
             if (!data.success) throw new Error(data.message);
             setFolioPedido(data.data.folio || `#${data.data.id}`);
@@ -334,46 +379,47 @@ const CarritoScreen: React.FC = () => {
 
                             {/* ✅ Banner guía para el cliente */}
                             <div className="carrito-checkout-guia">
-                                <div className="carrito-guia-paso"><span className="carrito-guia-num">1</span><span>Completa tu dirección de envío</span></div>
+                                <div className="carrito-guia-paso"><span className="carrito-guia-num">1</span><span>¿Cómo recibes tu pedido?</span></div>
                                 <div className="carrito-guia-sep">→</div>
                                 <div className="carrito-guia-paso"><span className="carrito-guia-num">2</span><span>Elige tu método de pago</span></div>
                                 <div className="carrito-guia-sep">→</div>
                                 <div className="carrito-guia-paso"><span className="carrito-guia-num">3</span><span>Confirma tu pedido</span></div>
                             </div>
 
-                            <div className="carrito-form-group">
-                                <label>Dirección de envío <span className="carrito-requerido">*</span></label>
-                                <SelectorDireccion onChange={setDireccion} />
-                            </div>
-
-                            <div className="carrito-form-group">
-                                <label>Notas o personalizaciones (opcional)</label>
-                                <textarea rows={3}
-                                    placeholder="Ej: talla del anillo 7, grabado con nombre 'Ana'..."
-                                    value={notasCliente} onChange={e => setNotasCliente(e.target.value)}
-                                    className="carrito-textarea" />
-                                <small className="carrito-form-ayuda">Incluye aquí tallas, medidas o cualquier personalización.</small>
-                            </div>
-
+                            {/* ✅ Tipo de entrega */}
                             <div className="carrito-form-group">
                                 <label>¿Cómo quieres recibir tu pedido? <span className="carrito-requerido">*</span></label>
                                 <div className="carrito-metodos-opciones">
                                     <label className={`carrito-metodo-opcion ${tipoEntrega === 'tienda' ? 'seleccionado' : ''}`}>
                                         <input type="radio" name="tipo_entrega" value="tienda"
                                             checked={tipoEntrega === 'tienda'}
-                                            onChange={() => { setTipoEntrega('tienda'); }} />
+                                            onChange={() => setTipoEntrega('tienda')} />
                                         <span className="carrito-metodo-icono">🏪</span>
                                         <span className="carrito-metodo-nombre">Recoger en tienda <small style={{color:'#6bcb77'}}>(Sin costo)</small></span>
                                     </label>
                                     <label className={`carrito-metodo-opcion ${tipoEntrega === 'domicilio' ? 'seleccionado' : ''}`}>
                                         <input type="radio" name="tipo_entrega" value="domicilio"
                                             checked={tipoEntrega === 'domicilio'}
-                                            onChange={() => { setTipoEntrega('domicilio'); }} />
+                                            onChange={() => setTipoEntrega('domicilio')} />
                                         <span className="carrito-metodo-icono">🚚</span>
                                         <span className="carrito-metodo-nombre">Envío a domicilio <small style={{color:'#ecb2c3'}}>(+${costoEnvio.toLocaleString('es-MX')} MXN)</small></span>
                                     </label>
                                 </div>
                             </div>
+
+                            {/* ✅ Dirección solo si es domicilio */}
+                            {tipoEntrega === 'domicilio' ? (
+                                <div className="carrito-form-group">
+                                    <label>Dirección de envío <span className="carrito-requerido">*</span></label>
+                                    <SelectorDireccion onChange={setDireccion} />
+                                </div>
+                            ) : (
+                                <div className="carrito-metodo-info">
+                                    🏪 <strong>Recoger en tienda:</strong> Te avisaremos cuando tu pedido esté listo. Preséntate en nuestra sucursal con tu código de entrega.
+                                </div>
+                            )}
+
+                            {/* ✅ Método de pago */}
                             <div className="carrito-form-group">
                                 <label>Método de pago <span className="carrito-requerido">*</span></label>
                                 {cargandoMetodos ? (
@@ -434,6 +480,16 @@ const CarritoScreen: React.FC = () => {
                                         })()}
                                     </div>
                                 )}
+                            </div>
+
+                            {/* ✅ Instrucciones especiales */}
+                            <div className="carrito-form-group">
+                                <label>📝 Notas e instrucciones para tu pedido (opcional)</label>
+                                <textarea rows={3}
+                                    placeholder="Ej: talla del anillo 7, grabado con nombre 'Ana', color preferido..."
+                                    value={notasCliente} onChange={e => setNotasCliente(e.target.value)}
+                                    className="carrito-textarea" />
+                                <small className="carrito-form-ayuda">¿Necesitas alguna personalización, talla específica o tienes alguna indicación para tu pedido? Escríbela aquí.</small>
                             </div>
 
                             {errorMsg && <div className="carrito-error-msg">⚠️ {errorMsg}</div>}

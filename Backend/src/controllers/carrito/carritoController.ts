@@ -225,7 +225,7 @@ export const crearPedido = async (req: Request, res: Response) => {
         const usuario = getUsuario(req);
         if (!usuario.id) return res.status(401).json({ success: false, message: 'No autenticado' });
 
-        const { direccion_envio, notas_cliente, metodo_pago_id, tipo_entrega, costo_envio } = req.body;
+        const { direccion_envio, notas_cliente, metodo_pago_id, tipo_entrega, costo_envio, direccion_data } = req.body;
         if (!direccion_envio)
             return res.status(400).json({ success: false, message: 'Dirección de envío requerida' });
 
@@ -282,6 +282,35 @@ export const crearPedido = async (req: Request, res: Response) => {
             costo_envio:    tipo_entrega === 'domicilio' ? (costo_envio || 0) : 0,
             items: itemsPedido
         });
+
+        // Guardar dirección en tabla direcciones_cliente si es domicilio
+        if (tipo_entrega === 'domicilio' && direccion_data) {
+        const dirResult = await pool.query(`
+            INSERT INTO direcciones_cliente (
+                cliente_id, nombre_destinatario, calle, numero_exterior,
+                numero_interior, colonia, ciudad, estado, codigo_postal,
+                telefono_contacto, referencias, activo, fecha_creacion
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true, CURRENT_TIMESTAMP)
+            RETURNING id
+        `, [
+            cliente_id,
+            usuario.nombre,
+            direccion_data.calle,
+            direccion_data.numero || null,
+            direccion_data.numero_interior || null,
+            direccion_data.colonia,
+            direccion_data.ciudad,
+            direccion_data.estado_dir,
+            direccion_data.codigo_postal,
+            direccion_data.telefono_contacto || null,
+            direccion_data.referencias || null
+        ]);
+
+            // ✅ Linkear dirección con la venta
+            await pool.query(`
+                UPDATE ventas SET direccion_entrega_id = $1 WHERE id = $2
+            `, [dirResult.rows[0].id, venta.id]);
+        }
 
         res.status(201).json({
             success: true,
@@ -1158,6 +1187,25 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
                         <p class="info-label">Email</p>
                         <p class="info-value">${venta.cliente_email}</p>
                     </div>
+                    ${venta.tipo_entrega === 'domicilio' && venta.dir_calle ? `
+                    <div class="info-row">
+                        <p class="info-label">Dirección de envío</p>
+                        <p class="info-value">
+                            ${venta.dir_calle} ${venta.dir_numero || ''}${venta.dir_numero_interior ? ` Int. ${venta.dir_numero_interior}` : ''}, 
+                            ${venta.dir_colonia}, ${venta.dir_ciudad}, ${venta.dir_estado}, CP ${venta.dir_codigo_postal}
+                            ${venta.dir_telefono_contacto ? `<br/>📱 ${venta.dir_telefono_contacto}` : ''}
+                            ${venta.dir_referencias ? `<br/>📌 ${venta.dir_referencias}` : ''}
+                        </p>
+                    </div>` : `
+                    <div class="info-row">
+                        <p class="info-label">Entrega</p>
+                        <p class="info-value">🏪 Recoger en tienda</p>
+                    </div>`}
+                    ${venta.notas_cliente ? `
+                    <div class="info-row">
+                        <p class="info-label">Notas del pedido</p>
+                        <p class="info-value">${venta.notas_cliente}</p>
+                    </div>` : ''}
                 </div>
             </div>
 

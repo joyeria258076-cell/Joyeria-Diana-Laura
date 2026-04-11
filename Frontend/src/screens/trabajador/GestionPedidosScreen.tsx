@@ -43,6 +43,15 @@ interface Pedido {
     tipo_entrega?: string;
     minutos_sin_pago?: number;
     fecha_limite_pago?: string;
+    dir_calle?: string;
+    dir_numero?: string;
+    dir_colonia?: string;
+    dir_ciudad?: string;
+    dir_estado?: string;
+    dir_codigo_postal?: string;
+    dir_numero_interior?: string;
+    dir_referencias?: string;
+    dir_telefono_contacto?: string;
 }
 
 interface ClienteInfo {
@@ -51,8 +60,18 @@ interface ClienteInfo {
     cliente_telefono?: string;
     telefono?: string;
     celular?: string;
-    direccion_envio?: string;
+    notas_cliente?: string;
+    tipo_entrega?: string;
     fecha_nacimiento?: string;
+    dir_calle?: string;
+    dir_numero?: string;
+    dir_numero_interior?: string;
+    dir_colonia?: string;
+    dir_ciudad?: string;
+    dir_estado?: string;
+    dir_codigo_postal?: string;
+    dir_telefono_contacto?: string;
+    dir_referencias?: string;
 }
 
 interface EstadoConfig { value: string; label: string; color: string; }
@@ -842,9 +861,24 @@ const GestionPedidosScreen: React.FC = () => {
                                                 <h4>👤 Cliente</h4>
                                                 <p>{pedidoSel.cliente_nombre_completo} — {pedidoSel.cliente_email}</p>
                                             </div>
-                                            {pedidoSel.notas_cliente && (
+                                            {pedidoSel.tipo_entrega === 'domicilio' && pedidoSel.dir_calle ? (
                                                 <div className="gp-modal-seccion">
                                                     <h4>📍 Dirección de envío</h4>
+                                                    <p>
+                                                        {pedidoSel.dir_calle} {pedidoSel.dir_numero}{pedidoSel.dir_numero_interior ? ` Int. ${pedidoSel.dir_numero_interior}` : ''}, {pedidoSel.dir_colonia}, {pedidoSel.dir_ciudad}, {pedidoSel.dir_estado}, CP {pedidoSel.dir_codigo_postal}
+                                                        {pedidoSel.dir_telefono_contacto && <><br/>📱 {pedidoSel.dir_telefono_contacto}</>}
+                                                        {pedidoSel.dir_referencias && <><br/>📌 {pedidoSel.dir_referencias}</>}
+                                                    </p>
+                                                </div>
+                                            ) : pedidoSel.tipo_entrega === 'tienda' ? (
+                                                <div className="gp-modal-seccion">
+                                                    <h4>📍 Tipo de entrega</h4>
+                                                    <p>🏪 Recoger en tienda</p>
+                                                </div>
+                                            ) : null}
+                                            {pedidoSel.notas_cliente && (
+                                                <div className="gp-modal-seccion">
+                                                    <h4>📝 Notas del cliente</h4>
                                                     <p>{pedidoSel.notas_cliente}</p>
                                                 </div>
                                             )}
@@ -960,14 +994,37 @@ const GestionPedidosScreen: React.FC = () => {
                                                     <span className="gp-dato-label">📧 Email</span>
                                                     <span className="gp-dato-valor">{clienteInfo.cliente_email || '—'}</span>
                                                 </div>
-                                                <div className="gp-dato-fila">
+                                                {/* <div className="gp-dato-fila">
                                                     <span className="gp-dato-label">📱 Teléfono</span>
                                                     <span className="gp-dato-valor">{clienteInfo.telefono || clienteInfo.celular || clienteInfo.cliente_telefono || '—'}</span>
-                                                </div>
+                                                </div> */}
+                                                {(clienteInfo.telefono || clienteInfo.celular || clienteInfo.cliente_telefono) && (
+                                                    <div className="gp-dato-fila">
+                                                        <span className="gp-dato-label">📱 Teléfono</span>
+                                                        <span className="gp-dato-valor">{clienteInfo.telefono || clienteInfo.celular || clienteInfo.cliente_telefono}</span>
+                                                    </div>
+                                                )}
                                                 <div className="gp-dato-fila">
-                                                    <span className="gp-dato-label">📍 Dirección</span>
-                                                    <span className="gp-dato-valor">{clienteInfo.direccion_envio || '—'}</span>
+                                                    <span className="gp-dato-label">📍 Entrega</span>
+                                                    <span className="gp-dato-valor">
+                                                        {clienteInfo.tipo_entrega === 'domicilio' && clienteInfo.dir_calle ? (
+                                                            <>
+                                                                {clienteInfo.dir_calle} {clienteInfo.dir_numero}
+                                                                {clienteInfo.dir_numero_interior ? ` Int. ${clienteInfo.dir_numero_interior}` : ''}, {clienteInfo.dir_colonia}, {clienteInfo.dir_ciudad}, {clienteInfo.dir_estado}, CP {clienteInfo.dir_codigo_postal}
+                                                                {clienteInfo.dir_telefono_contacto && <><br/>📱 {clienteInfo.dir_telefono_contacto}</>}
+                                                                {clienteInfo.dir_referencias && <><br/>📌 {clienteInfo.dir_referencias}</>}
+                                                            </>
+                                                        ) : clienteInfo.tipo_entrega === 'tienda' ? (
+                                                            '🏪 Recoger en tienda'
+                                                        ) : '—'}
+                                                    </span>
                                                 </div>
+                                                {clienteInfo.notas_cliente && (
+                                                    <div className="gp-dato-fila">
+                                                        <span className="gp-dato-label">📝 Notas</span>
+                                                        <span className="gp-dato-valor">{clienteInfo.notas_cliente}</span>
+                                                    </div>
+                                                )}
                                                 {clienteInfo.fecha_nacimiento && (
                                                     <div className="gp-dato-fila">
                                                         <span className="gp-dato-label">🎂 Nacimiento</span>
