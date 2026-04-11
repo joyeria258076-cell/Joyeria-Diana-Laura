@@ -255,7 +255,7 @@ export const VentaModel = {
                 c.email        AS cliente_email,
                 ut.nombre      AS trabajador_nombre,
                 tw.nombre      AS trabajador_asignado_nombre,
-                (SELECT COUNT(*) FROM detalle_ventas dv WHERE dv.venta_id = v.id) AS total_items,
+                (SELECT COALESCE(SUM(dv.cantidad), 0) FROM detalle_ventas dv WHERE dv.venta_id = v.id) AS total_items,
                 COALESCE(
                     (SELECT tp.estado FROM transacciones_pago tp
                     WHERE tp.venta_id = v.id
