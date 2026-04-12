@@ -5,7 +5,7 @@ import './styles/AdminBulkUpdateScreen.css';
 import {
   FiUpload, FiRefreshCw, FiCheckCircle, FiXCircle, FiInfo,
   FiAlertTriangle, FiDatabase, FiPackage, FiUsers, FiTruck,
-  FiFolder, FiCalendar, FiTag, FiEye, FiEdit3, FiSave, FiArrowRight
+  FiFolder, FiCalendar, FiTag, FiEye, FiEdit3, FiSave, FiArrowRight, FiDownload
 } from 'react-icons/fi';
 
 const AdminBulkUpdateScreen: React.FC = () => {
@@ -16,13 +16,15 @@ const AdminBulkUpdateScreen: React.FC = () => {
   const [message, setMessage] = useState<any>(null);
   const [executing, setExecuting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [downloadingTemplate, setDownloadingTemplate] = useState(false);
 
   const tables = [
     { value: 'productos', label: 'Productos', icon: FiPackage, color: '#ECB2C3' },
     { value: 'proveedores', label: 'Proveedores', icon: FiTruck, color: '#3498db' },
     { value: 'clientes', label: 'Clientes', icon: FiUsers, color: '#2ecc71' },
     { value: 'categorias', label: 'Categorías', icon: FiFolder, color: '#f39c12' },
-    { value: 'temporadas', label: 'Temporadas', icon: FiCalendar, color: '#9b59b6' }
+    { value: 'temporadas', label: 'Temporadas', icon: FiCalendar, color: '#9b59b6' },
+    { value: 'tipos_producto', label: 'Tipos de Producto', icon: FiTag, color: '#e91e63' }
   ];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,8 +47,32 @@ const AdminBulkUpdateScreen: React.FC = () => {
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile?.name.endsWith('.xlsx')) {
       setFile(droppedFile);
+      setPreview(null);
+      setMessage(null);
     } else {
       showMessage('error', 'Solo archivos .xlsx');
+    }
+  };
+
+  // ✅ NUEVO: Descargar plantilla
+  const handleDownloadTemplate = async () => {
+    setDownloadingTemplate(true);
+    try {
+      const response = await bulkUpdateAPI.downloadTemplate(selectedTable);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bulk_update_${selectedTable}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      showMessage('success', 'Plantilla descargada correctamente');
+    } catch (error: any) {
+      showMessage('error', error.message || 'Error al descargar plantilla');
+    } finally {
+      setDownloadingTemplate(false);
     }
   };
 
@@ -71,13 +97,20 @@ const AdminBulkUpdateScreen: React.FC = () => {
 
   const handleExecute = async () => {
     if (!preview?.updates) return;
-    if (!window.confirm(`¿Actualizar ${preview.totalRows} registros?`)) return;
+    if (!window.confirm(`¿Actualizar ${preview.totalRows} registros? Esta acción es permanente.`)) return;
     setExecuting(true);
     try {
       const response = await bulkUpdateAPI.executeUpdate(selectedTable, preview.updates);
-      showMessage('success', response.data.message);
-      setPreview(null);
-      setFile(null);
+      if (response.success) {
+        showMessage('success', response.data.message);
+        setPreview(null);
+        setFile(null);
+        // Reset file input
+        const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+      } else {
+        showMessage('error', response.message);
+      }
     } catch (error: any) {
       showMessage('error', error.message);
     } finally {
@@ -88,6 +121,15 @@ const AdminBulkUpdateScreen: React.FC = () => {
   const showMessage = (type: string, text: string) => {
     setMessage({ type, text });
     setTimeout(() => setMessage(null), 5000);
+  };
+
+  const getTableIcon = (tableValue: string) => {
+    const table = tables.find(t => t.value === tableValue);
+    if (table) {
+      const Icon = table.icon;
+      return <Icon size={20} color={table.color} />;
+    }
+    return <FiDatabase size={20} />;
   };
 
   return (
@@ -117,8 +159,16 @@ const AdminBulkUpdateScreen: React.FC = () => {
             const Icon = table.icon;
             const isSelected = selectedTable === table.value;
             return (
-              <button key={table.value} className={`table-option ${isSelected ? 'selected' : ''}`}
-                onClick={() => setSelectedTable(table.value)}>
+              <button 
+                key={table.value} 
+                className={`table-option ${isSelected ? 'selected' : ''}`}
+                onClick={() => {
+                  setSelectedTable(table.value);
+                  setFile(null);
+                  setPreview(null);
+                  setMessage(null);
+                }}
+              >
                 <Icon size={20} color={table.color} />
                 <span>{table.label}</span>
               </button>
@@ -133,17 +183,47 @@ const AdminBulkUpdateScreen: React.FC = () => {
           <div className="instructions-text">
             <strong>Instrucciones:</strong>
             <ol>
-              <li>Exporta datos desde "Exportación de Datos"</li>
-              <li>Modifica SOLO las celdas necesarias</li>
-              <li>No agregues/elimines columnas</li>
-              <li>Los campos vacíos se ignoran</li>
+              <li>Descarga la plantilla con el botón "📥 Descargar Plantilla"</li>
+              <li>Abre el archivo Excel y ve a la hoja "ACTUALIZACION"</li>
+              <li>La columna <strong>"id"</strong> es OBLIGATORIA</li>
+              <li>Completa SOLO las columnas que quieras actualizar</li>
+              <li>Las celdas vacías se ignorarán</li>
+              <li>Guarda el archivo y súbelo aquí</li>
             </ol>
           </div>
         </div>
 
+        {/* Botón de descarga de plantilla */}
+        <div className="template-download-section">
+          <button 
+            className="btn-download-template"
+            onClick={handleDownloadTemplate}
+            disabled={downloadingTemplate}
+          >
+            {downloadingTemplate ? (
+              <><span className="spinner-small"></span> Descargando...</>
+            ) : (
+              <><FiDownload /> Descargar Plantilla Excel</>
+            )}
+          </button>
+          <p className="template-hint">
+            La plantilla incluye las columnas necesarias para actualizar {tables.find(t => t.value === selectedTable)?.label}
+          </p>
+        </div>
+
+        <div className="file-upload-divider">
+          <span>O</span>
+        </div>
+
         <div className={`file-upload-area ${dragActive ? 'drag-active' : ''} ${file ? 'has-file' : ''}`}
           onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}>
-          <input type="file" accept=".xlsx" onChange={handleFileChange} disabled={loading || executing} />
+          <input 
+            type="file" 
+            id="file-upload"
+            accept=".xlsx" 
+            onChange={handleFileChange} 
+            disabled={loading || executing} 
+          />
           {file ? (
             <div className="file-info">
               <FiCheckCircle size={32} color="#4CAF50" />
@@ -178,19 +258,27 @@ const AdminBulkUpdateScreen: React.FC = () => {
             </div>
           </div>
 
-          {preview.changes.length > 0 ? (
+          {preview.changes && preview.changes.length > 0 ? (
             <div className="changes-table-container">
               <table className="changes-table">
-                <thead><tr><th>ID</th><th>Campo</th><th>Actual</th><th></th><th>Nuevo</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Campo</th>
+                    <th>Valor Actual</th>
+                    <th></th>
+                    <th>Nuevo Valor</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {preview.changes.map((change: any) => (
                     Object.keys(change.updated).filter(k => k !== 'id').map((field, idx) => (
                       <tr key={`${change.id}-${field}`}>
                         {idx === 0 && <td rowSpan={Object.keys(change.updated).length - 1}><strong>{change.id}</strong></td>}
                         <td><code>{field}</code></td>
-                        <td className="current-value">{String(change.current[field] || '—')}</td>
+                        <td className="current-value">{String(change.current[field] !== null && change.current[field] !== undefined ? change.current[field] : '—')}</td>
                         <td className="arrow-cell"><FiArrowRight /></td>
-                        <td className="new-value"><strong>{String(change.updated[field] || '—')}</strong></td>
+                        <td className="new-value"><strong>{String(change.updated[field] !== null && change.updated[field] !== undefined ? change.updated[field] : '—')}</strong></td>
                       </tr>
                     ))
                   ))}
@@ -202,9 +290,9 @@ const AdminBulkUpdateScreen: React.FC = () => {
           )}
 
           <div className="preview-footer">
-            <div className="warning-box"><FiAlertTriangle /> Esta acción es permanente</div>
-            <button className="btn-execute" onClick={handleExecute} disabled={executing || preview.changes.length === 0}>
-              {executing ? <><span className="spinner-small"></span> Aplicando...</> : <><FiSave /> Ejecutar</>}
+            <div className="warning-box"><FiAlertTriangle /> Esta acción es permanente y no se puede deshacer</div>
+            <button className="btn-execute" onClick={handleExecute} disabled={executing || (preview.changes && preview.changes.length === 0)}>
+              {executing ? <><span className="spinner-small"></span> Aplicando...</> : <><FiSave /> Ejecutar Actualización</>}
             </button>
           </div>
         </div>

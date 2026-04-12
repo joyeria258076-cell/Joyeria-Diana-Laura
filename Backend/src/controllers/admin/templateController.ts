@@ -62,12 +62,15 @@ const TEMPLATE_CONFIG: { [key: string]: TemplateConfig } = {
       { name: 'nombre', type: 'texto', required: true, width: 24, description: 'Nombre del producto', example: 'Anillo de Oro 18k' },
       { name: 'descripcion', type: 'texto', required: false, width: 32, description: 'Descripción detallada', example: 'Anillo clásico con diseño elegante' },
       { name: 'categoria_id', type: 'número', required: true, width: 16, description: 'ID de la categoría', example: 1 },
+      { name: 'tipo_producto_id', type: 'número', required: false, width: 18, description: 'ID del tipo de producto (ver hoja Catálogos)', example: 1 },
+      { name: 'proveedor_id', type: 'número', required: false, width: 16, description: 'ID del proveedor', example: 1 },
       { name: 'precio_compra', type: 'decimal', required: true, width: 16, description: 'Precio de compra', example: 2500.00 },
       { name: 'precio_oferta', type: 'decimal', required: false, width: 16, description: 'Precio de oferta', example: 2000.00 },
       { name: 'stock_actual', type: 'número', required: false, width: 14, description: 'Stock actual', example: 10 },
-      { name: 'proveedor_id', type: 'número', required: false, width: 16, description: 'ID del proveedor', example: 1 },
       { name: 'material_principal', type: 'texto', required: false, width: 20, description: 'Material principal', example: 'Oro' },
       { name: 'peso_gramos', type: 'decimal', required: false, width: 14, description: 'Peso en gramos', example: 5.5 },
+      { name: 'genero', type: 'texto', required: false, width: 14, description: 'unisex | dama | caballero | nino | nina', example: 'unisex' },
+      { name: 'temporada_id', type: 'número', required: false, width: 16, description: 'ID de la temporada', example: 1 },
       { name: 'es_nuevo', type: 'booleano', required: false, width: 12, description: '¿Producto nuevo?', example: 'TRUE' },
       { name: 'es_destacado', type: 'booleano', required: false, width: 14, description: '¿Destacado?', example: 'FALSE' },
       { name: 'activo', type: 'booleano', required: false, width: 12, description: '¿Activo?', example: 'TRUE' },
@@ -75,6 +78,8 @@ const TEMPLATE_CONFIG: { [key: string]: TemplateConfig } = {
     relaciones: {
       categorias: 'SELECT id, nombre FROM categorias WHERE activo = true ORDER BY nombre',
       proveedores: 'SELECT id, nombre FROM proveedores WHERE activo = true ORDER BY nombre',
+      tipos_producto: 'SELECT id, nombre FROM tipos_producto WHERE activo = true ORDER BY nombre',
+      temporadas: 'SELECT id, nombre FROM temporadas WHERE activo = true ORDER BY nombre',
     },
   },
 
@@ -209,8 +214,7 @@ const TEMPLATE_CONFIG: { [key: string]: TemplateConfig } = {
     relaciones: {
       clientes: 'SELECT id, CONCAT(nombre, \' \', COALESCE(apellido, \'\')) as nombre FROM clientes WHERE activo = true ORDER BY nombre LIMIT 100',
       metodos_pago: 'SELECT id, nombre FROM metodos_pago WHERE activo = true ORDER BY orden',
-      // ✅ CORREGIDO: Incluir 'trabajador' como rol válido
-      trabajadores: `SELECT id, nombre FROM usuarios WHERE rol IN ('admin', 'gestor_pedidos', 'gestor_ventas', 'trabajador') ORDER BY nombre LIMIT 100`,
+      trabajadores: `SELECT id, nombre, rol FROM usuarios WHERE rol != 'cliente' ORDER BY nombre LIMIT 100`,
     },
   },
 

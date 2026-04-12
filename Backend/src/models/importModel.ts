@@ -26,22 +26,19 @@ const AUTO_GENERATED_COLUMNS: { [key: string]: string[] } = {
   promociones: ['id', 'usos_actuales', 'fecha_creacion', 'fecha_actualizacion'],
   metodos_pago: ['id', 'fecha_creacion', 'fecha_actualizacion'],
   preguntas_frecuentes: ['id', 'contador_util', 'fecha_creacion', 'fecha_actualizacion'],
-  // ✅ NUEVO: Columnas auto-generadas para ventas
   ventas: [
     'id', 
     'fecha_creacion', 
     'fecha_actualizacion', 
-    'total_articulos',  // Se calcula automáticamente por trigger
+    'total_articulos',
     'fecha_cancelacion',
     'cancelado_por',
     'motivo_cancelacion'
   ],
-  // ✅ NUEVO: Columnas auto-generadas para detalle_ventas
   detalle_ventas: [
     'id',
     'fecha_creacion'
-    // 'subtotal' se calcula automáticamente en bulkInsert
-  ]
+  ],
 };
 
 export const importModel = {
