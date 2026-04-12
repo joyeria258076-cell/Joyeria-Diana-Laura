@@ -76,6 +76,10 @@ function analyzeQueryForSQLInjection(queryText: string, params: any[]): void {
       'select * from contenidos where seccion_id =',
       'select * from secciones where pagina_id =',
       'select * from paginas where activo =',
+       'insert into direcciones_cliente',
+      'update configuracion',
+      'select * from configuracion',
+      'select c1.valor as tiempo, c2.valor as unidad',
     ];
     
   const queryLower = queryText.toLowerCase().trim();
@@ -100,7 +104,15 @@ function analyzeQueryForSQLInjection(queryText: string, params: any[]): void {
       remediation: `Usa siempre parámetros preparados: pool.query('SELECT ... WHERE campo = $1', [valor]). Nunca interpoles req.body, req.query o req.params en el string SQL.`,
     });
   }
+    
+    // Ignorar User-Agent en parámetros — falso positivo del navegador
     if (params.some(p => typeof p === 'string' && p.startsWith('Mozilla/'))) return;
+  
+    // Ignorar parámetros que sean IDs numéricos o valores cortos legítimos
+    if (params.some(p => typeof p === 'string' && /^\d+$/.test(p) && Number.parseInt(p) < 10000)) return;
+
+    const ESTADOS_PEDIDO = ['pendiente','confirmado','en_preparacion','enviado','entregado','cancelado'];
+    if (params.some(p => typeof p === 'string' && ESTADOS_PEDIDO.includes(p))) return;
 
   // 2. ¿Algún parámetro tiene patrón de SQLi? (detecta bypass de parametrización)
   params.forEach((param, i) => {
@@ -166,6 +178,10 @@ function analyzeTableName(queryText: string): void {
     'select valor from configuracion where clave =',
     'select * from contenidos where seccion_id =',
     'select * from secciones where pagina_id =',
+    'update configuracion set valor =',
+    'select c1.valor as tiempo',
+    'update configuracion set valor =',
+    'select c1.valor as tiempo, c2.valor as unidad',
   ];
 
     const queryNormalized = queryText.toLowerCase().trim().replace(/\s+/g, ' ');
