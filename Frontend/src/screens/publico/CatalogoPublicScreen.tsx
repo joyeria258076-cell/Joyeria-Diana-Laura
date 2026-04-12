@@ -173,8 +173,7 @@ const CatalogoPublicScreen: React.FC = () => {
 
   // ===== PLACEHOLDER =====
   const placeholderImage =
-    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzBkMGQwZCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZWNiMmMzIiBmb250LWZhbWlseT0iQXJpYWwiPkpveWEgRGlhbmEgTGF1cmE8L3RleHQ+PC9zdmc+";
-
+      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzBkMGQwZCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZWNiMmMzIiBmb250LWZhbWlseT0iQXJpYWwiPkpveWE8L3RleHQ+PC9zdmc+";
   // ===== RENDER TARJETA =====
   const renderCard = (producto: Producto) => (
     <div
