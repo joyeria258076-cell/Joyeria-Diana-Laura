@@ -190,7 +190,6 @@ export default function AppRoutes() {
           <Route path="/pedidos" element={<ClientePedidosScreen />} />
           <Route path="/carrito" element={<CarritoScreen />} />
           <Route path="/producto/:id" element={<ProductoDetalleScreen />} />
-          <Route path="/configuracion" element={<ConfiguracionScreen />} />
 
           {/* 🔐 RUTAS EXCLUSIVAS ADMIN */}
           <Route element={<RoleRoute allowedRoles={['admin']} />}>
@@ -209,6 +208,7 @@ export default function AppRoutes() {
             <Route path="/admin-monitoreo"    element={<AdminMonitoreoScreen />} />
 
             <Route path="/admin-prediccion"   element={<AdminPrediccionScreen />} />
+            <Route path="/configuracion" element={<ConfiguracionScreen />} />
 
             {/* 📁 RUTAS DE CONFIGURACIÓN */}
             <Route path="/admin/configuracion/variables" element={<AdminVariablesConfigScreen />} />
@@ -247,7 +247,6 @@ export default function AppRoutes() {
             <Route path="/dashboard-trabajador"       element={<DashboardTrabajadorScreen />} />
             <Route path="/pedidos-admin"              element={<GestionPedidosScreen />} />
             <Route path="/trabajador/actividades"     element={<ActividadesTrabajadorScreen />} />
-            <Route path="/trabajador/configuracion"   element={<ConfiguracionScreen />} />
             <Route path="/trabajador/perfil"          element={<PerfilScreen />} />
           </Route>
         </Route>

@@ -3,12 +3,15 @@ import { Request, Response } from 'express';
 import admin from '../../config/firebase'; 
 import * as userModel from '../../models/userModel';
 import bcrypt from 'bcryptjs';
-import { SessionService } from '../../services/SessionService'; // ← AÑADIDO
+import { SessionService } from '../../services/SessionService'; 
+import { AuthRequest } from '../../middleware/authMiddleware';
+
+const SUPERADMIN_EMAIL = '20221056@uthh.edu.mx';
 
 /**
  * Registra un nuevo trabajador tanto en Firebase Auth como en la Base de Datos local.
  */
-export const createWorkerAccount = async (req: Request, res: Response) => {
+export const createWorkerAccount = async (req: AuthRequest, res: Response) => {
   try {
     const { nombre, email, password, rol } = req.body;
 
@@ -17,6 +20,17 @@ export const createWorkerAccount = async (req: Request, res: Response) => {
         success: false, 
         message: 'Todos los campos son obligatorios (nombre, email, password, rol)' 
       });
+    }
+
+    // Verificar si se intenta crear un admin y el usuario actual no es superadmin
+    if (rol === 'admin') {
+      const adminActualEmail = req.user?.email;
+      if (adminActualEmail !== SUPERADMIN_EMAIL) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Solo el administrador principal puede crear nuevas cuentas de administrador.' 
+        });
+      }
     }
 
     const SQL_INJECTION_PATTERN = /('(\s)*(or|and)(\s)*')|(-{2})|(\bUNION\b.*\bSELECT\b)|(\bDROP\b.*\bTABLE\b)|(\bINSERT\b.*\bINTO\b)|(\bDELETE\b.*\bFROM\b)|(;(\s)*DROP)|(xp_)/i;
@@ -53,6 +67,7 @@ export const createWorkerAccount = async (req: Request, res: Response) => {
     });
 
     if (success) {
+      console.log(`[AUDIT] Admin ${req.user?.email} (ID: ${req.user?.userId}) creó una cuenta con rol '${rol}' para ${email}`);
       return res.status(201).json({ 
         success: true, 
         message: 'Trabajador registrado correctamente en Firebase y Base de Datos' 
@@ -83,10 +98,19 @@ export const createWorkerAccount = async (req: Request, res: Response) => {
   }
 };
 
-export const getRoles = async (req: Request, res: Response) => {
+export const getRoles = async (req: AuthRequest, res: Response) => {
   try {
     const roles = await userModel.getAvailableRoles();
-    res.status(200).json(roles);
+    
+    // Filtrar el rol 'admin' si el usuario actual no es superadmin
+    const currentUserEmail = req.user?.email;
+    
+    let allowedRoles = roles;
+    if (currentUserEmail !== SUPERADMIN_EMAIL) {
+      allowedRoles = roles.filter((rol: string) => rol !== 'admin');
+    }
+    
+    res.status(200).json(allowedRoles);
   } catch (error: any) {
     console.error('❌ Error en adminController (getRoles):', error);
     res.status(500).json({ 

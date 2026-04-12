@@ -1,8 +1,12 @@
 import express from 'express';
 // Importamos solo lo que es de administración
 import { createWorkerAccount, getRoles, toggleWorkerAccountStatus, updateWorker } from '../controllers/admin/adminController';
+import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
 const router = express.Router();
+
+router.use(authenticateToken);
+router.use(requireAdmin);
 
 /**
  * Todas estas rutas empezarán con /api/admin (o lo que definas en server.ts)

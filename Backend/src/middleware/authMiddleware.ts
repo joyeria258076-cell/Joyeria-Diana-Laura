@@ -1,5 +1,5 @@
 // Ruta: Joyeria-Diana-Laura/Backend/src/middleware/authMiddleware.ts
-import { Request, Response, NextFunction } from 'express';
+import e, { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { SessionService } from '../services/SessionService';
 import { JWTService } from '../services/JWTService';
@@ -120,8 +120,25 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
     await SessionService.updateLastActivity(sessionIdToVerify);
 
     // Agregar información al request
-    req.user = decoded;
+    //req.user = decoded;
     req.sessionId = sessionIdToVerify;
+
+    // Obtener rol del usuario desde la BD para adjuntarlo al request
+    const userData = await pool.query(
+        'SELECT email, rol FROM usuarios WHERE id = $1',
+        [session.user_id]
+    );
+    if (userData.rows.length > 0) {
+        req.user = {
+            ...decoded,
+            userId: session.user_id,
+            email: userData.rows[0].email,  
+            rol: userData.rows[0].rol,
+            sessionId: sessionIdToVerify
+        };
+    } else {
+        req.user = { ...decoded, sessionId: sessionIdToVerify };
+    }
     
     console.log(`✅ Autenticación segura exitosa para sesión: ${sessionIdToVerify.substring(0, 10)}...`);
     next();
@@ -326,37 +343,24 @@ export const softAuth = async (req: AuthRequest, res: Response, next: NextFuncti
   }
 };
 
-export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    try {
-        // 1. Obtenemos el ID del usuario que authenticateToken ya validó
-        const userId = (req as any).user?.userId || (req as any).user?.id;
-
-        if (!userId) {
-            return res.status(401).json({ success: false, message: 'Usuario no identificado.' });
-        }
-
-        // 2. Consultamos el rol en la BD (Usando tu pool existente)
-        const result = await pool.query('SELECT rol FROM usuarios WHERE id = $1', [userId]);
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
-        }
-
-        const rol = result.rows[0].rol;
-
-        // 3. Verificamos si es admin o trabajador
-        if (rol !== 'admin' && rol !== 'trabajador') {
-            return res.status(403).json({ 
-                success: false, 
-                message: 'Acceso denegado. Se requieren permisos de Administrador.' 
-            });
-        }
-
-        // 4. Si es admin, dejamos pasar
-        next();
-
-    } catch (error) {
-        console.error('Error validando rol de admin:', error);
-        return res.status(500).json({ success: false, message: 'Error del servidor al validar permisos.' });
+export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+    const userRole = req.user?.rol;
+    if (!userRole) {
+        return res.status(401).json({ success: false, message: 'Usuario no autenticado o sin rol definido.' });
     }
+    if (userRole !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Acceso restringido a administradores.' });
+    }
+    next();
+};
+
+export const requireStaff = (req: AuthRequest, res: Response, next: NextFunction) => {
+    const userRole = req.user?.rol;
+    if (!userRole) {
+        return res.status(401).json({ success: false, message: 'Usuario no autenticado o sin rol definido.' });
+    }
+    if (userRole !== 'admin' && userRole !== 'trabajador') {
+        return res.status(403).json({ success: false, message: 'Acceso restringido al personal interno.' });
+    }
+    next();
 };

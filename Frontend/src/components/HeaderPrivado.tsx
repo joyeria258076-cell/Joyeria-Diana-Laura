@@ -228,9 +228,6 @@ const HeaderPrivado: React.FC = () => {
                             <button className={`nav-item ${isActive("/trabajador/actividades")}`} onClick={() => goTo("/trabajador/actividades")}>
                                 <span className="nav-icon">✅</span> Mis Actividades
                             </button>
-                            <button className={`nav-item ${isActive("/trabajador/configuracion")}`} onClick={() => goTo("/trabajador/configuracion")}>
-                                <span className="nav-icon">⚙️</span> Configuración
-                            </button>
                             <button className={`nav-item ${isActive("/trabajador/perfil")}`} onClick={() => goTo("/trabajador/perfil")}>
                                 <span className="nav-icon">👤</span> Mi Perfil
                             </button>

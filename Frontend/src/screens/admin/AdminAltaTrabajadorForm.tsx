@@ -18,10 +18,7 @@ const validateNoSQLInjection = (value: string) => {
     /"\s*OR\s*"\s*=\s*"/i,
     /(`|%27|%23)/i,
   ];
-  for (const pattern of sqlInjectionPatterns) {
-    if (pattern.test(value)) return false;
-  }
-  return true;
+  return !sqlInjectionPatterns.some(p => p.test(value));
 };
 
 const validateNoXSS = (value: string) => {
@@ -38,21 +35,18 @@ const validateNoXSS = (value: string) => {
     /<embed[^>]*>/gi,
     /<object[^>]*>/gi,
   ];
-  for (const pattern of xssPatterns) {
-    if (pattern.test(value)) return false;
-  }
-  return true;
+  return !xssPatterns.some(p => p.test(value));
 };
 
-// ─── ESQUEMA DE VALIDACIÓN ZOD ───
+// ─── ESQUEMA DE VALIDACIÓN ZOD (Ajustado a 50 caracteres) ───
 const schema = z.object({
   nombre: z.string()
     .min(1, "El nombre completo es requerido")
     .min(3, "El nombre debe tener al menos 3 caracteres")
-    .max(50, "El nombre no puede tener más de 50 caracteres")
+    .max(50, "El nombre no puede tener más de 50 caracteres") // ← Coincide con backend
     .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, "El nombre solo puede contener letras")
-    .refine((nombre) => !/^\s+$/.test(nombre), { message: "El nombre no puede contener solo espacios" })
-    .refine((nombre) => !nombre.startsWith(' ') && !nombre.endsWith(' '), { message: "Sin espacios al inicio o final" })
+    .refine(val => !/^\s+$/.test(val), "El nombre no puede contener solo espacios")
+    .refine(val => !val.startsWith(' ') && !val.endsWith(' '), "Sin espacios al inicio o final")
     .refine(validateNoSQLInjection, "Caracteres no permitidos detectados")
     .refine(validateNoXSS, "Caracteres no permitidos detectados"),
   
@@ -82,67 +76,59 @@ type FormData = z.infer<typeof schema>;
 const AdminAltaTrabajadorForm: React.FC = () => {
   const navigate = useNavigate();
 
-  // ─── CONFIGURACIÓN DE REACT-HOOK-FORM + ZOD ───
   const { 
     register, 
     handleSubmit, 
     watch, 
-    formState: { errors }, 
+    formState: { errors, isValid, isSubmitting }, 
     setError 
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    mode: "onChange" // Valida en tiempo real
+    mode: "onChange"
   });
 
   const [rolesEnum, setRolesEnum] = useState<string[]>([]);
   const [showPass, setShowPass] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [globalError, setGlobalError] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // Observamos la contraseña para la barra de fortaleza
   const currentPassword = watch("password", "");
 
-  // ─── CARGAR ROLES DE LA BD ───
   useEffect(() => {
     const fetchRoles = async () => {
       try {
         const data = await workersAPI.getRoles(); 
-        if (Array.isArray(data)) {
-          setRolesEnum(data);
-        } else if (data && data.roles) {
-          setRolesEnum(data.roles);
+        const roles = Array.isArray(data) ? data : data?.roles || [];
+        setRolesEnum(roles);
+        if (roles.length === 0) {
+          setGlobalError("No hay roles disponibles. Contacte al administrador.");
         }
       } catch (err) {
         console.error("Error al cargar roles:", err);
-        setGlobalError("Aún no hay roles disponibles en el servidor.");
+        setGlobalError("Error al cargar los roles. Intente de nuevo.");
       }
     };
     fetchRoles();
   }, []);
 
-  // ─── HANDLERS DE SANITIZACIÓN ───
+  // Handlers de sanitización
   const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const cleanedValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-    if (value !== cleanedValue) e.target.value = cleanedValue;
+    const cleaned = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+    if (cleaned !== e.target.value) e.target.value = cleaned;
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const cleanedValue = value.replace(/\s/g, ''); // Sin espacios
-    if (value !== cleanedValue) e.target.value = cleanedValue;
+    const cleaned = e.target.value.replace(/\s/g, '');
+    if (cleaned !== e.target.value) e.target.value = cleaned;
   };
 
-  // ─── SUBMIT AL BACKEND ───
   const onSubmit = async (data: FormData) => {
-    setSubmitting(true);
     setGlobalError('');
     try {
       const res = await workersAPI.create({
-        nombre:   data.nombre,
-        email:    data.email,
-        rol:   data.rol, 
+        nombre: data.nombre,
+        email: data.email,
+        rol: data.rol, 
         password: data.password,
       });
       if (res.success) {
@@ -152,29 +138,40 @@ const AdminAltaTrabajadorForm: React.FC = () => {
       }
     } catch (err: any) {
       setGlobalError(err.message || 'No se pudo conectar con el servidor');
-    } finally {
-      setSubmitting(false);
     }
   };
 
-  // ─── HELPER DE FORTALEZA DE CONTRASEÑA ───
-  const passwordFortaleza = () => {
+  // Fortaleza de contraseña
+  const passwordStrength = () => {
     if (!currentPassword) return { n: 0, label: '', color: '' };
     let score = 0;
-    if (currentPassword.length >= 8)  score++;
+    if (currentPassword.length >= 8) score++;
     if (/[A-Z]/.test(currentPassword)) score++;
     if (/[0-9]/.test(currentPassword)) score++;
     if (/[^A-Za-z0-9]/.test(currentPassword)) score++;
     
-    if (score <= 1) return { n: 1, label: 'Débil',    color: '#f87171' };
-    if (score <= 2) return { n: 2, label: 'Regular',  color: '#fbbf24' };
-    return             { n: 3, label: 'Fuerte',   color: '#86efac' };
+    if (score <= 1) return { n: 1, label: 'Débil', color: '#f87171' };
+    if (score <= 2) return { n: 2, label: 'Regular', color: '#fbbf24' };
+    return { n: 3, label: 'Fuerte', color: '#86efac' };
   };
-  const fuerza = passwordFortaleza();
+  const fuerza = passwordStrength();
 
-  // Extraemos funciones del register para combinarlas con nuestros sanitizadores
   const nombreReg = register("nombre");
   const passwordReg = register("password");
+
+  // Íconos SVG para el ojo
+  const EyeIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+  const EyeOffIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
+  );
 
   return (
     <div className="alta-wrap animate-in">
@@ -212,7 +209,6 @@ const AdminAltaTrabajadorForm: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="alta-form" noValidate>
-          
           <div className="alta-form-grid">
             
             {/* NOMBRE COMPLETO */}
@@ -262,6 +258,9 @@ const AdminAltaTrabajadorForm: React.FC = () => {
                 ))}
               </select>
               {errors.rol && <span className="alta-field-err">{errors.rol.message}</span>}
+              {rolesEnum.length === 0 && !globalError && (
+                <span className="alta-field-err">No hay roles disponibles</span>
+              )}
             </div>
 
             {/* CONTRASEÑA */}
@@ -284,21 +283,20 @@ const AdminAltaTrabajadorForm: React.FC = () => {
                 <button 
                   type="button" 
                   className="alta-pass-eye" 
-                  onMouseDown={(e) => { e.preventDefault(); setShowPass(!showPass); }}
+                  onClick={() => setShowPass(!showPass)}
                   tabIndex={-1}
+                  aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
-                  {showPass ? "🙈" : "👁️"}
+                  {showPass ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
               </div>
 
-              {/* Indicador de requisitos al hacer focus */}
               {(focusedField === 'password' || errors.password) && (
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginLeft: '0.2rem', marginTop: '0.3rem', lineHeight: '1.4' }}>
                   <strong>Requiere:</strong> 8-16 chars, 1 Mayúscula, 1 Minúscula y 1 Número.
                 </div>
               )}
 
-              {/* Barra de fortaleza */}
               {currentPassword && !errors.password && (
                 <div className="alta-strength">
                   <div className="alta-strength-bars">
@@ -310,18 +308,23 @@ const AdminAltaTrabajadorForm: React.FC = () => {
                 </div>
               )}
             </div>
-
           </div>
 
           <div className="alta-actions">
-            <button type="button" className="alta-btn-cancel" onClick={() => navigate('/admin-trabajadores')} disabled={submitting}>
+            <button type="button" className="alta-btn-cancel" onClick={() => navigate('/admin-trabajadores')} disabled={isSubmitting}>
               Cancelar
             </button>
-            <button type="submit" className="alta-btn-submit" disabled={submitting}>
-              {submitting ? <><span className="alta-spin" /> Creando cuenta...</> : 'Confirmar Alta Segura'}
+            <button type="submit" className="alta-btn-submit" disabled={!isValid || isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <span className="alta-spin" />
+                  Creando cuenta...
+                </>
+              ) : (
+                'Confirmar Alta Segura'
+              )}
             </button>
           </div>
-
         </form>
       </div>
     </div>
