@@ -1,651 +1,633 @@
-// Frontend/src/screens/admin/AdminPrediccionScreen.tsx
-import React, { useEffect, useState, useCallback } from 'react';
-import './AdminPrediccionScreen.css';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { Bar, Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
 import { prediccionAPI } from '../../services/api';
+import './AdminPrediccionScreen.css';
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
+ChartJS.register(
+  CategoryScale, LinearScale, BarElement, PointElement, LineElement,
+  Title, Tooltip, Legend, Filler
+);
+
+const MESES_NOMBRES = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
 interface Categoria {
-  categoria_id: number;
-  categoria: string;
+  categoria_id:   number;
+  categoria:      string;
   total_unidades: number;
 }
 
 interface Producto {
-  producto_id: number;
-  producto: string;
-  stock_actual: number;
-  total_unidades: number;
+  producto_id:       number;
+  producto:          string;
+  stock_actual:      number;
+  total_unidades:    number;
   participacion_pct: number;
 }
 
-interface PuntoHistorico {
-  t: number;
-  mes: string;
-  unidades: number;
-}
+type TipoGraficaCat  = 'bar' | 'line';
+type TipoGraficaProd = 'bar' | 'line';
 
-interface PuntoProyeccion {
-  t: number;
-  mes: string;
-  demanda_proyectada: number;
-  stock_acumulado_necesario: number;
-  stock_restante: number;
-}
-
-interface Resumen {
-  stock_actual: number;
-  stock_necesario_semestre: number;
-  deficit_proyectado: number;
-  fecha_agotamiento: string | null;
-  fecha_limite_pedido: string | null;
-  semaforo: 'verde' | 'amarillo' | 'rojo';
-  meses_hasta_agotamiento: number | null;
-}
-
-// ─── Constantes ───────────────────────────────────────────────────────────────
-const ANIO_ACTUAL = new Date().getFullYear();
-const ANIOS = [ANIO_ACTUAL - 1, ANIO_ACTUAL - 2, ANIO_ACTUAL - 3];
-const MESES_LABELS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-
-// ─── Helpers de gráfica SVG ───────────────────────────────────────────────────
-const SVG_W = 680;
-const SVG_H = 260;
-const PAD = { top: 20, right: 30, bottom: 50, left: 52 };
-const INNER_W = SVG_W - PAD.left - PAD.right;
-const INNER_H = SVG_H - PAD.top - PAD.bottom;
-
-function polyline(points: { x: number; y: number }[]) {
-  return points.map(p => `${p.x},${p.y}`).join(' ');
-}
-
-function scaleY(val: number, min: number, max: number) {
-  if (max === min) return PAD.top + INNER_H / 2;
-  return PAD.top + INNER_H - ((val - min) / (max - min)) * INNER_H;
-}
-
-function scaleX(idx: number, total: number) {
-  return PAD.left + (idx / (total - 1)) * INNER_W;
-}
-
-// ─── Componente principal ─────────────────────────────────────────────────────
 export default function AdminPrediccionScreen() {
-  const [anio, setAnio] = useState<number>(ANIO_ACTUAL - 1);
-  const [mesesProyeccion, setMesesProyeccion] = useState<number>(6);
-  const [leadTime, setLeadTime] = useState<number>(7);
 
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [categoriaEstrella, setCategoriaEstrella] = useState<Categoria | null>(null);
+  // ── selectores ────────────────────────────────────────────────────────────
+  const [aniosDisponibles, setAniosDisponibles] = useState<number[]>([]);
+  const [mesesDisponibles, setMesesDisponibles] = useState<number[]>([]);
+  const [anio,             setAnio]             = useState<number | null>(null);
+  const [mesInicio,        setMesInicio]        = useState<number>(1);
+  const [mesesProyeccion,  setMesesProyeccion]  = useState<number>(6);
+
+  // ── tipo de gráfica ───────────────────────────────────────────────────────
+  const [tipoCat,  setTipoCat]  = useState<TipoGraficaCat>('bar');
+  const [tipoProd, setTipoProd] = useState<TipoGraficaProd>('line');
+
+  // ── datos ─────────────────────────────────────────────────────────────────
+  const [categorias,            setCategorias]            = useState<Categoria[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<number | null>(null);
+  const [productos,             setProductos]             = useState<Producto[]>([]);
+  const [productoSeleccionado,  setProductoSeleccionado]  = useState<number | null>(null);
+  const [historico,             setHistorico]             = useState<any[]>([]);
+  const [estadisticas,          setEstadisticas]          = useState<any>(null);
+  const [proyeccion,            setProyeccion]            = useState<any[]>([]);
+  const [resumen,               setResumen]               = useState<any>(null);
 
-  const [productos, setProductos] = useState<Producto[]>([]);
-  const [productoEstrella, setProductoEstrella] = useState<Producto | null>(null);
-  const [productoSeleccionado, setProductoSeleccionado] = useState<number | null>(null);
+  // ── año incompleto ────────────────────────────────────────────────────────
+  const [anioIncompleto,  setAnioIncompleto]  = useState(false);
+  const [ultimoMesActivo, setUltimoMesActivo] = useState<number>(0);
 
-  const [historico, setHistorico] = useState<PuntoHistorico[]>([]);
-  const [estadisticas, setEstadisticas] = useState<any>(null);
-  const [proyeccion, setProyeccion] = useState<PuntoProyeccion[]>([]);
-  const [resumen, setResumen] = useState<Resumen | null>(null);
+  // ── control ───────────────────────────────────────────────────────────────
+  const [analisisGenerado, setAnalisisGenerado] = useState(false);
+  const [loading,          setLoading]          = useState(false);
+  const [error,            setError]            = useState('');
+  const [graficaKey,       setGraficaKey]       = useState(0);
 
-  const [loadingCat, setLoadingCat] = useState(false);
-  const [loadingProd, setLoadingProd] = useState(false);
-  const [loadingHist, setLoadingHist] = useState(false);
-  const [loadingProy, setLoadingProy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // ── paginación / búsqueda ─────────────────────────────────────────────────
+  const [paginaProductos,  setPaginaProductos]  = useState(1);
+  const [busquedaProducto, setBusquedaProducto] = useState('');
+  const productosPorPagina = 10;
 
-  // ── 1. Cargar categorías ──────────────────────────────────────────────────
-  const cargarCategorias = useCallback(async () => {
-    setLoadingCat(true);
-    setError(null);
-    try {
-      const res = await prediccionAPI.getCategorias(anio);
-      setCategorias(res.data.categorias);
-      setCategoriaEstrella(res.data.categoria_estrella);
-      const idEstrella = res.data.categoria_estrella?.categoria_id ?? null;
-      setCategoriaSeleccionada(idEstrella);
-    } catch {
-      setError('No se pudieron cargar las categorías.');
-    } finally {
-      setLoadingCat(false);
-    }
+  // ── 0. Años ───────────────────────────────────────────────────────────────
+  useEffect(() => {
+    prediccionAPI.getAnios()
+      .then((res: any) => {
+        const anios: number[] = res.data.anios;
+        setAniosDisponibles(anios);
+        if (anios.length > 0) setAnio(anios[0]);
+      })
+      .catch(() => setError('No se pudieron cargar los años disponibles.'));
+  }, []);
+
+  // ── 1. Meses disponibles cuando cambia el año ─────────────────────────────
+  useEffect(() => {
+    if (!anio) return;
+    prediccionAPI.getMesesDisponibles(anio)
+      .then((res: any) => {
+        const meses: number[] = res.data.meses;
+        setMesesDisponibles(meses);
+        setMesInicio(meses[0] ?? 1);
+      })
+      .catch(() => setMesesDisponibles([]));
+    resetResultados();
   }, [anio]);
 
-  useEffect(() => { cargarCategorias(); }, [cargarCategorias]);
+  const resetResultados = () => {
+    setAnalisisGenerado(false);
+    setCategorias([]);
+    setCategoriaSeleccionada(null);
+    setProductos([]);
+    setProductoSeleccionado(null);
+    setHistorico([]);
+    setEstadisticas(null);
+    setProyeccion([]);
+    setResumen(null);
+    setAnioIncompleto(false);
+    setUltimoMesActivo(0);
+    setGraficaKey(k => k + 1);
+  };
 
-  // ── 2. Cargar productos al cambiar categoría ──────────────────────────────
-  useEffect(() => {
-    if (!categoriaSeleccionada) return;
-    const cargar = async () => {
-      setLoadingProd(true);
-      setProductos([]);
-      setProductoEstrella(null);
-      setHistorico([]);
-      setEstadisticas(null);
-      setProyeccion([]);
-      setResumen(null);
-      try {
-        const res = await prediccionAPI.getProductoEstrella(categoriaSeleccionada, anio);
-        setProductos(res.data.productos);
-        setProductoEstrella(res.data.producto_estrella);
-        setProductoSeleccionado(res.data.producto_estrella?.producto_id ?? null);
-      } catch {
-        setError('No se pudieron cargar los productos.');
-      } finally {
-        setLoadingProd(false);
-      }
-    };
-    cargar();
-  }, [categoriaSeleccionada, anio]);
+  // ── helper ────────────────────────────────────────────────────────────────
+  const cargarHistoricoYProyeccion = useCallback(async (
+    prodId:    number,
+    prods:     Producto[],
+    anioAct:   number,
+    mesIni:    number,
+    mesesProy: number,
+  ) => {
+    const resHist = await prediccionAPI.getHistorico(prodId, anioAct, mesIni);
+    const { historico: hist, estadisticas: stats, anio_incompleto, ultimo_mes_activo } = resHist.data;
 
-  // ── 3. Cargar histórico al cambiar producto ───────────────────────────────
-  useEffect(() => {
-    if (!productoSeleccionado) return;
-    const cargar = async () => {
-      setLoadingHist(true);
-      setProyeccion([]);
-      setResumen(null);
-      try {
-        const res = await prediccionAPI.getHistorico(productoSeleccionado, anio);
-        setHistorico(res.data.historico);
-        setEstadisticas(res.data.estadisticas);
-      } catch {
-        setError('No se pudo cargar el histórico.');
-      } finally {
-        setLoadingHist(false);
-      }
-    };
-    cargar();
-  }, [productoSeleccionado, anio]);
+    setHistorico(hist);
+    setEstadisticas(stats);
+    setAnioIncompleto(anio_incompleto ?? false);
+    setUltimoMesActivo(ultimo_mes_activo ?? 0);
+    setGraficaKey(k => k + 1);
 
-  // ── 4. Calcular proyección ────────────────────────────────────────────────
-  const calcularProyeccion = async () => {
-    if (!estadisticas || !productoSeleccionado || !productoEstrella) return;
-    setLoadingProy(true);
-    setError(null);
+    const prod = prods.find(p => p.producto_id === prodId) ?? prods[0];
+    if (!prod) return;
+
+    const T_hist = anio_incompleto
+      ? (ultimo_mes_activo - mesIni) || 1
+      : (stats.meses_con_ventas > 1 ? stats.meses_con_ventas - 1 : 1);
+
+    const resProy = await prediccionAPI.getProyeccion({
+      productoId:       prodId,
+      q0:               stats.q0,
+      qT:               stats.qT,
+      T_historico:      T_hist,
+      stock_actual:     prod.stock_actual,
+      meses_proyeccion: mesesProy,
+    });
+
+    setProyeccion(resProy.data.proyeccion);
+    setResumen(resProy.data.resumen);
+  }, []);
+
+  // ── 2. Generar análisis ───────────────────────────────────────────────────
+  const generarAnalisis = useCallback(async () => {
+    if (!anio) return;
+    setLoading(true);
+    setError('');
+    resetResultados();
     try {
-      const prod = productos.find(p => p.producto_id === productoSeleccionado) ?? productoEstrella;
-      const res = await prediccionAPI.getProyeccion({
-        productoId: productoSeleccionado,
-        q0: estadisticas.q0,
-        qT: estadisticas.qT,
-        T_historico: 11,
-        stock_actual: prod.stock_actual,
-        lead_time_dias: leadTime,
-        meses_proyeccion: mesesProyeccion,
-      });
-      setProyeccion(res.data.proyeccion);
-      setResumen(res.data.resumen);
+      const resCat  = await prediccionAPI.getCategorias(anio, mesInicio);
+      const cats: Categoria[]             = resCat.data.categorias;
+      const estrellaCat: Categoria | null = resCat.data.categoria_estrella;
+      setCategorias(cats);
+
+      const catId = estrellaCat?.categoria_id ?? cats[0]?.categoria_id ?? null;
+      if (!catId) { setAnalisisGenerado(true); return; }
+      setCategoriaSeleccionada(catId);
+
+      const resProd = await prediccionAPI.getProductoEstrella(catId, anio, mesInicio);
+      const prods: Producto[]             = resProd.data.productos;
+      const estrellaProd: Producto | null = resProd.data.producto_estrella;
+      setProductos(prods);
+      setPaginaProductos(1);
+      setBusquedaProducto('');
+
+      const prodId = estrellaProd?.producto_id ?? prods[0]?.producto_id ?? null;
+      if (!prodId) { setAnalisisGenerado(true); return; }
+      setProductoSeleccionado(prodId);
+
+      await cargarHistoricoYProyeccion(prodId, prods, anio, mesInicio, mesesProyeccion);
+      setAnalisisGenerado(true);
     } catch {
-      setError('Error al calcular la proyección.');
+      setError('Error al generar el análisis. Verifica la conexión con el servidor.');
     } finally {
-      setLoadingProy(false);
+      setLoading(false);
+    }
+  }, [anio, mesInicio, mesesProyeccion, cargarHistoricoYProyeccion]);
+
+  // ── 3. Cambiar categoría ──────────────────────────────────────────────────
+  const seleccionarCategoria = async (catId: number) => {
+    if (!anio || !analisisGenerado || catId === categoriaSeleccionada) return;
+    setCategoriaSeleccionada(catId);
+    setProductos([]);
+    setProductoSeleccionado(null);
+    setHistorico([]);
+    setEstadisticas(null);
+    setProyeccion([]);
+    setResumen(null);
+    setGraficaKey(k => k + 1);
+    setLoading(true);
+    try {
+      const resProd = await prediccionAPI.getProductoEstrella(catId, anio, mesInicio);
+      const prods: Producto[] = resProd.data.productos;
+      setProductos(prods);
+      setPaginaProductos(1);
+      setBusquedaProducto('');
+      const prodId = resProd.data.producto_estrella?.producto_id ?? prods[0]?.producto_id ?? null;
+      if (!prodId) return;
+      setProductoSeleccionado(prodId);
+      await cargarHistoricoYProyeccion(prodId, prods, anio, mesInicio, mesesProyeccion);
+    } catch {
+      setError('Error al cargar productos.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // ── Gráfica 1: Barras de categorías ──────────────────────────────────────
-  const maxCat = Math.max(...categorias.map(c => c.total_unidades), 1);
-  const BAR_W = categorias.length > 0 ? Math.max(20, Math.floor((INNER_W - (categorias.length - 1) * 12) / categorias.length)) : 40;
+  // ── 4. Cambiar producto ───────────────────────────────────────────────────
+  const seleccionarProducto = async (prodId: number) => {
+    if (!anio || !analisisGenerado || prodId === productoSeleccionado) return;
+    setProductoSeleccionado(prodId);
+    setHistorico([]);
+    setEstadisticas(null);
+    setProyeccion([]);
+    setResumen(null);
+    setGraficaKey(k => k + 1);
+    setLoading(true);
+    try {
+      await cargarHistoricoYProyeccion(prodId, productos, anio, mesInicio, mesesProyeccion);
+    } catch {
+      setError('Error al cargar el histórico del producto.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // ── Gráfica 2: Línea histórica + proyección ───────────────────────────────
-  const allVals = [
-    ...historico.map(h => h.unidades),
-    ...proyeccion.map(p => p.demanda_proyectada),
+  // ── paginación ────────────────────────────────────────────────────────────
+  const productosFiltrados = useMemo(() => {
+    if (!busquedaProducto) return productos;
+    return productos.filter(p =>
+      p.producto.toLowerCase().includes(busquedaProducto.toLowerCase())
+    );
+  }, [productos, busquedaProducto]);
+
+  const totalPaginas       = Math.ceil(productosFiltrados.length / productosPorPagina);
+  const productosPaginados = productosFiltrados.slice(
+    (paginaProductos - 1) * productosPorPagina,
+    paginaProductos * productosPorPagina,
+  );
+
+  // ── opciones comunes de Chart.js ──────────────────────────────────────────
+  const commonOptions: any = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend:  { labels: { color: '#e8e8f0' } },
+      tooltip: { backgroundColor: '#1a1a22', titleColor: '#ecb2c3', bodyColor: '#e8e8f0' },
+    },
+    scales: {
+      x: { grid: { color: '#2a2a38' }, ticks: { color: '#e8e8f0' } },
+      y: { grid: { color: '#2a2a38' }, ticks: { color: '#e8e8f0' }, beginAtZero: true },
+    },
+  };
+
+  // ── datos gráfica CATEGORÍAS ──────────────────────────────────────────────
+  const catLabels  = categorias.map(c => c.categoria);
+  const catValues  = categorias.map(c => c.total_unidades);
+  const catColors  = categorias.map(c =>
+    c.categoria_id === categoriaSeleccionada ? 'rgba(236,178,195,1)' : 'rgba(236,178,195,0.45)'
+  );
+
+  const catBarData = {
+    labels: catLabels,
+    datasets: [{
+      label: 'Unidades vendidas',
+      data:  catValues,
+      backgroundColor: catColors,
+      borderColor: '#ecb2c3',
+      borderWidth: 1,
+    }],
+  };
+
+  const catLineData = {
+    labels: catLabels,
+    datasets: [{
+      label:               'Unidades vendidas',
+      data:                catValues,
+      borderColor:         '#ecb2c3',
+      backgroundColor:     'rgba(236,178,195,0.15)',
+      borderWidth:         2.5,
+      pointBackgroundColor: catColors,
+      pointBorderColor:    '#fff',
+      pointRadius:         5,
+      tension:             0.3,
+      fill:                true,
+    }],
+  };
+
+  const catOptions = {
+    ...commonOptions,
+    onClick: (_: any, elements: any[]) => {
+      if (elements.length > 0) seleccionarCategoria(categorias[elements[0].index].categoria_id);
+    },
+  };
+
+  // ── datos gráfica PRODUCTO (histórico + proyección) ───────────────────────
+  const prodLabels = [
+    ...historico.map((h: any) => h.mes),
+    ...proyeccion.map((p: any) => p.mes),
   ];
-  const minV = 0;
-  const maxV = Math.max(...allVals, 1) * 1.15;
 
-  const histPoints = historico.map((h, i) => ({
-    x: scaleX(i, historico.length + proyeccion.length || 1),
-    y: scaleY(h.unidades, minV, maxV),
-  }));
+  const prodDatasets = [
+    {
+      label:               'Demanda histórica',
+      data: [
+        ...historico.map((h: any)  => h.unidades),
+        ...Array(proyeccion.length).fill(null),
+      ],
+      borderColor:         '#7eb8f7',
+      backgroundColor:     'rgba(126,184,247,0.15)',
+      borderWidth:         2.5,
+      pointBackgroundColor:'#7eb8f7',
+      pointBorderColor:    '#fff',
+      pointRadius:         4,
+      tension:             0.3,
+      fill:                true,
+    },
+    {
+      label:               'Demanda proyectada',
+      data: [
+        ...Array(historico.length).fill(null),
+        ...proyeccion.map((p: any) => p.demanda_proyectada),
+      ],
+      borderColor:         '#f0a060',
+      backgroundColor:     'rgba(240,160,96,0.15)',
+      borderWidth:         2.5,
+      borderDash:          [6, 4],
+      pointBackgroundColor:'#f0a060',
+      pointBorderColor:    '#fff',
+      pointRadius:         4,
+      tension:             0.3,
+      fill:                true,
+    },
+  ];
 
-  const proyPoints = proyeccion.map((p, i) => ({
-    x: scaleX(historico.length + i, historico.length + proyeccion.length || 1),
-    y: scaleY(p.demanda_proyectada, minV, maxV),
-  }));
+  // Para barra: histórico y proyección como datasets separados
+  const prodBarData = {
+    labels: prodLabels,
+    datasets: [
+      {
+        label:           'Demanda histórica',
+        data: [
+          ...historico.map((h: any)  => h.unidades),
+          ...Array(proyeccion.length).fill(null),
+        ],
+        backgroundColor: 'rgba(126,184,247,0.7)',
+        borderColor:     '#7eb8f7',
+        borderWidth:     1,
+      },
+      {
+        label:           'Demanda proyectada',
+        data: [
+          ...Array(historico.length).fill(null),
+          ...proyeccion.map((p: any) => p.demanda_proyectada),
+        ],
+        backgroundColor: 'rgba(240,160,96,0.7)',
+        borderColor:     '#f0a060',
+        borderWidth:     1,
+      },
+    ],
+  };
 
-  const allPoints = [...histPoints, ...proyPoints];
-  const labelStep = Math.ceil((historico.length + proyeccion.length) / 12);
+  const prodLineData = { labels: prodLabels, datasets: prodDatasets };
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  const categoriaNombre = categorias.find(c => c.categoria_id === categoriaSeleccionada)?.categoria ?? '';
+  const productoNombre  = productos.find(p => p.producto_id === productoSeleccionado)?.producto ?? '';
+
+  // ── componente selector de tipo de gráfica ────────────────────────────────
+  const SelectorGrafica = ({
+    valor, onChange,
+  }: { valor: string; onChange: (v: any) => void }) => (
+    <div className="selector-grafica">
+      <button
+        className={valor === 'bar' ? 'activo' : ''}
+        onClick={() => onChange('bar')}
+        title="Gráfica de barras"
+      >▮▮</button>
+      <button
+        className={valor === 'line' ? 'activo' : ''}
+        onClick={() => onChange('line')}
+        title="Gráfica de líneas"
+      >↗</button>
+    </div>
+  );
+
   return (
-    <div className="pred-screen">
-      {/* ── ENCABEZADO ── */}
-      <div className="pred-header">
-        <div className="pred-header__title">
-          <span className="pred-header__icon">📈</span>
-          <div>
-            <h1>Modelo Predictivo de Inventario</h1>
-            <p>Identificación de categoría estrella · Proyección de demanda · Gestión de reabastecimiento</p>
-          </div>
+    <div className="prediccion-container">
+      <h1>📈 Modelo Predictivo de Inventario</h1>
+      <p>Identificación de categoría estrella · Proyección de demanda · Gestión de reabastecimiento</p>
+
+      {error && <div className="error-message">❌ {error}</div>}
+
+      {/* ── CONTROLES ── */}
+      <div className="panel-controles">
+        <div className="control">
+          <label>📅 Año de análisis</label>
+          <select value={anio ?? ''} onChange={e => setAnio(Number(e.target.value))}>
+            {aniosDisponibles.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
         </div>
-        <div className="pred-header__controls">
-          <div className="pred-control-group">
-            <label>Año de análisis</label>
-            <select value={anio} onChange={e => setAnio(Number(e.target.value))}>
-              {ANIOS.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
-          </div>
-          <div className="pred-control-group">
-            <label>Meses a proyectar</label>
-            <select value={mesesProyeccion} onChange={e => setMesesProyeccion(Number(e.target.value))}>
-              {[3,4,5,6,9,12].map(m => <option key={m} value={m}>{m} meses</option>)}
-            </select>
-          </div>
-          <div className="pred-control-group">
-            <label>Lead time (días)</label>
-            <input
-              type="number" min={1} max={60} value={leadTime}
-              onChange={e => setLeadTime(Number(e.target.value))}
-            />
-          </div>
+        <div className="control">
+          <label>📆 Mes de inicio</label>
+          <select
+            value={mesInicio}
+            onChange={e => { setMesInicio(Number(e.target.value)); resetResultados(); }}
+          >
+            {mesesDisponibles.map(m => (
+              <option key={m} value={m}>{MESES_NOMBRES[m]}</option>
+            ))}
+          </select>
+        </div>
+        <div className="control">
+          <label>📊 Meses a proyectar</label>
+          <select value={mesesProyeccion} onChange={e => setMesesProyeccion(Number(e.target.value))}>
+            {[3, 6, 9, 12].map(m => <option key={m} value={m}>{m} meses</option>)}
+          </select>
+        </div>
+        <div className="control control--btn">
+          <button
+            className="btn-generar"
+            onClick={generarAnalisis}
+            disabled={loading || !anio || mesesDisponibles.length === 0}
+          >
+            {loading ? '⏳ Analizando...' : '🔍 Generar análisis'}
+          </button>
         </div>
       </div>
 
-      {error && <div className="pred-error">⚠️ {error}</div>}
-
-      {/* ── SECCIÓN 1: CATEGORÍAS ── */}
-      <section className="pred-section">
-        <div className="pred-section__head">
-          <h2>① Clasificación por categoría</h2>
-          <span className="pred-badge">Año {anio}</span>
-        </div>
-
-        {loadingCat ? (
-          <div className="pred-loading">Cargando categorías…</div>
-        ) : (
-          <div className="pred-row">
-            {/* Gráfica barras */}
-            <div className="pred-card pred-card--chart">
-              <p className="pred-card__label">Unidades vendidas por categoría</p>
-              <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="pred-svg">
-                {/* Grid */}
-                {[0, 0.25, 0.5, 0.75, 1].map(f => {
-                  const y = PAD.top + (1 - f) * INNER_H;
-                  return (
-                    <g key={f}>
-                      <line x1={PAD.left} y1={y} x2={SVG_W - PAD.right} y2={y} stroke="var(--pred-grid)" strokeWidth={1} />
-                      <text x={PAD.left - 6} y={y + 4} textAnchor="end" fontSize={10} fill="var(--pred-muted)">
-                        {Math.round(f * maxCat)}
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {categorias.map((cat, i) => {
-                  const bw = Math.min(BAR_W, 60);
-                  const gap = (INNER_W - categorias.length * bw) / (categorias.length - 1 || 1);
-                  const bx = PAD.left + i * (bw + gap);
-                  const bh = (cat.total_unidades / maxCat) * INNER_H;
-                  const by = PAD.top + INNER_H - bh;
-                  const isEstrella = cat.categoria_id === categoriaEstrella?.categoria_id;
-                  const isSelected = cat.categoria_id === categoriaSeleccionada;
-
-                  return (
-                    <g key={cat.categoria_id} style={{ cursor: 'pointer' }}
-                      onClick={() => setCategoriaSeleccionada(cat.categoria_id)}>
-                      <rect
-                        x={bx} y={by} width={bw} height={bh}
-                        rx={4}
-                        fill={isSelected ? 'var(--pred-accent)' : isEstrella ? 'var(--pred-estrella)' : 'var(--pred-bar)'}
-                        opacity={isSelected ? 1 : 0.75}
-                      />
-                      {isEstrella && (
-                        <text x={bx + bw / 2} y={by - 6} textAnchor="middle" fontSize={12}>⭐</text>
-                      )}
-                      <text x={bx + bw / 2} y={by - (isEstrella ? 18 : 6)} textAnchor="middle" fontSize={10} fill="var(--pred-muted)">
-                        {cat.total_unidades}
-                      </text>
-                      <text
-                        x={bx + bw / 2}
-                        y={PAD.top + INNER_H + 16}
-                        textAnchor="middle" fontSize={10} fill="var(--pred-text)"
-                        style={{ maxWidth: bw }}
-                      >
-                        {cat.categoria.length > 8 ? cat.categoria.slice(0, 7) + '…' : cat.categoria}
-                      </text>
-                    </g>
-                  );
-                })}
-              </svg>
-              <p className="pred-chart-hint">Haz clic en una barra para analizar esa categoría</p>
-            </div>
-
-            {/* Tabla categorías */}
-            <div className="pred-card pred-card--table">
-              <p className="pred-card__label">Ranking de categorías</p>
-              <table className="pred-table">
-                <thead>
-                  <tr><th>#</th><th>Categoría</th><th>Unidades</th><th></th></tr>
-                </thead>
-                <tbody>
-                  {categorias.map((cat, i) => (
-                    <tr
-                      key={cat.categoria_id}
-                      className={cat.categoria_id === categoriaSeleccionada ? 'pred-table__row--active' : ''}
-                      onClick={() => setCategoriaSeleccionada(cat.categoria_id)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <td className="pred-table__rank">{i + 1}</td>
-                      <td>
-                        {cat.categoria_id === categoriaEstrella?.categoria_id && <span className="pred-star">⭐ </span>}
-                        {cat.categoria}
-                      </td>
-                      <td><strong>{cat.total_unidades.toLocaleString()}</strong></td>
-                      <td>
-                        <div className="pred-mini-bar">
-                          <div className="pred-mini-bar__fill" style={{ width: `${(cat.total_unidades / maxCat) * 100}%` }} />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* ── SECCIÓN 2: PRODUCTO ESTRELLA ── */}
-      {categoriaSeleccionada && (
-        <section className="pred-section">
-          <div className="pred-section__head">
-            <h2>② Producto estrella — {categorias.find(c => c.categoria_id === categoriaSeleccionada)?.categoria}</h2>
-          </div>
-
-          {loadingProd ? (
-            <div className="pred-loading">Cargando productos…</div>
-          ) : (
-            <div className="pred-row">
-              <div className="pred-card pred-card--table pred-card--wide">
-                <p className="pred-card__label">Ranking de productos en la categoría</p>
-                <table className="pred-table">
-                  <thead>
-                    <tr><th>#</th><th>Producto</th><th>Unidades 2024</th><th>Participación</th><th>Stock actual</th></tr>
-                  </thead>
-                  <tbody>
-                    {productos.map((prod, i) => (
-                      <tr
-                        key={prod.producto_id}
-                        className={prod.producto_id === productoSeleccionado ? 'pred-table__row--active' : ''}
-                        onClick={() => setProductoSeleccionado(prod.producto_id)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <td className="pred-table__rank">{i + 1}</td>
-                        <td>
-                          {prod.producto_id === productoEstrella?.producto_id && <span className="pred-star">⭐ </span>}
-                          {prod.producto}
-                        </td>
-                        <td><strong>{prod.total_unidades.toLocaleString()}</strong></td>
-                        <td>
-                          <div className="pred-pill">{prod.participacion_pct}%</div>
-                        </td>
-                        <td>{prod.stock_actual} uds</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* ── SECCIÓN 3: ESTADÍSTICAS + HISTÓRICO ── */}
-      {productoSeleccionado && !loadingProd && (
-        <section className="pred-section">
-          <div className="pred-section__head">
-            <h2>③ Histórico de demanda — {productos.find(p => p.producto_id === productoSeleccionado)?.producto ?? productoEstrella?.producto}</h2>
-          </div>
-
-          {loadingHist ? (
-            <div className="pred-loading">Cargando histórico…</div>
-          ) : estadisticas && (
-            <>
-              {/* KPIs */}
-              <div className="pred-kpis">
-                {[
-                  { label: 'Total anual', val: `${estadisticas.total_anual} uds`, icon: '📦' },
-                  { label: 'Promedio mensual', val: `${estadisticas.promedio_mensual} uds`, icon: '📊' },
-                  { label: 'Moda mensual', val: `${estadisticas.moda_mensual} uds`, icon: '📐' },
-                  { label: 'Mínimo mensual', val: `${estadisticas.min} uds`, icon: '📉' },
-                  { label: 'Máximo mensual', val: `${estadisticas.max} uds`, icon: '📈' },
-                  { label: 'Tasa k mensual', val: `${estadisticas.k_pct}%`, icon: '⚡' },
-                ].map(kpi => (
-                  <div key={kpi.label} className="pred-kpi">
-                    <span className="pred-kpi__icon">{kpi.icon}</span>
-                    <span className="pred-kpi__val">{kpi.val}</span>
-                    <span className="pred-kpi__label">{kpi.label}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Tabla histórico */}
-              <div className="pred-row">
-                <div className="pred-card pred-card--table">
-                  <p className="pred-card__label">Ventas mensuales {anio}</p>
-                  <table className="pred-table pred-table--compact">
-                    <thead>
-                      <tr><th>t</th><th>Mes</th><th>Unidades Q(t)</th><th>Variación</th></tr>
-                    </thead>
-                    <tbody>
-                      {historico.map((h, i) => {
-                        const prev = i > 0 ? historico[i - 1].unidades : null;
-                        const variacion = prev && prev > 0 ? ((h.unidades - prev) / prev * 100).toFixed(1) : null;
-                        return (
-                          <tr key={h.t}>
-                            <td className="pred-table__rank">{h.t}</td>
-                            <td>{h.mes}</td>
-                            <td><strong>{h.unidades}</strong></td>
-                            <td>
-                              {variacion !== null && (
-                                <span className={`pred-var ${Number.parseFloat(variacion) >= 0 ? 'pred-var--up' : 'pred-var--down'}`}>
-                                  {Number.parseFloat(variacion) >= 0 ? '▲' : '▼'} {Math.abs(Number.parseFloat(variacion))}%
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Fórmulas */}
-                <div className="pred-card pred-card--formula">
-                  <p className="pred-card__label">Modelo matemático aplicado</p>
-                  <div className="pred-formula-block">
-                    <div className="pred-formula">
-                      <span className="pred-formula__name">Ley de Crecimiento</span>
-                      <span className="pred-formula__eq">dQ/dt = k · Q(t)</span>
-                    </div>
-                    <div className="pred-formula">
-                      <span className="pred-formula__name">Solución analítica</span>
-                      <span className="pred-formula__eq">Q(t) = Q₀ · e^(kt)</span>
-                    </div>
-                    <div className="pred-formula">
-                      <span className="pred-formula__name">Stock en T meses</span>
-                      <span className="pred-formula__eq">∫Q(t)dt = (Q₀/k)·(e^(kT)−1)</span>
-                    </div>
-                    <div className="pred-formula">
-                      <span className="pred-formula__name">Tasa de crecimiento</span>
-                      <span className="pred-formula__eq">k = ln(Q_T / Q₀) / T</span>
-                    </div>
-                  </div>
-
-                  <div className="pred-params">
-                    <p className="pred-card__label" style={{ marginTop: '1rem' }}>Condiciones iniciales</p>
-                    <div className="pred-param-row"><span>Q₀ (mes mínimo)</span><strong>{estadisticas.q0} uds</strong></div>
-                    <div className="pred-param-row"><span>Q_T (mes máximo)</span><strong>{estadisticas.qT} uds</strong></div>
-                    <div className="pred-param-row"><span>T (meses)</span><strong>11</strong></div>
-                    <div className="pred-param-row"><span>k calculado</span><strong>{estadisticas.k}</strong></div>
-                    <div className="pred-param-row"><span>k%</span><strong>{estadisticas.k_pct}% mensual</strong></div>
-                  </div>
-
-                  <button className="pred-btn pred-btn--primary" onClick={calcularProyeccion} disabled={loadingProy}>
-                    {loadingProy ? '⏳ Calculando…' : '🔮 Generar proyección'}
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </section>
-      )}
-
-      {/* ── SECCIÓN 4: PROYECCIÓN ── */}
-      {proyeccion.length > 0 && resumen && (
-        <section className="pred-section">
-          <div className="pred-section__head">
-            <h2>④ Proyección de demanda e inventario</h2>
-            <span className={`pred-semaforo pred-semaforo--${resumen.semaforo}`}>
-              {resumen.semaforo === 'verde' ? '🟢 Stock suficiente' :
-               resumen.semaforo === 'amarillo' ? '🟡 Stock en riesgo' : '🔴 Alerta de desabasto'}
-            </span>
-          </div>
-
-          {/* Resumen ejecutivo */}
-          <div className="pred-resumen">
-            {[
-              { label: 'Stock actual', val: `${resumen.stock_actual} uds`, color: 'default' },
-              { label: `Stock necesario (${mesesProyeccion} meses)`, val: `${resumen.stock_necesario_semestre} uds`, color: 'default' },
-              { label: 'Déficit proyectado', val: `${resumen.deficit_proyectado} uds`, color: 'danger' },
-              { label: 'Agotamiento estimado', val: resumen.fecha_agotamiento ?? 'No se agota en el período', color: 'warning' },
-              { label: 'Fecha límite de pedido', val: resumen.fecha_limite_pedido ?? '—', color: 'warning' },
-              { label: 'Lead time proveedor', val: `${leadTime} días`, color: 'default' },
-            ].map(item => (
-              <div key={item.label} className={`pred-resumen-item pred-resumen-item--${item.color}`}>
-                <span className="pred-resumen-item__label">{item.label}</span>
-                <strong className="pred-resumen-item__val">{item.val}</strong>
-              </div>
-            ))}
-          </div>
-
-          {/* Gráfica histórica + proyección combinada */}
-          <div className="pred-card pred-card--chart-wide">
-            <p className="pred-card__label">
-              Demanda histórica <span className="pred-legend pred-legend--hist">■</span> vs proyectada <span className="pred-legend pred-legend--proy">■</span>
+      {/* ── ESTADO INICIAL ── */}
+      {!analisisGenerado && !loading && (
+        <div className="estado-inicial">
+          <span>📊</span>
+          <p>Selecciona año, mes de inicio y meses a proyectar, luego pulsa <strong>Generar análisis</strong>.</p>
+          {mesesDisponibles.length > 0 && (
+            <p style={{ fontSize: '0.8rem' }}>
+              Datos disponibles en {anio}: {mesesDisponibles.map(m => MESES_NOMBRES[m]).join(', ')}
             </p>
-            <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="pred-svg">
-              {/* Grid horizontal */}
-              {[0, 0.25, 0.5, 0.75, 1].map(f => {
-                const y = PAD.top + (1 - f) * INNER_H;
-                return (
-                  <g key={f}>
-                    <line x1={PAD.left} y1={y} x2={SVG_W - PAD.right} y2={y}
-                      stroke="var(--pred-grid)" strokeWidth={1} strokeDasharray="4,3" />
-                    <text x={PAD.left - 6} y={y + 4} textAnchor="end" fontSize={10} fill="var(--pred-muted)">
-                      {Math.round(f * maxV)}
-                    </text>
-                  </g>
-                );
-              })}
+          )}
+        </div>
+      )}
 
-              {/* Línea divisoria histórico/proyección */}
-              {histPoints.length > 0 && proyPoints.length > 0 && (
-                <line
-                  x1={histPoints[histPoints.length - 1].x}
-                  y1={PAD.top}
-                  x2={histPoints[histPoints.length - 1].x}
-                  y2={PAD.top + INNER_H}
-                  stroke="var(--pred-muted)" strokeWidth={1} strokeDasharray="6,4"
-                />
-              )}
+      {loading && <div className="loading-message">⏳ Procesando datos...</div>}
 
-              {/* Área histórica */}
-              {histPoints.length > 1 && (
-                <polyline
-                  points={polyline([
-                    { x: histPoints[0].x, y: PAD.top + INNER_H },
-                    ...histPoints,
-                    { x: histPoints[histPoints.length - 1].x, y: PAD.top + INNER_H },
-                  ])}
-                  fill="var(--pred-hist-fill)" stroke="none"
-                />
-              )}
+      {/* ── RESULTADOS ── */}
+      {analisisGenerado && !loading && (
+        <>
+          {anioIncompleto && (
+            <div className="alerta alerta-amarillo" style={{ marginBottom: '10px' }}>
+              ⚠️ Año incompleto — datos disponibles hasta{' '}
+              <strong>{MESES_NOMBRES[ultimoMesActivo]} {anio}</strong>.
+              El modelo usa Q₀ = {MESES_NOMBRES[mesInicio]} y
+              QT = {MESES_NOMBRES[ultimoMesActivo]}, con T = {ultimoMesActivo - mesInicio} meses.
+            </div>
+          )}
 
-              {/* Línea histórica */}
-              {histPoints.length > 1 && (
-                <polyline points={polyline(histPoints)}
-                  fill="none" stroke="var(--pred-hist)" strokeWidth={2.5} />
-              )}
-
-              {/* Área proyección */}
-              {proyPoints.length > 1 && (
-                <polyline
-                  points={polyline([
-                    { x: proyPoints[0].x, y: PAD.top + INNER_H },
-                    ...proyPoints,
-                    { x: proyPoints[proyPoints.length - 1].x, y: PAD.top + INNER_H },
-                  ])}
-                  fill="var(--pred-proy-fill)" stroke="none"
-                />
-              )}
-
-              {/* Línea proyección */}
-              {proyPoints.length > 1 && (
-                <polyline points={polyline(proyPoints)}
-                  fill="none" stroke="var(--pred-proy)" strokeWidth={2.5} strokeDasharray="8,4" />
-              )}
-
-              {/* Puntos */}
-              {allPoints.map((p, i) => (
-                <circle key={i} cx={p.x} cy={p.y} r={3.5}
-                  fill={i < histPoints.length ? 'var(--pred-hist)' : 'var(--pred-proy)'} />
-              ))}
-
-              {/* Etiquetas eje X */}
-              {allPoints.map((p, i) => {
-                if (i % labelStep !== 0 && i !== allPoints.length - 1) return null;
-                const label = i < historico.length
-                  ? historico[i].mes
-                  : proyeccion[i - historico.length]?.mes.slice(0, 7) ?? '';
-                return (
-                  <text key={i} x={p.x} y={PAD.top + INNER_H + 18}
-                    textAnchor="middle" fontSize={9} fill="var(--pred-muted)">
-                    {label}
-                  </text>
-                );
-              })}
-            </svg>
-          </div>
-
-          {/* Tabla proyección */}
-          <div className="pred-card pred-card--table pred-card--wide">
-            <p className="pred-card__label">Detalle de proyección mes a mes</p>
-            <table className="pred-table">
-              <thead>
-                <tr>
-                  <th>t</th>
-                  <th>Mes</th>
-                  <th>Q(t) proyectada</th>
-                  <th>Stock acumulado necesario</th>
-                  <th>Stock restante</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
+          {/* CATEGORÍAS */}
+          <section>
+            <div className="seccion-header">
+              <h2>🏆 Categorías — {anio} (desde {MESES_NOMBRES[mesInicio]})</h2>
+              <SelectorGrafica valor={tipoCat} onChange={setTipoCat} />
+            </div>
+            <div className="grafica-container">
+              {tipoCat === 'bar'
+                ? <Bar  key={`cat-bar-${anio}-${mesInicio}`}  data={catBarData}  options={catOptions} />
+                : <Line key={`cat-line-${anio}-${mesInicio}`} data={catLineData} options={catOptions} />
+              }
+            </div>
+            <p className="hint">Haz clic en la gráfica o en "Analizar" para explorar esa categoría.</p>
+            <table className="tabla-datos">
+              <thead><tr><th>#</th><th>Categoría</th><th>Unidades</th><th></th></tr></thead>
               <tbody>
-                {proyeccion.map(p => {
-                  const estado =
-                    p.stock_restante <= 0 ? 'rojo' :
-                    p.stock_restante < p.demanda_proyectada * 2 ? 'amarillo' : 'verde';
-                  return (
-                    <tr key={p.t}>
-                      <td className="pred-table__rank">{p.t}</td>
-                      <td>{p.mes}</td>
-                      <td><strong>{p.demanda_proyectada}</strong> uds</td>
-                      <td>{p.stock_acumulado_necesario} uds</td>
-                      <td className={`pred-stock-${estado}`}>{p.stock_restante} uds</td>
-                      <td>
-                        <span className={`pred-chip pred-chip--${estado}`}>
-                          {estado === 'verde' ? '✓ OK' : estado === 'amarillo' ? '⚠ Riesgo' : '✗ Desabasto'}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {categorias.map((cat, idx) => (
+                  <tr
+                    key={cat.categoria_id}
+                    className={cat.categoria_id === categoriaSeleccionada ? 'fila-activa' : ''}
+                  >
+                    <td>{idx + 1}</td>
+                    <td>{cat.categoria} {idx === 0 && cat.total_unidades > 0 && '⭐'}</td>
+                    <td><strong>{cat.total_unidades}</strong></td>
+                    <td><button onClick={() => seleccionarCategoria(cat.categoria_id)}>Analizar</button></td>
+                  </tr>
+                ))}
               </tbody>
             </table>
-          </div>
-        </section>
+          </section>
+
+          {/* PRODUCTOS */}
+          {productos.length > 0 && (
+            <section>
+              <h2>✨ Productos — {categoriaNombre}</h2>
+              <div className="barra-busqueda">
+                <input
+                  type="text"
+                  placeholder="🔍 Buscar producto..."
+                  value={busquedaProducto}
+                  onChange={e => { setBusquedaProducto(e.target.value); setPaginaProductos(1); }}
+                />
+              </div>
+              <table className="tabla-datos">
+                <thead>
+                  <tr>
+                    <th>#</th><th>Producto</th><th>Unidades {anio}</th>
+                    <th>Participación</th><th>Stock actual</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {productosPaginados.map((prod, idx) => {
+                    const esEstrella = prod.producto_id === productos[0]?.producto_id && prod.total_unidades > 0;
+                    return (
+                      <tr
+                        key={prod.producto_id}
+                        className={prod.producto_id === productoSeleccionado ? 'fila-activa' : ''}
+                      >
+                        <td>{(paginaProductos - 1) * productosPorPagina + idx + 1}</td>
+                        <td>{prod.producto} {esEstrella && '⭐'}</td>
+                        <td>{prod.total_unidades}</td>
+                        <td>{prod.participacion_pct}%</td>
+                        <td>{prod.stock_actual} uds</td>
+                        <td><button onClick={() => seleccionarProducto(prod.producto_id)}>Seleccionar</button></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              {totalPaginas > 1 && (
+                <div className="paginacion">
+                  <button disabled={paginaProductos === 1} onClick={() => setPaginaProductos(p => p - 1)}>◀ Anterior</button>
+                  <span>Página {paginaProductos} de {totalPaginas}</span>
+                  <button disabled={paginaProductos === totalPaginas} onClick={() => setPaginaProductos(p => p + 1)}>Siguiente ▶</button>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* HISTÓRICO + KPIs + GRÁFICA */}
+          {estadisticas && (
+            <section>
+              <div className="seccion-header">
+                <h2>📊 {productoNombre}</h2>
+                <SelectorGrafica valor={tipoProd} onChange={setTipoProd} />
+              </div>
+
+              {anioIncompleto && (
+                <div className="alerta alerta-amarillo" style={{ marginBottom: '12px', fontSize: '0.85rem' }}>
+                  ⚠️ Datos parciales — Q₀ = {estadisticas.q0} uds ({MESES_NOMBRES[mesInicio]}) |
+                  QT = {estadisticas.qT} uds ({MESES_NOMBRES[ultimoMesActivo]}) |
+                  T = {ultimoMesActivo - mesInicio} meses |
+                  k = {estadisticas.k_pct}% mensual
+                </div>
+              )}
+
+              <div className="kpis">
+                <div>📦 Total periodo: <strong>{estadisticas.total_anual} uds</strong></div>
+                <div>📈 Promedio mensual: <strong>{estadisticas.promedio_mensual} uds</strong></div>
+                <div>📅 Meses con ventas: <strong>{estadisticas.meses_con_ventas}</strong></div>
+                <div>⚡ Tasa k: <strong>{estadisticas.k_pct}% mensual</strong></div>
+                <div>📐 Q₀ = <strong>{estadisticas.q0}</strong> | QT = <strong>{estadisticas.qT}</strong></div>
+                <div>📉 Mín: <strong>{estadisticas.min}</strong> | Máx: <strong>{estadisticas.max}</strong></div>
+              </div>
+
+              <div className="grafica-container">
+                {tipoProd === 'line'
+                  ? <Line key={`prod-line-${graficaKey}`} data={prodLineData} options={commonOptions} />
+                  : <Bar  key={`prod-bar-${graficaKey}`}  data={prodBarData}  options={commonOptions} />
+                }
+              </div>
+            </section>
+          )}
+
+          {/* PROYECCIÓN */}
+          {resumen && proyeccion.length > 0 && (
+            <section>
+              <h2>📆 Proyección — próximos {mesesProyeccion} meses</h2>
+              <div className={`alerta alerta-${resumen.semaforo}`}>
+                {resumen.semaforo === 'verde'    && '🟢 Stock suficiente para el período proyectado'}
+                {resumen.semaforo === 'amarillo' && '🟡 Stock en riesgo — considera reabastecerte pronto'}
+                {resumen.semaforo === 'rojo'     && '🔴 Alerta de desabasto — pedido urgente necesario'}
+              </div>
+              <div className="resumen-grid">
+                <div>Stock actual: <strong>{resumen.stock_actual} uds</strong></div>
+                <div>Stock necesario ({mesesProyeccion} meses): <strong>{resumen.stock_necesario_semestre} uds</strong></div>
+                <div>Déficit proyectado: <strong>{resumen.deficit_proyectado} uds</strong></div>
+                <div>Agotamiento estimado: <strong>{resumen.fecha_agotamiento ?? 'No se agota en el período'}</strong></div>
+                <div>Fecha límite de pedido: <strong>{resumen.fecha_limite_pedido ?? '—'}</strong></div>
+              </div>
+              <table className="tabla-datos">
+                <thead>
+                  <tr>
+                    <th>Mes</th><th>Demanda proyectada</th>
+                    <th>Stock acumulado necesario</th><th>Stock restante</th><th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {proyeccion.map((p: any) => {
+                    const estado = p.stock_restante <= 0 ? 'rojo'
+                      : p.stock_restante < p.demanda_proyectada * 2 ? 'amarillo' : 'verde';
+                    return (
+                      <tr key={p.t}>
+                        <td>{p.mes}</td>
+                        <td><strong>{p.demanda_proyectada}</strong> uds</td>
+                        <td>{p.stock_acumulado_necesario} uds</td>
+                        <td className={estado}>{p.stock_restante} uds</td>
+                        <td>{estado === 'verde' ? '✓ OK' : estado === 'amarillo' ? '⚠ Riesgo' : '✗ Desabasto'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div className="nota-matematica">
+                ℹ️ Modelo: dQ/dt = k·Q → Q(t) = Q₀·e^(kt) |
+                k = {estadisticas?.k} mensual |
+                Stock necesario = (Q₀/k)·(e^(kT)−1) |
+                Lead time fijo: 7 días
+              </div>
+            </section>
+          )}
+        </>
       )}
     </div>
   );

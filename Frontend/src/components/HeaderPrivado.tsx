@@ -126,9 +126,9 @@ const HeaderPrivado: React.FC = () => {
                                 </button>
                                 {isDatabaseMenuOpen && (
                                     <div className="dropdown-menu">
-                                        <button className={`dropdown-item ${isActive("/admin-database") ? "active" : ""}`} onClick={() => goTo("/admin-database")}>
+                                        {/* <button className={`dropdown-item ${isActive("/admin-database") ? "active" : ""}`} onClick={() => goTo("/admin-database")}>
                                             <span className="dropdown-icon">📊</span> Dashboard BD
-                                        </button>
+                                        </button> */}
                                         <button className={`dropdown-item ${isActive("/admin-backups") ? "active" : ""}`} onClick={() => goTo("/admin-backups")}>
                                             <span className="dropdown-icon">💾</span> Respaldos
                                         </button>
@@ -141,9 +141,10 @@ const HeaderPrivado: React.FC = () => {
                                         <button className={`dropdown-item ${isActive("/admin/actualizacion-masiva") ? "active" : ""}`} onClick={() => goTo("/admin/actualizacion-masiva")}>
                                             <span className="dropdown-icon">🔄</span> Actualización Masiva
                                         </button>
-                                        <button className={`dropdown-item ${isActive("/admin-automation") ? "active" : ""}`} onClick={() => goTo("/admin-automation")}>
+                                        {/*  <button className={`dropdown-item ${isActive("/admin-automation") ? "active" : ""}`} onClick={() => goTo("/admin-automation")}>
                                             <span className="dropdown-icon">⚡</span> Automatización
                                         </button>
+                                        */}
                                         <button className={`dropdown-item ${isActive("/admin-monitoreo") ? "active" : ""}`} onClick={() => goTo("/admin-monitoreo")}>
                                             <span className="dropdown-icon">🖥️</span> Monitoreo
                                         </button>

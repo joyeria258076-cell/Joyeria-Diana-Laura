@@ -1218,38 +1218,49 @@ export const bulkUpdateAPI = {
 // 📈 API PARA MÓDULO PREDICTIVO
 // ==========================================
 export const prediccionAPI = {
-  // Obtener categorías con unidades vendidas
-  getCategorias: async (anio?: number) => {
-    const q = anio ? `?anio=${anio}` : '';
-    return enhancedApi.get(`/prediccion/categorias${q}`);
+ 
+  getAnios: async () => {
+    return enhancedApi.get('/prediccion/anios');
   },
  
-  // Obtener producto estrella de una categoría
-  getProductoEstrella: async (categoriaId: number, anio?: number) => {
-    const q = anio ? `?anio=${anio}` : '';
-    return enhancedApi.get(`/prediccion/producto-estrella/${categoriaId}${q}`);
+  // Meses que tienen ventas reales en ese año (para el selector)
+  getMesesDisponibles: async (anio: number) => {
+    return enhancedApi.get(`/prediccion/meses-disponibles?anio=${anio}`);
   },
  
-  // Obtener histórico mensual de un producto
-  getHistorico: async (productoId: number, anio?: number) => {
-    const q = anio ? `?anio=${anio}` : '';
-    return enhancedApi.get(`/prediccion/historico/${productoId}${q}`);
+  getCategorias: async (anio?: number, mes_inicio?: number) => {
+    const params = new URLSearchParams();
+    if (anio)       params.append('anio', String(anio));
+    if (mes_inicio) params.append('mes_inicio', String(mes_inicio));
+    return enhancedApi.get(`/prediccion/categorias?${params.toString()}`);
   },
  
-  // Calcular proyección y fecha de agotamiento
+  getProductoEstrella: async (categoriaId: number, anio?: number, mes_inicio?: number) => {
+    const params = new URLSearchParams();
+    if (anio)       params.append('anio', String(anio));
+    if (mes_inicio) params.append('mes_inicio', String(mes_inicio));
+    return enhancedApi.get(`/prediccion/producto-estrella/${categoriaId}?${params.toString()}`);
+  },
+ 
+  getHistorico: async (productoId: number, anio?: number, mes_inicio?: number) => {
+    const params = new URLSearchParams();
+    if (anio)       params.append('anio', String(anio));
+    if (mes_inicio) params.append('mes_inicio', String(mes_inicio));
+    return enhancedApi.get(`/prediccion/historico/${productoId}?${params.toString()}`);
+  },
+ 
   getProyeccion: async (params: {
-    productoId: number;
-    q0: number;
-    qT: number;
-    T_historico?: number;
-    stock_actual: number;
-    lead_time_dias?: number;
+    productoId:       number;
+    q0:               number;
+    qT:               number;
+    T_historico?:     number;
+    stock_actual:     number;
     meses_proyeccion?: number;
+    // lead_time_dias eliminado — fijo en 7 días en el backend
   }) => {
     return enhancedApi.post('/prediccion/proyeccion', params);
   },
 };
-
 // ==========================================
 // 📥 EXPORTACIÓN DE API (opcional, para tener todo en un solo objeto)
 // ==========================================
