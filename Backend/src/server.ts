@@ -38,6 +38,7 @@ import exportRoutes from './routes/exportRoutes';
 import bulkUpdateRoutes from './routes/bulkUpdateRoutes';
 import predictiveRoutes from './routes/predictiveRoutes';
 import { AuthRequest } from './middleware/authMiddleware';
+import alexaRoutes from './routes/alexaRoutes';
 import pool from './config/database';
 
 // IAST Agent
@@ -226,6 +227,7 @@ app.use('/api/configuracion', configuracionRoutes);
 app.use('/api/proveedores', proveedoresRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/prediccion', predictiveRoutes);
+app.use('/api/alexa', alexaRoutes);  
 
 // 🩺 ENDPOINTS DE SALUD
 app.get('/api/health', (req, res) => {
@@ -271,6 +273,7 @@ app.listen(PORT, async () => {
   console.log(`   🛡️ RASP Dashboard: http://localhost:${PORT}/rasp/dashboard`);
   console.log(`🔐 CORS Headers permitidos: Content-Type, Authorization, X-Session-Token`);
   console.log(`   🛠️ Admin: http://localhost:${PORT}/api/admin`);
+  console.log(`   🎤 Alexa: http://localhost:${PORT}/api/alexa`);
 
   // 🎯 CONEXIÓN Y LIMPIEZA INICIAL
   try {
