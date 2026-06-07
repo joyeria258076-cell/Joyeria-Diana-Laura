@@ -673,7 +673,7 @@ export const capturarPagoPayPal = async (req: Request, res: Response) => {
         const captureData = await captureRes.json();
 
         if (captureData.status === 'COMPLETED') {
-            await VentaModel.confirmarPago(order_id, order_id);
+            await VentaModel.confirmarPagoPayPal(order_id, venta_id);
 
             try {
                 await descontarStock(venta_id);

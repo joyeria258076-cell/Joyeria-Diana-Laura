@@ -546,5 +546,47 @@ export const VentaModel = {
         }
 
         return result.rows[0];
+    },
+
+    confirmarPagoPayPal: async (order_id: string, venta_id: number) => {
+    // ✅ Idempotencia: verificar si ya fue procesado
+    const yaExiste = await pool.query(`
+        SELECT id FROM transacciones_pago WHERE transaction_id = $1
+    `, [order_id]);
+
+    if (yaExiste.rows.length > 0) {
+        console.log(`⚠️ PayPal order ${order_id} ya procesado, ignorando duplicado`);
+        return yaExiste.rows[0];
     }
+
+    // ✅ Obtener metodo_pago_id de paypal
+    const metodo = await pool.query(`
+        SELECT id FROM metodos_pago WHERE codigo = 'paypal' AND activo = true LIMIT 1
+    `);
+    const metodo_pago_id = metodo.rows[0]?.id;
+    if (!metodo_pago_id) throw new Error('Método de pago PayPal no encontrado');
+
+    // ✅ Obtener monto de la venta
+    const venta = await pool.query(`SELECT total FROM ventas WHERE id = $1`, [venta_id]);
+    const monto = Number.parseFloat(venta.rows[0]?.total || '0');
+
+    // ✅ Insertar transacción aprobada directamente
+    const result = await pool.query(`
+        INSERT INTO transacciones_pago (
+            venta_id, metodo_pago_id, monto, moneda, monto_neto,
+            estado, transaction_id, fecha_aprobacion,
+            fecha_creacion, fecha_actualizacion
+        ) VALUES ($1, $2, $3, 'MXN', $3, 'aprobado', $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        RETURNING *
+    `, [venta_id, metodo_pago_id, monto, order_id]);
+
+    // ✅ Avanzar estado de la venta a confirmado
+    await pool.query(`
+        UPDATE ventas SET estado = 'confirmado', fecha_actualizacion = CURRENT_TIMESTAMP
+        WHERE id = $1
+    `, [venta_id]);
+
+    console.log(`✅ PayPal: transacción insertada y venta ${venta_id} → confirmado`);
+    return result.rows[0];
+},
 };
