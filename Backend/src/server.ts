@@ -37,6 +37,7 @@ import { metricsMiddleware, setupErrorMonitoring, expressErrorMiddleware, cleanu
 import exportRoutes from './routes/exportRoutes';
 import bulkUpdateRoutes from './routes/bulkUpdateRoutes';
 import predictiveRoutes from './routes/predictiveRoutes';
+import apartadoRoutes from './routes/apartadoRoutes';
 import { AuthRequest } from './middleware/authMiddleware';
 import alexaRoutes from './routes/alexaRoutes';
 import pool from './config/database';
@@ -150,6 +151,10 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/api/carrito/webhook')) {
     return next();
   }
+
+  if (req.path.startsWith('/api/apartados/webhook')) {
+    return next();
+  }
   
   // 4. Aplicar middleware de cookies para el resto
   return cookieAuthMiddleware(req, res, next);
@@ -227,6 +232,7 @@ app.use('/api/configuracion', configuracionRoutes);
 app.use('/api/proveedores', proveedoresRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/prediccion', predictiveRoutes);
+app.use('/api/apartados', apartadoRoutes);
 app.use('/api/alexa', alexaRoutes);  
 
 // 🩺 ENDPOINTS DE SALUD
@@ -274,6 +280,7 @@ app.listen(PORT, async () => {
   console.log(`🔐 CORS Headers permitidos: Content-Type, Authorization, X-Session-Token`);
   console.log(`   🛠️ Admin: http://localhost:${PORT}/api/admin`);
   console.log(`   🎤 Alexa: http://localhost:${PORT}/api/alexa`);
+  console.log(`   📦 Apartados: http://localhost:${PORT}/api/apartados`);
 
   // 🎯 CONEXIÓN Y LIMPIEZA INICIAL
   try {

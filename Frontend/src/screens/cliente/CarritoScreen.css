@@ -176,3 +176,33 @@
     font-size: 0.72rem; display: flex; align-items: center; justify-content: center;
 }
 .carrito-guia-sep { color: #555; font-size: 0.9rem; }
+
+/* ── Apartado ─────────────────────────────────────────────── */
+.carrito-btn-apartado {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: transparent;
+    border: 2px solid #ecb2c3;
+    color: #ecb2c3;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.carrito-btn-apartado:hover:not(:disabled) {
+    background: #ecb2c3;
+    color: #1a1a2e;
+}
+.carrito-btn-apartado:disabled { opacity: 0.4; cursor: not-allowed; }
+.carrito-apartado-nota { color: #a0a0b0; font-size: 0.78rem; margin-top: 6px; text-align: center; }
+.carrito-apartado-info {
+    background: #1e1e3a;
+    border-left: 3px solid #ecb2c3;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    color: #ccc;
+}

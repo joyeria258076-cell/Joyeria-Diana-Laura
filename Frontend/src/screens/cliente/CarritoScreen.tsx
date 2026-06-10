@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AiOutlineDelete, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineArrowLeft } from 'react-icons/ai';
 import { useCart } from '../../contexts/CartContext';
-import { carritoAPI } from '../../services/api';
+import { carritoAPI, apartadoAPI } from '../../services/api';
 import './CarritoScreen.css';
 
 const PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzFhMWEyZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQwIiBmaWxsPSIjZWNiMmMzIj7oo6s8L3RleHQ+PC9zdmc+';
@@ -184,39 +184,50 @@ const CarritoScreen: React.FC = () => {
     const navigate = useNavigate();
     const { items, count, total, loading, actualizarCantidad, eliminarItem, vaciarCarrito } = useCart();
 
+    // ── Estados pedido normal ─────────────────────────────────
     const [solicitando, setSolicitando]       = useState(false);
     const [pedidoExitoso, setPedidoExitoso]   = useState(false);
     const [folioPedido, setFolioPedido]       = useState('');
     const [showCheckout, setShowCheckout]     = useState(false);
-    const [direccion, setDireccion] = useState<DireccionData | null>(null);
+    const [direccion, setDireccion]           = useState<DireccionData | null>(null);
     const [notasCliente, setNotasCliente]     = useState('');
     const [errorMsg, setErrorMsg]             = useState('');
     const [metodosPago, setMetodosPago]       = useState<MetodoPago[]>([]);
     const [metodoPagoId, setMetodoPagoId]     = useState<number | null>(null);
-    const [tipoEntrega, setTipoEntrega] = useState<'tienda' | 'domicilio'>('tienda');
-    const [costoEnvio, setCostoEnvio]   = useState<number>(0);
+    const [tipoEntrega, setTipoEntrega]       = useState<'tienda' | 'domicilio'>('tienda');
+    const [costoEnvio, setCostoEnvio]         = useState<number>(0);
     const [cargandoMetodos, setCargandoMetodos] = useState(false);
 
+    // ── Estados apartado ──────────────────────────────────────
+    const [showApartado, setShowApartado]               = useState(false);
+    const [apartandoExitoso, setApartandoExitoso]       = useState(false);
+    const [folioApartado, setFolioApartado]             = useState('');
+    const [montoAbonoInicial, setMontoAbonoInicial]     = useState('');
+    const [fechaLimiteApartado, setFechaLimiteApartado] = useState('');
+    const [solicitandoApartado, setSolicitandoApartado] = useState(false);
+    const [errorApartado, setErrorApartado]             = useState('');
+    const [metodoPagoApartadoId, setMetodoPagoApartadoId] = useState<number | null>(null);
+
     useEffect(() => {
-    if (showCheckout) {
-        cargarMetodosPago();    
-    }
-    }, [showCheckout]);
+        if (showCheckout || showApartado) {
+            cargarMetodosPago();
+        }
+    }, [showCheckout, showApartado]);
 
     const cargarMetodosPago = async () => {
         setCargandoMetodos(true);
         try {
             const data = await carritoAPI.getMetodosPago();
-        if (data.success) {
-            setMetodosPago(data.data.metodos || []);
-            if (data.data.costo_envio !== undefined) {
-                setCostoEnvio(data.data.costo_envio);
-            } else {
-                setErrorMsg('No se pudo cargar el costo de envío. Intenta de nuevo.');
+            if (data.success) {
+                setMetodosPago(data.data.metodos || []);
+                if (data.data.costo_envio !== undefined) {
+                    setCostoEnvio(data.data.costo_envio);
+                } else {
+                    setErrorMsg('No se pudo cargar el costo de envío. Intenta de nuevo.');
+                }
+                const mp = data.data?.metodos?.find((m: MetodoPago) => m.codigo === 'mercadopago');
+                if (mp) setMetodoPagoId(mp.id);
             }
-            const mp = data.data?.metodos?.find((m: MetodoPago) => m.codigo === 'mercadopago');
-            if (mp) setMetodoPagoId(mp.id);
-        }
         } catch (err) { console.error(err); }
         finally { setCargandoMetodos(false); }
     };
@@ -252,9 +263,69 @@ const CarritoScreen: React.FC = () => {
         } finally { setSolicitando(false); }
     };
 
-    const pasarelas  = metodosPago.filter(m => m.es_pasarela);
-    const otros      = metodosPago.filter(m => !m.es_pasarela);
+    const handleApartar = async () => {
+        if (!montoAbonoInicial || parseFloat(montoAbonoInicial) <= 0) {
+            setErrorApartado('Ingresa un monto válido para el abono inicial.'); return;
+        }
+        if (parseFloat(montoAbonoInicial) < total * 0.5) {
+            setErrorApartado(`El monto mínimo para apartar es $${(total * 0.5).toFixed(2)} (50%).`); return;
+        }
+        if (!metodoPagoApartadoId) {
+            setErrorApartado('Selecciona un método de pago.'); return;
+        }
+        setSolicitandoApartado(true); setErrorApartado('');
+        try {
+            // Paso 1: crear pedido normal (sin dirección, tipo tienda)
+            const pedidoData = await carritoAPI.crearPedido({
+                direccion_envio: 'Recoger en tienda',
+                notas_cliente: '(Apartado)',
+                metodo_pago_id: metodoPagoApartadoId,
+                tipo_entrega: 'tienda',
+                costo_envio: 0,
+                direccion_data: null
+            });
+            if (!pedidoData.success) throw new Error(pedidoData.message);
 
+            // Paso 2: crear apartado sobre ese pedido
+            const res = await apartadoAPI.crear({
+                venta_id: pedidoData.data.id,
+                monto_abono_inicial: parseFloat(montoAbonoInicial),
+                metodo_pago_id: metodoPagoApartadoId
+            });
+            if (!res.success) throw new Error(res.message);
+
+            setFolioApartado(res.data.folio);
+            setApartandoExitoso(true);
+            setShowApartado(false);
+        } catch (err: any) {
+            setErrorApartado(err.message || 'Error al crear el apartado.');
+        } finally {
+            setSolicitandoApartado(false);
+        }
+    };
+
+    const pasarelas = metodosPago.filter(m => m.es_pasarela);
+    const otros     = metodosPago.filter(m => !m.es_pasarela);
+
+    // ── Pantalla éxito apartado ───────────────────────────────
+    if (apartandoExitoso) {
+        return (
+            <main className="carrito-body">
+                <div className="carrito-exito">
+                    <div className="carrito-exito-icon">🔖</div>
+                    <h2>¡Producto apartado!</h2>
+                    <p>Tu apartado <strong>{folioApartado}</strong> fue registrado correctamente.</p>
+                    <p className="carrito-exito-sub">Recuerda realizar tus abonos a tiempo para no perder tu apartado.</p>
+                    <div className="carrito-exito-acciones">
+                        <button className="carrito-btn-primario" onClick={() => navigate('/mis-apartados')}>Ver mis apartados</button>
+                        <button className="carrito-btn-secundario" onClick={() => navigate('/catalogo')}>Seguir comprando</button>
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
+    // ── Pantalla éxito pedido normal ──────────────────────────
     if (pedidoExitoso) {
         return (
             <main className="carrito-body">
@@ -324,7 +395,6 @@ const CarritoScreen: React.FC = () => {
                                             {hayDescuento && <span className="carrito-precio-tachado">${Number.parseFloat(String(item.precio_venta)).toLocaleString('es-MX')}</span>}
                                             <span className="carrito-precio-final">${precio.toLocaleString('es-MX')}</span>
                                         </div>
-                                        {/* ✅ Indicador de stock */}
                                         {sinStock ? (
                                             <span className="carrito-stock carrito-stock-agotado">❌ Sin stock</span>
                                         ) : pocoPoco ? (
@@ -360,14 +430,23 @@ const CarritoScreen: React.FC = () => {
                         <div className="carrito-resumen-fila"><span>Envío</span><span className="carrito-envio-texto">Por confirmar</span></div>
                         <div className="carrito-resumen-divider" />
                         <div className="carrito-resumen-fila carrito-resumen-total"><span>Total estimado</span><span>${total.toLocaleString('es-MX')}</span></div>
-                        <button className="carrito-btn-primario carrito-btn-checkout" onClick={() => setShowCheckout(true)} disabled={items.length === 0}>
+                        <button className="carrito-btn-primario carrito-btn-checkout"
+                            onClick={() => setShowCheckout(true)}
+                            disabled={items.length === 0}>
                             Solicitar pedido →
                         </button>
+                        <button className="carrito-btn-apartado"
+                            onClick={() => { setShowApartado(true); cargarMetodosPago(); }}
+                            disabled={items.length === 0}>
+                            🔖 Apartar (50% ahora)
+                        </button>
                         <p className="carrito-resumen-nota">Un trabajador revisará tu pedido antes de confirmar el pago.</p>
+                        <p className="carrito-apartado-nota">Aparta tus productos pagando el 50% y liquida el resto en cómodas parcialidades.</p>
                     </div>
                 </aside>
             </div>
 
+            {/* ── Modal checkout normal ─────────────────────── */}
             {showCheckout && (
                 <div className="carrito-modal-overlay" onClick={() => setShowCheckout(false)}>
                     <div className="carrito-modal carrito-modal-grande" onClick={e => e.stopPropagation()}>
@@ -376,8 +455,6 @@ const CarritoScreen: React.FC = () => {
                             <button className="carrito-modal-close" onClick={() => setShowCheckout(false)}>×</button>
                         </div>
                         <div className="carrito-modal-body">
-
-                            {/* ✅ Banner guía para el cliente */}
                             <div className="carrito-checkout-guia">
                                 <div className="carrito-guia-paso"><span className="carrito-guia-num">1</span><span>¿Cómo recibes tu pedido?</span></div>
                                 <div className="carrito-guia-sep">→</div>
@@ -385,8 +462,6 @@ const CarritoScreen: React.FC = () => {
                                 <div className="carrito-guia-sep">→</div>
                                 <div className="carrito-guia-paso"><span className="carrito-guia-num">3</span><span>Confirma tu pedido</span></div>
                             </div>
-
-                            {/* ✅ Tipo de entrega */}
                             <div className="carrito-form-group">
                                 <label>¿Cómo quieres recibir tu pedido? <span className="carrito-requerido">*</span></label>
                                 <div className="carrito-metodos-opciones">
@@ -406,8 +481,6 @@ const CarritoScreen: React.FC = () => {
                                     </label>
                                 </div>
                             </div>
-
-                            {/* ✅ Dirección solo si es domicilio */}
                             {tipoEntrega === 'domicilio' ? (
                                 <div className="carrito-form-group">
                                     <label>Dirección de envío <span className="carrito-requerido">*</span></label>
@@ -418,8 +491,6 @@ const CarritoScreen: React.FC = () => {
                                     🏪 <strong>Recoger en tienda:</strong> Te avisaremos cuando tu pedido esté listo. Preséntate en nuestra sucursal con tu código de entrega.
                                 </div>
                             )}
-
-                            {/* ✅ Método de pago */}
                             <div className="carrito-form-group">
                                 <label>Método de pago <span className="carrito-requerido">*</span></label>
                                 {cargandoMetodos ? (
@@ -481,8 +552,6 @@ const CarritoScreen: React.FC = () => {
                                     </div>
                                 )}
                             </div>
-
-                            {/* ✅ Instrucciones especiales */}
                             <div className="carrito-form-group">
                                 <label>📝 Notas e instrucciones para tu pedido (opcional)</label>
                                 <textarea rows={3}
@@ -491,9 +560,7 @@ const CarritoScreen: React.FC = () => {
                                     className="carrito-textarea" />
                                 <small className="carrito-form-ayuda">¿Necesitas alguna personalización, talla específica o tienes alguna indicación para tu pedido? Escríbela aquí.</small>
                             </div>
-
                             {errorMsg && <div className="carrito-error-msg">⚠️ {errorMsg}</div>}
-
                             <div className="carrito-modal-resumen">
                                 <div className="carrito-resumen-fila">
                                     <span>Productos ({count})</span>
@@ -515,6 +582,71 @@ const CarritoScreen: React.FC = () => {
                             <button className="carrito-btn-secundario" onClick={() => setShowCheckout(false)}>Cancelar</button>
                             <button className="carrito-btn-primario" onClick={handleSolicitarPedido} disabled={solicitando}>
                                 {solicitando ? '⏳ Enviando...' : '✅ Confirmar pedido'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Modal apartado ────────────────────────────── */}
+            {showApartado && (
+                <div className="carrito-modal-overlay" onClick={() => setShowApartado(false)}>
+                    <div className="carrito-modal carrito-modal-grande" onClick={e => e.stopPropagation()}>
+                        <div className="carrito-modal-header">
+                            <h2>🔖 Apartar productos</h2>
+                            <button className="carrito-modal-close" onClick={() => setShowApartado(false)}>×</button>
+                        </div>
+                        <div className="carrito-modal-body">
+                            <div className="carrito-apartado-info">
+                                <p>💡 Al apartar, el <strong>50% mínimo</strong> se cobra ahora y el stock queda reservado para ti.</p>
+                            </div>
+                            <div className="carrito-modal-resumen">
+                                <div className="carrito-resumen-fila">
+                                    <span>Total del pedido</span>
+                                    <span>${total.toLocaleString('es-MX')}</span>
+                                </div>
+                                <div className="carrito-resumen-fila" style={{ color: '#6bcb77' }}>
+                                    <span>Mínimo para apartar (50%)</span>
+                                    <span>${(total * 0.5).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                                </div>
+                            </div>
+                            <div className="carrito-form-group">
+                                <label>Abono inicial <span className="carrito-requerido">*</span></label>
+                                <input
+                                    type="number"
+                                    className="carrito-dir-input"
+                                    placeholder={`Mínimo $${(total * 0.5).toFixed(2)}`}
+                                    min={total * 0.5}
+                                    max={total}
+                                    value={montoAbonoInicial}
+                                    onChange={e => setMontoAbonoInicial(e.target.value)}
+                                />
+                                <small className="carrito-form-ayuda">Puedes pagar más del 50% si lo deseas.</small>
+                            </div>
+                            <div className="carrito-form-group">
+                                <label>Método de pago del abono inicial <span className="carrito-requerido">*</span></label>
+                                {cargandoMetodos ? (
+                                    <div className="carrito-dir-cargando">⏳ Cargando métodos de pago...</div>
+                                ) : (
+                                    <div className="carrito-metodos-opciones">
+                                        {metodosPago.map(m => (
+                                            <label key={m.id} className={`carrito-metodo-opcion ${metodoPagoApartadoId === m.id ? 'seleccionado' : ''}`}>
+                                                <input type="radio" name="metodo_apartado"
+                                                    checked={metodoPagoApartadoId === m.id}
+                                                    onChange={() => setMetodoPagoApartadoId(m.id)} />
+                                                <span className="carrito-metodo-icono">{ICONOS_METODO[m.codigo] || '💰'}</span>
+                                                <span className="carrito-metodo-nombre">{m.nombre}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            {errorApartado && <div className="carrito-error-msg">⚠️ {errorApartado}</div>}
+                        </div>
+                        <div className="carrito-modal-footer">
+                            <button className="carrito-btn-secundario" onClick={() => setShowApartado(false)}>Cancelar</button>
+                            <button className="carrito-btn-primario" onClick={handleApartar} disabled={solicitandoApartado}>
+                                {solicitandoApartado ? '⏳ Apartando...' : '🔖 Confirmar apartado'}
                             </button>
                         </div>
                     </div>

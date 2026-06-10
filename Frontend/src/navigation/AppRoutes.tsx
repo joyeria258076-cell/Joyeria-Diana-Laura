@@ -43,6 +43,7 @@ import AdminContentMisionScreen from "../screens/admin/contenido/AdminContentMis
 import AdminPageManagementScreen from "../screens/admin/contenido/AdminPageManagementScreen";
 import AdminSectionManagementScreen from "../screens/admin/contenido/AdminSectionManagementScreen";
 import GestionPedidosScreen from "../screens/trabajador/GestionPedidosScreen";
+import GestionApartadosScreen from "../screens/trabajador/GestionApartadosScreen";
 import AdminEditarTrabajadorScreen from "../screens/admin/AdminEditarTrabajadorScreen";
 
 // INVENTARIO Y PRODUCTOS
@@ -91,6 +92,7 @@ import ForbiddenScreen from '../screens/general/ForbiddenScreen';
 import ServerErrorScreen from '../screens/general/ServerErrorScreen';
 import ClientePedidosScreen from "../screens/cliente/ClientePedidosScreen";
 import CarritoScreen from "../screens/cliente/CarritoScreen";
+import MisApartadosScreen from "../screens/cliente/MisApartadosScreen";
 import ProductoDetalleScreen from "../screens/cliente/ProductoDetalleScreen";
 
 
@@ -189,6 +191,7 @@ export default function AppRoutes() {
           <Route path="/ayuda" element={<Ayuda />} />
           <Route path="/pedidos" element={<ClientePedidosScreen />} />
           <Route path="/carrito" element={<CarritoScreen />} />
+          <Route path="/mis-apartados" element={<MisApartadosScreen />} />
           <Route path="/producto/:id" element={<ProductoDetalleScreen />} />
 
           {/* 🔐 RUTAS EXCLUSIVAS ADMIN */}
@@ -246,6 +249,7 @@ export default function AppRoutes() {
           <Route element={<RoleRoute allowedRoles={['trabajador', 'admin']} />}>
             <Route path="/dashboard-trabajador"       element={<DashboardTrabajadorScreen />} />
             <Route path="/pedidos-admin"              element={<GestionPedidosScreen />} />
+            <Route path="/apartados-admin" element={<GestionApartadosScreen />} />
             <Route path="/trabajador/actividades"     element={<ActividadesTrabajadorScreen />} />
             <Route path="/trabajador/perfil"          element={<PerfilScreen />} />
           </Route>

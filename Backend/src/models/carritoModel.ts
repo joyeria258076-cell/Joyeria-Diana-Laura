@@ -239,6 +239,7 @@ export const VentaModel = {
             -- ✅ JOIN con trabajador_id, no actualizado_por
             LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
             WHERE v.creado_por = $1
+            AND v.id NOT IN (SELECT venta_id FROM apartados WHERE estado != 'cancelado')
             ORDER BY v.fecha_creacion DESC
         `, [usuario_id]);
         return result.rows;
@@ -269,7 +270,7 @@ export const VentaModel = {
             LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
             LEFT JOIN usuarios ut ON v.actualizado_por = ut.id
             LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
-            WHERE 1=1
+            WHERE v.id NOT IN (SELECT venta_id FROM apartados WHERE estado != 'cancelado')
         `;
         const params: any[] = [];
         if (filtros?.estado) {

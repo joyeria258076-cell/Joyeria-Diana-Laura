@@ -1261,6 +1261,99 @@ export const prediccionAPI = {
     return enhancedApi.post('/prediccion/proyeccion', params);
   },
 };
+
+// ==========================================
+// 🔖 API PARA APARTADOS
+// ==========================================
+export const apartadoAPI = {
+crear: async (data: {
+    venta_id: number;
+    monto_abono_inicial: number;
+    fecha_limite_liquidacion?: string;
+    metodo_pago_id: number;
+  }) => {
+    return enhancedApi.post('/apartados', data);
+  },
+  getMisApartados: async () => {
+    return enhancedApi.get('/apartados/mis-apartados');
+  },
+  getById: async (id: number) => {
+    return enhancedApi.get(`/apartados/${id}`);
+  },
+  getTodos: async (estado?: string, busqueda?: string, pagina?: number, archivado?: boolean) => {
+      const params = new URLSearchParams();
+      if (estado)    params.append('estado', estado);
+      if (busqueda)  params.append('busqueda', busqueda);
+      if (pagina)    params.append('page', String(pagina));
+      if (archivado !== undefined) params.append('archivado', String(archivado));
+      const q = params.toString() ? `?${params.toString()}` : '';
+      return enhancedApi.get(`/apartados${q}`);
+    },
+  archivar: async (id: number, archivar: boolean) => {
+    return enhancedApi.patch(`/apartados/${id}/archivar`, { archivar });
+  },
+  getPlanes: async () => {
+    return enhancedApi.get('/apartados/planes');
+  },
+  crearPlan: async (data: {
+    nombre: string; intervalo_dias: number;
+    porcentaje_abono: number; descripcion?: string;
+  }) => {
+    return enhancedApi.post('/apartados/planes', data);
+  },
+  actualizarPlan: async (id: number, data: any) => {
+    return enhancedApi.put(`/apartados/planes/${id}`, data);
+  },
+  eliminarPlan: async (id: number) => {
+    return enhancedApi.delete(`/apartados/planes/${id}`);
+  },
+  confirmarPagoInicial: async (id: number, data: {
+    fecha_limite_liquidacion: string;
+    fecha_limite_siguiente?: string;
+    notas?: string;
+  }) => {
+    return enhancedApi.post(`/apartados/${id}/confirmar-pago`, data);
+  },
+  registrarAbono: async (id: number, data: {
+    monto: number;
+    metodo_pago_id: number;
+    fecha_limite_siguiente?: string;
+    notas?: string;
+    comprobante_url?: string;
+  }) => {
+    return enhancedApi.post(`/apartados/${id}/abono`, data);
+  },
+  cancelar: async (id: number, motivo_cancelacion?: string) => {
+    return enhancedApi.patch(`/apartados/${id}/cancelar`, { motivo_cancelacion });
+  },
+  marcarAdvertencia: async (id: number) => {
+    return enhancedApi.patch(`/apartados/${id}/advertencia`, {});
+  },
+  crearPreferenciaMP: async (apartado_id: number) => {
+    return enhancedApi.post('/apartados/pago/mercadopago', { apartado_id });
+  },
+  crearOrdenPayPal: async (apartado_id: number) => {
+    return enhancedApi.post('/apartados/pago/paypal/crear', { apartado_id });
+  },
+  capturarPayPal: async (apartado_id: number, order_id: string) => {
+    return enhancedApi.post('/apartados/pago/paypal/capturar', { apartado_id, order_id });
+  },
+  subirComprobante: async (apartado_id: number, file: File) => {
+    const formData = new FormData();
+    formData.append('imagen', file);
+    const token   = (() => { try { return JSON.parse(localStorage.getItem('diana_laura_user') || '{}').token || ''; } catch { return ''; } })();
+    const session = localStorage.getItem('diana_laura_session_token') || '';
+    const headers: Record<string, string> = {};
+    if (token)   headers['Authorization']  = `Bearer ${token}`;
+    if (session) headers['X-Session-Token'] = session;
+    const res = await fetch(`${API_BASE_URL}/apartados/${apartado_id}/comprobante`, {
+      method: 'POST', headers, credentials: 'include', body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Error al subir comprobante');
+    return data;
+  },
+};
 // ==========================================
 // 📥 EXPORTACIÓN DE API (opcional, para tener todo en un solo objeto)
 // ==========================================
@@ -1278,6 +1371,7 @@ export const api = {
   templates: templateAPI,
   carrito: carritoAPI,
   prediccion: prediccionAPI,
+  apartado: apartadoAPI,
 };
 
 export default api;

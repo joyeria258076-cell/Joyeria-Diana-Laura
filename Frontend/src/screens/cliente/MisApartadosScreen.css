@@ -1,0 +1,370 @@
+/* Ruta: Frontend/src/screens/cliente/MisApartadosScreen.css */
+
+.mapt-body {
+    min-height: 100vh;
+    background: #0f0f12;
+    color: #e0e0e0;
+    padding: 24px 20px 60px;
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+/* Breadcrumb */
+.mapt-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 20px;
+}
+.mapt-back-btn {
+    background: none;
+    border: none;
+    color: #ecb2c3;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0;
+}
+.mapt-back-btn:hover { text-decoration: underline; }
+
+/* Título */
+.mapt-titulo {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #ecb2c3;
+    margin-bottom: 24px;
+}
+
+/* Loading */
+.mapt-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 60px 0;
+    color: #888;
+}
+.mapt-spinner {
+    width: 36px; height: 36px;
+    border: 3px solid #2a2a3e;
+    border-top-color: #ecb2c3;
+    border-radius: 50%;
+    animation: mapt-spin 0.8s linear infinite;
+}
+@keyframes mapt-spin { to { transform: rotate(360deg); } }
+
+/* Error */
+.mapt-error {
+    background: #2a1a1a;
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Filtros */
+.mapt-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+.mapt-filtro-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1px solid #2a2a3e;
+    background: #1a1a2e;
+    color: #aaa;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.mapt-filtro-btn:hover { border-color: #ecb2c3; color: #ecb2c3; }
+.mapt-filtro-btn.activo { background: #ecb2c3; color: #1a1a2e; border-color: #ecb2c3; font-weight: 600; }
+.mapt-filtro-count {
+    background: rgba(255,255,255,0.15);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+}
+
+/* Vacío */
+.mapt-vacio {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+.mapt-vacio p { font-size: 3rem; margin-bottom: 12px; }
+.mapt-vacio h3 { font-size: 1.1rem; margin-bottom: 20px; }
+
+/* Botón primario */
+.mapt-btn-primario {
+    padding: 10px 24px;
+    background: #ecb2c3;
+    color: #1a1a2e;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.mapt-btn-primario:hover { opacity: 0.85; }
+
+/* Lista de apartados */
+.mapt-lista { display: flex; flex-direction: column; gap: 16px; }
+
+/* Card */
+.mapt-card {
+    background: #1a1a2e;
+    border-radius: 12px;
+    border: 1px solid #2a2a3e;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+.mapt-card--activo    { border-left: 3px solid #6bcb77; }
+.mapt-card--liquidado { border-left: 3px solid #ecb2c3; }
+.mapt-card--cancelado { border-left: 3px solid #e74c3c; }
+.mapt-card--vencido   { border-left: 3px solid #f39c12; }
+
+/* Header de card */
+.mapt-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+}
+.mapt-card-header:hover { background: rgba(255,255,255,0.02); }
+.mapt-card-header-izq, .mapt-card-header-der {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.mapt-folio { font-weight: 700; font-size: 0.95rem; color: #ecb2c3; }
+.mapt-estado-badge { font-size: 0.82rem; font-weight: 600; }
+.mapt-fecha { font-size: 0.82rem; color: #888; }
+.mapt-chevron { color: #888; font-size: 0.75rem; }
+
+/* Barra de progreso */
+.mapt-progreso-wrap { padding: 0 20px 14px; }
+.mapt-progreso-bar {
+    height: 8px;
+    background: #2a2a3e;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+.mapt-progreso-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+.mapt-progreso-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: #888;
+}
+
+/* Resumen rápido */
+.mapt-resumen-rapido {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid #2a2a3e;
+    border-bottom: 1px solid #2a2a3e;
+}
+.mapt-dato {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    border-right: 1px solid #2a2a3e;
+}
+.mapt-dato:last-child { border-right: none; }
+.mapt-dato-label { font-size: 0.72rem; color: #888; margin-bottom: 4px; text-align: center; }
+.mapt-dato-valor { font-size: 0.9rem; font-weight: 600; color: #e0e0e0; }
+
+/* Advertencia */
+.mapt-advertencia {
+    margin: 0 20px 12px;
+    background: #2a1f0a;
+    border: 1px solid #f39c12;
+    color: #f39c12;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+/* Detalle expandible */
+.mapt-detalle { padding: 16px 20px; border-top: 1px solid #2a2a3e; }
+
+.mapt-seccion { margin-bottom: 20px; }
+.mapt-seccion h4 {
+    font-size: 0.88rem;
+    color: #ecb2c3;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+/* Productos */
+.mapt-producto-fila {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    padding: 6px 0;
+    border-bottom: 1px solid #1e1e30;
+    color: #ccc;
+}
+
+/* Tabla abonos */
+.mapt-abonos-tabla { font-size: 0.82rem; }
+.mapt-abonos-header {
+    display: grid;
+    grid-template-columns: 30px 1fr 1fr 1fr;
+    gap: 8px;
+    color: #888;
+    padding: 6px 0;
+    border-bottom: 1px solid #2a2a3e;
+    margin-bottom: 4px;
+}
+.mapt-abono-fila {
+    display: grid;
+    grid-template-columns: 30px 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid #1e1e30;
+    color: #ccc;
+    align-items: center;
+}
+.mapt-sin-abonos { color: #666; font-size: 0.85rem; }
+
+/* Próximo abono */
+.mapt-proximo-abono {
+    background: #1e1e3a;
+    border-left: 3px solid #6bcb77;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #ccc;
+    margin-top: 4px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .mapt-resumen-rapido { flex-direction: column; }
+    .mapt-dato { border-right: none; border-bottom: 1px solid #2a2a3e; flex-direction: row; justify-content: space-between; }
+    .mapt-dato:last-child { border-bottom: none; }
+    .mapt-abonos-header, .mapt-abono-fila { grid-template-columns: 24px 1fr 1fr; }
+    .mapt-abonos-header span:last-child, .mapt-abono-fila span:last-child { display: none; }
+}
+
+/* ── Modal pago ───────────────────────────────────────────── */
+.mapt-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; padding: 20px;
+}
+.mapt-modal {
+    background: #1a1a2e; border-radius: 14px;
+    border: 1px solid #2a2a3e; width: 100%;
+    max-width: 480px; max-height: 90vh;
+    display: flex; flex-direction: column; overflow: hidden;
+}
+.mapt-modal-header {
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 16px 20px;
+    border-bottom: 1px solid #2a2a3e;
+}
+.mapt-modal-header h3 { font-size: 1rem; color: #ecb2c3; margin: 0; }
+.mapt-modal-close {
+    background: none; border: none; color: #888;
+    font-size: 1.4rem; cursor: pointer;
+}
+.mapt-modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+.mapt-modal-footer {
+    display: flex; justify-content: flex-end; gap: 10px;
+    padding: 14px 20px; border-top: 1px solid #2a2a3e;
+}
+.mapt-modal-resumen {
+    background: #0f0f12; border-radius: 8px;
+    padding: 12px 16px; margin-bottom: 16px;
+}
+.mapt-resumen-fila {
+    display: flex; justify-content: space-between;
+    font-size: 0.88rem; padding: 4px 0; color: #ccc;
+}
+.mapt-form-group { margin-bottom: 16px; }
+.mapt-form-group label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 8px; }
+.mapt-req { color: #ecb2c3; }
+.mapt-metodos { display: flex; flex-wrap: wrap; gap: 8px; }
+.mapt-metodo-opt {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 8px;
+    border: 1px solid #2a2a3e; cursor: pointer;
+    font-size: 0.85rem; transition: all 0.2s; color: #ccc;
+}
+.mapt-metodo-opt:hover { border-color: #ecb2c3; }
+.mapt-metodo-opt.sel { background: #ecb2c3; color: #1a1a2e; border-color: #ecb2c3; font-weight: 600; }
+.mapt-metodo-info {
+    background: #1e1e3a; border-left: 3px solid #ecb2c3;
+    padding: 10px 14px; border-radius: 6px;
+    font-size: 0.85rem; color: #ccc; margin-top: 8px;
+}
+.mapt-upload-area {
+    border: 2px dashed #2a2a3e; border-radius: 8px;
+    padding: 16px; text-align: center; cursor: pointer;
+    color: #888; font-size: 0.85rem; margin-top: 8px;
+    transition: border-color 0.2s;
+}
+.mapt-upload-area:hover { border-color: #ecb2c3; color: #ecb2c3; }
+.mapt-error-msg {
+    background: #2a1a1a; border: 1px solid #e74c3c;
+    color: #e74c3c; padding: 10px 14px;
+    border-radius: 8px; font-size: 0.85rem; margin-top: 8px;
+}
+.mapt-btn-sec {
+    padding: 9px 18px; background: transparent;
+    border: 1px solid #2a2a3e; color: #aaa;
+    border-radius: 8px; cursor: pointer; font-size: 0.88rem;
+}
+
+/* Acción pago pendiente */
+.mapt-accion-pago {
+    padding: 12px 20px;
+    border-top: 1px solid #2a2a3e;
+    display: flex; flex-direction: column; gap: 10px;
+}
+.mapt-pago-info {
+    background: #1e1a2e; border: 1px solid #a78bfa;
+    color: #c4b5fd; padding: 10px 14px;
+    border-radius: 8px; font-size: 0.85rem;
+}
+.mapt-btn-pagar {
+    padding: 10px 20px; background: #a78bfa;
+    color: #1a1a2e; border: none; border-radius: 8px;
+    font-weight: 700; cursor: pointer;
+    font-size: 0.9rem; transition: opacity 0.2s;
+    align-self: flex-start;
+}
+.mapt-btn-pagar:hover { opacity: 0.85; }
+
+/* Banner éxito */
+.mapt-exito-banner {
+    background: #0f2a1a; border: 1px solid #6bcb77;
+    color: #6bcb77; padding: 12px 16px;
+    border-radius: 8px; margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.9rem;
+}
+.mapt-exito-banner button {
+    background: none; border: none; color: #6bcb77;
+    font-size: 1.2rem; cursor: pointer;
+}

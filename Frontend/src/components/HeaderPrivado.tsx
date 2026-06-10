@@ -207,6 +207,9 @@ const HeaderPrivado: React.FC = () => {
                             <button className={`nav-item ${isActive("/pedidos-admin")}`} onClick={() => goTo("/pedidos-admin")}>
                                 <span className="nav-icon">📦</span> Pedidos Tienda
                             </button>
+                            <button className={`nav-item ${isActive("/apartados-admin")}`} onClick={() => goTo("/apartados-admin")}>
+                                <span className="nav-icon">🔖</span> Apartados
+                            </button>
                             <button className={`nav-item ${isActive("/admin-trabajadores")}`} onClick={() => goTo("/admin-trabajadores")}>
                                 <span className="nav-icon">👥</span> Personal
                             </button>
@@ -224,6 +227,9 @@ const HeaderPrivado: React.FC = () => {
                             </button>
                             <button className={`nav-item ${isActive("/pedidos-admin")}`} onClick={() => goTo("/pedidos-admin")}>
                                 <span className="nav-icon">📦</span> Gestión de Pedidos
+                            </button>
+                            <button className={`nav-item ${isActive("/apartados-admin")}`} onClick={() => goTo("/apartados-admin")}>
+                                <span className="nav-icon">🔖</span> Gestión de Apartados
                             </button>
                             <div className="sidebar-divider"></div>
                             <button className={`nav-item ${isActive("/trabajador/actividades")}`} onClick={() => goTo("/trabajador/actividades")}>
@@ -243,6 +249,9 @@ const HeaderPrivado: React.FC = () => {
                             </button>
                             <button className={`nav-item ${isActive("/pedidos")}`} onClick={() => goTo("/pedidos")}>
                                 <span className="nav-icon">🛍️</span> Mis Pedidos
+                            </button>
+                            <button className={`nav-item ${isActive("/mis-apartados")}`} onClick={() => goTo("/mis-apartados")}>
+                                <span className="nav-icon">🔖</span> Mis Apartados
                             </button>
                             <button className={`nav-item ${isActive("/carrito")}`} onClick={() => goTo("/carrito")}>
                                 <span className="nav-icon">🛒</span>
