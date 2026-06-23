@@ -40,6 +40,7 @@ import predictiveRoutes from './routes/predictiveRoutes';
 import apartadoRoutes from './routes/apartadoRoutes';
 import { AuthRequest } from './middleware/authMiddleware';
 import alexaRoutes from './routes/alexaRoutes';
+import oauthRoutes from './routes/oauthRoutes';   
 import pool from './config/database';
 
 // IAST Agent
@@ -144,6 +145,11 @@ app.use((req, res, next) => {
     return next();
   }
 
+  // 🆕 Permitir acceso público a OAuth (login de Account Linking de Alexa)
+  if (req.path.startsWith('/oauth')) {
+    return next();
+  }
+
   if (req.path.startsWith('/api/backups')) {
     return next(); 
   }
@@ -234,6 +240,7 @@ app.use('/api/metrics', metricsRoutes);
 app.use('/api/prediccion', predictiveRoutes);
 app.use('/api/apartados', apartadoRoutes);
 app.use('/api/alexa', alexaRoutes);  
+app.use('/oauth', oauthRoutes); 
 
 // 🩺 ENDPOINTS DE SALUD
 app.get('/api/health', (req, res) => {

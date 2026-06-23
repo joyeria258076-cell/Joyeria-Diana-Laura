@@ -1,8 +1,11 @@
+// Ruta: Backend/src/controllers/alexa/alexaController.ts
 import { Request, Response } from 'express';
 import pool from '../../config/database';
+import { AlexaAuthRequest } from '../../middleware/alexaAuthMiddleware';
 
 // ── GET /api/alexa/inventario ─────────────────────────────────────────────────
 // Parámetros opcionales: ?categoria=aretes&material=plata
+// Pública — sin autenticación (catálogo es info abierta para clientes)
 export const getInventario = async (req: Request, res: Response) => {
   try {
     const { categoria, material } = req.query;
@@ -50,6 +53,7 @@ export const getInventario = async (req: Request, res: Response) => {
 
 // ── GET /api/alexa/inventario/resumen ─────────────────────────────────────────
 // Resumen por categoría: stock total, stock bajo, agotados
+// Pública
 export const getResumenInventario = async (_req: Request, res: Response) => {
   try {
     const query = `
@@ -57,7 +61,6 @@ export const getResumenInventario = async (_req: Request, res: Response) => {
         p.categoria_nombre AS categoria,
         COUNT(*) AS total_productos,
         SUM(p.stock_actual) AS stock_total,
-        MIN(p.precio_oferta) AS precio_min,
         MIN(p.precio_oferta) AS precio_min,
         MAX(p.precio_oferta) AS precio_max,
         SUM(CASE WHEN p.stock_actual = 0 THEN 1 ELSE 0 END) AS agotados,
@@ -77,6 +80,7 @@ export const getResumenInventario = async (_req: Request, res: Response) => {
 
 // ── GET /api/alexa/productos/mas-vendido ──────────────────────────────────────
 // Parámetro opcional: ?categoria=aretes
+// Pública
 export const getMasVendido = async (req: Request, res: Response) => {
   try {
     const { categoria } = req.query;
@@ -123,6 +127,7 @@ export const getMasVendido = async (req: Request, res: Response) => {
 
 // ── GET /api/alexa/productos/navegacion ───────────────────────────────────────
 // Parámetro: ?tipo=primero|ultimo|siguiente|anterior&categoria=aretes&actual_id=5
+// Pública
 export const getNavegacion = async (req: Request, res: Response) => {
   try {
     const { tipo, categoria, actual_id } = req.query;
@@ -186,32 +191,22 @@ export const getNavegacion = async (req: Request, res: Response) => {
 };
 
 // ── GET /api/alexa/apartados/:cliente ─────────────────────────────────────────
-// Busca ventas con estado 'apartado' por nombre de cliente
-export const getApartado = async (req: Request, res: Response) => {
+// 🔒 PROTEGIDA — requiere token de Alexa (trabajador/admin vinculado)
+// Busca ventas con estado 'apartado'/'activo' por nombre de cliente
+export const getApartadoTrabajador = async (req: AlexaAuthRequest, res: Response) => {
   try {
     const { cliente } = req.params;
 
     const query = `
       SELECT 
+        a.id,
         v.folio,
-        v.cliente_nombre_completo AS cliente,
-        v.total,
-        v.subtotal,
-        v.estado,
-        v.fecha_creacion,
-        v.fecha_actualizacion,
-        COALESCE(
-          (SELECT SUM(tp.monto) 
-           FROM transacciones_pago tp 
-           WHERE tp.venta_id = v.id AND tp.estado = 'aprobado'),
-          0
-        ) AS total_abonado,
-        (v.total - COALESCE(
-          (SELECT SUM(tp.monto) 
-           FROM transacciones_pago tp 
-           WHERE tp.venta_id = v.id AND tp.estado = 'aprobado'),
-          0
-        )) AS restante,
+        c.nombre || ' ' || COALESCE(c.apellido, '') AS cliente,
+        a.monto_total AS total,
+        a.monto_pagado AS total_abonado,
+        a.saldo_pendiente AS restante,
+        a.estado,
+        a.fecha_creacion,
         json_agg(
           json_build_object(
             'producto', dv.producto_nombre,
@@ -219,12 +214,14 @@ export const getApartado = async (req: Request, res: Response) => {
             'precio', dv.precio_unitario
           )
         ) AS productos
-      FROM ventas v
-      JOIN detalle_ventas dv ON dv.venta_id = v.id
-      WHERE v.estado = 'apartado'
-        AND LOWER(v.cliente_nombre_completo) ILIKE $1
-      GROUP BY v.id, v.folio, v.cliente_nombre_completo, v.total, v.subtotal, v.estado, v.fecha_creacion, v.fecha_actualizacion
-      ORDER BY v.fecha_creacion DESC
+      FROM apartados a
+      JOIN ventas v ON v.id = a.venta_id
+      JOIN clientes c ON c.id = a.cliente_id
+      JOIN detalle_ventas dv ON dv.venta_id = a.venta_id
+      WHERE a.estado IN ('activo', 'pendiente_pago')
+        AND LOWER(c.nombre || ' ' || COALESCE(c.apellido, '')) ILIKE $1
+      GROUP BY a.id, v.folio, c.nombre, c.apellido, a.monto_total, a.monto_pagado, a.saldo_pendiente, a.estado, a.fecha_creacion
+      ORDER BY a.fecha_creacion DESC
       LIMIT 1
     `;
 
@@ -236,7 +233,118 @@ export const getApartado = async (req: Request, res: Response) => {
 
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    console.error('Alexa getApartado error:', error);
+    console.error('Alexa getApartadoTrabajador error:', error);
     res.status(500).json({ success: false, message: 'Error al consultar apartado' });
+  }
+};
+
+// ── POST /api/alexa/apartados/:id/abono ────────────────────────────────────────
+// 🔒 PROTEGIDA — requiere token de Alexa (trabajador/admin vinculado)
+// Registra un abono real sobre un apartado activo
+export const postRegistrarAbono = async (req: AlexaAuthRequest, res: Response) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const userId = req.alexaUser?.id;
+    const { folio } = req.params;
+    const { monto, metodo_codigo } = req.body;
+
+    if (!monto || !metodo_codigo) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ success: false, message: 'Monto y método de pago son requeridos.' });
+    }
+
+    // Resolver metodo_pago_id a partir del código hablado (ej. "efectivo")
+    const metodoRes = await client.query(
+      `SELECT id FROM metodos_pago WHERE LOWER(codigo) = LOWER($1) AND activo = true`,
+      [metodo_codigo]
+    );
+    if (metodoRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ success: false, message: `Método de pago "${metodo_codigo}" no reconocido.` });
+    }
+    const metodo_pago_id = metodoRes.rows[0].id;
+
+    // Buscar apartado por folio (de la venta asociada) — más natural para decir por voz
+    const apartadoRes = await client.query(
+      `SELECT a.* FROM apartados a
+       JOIN ventas v ON v.id = a.venta_id
+       WHERE LOWER(v.folio) = LOWER($1) AND a.estado = 'activo'`,
+      [folio]
+    );
+    if (apartadoRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, message: 'Apartado no encontrado o no está activo.' });
+    }
+
+    const apartado = apartadoRes.rows[0];
+    const monto_abono = parseFloat(monto);
+    const monto_antes = parseFloat(apartado.saldo_pendiente);
+
+    if (monto_abono <= 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ success: false, message: 'El monto debe ser mayor a $0.' });
+    }
+
+    if (monto_abono > monto_antes) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({
+        success: false,
+        message: `El abono ($${monto_abono.toFixed(2)}) supera el saldo pendiente ($${monto_antes.toFixed(2)}).`
+      });
+    }
+
+    const monto_despues = Math.round((monto_antes - monto_abono) * 100) / 100;
+    const nuevo_monto_pagado = Math.round((parseFloat(apartado.monto_pagado) + monto_abono) * 100) / 100;
+    const liquidado = monto_despues === 0;
+
+    await client.query(
+      `INSERT INTO abonos (
+          apartado_id, metodo_pago_id, monto,
+          monto_antes, monto_despues,
+          estado, notas, registrado_por
+      ) VALUES ($1,$2,$3,$4,$5,'pagado',$6,$7)`,
+      [apartado.id, metodo_pago_id, monto_abono, monto_antes, monto_despues,
+       'Abono registrado vía Alexa', userId]
+    );
+
+    await client.query(
+      `UPDATE apartados SET
+          monto_pagado = $1,
+          saldo_pendiente = $2,
+          estado = $3,
+          trabajador_id = $4,
+          actualizado_por = $4,
+          fecha_actualizacion = CURRENT_TIMESTAMP
+          ${liquidado ? ', fecha_liquidacion_real = CURRENT_TIMESTAMP' : ''}
+       WHERE id = $5`,
+      [nuevo_monto_pagado, monto_despues, liquidado ? 'liquidado' : 'activo', userId, apartado.id]
+    );
+
+    if (liquidado) {
+      const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+      await client.query(
+        `UPDATE ventas SET codigo_entrega = $1, estado = 'en_preparacion', actualizado_por = $2 WHERE id = $3`,
+        [codigo, userId, apartado.venta_id]
+      );
+    }
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      message: liquidado
+        ? 'Apartado liquidado. Se generó el código de entrega.'
+        : `Abono registrado. Saldo pendiente: $${monto_despues.toFixed(2)}`,
+      data: { liquidado, saldo_pendiente: monto_despues, monto_pagado: nuevo_monto_pagado }
+    });
+
+  } catch (error: any) {
+    await client.query('ROLLBACK');
+    console.error('Alexa postRegistrarAbono error:', error);
+    res.status(500).json({ success: false, message: 'Error al registrar el abono.' });
+  } finally {
+    client.release();
   }
 };
