@@ -21,18 +21,18 @@ export const getAuthorizePage = async (req: Request, res: Response) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Joyería Diana Laura — Vincular cuenta</title>
     <style>
-        body { font-family: Arial, sans-serif; background:#1a1a1a; color:#eee; display:flex;
+        body { font-family: Arial, sans-serif; background:#120A10; color:#eee; display:flex;
                justify-content:center; align-items:center; height:100vh; margin:0; }
-        .card { background:#2a2a2a; padding:32px; border-radius:12px; width:90%; max-width:380px;
-                box-shadow:0 4px 20px rgba(0,0,0,0.4); }
-        h1 { font-size:20px; margin-bottom:4px; color:#d4af37; }
-        p.sub { color:#aaa; font-size:13px; margin-bottom:20px; }
+        .card { background:#1E1218; padding:32px; border-radius:16px; width:90%; max-width:380px;
+                box-shadow:0 4px 20px rgba(0,0,0,0.4); border:1px solid #3D2230; }
+        h1 { font-size:20px; margin-bottom:4px; color:#E8A2BF; }
+        p.sub { color:#A88D96; font-size:13px; margin-bottom:20px; }
         label { display:block; font-size:13px; margin-bottom:6px; color:#ccc; }
-        input { width:100%; padding:10px; margin-bottom:16px; border-radius:6px; border:1px solid #444;
-                background:#1f1f1f; color:#fff; box-sizing:border-box; }
-        button { width:100%; padding:12px; border:none; border-radius:6px; background:#d4af37;
-                 color:#1a1a1a; font-weight:bold; cursor:pointer; font-size:15px; }
-        button:hover { background:#c49b2c; }
+        input { width:100%; padding:10px; margin-bottom:16px; border-radius:8px; border:1px solid #3D2230;
+                background:#241620; color:#fff; box-sizing:border-box; }
+        button { width:100%; padding:12px; border:none; border-radius:8px; background:#E8A2BF;
+                 color:#120A10; font-weight:bold; cursor:pointer; font-size:15px; }
+        button:hover { background:#d88aa8; }
         .error { color:#ff6b6b; font-size:13px; margin-bottom:12px; min-height:16px; }
         .footer { text-align:center; font-size:11px; color:#666; margin-top:20px; }
     </style>
@@ -90,6 +90,9 @@ export const getAuthorizePage = async (req: Request, res: Response) => {
 
 // ─── POST /oauth/authorize ─────────────────────────────────────────────────────
 // Valida credenciales reales y genera el authorization_code
+// 🔧 CAMBIO: ya no rechaza el rol 'cliente' — cualquier usuario activo puede
+// vincular su cuenta. El nivel de acceso (cliente vs trabajador) se decide
+// después, en cada endpoint de Alexa, no aquí.
 export const postAuthorize = async (req: Request, res: Response) => {
     try {
         const { email, password, client_id, redirect_uri, state } = req.body;
@@ -104,11 +107,12 @@ export const postAuthorize = async (req: Request, res: Response) => {
             return res.status(401).json({ success: false, message: 'Correo o contraseña incorrectos.' });
         }
 
-        // 2. Validar rol (solo trabajador/admin pueden vincular esta skill)
-        if (!['trabajador', 'admin'].includes(String(usuario.rol))) {
+        // 2. Validar que el rol exista y sea uno reconocido (cliente, trabajador o admin)
+        const rolesPermitidos = ['cliente', 'trabajador', 'admin'];
+        if (!rolesPermitidos.includes(String(usuario.rol))) {
             return res.status(403).json({
                 success: false,
-                message: 'Solo personal autorizado (trabajador/admin) puede vincular esta skill.'
+                message: 'No se pudo vincular esta cuenta. Contacta al administrador.'
             });
         }
 
@@ -166,7 +170,6 @@ const validarClienteBasicAuth = (req: Request): { valido: boolean; client_id?: s
 // Intercambia authorization_code (o refresh_token) por access_token
 export const postToken = async (req: Request, res: Response) => {
     try {
-        // 🔒 Validar client_id/client_secret enviados por Alexa vía HTTP Basic Auth
         const clienteValido = validarClienteBasicAuth(req);
         if (!clienteValido.valido) {
             return res.status(401).json({ error: 'invalid_client', error_description: 'Cliente no autorizado.' });
@@ -193,10 +196,8 @@ export const postToken = async (req: Request, res: Response) => {
                 return res.status(400).json({ error: 'invalid_grant', error_description: 'Código expirado.' });
             }
 
-            // Marcar código como usado
             await pool.query(`UPDATE oauth_codes SET usado = true WHERE id = $1`, [codeRow.id]);
 
-            // Generar tokens
             const accessToken = crypto.randomBytes(32).toString('hex');
             const refreshToken = crypto.randomBytes(32).toString('hex');
             const fechaExpira = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
@@ -229,8 +230,6 @@ export const postToken = async (req: Request, res: Response) => {
             }
 
             const oldToken = tokenRes.rows[0];
-
-            // Revocar el viejo, crear uno nuevo
             await pool.query(`UPDATE oauth_tokens SET revocado = true WHERE id = $1`, [oldToken.id]);
 
             const newAccessToken = crypto.randomBytes(32).toString('hex');
@@ -256,5 +255,45 @@ export const postToken = async (req: Request, res: Response) => {
     } catch (error: any) {
         console.error('❌ Error en postToken:', error);
         res.status(500).json({ error: 'server_error' });
+    }
+};
+
+// ─── GET /api/alexa/mi-rol ──────────────────────────────────────────────────────
+// 🆕 Endpoint nuevo: dado un access_token válido, dice qué rol tiene ese usuario.
+// Lo usa el skill para decidir qué menú/opciones mostrar (cliente vs trabajador).
+export const getMiRol = async (req: Request, res: Response) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ success: false, message: 'Token no proporcionado.' });
+        }
+        const accessToken = authHeader.replace('Bearer ', '').trim();
+
+        const result = await pool.query(
+            `SELECT u.id, u.nombre, u.email, u.rol, u.activo, t.revocado, t.fecha_expira
+             FROM oauth_tokens t
+             JOIN usuarios u ON u.id = t.usuario_id
+             WHERE t.access_token = $1`,
+            [accessToken]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(401).json({ success: false, message: 'Token inválido.' });
+        }
+
+        const row = result.rows[0];
+        if (row.revocado || new Date(row.fecha_expira) < new Date() || !row.activo) {
+            return res.status(401).json({ success: false, message: 'Token expirado o revocado.' });
+        }
+
+        res.json({
+            success: true,
+            rol: row.rol,
+            nombre: row.nombre,
+            usuario_id: row.id
+        });
+    } catch (error: any) {
+        console.error('❌ Error en getMiRol:', error);
+        res.status(500).json({ success: false, message: 'Error interno del servidor.' });
     }
 };

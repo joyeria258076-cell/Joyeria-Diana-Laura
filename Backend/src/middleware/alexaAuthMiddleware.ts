@@ -13,7 +13,10 @@ export interface AlexaAuthRequest extends Request {
 }
 
 // ─── Middleware: valida el access_token enviado por Alexa ───────────────────
-// Alexa lo envía como header: Authorization: Bearer <access_token>
+// 🔧 CAMBIO: ya NO rechaza por rol aquí — solo valida que el token sea válido,
+// esté activo y no haya expirado. Cada endpoint específico decide si requiere
+// 'trabajador'/'admin' (datos operativos) o acepta cualquier rol (datos propios
+// del cliente, como su carrito o sus pedidos).
 export const validarAlexaToken = async (
     req: AlexaAuthRequest,
     res: Response,
@@ -62,7 +65,7 @@ export const validarAlexaToken = async (
         if (new Date(row.fecha_expira) < new Date()) {
             return res.status(401).json({
                 success: false,
-                message: 'Tu sesión expiró. Alexa debería renovarla automáticamente; si el problema persiste, vincula tu cuenta de nuevo.',
+                message: 'Tu sesión expiró. Vincula tu cuenta de nuevo.',
                 requiresLinking: true
             });
         }
@@ -74,14 +77,7 @@ export const validarAlexaToken = async (
             });
         }
 
-        if (!['trabajador', 'admin'].includes(String(row.rol))) {
-            return res.status(403).json({
-                success: false,
-                message: 'No tienes permisos para esta acción.'
-            });
-        }
-
-        // Adjuntar usuario validado al request
+        // Adjuntar usuario validado al request — cualquier rol llega hasta aquí
         req.alexaUser = {
             id: row.usuario_id,
             email: row.email,
@@ -95,4 +91,21 @@ export const validarAlexaToken = async (
         console.error('❌ Error en validarAlexaToken:', error);
         res.status(500).json({ success: false, message: 'Error interno validando sesión.' });
     }
+};
+
+// ─── Middleware adicional: exige rol trabajador/admin ────────────────────────
+// 🆕 Úsalo DESPUÉS de validarAlexaToken en las rutas operativas (apartados,
+// abonos, inventario) que nunca deben ser accesibles para un cliente.
+export const exigirTrabajador = (
+    req: AlexaAuthRequest,
+    res: Response,
+    next: NextFunction
+) => {
+    if (!req.alexaUser || !['trabajador', 'admin'].includes(req.alexaUser.rol)) {
+        return res.status(403).json({
+            success: false,
+            message: 'Esta acción solo está disponible para personal autorizado.'
+        });
+    }
+    next();
 };
