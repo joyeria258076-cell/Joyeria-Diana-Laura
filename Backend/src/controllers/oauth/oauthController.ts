@@ -89,10 +89,6 @@ export const getAuthorizePage = async (req: Request, res: Response) => {
 };
 
 // ─── POST /oauth/authorize ─────────────────────────────────────────────────────
-// Valida credenciales reales y genera el authorization_code
-// 🔧 CAMBIO: ya no rechaza el rol 'cliente' — cualquier usuario activo puede
-// vincular su cuenta. El nivel de acceso (cliente vs trabajador) se decide
-// después, en cada endpoint de Alexa, no aquí.
 export const postAuthorize = async (req: Request, res: Response) => {
     try {
         const { email, password, client_id, redirect_uri, state } = req.body;
@@ -101,13 +97,11 @@ export const postAuthorize = async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, message: 'Faltan datos requeridos.' });
         }
 
-        // 1. Validar credenciales reales contra Postgres (bcrypt) — misma lógica que tu login web
         const usuario = await verifyUser(email, password);
         if (!usuario) {
             return res.status(401).json({ success: false, message: 'Correo o contraseña incorrectos.' });
         }
 
-        // 2. Validar que el rol exista y sea uno reconocido (cliente, trabajador o admin)
         const rolesPermitidos = ['cliente', 'trabajador', 'admin'];
         if (!rolesPermitidos.includes(String(usuario.rol))) {
             return res.status(403).json({
@@ -116,9 +110,8 @@ export const postAuthorize = async (req: Request, res: Response) => {
             });
         }
 
-        // 3. Generar authorization_code temporal (5 minutos)
         const code = crypto.randomBytes(32).toString('hex');
-        const fechaExpira = new Date(Date.now() + 5 * 60 * 1000); // +5 min
+        const fechaExpira = new Date(Date.now() + 5 * 60 * 1000);
 
         await pool.query(
             `INSERT INTO oauth_codes (code, usuario_id, redirect_uri, client_id, fecha_expira)
@@ -126,7 +119,6 @@ export const postAuthorize = async (req: Request, res: Response) => {
             [code, usuario.id, redirect_uri, client_id, fechaExpira]
         );
 
-        // 4. Redirigir a Alexa con el code
         const redirectUrl = `${redirect_uri}?state=${encodeURIComponent(state || '')}&code=${code}`;
 
         res.json({ success: true, redirect: redirectUrl });
@@ -167,7 +159,6 @@ const validarClienteBasicAuth = (req: Request): { valido: boolean; client_id?: s
 };
 
 // ─── POST /oauth/token ──────────────────────────────────────────────────────────
-// Intercambia authorization_code (o refresh_token) por access_token
 export const postToken = async (req: Request, res: Response) => {
     try {
         const clienteValido = validarClienteBasicAuth(req);
@@ -259,8 +250,9 @@ export const postToken = async (req: Request, res: Response) => {
 };
 
 // ─── GET /api/alexa/mi-rol ──────────────────────────────────────────────────────
-// 🆕 Endpoint nuevo: dado un access_token válido, dice qué rol tiene ese usuario.
-// Lo usa el skill para decidir qué menú/opciones mostrar (cliente vs trabajador).
+// 🔧 Si el token ya expiró, lo marca como revocado explícitamente en este mismo
+// query (limpieza activa) — así no quedan tokens vencidos "vivos" en la tabla,
+// y Alexa recibe un 401 claro que dispara su flujo de refresh automático.
 export const getMiRol = async (req: Request, res: Response) => {
     try {
         const authHeader = req.headers.authorization;
@@ -270,7 +262,7 @@ export const getMiRol = async (req: Request, res: Response) => {
         const accessToken = authHeader.replace('Bearer ', '').trim();
 
         const result = await pool.query(
-            `SELECT u.id, u.nombre, u.email, u.rol, u.activo, t.revocado, t.fecha_expira
+            `SELECT t.id, u.id AS usuario_id, u.nombre, u.email, u.rol, u.activo, t.revocado, t.fecha_expira
              FROM oauth_tokens t
              JOIN usuarios u ON u.id = t.usuario_id
              WHERE t.access_token = $1`,
@@ -282,15 +274,27 @@ export const getMiRol = async (req: Request, res: Response) => {
         }
 
         const row = result.rows[0];
-        if (row.revocado || new Date(row.fecha_expira) < new Date() || !row.activo) {
-            return res.status(401).json({ success: false, message: 'Token expirado o revocado.' });
+
+        if (row.revocado) {
+            return res.status(401).json({ success: false, message: 'Token revocado.' });
+        }
+
+        if (new Date(row.fecha_expira) < new Date()) {
+            // 🔧 Limpieza activa: marca el token vencido como revocado para que
+            // no quede "vivo" en la tabla, y futuras consultas lo descarten de inmediato.
+            await pool.query(`UPDATE oauth_tokens SET revocado = true WHERE id = $1`, [row.id]);
+            return res.status(401).json({ success: false, message: 'Token expirado.' });
+        }
+
+        if (!row.activo) {
+            return res.status(403).json({ success: false, message: 'Cuenta desactivada.' });
         }
 
         res.json({
             success: true,
             rol: row.rol,
             nombre: row.nombre,
-            usuario_id: row.id
+            usuario_id: row.usuario_id
         });
     } catch (error: any) {
         console.error('❌ Error en getMiRol:', error);
