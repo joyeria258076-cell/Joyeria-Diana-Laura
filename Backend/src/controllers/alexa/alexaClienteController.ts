@@ -106,6 +106,98 @@ export const agregarAlCarrito = async (req: AlexaAuthRequest, res: Response) => 
   }
 };
 
+// ── GET /api/alexa/mis-apartados ──────────────────────────────────────────────
+// 🔒 Requiere token válido — devuelve SOLO los apartados del cliente autenticado
+// (busca su registro en clientes vía usuarios.id, ya que clientes.user_id referencia usuarios.id)
+export const getMisApartados = async (req: AlexaAuthRequest, res: Response) => {
+  try {
+    const usuarioId = req.alexaUser?.id;
+
+    const clienteRes = await pool.query(
+      `SELECT id FROM clientes WHERE user_id = $1`,
+      [usuarioId]
+    );
+
+    if (clienteRes.rows.length === 0) {
+      return res.json({ success: true, data: [], message: 'No tienes un perfil de cliente asociado.' });
+    }
+
+    const clienteId = clienteRes.rows[0].id;
+
+    const result = await pool.query(
+      `SELECT 
+          a.id,
+          v.folio,
+          a.monto_total,
+          a.monto_pagado,
+          a.saldo_pendiente,
+          a.estado,
+          a.fecha_creacion,
+          json_agg(
+            json_build_object('producto', dv.producto_nombre, 'cantidad', dv.cantidad)
+          ) AS productos
+       FROM apartados a
+       JOIN ventas v ON v.id = a.venta_id
+       JOIN detalle_ventas dv ON dv.venta_id = a.venta_id
+       WHERE a.cliente_id = $1
+         AND a.estado IN ('activo', 'pendiente_pago', 'vencido')
+       GROUP BY a.id, v.folio, a.monto_total, a.monto_pagado, a.saldo_pendiente, a.estado, a.fecha_creacion
+       ORDER BY a.fecha_creacion DESC`,
+      [clienteId]
+    );
+
+    res.json({ success: true, data: result.rows });
+  } catch (error: any) {
+    console.error('Alexa getMisApartados error:', error);
+    res.status(500).json({ success: false, message: 'Error al consultar tus apartados' });
+  }
+};
+
+// ── GET /api/alexa/mis-pedidos ────────────────────────────────────────────────
+// 🔒 Requiere token válido — historial de pedidos (ventas) del cliente autenticado
+export const getMisPedidos = async (req: AlexaAuthRequest, res: Response) => {
+  try {
+    const usuarioId = req.alexaUser?.id;
+
+    const clienteRes = await pool.query(
+      `SELECT id FROM clientes WHERE user_id = $1`,
+      [usuarioId]
+    );
+
+    if (clienteRes.rows.length === 0) {
+      return res.json({ success: true, data: [], message: 'No tienes un perfil de cliente asociado.' });
+    }
+
+    const clienteId = clienteRes.rows[0].id;
+
+    const result = await pool.query(
+      `SELECT 
+          v.id,
+          v.folio,
+          v.estado,
+          v.total,
+          v.fecha_creacion,
+          v.fecha_estimada_entrega,
+          json_agg(
+            json_build_object('producto', dv.producto_nombre, 'cantidad', dv.cantidad)
+          ) AS productos
+       FROM ventas v
+       JOIN detalle_ventas dv ON dv.venta_id = v.id
+       WHERE v.cliente_id = $1
+         AND v.estado NOT IN ('cancelado')
+       GROUP BY v.id, v.folio, v.estado, v.total, v.fecha_creacion, v.fecha_estimada_entrega
+       ORDER BY v.fecha_creacion DESC
+       LIMIT 10`,
+      [clienteId]
+    );
+
+    res.json({ success: true, data: result.rows });
+  } catch (error: any) {
+    console.error('Alexa getMisPedidos error:', error);
+    res.status(500).json({ success: false, message: 'Error al consultar tus pedidos' });
+  }
+};
+
 // ── POST /api/alexa/mi-carrito/quitar ─────────────────────────────────────────
 // 🔒 Body: { producto_nombre }
 export const quitarDelCarrito = async (req: AlexaAuthRequest, res: Response) => {

@@ -11,7 +11,9 @@ import {
 import {
   getMiCarrito,
   agregarAlCarrito,
-  quitarDelCarrito
+  quitarDelCarrito,
+  getMisApartados,
+  getMisPedidos
 } from '../controllers/alexa/alexaClienteController';
 import { getMiRol } from '../controllers/oauth/oauthController';
 import { validarAlexaToken, exigirTrabajador } from '../middleware/alexaAuthMiddleware';
@@ -39,5 +41,7 @@ router.post('/apartados/:folio/abono',   validarAlexaToken, exigirTrabajador, po
 router.get('/mi-carrito',                validarAlexaToken, getMiCarrito);
 router.post('/mi-carrito/agregar',       validarAlexaToken, agregarAlCarrito);
 router.post('/mi-carrito/quitar',        validarAlexaToken, quitarDelCarrito);
+router.get('/mis-apartados',             validarAlexaToken, getMisApartados);
+router.get('/mis-pedidos',               validarAlexaToken, getMisPedidos);
 
 export default router;
