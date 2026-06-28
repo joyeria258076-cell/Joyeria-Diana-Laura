@@ -348,3 +348,35 @@ export const postRegistrarAbono = async (req: AlexaAuthRequest, res: Response) =
     client.release();
   }
 };
+
+// ── GET /api/alexa/categorias ─────────────────────────────────────────────────
+// Sin ?padreId: devuelve categorías raíz (categoria_padre_id IS NULL).
+// Con ?padreId=X: devuelve las subcategorías hijas de esa categoría.
+export const getCategorias = async (req: Request, res: Response) => {
+  try {
+    const { padreId } = req.query;
+ 
+    let query;
+    let params: any[] = [];
+ 
+    if (padreId) {
+      query = `SELECT id, nombre, descripcion, imagen_url, orden, categoria_padre_id
+               FROM categorias
+               WHERE categoria_padre_id = $1 AND activo = true
+               ORDER BY orden ASC, nombre ASC`;
+      params = [padreId];
+    } else {
+      query = `SELECT id, nombre, descripcion, imagen_url, orden, categoria_padre_id
+               FROM categorias
+               WHERE categoria_padre_id IS NULL AND activo = true
+               ORDER BY orden ASC, nombre ASC`;
+    }
+ 
+    const result = await pool.query(query, params);
+ 
+    res.json({ success: true, data: result.rows });
+  } catch (error: any) {
+    console.error('Alexa getCategorias error:', error);
+    res.status(500).json({ success: false, message: 'Error al consultar categorías' });
+  }
+};

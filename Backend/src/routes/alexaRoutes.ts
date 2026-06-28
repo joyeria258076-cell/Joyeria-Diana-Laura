@@ -6,7 +6,8 @@ import {
   getMasVendido,
   getNavegacion,
   getApartadoTrabajador,
-  postRegistrarAbono
+  postRegistrarAbono,
+  getCategorias   
 } from '../controllers/alexa/alexaController';
 import {
   getMiCarrito,
@@ -26,6 +27,7 @@ router.get('/inventario',            getInventario);
 router.get('/inventario/resumen',    getResumenInventario);
 router.get('/productos/mas-vendido', getMasVendido);
 router.get('/productos/navegacion',  getNavegacion);
+router.get('/categorias', getCategorias);
 
 // ── Ruta de sesión: cualquier rol autenticado puede consultar el suyo ────────
 router.get('/mi-rol', getMiRol);
