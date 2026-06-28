@@ -353,6 +353,9 @@ export const postRegistrarAbono = async (req: AlexaAuthRequest, res: Response) =
 // ── GET /api/alexa/categorias ─────────────────────────────────────────────────
 // Sin ?padreId: devuelve categorías raíz (categoria_padre_id IS NULL).
 // Con ?padreId=X: devuelve las subcategorías hijas de esa categoría.
+// 🔧 Ahora incluye `total_subcategorias`: cuántas hijas propias tiene cada
+// categoría devuelta, para poder mostrar un badge "tiene subcategorías" en
+// la grilla sin necesitar una consulta extra por categoría.
 export const getCategorias = async (req: Request, res: Response) => {
   try {
     const { padreId } = req.query;
@@ -361,16 +364,30 @@ export const getCategorias = async (req: Request, res: Response) => {
     let params: any[] = [];
  
     if (padreId) {
-      query = `SELECT id, nombre, descripcion, imagen_url, orden, categoria_padre_id
-               FROM categorias
-               WHERE categoria_padre_id = $1 AND activo = true
-               ORDER BY orden ASC, nombre ASC`;
+      query = `
+        SELECT 
+          c.id, c.nombre, c.descripcion, c.imagen_url, c.orden, c.categoria_padre_id,
+          COUNT(hijas.id) AS total_subcategorias
+        FROM categorias c
+        LEFT JOIN categorias hijas
+          ON hijas.categoria_padre_id = c.id AND hijas.activo = true
+        WHERE c.categoria_padre_id = $1 AND c.activo = true
+        GROUP BY c.id, c.nombre, c.descripcion, c.imagen_url, c.orden, c.categoria_padre_id
+        ORDER BY c.orden ASC, c.nombre ASC
+      `;
       params = [padreId];
     } else {
-      query = `SELECT id, nombre, descripcion, imagen_url, orden, categoria_padre_id
-               FROM categorias
-               WHERE categoria_padre_id IS NULL AND activo = true
-               ORDER BY orden ASC, nombre ASC`;
+      query = `
+        SELECT 
+          c.id, c.nombre, c.descripcion, c.imagen_url, c.orden, c.categoria_padre_id,
+          COUNT(hijas.id) AS total_subcategorias
+        FROM categorias c
+        LEFT JOIN categorias hijas
+          ON hijas.categoria_padre_id = c.id AND hijas.activo = true
+        WHERE c.categoria_padre_id IS NULL AND c.activo = true
+        GROUP BY c.id, c.nombre, c.descripcion, c.imagen_url, c.orden, c.categoria_padre_id
+        ORDER BY c.orden ASC, c.nombre ASC
+      `;
     }
  
     const result = await pool.query(query, params);
