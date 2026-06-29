@@ -21,6 +21,7 @@ const SKIP_PATHS = [
   '/api/carrito', '/api/carrito/count',
   '/api/content/paginas', '/api/configuracion',
   '/api/users', '/api/security',
+  '/oauth',   // 🆕 Account Linking de Alexa — redirect_uri/state largos de Amazon
 ];
 
 function shouldSkip(path: string): boolean {
