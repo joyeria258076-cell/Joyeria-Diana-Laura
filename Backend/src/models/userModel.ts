@@ -39,10 +39,14 @@ export const verifyUser = async (email: string, password: string): Promise<User 
       [email]
     );
     
+    console.log('🔍 verifyUser query rows:', result.rows.length);
+    
     if (result.rows.length === 0) return null;
     
     const user = result.rows[0];
     const isValid = await bcrypt.compare(password, user.password_hash);
+    
+    console.log('🔍 bcrypt result:', isValid, '| hash starts:', user.password_hash?.substring(0, 10));
     
     return isValid ? user : null;
   } catch (error) {
