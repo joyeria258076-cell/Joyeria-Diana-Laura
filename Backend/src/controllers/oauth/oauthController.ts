@@ -119,6 +119,7 @@ export const postAuthorize = async (req: Request, res: Response) => {
         );
 
         const redirectUrl = `${redirect_uri}?state=${encodeURIComponent(state || '')}&code=${code}`;
+        console.log('🔍 redirectUrl:', redirectUrl);
         return res.redirect(redirectUrl);
 
     } catch (error: any) {
