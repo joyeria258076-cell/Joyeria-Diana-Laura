@@ -155,7 +155,35 @@ export const postAuthorize = async (req: Request, res: Response) => {
 
         const redirectUrl = `${redirect_uri}?state=${encodeURIComponent(state || '')}&code=${code}`;
         console.log('✅ OAuth login exitoso:', email, '| rol:', usuario.rol);
-        return res.redirect(redirectUrl);
+
+        // 🔧 Página intermedia con meta refresh + JS redirect
+        // El webview de Alexa en iOS a veces bloquea res.redirect() directo
+        // desde un POST — esta página HTML hace el redirect del lado del cliente.
+        return res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0;url=${redirectUrl}">
+    <title>Vinculando cuenta...</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#120A10; color:#eee;
+               display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
+        .msg { text-align:center; }
+        .msg h2 { color:#E8A2BF; }
+        .msg p { color:#A88D96; font-size:13px; }
+    </style>
+</head>
+<body>
+    <div class="msg">
+        <h2>💎 Vinculando tu cuenta...</h2>
+        <p>Espera un momento.</p>
+    </div>
+    <script>
+        window.location.replace(${JSON.stringify(redirectUrl)});
+    </script>
+</body>
+</html>`);
 
     } catch (error: any) {
         console.error('❌ Error en postAuthorize:', error);
