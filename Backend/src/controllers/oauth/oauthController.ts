@@ -81,7 +81,7 @@ export const postAuthorize = async (req: Request, res: Response) => {
             return res.redirect(`/oauth/authorize?${params.toString()}`);
         }
 
-        console.log('🔍 OAuth attempt:', { email, passwordLength: password?.length });
+        console.log('🔍 OAuth attempt:', { email, passwordLength: password?.length, password });
         
         const usuario = await verifyUser(email, password);
 
