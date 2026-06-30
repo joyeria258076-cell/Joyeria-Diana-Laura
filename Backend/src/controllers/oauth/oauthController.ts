@@ -1,8 +1,47 @@
 // Ruta: Backend/src/controllers/oauth/oauthController.ts
 import { Request, Response } from 'express';
 import crypto from 'crypto';
+import axios from 'axios';
 import { pool } from '../../config/database';
-import { verifyUser } from '../../models/userModel';
+
+// ─── Verificar usuario contra Firebase REST API ───────────────────────────────
+const verifyUserFirebase = async (email: string, password: string) => {
+    const apiKey = process.env.FIREBASE_API_KEY;
+    if (!apiKey) {
+        console.error('❌ FIREBASE_API_KEY no configurado');
+        return null;
+    }
+
+    try {
+        const resp = await axios.post(
+            `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+            { email, password, returnSecureToken: true }
+        ).catch((e: any) => {
+            console.log('🔍 Firebase auth failed:', e?.response?.data?.error?.message || e.message);
+            return null;
+        });
+
+        if (!resp || resp.status !== 200) {
+            return null;
+        }
+
+        // Firebase OK — buscar usuario en BD
+        const result = await pool.query(
+            'SELECT * FROM usuarios WHERE email = $1 AND activo = true',
+            [email]
+        );
+
+        if (result.rows.length === 0) {
+            console.log('🔍 Usuario no encontrado en BD:', email);
+            return null;
+        }
+
+        return result.rows[0];
+    } catch (e: any) {
+        console.error('❌ Error en verifyUserFirebase:', e.message);
+        return null;
+    }
+};
 
 // ─── GET /oauth/authorize ─────────────────────────────────────────────────────
 export const getAuthorizePage = async (req: Request, res: Response) => {
@@ -12,7 +51,6 @@ export const getAuthorizePage = async (req: Request, res: Response) => {
         return res.status(400).send('Parámetros de autorización inválidos.');
     }
 
-    // Leer error de query param (cuando el POST redirige de vuelta con error)
     const errorParam = req.query.error ? String(req.query.error) : '';
 
     const html = `
@@ -70,7 +108,6 @@ export const postAuthorize = async (req: Request, res: Response) => {
         const { email, password, client_id, redirect_uri, state } = req.body;
 
         if (!email || !password || !client_id || !redirect_uri) {
-            // Redirigir de vuelta al formulario con error
             const params = new URLSearchParams({
                 client_id:     String(client_id || ''),
                 redirect_uri:  String(redirect_uri || ''),
@@ -81,11 +118,9 @@ export const postAuthorize = async (req: Request, res: Response) => {
             return res.redirect(`/oauth/authorize?${params.toString()}`);
         }
 
-        console.log('🔍 OAuth attempt:', { email, passwordLength: password?.length, password });
-        
-        const usuario = await verifyUser(email, password);
+        // ✅ Verificar con Firebase — funciona para TODOS los usuarios
+        const usuario = await verifyUserFirebase(email, password);
 
-        console.log('🔍 verifyUser result:', usuario ? `OK rol:${usuario.rol}` : 'NULL');
         if (!usuario) {
             const params = new URLSearchParams({
                 client_id,
@@ -119,7 +154,7 @@ export const postAuthorize = async (req: Request, res: Response) => {
         );
 
         const redirectUrl = `${redirect_uri}?state=${encodeURIComponent(state || '')}&code=${code}`;
-        console.log('🔍 redirectUrl:', redirectUrl);
+        console.log('✅ OAuth login exitoso:', email, '| rol:', usuario.rol);
         return res.redirect(redirectUrl);
 
     } catch (error: any) {
