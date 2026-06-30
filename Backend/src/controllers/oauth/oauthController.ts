@@ -5,13 +5,15 @@ import { pool } from '../../config/database';
 import { verifyUser } from '../../models/userModel';
 
 // ─── GET /oauth/authorize ─────────────────────────────────────────────────────
-// Sirve la página HTML de login que Alexa abre dentro de su app
 export const getAuthorizePage = async (req: Request, res: Response) => {
     const { client_id, redirect_uri, state, response_type } = req.query;
 
     if (!client_id || !redirect_uri || response_type !== 'code') {
         return res.status(400).send('Parámetros de autorización inválidos.');
     }
+
+    // Leer error de query param (cuando el POST redirige de vuelta con error)
+    const errorParam = req.query.error ? String(req.query.error) : '';
 
     const html = `
 <!DOCTYPE html>
@@ -28,8 +30,9 @@ export const getAuthorizePage = async (req: Request, res: Response) => {
         h1 { font-size:20px; margin-bottom:4px; color:#E8A2BF; }
         p.sub { color:#A88D96; font-size:13px; margin-bottom:20px; }
         label { display:block; font-size:13px; margin-bottom:6px; color:#ccc; }
-        input { width:100%; padding:10px; margin-bottom:16px; border-radius:8px; border:1px solid #3D2230;
-                background:#241620; color:#fff; box-sizing:border-box; }
+        input[type="email"], input[type="password"] {
+            width:100%; padding:10px; margin-bottom:16px; border-radius:8px;
+            border:1px solid #3D2230; background:#241620; color:#fff; box-sizing:border-box; }
         button { width:100%; padding:12px; border:none; border-radius:8px; background:#E8A2BF;
                  color:#120A10; font-weight:bold; cursor:pointer; font-size:15px; }
         button:hover { background:#d88aa8; }
@@ -41,46 +44,19 @@ export const getAuthorizePage = async (req: Request, res: Response) => {
     <div class="card">
         <h1>💎 Joyería Diana Laura</h1>
         <p class="sub">Vincula tu cuenta para usar la skill de Alexa</p>
-        <div class="error" id="errorMsg"></div>
-        <form id="loginForm">
+        ${errorParam ? `<div class="error">${errorParam}</div>` : '<div class="error"></div>'}
+        <form method="POST" action="/oauth/authorize">
+            <input type="hidden" name="client_id"    value="${String(client_id)}">
+            <input type="hidden" name="redirect_uri" value="${String(redirect_uri)}">
+            <input type="hidden" name="state"        value="${String(state || '')}">
             <label for="email">Correo electrónico</label>
-            <input type="email" id="email" required autocomplete="username">
+            <input type="email"    id="email"    name="email"    required autocomplete="username">
             <label for="password">Contraseña</label>
-            <input type="password" id="password" required autocomplete="current-password">
+            <input type="password" id="password" name="password" required autocomplete="current-password">
             <button type="submit">Iniciar sesión y vincular</button>
         </form>
         <div class="footer">UTHH — Desarrollo de Dispositivos Inteligentes</div>
     </div>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('errorMsg');
-            errorDiv.textContent = '';
-
-            try {
-                const resp = await fetch('/oauth/authorize', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email, password,
-                        client_id: ${JSON.stringify(client_id)},
-                        redirect_uri: ${JSON.stringify(redirect_uri)},
-                        state: ${JSON.stringify(state || '')}
-                    })
-                });
-                const data = await resp.json();
-                if (data.success && data.redirect) {
-                    window.location.href = data.redirect;
-                } else {
-                    errorDiv.textContent = data.message || 'Credenciales incorrectas.';
-                }
-            } catch (err) {
-                errorDiv.textContent = 'Error de conexión. Intenta de nuevo.';
-            }
-        });
-    </script>
 </body>
 </html>`;
 
@@ -94,20 +70,39 @@ export const postAuthorize = async (req: Request, res: Response) => {
         const { email, password, client_id, redirect_uri, state } = req.body;
 
         if (!email || !password || !client_id || !redirect_uri) {
-            return res.status(400).json({ success: false, message: 'Faltan datos requeridos.' });
+            // Redirigir de vuelta al formulario con error
+            const params = new URLSearchParams({
+                client_id:     String(client_id || ''),
+                redirect_uri:  String(redirect_uri || ''),
+                state:         String(state || ''),
+                response_type: 'code',
+                error:         'Faltan datos requeridos.'
+            });
+            return res.redirect(`/oauth/authorize?${params.toString()}`);
         }
 
         const usuario = await verifyUser(email, password);
         if (!usuario) {
-            return res.status(401).json({ success: false, message: 'Correo o contraseña incorrectos.' });
+            const params = new URLSearchParams({
+                client_id,
+                redirect_uri,
+                state:         String(state || ''),
+                response_type: 'code',
+                error:         'Correo o contraseña incorrectos.'
+            });
+            return res.redirect(`/oauth/authorize?${params.toString()}`);
         }
 
         const rolesPermitidos = ['cliente', 'trabajador', 'admin'];
         if (!rolesPermitidos.includes(String(usuario.rol))) {
-            return res.status(403).json({
-                success: false,
-                message: 'No se pudo vincular esta cuenta. Contacta al administrador.'
+            const params = new URLSearchParams({
+                client_id,
+                redirect_uri,
+                state:         String(state || ''),
+                response_type: 'code',
+                error:         'No se pudo vincular esta cuenta. Contacta al administrador.'
             });
+            return res.redirect(`/oauth/authorize?${params.toString()}`);
         }
 
         const code = crypto.randomBytes(32).toString('hex');
@@ -120,12 +115,11 @@ export const postAuthorize = async (req: Request, res: Response) => {
         );
 
         const redirectUrl = `${redirect_uri}?state=${encodeURIComponent(state || '')}&code=${code}`;
-
-        res.json({ success: true, redirect: redirectUrl });
+        return res.redirect(redirectUrl);
 
     } catch (error: any) {
         console.error('❌ Error en postAuthorize:', error);
-        res.status(500).json({ success: false, message: 'Error interno del servidor.' });
+        return res.status(500).send('Error interno del servidor.');
     }
 };
 
@@ -189,9 +183,9 @@ export const postToken = async (req: Request, res: Response) => {
 
             await pool.query(`UPDATE oauth_codes SET usado = true WHERE id = $1`, [codeRow.id]);
 
-            const accessToken = crypto.randomBytes(32).toString('hex');
+            const accessToken  = crypto.randomBytes(32).toString('hex');
             const refreshToken = crypto.randomBytes(32).toString('hex');
-            const fechaExpira = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+            const fechaExpira  = new Date(Date.now() + 60 * 60 * 1000);
 
             await pool.query(
                 `INSERT INTO oauth_tokens (access_token, refresh_token, usuario_id, client_id, fecha_expira)
@@ -200,9 +194,9 @@ export const postToken = async (req: Request, res: Response) => {
             );
 
             return res.json({
-                access_token: accessToken,
-                token_type: 'Bearer',
-                expires_in: 3600,
+                access_token:  accessToken,
+                token_type:    'Bearer',
+                expires_in:    3600,
                 refresh_token: refreshToken
             });
         }
@@ -223,9 +217,9 @@ export const postToken = async (req: Request, res: Response) => {
             const oldToken = tokenRes.rows[0];
             await pool.query(`UPDATE oauth_tokens SET revocado = true WHERE id = $1`, [oldToken.id]);
 
-            const newAccessToken = crypto.randomBytes(32).toString('hex');
+            const newAccessToken  = crypto.randomBytes(32).toString('hex');
             const newRefreshToken = crypto.randomBytes(32).toString('hex');
-            const fechaExpira = new Date(Date.now() + 60 * 60 * 1000);
+            const fechaExpira     = new Date(Date.now() + 60 * 60 * 1000);
 
             await pool.query(
                 `INSERT INTO oauth_tokens (access_token, refresh_token, usuario_id, client_id, fecha_expira)
@@ -234,9 +228,9 @@ export const postToken = async (req: Request, res: Response) => {
             );
 
             return res.json({
-                access_token: newAccessToken,
-                token_type: 'Bearer',
-                expires_in: 3600,
+                access_token:  newAccessToken,
+                token_type:    'Bearer',
+                expires_in:    3600,
                 refresh_token: newRefreshToken
             });
         }
@@ -250,9 +244,6 @@ export const postToken = async (req: Request, res: Response) => {
 };
 
 // ─── GET /api/alexa/mi-rol ──────────────────────────────────────────────────────
-// 🔧 Si el token ya expiró, lo marca como revocado explícitamente en este mismo
-// query (limpieza activa) — así no quedan tokens vencidos "vivos" en la tabla,
-// y Alexa recibe un 401 claro que dispara su flujo de refresh automático.
 export const getMiRol = async (req: Request, res: Response) => {
     try {
         const authHeader = req.headers.authorization;
@@ -280,8 +271,6 @@ export const getMiRol = async (req: Request, res: Response) => {
         }
 
         if (new Date(row.fecha_expira) < new Date()) {
-            // 🔧 Limpieza activa: marca el token vencido como revocado para que
-            // no quede "vivo" en la tabla, y futuras consultas lo descarten de inmediato.
             await pool.query(`UPDATE oauth_tokens SET revocado = true WHERE id = $1`, [row.id]);
             return res.status(401).json({ success: false, message: 'Token expirado.' });
         }
@@ -291,9 +280,9 @@ export const getMiRol = async (req: Request, res: Response) => {
         }
 
         res.json({
-            success: true,
-            rol: row.rol,
-            nombre: row.nombre,
+            success:    true,
+            rol:        row.rol,
+            nombre:     row.nombre,
             usuario_id: row.usuario_id
         });
     } catch (error: any) {
