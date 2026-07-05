@@ -60,6 +60,104 @@
   animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s both;
 }
 
+/* ===== BARRA TICKER PROMOCIONES ===== */
+.promo-ticker {
+  background: linear-gradient(90deg, #c9a84c 0%, #b8942e 100%);
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  min-height: 38px;
+  overflow: hidden;
+}
+.promo-ticker-badge {
+  background: rgba(0,0,0,0.18);
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.promo-ticker-track {
+  flex: 1;
+  position: relative;
+  height: 22px;
+  overflow: hidden;
+}
+.promo-ticker-item {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.promo-ticker-item em { font-style: normal; opacity: 0.75; margin-left: 4px; font-size: 0.82rem; }
+.promo-ticker-item-active { opacity: 1; transform: translateY(0); }
+.promo-ticker-dots { display: flex; gap: 5px; flex-shrink: 0; }
+.promo-ticker-dot {
+  width: 7px; height: 7px; border-radius: 50%; border: none;
+  background: rgba(0,0,0,0.25); cursor: pointer; padding: 0; transition: background 0.2s;
+}
+.promo-ticker-dot.active { background: rgba(0,0,0,0.6); }
+
+/* ===== COLECCIONES ===== */
+.colecciones-section {
+  padding: 2rem 0 1rem;
+  border-bottom: 1px solid rgba(236, 178, 195, 0.12);
+}
+.colecciones-header { text-align: center; margin-bottom: 1.2rem; }
+.colecciones-title { font-size: 1.5rem; font-weight: 700; color: #ecb2c3; margin: 0 0 4px; }
+.colecciones-subtitle { font-size: 0.88rem; color: #a08090; margin: 0; }
+
+.colecciones-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+.col-tab {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(236,178,195,0.2);
+  color: #d4b5c8;
+  border-radius: 20px;
+  padding: 6px 18px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.col-tab:hover { background: rgba(201,168,76,0.12); border-color: #c9a84c; color: #c9a84c; }
+.col-tab-activo { background: #c9a84c; border-color: #c9a84c; color: #1a1a1a; font-weight: 700; }
+
+.coleccion-banner {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  max-height: 220px;
+}
+.coleccion-banner img { width: 100%; height: 220px; object-fit: cover; display: block; }
+.coleccion-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(0,0,0,0.7) 0%, transparent 60%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 2rem;
+}
+.coleccion-banner-overlay h3 { color: #fff; font-size: 1.4rem; margin: 0 0 6px; }
+.coleccion-banner-overlay p { color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; }
+
 /* ===== SECCION BÚSQUEDA Y FILTROS ===== */
 .busqueda-filtros-section {
   background: linear-gradient(180deg, rgba(236, 178, 195, 0.05) 0%, transparent 100%);

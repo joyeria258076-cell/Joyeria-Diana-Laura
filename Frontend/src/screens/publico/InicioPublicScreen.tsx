@@ -3,7 +3,7 @@ import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { Link } from "react-router-dom";
 // ¡IMPORTANTE! Asegúrate de importar carruselAPI, promocionesAPI y productsAPI
-import { contentAPI, carruselAPI, promocionesAPI, productsAPI, paginasAPI, seccionesAPI, contenidosAPI } from "../../services/api";
+import { contentAPI, carruselAPI, promocionesAPI, productsAPI, paginasAPI, seccionesAPI, contenidosAPI, coleccionesAPI } from "../../services/api";
 import "./InicioPublicScreen.css";
 
 const InicioPublicScreen: React.FC = () => {
@@ -16,6 +16,8 @@ const InicioPublicScreen: React.FC = () => {
   const [productosDestacados, setProductosDestacados] = useState<any[]>([]);
   const [noticiasHome, setNoticiasHome] = useState<any[]>([]);
   const [grupoProductos, setGrupoProductos] = useState(0);
+  const [colecciones, setColecciones] = useState<any[]>([]);
+  const [tickerIdx, setTickerIdx] = useState(0);
 
   // ── DATOS DE RESPALDO (Fallbacks) ──
   const defaultSlides = [
@@ -104,12 +106,11 @@ const InicioPublicScreen: React.FC = () => {
           setSlides(defaultSlides); 
         }
 
-        // 2. Promociones
+        // 2. Promociones activas
         try {
-          const promoRes = await promocionesAPI.getAll();
-          if (promoRes) {
-            setPromociones(promoRes.filter((p: any) => p.activa));
-          }
+          const promoRes = await promocionesAPI.getActivas();
+          const lista = Array.isArray(promoRes) ? promoRes : (promoRes.data || []);
+          setPromociones(lista);
         } catch (e) { console.log("Sin promociones"); }
 
         // 3. Productos Destacados (Últimos 4)
@@ -124,7 +125,14 @@ const InicioPublicScreen: React.FC = () => {
           }
         } catch (e) { console.log("Error cargando productos"); }
 
-        // 4. Noticias
+        // 4. Colecciones
+        try {
+          const resCol = await coleccionesAPI.getPublicas();
+          const cols = Array.isArray(resCol) ? resCol : (resCol.data || []);
+          setColecciones(cols.filter((c: any) => c.productos?.length > 0));
+        } catch { /* sin colecciones */ }
+
+        // 5. Noticias
         try {
           const noticiasRes = await contentAPI.getNoticias();
           if (noticiasRes && noticiasRes.length > 0) {
@@ -167,6 +175,21 @@ const InicioPublicScreen: React.FC = () => {
     return () => clearInterval(t);
   }, [totalGrupos]);
 
+  useEffect(() => {
+    if (promociones.length <= 1) return;
+    const t = setInterval(() => setTickerIdx(prev => (prev + 1) % promociones.length), 4000);
+    return () => clearInterval(t);
+  }, [promociones.length]);
+
+  const promoLabel = (p: any) => {
+    if (p.tipo === 'porcentaje') return `${p.valor_descuento}% de descuento`;
+    if (p.tipo === 'monto_fijo') return `$${p.valor_descuento} de descuento`;
+    if (p.tipo === '2x1') return '2×1 en productos seleccionados';
+    if (p.tipo === 'envio_gratis') return 'Envío gratis';
+    if (p.tipo === 'cupon') return `Cupón ${p.codigo_cupon ? p.codigo_cupon + ' — ' : ''}${p.valor_descuento}% off`;
+    return p.nombre;
+  };
+
   // ── PANTALLA DE CARGA ──
   if (initialLoading) {
     return (
@@ -190,6 +213,34 @@ const InicioPublicScreen: React.FC = () => {
 
   return (
     <div className="inicio-public-container">
+      {/* ═══════════ BARRA TICKER PROMOCIONES ═══════════ */}
+      {promociones.length > 0 && (
+        <div className="promo-ticker">
+          <span className="promo-ticker-badge">🏷️ OFERTA</span>
+          <div className="promo-ticker-track">
+            {promociones.map((p, i) => (
+              <span
+                key={p.id}
+                className={`promo-ticker-item ${i === tickerIdx ? 'promo-ticker-item-active' : ''}`}
+              >
+                <strong>{p.nombre}</strong> — {promoLabel(p)}
+                {p.fecha_fin && (
+                  <em> · Válida hasta {new Date(p.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</em>
+                )}
+              </span>
+            ))}
+          </div>
+          {promociones.length > 1 && (
+            <div className="promo-ticker-dots">
+              {promociones.map((_, i) => (
+                <button key={i} className={`promo-ticker-dot ${i === tickerIdx ? 'active' : ''}`}
+                  onClick={() => setTickerIdx(i)} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <PublicHeader />
 
       {/* ═══════════ CAROUSEL DINÁMICO ═══════════ */}
@@ -329,8 +380,50 @@ const InicioPublicScreen: React.FC = () => {
         </section>
       )}
 
-      {/* ═══════════ NUEVO: PROMOCIONES ═══════════ */}
-      {/* Reutilizamos las clases de features-section para mantener el diseño limpio */}
+      {/* ═══════════ COLECCIONES ═══════════ */}
+      {colecciones.length > 0 && (
+        <section className="news-section">
+          <div className="container-lg">
+            <div className="section-header text-center mb-5">
+              <span className="section-label" style={{ margin: '0 auto' }}>Selecciones especiales</span>
+              <h2 className="section-title">Nuestras <span>Colecciones</span></h2>
+              <p className="section-subtitle">Piezas curadas para cada estilo y ocasión</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.2rem' }}>
+              {colecciones.map((col: any) => (
+                <Link key={col.id} to={`/catalogo-publico`}
+                  style={{ textDecoration: 'none', borderRadius: 14, overflow: 'hidden', display: 'block',
+                    border: '1px solid var(--rose-border)', background: 'var(--bg-card)',
+                    boxShadow: '0 4px 18px rgba(0,0,0,0.18)', transition: 'transform 0.25s' }}
+                  onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-4px)')}
+                  onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}>
+                  {col.imagen_url ? (
+                    <img src={col.imagen_url} alt={col.nombre}
+                      style={{ width: '100%', height: 140, objectFit: 'cover', display: 'block' }} />
+                  ) : (
+                    <div style={{ height: 140, background: 'var(--bg-card-h)', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', fontSize: '2.5rem' }}>🗂️</div>
+                  )}
+                  <div style={{ padding: '12px 16px' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: 4 }}>{col.nombre}</div>
+                    {col.descripcion && (
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', overflow: 'hidden',
+                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any }}>
+                        {col.descripcion}
+                      </div>
+                    )}
+                    <div style={{ marginTop: 8, fontSize: '0.78rem', color: 'var(--rose)' }}>
+                      {col.productos.length} pieza{col.productos.length !== 1 ? 's' : ''} →
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════ PROMOCIONES ═══════════ */}
       {promociones.length > 0 && (
         <section className="features-section">
           <div className="container-lg">
@@ -338,17 +431,39 @@ const InicioPublicScreen: React.FC = () => {
               <span className="section-label" style={{ margin: '0 auto' }}>Ofertas Especiales</span>
               <h2 className="section-title">Promociones <span>Activas</span></h2>
             </div>
-
             <div className="features-grid">
               {promociones.map(promo => (
-                <div className="feature-card" key={promo.id} style={{ position: 'relative', overflow: 'hidden', border: '1px solid var(--rose-border)' }}>
-                  {/* Etiqueta roja de descuento en la esquina */}
-                  <div style={{ position: 'absolute', top: '15px', right: '-35px', background: 'var(--rose-vivid)', color: '#fff', padding: '0.3rem 3rem', transform: 'rotate(45deg)', fontWeight: 'bold', fontSize: '0.85rem', zIndex: 2, boxShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
-                    -{promo.descuento}%
+                <div className="feature-card" key={promo.id}
+                  style={{ position: 'relative', overflow: 'hidden', border: '1px solid var(--rose-border)' }}>
+                  {(promo.tipo === 'porcentaje' || promo.tipo === 'monto_fijo' || promo.tipo === 'cupon') && (
+                    <div style={{ position: 'absolute', top: '15px', right: '-35px', background: 'var(--rose-vivid)',
+                      color: '#fff', padding: '0.3rem 3rem', transform: 'rotate(45deg)',
+                      fontWeight: 'bold', fontSize: '0.85rem', zIndex: 2, boxShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+                      {promo.tipo === 'monto_fijo' ? `-$${promo.valor_descuento}` : `-${promo.valor_descuento}%`}
+                    </div>
+                  )}
+                  <div className="feature-icon">
+                    <span style={{ fontSize: '1.8rem' }}>
+                      {promo.tipo === 'envio_gratis' ? '🚚' : promo.tipo === '2x1' ? '2️⃣' : '🏷️'}
+                    </span>
                   </div>
-                  <div className="feature-icon"><i className="fas fa-tags" style={{ color: 'var(--rose)' }} /></div>
-                  <h4 style={{ color: 'var(--rose-light)' }}>{promo.titulo}</h4>
-                  <p>{promo.descripcion}</p>
+                  <h4 style={{ color: 'var(--rose-light)' }}>{promo.nombre}</h4>
+                  <p style={{ fontSize: '0.88rem', opacity: 0.85 }}>{promoLabel(promo)}</p>
+                  {promo.monto_minimo_compra && (
+                    <p style={{ fontSize: '0.78rem', color: 'var(--rose)', marginTop: 4 }}>
+                      Compra mínima: ${promo.monto_minimo_compra}
+                    </p>
+                  )}
+                  {promo.codigo_cupon && (
+                    <div style={{ marginTop: 8, background: 'rgba(201,168,76,0.15)', borderRadius: 8,
+                      padding: '4px 10px', display: 'inline-block', fontSize: '0.82rem',
+                      fontWeight: 700, letterSpacing: 1, color: '#c9a84c' }}>
+                      {promo.codigo_cupon}
+                    </div>
+                  )}
+                  <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: 8 }}>
+                    Hasta {new Date(promo.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}
+                  </p>
                 </div>
               ))}
             </div>

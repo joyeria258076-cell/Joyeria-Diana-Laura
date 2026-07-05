@@ -640,11 +640,25 @@ export const carruselAPI = {
 };
 
 export const promocionesAPI = {
-  // 👈 Agregamos /content/ antes de cada ruta
   getAll: async () => enhancedApi.get('/content/promociones'),
-  create: async (data: { titulo: string; descripcion: string; descuento: number; activa?: boolean }) => enhancedApi.post('/content/promociones', data),
-  toggleStatus: async (id: string | number, activa: boolean) => enhancedApi.patch(`/content/promociones/${id}/status`, { activa }),
+  getActivas: async () => enhancedApi.get('/content/promociones/activas'),
+  create: async (data: any) => enhancedApi.post('/content/promociones', data),
+  update: async (id: string | number, data: any) => enhancedApi.put(`/content/promociones/${id}`, data),
+  toggleStatus: async (id: string | number, activo: boolean) => enhancedApi.patch(`/content/promociones/${id}/status`, { activo }),
   delete: async (id: string | number) => enhancedApi.delete(`/content/promociones/${id}`)
+};
+
+// ==========================================
+// GESTIÓN DE COLECCIONES
+// ==========================================
+export const coleccionesAPI = {
+  getAll: async () => enhancedApi.get('/content/colecciones'),
+  getById: async (id: string | number) => enhancedApi.get(`/content/colecciones/${id}`),
+  getPublicas: async () => enhancedApi.get('/content/colecciones/publicas'),
+  create: async (data: any) => enhancedApi.post('/content/colecciones', data),
+  update: async (id: string | number, data: any) => enhancedApi.put(`/content/colecciones/${id}`, data),
+  toggleStatus: async (id: string | number, activo: boolean) => enhancedApi.patch(`/content/colecciones/${id}/status`, { activo }),
+  delete: async (id: string | number) => enhancedApi.delete(`/content/colecciones/${id}`)
 };
 
 // ==========================================

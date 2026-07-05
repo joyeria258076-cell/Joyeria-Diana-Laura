@@ -92,6 +92,12 @@ const HeaderPrivado: React.FC = () => {
                                         <button className={`dropdown-item ${isActive("/admin-nuevo-producto") ? "active" : ""}`} onClick={() => goTo("/admin-nuevo-producto")}>
                                             <span className="dropdown-icon">➕</span> Nuevo Producto
                                         </button>
+                                        <button className={`dropdown-item ${isActive("/admin/promociones") ? "active" : ""}`} onClick={() => goTo("/admin/promociones")}>
+                                            <span className="dropdown-icon">🏷️</span> Promociones
+                                        </button>
+                                        <button className={`dropdown-item ${isActive("/admin/colecciones") ? "active" : ""}`} onClick={() => goTo("/admin/colecciones")}>
+                                            <span className="dropdown-icon">🗂️</span> Colecciones
+                                        </button>
                                     </div>
                                 )}
                             </div>

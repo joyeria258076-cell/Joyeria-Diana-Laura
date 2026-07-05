@@ -1,7 +1,14 @@
 import { Router } from 'express';
 import { adminContentController } from '../controllers/admin/adminContentController';
+import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = Router();
+
+// Aplicar autenticación solo a rutas de escritura
+router.use((req, res, next) => {
+  if (req.method === 'GET') return next();
+  return authenticateToken(req, res, next);
+});
 
 // ==========================================
 // CONFIGURACIÓN DE PÁGINA GLOBAL (Banner/Hero)
@@ -28,7 +35,9 @@ router.delete('/carrusel/:id', adminContentController.deleteCarruselItem);
 // GESTIÓN DE PROMOCIONES 
 // ==========================================
 router.get('/promociones', adminContentController.getPromociones);
+router.get('/promociones/activas', adminContentController.getPromocionesActivas);
 router.post('/promociones', adminContentController.createPromocion);
+router.put('/promociones/:id', adminContentController.updatePromocion);
 router.patch('/promociones/:id/status', adminContentController.togglePromocionStatus);
 router.delete('/promociones/:id', adminContentController.deletePromocion);
 
@@ -58,5 +67,16 @@ router.get('/contenidos/:id', adminContentController.getContenidoById);
 router.post('/contenidos', adminContentController.createContenido);
 router.put('/contenidos/:id', adminContentController.updateContenido);
 router.delete('/contenidos/:id', adminContentController.deleteContenido);
+
+// ==========================================
+// GESTIÓN DE COLECCIONES
+// ==========================================
+router.get('/colecciones/publicas', adminContentController.getColeccionesPublicas);
+router.get('/colecciones', adminContentController.getColecciones);
+router.get('/colecciones/:id', adminContentController.getColeccionById);
+router.post('/colecciones', adminContentController.createColeccion);
+router.put('/colecciones/:id', adminContentController.updateColeccion);
+router.patch('/colecciones/:id/status', adminContentController.toggleColeccionStatus);
+router.delete('/colecciones/:id', adminContentController.deleteColeccion);
 
 export default router;

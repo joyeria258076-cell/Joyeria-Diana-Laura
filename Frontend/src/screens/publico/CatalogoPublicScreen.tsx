@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import DetalleProductoModal from "./DetalleProductoModal";
-import { productsAPI } from "../../services/api";
+import { productsAPI, coleccionesAPI, promocionesAPI } from "../../services/api";
 import { AiOutlineSearch } from "react-icons/ai";
 import "./CatalogoPublicScreen.css";
 
@@ -45,6 +45,14 @@ const CatalogoPublicScreen: React.FC = () => {
   const [resultadosBusqueda, setResultadosBusqueda] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Array<{ id: number; nombre: string }>>([]);
   const [tiposProducto, setTiposProducto] = useState<Array<{ id: number; nombre: string }>>([]);
+
+  // ===== COLECCIONES =====
+  const [colecciones, setColecciones] = useState<any[]>([]);
+  const [coleccionActiva, setColeccionActiva] = useState<number | null>(null);
+
+  // ===== PROMOCIONES TICKER =====
+  const [promociones, setPromociones] = useState<any[]>([]);
+  const [tickerIdx, setTickerIdx] = useState(0);
 
   // ===== ESTADOS DE UI =====
   const [searchMode, setSearchMode] = useState(false);
@@ -90,6 +98,19 @@ const CatalogoPublicScreen: React.FC = () => {
         setTiposProducto(
           Array.isArray(respTipos?.data) ? respTipos.data : []
         );
+
+        try {
+          const resCol = await coleccionesAPI.getPublicas();
+          const cols = Array.isArray(resCol) ? resCol : (resCol.data || []);
+          setColecciones(cols.filter((c: any) => c.productos?.length > 0));
+        } catch { /* sin colecciones */ }
+
+        try {
+          const resPromo = await promocionesAPI.getActivas();
+          const lista = Array.isArray(resPromo) ? resPromo : (resPromo.data || []);
+          setPromociones(lista);
+        } catch { /* sin promociones */ }
+
       } catch (error) {
         console.error("Error cargando datos del catálogo:", error);
       } finally {
@@ -170,6 +191,22 @@ const CatalogoPublicScreen: React.FC = () => {
     paginaBusqueda * PAGE_SIZE,
     (paginaBusqueda + 1) * PAGE_SIZE
   );
+
+  // ===== TICKER EFECTO =====
+  useEffect(() => {
+    if (promociones.length <= 1) return;
+    const t = setInterval(() => setTickerIdx(prev => (prev + 1) % promociones.length), 4000);
+    return () => clearInterval(t);
+  }, [promociones.length]);
+
+  const promoLabel = (p: any) => {
+    if (p.tipo === 'porcentaje') return `${p.valor_descuento}% de descuento`;
+    if (p.tipo === 'monto_fijo') return `$${p.valor_descuento} de descuento`;
+    if (p.tipo === '2x1') return '2×1 en productos seleccionados';
+    if (p.tipo === 'envio_gratis') return 'Envío gratis';
+    if (p.tipo === 'cupon') return `Cupón ${p.codigo_cupon ? p.codigo_cupon + ' — ' : ''}${p.valor_descuento}% off`;
+    return p.nombre;
+  };
 
   // ===== PLACEHOLDER =====
   const placeholderImage =
@@ -297,6 +334,29 @@ const CatalogoPublicScreen: React.FC = () => {
   // ===== RENDER =====
   return (
     <div className="catalogo-public-container">
+      {promociones.length > 0 && (
+        <div className="promo-ticker">
+          <span className="promo-ticker-badge">🏷️ OFERTA</span>
+          <div className="promo-ticker-track">
+            {promociones.map((p, i) => (
+              <span key={p.id} className={`promo-ticker-item ${i === tickerIdx ? 'promo-ticker-item-active' : ''}`}>
+                <strong>{p.nombre}</strong> — {promoLabel(p)}
+                {p.fecha_fin && (
+                  <em> · Válida hasta {new Date(p.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</em>
+                )}
+              </span>
+            ))}
+          </div>
+          {promociones.length > 1 && (
+            <div className="promo-ticker-dots">
+              {promociones.map((_, i) => (
+                <button key={i} className={`promo-ticker-dot ${i === tickerIdx ? 'active' : ''}`}
+                  onClick={() => setTickerIdx(i)} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       <PublicHeader />
 
       {/* HERO */}
@@ -404,6 +464,55 @@ const CatalogoPublicScreen: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* COLECCIONES */}
+      {!searchMode && colecciones.length > 0 && (
+        <section className="colecciones-section">
+          <div className="container-lg">
+            <div className="colecciones-header">
+              <h2 className="colecciones-title">Colecciones</h2>
+              <p className="colecciones-subtitle">Explora nuestras selecciones especiales</p>
+            </div>
+            <div className="colecciones-tabs">
+              <button
+                className={`col-tab ${coleccionActiva === null ? 'col-tab-activo' : ''}`}
+                onClick={() => setColeccionActiva(null)}
+              >
+                Todas
+              </button>
+              {colecciones.map(c => (
+                <button
+                  key={c.id}
+                  className={`col-tab ${coleccionActiva === c.id ? 'col-tab-activo' : ''}`}
+                  onClick={() => setColeccionActiva(coleccionActiva === c.id ? null : c.id)}
+                >
+                  {c.nombre}
+                </button>
+              ))}
+            </div>
+            {coleccionActiva !== null && (() => {
+              const col = colecciones.find(c => c.id === coleccionActiva);
+              if (!col) return null;
+              return (
+                <div className="coleccion-detalle">
+                  {col.imagen_url && (
+                    <div className="coleccion-banner">
+                      <img src={col.imagen_url} alt={col.nombre} />
+                      <div className="coleccion-banner-overlay">
+                        <h3>{col.nombre}</h3>
+                        {col.descripcion && <p>{col.descripcion}</p>}
+                      </div>
+                    </div>
+                  )}
+                  <div className="productos-grid-4">
+                    {col.productos.map((prod: any) => renderCard(prod))}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </section>
+      )}
 
       {/* CONTENIDO */}
       <section className="catalogo-section">

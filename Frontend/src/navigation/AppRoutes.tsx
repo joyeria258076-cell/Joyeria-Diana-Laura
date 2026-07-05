@@ -62,6 +62,8 @@ import ActividadesTrabajadorScreen from "../screens/trabajador/ActividadesTrabaj
 
 // CATEGORÍAS
 import AdminCategoriasScreen from "../screens/admin/AdminCategoriasScreen";
+import AdminPromocionesScreen from "../screens/admin/AdminPromocionesScreen";
+import AdminColeccionesScreen from "../screens/admin/AdminColeccionesScreen";
 
 // 📁 PANTALLAS DE BASE DE DATOS
 import AdminDatabaseScreen from "../screens/admin/basedatos/AdminDatabaseScreen";
@@ -236,6 +238,8 @@ export default function AppRoutes() {
             <Route path="/admin-inventario"              element={<AdminInventarioScreen />} />
             <Route path="/admin-nuevo-producto"          element={<AdminNuevoProductoScreen />} />
             <Route path="/admin-categorias"              element={<AdminCategoriasScreen />} />
+            <Route path="/admin/promociones"             element={<AdminPromocionesScreen />} />
+            <Route path="/admin/colecciones"             element={<AdminColeccionesScreen />} />
             <Route path="/admin-trabajadores"            element={<AdminTrabajadoresScreen />} />
             <Route path="/admin-trabajadores/nuevo"      element={<AdminAltaTrabajadorForm />} />
             <Route path="/admin-trabajadores/editar/:id" element={<AdminEditarTrabajadorScreen />} />

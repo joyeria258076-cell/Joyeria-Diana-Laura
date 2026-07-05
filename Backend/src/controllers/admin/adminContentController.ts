@@ -164,51 +164,267 @@ export const adminContentController = {
   // ==========================================
   getPromociones: async (req: Request, res: Response) => {
     try {
-      const result = await pool.query('SELECT * FROM promociones ORDER BY id DESC');
-      res.status(200).json(result.rows);
+      const result = await pool.query(`
+        SELECT p.*, u.nombre AS creado_por_nombre
+        FROM promociones p
+        LEFT JOIN usuarios u ON p.creado_por = u.id
+        ORDER BY p.fecha_creacion DESC
+      `);
+      res.status(200).json({ success: true, data: result.rows });
     } catch (error) {
-      console.error('Error obteniendo promociones:', error);
-      res.status(500).json({ message: 'Error al obtener promociones' });
+      res.status(500).json({ success: false, message: 'Error al obtener promociones' });
     }
   },
 
   createPromocion: async (req: Request, res: Response) => {
-    const { titulo, descripcion, descuento, activa } = req.body;
+    const {
+      nombre, descripcion, tipo, valor_descuento,
+      fecha_inicio, fecha_fin,
+      aplica_productos, aplica_categorias,
+      monto_minimo_compra, limite_usos_total,
+      codigo_cupon
+    } = req.body;
+    const userId = (req as any).user?.userId || (req as any).user?.userId || (req as any).user?.id;
     try {
-      const result = await pool.query(
-        'INSERT INTO promociones (titulo, descripcion, descuento, activa) VALUES ($1, $2, $3, $4) RETURNING *',
-        [titulo, descripcion, descuento, activa ?? true]
-      );
-      res.status(201).json(result.rows[0]);
-    } catch (error) {
-      console.error('Error creando promocion:', error);
-      res.status(500).json({ message: 'Error al crear promoción' });
+      if (!nombre || !tipo || !fecha_inicio || !fecha_fin)
+        return res.status(400).json({ success: false, message: 'Faltan campos requeridos' });
+      if (!userId)
+        return res.status(401).json({ success: false, message: 'No autenticado' });
+
+      const result = await pool.query(`
+        INSERT INTO promociones (
+          nombre, descripcion, tipo, valor_descuento,
+          fecha_inicio, fecha_fin,
+          aplica_productos, aplica_categorias,
+          monto_minimo_compra, limite_usos_total,
+          codigo_cupon, activo, creado_por, actualizado_por
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,true,$12,$12)
+        RETURNING *
+      `, [
+        nombre, descripcion || null, tipo, valor_descuento || null,
+        fecha_inicio, fecha_fin,
+        aplica_productos?.length ? aplica_productos : null,
+        aplica_categorias?.length ? aplica_categorias : null,
+        monto_minimo_compra || null, limite_usos_total || null,
+        codigo_cupon || null, userId
+      ]);
+      res.status(201).json({ success: true, data: result.rows[0] });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  updatePromocion: async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const {
+      nombre, descripcion, tipo, valor_descuento,
+      fecha_inicio, fecha_fin,
+      aplica_productos, aplica_categorias,
+      monto_minimo_compra, limite_usos_total,
+      codigo_cupon, activo
+    } = req.body;
+    const userId = (req as any).user?.userId || (req as any).user?.userId || (req as any).user?.id;
+    try {
+      const result = await pool.query(`
+        UPDATE promociones SET
+          nombre=$1, descripcion=$2, tipo=$3, valor_descuento=$4,
+          fecha_inicio=$5, fecha_fin=$6,
+          aplica_productos=$7, aplica_categorias=$8,
+          monto_minimo_compra=$9, limite_usos_total=$10,
+          codigo_cupon=$11, activo=$12,
+          actualizado_por=$13, fecha_actualizacion=CURRENT_TIMESTAMP
+        WHERE id=$14 RETURNING *
+      `, [
+        nombre, descripcion || null, tipo, valor_descuento || null,
+        fecha_inicio, fecha_fin,
+        aplica_productos?.length ? aplica_productos : null,
+        aplica_categorias?.length ? aplica_categorias : null,
+        monto_minimo_compra || null, limite_usos_total || null,
+        codigo_cupon || null, activo ?? true,
+        userId, id
+      ]);
+      res.json({ success: true, data: result.rows[0] });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
     }
   },
 
   togglePromocionStatus: async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { activa } = req.body;
+    const { activo } = req.body;
     try {
       const result = await pool.query(
-        'UPDATE promociones SET activa = $1 WHERE id = $2 RETURNING *',
-        [activa, id]
+        'UPDATE promociones SET activo=$1, fecha_actualizacion=CURRENT_TIMESTAMP WHERE id=$2 RETURNING *',
+        [activo, id]
       );
-      res.status(200).json(result.rows[0]);
+      res.json({ success: true, data: result.rows[0] });
     } catch (error) {
-      console.error('Error actualizando estado de promocion:', error);
-      res.status(500).json({ message: 'Error al actualizar estado' });
+      res.status(500).json({ success: false, message: 'Error al actualizar estado' });
     }
   },
 
   deletePromocion: async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-      await pool.query('DELETE FROM promociones WHERE id = $1', [id]);
-      res.status(200).json({ message: 'Promoción eliminada correctamente' });
+      await pool.query('DELETE FROM promociones WHERE id=$1', [id]);
+      res.json({ success: true, message: 'Promoción eliminada' });
     } catch (error) {
-      console.error('Error eliminando promocion:', error);
-      res.status(500).json({ message: 'Error al eliminar promoción' });
+      res.status(500).json({ success: false, message: 'Error al eliminar promoción' });
+    }
+  },
+
+  getPromocionesActivas: async (req: Request, res: Response) => {
+    try {
+      const now = new Date().toISOString();
+      const result = await pool.query(`
+        SELECT * FROM promociones
+        WHERE activo = true AND fecha_inicio <= $1 AND fecha_fin >= $1
+        ORDER BY valor_descuento DESC
+      `, [now]);
+      res.json({ success: true, data: result.rows });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Error al obtener promociones activas' });
+    }
+  },
+
+  // ==========================================
+  // GESTIÓN DE COLECCIONES
+  // ==========================================
+  getColecciones: async (req: Request, res: Response) => {
+    try {
+      const result = await pool.query(`
+        SELECT c.*, u.nombre AS creado_por_nombre,
+          COUNT(cp.id)::int AS total_productos
+        FROM colecciones c
+        LEFT JOIN usuarios u ON u.id = c.creado_por
+        LEFT JOIN coleccion_productos cp ON cp.coleccion_id = c.id
+        GROUP BY c.id, u.nombre
+        ORDER BY c.orden ASC, c.fecha_creacion DESC
+      `);
+      res.json({ success: true, data: result.rows });
+    } catch {
+      res.status(500).json({ success: false, message: 'Error al obtener colecciones' });
+    }
+  },
+
+  getColeccionById: async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+      const col = await pool.query('SELECT * FROM colecciones WHERE id = $1', [id]);
+      if (col.rows.length === 0) { res.status(404).json({ success: false, message: 'No encontrada' }); return; }
+      const prods = await pool.query(`
+        SELECT p.id, p.nombre, p.codigo, p.imagen_principal, p.precio_venta, p.precio_oferta,
+               p.stock_actual, p.activo, cp.orden
+        FROM coleccion_productos cp
+        JOIN productos p ON p.id = cp.producto_id
+        WHERE cp.coleccion_id = $1
+        ORDER BY cp.orden ASC
+      `, [id]);
+      res.json({ success: true, data: { ...col.rows[0], productos: prods.rows } });
+    } catch {
+      res.status(500).json({ success: false, message: 'Error al obtener colección' });
+    }
+  },
+
+  createColeccion: async (req: Request, res: Response) => {
+    const { nombre, descripcion, imagen_url, orden, productos } = req.body;
+    const userId = (req as any).user?.userId || (req as any).user?.id;
+    if (!nombre?.trim()) { res.status(400).json({ success: false, message: 'El nombre es obligatorio' }); return; }
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await client.query(
+        `INSERT INTO colecciones (nombre, descripcion, imagen_url, orden, creado_por)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [nombre.trim(), descripcion || null, imagen_url || null, orden ?? 0, userId]
+      );
+      const colId = result.rows[0].id;
+      if (Array.isArray(productos) && productos.length > 0) {
+        for (let i = 0; i < productos.length; i++) {
+          await client.query(
+            'INSERT INTO coleccion_productos (coleccion_id, producto_id, orden) VALUES ($1, $2, $3)',
+            [colId, productos[i], i]
+          );
+        }
+      }
+      await client.query('COMMIT');
+      res.json({ success: true, data: result.rows[0] });
+    } catch {
+      await client.query('ROLLBACK');
+      res.status(500).json({ success: false, message: 'Error al crear colección' });
+    } finally { client.release(); }
+  },
+
+  updateColeccion: async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { nombre, descripcion, imagen_url, orden, productos } = req.body;
+    if (!nombre?.trim()) { res.status(400).json({ success: false, message: 'El nombre es obligatorio' }); return; }
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(
+        `UPDATE colecciones SET nombre=$1, descripcion=$2, imagen_url=$3, orden=$4,
+         fecha_actualizacion=NOW() WHERE id=$5`,
+        [nombre.trim(), descripcion || null, imagen_url || null, orden ?? 0, id]
+      );
+      if (Array.isArray(productos)) {
+        await client.query('DELETE FROM coleccion_productos WHERE coleccion_id = $1', [id]);
+        for (let i = 0; i < productos.length; i++) {
+          await client.query(
+            'INSERT INTO coleccion_productos (coleccion_id, producto_id, orden) VALUES ($1, $2, $3)',
+            [id, productos[i], i]
+          );
+        }
+      }
+      await client.query('COMMIT');
+      res.json({ success: true, message: 'Colección actualizada' });
+    } catch {
+      await client.query('ROLLBACK');
+      res.status(500).json({ success: false, message: 'Error al actualizar colección' });
+    } finally { client.release(); }
+  },
+
+  toggleColeccionStatus: async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { activo } = req.body;
+    try {
+      await pool.query('UPDATE colecciones SET activo=$1, fecha_actualizacion=NOW() WHERE id=$2', [activo, id]);
+      res.json({ success: true });
+    } catch {
+      res.status(500).json({ success: false, message: 'Error al cambiar estado' });
+    }
+  },
+
+  deleteColeccion: async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+      await pool.query('DELETE FROM colecciones WHERE id = $1', [id]);
+      res.json({ success: true, message: 'Colección eliminada' });
+    } catch {
+      res.status(500).json({ success: false, message: 'Error al eliminar colección' });
+    }
+  },
+
+  // Público: colecciones activas con sus productos
+  getColeccionesPublicas: async (req: Request, res: Response) => {
+    try {
+      const cols = await pool.query(
+        'SELECT id, nombre, descripcion, imagen_url, orden FROM colecciones WHERE activo = true ORDER BY orden ASC'
+      );
+      const result = await Promise.all(cols.rows.map(async (c) => {
+        const prods = await pool.query(`
+          SELECT p.id, p.nombre, p.imagen_principal, p.precio_venta, p.precio_oferta,
+                 p.stock_actual, p.es_destacado
+          FROM coleccion_productos cp
+          JOIN productos p ON p.id = cp.producto_id
+          WHERE cp.coleccion_id = $1 AND p.activo = true
+          ORDER BY cp.orden ASC
+        `, [c.id]);
+        return { ...c, productos: prods.rows };
+      }));
+      res.json({ success: true, data: result });
+    } catch {
+      res.status(500).json({ success: false, message: 'Error al obtener colecciones' });
     }
   },
 
@@ -253,7 +469,7 @@ export const adminContentController = {
       if (hasInvalidInput(nombre, descripcion)) {
         res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
       }
-      const userId = (req as any).user?.id;
+      const userId = (req as any).user?.userId || (req as any).user?.id;
       
       // Validar que el slug sea único
       const slugExists = await pool.query(
@@ -288,7 +504,7 @@ export const adminContentController = {
       if (hasInvalidInput(nombre, descripcion)) {
         res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
       }
-      const userId = (req as any).user?.id;
+      const userId = (req as any).user?.userId || (req as any).user?.id;
 
       // Validar que el slug sea único (si cambió)
       const slugExists = await pool.query(
@@ -400,7 +616,7 @@ export const adminContentController = {
         res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
       }
 
-      const userId = (req as any).user?.id;
+      const userId = (req as any).user?.userId || (req as any).user?.id;
 
       const result = await pool.query(
         `INSERT INTO secciones
@@ -426,7 +642,7 @@ export const adminContentController = {
         res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
       }
 
-      const userId = (req as any).user?.id;
+      const userId = (req as any).user?.userId || (req as any).user?.id;
 
       const result = await pool.query(
         `UPDATE secciones
@@ -524,7 +740,7 @@ export const adminContentController = {
       if (hasInvalidInput(titulo, descripcion)) {
         res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
       }
-      const userId = (req as any).user?.id;
+      const userId = (req as any).user?.userId || (req as any).user?.id;
 
       const result = await pool.query(
         `INSERT INTO contenidos
@@ -548,7 +764,7 @@ export const adminContentController = {
       if (hasInvalidInput(titulo, descripcion)) {
         res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
       }
-      const userId = (req as any).user?.id;
+      const userId = (req as any).user?.userId || (req as any).user?.id;
 
       const result = await pool.query(
         `UPDATE contenidos
