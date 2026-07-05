@@ -37,6 +37,8 @@ interface Pedido {
     fecha_creacion: string;
     fecha_estimada_entrega?: string;
     comprobante_transferencia_url?: string;
+    es_apartado?: boolean;
+    apartado_folio?: string;
     items?: ItemPedido[];
     codigo_entrega?: string; 
     costo_envio?: number;
@@ -110,7 +112,9 @@ const GUIA_ESTADO: Record<string, string> = {
     cancelado:      '🚫 Pedido cancelado. El stock fue restaurado automáticamente.',
 };
 
-const getEstadosDisponibles = (estados: EstadoConfig[], metodoCodigo?: string): EstadoConfig[] => {
+const getEstadosDisponibles = (estados: EstadoConfig[], metodoCodigo?: string, esApartado?: boolean): EstadoConfig[] => {
+    if (esApartado)
+        return estados.filter(e => ['en_preparacion', 'entregado', 'cancelado'].includes(e.value));
     if (metodoCodigo === 'efectivo')
         return estados.filter(e => ['confirmado', 'entregado', 'cancelado'].includes(e.value));
     if (metodoCodigo === 'transferencia')
@@ -394,7 +398,7 @@ const GestionPedidosScreen: React.FC = () => {
             setEditFechaEst(pedido.fecha_estimada_entrega?.split('T')[0] || '');
         }
         if (tipo === 'estado') {
-            const disponibles = getEstadosDisponibles(estados, pedido.metodo_pago_codigo);
+            const disponibles = getEstadosDisponibles(estados, pedido.metodo_pago_codigo, pedido.es_apartado);
             const estadoInicial = disponibles.find(e => e.value === pedido.estado)
                 ? pedido.estado : disponibles[0]?.value || pedido.estado;
             setNuevoEstado(estadoInicial);
@@ -581,7 +585,7 @@ const GestionPedidosScreen: React.FC = () => {
     const contar = (estado: string) => pedidos.filter(p => p.estado === estado).length;
     const esMio = (p: Pedido) => p.trabajador_id === miId;
     const estaAsignado = (p: Pedido) => !!p.trabajador_id;
-    const puedoTomar = (p: Pedido) => p.estado === 'pendiente' && !estaAsignado(p);
+    const puedoTomar = (p: Pedido) => ['pendiente', 'en_preparacion'].includes(p.estado) && !estaAsignado(p);
     const puedoEditar = (p: Pedido) => esMio(p) || user?.rol === 'admin';
 
     const pedidosFiltrados = pedidos.filter(p => {
@@ -627,7 +631,14 @@ const GestionPedidosScreen: React.FC = () => {
 
     return (
     <tr key={pedido.id} className={`${esMio(pedido) ? 'gp-fila-mia' : ''} ${estaVencido ? 'gp-fila-vencida' : ''}`}>
-            <td className="gp-folio">{pedido.folio}</td>
+            <td className="gp-folio">
+                {pedido.folio}
+                {pedido.es_apartado && (
+                    <span style={{ display: 'block', fontSize: '0.7rem', marginTop: 2, background: '#a78bfa22', color: '#a78bfa', borderRadius: 4, padding: '1px 6px', fontWeight: 600 }}>
+                        🔖 Apartado {pedido.apartado_folio}
+                    </span>
+                )}
+            </td>
             <td>
                 <p className="gp-cliente-nombre">{pedido.cliente_nombre_completo}</p>
                 <p className="gp-cliente-email">{pedido.cliente_email}</p>
@@ -782,7 +793,14 @@ const GestionPedidosScreen: React.FC = () => {
                                     {modalTipo === 'cliente'  && '👤 Datos del cliente'}
                                     {modalTipo === 'estado'   && '🔄 Cambiar estado'}
                                 </h3>
-                                <p className="gp-modal-sub">{pedidoSel.folio} · {formatFecha(pedidoSel.fecha_creacion)}</p>
+                                <p className="gp-modal-sub">
+                                    {pedidoSel.folio} · {formatFecha(pedidoSel.fecha_creacion)}
+                                    {pedidoSel.es_apartado && (
+                                        <span style={{ marginLeft: 8, fontSize: '0.75rem', background: '#a78bfa22', color: '#a78bfa', borderRadius: 4, padding: '1px 8px', fontWeight: 600 }}>
+                                            🔖 Originado de apartado {pedidoSel.apartado_folio}
+                                        </span>
+                                    )}
+                                </p>
                             </div>
                             <button className="gp-modal-close" onClick={cerrar}>×</button>
                         </div>
@@ -810,10 +828,10 @@ const GestionPedidosScreen: React.FC = () => {
                                                     </span>
                                                 )}
                                             </div>
-                                            {pedidoSel.metodo_pago_nombre && (
+                                            {(pedidoSel.es_apartado || pedidoSel.metodo_pago_nombre) && (
                                                 <div className="gp-modal-seccion">
                                                     <h4>💳 Método de pago</h4>
-                                                    <p>{pedidoSel.metodo_pago_nombre}</p>
+                                                    <p>{pedidoSel.es_apartado ? '🔖 Apartado (varios pagos)' : pedidoSel.metodo_pago_nombre}</p>
                                                 </div>
                                             )}
                                             {pedidoSel.metodo_pago_codigo === 'transferencia' && (
@@ -1039,15 +1057,15 @@ const GestionPedidosScreen: React.FC = () => {
                                         <div className="gp-modal-form">
                                             <div className="gp-estado-actual">
                                                 <span>Estado actual:</span> {getBadge(pedidoSel.estado)}
-                                                {pedidoSel.metodo_pago_nombre && (
-                                                    <span className="gp-metodo-tag">💳 {pedidoSel.metodo_pago_nombre}</span>
+                                                {(pedidoSel.es_apartado || pedidoSel.metodo_pago_nombre) && (
+                                                    <span className="gp-metodo-tag">💳 {pedidoSel.es_apartado ? 'Apartado' : pedidoSel.metodo_pago_nombre}</span>
                                                 )}
                                             </div>
                                             <div className="gp-form-grupo">
                                                 <label>Nuevo estado</label>
                                                 <select className="gp-select" value={nuevoEstado}
                                                     onChange={e => setNuevoEstado(e.target.value)}>
-                                                    {getEstadosDisponibles(estados, pedidoSel.metodo_pago_codigo).map(e => (
+                                                    {getEstadosDisponibles(estados, pedidoSel.metodo_pago_codigo, pedidoSel.es_apartado).map(e => (
                                                         <option key={e.value} value={e.value}>{e.label}</option>
                                                     ))}
                                                 </select>

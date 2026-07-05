@@ -3,6 +3,14 @@ import { Request, Response } from 'express';
 import { pool } from '../../config/database';
 import { AuthRequest } from '../../middleware/authMiddleware';
 
+// ─── Utilidad: fecha local México + N días ────────────────────
+const fechaMexMasDias = (dias: number): string => {
+    const hoyMex = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City' }).format(new Date());
+    const [y, m, d] = hoyMex.split('-').map(Number);
+    const r = new Date(Date.UTC(y, m - 1, d + dias));
+    return r.toISOString().split('T')[0];
+};
+
 // ─── Utilidad: generar folio ──────────────────────────────────
 const generarFolioApartado = (): string => {
     const now  = new Date();
@@ -287,20 +295,35 @@ export const confirmarPagoInicial = async (req: AuthRequest, res: Response) => {
             [fecha_limite_siguiente || null, notas || 'Pago inicial confirmado por trabajador', userId, id]
         );
 
-        // Recalcular fechas_abono si tiene plan y se definió fecha límite
+        // Recalcular fechas_abono y auto-calcular fecha_limite_siguiente si no se proveyó
         let nuevasFechas = apartado.fechas_abono;
-        if (apartado.plan_abono_id && apartado.saldo_pendiente > 0) {
+        let fechaSiguienteCalculada = fecha_limite_siguiente || null;
+
+        if (apartado.plan_abono_id && parseFloat(apartado.saldo_pendiente) > 0) {
             const planRes = await client.query(
                 `SELECT * FROM planes_abono WHERE id = $1`, [apartado.plan_abono_id]
             );
             if (planRes.rows.length > 0) {
+                const plan = planRes.rows[0];
                 nuevasFechas = JSON.stringify(calcularFechasAbono(
-                    new Date(),
+                    new Date(apartado.fecha_creacion),
                     parseFloat(apartado.saldo_pendiente),
-                    planRes.rows[0],
+                    plan,
                     parseFloat(apartado.monto_total)
                 ));
+                // Si el worker no definió fecha_limite_siguiente, calcularla desde hoy + intervalo
+                if (!fechaSiguienteCalculada) {
+                    fechaSiguienteCalculada = fechaMexMasDias(parseInt(plan.intervalo_dias));
+                }
             }
+        }
+
+        // Actualizar abono con fecha_limite_siguiente calculada
+        if (fechaSiguienteCalculada) {
+            await client.query(
+                `UPDATE abonos SET fecha_limite_siguiente = $1 WHERE apartado_id = $2 AND estado = 'pagado'`,
+                [fechaSiguienteCalculada, id]
+            );
         }
 
         // Actualizar apartado a activo
@@ -373,7 +396,7 @@ export const getMisApartados = async (req: AuthRequest, res: Response) => {
                     json_build_object(
                         'id', ab.id, 'monto', ab.monto,
                         'monto_antes', ab.monto_antes, 'monto_despues', ab.monto_despues,
-                        'fecha_abono', ab.fecha_abono,
+                        'fecha_abono', (ab.fecha_abono AT TIME ZONE 'UTC' AT TIME ZONE 'America/Mexico_City')::date,
                         'fecha_limite_siguiente', ab.fecha_limite_siguiente,
                         'estado', ab.estado,
                         'notas', ab.notas,
@@ -385,7 +408,14 @@ export const getMisApartados = async (req: AuthRequest, res: Response) => {
                     'precio_unitario', dv.precio_unitario, 'imagen', p.imagen_principal)
                 ) FROM detalle_ventas dv
                  JOIN productos p ON p.id = dv.producto_id
-                 WHERE dv.venta_id = a.venta_id) AS productos
+                 WHERE dv.venta_id = a.venta_id) AS productos,
+                (SELECT json_build_object(
+                    'id', ab2.id, 'monto', ab2.monto, 'monto_antes', ab2.monto_antes,
+                    'fecha_creacion', ab2.fecha_creacion, 'comprobante_url', ab2.comprobante_url,
+                    'metodo_nombre', mp2.nombre, 'metodo_codigo', mp2.codigo
+                ) FROM abonos ab2
+                 JOIN metodos_pago mp2 ON mp2.id = ab2.metodo_pago_id
+                 WHERE ab2.apartado_id = a.id AND ab2.estado = 'pendiente' LIMIT 1) AS abono_pendiente
              FROM apartados a
              JOIN ventas v ON v.id = a.venta_id
              JOIN clientes c ON c.id = a.cliente_id
@@ -417,7 +447,7 @@ export const getApartadoById = async (req: AuthRequest, res: Response) => {
                     json_build_object(
                         'id', ab.id, 'monto', ab.monto,
                         'monto_antes', ab.monto_antes, 'monto_despues', ab.monto_despues,
-                        'fecha_abono', ab.fecha_abono,
+                        'fecha_abono', (ab.fecha_abono AT TIME ZONE 'UTC' AT TIME ZONE 'America/Mexico_City')::date,
                         'fecha_limite_siguiente', ab.fecha_limite_siguiente,
                         'estado', ab.estado,
                         'metodo_pago_id', ab.metodo_pago_id,
@@ -512,7 +542,7 @@ export const getTodosApartados = async (req: AuthRequest, res: Response) => {
                         'monto', ab.monto,
                         'monto_antes', ab.monto_antes,
                         'monto_despues', ab.monto_despues,
-                        'fecha_abono', ab.fecha_abono,
+                        'fecha_abono', (ab.fecha_abono AT TIME ZONE 'UTC' AT TIME ZONE 'America/Mexico_City')::date,
                         'fecha_limite_siguiente', ab.fecha_limite_siguiente,
                         'estado', ab.estado,
                         'notas', ab.notas,
@@ -525,7 +555,14 @@ export const getTodosApartados = async (req: AuthRequest, res: Response) => {
                   WHERE ab.apartado_id = a.id) AS abonos,
                 (SELECT json_agg(p.nombre) FROM detalle_ventas dv
                  JOIN productos p ON p.id = dv.producto_id
-                 WHERE dv.venta_id = a.venta_id) AS productos
+                 WHERE dv.venta_id = a.venta_id) AS productos,
+                (SELECT json_build_object(
+                    'id', ab3.id, 'monto', ab3.monto, 'monto_antes', ab3.monto_antes,
+                    'fecha_creacion', ab3.fecha_creacion, 'comprobante_url', ab3.comprobante_url,
+                    'metodo_nombre', mp3.nombre, 'metodo_codigo', mp3.codigo
+                ) FROM abonos ab3
+                 JOIN metodos_pago mp3 ON mp3.id = ab3.metodo_pago_id
+                 WHERE ab3.apartado_id = a.id AND ab3.estado = 'pendiente' LIMIT 1) AS abono_pendiente
              FROM apartados a
              JOIN ventas v ON v.id = a.venta_id
              JOIN clientes c2 ON c2.id = a.cliente_id
@@ -562,7 +599,7 @@ export const registrarAbono = async (req: AuthRequest, res: Response) => {
 
         const userId = req.user?.id || req.user?.userId;
         const { id } = req.params;
-        const { monto, metodo_pago_id, fecha_limite_siguiente, fecha_limite_liquidacion, notas } = req.body;
+        const { monto, metodo_pago_id, fecha_limite_siguiente, fecha_limite_liquidacion, notas, confirmar_liquidacion } = req.body;
 
         if (!monto || !metodo_pago_id)
             return res.status(400).json({ success: false, message: 'Monto y método de pago son requeridos.' });
@@ -577,7 +614,21 @@ export const registrarAbono = async (req: AuthRequest, res: Response) => {
         const monto_abono = parseFloat(monto);
         const monto_antes = parseFloat(apartado.saldo_pendiente);
 
+        // Solo efectivo puede registrarse directamente por el trabajador
+        // Transferencia: el cliente sube comprobante y el trabajador usa confirmarAbonoPendiente
+        // MP/PayPal: se confirman automáticamente vía webhook
+        const metodoCheckRes = await client.query('SELECT codigo, nombre FROM metodos_pago WHERE id = $1', [metodo_pago_id]);
+        if (metodoCheckRes.rows.length > 0 && metodoCheckRes.rows[0].codigo !== 'efectivo') {
+            return res.status(400).json({
+                success: false,
+                message: metodoCheckRes.rows[0].codigo === 'transferencia'
+                    ? 'Para transferencia el cliente debe subir su comprobante desde la app. El trabajador lo confirma desde "Confirmar abono pendiente".'
+                    : `Los pagos con ${metodoCheckRes.rows[0].nombre} se confirman automáticamente cuando el cliente paga en línea.`
+            });
+        }
+
         // ✅ Validaciones estrictas de monto
+
         if (monto_abono <= 0)
             return res.status(400).json({ success: false, message: 'El monto debe ser mayor a $0.' });
 
@@ -590,6 +641,14 @@ export const registrarAbono = async (req: AuthRequest, res: Response) => {
         const monto_despues      = Math.round((monto_antes - monto_abono) * 100) / 100;
         const nuevo_monto_pagado = Math.round((parseFloat(apartado.monto_pagado) + monto_abono) * 100) / 100;
         const liquidado          = monto_despues === 0;
+
+        // Bloquear liquidación accidental: exigir confirmación explícita
+        if (liquidado && !confirmar_liquidacion)
+            return res.status(400).json({
+                success: false,
+                message: 'Este abono liquidaría el apartado completo. Confirma explícitamente que el cliente ya realizó el pago total.',
+                requiere_confirmacion_liquidacion: true
+            });
 
         // Registrar el abono
         await client.query(
@@ -846,9 +905,14 @@ export const webhookMP_Apartado = async (req: Request, res: Response) => {
                 headers: { 'Authorization': `Bearer ${mpToken}` }
             });
             const pago = await pagoRes.json();
-            if (pago.status === 'approved' && pago.external_reference?.startsWith('APT-')) {
-                const apartado_id = parseInt(pago.external_reference.replace('APT-', ''));
-                await confirmarApartadoPorPago(apartado_id, String(pago.id), 'mercadopago');
+            if (pago.status === 'approved') {
+                if (pago.external_reference?.startsWith('APT-')) {
+                    const apartado_id = parseInt(pago.external_reference.replace('APT-', ''));
+                    await confirmarApartadoPorPago(apartado_id, String(pago.id), 'mercadopago');
+                } else if (pago.external_reference?.startsWith('SABONO-')) {
+                    const abono_id = parseInt(pago.external_reference.replace('SABONO-', ''));
+                    await confirmarAbonoPorPago(abono_id, String(pago.id), 'mercadopago');
+                }
             }
         }
         res.sendStatus(200);
@@ -976,6 +1040,403 @@ export const subirComprobanteApartado = async (req: AuthRequest, res: Response) 
     }
 };
 
+// ─── CLIENTE: Solicitar abono siguiente ───────────────────────
+export const solicitarAbono = async (req: AuthRequest, res: Response) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        const userId = req.user?.id || req.user?.userId;
+        const { id } = req.params;
+        const { metodo_pago_id, monto, notas } = req.body;
+
+        const clienteRes = await client.query('SELECT id FROM clientes WHERE user_id = $1', [userId]);
+        if (clienteRes.rows.length === 0)
+            return res.status(404).json({ success: false, message: 'Cliente no encontrado.' });
+        const cliente_id = clienteRes.rows[0].id;
+
+        const apartadoRes = await client.query(
+            `SELECT * FROM apartados WHERE id = $1 AND cliente_id = $2 AND estado = 'activo'`,
+            [id, cliente_id]
+        );
+        if (apartadoRes.rows.length === 0)
+            return res.status(404).json({ success: false, message: 'Apartado no encontrado o no está activo.' });
+        const apartado = apartadoRes.rows[0];
+
+        const pendienteRes = await client.query(
+            `SELECT id FROM abonos WHERE apartado_id = $1 AND estado = 'pendiente'`, [id]
+        );
+        if (pendienteRes.rows.length > 0)
+            return res.status(400).json({ success: false, message: 'Ya tienes un abono pendiente de confirmación. Espera a que el trabajador lo procese.' });
+
+        if (!monto || !metodo_pago_id)
+            return res.status(400).json({ success: false, message: 'Monto y método de pago son requeridos.' });
+
+        const monto_abono = parseFloat(monto);
+        const monto_antes = parseFloat(apartado.saldo_pendiente);
+        if (monto_abono <= 0 || monto_abono > monto_antes)
+            return res.status(400).json({ success: false, message: `Monto inválido. Máximo: $${monto_antes.toFixed(2)}` });
+
+        const metodoRes = await client.query('SELECT * FROM metodos_pago WHERE id = $1', [metodo_pago_id]);
+        if (metodoRes.rows.length === 0)
+            return res.status(404).json({ success: false, message: 'Método de pago no encontrado.' });
+        const metodo = metodoRes.rows[0];
+        const monto_despues = Math.round((monto_antes - monto_abono) * 100) / 100;
+
+        if (metodo.codigo === 'transferencia' && !req.file)
+            return res.status(400).json({ success: false, message: 'Debes subir el comprobante de transferencia.' });
+
+        let comprobante_url: string | null = null;
+        if (req.file) {
+            const cloudinary = require('../../config/cloudinary').default;
+            const uploadResult = await new Promise<any>((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { folder: 'joyeria-diana-laura/comprobantes-abonos', resource_type: 'image' },
+                    (error: any, result: any) => { if (error) reject(error); else resolve(result); }
+                );
+                stream.end(req.file!.buffer);
+            });
+            comprobante_url = uploadResult.secure_url;
+        }
+
+        const abonoRes = await client.query(
+            `INSERT INTO abonos (apartado_id, metodo_pago_id, monto, monto_antes, monto_despues, estado, registrado_por, notas, comprobante_url)
+             VALUES ($1,$2,$3,$4,$5,'pendiente',$6,$7,$8) RETURNING id`,
+            [id, metodo_pago_id, monto_abono, monto_antes, monto_despues, userId,
+             notas || `Abono solicitado — pendiente de confirmación`, comprobante_url]
+        );
+
+        await client.query('COMMIT');
+
+        const requiere_pago_externo = ['mercadopago', 'paypal'].includes(metodo.codigo);
+        res.status(201).json({
+            success: true,
+            message: requiere_pago_externo
+                ? 'Abono registrado. Procede al pago en línea.'
+                : 'Abono registrado. El trabajador lo confirmará pronto.',
+            data: { abono_id: abonoRes.rows[0].id, requiere_pago_externo, metodo: metodo.codigo }
+        });
+
+    } catch (error: any) {
+        await client.query('ROLLBACK');
+        res.status(500).json({ success: false, message: error.message });
+    } finally {
+        client.release();
+    }
+};
+
+// ─── TRABAJADOR: Confirmar abono pendiente ────────────────────
+export const confirmarAbonoPendiente = async (req: AuthRequest, res: Response) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        const userId = req.user?.id || req.user?.userId;
+        const { id } = req.params;
+        const { notas, fecha_limite_siguiente, confirmar_liquidacion } = req.body;
+
+        const apartadoRes = await client.query(
+            `SELECT * FROM apartados WHERE id = $1 AND estado = 'activo'`, [id]
+        );
+        if (apartadoRes.rows.length === 0)
+            return res.status(404).json({ success: false, message: 'Apartado no encontrado o no está activo.' });
+        const apartado = apartadoRes.rows[0];
+
+        const abonoRes = await client.query(
+            `SELECT ab.*, mp.codigo AS metodo_codigo, mp.nombre AS metodo_nombre
+             FROM abonos ab
+             JOIN metodos_pago mp ON mp.id = ab.metodo_pago_id
+             WHERE ab.apartado_id = $1 AND ab.estado = 'pendiente'
+             ORDER BY ab.fecha_creacion ASC LIMIT 1`,
+            [id]
+        );
+        if (abonoRes.rows.length === 0)
+            return res.status(404).json({ success: false, message: 'No hay abono pendiente para este apartado.' });
+
+        const abono       = abonoRes.rows[0];
+        const monto_abono = parseFloat(abono.monto);
+        const monto_despues = parseFloat(abono.monto_despues);
+        const liquidado   = monto_despues === 0;
+
+        if (liquidado && !confirmar_liquidacion)
+            return res.status(400).json({
+                success: false,
+                message: 'Este abono liquidaría el apartado completo. Confirma explícitamente que el cliente pagó el total.',
+                requiere_confirmacion_liquidacion: true
+            });
+
+        const nuevo_monto_pagado = Math.round((parseFloat(apartado.monto_pagado) + monto_abono) * 100) / 100;
+
+        await client.query(
+            `UPDATE abonos SET estado = 'pagado', fecha_limite_siguiente = $1,
+             notas = COALESCE($2, notas), registrado_por = $3 WHERE id = $4`,
+            [fecha_limite_siguiente || null, notas || null, userId, abono.id]
+        );
+
+        let nuevasFechas = apartado.fechas_abono;
+        if (nuevasFechas) {
+            const fechas = typeof nuevasFechas === 'string' ? JSON.parse(nuevasFechas) : nuevasFechas;
+            const primerPendiente = fechas.find((f: any) => !f.pagado);
+            if (primerPendiente) primerPendiente.pagado = true;
+            nuevasFechas = JSON.stringify(fechas);
+        }
+
+        const camposUpdate: string[] = [
+            `monto_pagado = $1`, `saldo_pendiente = $2`, `estado = $3`,
+            `trabajador_id = $4`, `actualizado_por = $4`, `fechas_abono = $5`,
+            `fecha_actualizacion = CURRENT_TIMESTAMP`
+        ];
+        const valoresUpdate: any[] = [nuevo_monto_pagado, monto_despues, liquidado ? 'liquidado' : 'activo', userId, nuevasFechas];
+        let idx = 6;
+        if (liquidado) camposUpdate.push(`fecha_liquidacion_real = CURRENT_TIMESTAMP`);
+        valoresUpdate.push(id);
+
+        await client.query(
+            `UPDATE apartados SET ${camposUpdate.join(', ')} WHERE id = $${idx}`, valoresUpdate
+        );
+
+        if (liquidado) {
+            const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+            await client.query(
+                `UPDATE ventas SET codigo_entrega = $1, estado = 'en_preparacion', actualizado_por = $2 WHERE id = $3`,
+                [codigo, userId, apartado.venta_id]
+            );
+        }
+
+        await client.query('COMMIT');
+        res.json({
+            success: true,
+            message: liquidado
+                ? '¡Apartado liquidado! Se generó el código de entrega.'
+                : `Abono confirmado. Saldo pendiente: $${monto_despues.toFixed(2)}`,
+            data: { liquidado, saldo_pendiente: monto_despues }
+        });
+
+    } catch (error: any) {
+        await client.query('ROLLBACK');
+        res.status(500).json({ success: false, message: error.message });
+    } finally {
+        client.release();
+    }
+};
+
+// ─── CLIENTE: MP para abono siguiente ─────────────────────────
+export const crearPreferenciaMP_AbonoSig = async (req: AuthRequest, res: Response) => {
+    try {
+        const usuario = req.user;
+        const { abono_id } = req.body;
+
+        const abonoRes = await pool.query(
+            `SELECT ab.*, a.folio FROM abonos ab
+             JOIN apartados a ON a.id = ab.apartado_id
+             JOIN clientes c ON c.id = a.cliente_id
+             WHERE ab.id = $1 AND ab.estado = 'pendiente' AND c.user_id = $2`,
+            [abono_id, usuario?.id || usuario?.userId]
+        );
+        if (abonoRes.rows.length === 0)
+            return res.status(404).json({ success: false, message: 'Abono no encontrado.' });
+
+        const abono   = abonoRes.rows[0];
+        const monto   = parseFloat(abono.monto);
+        const mpToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+        if (!mpToken) return res.status(503).json({ success: false, message: 'MercadoPago no configurado' });
+
+        const backUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const isLocal = (process.env.BACKEND_URL || '').includes('localhost');
+
+        const body: any = {
+            items: [{ id: String(abono.id), title: `Abono ${abono.folio}`, quantity: 1, unit_price: monto, currency_id: 'MXN' }],
+            payer: { email: usuario?.email || '' },
+            external_reference: `SABONO-${abono.id}`,
+            back_urls: {
+                success: `${backUrl}/mis-apartados?pago=exitoso&abono=${abono.id}`,
+                failure: `${backUrl}/mis-apartados?pago=fallido&abono=${abono.id}`,
+                pending: `${backUrl}/mis-apartados?pago=pendiente&abono=${abono.id}`,
+            },
+            statement_descriptor: 'Joyeria Diana Laura'
+        };
+        if (!isLocal) body.notification_url = `${process.env.BACKEND_URL}/api/apartados/webhook/mercadopago`;
+
+        const mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${mpToken}` },
+            body: JSON.stringify(body)
+        });
+        if (!mpRes.ok) return res.status(502).json({ success: false, message: 'Error al crear preferencia MP' });
+
+        const mpData = await mpRes.json();
+        res.json({ success: true, data: { preference_id: mpData.id, init_point: mpData.init_point, sandbox_init_point: mpData.sandbox_init_point } });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// ─── CLIENTE: PayPal para abono siguiente ─────────────────────
+export const crearOrdenPayPal_AbonoSig = async (req: AuthRequest, res: Response) => {
+    try {
+        const usuario = req.user;
+        const { abono_id } = req.body;
+
+        const abonoRes = await pool.query(
+            `SELECT ab.*, a.folio FROM abonos ab
+             JOIN apartados a ON a.id = ab.apartado_id
+             JOIN clientes c ON c.id = a.cliente_id
+             WHERE ab.id = $1 AND ab.estado = 'pendiente' AND c.user_id = $2`,
+            [abono_id, usuario?.id || usuario?.userId]
+        );
+        if (abonoRes.rows.length === 0)
+            return res.status(404).json({ success: false, message: 'Abono no encontrado.' });
+
+        const abono      = abonoRes.rows[0];
+        const monto      = parseFloat(abono.monto).toFixed(2);
+        const ppClientId = process.env.PAYPAL_CLIENT_ID;
+        const ppSecret   = process.env.PAYPAL_CLIENT_SECRET;
+        if (!ppClientId || !ppSecret) return res.status(503).json({ success: false, message: 'PayPal no configurado' });
+
+        const ppBase = process.env.PAYPAL_MODE === 'production' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+        const tokenRes = await fetch(`${ppBase}/v1/oauth2/token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': `Basic ${Buffer.from(`${ppClientId}:${ppSecret}`).toString('base64')}` },
+            body: 'grant_type=client_credentials'
+        });
+        const { access_token } = await tokenRes.json();
+        const backUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+        const orderRes = await fetch(`${ppBase}/v2/checkout/orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
+            body: JSON.stringify({
+                intent: 'CAPTURE',
+                purchase_units: [{ reference_id: `SABONO-${abono.id}`, amount: { currency_code: 'MXN', value: monto }, description: `Abono ${abono.folio}` }],
+                application_context: {
+                    return_url: `${backUrl}/mis-apartados?pago=exitoso&abono=${abono.id}&metodo=paypal`,
+                    cancel_url:  `${backUrl}/mis-apartados?pago=fallido&abono=${abono.id}&metodo=paypal`,
+                    brand_name: 'Joyería Diana Laura', locale: 'es-MX', landing_page: 'BILLING', user_action: 'PAY_NOW'
+                }
+            })
+        });
+        const orderData = await orderRes.json();
+        if (!orderRes.ok) return res.status(502).json({ success: false, message: 'Error al crear orden PayPal' });
+
+        const approveLink = orderData.links?.find((l: any) => l.rel === 'approve')?.href;
+        res.json({ success: true, data: { order_id: orderData.id, approve_url: approveLink } });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// ─── CLIENTE: Capturar PayPal abono siguiente ─────────────────
+export const capturarPayPal_AbonoSig = async (req: AuthRequest, res: Response) => {
+    try {
+        const { order_id, abono_id } = req.body;
+        const ppClientId = process.env.PAYPAL_CLIENT_ID;
+        const ppSecret   = process.env.PAYPAL_CLIENT_SECRET;
+        const ppBase     = process.env.PAYPAL_MODE === 'production' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+
+        const tokenRes = await fetch(`${ppBase}/v1/oauth2/token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': `Basic ${Buffer.from(`${ppClientId}:${ppSecret}`).toString('base64')}` },
+            body: 'grant_type=client_credentials'
+        });
+        const { access_token } = await tokenRes.json();
+        const captureRes = await fetch(`${ppBase}/v2/checkout/orders/${order_id}/capture`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` }
+        });
+        const captureData = await captureRes.json();
+
+        if (captureData.status === 'COMPLETED') {
+            await confirmarAbonoPorPago(parseInt(abono_id), order_id, 'paypal');
+            res.json({ success: true, message: 'Pago PayPal del abono confirmado.' });
+        } else {
+            res.status(400).json({ success: false, message: 'El pago no fue completado.' });
+        }
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// ─── Helper: confirmar abono por pago automático ──────────────
+const confirmarAbonoPorPago = async (abono_id: number, transaction_id: string, metodo: string) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        const abonoRes = await client.query(
+            `SELECT ab.*, a.monto_pagado AS apt_monto_pagado, a.fechas_abono AS apt_fechas_abono,
+             a.venta_id AS apt_venta_id, a.plan_abono_id AS apt_plan_id,
+             pa.intervalo_dias AS plan_intervalo_dias
+             FROM abonos ab
+             JOIN apartados a ON a.id = ab.apartado_id
+             LEFT JOIN planes_abono pa ON pa.id = a.plan_abono_id
+             WHERE ab.id = $1 AND ab.estado = 'pendiente'`,
+            [abono_id]
+        );
+        if (abonoRes.rows.length === 0) { console.log(`⚠️ Abono ${abono_id} ya procesado`); return; }
+
+        const abono            = abonoRes.rows[0];
+        const monto_abono      = parseFloat(abono.monto);
+        const monto_despues    = parseFloat(abono.monto_despues);
+        const liquidado        = monto_despues === 0;
+        const intervalo_dias   = abono.plan_intervalo_dias ? parseInt(abono.plan_intervalo_dias) : 30;
+        // Si pagó antes o en la fecha límite → siguiente se calcula desde esa fecha límite (no desde hoy)
+        // Si pagó tarde → siguiente se calcula desde hoy
+        const calcFechaSiguiente = (): string => {
+            const hoyMex = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City' }).format(new Date());
+            if (abono.fecha_limite_siguiente) {
+                const limite = abono.fecha_limite_siguiente.substring(0, 10);
+                const base = hoyMex <= limite ? limite : hoyMex;
+                const [y, m, d] = base.split('-').map(Number);
+                return new Date(Date.UTC(y, m - 1, d + intervalo_dias)).toISOString().split('T')[0];
+            }
+            return fechaMexMasDias(intervalo_dias);
+        };
+        const fecha_siguiente  = liquidado ? null : calcFechaSiguiente();
+        const nuevo_monto_pagado = Math.round((parseFloat(abono.apt_monto_pagado) + monto_abono) * 100) / 100;
+
+        await client.query(
+            `UPDATE abonos SET estado = 'pagado', notas = $1, fecha_limite_siguiente = $2 WHERE id = $3`,
+            [`Pago confirmado vía ${metodo} — ${transaction_id}`, fecha_siguiente, abono_id]
+        );
+
+        let nuevasFechas = abono.apt_fechas_abono;
+        if (nuevasFechas) {
+            const fechas = typeof nuevasFechas === 'string' ? JSON.parse(nuevasFechas) : nuevasFechas;
+            const primerPendiente = fechas.find((f: any) => !f.pagado);
+            if (primerPendiente) primerPendiente.pagado = true;
+            nuevasFechas = JSON.stringify(fechas);
+        }
+
+        const camposUpdate = [
+            `monto_pagado = $1`, `saldo_pendiente = $2`, `estado = $3`,
+            `fechas_abono = $4`, `fecha_actualizacion = CURRENT_TIMESTAMP`
+        ];
+        const valoresUpdate: any[] = [nuevo_monto_pagado, monto_despues, liquidado ? 'liquidado' : 'activo', nuevasFechas];
+        let idx = 5;
+        if (liquidado) camposUpdate.push(`fecha_liquidacion_real = CURRENT_TIMESTAMP`);
+        valoresUpdate.push(abono.apartado_id);
+
+        await client.query(
+            `UPDATE apartados SET ${camposUpdate.join(', ')} WHERE id = $${idx}`, valoresUpdate
+        );
+
+        if (liquidado) {
+            const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+            await client.query(
+                `UPDATE ventas SET codigo_entrega = $1, estado = 'en_preparacion' WHERE id = $2`,
+                [codigo, abono.apt_venta_id]
+            );
+        }
+
+        await client.query('COMMIT');
+        console.log(`✅ Abono ${abono_id} confirmado por ${metodo}`);
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
+};
+
 // ─── Helper: confirmar apartado por pago automático ──────────
 const confirmarApartadoPorPago = async (apartado_id: number, transaction_id: string, metodo: string) => {
     const client = await pool.connect();
@@ -988,28 +1449,40 @@ const confirmarApartadoPorPago = async (apartado_id: number, transaction_id: str
         if (aptRes.rows.length === 0) { console.log(`⚠️ Apartado ${apartado_id} ya procesado`); return; }
         const apartado = aptRes.rows[0];
 
-        await client.query(
-            `UPDATE abonos SET estado = 'pagado', notas = $1 WHERE apartado_id = $2 AND estado = 'pendiente'`,
-            [`Pago confirmado vía ${metodo} — ${transaction_id}`, apartado_id]
-        );
-
         // Calcular fechas si tiene plan
         let fechas_abono = apartado.fechas_abono;
+        let intervalo_dias_plan = 30;
         if (apartado.plan_abono_id && parseFloat(apartado.saldo_pendiente) > 0) {
             const planRes = await client.query(`SELECT * FROM planes_abono WHERE id = $1`, [apartado.plan_abono_id]);
             if (planRes.rows.length > 0) {
+                intervalo_dias_plan = parseInt(planRes.rows[0].intervalo_dias) || 30;
                 fechas_abono = JSON.stringify(calcularFechasAbono(
-                    new Date(), parseFloat(apartado.saldo_pendiente), planRes.rows[0], parseFloat(apartado.monto_total)
+                    new Date(apartado.fecha_creacion), parseFloat(apartado.saldo_pendiente), planRes.rows[0], parseFloat(apartado.monto_total)
                 ));
             }
         }
 
+        const fechaSiguiente = parseFloat(apartado.saldo_pendiente) > 0
+            ? fechaMexMasDias(intervalo_dias_plan)
+            : null;
+
+        await client.query(
+            `UPDATE abonos SET estado = 'pagado', notas = $1, fecha_limite_siguiente = $2
+             WHERE apartado_id = $3 AND estado = 'pendiente'`,
+            [`Pago confirmado vía ${metodo} — ${transaction_id}`, fechaSiguiente, apartado_id]
+        );
+
         const fechaLimite = new Date();
         fechaLimite.setDate(fechaLimite.getDate() + 30);
 
+        const liquidadoInicial = parseFloat(apartado.saldo_pendiente) === 0;
+        const estadoNuevo = liquidadoInicial ? 'liquidado' : 'activo';
+
         await client.query(
-            `UPDATE apartados SET estado = 'activo', fecha_limite_liquidacion = $1, fechas_abono = $2, fecha_actualizacion = CURRENT_TIMESTAMP WHERE id = $3`,
-            [fechaLimite, fechas_abono, apartado_id]
+            `UPDATE apartados SET estado = $1, fecha_limite_liquidacion = $2, fechas_abono = $3,
+             ${liquidadoInicial ? 'fecha_liquidacion_real = CURRENT_TIMESTAMP,' : ''}
+             fecha_actualizacion = CURRENT_TIMESTAMP WHERE id = $4`,
+            [estadoNuevo, fechaLimite, fechas_abono, apartado_id]
         );
 
         const detallesRes = await client.query('SELECT producto_id, cantidad FROM detalle_ventas WHERE venta_id = $1', [apartado.venta_id]);
@@ -1022,7 +1495,15 @@ const confirmarApartadoPorPago = async (apartado_id: number, transaction_id: str
             );
         }
 
-        await client.query(`UPDATE ventas SET estado = 'confirmado' WHERE id = $1`, [apartado.venta_id]);
+        if (liquidadoInicial) {
+            const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+            await client.query(
+                `UPDATE ventas SET estado = 'en_preparacion', codigo_entrega = $1 WHERE id = $2`,
+                [codigo, apartado.venta_id]
+            );
+        } else {
+            await client.query(`UPDATE ventas SET estado = 'confirmado' WHERE id = $1`, [apartado.venta_id]);
+        }
         await client.query('COMMIT');
         console.log(`✅ Apartado ${apartado_id} confirmado por ${metodo}`);
     } catch (err) {

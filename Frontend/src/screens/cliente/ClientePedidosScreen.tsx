@@ -44,6 +44,8 @@ interface Pedido {
     dir_numero_interior?: string;
     dir_referencias?: string;
     dir_telefono_contacto?: string;
+    es_apartado?: boolean;
+    apartado_folio?: string;
 }
 
 interface EstadoConfig { value: string; label: string; color: string; bg: string; }
@@ -355,7 +357,7 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
 
     const contar = (estado: string) => pedidos.filter(p => p.estado === estado).length;
     const enProceso = pedidos.filter(p => !['enviado','entregado','cancelado'].includes(p.estado)).length;
-    const esPagable = (pedido: Pedido) => estadosPagables.includes(pedido.estado) && !['aprobado','pagado'].includes(pedido.estado_pago);
+    const esPagable = (pedido: Pedido) => !pedido.es_apartado && estadosPagables.includes(pedido.estado) && !['aprobado','pagado'].includes(pedido.estado_pago);
     const pedidosFiltrados = busqueda.trim()
         ? pedidos.filter(p =>
             p.folio.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -433,7 +435,14 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
 
     const renderFilaPedido = (pedido: Pedido) => (
         <tr key={pedido.id}>
-            <td className="cp-folio">{pedido.folio}</td>
+            <td className="cp-folio">
+                {pedido.folio}
+                {pedido.es_apartado && (
+                    <span style={{ display: 'block', fontSize: '0.72rem', marginTop: 3, background: '#a78bfa22', color: '#a78bfa', borderRadius: 4, padding: '1px 6px', fontWeight: 600 }}>
+                        🔖 Apartado {pedido.apartado_folio}
+                    </span>
+                )}
+            </td>
             <td>{formatFechaHora(pedido.fecha_creacion)}</td>
             <td className="cp-fecha-est">
                 {pedido.fecha_estimada_entrega && ['aprobado','pagado'].includes(pedido.estado_pago)
@@ -573,6 +582,11 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
                         <div className="cp-modal-header">
                             <div>
                                 <h3>Pedido {pedidoDetalle.folio}</h3>
+                                {pedidoDetalle.es_apartado && (
+                                    <span style={{ fontSize: '0.78rem', background: '#a78bfa22', color: '#a78bfa', borderRadius: 4, padding: '2px 8px', fontWeight: 600 }}>
+                                        🔖 Originado de apartado {pedidoDetalle.apartado_folio}
+                                    </span>
+                                )}
                                 <p className="cp-modal-fecha">{formatFechaHora(pedidoDetalle.fecha_creacion)}</p>
                             </div>
                             <button className="cp-modal-close" onClick={() => setPedidoDetalle(null)}>×</button>
@@ -649,8 +663,17 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
                                         )}
                                         <div className="cp-modal-total-fila cp-modal-total-final"><span>Total</span><span>${Number.parseFloat(String(pedidoDetalle.total)).toLocaleString('es-MX')}</span></div>
                                     </div>
-                                    {renderSeccionPago(pedidoDetalle)}
-                                    {['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && (
+                                    {pedidoDetalle.es_apartado && (
+                                        <div className="cp-pago-completado" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
+                                            <div>✅ <strong>Pago completado — Pedido originado de apartado</strong></div>
+                                            <div style={{ fontSize: '0.85em', opacity: 0.85, lineHeight: '1.5' }}>
+                                                💳 Este pedido fue liquidado mediante un plan de apartado.<br />
+                                                🏪 Recuerda pasar a recoger tu producto a la tienda una vez que esté listo.
+                                            </div>
+                                        </div>
+                                    )}
+                                    {!pedidoDetalle.es_apartado && renderSeccionPago(pedidoDetalle)}
+                                    {!pedidoDetalle.es_apartado && ['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && (
                                         <div className="cp-pago-completado">✅ <strong>Pago completado</strong></div>
                                     )}
 

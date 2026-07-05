@@ -802,21 +802,21 @@ export const tomarPedido = async (req: Request, res: Response) => {
         const venta = await VentaModel.getById(Number.parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
 
-        if (venta.estado !== 'pendiente')
+        if (!['pendiente', 'en_preparacion'].includes(venta.estado))
             return res.status(400).json({ success: false, message: 'Este pedido ya fue tomado o no está disponible' });
 
         if (venta.trabajador_id)
-            return res.status(400).json({ 
-                success: false, 
-                message: `Este pedido ya está siendo atendido por ${venta.trabajador_nombre || 'otro trabajador'}` 
+            return res.status(400).json({
+                success: false,
+                message: `Este pedido ya está siendo atendido por ${venta.trabajador_nombre || 'otro trabajador'}`
             });
 
         const result = await pool.query(`
-            UPDATE ventas 
+            UPDATE ventas
             SET trabajador_id = $1,
                 actualizado_por = $1,
                 fecha_actualizacion = CURRENT_TIMESTAMP
-            WHERE id = $2 AND (trabajador_id IS NULL) AND estado = 'pendiente'
+            WHERE id = $2 AND trabajador_id IS NULL AND estado IN ('pendiente', 'en_preparacion')
             RETURNING *
         `, [usuario.id, Number.parseInt(id)]);
 

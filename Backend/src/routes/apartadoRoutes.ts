@@ -7,7 +7,9 @@ import {
     crearPreferenciaMP_Apartado, webhookMP_Apartado,
     crearOrdenPayPal_Apartado, capturarPayPal_Apartado,
     subirComprobanteApartado, archivarApartado,
-    getPlanes, crearPlan, actualizarPlan, eliminarPlan
+    getPlanes, crearPlan, actualizarPlan, eliminarPlan,
+    solicitarAbono, confirmarAbonoPendiente,
+    crearPreferenciaMP_AbonoSig, crearOrdenPayPal_AbonoSig, capturarPayPal_AbonoSig
 } from '../controllers/apartado/apartadoController';
 import { authenticateToken } from '../middleware/authMiddleware';
 import { uploadSingleImage, handleUploadError } from '../middleware/uploadMiddleware';
@@ -40,10 +42,17 @@ router.patch('/:id/cancelar',          cancelarApartado);
 router.patch('/:id/advertencia',       marcarAdvertencia);
 router.patch('/:id/archivar',          archivarApartado);
 
-// ── Pagos ─────────────────────────────────────────────────────
-router.post('/pago/mercadopago',       crearPreferenciaMP_Apartado);
-router.post('/pago/paypal/crear',      crearOrdenPayPal_Apartado);
-router.post('/pago/paypal/capturar',   capturarPayPal_Apartado);
-router.post('/:id/comprobante',        uploadSingleImage, handleUploadError, subirComprobanteApartado);
+// ── Pagos (abono inicial) ─────────────────────────────────────
+router.post('/pago/mercadopago',            crearPreferenciaMP_Apartado);
+router.post('/pago/paypal/crear',           crearOrdenPayPal_Apartado);
+router.post('/pago/paypal/capturar',        capturarPayPal_Apartado);
+router.post('/:id/comprobante',             uploadSingleImage, handleUploadError, subirComprobanteApartado);
+
+// ── Abonos siguientes (cliente solicita, trabajador confirma) ─
+router.post('/:id/solicitar-abono',         uploadSingleImage, handleUploadError, solicitarAbono);
+router.post('/:id/confirmar-abono',         confirmarAbonoPendiente);
+router.post('/pago/mercadopago/abono',      crearPreferenciaMP_AbonoSig);
+router.post('/pago/paypal/abono/crear',     crearOrdenPayPal_AbonoSig);
+router.post('/pago/paypal/abono/capturar',  capturarPayPal_AbonoSig);
 
 export default router;

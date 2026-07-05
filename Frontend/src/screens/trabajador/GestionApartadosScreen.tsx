@@ -13,6 +13,18 @@ interface Abono {
     estado: string;
     notas: string | null;
     comprobante_url: string | null;
+    metodo_nombre: string | null;
+    metodo_codigo: string | null;
+}
+
+interface AbonoPendiente {
+    id: number;
+    monto: number;
+    monto_antes: number;
+    fecha_creacion: string;
+    comprobante_url: string | null;
+    metodo_nombre: string;
+    metodo_codigo: string;
 }
 
 interface Apartado {
@@ -37,6 +49,8 @@ interface Apartado {
     abonos: Abono[] | null;
     total_abonos: number;
     metodo_pago_inicial: string | null;
+    metodo_pago_inicial_nombre: string | null;
+    abono_pendiente: AbonoPendiente | null;
 }
 
 interface Meta {
@@ -45,6 +59,13 @@ interface Meta {
     limite: number;
     total_paginas: number;
 }
+
+const ICONOS_METODO: Record<string, string> = {
+    mercadopago:   '🛒',
+    paypal:        '🅿️',
+    transferencia: '🏦',
+    efectivo:      '💵',
+};
 
 const ESTADO_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
     pendiente_pago: { label: 'Pend. pago',  color: '#a78bfa', icon: '🕐' },
@@ -56,15 +77,24 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; icon: string
 
 const fmtFecha = (f: string) => {
     if (!f) return '—';
-    return new Date(f).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+    // Si tiene componente de hora es un timestamp UTC — convertir a México antes de extraer la fecha
+    if (f.length > 10) {
+        return new Date(f).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'America/Mexico_City' });
+    }
+    const [y, m, d] = f.substring(0, 10).split('-').map(Number);
+    if (!y || !m || !d) return '—';
+    return new Date(y, m - 1, d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const fmtMoneda = (n: number) =>
     `$${Number(n).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`;
 
 const diasRestantes = (fecha: string) => {
-    const diff = Math.ceil((new Date(fecha).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-    return diff;
+    const [y, m, d] = fecha.substring(0, 10).split('-').map(Number);
+    const fechaLocal = new Date(y, m - 1, d);
+    fechaLocal.setHours(0, 0, 0, 0);
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    return Math.ceil((fechaLocal.getTime() - hoy.getTime()) / 86400000);
 };
 
 // ── Modal confirmar pago inicial ──────────────────────────────
@@ -75,11 +105,16 @@ interface ModalConfirmarPagoProps {
 }
 
 const ModalConfirmarPago: React.FC<ModalConfirmarPagoProps> = ({ apartado, onCerrar, onExito }) => {
-    const [fechaLimiteLiq, setFechaLimiteLiq] = useState('');
-    const [fechaLimiteSig, setFechaLimiteSig] = useState('');
-    const [notas, setNotas]                   = useState('');
-    const [error, setError]                   = useState('');
-    const [guardando, setGuardando]           = useState(false);
+    const [fechaLimiteLiq, setFechaLimiteLiq]   = useState('');
+    const [fechaLimiteSig, setFechaLimiteSig]   = useState('');
+    const [notas, setNotas]                     = useState('');
+    const [error, setError]                     = useState('');
+    const [guardando, setGuardando]             = useState(false);
+
+    const metodo        = apartado.metodo_pago_inicial || '';
+    const metodoNombre  = apartado.metodo_pago_inicial_nombre || metodo;
+    const esPasarela    = ['mercadopago', 'paypal'].includes(metodo);
+    const tieneComprobante = !!apartado.comprobante_url;
 
     const handleConfirmar = async () => {
         if (!fechaLimiteLiq) { setError('La fecha límite de liquidación es requerida.'); return; }
@@ -97,10 +132,6 @@ const ModalConfirmarPago: React.FC<ModalConfirmarPagoProps> = ({ apartado, onCer
         } finally { setGuardando(false); }
     };
 
-    // Determinar si el cliente ya realizó alguna acción de pago
-    const metodoAbono = apartado.abonos?.[0];
-    const tieneComprobante = !!apartado.comprobante_url;
-
     return (
         <div className="gapt-overlay" onClick={onCerrar}>
             <div className="gapt-modal gapt-modal--sm" onClick={e => e.stopPropagation()}>
@@ -109,10 +140,16 @@ const ModalConfirmarPago: React.FC<ModalConfirmarPagoProps> = ({ apartado, onCer
                     <button className="gapt-modal-close" onClick={onCerrar}>×</button>
                 </div>
                 <div className="gapt-modal-body">
+
+                    {/* Datos del pago */}
                     <div className="gapt-modal-resumen">
                         <div className="gapt-resumen-fila">
                             <span>Cliente</span>
                             <strong>{apartado.cliente_nombre}</strong>
+                        </div>
+                        <div className="gapt-resumen-fila">
+                            <span>Método de pago</span>
+                            <strong>{ICONOS_METODO[metodo] || '💰'} {metodoNombre}</strong>
                         </div>
                         <div className="gapt-resumen-fila">
                             <span>Abono inicial</span>
@@ -122,48 +159,72 @@ const ModalConfirmarPago: React.FC<ModalConfirmarPagoProps> = ({ apartado, onCer
                             <span>Saldo pendiente tras confirmar</span>
                             <strong style={{ color: '#ecb2c3' }}>{fmtMoneda(apartado.saldo_pendiente)}</strong>
                         </div>
+                        <div className="gapt-resumen-fila">
+                            <span>Total del apartado</span>
+                            <strong>{fmtMoneda(apartado.monto_total)}</strong>
+                        </div>
                     </div>
 
-                    {tieneComprobante && (
-                        <div className="gapt-comprobante-preview">
-                            <p>📎 Comprobante subido por el cliente:</p>
-                            <a href={apartado.comprobante_url!} target="_blank" rel="noreferrer">
-                                Ver comprobante →
-                            </a>
+                    {/* Pasarela: aviso de auto-confirmación — sin botón de confirmar manual */}
+                    {esPasarela && (
+                        <div className="gapt-pago-pendiente-info" style={{ background: '#1a2e1a', borderColor: '#6bcb77', color: '#6bcb77' }}>
+                            {metodo === 'paypal' ? '🅿️' : '🛒'} El cliente eligió <strong>{metodoNombre}</strong>. Cuando complete el pago, este apartado <strong>se actualiza automáticamente</strong> — no necesitas hacer nada.
+                            <br /><br />
+                            Si ya pagó y la pantalla no cambió, recárgala.
+                            <br /><br />
+                            <button className="gapt-btn-sec" style={{ fontSize: '0.8rem', padding: '4px 10px' }}
+                                onClick={() => window.location.reload()}>
+                                🔄 Recargar pantalla
+                            </button>
                         </div>
                     )}
 
-                    <div className="gapt-form-group">
-                        <label>Fecha límite para liquidar <span className="gapt-req">*</span></label>
-                        <input type="date" className="gapt-input"
-                            min={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                            value={fechaLimiteLiq}
-                            onChange={e => setFechaLimiteLiq(e.target.value)} />
-                        <small className="gapt-ayuda">Cuándo debe liquidar el cliente el total.</small>
-                    </div>
+                    {/* Comprobante de transferencia */}
+                    {tieneComprobante && (
+                        <div className="gapt-comprobante-preview">
+                            <p>📎 Comprobante subido por el cliente:</p>
+                            <a href={apartado.comprobante_url!} target="_blank" rel="noreferrer">Ver comprobante →</a>
+                            <img src={apartado.comprobante_url!} alt="Comprobante"
+                                style={{ display: 'block', marginTop: 8, maxWidth: '100%', maxHeight: 160, borderRadius: 6, objectFit: 'contain' }} />
+                        </div>
+                    )}
 
-                    <div className="gapt-form-group">
-                        <label>Fecha límite del siguiente abono (opcional)</label>
-                        <input type="date" className="gapt-input"
-                            min={new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                            value={fechaLimiteSig}
-                            onChange={e => setFechaLimiteSig(e.target.value)} />
-                    </div>
-
-                    <div className="gapt-form-group">
-                        <label>Notas (opcional)</label>
-                        <textarea className="gapt-textarea" rows={2}
-                            placeholder="Ej: Pagó en efectivo, comprobante revisado..."
-                            value={notas} onChange={e => setNotas(e.target.value)} />
-                    </div>
+                    {/* Formulario de confirmación — solo para efectivo y transferencia */}
+                    {!esPasarela && (
+                        <>
+                            <div className="gapt-form-group" style={{ marginTop: 12 }}>
+                                <label>Fecha límite para liquidar <span className="gapt-req">*</span></label>
+                                <input type="date" className="gapt-input"
+                                    min={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                                    value={fechaLimiteLiq}
+                                    onChange={e => setFechaLimiteLiq(e.target.value)} />
+                                <small className="gapt-ayuda">Cuándo debe liquidar el cliente el total.</small>
+                            </div>
+                            <div className="gapt-form-group">
+                                <label>Fecha límite del siguiente abono (opcional)</label>
+                                <input type="date" className="gapt-input"
+                                    min={new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                                    value={fechaLimiteSig}
+                                    onChange={e => setFechaLimiteSig(e.target.value)} />
+                            </div>
+                            <div className="gapt-form-group">
+                                <label>Notas (opcional)</label>
+                                <textarea className="gapt-textarea" rows={2}
+                                    placeholder="Ej: Pagó en efectivo, comprobante revisado..."
+                                    value={notas} onChange={e => setNotas(e.target.value)} />
+                            </div>
+                        </>
+                    )}
 
                     {error && <div className="gapt-error">⚠️ {error}</div>}
                 </div>
                 <div className="gapt-modal-footer">
                     <button className="gapt-btn-sec" onClick={onCerrar}>Cancelar</button>
-                    <button className="gapt-btn-pri" onClick={handleConfirmar} disabled={guardando}>
-                        {guardando ? '⏳ Confirmando...' : '✅ Confirmar pago'}
-                    </button>
+                    {!esPasarela && (
+                        <button className="gapt-btn-pri" onClick={handleConfirmar} disabled={guardando}>
+                            {guardando ? '⏳ Confirmando...' : '✅ Confirmar pago'}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
@@ -179,13 +240,14 @@ interface ModalAbonoProps {
 }
 
 const ModalAbono: React.FC<ModalAbonoProps> = ({ apartado, metodosPago, onCerrar, onExito }) => {
-    const [monto, setMonto]                   = useState('');
-    const [metodoPagoId, setMetodoPagoId]     = useState<number | null>(null);
-    const [fechaLimiteSig, setFechaLimiteSig] = useState('');
-    const [fechaLimiteLiq, setFechaLimiteLiq] = useState('');
-    const [notas, setNotas]                   = useState('');
-    const [error, setError]                   = useState('');
-    const [guardando, setGuardando]           = useState(false);
+    const [monto, setMonto]                             = useState('');
+    const [metodoPagoId, setMetodoPagoId]               = useState<number | null>(null);
+    const [fechaLimiteSig, setFechaLimiteSig]           = useState('');
+    const [fechaLimiteLiq, setFechaLimiteLiq]           = useState('');
+    const [notas, setNotas]                             = useState('');
+    const [confirmarLiquidacion, setConfirmarLiquidacion] = useState(false);
+    const [error, setError]                             = useState('');
+    const [guardando, setGuardando]                     = useState(false);
 
     const handleGuardar = async () => {
         if (!monto || parseFloat(monto) <= 0) { setError('Ingresa un monto válido.'); return; }
@@ -193,6 +255,11 @@ const ModalAbono: React.FC<ModalAbonoProps> = ({ apartado, metodosPago, onCerrar
             setError(`El monto no puede superar el saldo pendiente (${fmtMoneda(apartado.saldo_pendiente)}).`); return;
         }
         if (!metodoPagoId) { setError('Selecciona un método de pago.'); return; }
+        const montoNum = parseFloat(monto);
+        const saldoDespues = Math.round((parseFloat(String(apartado.saldo_pendiente)) - montoNum) * 100) / 100;
+        if (saldoDespues === 0 && !confirmarLiquidacion) {
+            setError('Este abono liquidará el apartado completo. Marca la casilla de confirmación.'); return;
+        }
         setGuardando(true); setError('');
         try {
             const res = await apartadoAPI.registrarAbono(apartado.id, {
@@ -201,6 +268,7 @@ const ModalAbono: React.FC<ModalAbonoProps> = ({ apartado, metodosPago, onCerrar
                 fecha_limite_siguiente: fechaLimiteSig || undefined,
                 fecha_limite_liquidacion: fechaLimiteLiq || undefined,
                 notas: notas || undefined,
+                confirmar_liquidacion: saldoDespues === 0 ? true : undefined,
             } as any);
             if (!res.success) throw new Error(res.message);
             onExito();
@@ -238,6 +306,19 @@ const ModalAbono: React.FC<ModalAbonoProps> = ({ apartado, metodosPago, onCerrar
                                 </strong>
                             </div>
                         )}
+                        {saldoDespues === 0 && montoNum > 0 && (
+                            <div className="gapt-resumen-fila" style={{ background: '#2d1f0e', borderRadius: 6, padding: '8px 12px', marginTop: 6 }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: '#f39c12', fontWeight: 500, fontSize: '0.85rem' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={confirmarLiquidacion}
+                                        onChange={e => setConfirmarLiquidacion(e.target.checked)}
+                                        style={{ width: 16, height: 16, accentColor: '#f39c12' }}
+                                    />
+                                    Confirmo que el cliente ya realizó el pago total del saldo pendiente
+                                </label>
+                            </div>
+                        )}
                     </div>
 
                     <div className="gapt-form-group">
@@ -251,7 +332,7 @@ const ModalAbono: React.FC<ModalAbonoProps> = ({ apartado, metodosPago, onCerrar
                     <div className="gapt-form-group">
                         <label>Método de pago <span className="gapt-req">*</span></label>
                         <div className="gapt-metodos">
-                            {metodosPago.map(m => (
+                            {metodosPago.filter(m => m.codigo === 'efectivo').map(m => (
                                 <label key={m.id} className={`gapt-metodo-opt ${metodoPagoId === m.id ? 'sel' : ''}`}>
                                     <input type="radio" name="metodo_abono"
                                         checked={metodoPagoId === m.id}
@@ -260,6 +341,9 @@ const ModalAbono: React.FC<ModalAbonoProps> = ({ apartado, metodosPago, onCerrar
                                 </label>
                             ))}
                         </div>
+                        <small className="gapt-ayuda" style={{ color: '#888', marginTop: 4, display: 'block' }}>
+                            Solo efectivo en tienda. Transferencia: el cliente sube su comprobante y aparece el botón "Confirmar abono pendiente". MP/PayPal se confirman solos al pagar en línea.
+                        </small>
                     </div>
 
                     <div className="gapt-form-group">
@@ -291,6 +375,135 @@ const ModalAbono: React.FC<ModalAbonoProps> = ({ apartado, metodosPago, onCerrar
                     <button className="gapt-btn-sec" onClick={onCerrar}>Cancelar</button>
                     <button className="gapt-btn-pri" onClick={handleGuardar} disabled={guardando}>
                         {guardando ? '⏳ Guardando...' : '💰 Registrar abono'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ── Modal confirmar abono pendiente (trabajador) ──────────────
+interface ModalConfirmarAbonoProps {
+    apartado: Apartado;
+    onCerrar: () => void;
+    onExito: () => void;
+}
+
+const ModalConfirmarAbono: React.FC<ModalConfirmarAbonoProps> = ({ apartado, onCerrar, onExito }) => {
+    const ab = apartado.abono_pendiente!;
+    const saldoDespues = Math.max(0, Math.round((parseFloat(String(apartado.saldo_pendiente)) - parseFloat(String(ab.monto))) * 100) / 100);
+    const liquidado    = saldoDespues === 0;
+
+    const [notas, setNotas]                             = useState('');
+    const [fechaLimiteSig, setFechaLimiteSig]           = useState('');
+    const [confirmarLiquidacion, setConfirmarLiquidacion] = useState(false);
+    const [error, setError]                             = useState('');
+    const [guardando, setGuardando]                     = useState(false);
+
+    const handleConfirmar = async () => {
+        if (liquidado && !confirmarLiquidacion) {
+            setError('Marca la casilla para confirmar que el cliente ya realizó el pago total.'); return;
+        }
+        setGuardando(true); setError('');
+        try {
+            const res = await apartadoAPI.confirmarAbonoPendiente(apartado.id, {
+                notas: notas || undefined,
+                fecha_limite_siguiente: fechaLimiteSig || undefined,
+                confirmar_liquidacion: liquidado ? true : undefined,
+            });
+            if (!res.success) throw new Error(res.message);
+            onExito();
+        } catch (err: any) {
+            setError(err.message || 'Error al confirmar el abono.');
+        } finally { setGuardando(false); }
+    };
+
+    return (
+        <div className="gapt-overlay" onClick={onCerrar}>
+            <div className="gapt-modal gapt-modal--sm" onClick={e => e.stopPropagation()}>
+                <div className="gapt-modal-header">
+                    <h3>✅ Confirmar abono — {apartado.folio}</h3>
+                    <button className="gapt-modal-close" onClick={onCerrar}>×</button>
+                </div>
+                <div className="gapt-modal-body">
+                    {/* Datos del abono pendiente */}
+                    <div className="gapt-modal-resumen">
+                        <div className="gapt-resumen-fila">
+                            <span>Cliente</span>
+                            <strong>{apartado.cliente_nombre}</strong>
+                        </div>
+                        <div className="gapt-resumen-fila">
+                            <span>Método de pago</span>
+                            <strong>{ab.metodo_nombre}</strong>
+                        </div>
+                        <div className="gapt-resumen-fila">
+                            <span>Monto declarado</span>
+                            <strong style={{ color: '#6bcb77' }}>{fmtMoneda(ab.monto)}</strong>
+                        </div>
+                        <div className="gapt-resumen-fila">
+                            <span>Solicitado el</span>
+                            <strong>{fmtFecha(ab.fecha_creacion)}</strong>
+                        </div>
+                        <div className="gapt-resumen-fila">
+                            <span>Saldo tras confirmar</span>
+                            <strong style={{ color: liquidado ? '#6bcb77' : '#ecb2c3' }}>
+                                {fmtMoneda(saldoDespues)}
+                                {liquidado && ' ✅ Liquidado'}
+                            </strong>
+                        </div>
+                    </div>
+
+                    {/* Comprobante si existe */}
+                    {ab.comprobante_url && (
+                        <div className="gapt-form-group">
+                            <label>Comprobante del cliente</label>
+                            <a href={ab.comprobante_url} target="_blank" rel="noreferrer"
+                                className="gapt-comprobante-link" style={{ display: 'block', marginTop: 6 }}>
+                                📎 Ver comprobante →
+                            </a>
+                            <img src={ab.comprobante_url} alt="Comprobante"
+                                style={{ marginTop: 8, maxWidth: '100%', maxHeight: 180, borderRadius: 6, objectFit: 'contain' }} />
+                        </div>
+                    )}
+
+                    {ab.metodo_codigo === 'efectivo' && (
+                        <div className="gapt-pago-pendiente-info">
+                            💵 El cliente reportó pago en efectivo. Confirma solo si ya recibiste el dinero físicamente.
+                        </div>
+                    )}
+
+                    {liquidado && (
+                        <div style={{ background: '#2d1f0e', borderRadius: 6, padding: '8px 12px', marginTop: 8 }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: '#f39c12', fontWeight: 500, fontSize: '0.85rem' }}>
+                                <input type="checkbox" checked={confirmarLiquidacion}
+                                    onChange={e => setConfirmarLiquidacion(e.target.checked)}
+                                    style={{ width: 16, height: 16, accentColor: '#f39c12' }} />
+                                Confirmo que el cliente ya realizó el pago total del saldo pendiente
+                            </label>
+                        </div>
+                    )}
+
+                    <div className="gapt-form-group" style={{ marginTop: 12 }}>
+                        <label>Fecha límite siguiente abono (opcional)</label>
+                        <input type="date" className="gapt-input"
+                            min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                            value={fechaLimiteSig}
+                            onChange={e => setFechaLimiteSig(e.target.value)} />
+                    </div>
+
+                    <div className="gapt-form-group">
+                        <label>Notas (opcional)</label>
+                        <textarea className="gapt-textarea" rows={2}
+                            placeholder="Ej: Comprobante verificado, transferencia recibida..."
+                            value={notas} onChange={e => setNotas(e.target.value)} />
+                    </div>
+
+                    {error && <div className="gapt-error">⚠️ {error}</div>}
+                </div>
+                <div className="gapt-modal-footer">
+                    <button className="gapt-btn-sec" onClick={onCerrar}>Cancelar</button>
+                    <button className="gapt-btn-pri" onClick={handleConfirmar} disabled={guardando}>
+                        {guardando ? '⏳ Confirmando...' : '✅ Confirmar abono'}
                     </button>
                 </div>
             </div>
@@ -364,9 +577,10 @@ const GestionApartadosScreen: React.FC = () => {
     const [pagina, setPagina]                   = useState(1);
     const [verArchivados, setVerArchivados]     = useState(false);
     const [expandido, setExpandido]             = useState<number | null>(null);
-    const [modalAbono, setModalAbono]           = useState<Apartado | null>(null);
-    const [modalCancelar, setModalCancelar]     = useState<Apartado | null>(null);
-    const [modalConfirmar, setModalConfirmar]   = useState<Apartado | null>(null);
+    const [modalAbono, setModalAbono]                 = useState<Apartado | null>(null);
+    const [modalCancelar, setModalCancelar]           = useState<Apartado | null>(null);
+    const [modalConfirmar, setModalConfirmar]         = useState<Apartado | null>(null);
+    const [modalConfirmarAbono, setModalConfirmarAbono] = useState<Apartado | null>(null);
     const [metodosPago, setMetodosPago]         = useState<{ id: number; nombre: string; codigo: string }[]>([]);
 
     // Debounce búsqueda
@@ -409,6 +623,17 @@ const GestionApartadosScreen: React.FC = () => {
 
     const porcentaje = (a: Apartado) =>
         Math.min(100, Math.round((Number(a.monto_pagado) / Number(a.monto_total)) * 100));
+
+    const estadoVisual = (a: Apartado) => {
+        if (a.estado === 'liquidado')      return { icon: '✅', label: 'Liquidado',  color: '#ecb2c3' };
+        if (a.estado === 'cancelado')      return { icon: '❌', label: 'Cancelado',  color: '#e74c3c' };
+        if (a.estado === 'vencido')        return { icon: '⚠️', label: 'Vencido',    color: '#f39c12' };
+        if (a.estado === 'pendiente_pago') return { icon: '⏳', label: 'Pendiente',  color: '#a78bfa' };
+        const pct = porcentaje(a);
+        if (pct < 50)  return { icon: '🔒', label: 'Reservado',  color: '#60a5fa' };
+        if (pct < 100) return { icon: '📦', label: 'En proceso', color: '#f59e0b' };
+        return { icon: '✅', label: 'Liquidado', color: '#ecb2c3' };
+    };
 
     // Conteo por estado para las tarjetas resumen (solo no archivados)
     const conteoEstado = (estado: string) =>
@@ -497,7 +722,7 @@ const GestionApartadosScreen: React.FC = () => {
                 <>
                     <div className="gapt-lista">
                         {apartados.map(a => {
-                            const cfg    = ESTADO_CONFIG[a.estado];
+                            const cfg    = estadoVisual(a);
                             const pct    = porcentaje(a);
                             const abierto = expandido === a.id;
                             const dias   = diasRestantes(a.fecha_limite_liquidacion);
@@ -520,6 +745,11 @@ const GestionApartadosScreen: React.FC = () => {
                                             )}
                                             {a.estado === 'pendiente_pago' && a.comprobante_url && (
                                                 <span className="gapt-badge-comprobante">📎 Comprobante listo</span>
+                                            )}
+                                            {a.estado === 'activo' && a.abono_pendiente && (
+                                                <span className="gapt-badge-comprobante" style={{ background: '#1a3a1a', color: '#6bcb77' }}>
+                                                    💰 Abono pendiente ({a.abono_pendiente.metodo_nombre})
+                                                </span>
                                             )}
                                         </div>
                                         <span className="gapt-chevron">{abierto ? '▲' : '▼'}</span>
@@ -564,6 +794,12 @@ const GestionApartadosScreen: React.FC = () => {
                                         <div className="gapt-dato">
                                             <span className="gapt-dato-label">Abonos</span>
                                             <span className="gapt-dato-val">{a.total_abonos}</span>
+                                        </div>
+                                        <div className="gapt-dato">
+                                            <span className="gapt-dato-label">Método pago</span>
+                                            <span className="gapt-dato-val">
+                                                {ICONOS_METODO[a.metodo_pago_inicial || ''] || '💰'} {a.metodo_pago_inicial_nombre || '—'}
+                                            </span>
                                         </div>
                                         <div className="gapt-dato">
                                             <span className="gapt-dato-label">Productos</span>
@@ -616,6 +852,23 @@ const GestionApartadosScreen: React.FC = () => {
                                         )}
                                             {a.estado === 'activo' && (
                                                 <div className="gapt-acciones">
+                                                    {a.abono_pendiente && (() => {
+                                                        const cod = a.abono_pendiente.metodo_codigo;
+                                                        const esPas = cod === 'paypal' || cod === 'mercadopago';
+                                                        return esPas ? (
+                                                            <div className="gapt-pago-pendiente-info" style={{ background: '#1a2e1a', borderColor: '#6bcb77', color: '#6bcb77' }}>
+                                                                {ICONOS_METODO[cod]} Abono de <strong>{fmtMoneda(a.abono_pendiente.monto)}</strong> via {a.abono_pendiente.metodo_nombre} — se confirma automáticamente al completar el pago. Recarga si ya pagó.
+                                                                <button className="gapt-btn-sec" style={{ fontSize: '0.78rem', padding: '3px 8px', marginLeft: 8 }}
+                                                                    onClick={() => window.location.reload()}>🔄 Recargar</button>
+                                                            </div>
+                                                        ) : (
+                                                            <button className="gapt-btn-pri"
+                                                                onClick={() => setModalConfirmarAbono(a)}
+                                                                style={{ background: '#1a4a2a', borderColor: '#6bcb77' }}>
+                                                                ✅ Confirmar abono de {fmtMoneda(a.abono_pendiente.monto)} ({a.abono_pendiente.metodo_nombre})
+                                                            </button>
+                                                        );
+                                                    })()}
                                                     <button className="gapt-btn-pri"
                                                         onClick={() => setModalAbono(a)}>
                                                         💰 Registrar abono
@@ -632,6 +885,11 @@ const GestionApartadosScreen: React.FC = () => {
                                                         onClick={() => setModalCancelar(a)}>
                                                         ❌ Cancelar
                                                     </button>
+                                                </div>
+                                            )}
+                                            {a.estado === 'liquidado' && (
+                                                <div style={{ margin: '12px 0', padding: '14px 18px', background: '#0f2a1a', border: '1px solid #6bcb77', borderRadius: 10, color: '#6bcb77', textAlign: 'center' }}>
+                                                    ✅ <strong>Apartado liquidado</strong> — El cliente completó todos sus pagos.
                                                 </div>
                                             )}
                                             {['liquidado', 'cancelado'].includes(a.estado) && (
@@ -674,21 +932,35 @@ const GestionApartadosScreen: React.FC = () => {
                                                 {a.abonos && a.abonos.length > 0 ? (
                                                     <div className="gapt-abonos-tabla">
                                                         <div className="gapt-abonos-header">
-                                                            <span>#</span>
+                                                            <span>Pago</span>
                                                             <span>Fecha</span>
+                                                            <span>Método</span>
                                                             <span>Monto</span>
-                                                            <span>Saldo tras abono</span>
+                                                            <span>Saldo restante</span>
                                                             <span>Próx. límite</span>
                                                         </div>
-                                                        {a.abonos.map((ab, i) => (
+                                                        {a.abonos.map((ab, i) => {
+                                                            const parseLocal = (s: string) => { const [y,m,d] = s.substring(0,10).split('-').map(Number); return new Date(y,m-1,d); };
+                                                            const esAdelanto = ab.fecha_limite_siguiente &&
+                                                                parseLocal(ab.fecha_abono) < parseLocal(ab.fecha_limite_siguiente) &&
+                                                                i > 0 && a.abonos[i - 1].fecha_limite_siguiente &&
+                                                                parseLocal(ab.fecha_abono) < parseLocal(a.abonos[i - 1].fecha_limite_siguiente!);
+                                                            return (
                                                             <div key={ab.id} className="gapt-abono-fila">
-                                                                <span>{i + 1}</span>
-                                                                <span>{fmtFecha(ab.fecha_abono)}</span>
+                                                                <span style={{ fontWeight: 600, color: '#ecb2c3' }}>Pago {i + 1}</span>
+                                                                <span>
+                                                                    {fmtFecha(ab.fecha_abono)}
+                                                                    {esAdelanto && <span style={{ fontSize: '0.7rem', color: '#f39c12', marginLeft: 4 }}>⚡ adelanto</span>}
+                                                                </span>
+                                                                <span style={{ fontSize: '0.82rem' }}>
+                                                                    {ICONOS_METODO[ab.metodo_codigo || ''] || '💰'} {ab.metodo_nombre || '—'}
+                                                                </span>
                                                                 <span style={{ color: '#6bcb77' }}>+{fmtMoneda(ab.monto)}</span>
                                                                 <span>{fmtMoneda(ab.monto_despues)}</span>
                                                                 <span>{ab.fecha_limite_siguiente ? fmtFecha(ab.fecha_limite_siguiente) : '—'}</span>
                                                             </div>
-                                                        ))}
+                                                            );
+                                                        })}
                                                     </div>
                                                 ) : (
                                                     <p className="gapt-sin-datos">Sin abonos registrados.</p>
@@ -738,6 +1010,13 @@ const GestionApartadosScreen: React.FC = () => {
                     apartado={modalConfirmar}
                     onCerrar={() => setModalConfirmar(null)}
                     onExito={() => { setModalConfirmar(null); cargarDatos(); }}
+                />
+            )}
+            {modalConfirmarAbono && modalConfirmarAbono.abono_pendiente && (
+                <ModalConfirmarAbono
+                    apartado={modalConfirmarAbono}
+                    onCerrar={() => setModalConfirmarAbono(null)}
+                    onExito={() => { setModalConfirmarAbono(null); cargarDatos(); }}
                 />
             )}
             {modalAbono && (

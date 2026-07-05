@@ -207,12 +207,28 @@ const CarritoScreen: React.FC = () => {
     const [solicitandoApartado, setSolicitandoApartado] = useState(false);
     const [errorApartado, setErrorApartado]             = useState('');
     const [metodoPagoApartadoId, setMetodoPagoApartadoId] = useState<number | null>(null);
+    // ── Planes de abono ───────────────────────────────────────────
+    const [planes, setPlanes]               = useState<{ id: number; nombre: string; intervalo_dias: number; porcentaje_abono: number; descripcion: string }[]>([]);
+    const [planSeleccionado, setPlanSeleccionado] = useState<number | null>(null);
+    const [cargandoPlanes, setCargandoPlanes]     = useState(false);
 
     useEffect(() => {
         if (showCheckout || showApartado) {
             cargarMetodosPago();
         }
+        if (showApartado) {
+            cargarPlanes();
+        }
     }, [showCheckout, showApartado]);
+
+    const cargarPlanes = async () => {
+        setCargandoPlanes(true);
+        try {
+            const res = await apartadoAPI.getPlanes();
+            if (res.success) setPlanes(res.data.filter((p: any) => p.activo));
+        } catch { }
+        finally { setCargandoPlanes(false); }
+    };
 
     const cargarMetodosPago = async () => {
         setCargandoMetodos(true);
@@ -290,7 +306,8 @@ const CarritoScreen: React.FC = () => {
             const res = await apartadoAPI.crear({
                 venta_id: pedidoData.data.id,
                 monto_abono_inicial: parseFloat(montoAbonoInicial),
-                metodo_pago_id: metodoPagoApartadoId
+                metodo_pago_id: metodoPagoApartadoId,
+                plan_abono_id: planSeleccionado || undefined
             });
             if (!res.success) throw new Error(res.message);
 
@@ -622,6 +639,58 @@ const CarritoScreen: React.FC = () => {
                                     onChange={e => setMontoAbonoInicial(e.target.value)}
                                 />
                                 <small className="carrito-form-ayuda">Puedes pagar más del 50% si lo deseas.</small>
+                            </div>
+                            {/* ── Plan de abono ── */}
+                            <div className="carrito-form-group">
+                                <label>Plan de pagos (opcional)</label>
+                                {cargandoPlanes ? (
+                                    <div className="carrito-dir-cargando">⏳ Cargando planes...</div>
+                                ) : planes.length === 0 ? (
+                                    <p className="carrito-form-ayuda">No hay planes disponibles por el momento.</p>
+                                ) : (
+                                    <>
+                                        <div className="carrito-planes-opciones">
+                                            {planes.map(p => {
+                                                const abonoIni     = parseFloat(montoAbonoInicial) || total * 0.5;
+                                                const saldoRest    = Math.max(0, total - abonoIni);
+                                                const montoPorAbono = Math.round(saldoRest * (p.porcentaje_abono / 100));
+                                                const numPagos     = montoPorAbono > 0 ? Math.ceil(saldoRest / montoPorAbono) : '—';
+                                                return (
+                                                    <label key={p.id} className={`carrito-plan-opcion ${planSeleccionado === p.id ? 'seleccionado' : ''}`}>
+                                                        <input type="radio" name="plan_abono"
+                                                            checked={planSeleccionado === p.id}
+                                                            onChange={() => setPlanSeleccionado(p.id)} />
+                                                        <div className="carrito-plan-info">
+                                                            <span className="carrito-plan-nombre">{p.nombre}</span>
+                                                            <span className="carrito-plan-desc">
+                                                                ${typeof montoPorAbono === 'number' ? montoPorAbono.toLocaleString('es-MX') : '—'} cada {p.intervalo_dias} días
+                                                                · {numPagos} pago{numPagos !== 1 ? 's' : ''} para liquidar
+                                                            </span>
+                                                        </div>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                        {planSeleccionado && (() => {
+                                            const plan     = planes.find(p => p.id === planSeleccionado);
+                                            if (!plan) return null;
+                                            const abono    = parseFloat(montoAbonoInicial) || total * 0.5;
+                                            const saldo    = Math.max(0, total - abono);
+                                            const montoPag = Math.round(saldo * (plan.porcentaje_abono / 100));
+                                            const numPagos = montoPag > 0 ? Math.ceil(saldo / montoPag) : 0;
+                                            return (
+                                                <div className="carrito-plan-preview">
+                                                    <p>📅 <strong>Tu calendario de pagos:</strong></p>
+                                                    <p>Abono inicial ahora: <strong>${abono.toLocaleString('es-MX')}</strong></p>
+                                                    {saldo <= 0
+                                                        ? <p style={{ color: '#6bcb77' }}>✅ Con este abono liquidas el apartado completo.</p>
+                                                        : <p>Luego: <strong>{numPagos} pago{numPagos !== 1 ? 's' : ''}</strong> de <strong>${montoPag.toLocaleString('es-MX')}</strong> cada <strong>{plan.intervalo_dias} días</strong></p>
+                                                    }
+                                                </div>
+                                            );
+                                        })()}
+                                    </>
+                                )}
                             </div>
                             <div className="carrito-form-group">
                                 <label>Método de pago del abono inicial <span className="carrito-requerido">*</span></label>

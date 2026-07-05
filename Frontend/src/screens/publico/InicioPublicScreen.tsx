@@ -15,6 +15,7 @@ const InicioPublicScreen: React.FC = () => {
   const [promociones, setPromociones] = useState<any[]>([]);
   const [productosDestacados, setProductosDestacados] = useState<any[]>([]);
   const [noticiasHome, setNoticiasHome] = useState<any[]>([]);
+  const [grupoProductos, setGrupoProductos] = useState(0);
 
   // ── DATOS DE RESPALDO (Fallbacks) ──
   const defaultSlides = [
@@ -119,7 +120,7 @@ const InicioPublicScreen: React.FC = () => {
           else if (prodRes && Array.isArray(prodRes.data)) prods = prodRes.data;
           
           if (prods.length > 0) {
-            setProductosDestacados(prods.slice(0, 4));
+            setProductosDestacados(prods);
           }
         } catch (e) { console.log("Error cargando productos"); }
 
@@ -154,6 +155,17 @@ const InicioPublicScreen: React.FC = () => {
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+
+  const totalGrupos = Math.ceil(productosDestacados.length / 4);
+  const productosGrupo = productosDestacados.slice(grupoProductos * 4, grupoProductos * 4 + 4);
+
+  useEffect(() => {
+    if (totalGrupos <= 1) return;
+    const t = setInterval(() => {
+      setGrupoProductos(prev => (prev + 1) % totalGrupos);
+    }, 6000);
+    return () => clearInterval(t);
+  }, [totalGrupos]);
 
   // ── PANTALLA DE CARGA ──
   if (initialLoading) {
@@ -260,25 +272,55 @@ const InicioPublicScreen: React.FC = () => {
               <p className="section-subtitle">Descubre los productos favoritos de nuestras clientas</p>
             </div>
 
-            <div className="news-grid">
-              {productosDestacados.map(prod => (
-                <div className="news-card" key={prod.id}>
-                  <div className="news-image">
-                    <img src={prod.imagen || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"} alt={prod.nombre} loading="lazy" />
+            <style>{`
+              @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(18px); }
+                to   { opacity: 1; transform: translateY(0); }
+              }
+              .prod-card-rot {
+                animation: fadeInUp 0.8s cubic-bezier(.4,0,.2,1) both;
+              }
+              .prod-card-rot:nth-child(2) { animation-delay: 0.1s; }
+              .prod-card-rot:nth-child(3) { animation-delay: 0.18s; }
+              .prod-card-rot:nth-child(4) { animation-delay: 0.26s; }
+              .prod-card-rot img { transition: transform 0.5s ease; }
+              .prod-card-rot:hover img { transform: scale(1.05); }
+            `}</style>
+            <div key={grupoProductos} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+              {productosGrupo.map(prod => (
+                <div className="prod-card-rot" key={prod.id} style={{
+                  background: 'var(--bg-card)', borderRadius: 14,
+                  overflow: 'hidden', boxShadow: '0 4px 18px rgba(0,0,0,0.18)',
+                  border: '1px solid var(--rose-border)'
+                }}>
+                  <div style={{ height: 160, overflow: 'hidden' }}>
+                    <img src={prod.imagen_principal || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"}
+                      alt={prod.nombre} loading="lazy"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
-                  <div className="news-content" style={{ textAlign: 'center' }}>
-                    <h5 className="news-title">{prod.nombre}</h5>
-                    <p className="news-description" style={{ color: 'var(--rose)', fontSize: '1.25rem', fontWeight: 'bold', marginTop: '0.5rem' }}>
-                      ${Number(prod.precio).toFixed(2)}
+                  <div style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
+                    <h5 style={{ margin: '0 0 4px', fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600 }}>{prod.nombre}</h5>
+                    <p style={{ color: 'var(--rose)', fontSize: '1rem', fontWeight: 'bold', margin: '0 0 10px' }}>
+                      ${Number(prod.precio_oferta || prod.precio_venta).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                     </p>
-                    <div className="news-divider" style={{ margin: '1.2rem auto' }} />
-                    <Link to={`/producto/${prod.id}`} className="btn btn-secondary" style={{ width: '100%', display: 'block', textAlign: 'center' }}>
+                    <Link to={`/producto/${prod.id}`} className="btn btn-secondary"
+                      style={{ width: '100%', display: 'block', textAlign: 'center', fontSize: '0.8rem', padding: '6px 0' }}>
                       Ver Detalles
                     </Link>
                   </div>
                 </div>
               ))}
             </div>
+
+            {totalGrupos > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '1.5rem' }}>
+                {Array.from({ length: totalGrupos }).map((_, i) => (
+                  <button key={i} onClick={() => setGrupoProductos(i)}
+                    style={{ width: 10, height: 10, borderRadius: '50%', border: 'none', cursor: 'pointer',
+                      background: i === grupoProductos ? 'var(--rose)' : 'var(--rose-soft)', padding: 0 }} />
+                ))}
+              </div>
+            )}
 
             <div className="text-center mt-5">
               <Link to="/catalogo-publico" className="btn btn-primary">Ver todo el catálogo</Link>

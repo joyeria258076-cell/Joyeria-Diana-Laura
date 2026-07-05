@@ -206,3 +206,28 @@
     font-size: 0.9rem;
     color: #ccc;
 }
+/* ── Planes de abono ─────────────────────────────────────── */
+.carrito-planes-opciones {
+    display: flex; flex-direction: column; gap: 8px;
+}
+.carrito-plan-opcion {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px; border-radius: 10px;
+    border: 1px solid #2a2a3e; cursor: pointer;
+    transition: all 0.2s; background: #1a1a2e;
+}
+.carrito-plan-opcion:hover { border-color: #ecb2c3; }
+.carrito-plan-opcion.seleccionado {
+    border-color: #ecb2c3;
+    background: rgba(236, 178, 195, 0.08);
+}
+.carrito-plan-opcion input[type="radio"] { margin-top: 2px; accent-color: #ecb2c3; }
+.carrito-plan-info { display: flex; flex-direction: column; gap: 3px; }
+.carrito-plan-nombre { font-weight: 600; font-size: 0.9rem; color: #e0e0e0; }
+.carrito-plan-desc   { font-size: 0.78rem; color: #888; }
+.carrito-plan-preview {
+    margin-top: 10px;
+    background: #0f2a1a; border: 1px solid #6bcb77;
+    border-radius: 8px; padding: 12px 14px;
+    font-size: 0.85rem; color: #ccc; line-height: 1.7;
+}

@@ -216,12 +216,15 @@ export const VentaModel = {
                 mp.es_pasarela AS metodo_es_pasarela,
                 -- ✅ Usar trabajador_id para el nombre del trabajador asignado
                 tw.nombre AS trabajador_nombre,
-                COALESCE(
-                    (SELECT tp.estado FROM transacciones_pago tp
-                     WHERE tp.venta_id = v.id
-                     ORDER BY tp.fecha_creacion DESC LIMIT 1),
-                    'pendiente'
-                ) AS estado_pago,
+                CASE
+                    WHEN ap.id IS NOT NULL THEN 'aprobado'
+                    ELSE COALESCE(
+                        (SELECT tp.estado FROM transacciones_pago tp
+                         WHERE tp.venta_id = v.id
+                         ORDER BY tp.fecha_creacion DESC LIMIT 1),
+                        'pendiente'
+                    )
+                END AS estado_pago,
                 (
                     SELECT json_agg(json_build_object(
                         'id',               dv.id,
@@ -233,13 +236,15 @@ export const VentaModel = {
                         'subtotal',         dv.subtotal
                     ))
                     FROM detalle_ventas dv WHERE dv.venta_id = v.id
-                ) AS items
+                ) AS items,
+                ap.id IS NOT NULL AS es_apartado,
+                ap.folio AS apartado_folio
             FROM ventas v
             LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
-            -- ✅ JOIN con trabajador_id, no actualizado_por
             LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
+            LEFT JOIN apartados ap ON ap.venta_id = v.id AND ap.estado = 'liquidado'
             WHERE v.creado_por = $1
-            AND v.id NOT IN (SELECT venta_id FROM apartados WHERE estado != 'cancelado')
+            AND v.id NOT IN (SELECT venta_id FROM apartados WHERE estado != 'cancelado' AND estado != 'liquidado')
             ORDER BY v.fecha_creacion DESC
         `, [usuario_id]);
         return result.rows;
@@ -257,20 +262,26 @@ export const VentaModel = {
                 ut.nombre      AS trabajador_nombre,
                 tw.nombre      AS trabajador_asignado_nombre,
                 (SELECT COALESCE(SUM(dv.cantidad), 0) FROM detalle_ventas dv WHERE dv.venta_id = v.id) AS total_items,
-                COALESCE(
-                    (SELECT tp.estado FROM transacciones_pago tp
-                    WHERE tp.venta_id = v.id
-                    ORDER BY tp.fecha_creacion DESC LIMIT 1),
-                    'pendiente'
-                ) AS estado_pago,
+                CASE
+                    WHEN ap.id IS NOT NULL THEN 'aprobado'
+                    ELSE COALESCE(
+                        (SELECT tp.estado FROM transacciones_pago tp
+                        WHERE tp.venta_id = v.id
+                        ORDER BY tp.fecha_creacion DESC LIMIT 1),
+                        'pendiente'
+                    )
+                END AS estado_pago,
                 EXTRACT(EPOCH FROM (NOW() - v.fecha_actualizacion))/60 AS minutos_sin_pago,
-                v.fecha_limite_pago
+                v.fecha_limite_pago,
+                ap.id IS NOT NULL AS es_apartado,
+                ap.folio AS apartado_folio
             FROM ventas v
             JOIN clientes c ON v.cliente_id = c.id
             LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
             LEFT JOIN usuarios ut ON v.actualizado_por = ut.id
             LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
-            WHERE v.id NOT IN (SELECT venta_id FROM apartados WHERE estado != 'cancelado')
+            LEFT JOIN apartados ap ON ap.venta_id = v.id AND ap.estado = 'liquidado'
+            WHERE v.id NOT IN (SELECT venta_id FROM apartados WHERE estado != 'cancelado' AND estado != 'liquidado')
         `;
         const params: any[] = [];
         if (filtros?.estado) {
@@ -303,12 +314,17 @@ export const VentaModel = {
                     dc.codigo_postal      AS dir_codigo_postal,
                     dc.telefono_contacto  AS dir_telefono_contacto,
                     dc.referencias        AS dir_referencias,
-                    COALESCE(
-                        (SELECT tp.estado FROM transacciones_pago tp
-                        WHERE tp.venta_id = v.id
-                        ORDER BY tp.fecha_creacion DESC LIMIT 1),
-                        'pendiente'
-                    ) AS estado_pago,
+                    CASE
+                        WHEN ap.id IS NOT NULL THEN 'aprobado'
+                        ELSE COALESCE(
+                            (SELECT tp.estado FROM transacciones_pago tp
+                            WHERE tp.venta_id = v.id
+                            ORDER BY tp.fecha_creacion DESC LIMIT 1),
+                            'pendiente'
+                        )
+                    END AS estado_pago,
+                    ap.id IS NOT NULL AS es_apartado,
+                    ap.folio AS apartado_folio,
                     (
                         SELECT json_agg(json_build_object(
                             'id',               dv.id,
@@ -326,6 +342,7 @@ export const VentaModel = {
                 LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
                 LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
                 LEFT JOIN direcciones_cliente dc ON v.direccion_entrega_id = dc.id
+                LEFT JOIN apartados ap ON ap.venta_id = v.id AND ap.estado = 'liquidado'
                 WHERE v.id = $1
             `, [id]);
             return result.rows[0];

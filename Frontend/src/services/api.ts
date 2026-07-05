@@ -1266,12 +1266,13 @@ export const prediccionAPI = {
 // 🔖 API PARA APARTADOS
 // ==========================================
 export const apartadoAPI = {
-crear: async (data: {
-    venta_id: number;
-    monto_abono_inicial: number;
-    fecha_limite_liquidacion?: string;
-    metodo_pago_id: number;
-  }) => {
+  crear: async (data: {
+      venta_id: number;
+      monto_abono_inicial: number;
+      fecha_limite_liquidacion?: string;
+      metodo_pago_id: number;
+      plan_abono_id?: number;
+    }) => {
     return enhancedApi.post('/apartados', data);
   },
   getMisApartados: async () => {
@@ -1352,6 +1353,48 @@ crear: async (data: {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Error al subir comprobante');
     return data;
+  },
+  // ── Abono siguiente: cliente solicita ─────────────────────
+  solicitarAbono: async (apartado_id: number, data: { monto: number; metodo_pago_id: number; notas?: string }, comprobante?: File) => {
+    const token   = (() => { try { return JSON.parse(localStorage.getItem('diana_laura_user') || '{}').token || ''; } catch { return ''; } })();
+    const session = localStorage.getItem('diana_laura_session_token') || '';
+    const headers: Record<string, string> = {};
+    if (token)   headers['Authorization']  = `Bearer ${token}`;
+    if (session) headers['X-Session-Token'] = session;
+    if (comprobante) {
+      const formData = new FormData();
+      formData.append('monto', String(data.monto));
+      formData.append('metodo_pago_id', String(data.metodo_pago_id));
+      if (data.notas) formData.append('notas', data.notas);
+      formData.append('imagen', comprobante);
+      const res = await fetch(`${API_BASE_URL}/apartados/${apartado_id}/solicitar-abono`, {
+        method: 'POST', headers, credentials: 'include', body: formData,
+      });
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.message || 'Error al registrar abono');
+      return resData;
+    }
+    const res = await fetch(`${API_BASE_URL}/apartados/${apartado_id}/solicitar-abono`, {
+      method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' },
+      credentials: 'include', body: JSON.stringify(data),
+    });
+    const resData = await res.json();
+    if (!res.ok) throw new Error(resData.message || 'Error al registrar abono');
+    return resData;
+  },
+  // ── Abono siguiente: trabajador confirma ──────────────────
+  confirmarAbonoPendiente: async (apartado_id: number, data?: { notas?: string; fecha_limite_siguiente?: string; confirmar_liquidacion?: boolean }) => {
+    return enhancedApi.post(`/apartados/${apartado_id}/confirmar-abono`, data || {});
+  },
+  // ── MP/PayPal para abono siguiente ────────────────────────
+  crearPreferenciaMPAbono: async (abono_id: number) => {
+    return enhancedApi.post('/apartados/pago/mercadopago/abono', { abono_id });
+  },
+  crearOrdenPayPalAbono: async (abono_id: number) => {
+    return enhancedApi.post('/apartados/pago/paypal/abono/crear', { abono_id });
+  },
+  capturarPayPalAbono: async (abono_id: number, order_id: string) => {
+    return enhancedApi.post('/apartados/pago/paypal/abono/capturar', { abono_id, order_id });
   },
 };
 // ==========================================
