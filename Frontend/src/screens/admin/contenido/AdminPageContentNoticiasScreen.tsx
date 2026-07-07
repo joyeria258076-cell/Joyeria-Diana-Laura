@@ -1,471 +1,336 @@
-// Frontend/src/screens/admin/contenido/AdminPageContentInitialScreen.tsx
-import React, { useState, useEffect } from 'react';
-import { paginasAPI, seccionesAPI, contenidosAPI } from '../../../services/api';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { contentAPI } from '../../../services/api';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
 import './AdminPageContentNoticiasScreen.css';
 
-interface Contenido {
+interface Noticia {
   id: number;
-  seccion_id: number;
   titulo: string;
-  descripcion?: string;
-  imagen_url?: string;
-  enlace_url?: string;
-  enlace_nueva_ventana?: boolean;
-  orden: number;
-  activo: boolean;
+  contenido: string;
+  imagen?: string;
+  fecha: string;
+  activa: boolean;
 }
 
-interface Seccion {
-  id: number;
-  pagina_id: number;
-  nombre: string;
-  descripcion?: string;
-  imagen_url?: string;
-  color_fondo?: string;
-  orden: number;
-  activo: boolean;
-  contenidos?: Contenido[];
-}
-
-interface Pagina {
-  id: number;
-  nombre: string;
-  slug: string;
-  descripcion?: string;
-  icono?: string;
-  orden: number;
-  activo: boolean;
-}
+const EMPTY_FORM = { titulo: '', contenido: '', imagen: '' };
 
 const AdminPageContentNoticiasScreen: React.FC = () => {
-  // ESTADOS
-  const [pagina, setPagina] = useState<Pagina | null>(null);
-  const [secciones, setSecciones] = useState<Seccion[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [noticias, setNoticias]       = useState<Noticia[]>([]);
+  const [loading, setLoading]         = useState(true);
+  const [saving, setSaving]           = useState(false);
+  const [showModal, setShowModal]     = useState(false);
+  const [editingId, setEditingId]     = useState<number | null>(null);
+  const [form, setForm]               = useState(EMPTY_FORM);
+  const [previewImg, setPreviewImg]   = useState('');
+  const [uploading, setUploading]     = useState(false);
+  const [dragging, setDragging]       = useState(false);
+  const [toast, setToast]             = useState<{ msg: string; tipo: 'ok' | 'err' } | null>(null);
+  const toastTimer                    = useRef<ReturnType<typeof setTimeout>>();
+  const dropRef                       = useRef<HTMLDivElement>(null);
 
-  // FORMULARIO DE CONTENIDO
-  const [showContentForm, setShowContentForm] = useState(false);
-  const [editingContentId, setEditingContentId] = useState<number | null>(null);
-  const [selectedSeccionId, setSelectedSeccionId] = useState<number | null>(null);
-  const [contentFormData, setContentFormData] = useState({
-    titulo: '',
-    descripcion: '',
-    imagen_url: '',
-    enlace_url: '',
-    enlace_nueva_ventana: false,
-    orden: 0
-  });
+  useEffect(() => { cargar(); }, []);
 
-  // CARGAR DATOS
-  useEffect(() => {
-    fetchNoticiasData();
+  const cargar = async () => {
+    setLoading(true);
+    try {
+      const res = await contentAPI.getNoticias();
+      const arr = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      setNoticias(arr.sort((a: Noticia, b: Noticia) =>
+        new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+      ));
+    } catch { mostrarToast('Error al cargar novedades', 'err'); }
+    finally { setLoading(false); }
+  };
+
+  const mostrarToast = (msg: string, tipo: 'ok' | 'err') => {
+    clearTimeout(toastTimer.current);
+    setToast({ msg, tipo });
+    toastTimer.current = setTimeout(() => setToast(null), 3000);
+  };
+
+  const abrirCrear = () => {
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setPreviewImg('');
+    setShowModal(true);
+  };
+
+  const abrirEditar = (n: Noticia) => {
+    setEditingId(n.id);
+    setForm({ titulo: n.titulo, contenido: n.contenido, imagen: n.imagen || '' });
+    setPreviewImg(n.imagen || '');
+    setShowModal(true);
+  };
+
+  const cerrarModal = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setPreviewImg('');
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+    if (name === 'imagen') setPreviewImg(value);
+  };
+
+  const subirArchivoCloudinary = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) { mostrarToast('Solo se permiten imágenes', 'err'); return; }
+    setUploading(true);
+    try {
+      let jwtToken: string | null = null;
+      let sessionToken: string | null = localStorage.getItem('diana_laura_session_token');
+      try {
+        const u = localStorage.getItem('diana_laura_user');
+        if (u) jwtToken = JSON.parse(u).token || null;
+      } catch { /**/ }
+
+      console.log('🔑 [Upload] jwtToken:', jwtToken ? jwtToken.substring(0, 30) + '...' : 'NULL');
+      console.log('🔑 [Upload] sessionToken:', sessionToken ? sessionToken.substring(0, 30) + '...' : 'NULL');
+      console.log('🔑 [Upload] todas las keys de localStorage:', Object.keys(localStorage));
+
+      const headers: Record<string, string> = {};
+      if (jwtToken)     headers['Authorization']   = `Bearer ${jwtToken}`;
+      if (sessionToken) headers['x-session-token'] = sessionToken;
+      console.log('📤 [Upload] headers enviados:', headers);
+
+      const fd = new FormData();
+      fd.append('imagen', file);
+      fd.append('folder', 'joyeria/noticias');
+      const res = await fetch(`${API_BASE}/upload/image`, {
+        method: 'POST',
+        headers,
+        body: fd,
+      });
+      const data = await res.json();
+      if (data.success && data.data?.url) {
+        setForm(prev => ({ ...prev, imagen: data.data.url }));
+        setPreviewImg(data.data.url);
+        mostrarToast('Imagen subida a Cloudinary', 'ok');
+      } else {
+        mostrarToast(data.message || 'Error al subir imagen', 'err');
+      }
+    } catch { mostrarToast('Error de conexión al subir imagen', 'err'); }
+    finally { setUploading(false); }
   }, []);
 
-  const fetchNoticiasData = async () => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) subirArchivoCloudinary(file);
+  }, [subirArchivoCloudinary]);
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) subirArchivoCloudinary(file);
+  };
+
+  const handleGuardar = async () => {
+    if (!form.titulo.trim()) { mostrarToast('El título es obligatorio', 'err'); return; }
+    if (!form.contenido.trim()) { mostrarToast('El contenido es obligatorio', 'err'); return; }
+    setSaving(true);
     try {
-      setLoading(true);
-      setError(null);
-
-      // 1. Obtener todas las páginas y filtrar por slug 'noticias'
-      const paginas = await paginasAPI.getAll();
-      const paginaNoticias = Array.isArray(paginas)
-        ? paginas.find((p: Pagina) => p.slug === 'noticias')
-        : paginas.data?.find((p: Pagina) => p.slug === 'noticias');
-
-      if (!paginaNoticias) {
-        setError('Página "Noticias" no encontrada. Por favor, crea la página primero.');
-        setLoading(false);
-        return;
-      }
-
-      setPagina(paginaNoticias);
-
-      // 2. Obtener secciones
-      const seccionesData = await seccionesAPI.getByPagina(paginaNoticias.id);
-      const seccionesArray = Array.isArray(seccionesData) ? seccionesData : seccionesData.data || [];
-
-      // 3. Para cada sección, obtener sus contenidos
-      const seccionesConContenidos = await Promise.all(
-        seccionesArray.map(async (seccion: Seccion) => {
-          try {
-            const contenidosData = await contenidosAPI.getBySeccion(seccion.id);
-            const contenidosArray = Array.isArray(contenidosData)
-              ? contenidosData
-              : contenidosData.data || [];
-            return {
-              ...seccion,
-              contenidos: contenidosArray.filter((c: Contenido) => c.activo !== false)
-            };
-          } catch (err) {
-            console.error(`Error cargando contenidos de sección ${seccion.id}:`, err);
-            return { ...seccion, contenidos: [] };
-          }
-        })
-      );
-
-      setSecciones(seccionesConContenidos);
-    } catch (err) {
-      console.error('Error cargando datos de noticias:', err);
-      setError('Error al cargar los datos');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // GESTIÓN DE FORMULARIO DE CONTENIDO
-  const handleOpenContentForm = (seccionId: number, contenidoId?: number) => {
-    setSelectedSeccionId(seccionId);
-
-    if (contenidoId) {
-      // Modo edición
-      const seccion = secciones.find(s => s.id === seccionId);
-      const contenido = seccion?.contenidos?.find(c => c.id === contenidoId);
-      if (contenido) {
-        setEditingContentId(contenidoId);
-        setContentFormData({
-          titulo: contenido.titulo,
-          descripcion: contenido.descripcion || '',
-          imagen_url: contenido.imagen_url || '',
-          enlace_url: contenido.enlace_url || '',
-          enlace_nueva_ventana: contenido.enlace_nueva_ventana || false,
-          orden: contenido.orden
-        });
-      }
-    } else {
-      // Modo creación
-      setEditingContentId(null);
-      setContentFormData({
-        titulo: '',
-        descripcion: '',
-        imagen_url: '',
-        enlace_url: '',
-        enlace_nueva_ventana: false,
-        orden: 0
-      });
-    }
-
-    setShowContentForm(true);
-  };
-
-  const handleCloseContentForm = () => {
-    setShowContentForm(false);
-    setEditingContentId(null);
-    setSelectedSeccionId(null);
-    setContentFormData({
-      titulo: '',
-      descripcion: '',
-      imagen_url: '',
-      enlace_url: '',
-      enlace_nueva_ventana: false,
-      orden: 0
-    });
-  };
-
-  const handleContentFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-    setContentFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }));
-  };
-
-  const handleSaveContent = async () => {
-    if (!contentFormData.titulo.trim()) {
-      setError('El título del contenido es obligatorio');
-      return;
-    }
-
-    if (!selectedSeccionId) {
-      setError('Debe seleccionar una sección');
-      return;
-    }
-
-    try {
-      if (editingContentId) {
-        // Actualizar
-        await contenidosAPI.update(editingContentId, contentFormData);
-        setSuccessMessage('Noticia actualizada correctamente');
+      if (editingId) {
+        // No hay endpoint PUT en el backend, usamos toggle + workaround:
+        // Como el backend solo tiene toggle de status y delete, re-creamos si editamos
+        await contentAPI.deleteNoticia(String(editingId));
+        await contentAPI.createNoticia({ ...form, activa: true });
+        mostrarToast('Novedad actualizada', 'ok');
       } else {
-        // Crear
-        await contenidosAPI.create({
-          seccion_id: selectedSeccionId,
-          ...contentFormData
-        });
-        setSuccessMessage('Noticia agregada correctamente');
+        await contentAPI.createNoticia({ ...form, activa: true });
+        mostrarToast('Novedad publicada', 'ok');
       }
-
-      handleCloseContentForm();
-      fetchNoticiasData();
-    } catch (err) {
-      console.error('Error guardando noticia:', err);
-      setError('Error al guardar la noticia');
-    }
+      cerrarModal();
+      cargar();
+    } catch { mostrarToast('Error al guardar', 'err'); }
+    finally { setSaving(false); }
   };
 
-  const handleHideContent = async (contenidoId: number) => {
+  const handleToggle = async (n: Noticia) => {
     try {
-      const seccion = secciones.find(s => s.contenidos?.some(c => c.id === contenidoId));
-      if (!seccion) return;
-
-      const contenido = seccion.contenidos?.find(c => c.id === contenidoId);
-      if (!contenido) return;
-
-      // Actualizar estado a inactivo
-      await contenidosAPI.update(contenidoId, {
-        ...contenido,
-        titulo: contenido.titulo,
-        descripcion: contenido.descripcion,
-        imagen_url: contenido.imagen_url,
-        enlace_url: contenido.enlace_url,
-        enlace_nueva_ventana: contenido.enlace_nueva_ventana,
-        activo: false
-      });
-
-      setSuccessMessage('Noticia ocultada correctamente');
-      fetchNoticiasData();
-    } catch (err) {
-      console.error('Error ocultando noticia:', err);
-      setError('Error al ocultar la noticia');
-    }
+      await contentAPI.toggleNoticiaStatus(String(n.id), !n.activa);
+      mostrarToast(n.activa ? 'Novedad ocultada' : 'Novedad publicada', 'ok');
+      cargar();
+    } catch { mostrarToast('Error al cambiar estado', 'err'); }
   };
 
-  const handleDeleteContent = async (contenidoId: number) => {
-    if (!window.confirm('¿Está seguro de que desea eliminar esta noticia?')) {
-      return;
-    }
-
+  const handleEliminar = async (id: number) => {
+    if (!window.confirm('¿Eliminar esta novedad permanentemente?')) return;
     try {
-      await contenidosAPI.delete(contenidoId);
-      setSuccessMessage('Noticia eliminada correctamente');
-      fetchNoticiasData();
-    } catch (err) {
-      console.error('Error eliminando noticia:', err);
-      setError('Error al eliminar la noticia');
-    }
+      await contentAPI.deleteNoticia(String(id));
+      mostrarToast('Novedad eliminada', 'ok');
+      cargar();
+    } catch { mostrarToast('Error al eliminar', 'err'); }
   };
 
-  // RENDERIZADO
-  if (loading) {
-    return <div className="noticias-page-content-container"><div className="loading-spinner">Cargando...</div></div>;
-  }
+  const formatFecha = (f: string) => {
+    try { return new Date(f).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }); }
+    catch { return f; }
+  };
 
   return (
-    <div className="noticias-page-content-container">
-      {/* MENSAJES */}
-      {error && <div className="message error-message">{error}</div>}
-      {successMessage && <div className="message success-message">{successMessage}</div>}
+    <div className="an-container">
 
-      {/* ENCABEZADO DE LA PÁGINA */}
-      {pagina && (
-        <div className="page-header-section">
-          <div className="page-title-container">
-            <h1 className="page-title">{pagina.nombre}</h1>
-            {pagina.descripcion && <p className="page-description">{pagina.descripcion}</p>}
-          </div>
-        </div>
+      {/* Toast */}
+      {toast && (
+        <div className={`an-toast an-toast--${toast.tipo}`}>{toast.msg}</div>
       )}
 
-      {/* SECCIONES Y CONTENIDOS */}
-      <div className="sections-container">
-        {secciones.length === 0 ? (
-          <div className="empty-state">
-            <p>No hay secciones definidas para esta página.</p>
-            <p>Por favor, crea secciones primero en "Gestión de Secciones".</p>
-          </div>
-        ) : (
-          secciones.map((seccion) => (
-            <div key={seccion.id} className="section-card">
-              {/* ENCABEZADO DE SECCIÓN */}
-              <div className="section-header">
-                <div className="section-info">
-                  <h2 className="section-title">{seccion.nombre}</h2>
-                  {seccion.descripcion && (
-                    <p className="section-description">{seccion.descripcion}</p>
-                  )}
+      {/* Header */}
+      <div className="an-header">
+        <div>
+          <h1 className="an-title">Novedades</h1>
+          <p className="an-subtitle">Publica artículos que aparecen en la sección de novedades del sitio</p>
+        </div>
+        <button className="an-btn-nueva" onClick={abrirCrear}>
+          + Nueva novedad
+        </button>
+      </div>
+
+      {/* Stats rápidas */}
+      <div className="an-stats">
+        <div className="an-stat">
+          <strong>{noticias.length}</strong>
+          <span>Total</span>
+        </div>
+        <div className="an-stat">
+          <strong>{noticias.filter(n => n.activa).length}</strong>
+          <span>Publicadas</span>
+        </div>
+        <div className="an-stat">
+          <strong>{noticias.filter(n => !n.activa).length}</strong>
+          <span>Ocultas</span>
+        </div>
+      </div>
+
+      {/* Lista */}
+      {loading ? (
+        <div className="an-loading">Cargando novedades...</div>
+      ) : noticias.length === 0 ? (
+        <div className="an-empty">
+          <p>No hay novedades publicadas aún.</p>
+          <button className="an-btn-nueva" onClick={abrirCrear}>Crear primera novedad</button>
+        </div>
+      ) : (
+        <div className="an-list">
+          {noticias.map(n => (
+            <div key={n.id} className={`an-card${n.activa ? '' : ' an-card--oculta'}`}>
+              {n.imagen && (
+                <div className="an-card-img">
+                  <img src={n.imagen} alt={n.titulo}
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 </div>
-                {seccion.color_fondo && (
-                  <div
-                    className="section-color-indicator"
-                    style={{ backgroundColor: seccion.color_fondo }}
-                    title={`Color: ${seccion.color_fondo}`}
-                  />
-                )}
+              )}
+              <div className="an-card-body">
+                <div className="an-card-meta">
+                  <span className="an-card-fecha">{formatFecha(n.fecha)}</span>
+                  <span className={`an-badge${n.activa ? ' an-badge--activa' : ' an-badge--oculta'}`}>
+                    {n.activa ? 'Publicada' : 'Oculta'}
+                  </span>
+                </div>
+                <h3 className="an-card-titulo">{n.titulo}</h3>
+                <p className="an-card-contenido">
+                  {n.contenido.length > 160 ? n.contenido.slice(0, 160) + '...' : n.contenido}
+                </p>
               </div>
-
-              {/* CONTENIDOS DE LA SECCIÓN */}
-              <div className="section-contents">
-                {seccion.contenidos && seccion.contenidos.length > 0 ? (
-                  <div className="contents-list">
-                    {seccion.contenidos.map((contenido) => (
-                      <div key={contenido.id} className="content-item">
-                        <div className="content-preview">
-                          {contenido.imagen_url && (
-                            <img
-                              src={contenido.imagen_url}
-                              alt={contenido.titulo}
-                              className="content-thumbnail"
-                              onError={(e) => {
-                                e.currentTarget.src = 'https://via.placeholder.com/150?text=No+Image';
-                              }}
-                            />
-                          )}
-                          <div className="content-details">
-                            <h3 className="content-title">{contenido.titulo}</h3>
-                            {contenido.descripcion && (
-                              <p className="content-short-desc">
-                                {contenido.descripcion.substring(0, 100)}
-                                {contenido.descripcion.length > 100 ? '...' : ''}
-                              </p>
-                            )}
-                            {contenido.enlace_url && (
-                              <a
-                                href={contenido.enlace_url}
-                                target={contenido.enlace_nueva_ventana ? '_blank' : '_self'}
-                                rel="noreferrer"
-                                className="content-link"
-                              >
-                                {contenido.enlace_url}
-                              </a>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* BOTONES DE ACCIÓN */}
-                        <div className="content-actions">
-                          <button
-                            className="btn-action btn-edit"
-                            onClick={() => handleOpenContentForm(seccion.id, contenido.id)}
-                            title="Editar noticia"
-                          >
-                            ✏️ Editar
-                          </button>
-                          <button
-                            className="btn-action btn-hide"
-                            onClick={() => handleHideContent(contenido.id)}
-                            title="Ocultar noticia"
-                          >
-                            👁️ Ocultar
-                          </button>
-                          <button
-                            className="btn-action btn-delete"
-                            onClick={() => handleDeleteContent(contenido.id)}
-                            title="Eliminar noticia"
-                          >
-                            🗑️ Eliminar
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="no-contents">
-                    <p>No hay noticias en esta sección aún.</p>
-                  </div>
-                )}
-
-                {/* BOTÓN AGREGAR NOTICIA */}
+              <div className="an-card-actions">
+                <button className="an-btn-action an-btn-edit" onClick={() => abrirEditar(n)}>
+                  Editar
+                </button>
                 <button
-                  className="btn-add-content"
-                  onClick={() => handleOpenContentForm(seccion.id)}
+                  className={`an-btn-action ${n.activa ? 'an-btn-hide' : 'an-btn-show'}`}
+                  onClick={() => handleToggle(n)}
                 >
-                  ➕ Agregar Noticia
+                  {n.activa ? 'Ocultar' : 'Publicar'}
+                </button>
+                <button className="an-btn-action an-btn-delete" onClick={() => handleEliminar(n.id)}>
+                  Eliminar
                 </button>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* MODAL - FORMULARIO DE NOTICIA */}
-      {showContentForm && (
-        <div className="modal-overlay" onClick={handleCloseContentForm}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingContentId ? 'Editar Noticia' : 'Agregar Noticia'}</h2>
-              <button className="btn-close" onClick={handleCloseContentForm}>✕</button>
+      {/* Modal */}
+      {showModal && (
+        <div className="an-overlay" onClick={cerrarModal}>
+          <div className="an-modal" onClick={e => e.stopPropagation()}>
+            <div className="an-modal-header">
+              <h2>{editingId ? 'Editar novedad' : 'Nueva novedad'}</h2>
+              <button className="an-modal-close" onClick={cerrarModal}>✕</button>
             </div>
 
-            <div className="modal-body">
-              <div className="form-group">
-                <label htmlFor="titulo">Título *</label>
+            <div className="an-modal-body">
+              <div className="an-field">
+                <label>Título *</label>
                 <input
                   type="text"
-                  id="titulo"
                   name="titulo"
-                  value={contentFormData.titulo}
-                  onChange={handleContentFormChange}
-                  placeholder="Ingrese el título de la noticia"
+                  value={form.titulo}
+                  onChange={handleChange}
+                  placeholder="Ej: Nueva colección de anillos primavera 2025"
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="descripcion">Descripción / Contenido</label>
+              <div className="an-field">
+                <label>Contenido *</label>
                 <textarea
-                  id="descripcion"
-                  name="descripcion"
-                  value={contentFormData.descripcion}
-                  onChange={handleContentFormChange}
-                  placeholder="Contenido de la noticia"
-                  rows={4}
+                  name="contenido"
+                  value={form.contenido}
+                  onChange={handleChange}
+                  rows={5}
+                  placeholder="Describe la novedad, nuevos diseños, eventos, cuidados de joyería..."
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="imagen_url">URL de la Imagen</label>
+              <div className="an-field">
+                <label>Imagen</label>
+                {/* Zona drag & drop */}
+                <div
+                  ref={dropRef}
+                  className={`an-dropzone${dragging ? ' an-dropzone--over' : ''}${uploading ? ' an-dropzone--loading' : ''}`}
+                  onDragOver={e => { e.preventDefault(); setDragging(true); }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={handleDrop}
+                  onClick={() => document.getElementById('an-file-input')?.click()}
+                >
+                  {uploading ? (
+                    <span className="an-dz-text">Subiendo a Cloudinary...</span>
+                  ) : previewImg ? (
+                    <img src={previewImg} alt="preview" className="an-dz-preview"
+                      onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
+                  ) : (
+                    <>
+                      <span className="an-dz-icon">☁</span>
+                      <span className="an-dz-text">Arrastra tu imagen aquí</span>
+                      <span className="an-dz-sub">o haz clic para seleccionar · se sube a Cloudinary/noticias</span>
+                    </>
+                  )}
+                </div>
+                <input id="an-file-input" type="file" accept="image/*"
+                  style={{ display: 'none' }} onChange={handleFileInput} />
+                {/* O pega URL manual */}
                 <input
                   type="url"
-                  id="imagen_url"
-                  name="imagen_url"
-                  value={contentFormData.imagen_url}
-                  onChange={handleContentFormChange}
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="enlace_url">URL del Enlace (opcional)</label>
-                <input
-                  type="url"
-                  id="enlace_url"
-                  name="enlace_url"
-                  value={contentFormData.enlace_url}
-                  onChange={handleContentFormChange}
-                  placeholder="https://ejemplo.com"
-                />
-              </div>
-
-              <div className="form-group checkbox">
-                <input
-                  type="checkbox"
-                  id="enlace_nueva_ventana"
-                  name="enlace_nueva_ventana"
-                  checked={contentFormData.enlace_nueva_ventana}
-                  onChange={handleContentFormChange}
-                />
-                <label htmlFor="enlace_nueva_ventana">Abrir enlace en nueva ventana</label>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="orden">Orden</label>
-                <input
-                  type="number"
-                  id="orden"
-                  name="orden"
-                  value={contentFormData.orden}
-                  onChange={handleContentFormChange}
-                  min="0"
+                  name="imagen"
+                  value={form.imagen}
+                  onChange={handleChange}
+                  placeholder="O pega una URL de imagen directamente"
+                  className="an-url-input"
                 />
               </div>
             </div>
 
-            <div className="modal-footer">
-              <button className="btn-cancel" onClick={handleCloseContentForm}>
+            <div className="an-modal-footer">
+              <button className="an-btn-cancel" onClick={cerrarModal} disabled={saving}>
                 Cancelar
               </button>
-              <button className="btn-save" onClick={handleSaveContent}>
-                {editingContentId ? 'Actualizar' : 'Agregar'} Noticia
+              <button className="an-btn-save" onClick={handleGuardar} disabled={saving}>
+                {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Publicar novedad'}
               </button>
             </div>
           </div>

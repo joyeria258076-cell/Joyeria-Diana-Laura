@@ -1411,6 +1411,16 @@ export const apartadoAPI = {
     return enhancedApi.post('/apartados/pago/paypal/abono/capturar', { abono_id, order_id });
   },
 };
+
+// ==========================================
+// ❤️ FAVORITOS API
+// ==========================================
+export const favoritosAPI = {
+  getAll: () => enhancedApi.get('/favoritos'),
+  toggle: (producto_id: number) => enhancedApi.post('/favoritos/toggle', { producto_id }),
+  check: (producto_id: number) => enhancedApi.get(`/favoritos/check/${producto_id}`),
+};
+
 // ==========================================
 // 📥 EXPORTACIÓN DE API (opcional, para tener todo en un solo objeto)
 // ==========================================

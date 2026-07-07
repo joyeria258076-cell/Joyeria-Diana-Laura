@@ -195,81 +195,102 @@
 /* ═══════════════════════════════════════════════════
    BARRA TICKER PROMOCIONES
 ═══════════════════════════════════════════════════ */
-.promo-ticker {
+.promo-ticker-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
   background: linear-gradient(90deg, #c9a84c 0%, #b8942e 100%);
   color: #1a1a1a;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-  font-size: 0.85rem;
+  gap: 10px;
+  padding: 0 12px;
+  height: 36px;
+  font-size: 0.84rem;
   font-weight: 500;
-  min-height: 38px;
-  position: relative;
-  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
 
 .promo-ticker-badge {
   background: rgba(0,0,0,0.18);
   border-radius: 20px;
   padding: 2px 10px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-.promo-ticker-track {
+.promo-ticker-scroll-wrap {
   flex: 1;
-  position: relative;
-  height: 22px;
   overflow: hidden;
-}
-
-.promo-ticker-item {
-  position: absolute;
-  inset: 0;
+  height: 100%;
   display: flex;
   align-items: center;
-  opacity: 0;
-  transform: translateY(100%);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.promo-ticker-item em {
-  font-style: normal;
-  opacity: 0.75;
-  margin-left: 4px;
-  font-size: 0.82rem;
-}
-
-.promo-ticker-item-active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.promo-ticker-dots {
+.promo-ticker-scroll-track {
   display: flex;
-  gap: 5px;
-  flex-shrink: 0;
+  align-items: center;
+  white-space: nowrap;
+  animation: ticker-slide 18s linear infinite;
 }
 
-.promo-ticker-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+.promo-ticker-scroll-track:hover {
+  animation-play-state: paused;
+}
+
+.promo-ticker-scroll-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 40px;
+}
+
+.promo-ticker-scroll-item em {
+  font-style: normal;
+  opacity: 0.72;
+  font-size: 0.8rem;
+}
+
+.promo-ticker-sep {
+  opacity: 0.35;
+  font-size: 0.6rem;
+  margin-left: 4px;
+}
+
+.promo-ticker-close {
+  background: rgba(0,0,0,0.18);
   border: none;
-  background: rgba(0,0,0,0.25);
+  color: #1a1a1a;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   cursor: pointer;
-  padding: 0;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   transition: background 0.2s;
+  padding: 0;
+  line-height: 1;
 }
 
-.promo-ticker-dot.active {
-  background: rgba(0,0,0,0.6);
+.promo-ticker-close:hover {
+  background: rgba(0,0,0,0.32);
+}
+
+@keyframes ticker-slide {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Espacio para que el header no quede tapado por el ticker */
+.promo-ticker-spacer {
+  height: 36px;
 }
 
 /* ═══════════════════════════════════════════════════

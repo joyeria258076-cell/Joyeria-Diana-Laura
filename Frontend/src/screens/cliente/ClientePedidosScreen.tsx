@@ -10,6 +10,8 @@ interface ItemPedido {
     producto_imagen?: string;
     cantidad: number;
     precio_unitario: number;
+    precio_original?: number;
+    descuento_unitario?: number;
     subtotal: number;
     talla_medida?: string;
     nota?: string;
@@ -648,7 +650,14 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
                                                         <p className="cp-modal-item-nombre">{item.producto_nombre}</p>
                                                         {item.talla_medida && <p className="cp-modal-item-sub">Talla: {item.talla_medida}</p>}
                                                         {item.nota && <p className="cp-modal-item-sub">Nota: {item.nota}</p>}
-                                                        <p className="cp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')}</p>
+                                                        {item.precio_original && item.precio_original > item.precio_unitario ? (
+                                                            <>
+                                                                <p className="cp-modal-item-sub" style={{textDecoration:'line-through', opacity:0.5}}>{item.cantidad} × ${Number.parseFloat(String(item.precio_original)).toLocaleString('es-MX')}</p>
+                                                                <p className="cp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')} <span style={{color:'#c9a84c', fontWeight:600}}>🏷️ -${Number.parseFloat(String(item.descuento_unitario)).toLocaleString('es-MX')} c/u</span></p>
+                                                            </>
+                                                        ) : (
+                                                            <p className="cp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')}</p>
+                                                        )}
                                                     </div>
                                                     <p className="cp-modal-item-subtotal">${Number.parseFloat(String(item.subtotal)).toLocaleString('es-MX')}</p>
                                                 </div>

@@ -202,7 +202,7 @@ export const adminContentController = {
         RETURNING *
       `, [
         nombre, descripcion || null, tipo, valor_descuento || null,
-        fecha_inicio, fecha_fin,
+        fecha_inicio, `${fecha_fin}T23:59:59`,
         aplica_productos?.length ? aplica_productos : null,
         aplica_categorias?.length ? aplica_categorias : null,
         monto_minimo_compra || null, limite_usos_total || null,
@@ -236,7 +236,7 @@ export const adminContentController = {
         WHERE id=$14 RETURNING *
       `, [
         nombre, descripcion || null, tipo, valor_descuento || null,
-        fecha_inicio, fecha_fin,
+        fecha_inicio, `${fecha_fin.slice(0,10)}T23:59:59`,
         aplica_productos?.length ? aplica_productos : null,
         aplica_categorias?.length ? aplica_categorias : null,
         monto_minimo_compra || null, limite_usos_total || null,

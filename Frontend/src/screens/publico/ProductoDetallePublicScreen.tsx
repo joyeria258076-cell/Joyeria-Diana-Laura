@@ -18,6 +18,7 @@ interface Producto {
     peso_gramos?: number;
     precio_venta: number;
     precio_oferta?: number;
+    precio_promocion?: number;
     imagen_principal?: string;
     stock_actual: number;
     es_nuevo?: boolean;
@@ -95,10 +96,11 @@ const ProductoDetallePublicScreen: React.FC = () => {
     const handleAccionProtegida = () => setShowLoginAlert(true);
     const handleIrLogin = () => navigate('/login');
 
-    const precioFinal = producto?.precio_oferta || producto?.precio_venta || 0;
-    const hayDescuento = !!(producto?.precio_oferta && producto.precio_oferta < producto.precio_venta);
+    const precioFinal = Number(producto?.precio_promocion ?? producto?.precio_oferta ?? producto?.precio_venta ?? 0);
+    const hayDescuento = precioFinal < (producto?.precio_venta ?? 0);
+    const esPromocion = !!(producto?.precio_promocion);
     const descuentoPct = hayDescuento
-        ? Math.round(100 - (producto!.precio_oferta! / producto!.precio_venta) * 100)
+        ? Math.round(100 - (precioFinal / producto!.precio_venta) * 100)
         : 0;
 
     if (loading) {
@@ -231,7 +233,9 @@ const ProductoDetallePublicScreen: React.FC = () => {
                             )}
                             <span className="pdp-precio-final">${precioFinal.toLocaleString('es-MX')}</span>
                             {hayDescuento && (
-                                <span className="pdp-ahorro">Ahorras ${(producto.precio_venta - precioFinal).toLocaleString('es-MX')}</span>
+                                <span className="pdp-ahorro">
+                                    {esPromocion ? '🏷️ Promoción — ' : ''}Ahorras ${(producto.precio_venta - precioFinal).toLocaleString('es-MX')} ({descuentoPct}% off)
+                                </span>
                             )}
                         </div>
 

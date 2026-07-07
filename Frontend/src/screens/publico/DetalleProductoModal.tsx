@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AiOutlineClose, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineStar, AiOutlineArrowRight, AiOutlineLock } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineStar, AiFillStar, AiOutlineArrowRight, AiOutlineLock } from 'react-icons/ai';
 import { useCart } from '../../contexts/CartContext';
+import { favoritosAPI } from '../../services/api';
 import './DetalleProductoModal.css';
 
 const estaLogueado = (): boolean => {
@@ -22,6 +23,7 @@ interface Producto {
   material_principal?: string;
   precio_venta: number;
   precio_oferta?: number;
+  precio_promocion?: number;
   imagen_principal?: string;
   stock_actual: number;
   es_nuevo?: boolean;
@@ -34,9 +36,10 @@ interface DetalleProductoModalProps {
   isOpen: boolean;
   producto: Producto | null;
   onClose: () => void;
+  promoFechaFin?: string;
 }
 
-const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, producto, onClose }) => {
+const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, producto, onClose, promoFechaFin }) => {
   const [cantidad, setCantidad]           = React.useState(1);
   const [talla, setTalla]                 = React.useState('');
   const [nota, setNota]                   = React.useState('');
@@ -44,17 +47,39 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
   const [showLoginAlert, setShowLoginAlert] = React.useState(false);
   const [agregando, setAgregando]         = React.useState(false);
   const [exitoso, setExitoso]             = React.useState(false);
+  const [esFavorito, setEsFavorito]       = React.useState(false);
+  const [togglingFav, setTogglingFav]     = React.useState(false);
   const navigate = useNavigate();
   const logueado = estaLogueado();
   const { agregarAlCarrito } = useCart();
+
+  // Verificar si ya es favorito al abrir
+  React.useEffect(() => {
+    if (!isOpen || !producto || !logueado) return;
+    favoritosAPI.check(producto.id)
+      .then(res => setEsFavorito(!!res?.favorito))
+      .catch(() => {});
+  }, [isOpen, producto?.id, logueado]);
 
   if (!isOpen || !producto) return null;
 
   const placeholderImage = 'https://placehold.co/400x400/1a1a1a/ecb2c3?text=Joya';
   const imagenUrl        = producto.imagen_principal || placeholderImage;
-  const precioFinal      = producto.precio_oferta || producto.precio_venta;
-  const hayDescuento     = producto.precio_oferta && producto.precio_oferta < producto.precio_venta;
+  const precioFinal      = producto.precio_promocion ?? producto.precio_oferta ?? producto.precio_venta;
+  const hayDescuento     = precioFinal < producto.precio_venta;
+  const esPromocion      = !!producto.precio_promocion;
   const requiereTalla    = producto.tiene_medidas || producto.permite_personalizacion;
+
+  const promoVenceLabel = (() => {
+    if (!esPromocion || !promoFechaFin) return null;
+    const hoy = new Date();
+    const fin  = new Date(promoFechaFin);
+    const dias = Math.ceil((fin.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+    if (dias <= 0) return null;
+    if (dias === 1) return '⏰ ¡Oferta termina hoy!';
+    if (dias <= 3) return `⏰ ¡Solo quedan ${dias} días de oferta!`;
+    return `📅 Válida hasta ${fin.toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}`;
+  })();
 
   const handleAgregar = async () => {
     if (!logueado) { setShowLoginAlert(true); return; }
@@ -80,9 +105,16 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
     }
   };
 
-  const handleFavorito = () => {
+  const handleFavorito = async () => {
     if (!logueado) { setShowLoginAlert(true); return; }
-    alert('Guardado en favoritos');
+    if (!producto || togglingFav) return;
+    setTogglingFav(true);
+    try {
+      const res = await favoritosAPI.toggle(producto.id);
+      setEsFavorito(!!res?.favorito);
+    } catch { /* ignorar */ } finally {
+      setTogglingFav(false);
+    }
   };
 
   const handleVerDetalles = () => {
@@ -188,10 +220,15 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
               {hayDescuento ? (
                 <>
                   <span className="precio-original">${producto.precio_venta.toLocaleString('es-MX')}</span>
-                  <span className="precio-actual">${precioFinal.toLocaleString('es-MX')}</span>
+                  <span className="precio-actual">${Number(precioFinal).toLocaleString('es-MX')}</span>
+                  {esPromocion && <span className="badge-promo-modal">🏷️ Promoción</span>}
                 </>
-              ) : (
-                <span className="precio-actual">${precioFinal.toLocaleString('es-MX')}</span>
+              ) : null}
+              {promoVenceLabel && (
+                <p className="promo-vence-label">{promoVenceLabel}</p>
+              )}
+              {!hayDescuento && (
+                <span className="precio-actual">${Number(precioFinal).toLocaleString('es-MX')}</span>
               )}
             </div>
 
@@ -265,9 +302,13 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                 <button className="btn btn-disabled" disabled>Producto Agotado</button>
               )}
 
-              <button className="btn btn-secondary" onClick={handleFavorito}>
-                <AiOutlineStar size={20} />
-                Guardar Favorito
+              <button
+                className={`btn btn-secondary${esFavorito ? ' btn-fav-activo' : ''}`}
+                onClick={handleFavorito}
+                disabled={togglingFav}
+              >
+                {esFavorito ? <AiFillStar size={20} style={{color:'#c9a84c'}} /> : <AiOutlineStar size={20} />}
+                {togglingFav ? 'Guardando...' : esFavorito ? 'En Favoritos ❤️' : 'Guardar Favorito'}
                 {!logueado && <AiOutlineLock size={13} style={{marginLeft: 4, opacity: 0.7}} />}
               </button>
 

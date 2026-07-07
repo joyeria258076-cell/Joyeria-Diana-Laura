@@ -16,6 +16,7 @@ export interface CartItem {
     producto_imagen?:        string;
     precio_venta:            number;
     precio_oferta?:          number;
+    precio_promocion?:       number;
     stock_actual:            number;
     permite_personalizacion: boolean;
     tiene_medidas:           boolean;
@@ -27,6 +28,7 @@ interface CartContextType {
     count:              number;
     total:              number;
     loading:            boolean;
+    promoNoAplica:      {nombre:string;minimo:number}|null;
     agregarAlCarrito:   (producto_id: number, cantidad: number, talla_medida?: string, nota?: string) => Promise<void>;
     actualizarCantidad: (id: number, cantidad: number) => Promise<void>;
     eliminarItem:       (id: number) => Promise<void>;
@@ -48,11 +50,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [count, setCount]     = useState(0);
     const [total, setTotal]     = useState(0);
     const [loading, setLoading] = useState(false);
+    const [promoNoAplica, setPromoNoAplica] = useState<{nombre:string;minimo:number}|null>(null);
 
     const calcularTotales = (cartItems: CartItem[]) => {
         setCount(cartItems.reduce((s, i) => s + i.cantidad, 0));
         setTotal(cartItems.reduce((s, i) => {
-            const precio = Number.parseFloat(String(i.precio_oferta || i.precio_venta));
+            const precio = Number.parseFloat(String(i.precio_promocion ?? i.precio_oferta ?? i.precio_venta));
             return s + precio * i.cantidad;
         }, 0));
     };
@@ -65,6 +68,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (data.success) {
                 setItems(data.data.items || []);
                 calcularTotales(data.data.items || []);
+                setPromoNoAplica(data.data.promo_no_aplica || null);
             }
         } catch { /* silencioso */ } finally { setLoading(false); }
     }, [user?.dbId]);
@@ -99,7 +103,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return (
         <CartContext.Provider value={{
-            items, count, total, loading,
+            items, count, total, loading, promoNoAplica,
             agregarAlCarrito, actualizarCantidad,
             eliminarItem, vaciarCarrito, recargar
         }}>

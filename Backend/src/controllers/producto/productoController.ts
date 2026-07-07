@@ -5,6 +5,27 @@ import { CategoryModel, ProductModel, ProveedorModel, TemporadaModel, TipoProduc
 const SQL_INJECTION_PATTERN = /('(\s)*(or|and)(\s)*')|(-{2})|(\bUNION\b.*\bSELECT\b)|(\bDROP\b.*\bTABLE\b)|(\bINSERT\b.*\bINTO\b)|(\bDELETE\b.*\bFROM\b)|(;(\s)*DROP)|(xp_)/i;
 const XSS_PATTERN = /<\s*script|javascript:|on\w+\s*=|<\s*iframe|<\s*object|<\s*embed/i;
 
+// Subquery reutilizable: calcula precio_promocion para un producto (alias p)
+const PROMO_SUBQUERY = `(
+    SELECT CASE
+        WHEN pr.tipo = 'porcentaje' THEN ROUND((p.precio_venta * (1 - pr.valor_descuento / 100.0))::numeric, 2)
+        WHEN pr.tipo = 'monto_fijo' THEN GREATEST(0, ROUND((p.precio_venta - pr.valor_descuento)::numeric, 2))
+        ELSE NULL
+    END
+    FROM promociones pr
+    WHERE pr.activo = true
+      AND pr.fecha_inicio <= NOW()
+      AND pr.fecha_fin >= NOW()
+      AND pr.tipo IN ('porcentaje', 'monto_fijo')
+      AND (
+          pr.aplica_productos IS NULL
+          OR p.id = ANY(pr.aplica_productos)
+          OR (pr.aplica_categorias IS NULL OR p.categoria_id = ANY(pr.aplica_categorias))
+      )
+    ORDER BY pr.valor_descuento DESC
+    LIMIT 1
+) AS precio_promocion`;
+
 // --- CATEGORÍAS ---
 export const getCategories = async (req: Request, res: Response) => {
     try {
@@ -179,13 +200,24 @@ export const getRecentProducts = async (req: Request, res: Response) => {
 export const getProductById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const producto = await ProductModel.getById(Number.parseInt(id));
-        
-        if (!producto) {
+        const result = await pool.query(`
+            SELECT p.*,
+                c.nombre as categoria_nombre,
+                pr2.nombre as proveedor_nombre,
+                t.nombre as temporada_nombre,
+                ${PROMO_SUBQUERY}
+            FROM productos p
+            LEFT JOIN categorias c ON p.categoria_id = c.id
+            LEFT JOIN proveedores pr2 ON p.proveedor_id = pr2.id
+            LEFT JOIN temporadas t ON p.temporada_id = t.id
+            WHERE p.id = $1 AND p.activo = true
+        `, [Number.parseInt(id)]);
+
+        if (result.rows.length === 0) {
             return res.status(404).json({ success: false, message: 'Producto no encontrado' });
         }
-        
-        res.status(200).json({ success: true, data: producto });
+
+        res.status(200).json({ success: true, data: result.rows[0] });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -467,60 +499,61 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
         }
 
         let query = `
-            SELECT 
-                id, nombre, descripcion, categoria_id, categoria_nombre,
-                tipo_producto_id, material_principal,
-                precio_venta, precio_oferta, imagen_principal,
-                stock_actual, es_nuevo, es_destacado
-            FROM productos
-            WHERE activo = true
+            SELECT
+                p.id, p.nombre, p.descripcion, p.categoria_id, p.categoria_nombre,
+                p.tipo_producto_id, p.material_principal,
+                p.precio_venta, p.precio_oferta, p.imagen_principal,
+                p.stock_actual, p.es_nuevo, p.es_destacado,
+                ${PROMO_SUBQUERY}
+            FROM productos p
+            WHERE p.activo = true
         `;
         const params: any[] = [];
         let paramCount = 1;
 
         // Filtrar por nombre
         if (nombre && typeof nombre === 'string') {
-            query += ` AND LOWER(nombre) LIKE LOWER($${paramCount})`;
+            query += ` AND LOWER(p.nombre) LIKE LOWER($${paramCount})`;
             params.push(`%${nombre}%`);
             paramCount++;
         }
 
         // Filtrar por categoría
         if (categoria_id && categoria_id !== '') {
-            query += ` AND categoria_id = $${paramCount}`;
+            query += ` AND p.categoria_id = $${paramCount}`;
             params.push(Number.parseInt(categoria_id as string));
             paramCount++;
         }
 
         // Filtrar por tipo de producto
         if (tipo_producto_id && tipo_producto_id !== '') {
-            query += ` AND tipo_producto_id = $${paramCount}`;
+            query += ` AND p.tipo_producto_id = $${paramCount}`;
             params.push(Number.parseInt(tipo_producto_id as string));
             paramCount++;
         }
 
         // Filtrar por material
         if (material_principal && material_principal !== '') {
-            query += ` AND LOWER(material_principal) = LOWER($${paramCount})`;
+            query += ` AND LOWER(p.material_principal) = LOWER($${paramCount})`;
             params.push(material_principal as string);
             paramCount++;
         }
 
         // Filtrar por rango de precio (precio_venta)
         if (precio_min && precio_min !== '') {
-            query += ` AND precio_venta >= $${paramCount}`;
+            query += ` AND p.precio_venta >= $${paramCount}`;
             params.push(Number.parseFloat(precio_min as string));
             paramCount++;
         }
 
         if (precio_max && precio_max !== '') {
-            query += ` AND precio_venta <= $${paramCount}`;
+            query += ` AND p.precio_venta <= $${paramCount}`;
             params.push(Number.parseFloat(precio_max as string));
             paramCount++;
         }
 
         // Ordenar y paginar
-        query += ` ORDER BY es_destacado DESC, nombre ASC`;
+        query += ` ORDER BY p.es_destacado DESC, p.nombre ASC`;
         if (limit) {
             query += ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
             params.push(Number.parseInt(limit as string));
@@ -547,13 +580,14 @@ export const getProductsByCategory = async (req: Request, res: Response) => {
         const { limit = 4 } = req.query;
 
         const result = await pool.query(
-            `SELECT 
-                id, nombre, descripcion, categoria_id, categoria_nombre,
-                tipo_producto_id, material_principal, precio_venta, precio_oferta,
-                imagen_principal, stock_actual, es_nuevo
-            FROM productos
-            WHERE categoria_id = $1 AND activo = true
-            ORDER BY es_nuevo DESC, nombre ASC
+            `SELECT
+                p.id, p.nombre, p.descripcion, p.categoria_id, p.categoria_nombre,
+                p.tipo_producto_id, p.material_principal, p.precio_venta, p.precio_oferta,
+                p.imagen_principal, p.stock_actual, p.es_nuevo,
+                ${PROMO_SUBQUERY}
+            FROM productos p
+            WHERE p.categoria_id = $1 AND p.activo = true
+            ORDER BY p.es_nuevo DESC, p.nombre ASC
             LIMIT $2`,
             [Number.parseInt(categoria_id as string), Number.parseInt(limit as string)]
         );
@@ -589,19 +623,21 @@ export const getProductsByCategories = async (req: Request, res: Response) => {
         const respuesta = await Promise.all(
             categoriasResult.rows.map(async (cat: Categoria) => {
                const productosQuery = limit
-                ? `SELECT id, nombre, descripcion, categoria_id, categoria_nombre,
-                    material_principal, precio_venta, precio_oferta,
-                    imagen_principal, stock_actual, es_nuevo
-                FROM productos
-                WHERE categoria_id = $1 AND activo = true
-                ORDER BY es_nuevo DESC, nombre ASC
+                ? `SELECT p.id, p.nombre, p.descripcion, p.categoria_id, p.categoria_nombre,
+                    p.material_principal, p.precio_venta, p.precio_oferta,
+                    p.imagen_principal, p.stock_actual, p.es_nuevo,
+                    ${PROMO_SUBQUERY}
+                FROM productos p
+                WHERE p.categoria_id = $1 AND p.activo = true
+                ORDER BY p.es_nuevo DESC, p.nombre ASC
                 LIMIT $2`
-                : `SELECT id, nombre, descripcion, categoria_id, categoria_nombre,
-                    material_principal, precio_venta, precio_oferta,
-                    imagen_principal, stock_actual, es_nuevo
-                FROM productos
-                WHERE categoria_id = $1 AND activo = true
-                ORDER BY es_nuevo DESC, nombre ASC`;
+                : `SELECT p.id, p.nombre, p.descripcion, p.categoria_id, p.categoria_nombre,
+                    p.material_principal, p.precio_venta, p.precio_oferta,
+                    p.imagen_principal, p.stock_actual, p.es_nuevo,
+                    ${PROMO_SUBQUERY}
+                FROM productos p
+                WHERE p.categoria_id = $1 AND p.activo = true
+                ORDER BY p.es_nuevo DESC, p.nombre ASC`;
 
             const productosResult = await pool.query(
                 productosQuery,

@@ -129,12 +129,31 @@ export const getCarrito = async (req: Request, res: Response) => {
         if (!id) return res.status(401).json({ success: false, message: 'No autenticado' });
 
         const items = await CarritoModel.getByUsuario(id);
+
+        // Verificar si la promo activa tiene monto mínimo y si el carrito lo cumple
+        const totalBase = items.reduce((s, i) => s + Number.parseFloat(i.precio_venta) * i.cantidad, 0);
+        const promoMin = await pool.query(`
+            SELECT monto_minimo_compra, nombre FROM promociones
+            WHERE activo = true AND fecha_inicio <= NOW() AND fecha_fin >= NOW()
+              AND tipo IN ('porcentaje', 'monto_fijo')
+              AND monto_minimo_compra IS NOT NULL
+            ORDER BY valor_descuento DESC LIMIT 1
+        `);
+        let promoNoAplica: { nombre: string; minimo: number } | null = null;
+        if (promoMin.rows.length > 0) {
+            const minimo = Number.parseFloat(promoMin.rows[0].monto_minimo_compra);
+            if (totalBase < minimo) {
+                items.forEach(i => { i.precio_promocion = null; });
+                promoNoAplica = { nombre: promoMin.rows[0].nombre, minimo };
+            }
+        }
+
         const total = items.reduce((sum, item) => {
-            const precio = Number.parseFloat(item.precio_oferta || item.precio_venta);
+            const precio = Number.parseFloat(item.precio_promocion ?? item.precio_oferta ?? item.precio_venta);
             return sum + (precio * item.cantidad);
         }, 0);
 
-        res.json({ success: true, data: { items, total, count: items.length } });
+        res.json({ success: true, data: { items, total, count: items.length, promo_no_aplica: promoNoAplica } });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -247,14 +266,36 @@ export const crearPedido = async (req: Request, res: Response) => {
         );
         const prodsMap = new Map(prodsResult.rows.map(p => [p.id, p]));
 
-        const itemsPedido = items.map(item => ({
-            producto_id:     item.producto_id,
-            producto_codigo: prodsMap.get(item.producto_id)?.codigo || 'SIN-CODIGO',
-            producto_nombre: item.producto_nombre,
-            producto_imagen: item.producto_imagen,
-            cantidad:        item.cantidad,
-            precio_unitario: Number.parseFloat(item.precio_oferta || item.precio_venta)
-        }));
+        // ✅ Verificar monto_minimo_compra de promociones activas
+        const totalCarrito = items.reduce((s, i) => s + Number.parseFloat(i.precio_venta) * i.cantidad, 0);
+        const promoActiva = await pool.query(`
+            SELECT monto_minimo_compra, nombre FROM promociones
+            WHERE activo = true AND fecha_inicio <= NOW() AND fecha_fin >= NOW()
+              AND tipo IN ('porcentaje', 'monto_fijo')
+              AND monto_minimo_compra IS NOT NULL
+            ORDER BY valor_descuento DESC LIMIT 1
+        `);
+        if (promoActiva.rows.length > 0) {
+            const minimo = Number.parseFloat(promoActiva.rows[0].monto_minimo_compra);
+            if (totalCarrito < minimo) {
+                // Recalcular sin descuento para los items que no cumplen
+                items.forEach(i => { (i as any).precio_promocion = null; });
+            }
+        }
+
+        const itemsPedido = items.map(item => {
+            const precio_unitario = Number.parseFloat(item.precio_promocion ?? item.precio_oferta ?? item.precio_venta);
+            const precio_original = Number.parseFloat(item.precio_venta);
+            return {
+                producto_id:     item.producto_id,
+                producto_codigo: prodsMap.get(item.producto_id)?.codigo || 'SIN-CODIGO',
+                producto_nombre: item.producto_nombre,
+                producto_imagen: item.producto_imagen,
+                cantidad:        item.cantidad,
+                precio_unitario,
+                precio_original: precio_original !== precio_unitario ? precio_original : undefined
+            };
+        });
 
         // ✅ Verificar stock disponible antes de crear el pedido
         for (const item of itemsPedido) {

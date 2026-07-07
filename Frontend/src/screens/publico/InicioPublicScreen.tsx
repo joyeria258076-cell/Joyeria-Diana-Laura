@@ -18,6 +18,7 @@ const InicioPublicScreen: React.FC = () => {
   const [grupoProductos, setGrupoProductos] = useState(0);
   const [colecciones, setColecciones] = useState<any[]>([]);
   const [tickerIdx, setTickerIdx] = useState(0);
+  const [tickerCerrado, setTickerCerrado] = useState(false);
 
   // ── DATOS DE RESPALDO (Fallbacks) ──
   const defaultSlides = [
@@ -214,32 +215,26 @@ const InicioPublicScreen: React.FC = () => {
   return (
     <div className="inicio-public-container">
       {/* ═══════════ BARRA TICKER PROMOCIONES ═══════════ */}
-      {promociones.length > 0 && (
-        <div className="promo-ticker">
+      {promociones.length > 0 && !tickerCerrado && (
+        <div className="promo-ticker-fixed">
           <span className="promo-ticker-badge">🏷️ OFERTA</span>
-          <div className="promo-ticker-track">
-            {promociones.map((p, i) => (
-              <span
-                key={p.id}
-                className={`promo-ticker-item ${i === tickerIdx ? 'promo-ticker-item-active' : ''}`}
-              >
-                <strong>{p.nombre}</strong> — {promoLabel(p)}
-                {p.fecha_fin && (
-                  <em> · Válida hasta {new Date(p.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</em>
-                )}
-              </span>
-            ))}
-          </div>
-          {promociones.length > 1 && (
-            <div className="promo-ticker-dots">
-              {promociones.map((_, i) => (
-                <button key={i} className={`promo-ticker-dot ${i === tickerIdx ? 'active' : ''}`}
-                  onClick={() => setTickerIdx(i)} />
+          <div className="promo-ticker-scroll-wrap">
+            <div className="promo-ticker-scroll-track">
+              {[...promociones, ...promociones].map((p, i) => (
+                <span key={i} className="promo-ticker-scroll-item">
+                  <strong>{p.nombre}</strong> — {promoLabel(p)}
+                  {p.fecha_fin && (
+                    <em> · Válida hasta {new Date(p.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</em>
+                  )}
+                  <span className="promo-ticker-sep">◆</span>
+                </span>
               ))}
             </div>
-          )}
+          </div>
+          <button className="promo-ticker-close" onClick={() => setTickerCerrado(true)} aria-label="Cerrar">✕</button>
         </div>
       )}
+      {promociones.length > 0 && !tickerCerrado && <div className="promo-ticker-spacer" />}
 
       <PublicHeader />
 
@@ -351,9 +346,24 @@ const InicioPublicScreen: React.FC = () => {
                   </div>
                   <div style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
                     <h5 style={{ margin: '0 0 4px', fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600 }}>{prod.nombre}</h5>
-                    <p style={{ color: 'var(--rose)', fontSize: '1rem', fontWeight: 'bold', margin: '0 0 10px' }}>
-                      ${Number(prod.precio_oferta || prod.precio_venta).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                    </p>
+                    {(() => {
+                      const precioFinal = prod.precio_promocion ?? prod.precio_oferta;
+                      return precioFinal ? (
+                        <div style={{ margin: '0 0 10px' }}>
+                          <span style={{ textDecoration: 'line-through', fontSize: '0.8rem', opacity: 0.6, marginRight: 6 }}>
+                            ${Number(prod.precio_venta).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                          </span>
+                          <span style={{ color: 'var(--rose)', fontSize: '1rem', fontWeight: 'bold' }}>
+                            ${Number(precioFinal).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                          </span>
+                          {prod.precio_promocion && <span style={{ marginLeft: 4, fontSize: '0.75rem' }}>🏷️</span>}
+                        </div>
+                      ) : (
+                        <p style={{ color: 'var(--rose)', fontSize: '1rem', fontWeight: 'bold', margin: '0 0 10px' }}>
+                          ${Number(prod.precio_venta).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                        </p>
+                      );
+                    })()}
                     <Link to={`/producto/${prod.id}`} className="btn btn-secondary"
                       style={{ width: '100%', display: 'block', textAlign: 'center', fontSize: '0.8rem', padding: '6px 0' }}>
                       Ver Detalles

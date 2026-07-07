@@ -10,6 +10,8 @@ interface ItemPedido {
     producto_imagen?: string;
     cantidad: number;
     precio_unitario: number;
+    precio_original?: number;
+    descuento_unitario?: number;
     subtotal: number;
     talla_medida?: string;
     nota?: string;
@@ -112,14 +114,20 @@ const GUIA_ESTADO: Record<string, string> = {
     cancelado:      '🚫 Pedido cancelado. El stock fue restaurado automáticamente.',
 };
 
-const getEstadosDisponibles = (estados: EstadoConfig[], metodoCodigo?: string, esApartado?: boolean): EstadoConfig[] => {
+const getEstadosDisponibles = (estados: EstadoConfig[], metodoCodigo?: string, esApartado?: boolean, tipoEntrega?: string): EstadoConfig[] => {
+    // "Enviado" solo aplica para domicilio; "Entregado" en tienda requiere código (se excluye del selector)
+    const esTienda = !tipoEntrega || tipoEntrega === 'tienda';
+    let filtrados = estados;
+    if (esTienda) filtrados = filtrados.filter(e => e.value !== 'enviado' && e.value !== 'entregado');
+    else          filtrados = filtrados.filter(e => e.value !== 'entregado'); // domicilio: entregado solo por código también
+
     if (esApartado)
-        return estados.filter(e => ['en_preparacion', 'entregado', 'cancelado'].includes(e.value));
+        return filtrados.filter(e => ['en_preparacion', 'cancelado'].includes(e.value));
     if (metodoCodigo === 'efectivo')
-        return estados.filter(e => ['confirmado', 'entregado', 'cancelado'].includes(e.value));
+        return filtrados.filter(e => ['confirmado', 'cancelado'].includes(e.value));
     if (metodoCodigo === 'transferencia')
-        return estados.filter(e => ['confirmado', 'en_preparacion', 'entregado', 'cancelado'].includes(e.value));
-    return estados;
+        return filtrados.filter(e => ['confirmado', 'en_preparacion', 'cancelado'].includes(e.value));
+    return filtrados;
 };
 
 const FASES_STEPPER = [
@@ -141,19 +149,26 @@ const getFaseIndex = (estado: string, estado_pago: string): number => {
     return 0;
 };
 
-const StepperPedido: React.FC<{ estado: string; estado_pago: string }> = ({ estado, estado_pago }) => {
+const FASES_TIENDA  = FASES_STEPPER.filter(f => f.key !== 'enviado');
+const FASES_DOMICILIO = FASES_STEPPER;
+
+const StepperPedido: React.FC<{ estado: string; estado_pago: string; tipoEntrega?: string }> = ({ estado, estado_pago, tipoEntrega }) => {
     if (estado === 'cancelado') return <div className="gp-stepper-cancelado">🚫 Pedido cancelado</div>;
+    const esTienda = !tipoEntrega || tipoEntrega === 'tienda';
+    const fases = esTienda ? FASES_TIENDA : FASES_DOMICILIO;
     const faseActual = getFaseIndex(estado, estado_pago);
+    // Ajustar índice para tienda (sin "Enviado", índice 4 no existe)
+    const faseAjustada = esTienda && faseActual >= 4 ? faseActual - 1 : faseActual;
     return (
         <div className="gp-stepper">
-            {FASES_STEPPER.map((fase, i) => (
+            {fases.map((fase, i) => (
                 <div key={fase.key} className="gp-step-wrap">
-                    <div className={`gp-step ${i < faseActual ? 'completado' : i === faseActual ? 'activo' : 'inactivo'}`}>
-                        <div className="gp-step-icono">{i < faseActual ? '✓' : fase.icon}</div>
+                    <div className={`gp-step ${i < faseAjustada ? 'completado' : i === faseAjustada ? 'activo' : 'inactivo'}`}>
+                        <div className="gp-step-icono">{i < faseAjustada ? '✓' : fase.icon}</div>
                         <div className="gp-step-label">{fase.label}</div>
                     </div>
-                    {i < FASES_STEPPER.length - 1 && (
-                        <div className={`gp-step-linea ${i < faseActual ? 'completada' : ''}`} />
+                    {i < fases.length - 1 && (
+                        <div className={`gp-step-linea ${i < faseAjustada ? 'completada' : ''}`} />
                     )}
                 </div>
             ))}
@@ -812,7 +827,7 @@ const GestionPedidosScreen: React.FC = () => {
                                 <>
                                     {modalTipo === 'detalle' && (
                                         <>
-                                            <StepperPedido estado={pedidoSel.estado} estado_pago={pedidoSel.estado_pago || 'pendiente'} />
+                                            <StepperPedido estado={pedidoSel.estado} estado_pago={pedidoSel.estado_pago || 'pendiente'} tipoEntrega={pedidoSel.tipo_entrega} />
                                             {GUIA_ESTADO[pedidoSel.estado] && (
                                                 <div className="gp-guia-pasos">
                                                     <span className="gp-guia-titulo">📌 ¿Qué sigue?</span>
@@ -917,7 +932,14 @@ const GestionPedidosScreen: React.FC = () => {
                                                                 <p className="gp-modal-item-nombre">{item.producto_nombre}</p>
                                                                 {item.talla_medida && <p className="gp-modal-item-sub">Talla: {item.talla_medida}</p>}
                                                                 {item.nota && <p className="gp-modal-item-sub">Nota: {item.nota}</p>}
-                                                                <p className="gp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')}</p>
+                                                                {item.precio_original && item.precio_original > item.precio_unitario ? (
+                                                                    <>
+                                                                        <p className="gp-modal-item-sub" style={{textDecoration:'line-through', opacity:0.5}}>{item.cantidad} × ${Number.parseFloat(String(item.precio_original)).toLocaleString('es-MX')}</p>
+                                                                        <p className="gp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')} <span style={{color:'#c9a84c', fontWeight:600}}>🏷️ -${Number.parseFloat(String(item.descuento_unitario)).toLocaleString('es-MX')} c/u</span></p>
+                                                                    </>
+                                                                ) : (
+                                                                    <p className="gp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')}</p>
+                                                                )}
                                                             </div>
                                                             <p className="gp-modal-item-total">${Number.parseFloat(String(item.subtotal)).toLocaleString('es-MX')}</p>
                                                         </div>
@@ -1055,6 +1077,13 @@ const GestionPedidosScreen: React.FC = () => {
 
                                     {modalTipo === 'estado' && (
                                         <div className="gp-modal-form">
+                                            {['entregado', 'cancelado'].includes(pedidoSel.estado) ? (
+                                                <div className="gp-aviso-codigo-entrega">
+                                                    {pedidoSel.estado === 'entregado'
+                                                        ? '✅ Este pedido ya fue entregado. No se puede cambiar su estado.'
+                                                        : '🚫 Este pedido está cancelado. No se puede cambiar su estado.'}
+                                                </div>
+                                            ) : (<>
                                             <div className="gp-estado-actual">
                                                 <span>Estado actual:</span> {getBadge(pedidoSel.estado)}
                                                 {(pedidoSel.es_apartado || pedidoSel.metodo_pago_nombre) && (
@@ -1065,7 +1094,7 @@ const GestionPedidosScreen: React.FC = () => {
                                                 <label>Nuevo estado</label>
                                                 <select className="gp-select" value={nuevoEstado}
                                                     onChange={e => setNuevoEstado(e.target.value)}>
-                                                    {getEstadosDisponibles(estados, pedidoSel.metodo_pago_codigo, pedidoSel.es_apartado).map(e => (
+                                                    {getEstadosDisponibles(estados, pedidoSel.metodo_pago_codigo, pedidoSel.es_apartado, pedidoSel.tipo_entrega).map(e => (
                                                         <option key={e.value} value={e.value}>{e.label}</option>
                                                     ))}
                                                 </select>
@@ -1080,6 +1109,9 @@ const GestionPedidosScreen: React.FC = () => {
                                                     💡 Para avanzar a este estado, primero confirma el pago del cliente en <strong>👁 Ver detalle</strong> del pedido.
                                                 </div>
                                             )}
+                                            <div className="gp-aviso-codigo-entrega">
+                                                🔑 Para marcar el pedido como <strong>Entregado</strong>, el cliente debe presentar su código de entrega. Ve a <strong>👁 Ver detalle</strong> e ingrésalo en el formulario de confirmación.
+                                            </div>
                                             {['en_preparacion','enviado','entregado'].includes(nuevoEstado) && !pedidoSel.fecha_estimada_entrega && (
                                                 <div className="gp-form-grupo">
                                                     <label>📅 Fecha estimada de entrega (opcional)</label>
@@ -1105,6 +1137,7 @@ const GestionPedidosScreen: React.FC = () => {
                                                 onClick={actualizarEstado} disabled={cargando || msg.startsWith('✅')}>
                                                 {cargando ? '⏳ Guardando...' : msg.startsWith('✅') ? '✅ Guardado' : '💾 Guardar cambios'}
                                             </button>
+                                            </>)}
                                         </div>
                                     )}
                                 </>

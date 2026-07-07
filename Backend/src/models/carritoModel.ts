@@ -21,7 +21,26 @@ export const CarritoModel = {
                 p.stock_actual,
                 p.permite_personalizacion,
                 p.tiene_medidas,
-                cat.nombre          AS categoria_nombre
+                cat.nombre          AS categoria_nombre,
+                (
+                    SELECT CASE
+                        WHEN pr.tipo = 'porcentaje' THEN ROUND((p.precio_venta * (1 - pr.valor_descuento / 100.0))::numeric, 2)
+                        WHEN pr.tipo = 'monto_fijo' THEN GREATEST(0, ROUND((p.precio_venta - pr.valor_descuento)::numeric, 2))
+                        ELSE NULL
+                    END
+                    FROM promociones pr
+                    WHERE pr.activo = true
+                      AND pr.fecha_inicio <= NOW()
+                      AND pr.fecha_fin >= NOW()
+                      AND pr.tipo IN ('porcentaje', 'monto_fijo')
+                      AND (
+                          pr.aplica_productos IS NULL
+                          OR p.id = ANY(pr.aplica_productos)
+                          OR (pr.aplica_categorias IS NULL OR p.categoria_id = ANY(pr.aplica_categorias))
+                      )
+                    ORDER BY pr.valor_descuento DESC
+                    LIMIT 1
+                ) AS precio_promocion
             FROM carrito c
             JOIN productos  p   ON c.producto_id  = p.id
             JOIN categorias cat ON p.categoria_id = cat.id
@@ -138,6 +157,7 @@ export const VentaModel = {
             producto_imagen?: string;
             cantidad:        number;
             precio_unitario: number;
+            precio_original?: number;
         }[];
     }) => {
         const client = await pool.connect();
@@ -180,16 +200,20 @@ export const VentaModel = {
             const venta = ventaResult.rows[0];
 
             for (const item of data.items) {
+                const descuento = item.precio_original && item.precio_original > item.precio_unitario
+                    ? Number((item.precio_original - item.precio_unitario).toFixed(2))
+                    : null;
                 await client.query(`
                     INSERT INTO detalle_ventas (
                         venta_id, producto_id, producto_codigo,
                         producto_nombre, producto_imagen,
-                        cantidad, precio_unitario, subtotal
-                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+                        cantidad, precio_unitario, precio_original, descuento_unitario, subtotal
+                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
                 `, [
                     venta.id, item.producto_id, item.producto_codigo,
                     item.producto_nombre, item.producto_imagen || null,
                     item.cantidad, item.precio_unitario,
+                    item.precio_original || null, descuento,
                     item.cantidad * item.precio_unitario
                 ]);
             }
@@ -232,8 +256,10 @@ export const VentaModel = {
                         'producto_nombre',  dv.producto_nombre,
                         'producto_imagen',  dv.producto_imagen,
                         'cantidad',         dv.cantidad,
-                        'precio_unitario',  dv.precio_unitario,
-                        'subtotal',         dv.subtotal
+                        'precio_unitario',      dv.precio_unitario,
+                        'precio_original',      dv.precio_original,
+                        'descuento_unitario',   dv.descuento_unitario,
+                        'subtotal',             dv.subtotal
                     ))
                     FROM detalle_ventas dv WHERE dv.venta_id = v.id
                 ) AS items,

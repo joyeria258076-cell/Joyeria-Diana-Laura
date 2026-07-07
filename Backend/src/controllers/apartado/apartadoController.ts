@@ -380,6 +380,7 @@ export const confirmarPagoInicial = async (req: AuthRequest, res: Response) => {
 export const getMisApartados = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?.id || req.user?.userId;
+        console.log('getMisApartados userId:', req.user?.id, req.user?.userId); // 🔧 temporal
 
         const result = await pool.query(
             `SELECT a.*,

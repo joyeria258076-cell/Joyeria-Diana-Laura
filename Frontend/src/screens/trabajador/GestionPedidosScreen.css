@@ -541,6 +541,14 @@
     font-size: 0.82rem; color: #f5c842; line-height: 1.5; margin-top: 6px;
 }
 
+/* ── Aviso código entrega ── */
+.gp-aviso-codigo-entrega {
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 0.82rem; color: #c9a84c; line-height: 1.5; margin-top: 10px;
+}
+
 /* ── Metodo tag ── */
 .gp-metodo-tag {
     font-size: 0.75rem; color: #8a7a82;

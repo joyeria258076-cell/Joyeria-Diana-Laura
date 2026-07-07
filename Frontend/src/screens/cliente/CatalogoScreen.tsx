@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { AiOutlineSearch } from 'react-icons/ai';
 import './CatalogoScreen.css';
-import { productsAPI } from '../../services/api';
+import { productsAPI, promocionesAPI, favoritosAPI } from '../../services/api';
 import DetalleProductoModal from '../publico/DetalleProductoModal';
 
 interface Producto {
@@ -10,6 +10,7 @@ interface Producto {
     nombre: string;
     precio_venta: number;
     precio_oferta?: number;
+    precio_promocion?: number;
     descripcion?: string;
     imagen_principal?: string;
     categoria_id?: number;
@@ -76,6 +77,15 @@ const CatalogoScreen: React.FC = () => {
     const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
 
+    // --- TICKER PROMOCIONES ---
+    const [promociones, setPromociones] = useState<any[]>([]);
+    const [tickerCerrado, setTickerCerrado] = useState(false);
+
+    // --- FAVORITOS ---
+    const [favoritos, setFavoritos] = useState<Producto[]>([]);
+    const [favoritosIds, setFavoritosIds] = useState<Set<number>>(new Set());
+    const [togglingFav, setTogglingFav] = useState<number | null>(null);
+
     // --- PLACEHOLDER IMAGE ---
     //const placeholderImg = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzFhMWEyZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4IiBmaWxsPSIjZWNiMmMzIj7oo6s8L3RleHQ+PC9zdmc+';
     const placeholderImg = `data:image/svg+xml;utf8,<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="%231a1a2e"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="22" fill="%23ecb2c3" font-family="Arial">Joya</text></svg>`;
@@ -101,6 +111,29 @@ const CatalogoScreen: React.FC = () => {
 
                 const respTipos = await productsAPI.getTiposProducto();
                 setTiposProducto(Array.isArray(respTipos?.data) ? respTipos.data : []);
+
+                try {
+                    const resPromo = await promocionesAPI.getActivas();
+                    const lista = Array.isArray(resPromo) ? resPromo : (resPromo.data || []);
+                    setPromociones(lista);
+                } catch { /* sin promociones */ }
+
+                try {
+                    const resFavs = await favoritosAPI.getAll();
+                    const lista: Producto[] = Array.isArray(resFavs?.data) ? resFavs.data.map((f: any) => ({
+                        id: f.producto_id,
+                        nombre: f.nombre,
+                        precio_venta: f.precio_venta,
+                        precio_oferta: f.precio_oferta,
+                        precio_promocion: f.precio_promocion,
+                        imagen_principal: f.imagen_principal,
+                        stock_actual: f.stock_actual,
+                        es_nuevo: f.es_nuevo,
+                        categoria_nombre: f.categoria_nombre,
+                    })) : [];
+                    setFavoritos(lista);
+                    setFavoritosIds(new Set(lista.map(p => p.id)));
+                } catch { /* sin favoritos */ }
 
             } catch (error) {
                 console.error('Error cargando datos iniciales:', error);
@@ -165,6 +198,41 @@ const CatalogoScreen: React.FC = () => {
         setSearchMode(false);
         setResultadosBusqueda([]);
         setPaginaBusqueda(0);
+    };
+
+    // --- FAVORITOS TOGGLE ---
+    const handleToggleFavorito = async (e: React.MouseEvent, productoId: number) => {
+        e.stopPropagation();
+        if (togglingFav === productoId) return;
+        setTogglingFav(productoId);
+        try {
+            const res = await favoritosAPI.toggle(productoId);
+            if (res.favorito) {
+                setFavoritosIds(prev => new Set([...prev, productoId]));
+            } else {
+                setFavoritosIds(prev => { const s = new Set(prev); s.delete(productoId); return s; });
+                setFavoritos(prev => prev.filter(p => p.id !== productoId));
+            }
+            // Recargar lista completa si se agregó
+            if (res.favorito) {
+                const resFavs = await favoritosAPI.getAll();
+                const lista: Producto[] = Array.isArray(resFavs?.data) ? resFavs.data.map((f: any) => ({
+                    id: f.producto_id,
+                    nombre: f.nombre,
+                    precio_venta: f.precio_venta,
+                    precio_oferta: f.precio_oferta,
+                    precio_promocion: f.precio_promocion,
+                    imagen_principal: f.imagen_principal,
+                    stock_actual: f.stock_actual,
+                    es_nuevo: f.es_nuevo,
+                    categoria_nombre: f.categoria_nombre,
+                })) : [];
+                setFavoritos(lista);
+                setFavoritosIds(new Set(lista.map(p => p.id)));
+            }
+        } catch { /* ignorar */ } finally {
+            setTogglingFav(null);
+        }
     };
 
     // --- MODAL ---
@@ -244,7 +312,9 @@ const CatalogoScreen: React.FC = () => {
     };
 
     // --- CARD REUTILIZABLE ---
-    const ProductoCard = ({ producto }: { producto: Producto }) => (
+    const ProductoCard = ({ producto }: { producto: Producto }) => {
+        const esFav = favoritosIds.has(producto.id);
+        return (
         <div className="producto-card" onClick={() => verDetalles(producto)}>
             <div className="producto-imagen">
                 {producto.imagen_principal ? (
@@ -257,24 +327,34 @@ const CatalogoScreen: React.FC = () => {
                     <img src={placeholderImg} alt={producto.nombre} />
                 )}
                 {producto.es_nuevo && <span className="badge-nuevo">Nuevo</span>}
-                {producto.precio_oferta && <span className="badge-oferta">Oferta</span>}
+                {(producto.precio_oferta || producto.precio_promocion) && <span className="badge-oferta">{producto.precio_promocion ? '🏷️ Promo' : 'Oferta'}</span>}
                 {producto.stock_actual === 0 && <span className="badge-agotado">Agotado</span>}
                 {producto.stock_actual > 0 && producto.stock_actual <= 5 && (
                     <span className="badge-poco-stock">¡Últimas {producto.stock_actual}!</span>
                 )}
+                <button
+                    className={`btn-favorito${esFav ? ' btn-favorito--activo' : ''}`}
+                    onClick={(e) => handleToggleFavorito(e, producto.id)}
+                    disabled={togglingFav === producto.id}
+                    aria-label={esFav ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                >
+                    {esFav ? '❤️' : '🤍'}
+                </button>
             </div>
             <div className="producto-info">
                 <h4>{producto.nombre}</h4>
                 <p className="tipo">{producto.tipo_producto_nombre || producto.categoria_nombre}</p>
                 <div className="precio-section">
-                    {producto.precio_oferta ? (
-                        <>
-                            <span className="precio original">${(producto.precio_venta ?? 0).toLocaleString('es-MX')}</span>
-                            <span className="precio oferta">${(producto.precio_oferta ?? 0).toLocaleString('es-MX')}</span>
-                        </>
-                    ) : (
-                        <span className="precio">${(producto.precio_venta ?? 0).toLocaleString('es-MX')}</span>
-                    )}
+                    {(() => {
+                        const precioFinal = producto.precio_promocion ?? producto.precio_oferta;
+                        if (precioFinal) {
+                            return <>
+                                <span className="precio original">${(producto.precio_venta ?? 0).toLocaleString('es-MX')}</span>
+                                <span className="precio oferta">${Number(precioFinal).toLocaleString('es-MX')}</span>
+                            </>;
+                        }
+                        return <span className="precio">${(producto.precio_venta ?? 0).toLocaleString('es-MX')}</span>;
+                    })()}
                 </div>
                 <div className="producto-stock">
                     {producto.stock_actual === 0 ? (
@@ -287,7 +367,14 @@ const CatalogoScreen: React.FC = () => {
                 </div>
             </div>
         </div>
-    );
+        );
+    };
+
+    const promoLabel = (p: any) => {
+        if (p.tipo === 'porcentaje') return `${p.valor_descuento}% de descuento`;
+        if (p.tipo === 'monto_fijo') return `-$${p.valor_descuento} MXN`;
+        return p.nombre;
+    };
 
     // --- RENDERIZADO ---
     if (loading) {
@@ -295,8 +382,43 @@ const CatalogoScreen: React.FC = () => {
     }
 
     return (
-        <main className="catalogo-body">
+        <>
+        {promociones.length > 0 && !tickerCerrado && (
+            <div className="promo-ticker-fixed">
+                <span className="promo-ticker-badge">🏷️ OFERTA</span>
+                <div className="promo-ticker-scroll-wrap">
+                    <div className="promo-ticker-scroll-track">
+                        {[...promociones, ...promociones].map((p, i) => (
+                            <span key={i} className="promo-ticker-scroll-item">
+                                <strong>{p.nombre}</strong> — {promoLabel(p)}
+                                {p.fecha_fin && (
+                                    <em> · Válida hasta {new Date(p.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</em>
+                                )}
+                                <span className="promo-ticker-sep">◆</span>
+                            </span>
+                        ))}
+                    </div>
+                </div>
+                <button className="promo-ticker-close" onClick={() => setTickerCerrado(true)} aria-label="Cerrar">✕</button>
+            </div>
+        )}
+        <main className="catalogo-body" style={promociones.length > 0 && !tickerCerrado ? { paddingTop: '36px' } : {}}>
             <h2 className="page-title">Catálogo de Productos</h2>
+
+            {/* --- MIS FAVORITOS --- */}
+            {favoritos.length > 0 && !searchMode && (
+                <section className="favoritos-section">
+                    <div className="favoritos-header">
+                        <span className="favoritos-titulo">❤️ Mis Favoritos</span>
+                        <span className="favoritos-count">{favoritos.length} producto{favoritos.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="productos-grid favoritos-grid">
+                        {favoritos.map(producto => (
+                            <ProductoCard key={`fav-${producto.id}`} producto={producto} />
+                        ))}
+                    </div>
+                </section>
+            )}
 
             {/* --- FILTROS --- */}
             <div className="filtros-container">
@@ -456,9 +578,11 @@ const CatalogoScreen: React.FC = () => {
                     isOpen={modalOpen}
                     producto={selectedProducto}
                     onClose={cerrarModal}
+                    promoFechaFin={(selectedProducto as any).precio_promocion && promociones.length > 0 ? promociones[0].fecha_fin : undefined}
                 />
             )}
         </main>
+        </>
     );
 };
 

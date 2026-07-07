@@ -53,6 +53,7 @@ const CatalogoPublicScreen: React.FC = () => {
   // ===== PROMOCIONES TICKER =====
   const [promociones, setPromociones] = useState<any[]>([]);
   const [tickerIdx, setTickerIdx] = useState(0);
+  const [tickerCerrado, setTickerCerrado] = useState(false);
 
   // ===== ESTADOS DE UI =====
   const [searchMode, setSearchMode] = useState(false);
@@ -234,20 +235,17 @@ const CatalogoPublicScreen: React.FC = () => {
         <p className="producto-categoria">{producto.categoria_nombre}</p>
         <div className="producto-footer">
           <div className="precio-display">
-            {producto.precio_oferta ? (
-              <>
-                <span className="precio-original">
-                  ${(producto.precio_venta ?? 0).toLocaleString("es-MX")}
-                </span>
-                <span className="precio-oferta">
-                  ${(producto.precio_oferta ?? 0).toLocaleString("es-MX")}
-                </span>
-              </>
-            ) : (
-              <span className="precio-actual">
-                ${(producto.precio_venta ?? 0).toLocaleString("es-MX")}
-              </span>
-            )}
+            {(() => {
+              const precioFinal = (producto as any).precio_promocion ?? producto.precio_oferta;
+              if (precioFinal) {
+                return <>
+                  <span className="precio-original">${(producto.precio_venta ?? 0).toLocaleString("es-MX")}</span>
+                  <span className="precio-oferta">${Number(precioFinal).toLocaleString("es-MX")}</span>
+                  {(producto as any).precio_promocion && <span className="badge-promo">🏷️</span>}
+                </>;
+              }
+              return <span className="precio-actual">${(producto.precio_venta ?? 0).toLocaleString("es-MX")}</span>;
+            })()}
           </div>
           <button className="btn-ver" title="Ver detalles">
             Ver
@@ -334,29 +332,26 @@ const CatalogoPublicScreen: React.FC = () => {
   // ===== RENDER =====
   return (
     <div className="catalogo-public-container">
-      {promociones.length > 0 && (
-        <div className="promo-ticker">
+      {promociones.length > 0 && !tickerCerrado && (
+        <div className="promo-ticker-fixed">
           <span className="promo-ticker-badge">🏷️ OFERTA</span>
-          <div className="promo-ticker-track">
-            {promociones.map((p, i) => (
-              <span key={p.id} className={`promo-ticker-item ${i === tickerIdx ? 'promo-ticker-item-active' : ''}`}>
-                <strong>{p.nombre}</strong> — {promoLabel(p)}
-                {p.fecha_fin && (
-                  <em> · Válida hasta {new Date(p.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</em>
-                )}
-              </span>
-            ))}
-          </div>
-          {promociones.length > 1 && (
-            <div className="promo-ticker-dots">
-              {promociones.map((_, i) => (
-                <button key={i} className={`promo-ticker-dot ${i === tickerIdx ? 'active' : ''}`}
-                  onClick={() => setTickerIdx(i)} />
+          <div className="promo-ticker-scroll-wrap">
+            <div className="promo-ticker-scroll-track">
+              {[...promociones, ...promociones].map((p, i) => (
+                <span key={i} className="promo-ticker-scroll-item">
+                  <strong>{p.nombre}</strong> — {promoLabel(p)}
+                  {p.fecha_fin && (
+                    <em> · Válida hasta {new Date(p.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</em>
+                  )}
+                  <span className="promo-ticker-sep">◆</span>
+                </span>
               ))}
             </div>
-          )}
+          </div>
+          <button className="promo-ticker-close" onClick={() => setTickerCerrado(true)} aria-label="Cerrar">✕</button>
         </div>
       )}
+      {promociones.length > 0 && !tickerCerrado && <div className="promo-ticker-spacer" />}
       <PublicHeader />
 
       {/* HERO */}
@@ -603,6 +598,7 @@ const CatalogoPublicScreen: React.FC = () => {
           isOpen={modalOpen}
           producto={selectedProducto}
           onClose={handleCerrarModal}
+          promoFechaFin={(selectedProducto as any).precio_promocion && promociones.length > 0 ? promociones[0].fecha_fin : undefined}
         />
       )}
 

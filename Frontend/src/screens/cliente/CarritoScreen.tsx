@@ -182,7 +182,7 @@ const SelectorDireccion: React.FC<{ onChange: (dir: DireccionData) => void }> = 
 // ── Pantalla principal ────────────────────────────────────────
 const CarritoScreen: React.FC = () => {
     const navigate = useNavigate();
-    const { items, count, total, loading, actualizarCantidad, eliminarItem, vaciarCarrito } = useCart();
+    const { items, count, total, loading, promoNoAplica, actualizarCantidad, eliminarItem, vaciarCarrito } = useCart();
 
     // ── Estados pedido normal ─────────────────────────────────
     const [solicitando, setSolicitando]       = useState(false);
@@ -391,10 +391,9 @@ const CarritoScreen: React.FC = () => {
                         <div className="carrito-loading"><div className="carrito-spinner" /><p>Cargando carrito...</p></div>
                     ) : (
                         items.map(item => {
-                            const precio       = Number.parseFloat(String(item.precio_oferta || item.precio_venta));
+                            const precio       = Number.parseFloat(String(item.precio_promocion ?? item.precio_oferta ?? item.precio_venta));
                             const subtotal     = precio * item.cantidad;
-                            const hayDescuento = item.precio_oferta &&
-                                Number.parseFloat(String(item.precio_oferta)) < Number.parseFloat(String(item.precio_venta));
+                            const hayDescuento = precio < Number.parseFloat(String(item.precio_venta));
                             const pocoPoco     = item.stock_actual <= STOCK_POCO && item.stock_actual > 0;
                             const sinStock     = item.stock_actual === 0;
                             return (
@@ -441,8 +440,23 @@ const CarritoScreen: React.FC = () => {
                 </section>
 
                 <aside className="carrito-resumen">
+                    {promoNoAplica && (
+                        <div className="carrito-promo-aviso">
+                            ⚠️ La promoción <strong>"{promoNoAplica.nombre}"</strong> requiere un mínimo de compra de <strong>${promoNoAplica.minimo.toLocaleString('es-MX')}</strong>. Agrega más productos para obtener el descuento.
+                        </div>
+                    )}
                     <div className="carrito-resumen-card">
                         <h3 className="carrito-resumen-titulo">Resumen del pedido</h3>
+                        {(() => {
+                            const totalSinPromo = items.reduce((s, i) => s + Number.parseFloat(String(i.precio_venta)) * i.cantidad, 0);
+                            const ahorro = totalSinPromo - total;
+                            return ahorro > 0 ? (
+                                <>
+                                    <div className="carrito-resumen-fila" style={{textDecoration:'line-through', opacity:0.5}}><span>Precio normal</span><span>${totalSinPromo.toLocaleString('es-MX')}</span></div>
+                                    <div className="carrito-resumen-fila" style={{color:'#c9a84c', fontWeight:600}}><span>🏷️ Descuento promo</span><span>-${ahorro.toLocaleString('es-MX')}</span></div>
+                                </>
+                            ) : null;
+                        })()}
                         <div className="carrito-resumen-fila"><span>Productos ({count})</span><span>${total.toLocaleString('es-MX')}</span></div>
                         <div className="carrito-resumen-fila"><span>Envío</span><span className="carrito-envio-texto">Por confirmar</span></div>
                         <div className="carrito-resumen-divider" />
@@ -579,6 +593,15 @@ const CarritoScreen: React.FC = () => {
                             </div>
                             {errorMsg && <div className="carrito-error-msg">⚠️ {errorMsg}</div>}
                             <div className="carrito-modal-resumen">
+                                {(() => {
+                                    const totalSinPromo = items.reduce((s, i) => s + Number.parseFloat(String(i.precio_venta)) * i.cantidad, 0);
+                                    const ahorro = totalSinPromo - total;
+                                    return ahorro > 0 ? (
+                                        <div className="carrito-resumen-fila" style={{color:'#c9a84c', fontSize:'0.85rem'}}>
+                                            <span>🏷️ Descuento aplicado</span><span>-${ahorro.toLocaleString('es-MX')}</span>
+                                        </div>
+                                    ) : null;
+                                })()}
                                 <div className="carrito-resumen-fila">
                                     <span>Productos ({count})</span>
                                     <span>${total.toLocaleString('es-MX')}</span>
@@ -618,7 +641,21 @@ const CarritoScreen: React.FC = () => {
                                 <p>💡 Al apartar, el <strong>50% mínimo</strong> se cobra ahora y el stock queda reservado para ti.</p>
                             </div>
                             <div className="carrito-modal-resumen">
-                                <div className="carrito-resumen-fila">
+                                {(() => {
+                                    const totalSinPromo = items.reduce((s, i) => s + Number.parseFloat(String(i.precio_venta)) * i.cantidad, 0);
+                                    const ahorro = totalSinPromo - total;
+                                    return ahorro > 0 ? (
+                                        <>
+                                            <div className="carrito-resumen-fila" style={{opacity:0.5, textDecoration:'line-through', fontSize:'0.85rem'}}>
+                                                <span>Precio original</span><span>${totalSinPromo.toLocaleString('es-MX')}</span>
+                                            </div>
+                                            <div className="carrito-resumen-fila" style={{color:'#c9a84c', fontSize:'0.85rem', fontWeight:600}}>
+                                                <span>🏷️ Descuento aplicado</span><span>-${ahorro.toLocaleString('es-MX')}</span>
+                                            </div>
+                                        </>
+                                    ) : null;
+                                })()}
+                                <div className="carrito-resumen-fila" style={{fontWeight:700}}>
                                     <span>Total del pedido</span>
                                     <span>${total.toLocaleString('es-MX')}</span>
                                 </div>

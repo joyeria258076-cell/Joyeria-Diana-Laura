@@ -7,29 +7,17 @@ import "./NoticiasScreen.css";
 const NoticiasScreen: React.FC = () => {
   const [noticias, setNoticias] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pageConfig, setPageConfig] = useState({
-    titulo: "",
-    contenido: "",
-    imagen: "", 
-  });
 
   useEffect(() => {
     const fetchDatos = async () => {
       try {
-        const configRes = await contentAPI.getPageConfig("noticias");
-        if (configRes) {
-          setPageConfig({
-            titulo: configRes.titulo || "",
-            contenido: configRes.contenido || "",
-            imagen: configRes.imagen || "", 
-          });
-        }
         const noticiasRes = await contentAPI.getNoticias();
-        if (noticiasRes) {
-          setNoticias(noticiasRes.filter((n: any) => n.activa));
-        }
+        const arr = Array.isArray(noticiasRes)
+          ? noticiasRes
+          : Array.isArray(noticiasRes?.data) ? noticiasRes.data : [];
+        setNoticias(arr.filter((n: any) => n.activa));
       } catch (error) {
-        console.error("Error cargando la BD:", error);
+        console.error("Error cargando noticias:", error);
       } finally {
         setLoading(false);
       }
@@ -74,29 +62,17 @@ const NoticiasScreen: React.FC = () => {
       <PublicHeader />
 
       {/* ── HERO ── */}
-      <section 
-        className="noticias-hero"
-        style={{
-          // <-- Inyectamos la imagen de fondo si existe
-          backgroundImage: pageConfig.imagen ? `url(${pageConfig.imagen})` : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      >
-        {/* Agregamos una capa oscura sutil (overlay) para que el texto siempre se lea bien */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 0 }}></div>
-        
-        <div className="container-lg" style={{ position: 'relative', zIndex: 1 }}>
+      <section className="noticias-hero">
+        <div className="container-lg">
           <div className="noticias-hero-inner">
             <p className="noticias-hero-tag">
               <span className="tag-dot" />
               Diario de Novedades
             </p>
             <h1 className="noticias-title">
-              {renderTituloConSpan(pageConfig.titulo)}
+              Novedades <span>Diana Laura</span>
             </h1>
-            <p className="noticias-subtitle">{pageConfig.contenido}</p>
+            <p className="noticias-subtitle">Colecciones, cuidados, tendencias y todo lo nuevo de nuestra joyería.</p>
             <div className="noticias-stats">
               <div className="noticias-stat">
                 <strong>{loading ? "—" : noticias.length}</strong>

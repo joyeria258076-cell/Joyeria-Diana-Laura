@@ -52,6 +52,9 @@
 .carrito-btn-vaciar { background: transparent; border: 1px solid rgba(236,178,195,0.15); color: #8a7a82; cursor: pointer; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.82rem; transition: 0.2s; font-family: 'Montserrat', sans-serif; }
 .carrito-btn-vaciar:hover { border-color: #e05a6a; color: #e05a6a; }
 
+/* ── Aviso promo mínimo ── */
+.carrito-promo-aviso { background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.4); border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.82rem; color: #c9a84c; margin-bottom: 0.75rem; line-height: 1.5; }
+
 /* ── Resumen ── */
 .carrito-resumen-card { background: #16161d; border: 1px solid rgba(236,178,195,0.12); border-radius: 14px; padding: 1.75rem; position: sticky; top: 1.5rem; }
 .carrito-resumen-titulo { font-size: 1.1rem; font-weight: 700; color: #f0e6ea; margin: 0 0 1.25rem; font-family: 'Playfair Display', serif; border-bottom: 1px solid rgba(236,178,195,0.1); padding-bottom: 1rem; }

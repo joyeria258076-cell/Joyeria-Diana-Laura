@@ -40,7 +40,8 @@ import predictiveRoutes from './routes/predictiveRoutes';
 import apartadoRoutes from './routes/apartadoRoutes';
 import { AuthRequest } from './middleware/authMiddleware';
 import alexaRoutes from './routes/alexaRoutes';
-import oauthRoutes from './routes/oauthRoutes';   
+import oauthRoutes from './routes/oauthRoutes';
+import favoritosRoutes from './routes/favoritosRoutes';
 import pool from './config/database';
 
 // IAST Agent
@@ -240,7 +241,8 @@ app.use('/api/metrics', metricsRoutes);
 app.use('/api/prediccion', predictiveRoutes);
 app.use('/api/apartados', apartadoRoutes);
 app.use('/api/alexa', alexaRoutes);  
-app.use('/oauth', oauthRoutes); 
+app.use('/oauth', oauthRoutes);
+app.use('/api/favoritos', favoritosRoutes);
 
 // 🩺 ENDPOINTS DE SALUD
 app.get('/api/health', (req, res) => {

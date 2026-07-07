@@ -140,7 +140,6 @@ export const getMisApartados = async (req: AlexaAuthRequest, res: Response) => {
        JOIN ventas v ON v.id = a.venta_id
        JOIN detalle_ventas dv ON dv.venta_id = a.venta_id
        WHERE a.cliente_id = $1
-         AND a.estado IN ('activo', 'pendiente_pago', 'vencido')
        GROUP BY a.id, v.folio, a.monto_total, a.monto_pagado, a.saldo_pendiente, a.estado, a.fecha_creacion
        ORDER BY a.fecha_creacion DESC`,
       [clienteId]

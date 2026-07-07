@@ -220,6 +220,28 @@
   font-family: 'Courier New', monospace;
 }
 
+.badge-promo-modal {
+  font-size: 0.75rem;
+  background: linear-gradient(90deg, #c9a84c, #b8942e);
+  color: #1a1a1a;
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-weight: 700;
+  align-self: center;
+}
+
+.detalle-precios {
+  flex-wrap: wrap;
+}
+
+.promo-vence-label {
+  width: 100%;
+  font-size: 0.8rem;
+  color: #c9a84c;
+  margin: 4px 0 0 0;
+  font-weight: 600;
+}
+
 /* === CANTIDAD === */
 .detalle-cantidad {
   display: flex;
@@ -329,6 +351,12 @@
 .btn-secondary:hover {
   background-color: rgba(236, 178, 195, 0.15);
   border-color: var(--gold-lux);
+}
+
+.btn-fav-activo {
+  background: rgba(201, 168, 76, 0.15) !important;
+  border-color: #c9a84c !important;
+  color: #c9a84c !important;
 }
 
 .btn-disabled {
