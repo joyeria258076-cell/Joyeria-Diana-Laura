@@ -252,7 +252,6 @@ export const getTodosClientesApartados = async (req: AlexaAuthRequest, res: Resp
       FROM apartados a
       JOIN clientes c ON c.id = a.cliente_id
       JOIN ventas v ON v.id = a.venta_id
-      WHERE a.archivado = false
       ORDER BY a.fecha_creacion DESC
     `);
     res.json({ success: true, data: result.rows });
