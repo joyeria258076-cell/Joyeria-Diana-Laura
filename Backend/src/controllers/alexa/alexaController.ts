@@ -224,7 +224,6 @@ export const getApartadoTrabajador = async (req: AlexaAuthRequest, res: Response
         AND LOWER(c.nombre || ' ' || COALESCE(c.apellido, '')) ILIKE $1
       GROUP BY a.id, v.folio, c.nombre, c.apellido, a.monto_total, a.monto_pagado, a.saldo_pendiente, a.estado, a.fecha_creacion
       ORDER BY a.fecha_creacion DESC
-      LIMIT 1
     `;
 
     const result = await pool.query(query, [`%${cliente}%`]);
