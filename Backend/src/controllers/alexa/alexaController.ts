@@ -201,7 +201,8 @@ export const getApartadoTrabajador = async (req: AlexaAuthRequest, res: Response
     const query = `
       SELECT 
         a.id,
-        v.folio,
+        a.folio AS folio_apartado,
+        v.folio AS folio_venta,
         c.nombre || ' ' || COALESCE(c.apellido, '') AS cliente,
         a.monto_total AS total,
         a.monto_pagado AS total_abonado,
