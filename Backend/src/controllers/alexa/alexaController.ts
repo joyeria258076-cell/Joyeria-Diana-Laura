@@ -248,14 +248,15 @@ export const getTodosClientesApartados = async (req: AlexaAuthRequest, res: Resp
         a.estado,
         a.folio AS folio_apartado,
         a.saldo_pendiente AS restante,
-        a.monto_total AS total
+        a.monto_total AS total,
+        a.fecha_creacion
       FROM apartados a
       JOIN clientes c ON c.id = a.cliente_id
       JOIN ventas v ON v.id = a.venta_id
       ORDER BY a.fecha_creacion DESC
     `);
     res.json({ success: true, data: result.rows });
-} catch (error: any) {
+  } catch (error: any) {
     console.error('Alexa getTodosClientesApartados error:', error?.message || error);
     res.status(500).json({ success: false, message: error?.message || 'Error al consultar clientes' });
   }
