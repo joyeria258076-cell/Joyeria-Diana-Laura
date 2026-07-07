@@ -255,9 +255,9 @@ export const getTodosClientesApartados = async (req: AlexaAuthRequest, res: Resp
       ORDER BY a.fecha_creacion DESC
     `);
     res.json({ success: true, data: result.rows });
-  } catch (error) {
-    console.error('Alexa getTodosClientesApartados error:', error);
-    res.status(500).json({ success: false, message: 'Error al consultar clientes' });
+} catch (error: any) {
+    console.error('Alexa getTodosClientesApartados error:', error?.message || error);
+    res.status(500).json({ success: false, message: error?.message || 'Error al consultar clientes' });
   }
 };
 
