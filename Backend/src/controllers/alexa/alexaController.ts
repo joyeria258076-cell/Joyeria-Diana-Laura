@@ -232,7 +232,7 @@ export const getApartadoTrabajador = async (req: AlexaAuthRequest, res: Response
       return res.json({ success: true, data: null, message: 'No se encontró apartado activo' });
     }
 
-    res.json({ success: true, data: result.rows[0] });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error('Alexa getApartadoTrabajador error:', error);
     res.status(500).json({ success: false, message: 'Error al consultar apartado' });
