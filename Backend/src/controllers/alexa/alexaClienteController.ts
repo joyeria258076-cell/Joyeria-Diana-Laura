@@ -127,7 +127,8 @@ export const getMisApartados = async (req: AlexaAuthRequest, res: Response) => {
     const result = await pool.query(
       `SELECT 
           a.id,
-          v.folio,
+          a.folio AS folio_apartado,
+          v.folio AS folio_venta,
           a.monto_total,
           a.monto_pagado,
           a.saldo_pendiente,
@@ -136,12 +137,12 @@ export const getMisApartados = async (req: AlexaAuthRequest, res: Response) => {
           json_agg(
             json_build_object('producto', dv.producto_nombre, 'cantidad', dv.cantidad)
           ) AS productos
-       FROM apartados a
-       JOIN ventas v ON v.id = a.venta_id
-       JOIN detalle_ventas dv ON dv.venta_id = a.venta_id
-       WHERE a.cliente_id = $1
-       GROUP BY a.id, v.folio, a.monto_total, a.monto_pagado, a.saldo_pendiente, a.estado, a.fecha_creacion
-       ORDER BY a.fecha_creacion DESC`,
+      FROM apartados a
+      JOIN ventas v ON v.id = a.venta_id
+      LEFT JOIN detalle_ventas dv ON dv.venta_id = a.venta_id
+      WHERE a.cliente_id = $1
+      GROUP BY a.id, v.folio, a.monto_total, a.monto_pagado, a.saldo_pendiente, a.estado, a.fecha_creacion
+      ORDER BY a.fecha_creacion DESC`,
       [clienteId]
     );
 
