@@ -7,14 +7,15 @@ import {
   getNavegacion,
   getApartadoTrabajador,
   postRegistrarAbono,
-  getCategorias   
+  getCategorias,
+  getTodosClientesApartados
 } from '../controllers/alexa/alexaController';
 import {
   getMiCarrito,
   agregarAlCarrito,
   quitarDelCarrito,
   getMisApartados,
-  getMisPedidos
+  getMisPedidos,
 } from '../controllers/alexa/alexaClienteController';
 import { getMiRol } from '../controllers/oauth/oauthController';
 import { validarAlexaToken, exigirTrabajador } from '../middleware/alexaAuthMiddleware';
@@ -35,6 +36,7 @@ router.get('/mi-rol', getMiRol);
 // ── Rutas de TRABAJADOR/ADMIN (apartados, abonos de clientes) ────────────────
 // 🔒 Requieren token válido Y rol trabajador/admin — nunca accesibles a cliente
 router.get('/apartados/:cliente',        validarAlexaToken, exigirTrabajador, getApartadoTrabajador);
+router.get('/clientes-apartados', validarAlexaToken, exigirTrabajador, getTodosClientesApartados);
 router.post('/apartados/:folio/abono',   validarAlexaToken, exigirTrabajador, postRegistrarAbono);
 
 // ── Rutas de CLIENTE (su propio carrito) ──────────────────────────────────────

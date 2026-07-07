@@ -239,6 +239,30 @@ export const getApartadoTrabajador = async (req: AlexaAuthRequest, res: Response
   }
 };
 
+export const getTodosClientesApartados = async (req: AlexaAuthRequest, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT DISTINCT
+        c.nombre || ' ' || COALESCE(c.apellido, '') AS cliente,
+        c.email,
+        a.estado,
+        a.folio AS folio_apartado,
+        a.saldo_pendiente AS restante,
+        a.monto_total AS total
+      FROM apartados a
+      JOIN clientes c ON c.id = a.cliente_id
+      JOIN ventas v ON v.id = a.venta_id
+      WHERE a.estado IN ('activo', 'pendiente_pago', 'vencido')
+      AND a.archivado = false
+      ORDER BY a.fecha_creacion DESC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Alexa getTodosClientesApartados error:', error);
+    res.status(500).json({ success: false, message: 'Error al consultar clientes' });
+  }
+};
+
 // ── POST /api/alexa/apartados/:id/abono ────────────────────────────────────────
 // 🔒 PROTEGIDA — requiere token de Alexa (trabajador/admin vinculado)
 // Registra un abono real sobre un apartado activo
