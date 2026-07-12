@@ -182,7 +182,7 @@ export const getMisPedidos = async (req: AlexaAuthRequest, res: Response) => {
             json_build_object(
               'producto', dv.producto_nombre,
               'cantidad', dv.cantidad,
-              'imagen_url', ip.url
+              'imagen_url', ip.url_imagen
             )
           ) AS productos
        FROM ventas v
