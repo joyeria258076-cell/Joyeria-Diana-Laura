@@ -179,10 +179,16 @@ export const getMisPedidos = async (req: AlexaAuthRequest, res: Response) => {
           v.fecha_creacion,
           v.fecha_estimada_entrega,
           json_agg(
-            json_build_object('producto', dv.producto_nombre, 'cantidad', dv.cantidad)
+            json_build_object(
+              'producto', dv.producto_nombre,
+              'cantidad', dv.cantidad,
+              'imagen_url', ip.url
+            )
           ) AS productos
        FROM ventas v
        JOIN detalle_ventas dv ON dv.venta_id = v.id
+       LEFT JOIN productos p ON p.nombre = dv.producto_nombre
+       LEFT JOIN imagenes_producto ip ON ip.producto_id = p.id AND ip.es_principal = true
        WHERE v.cliente_id = $1
          AND v.estado NOT IN ('cancelado')
        GROUP BY v.id, v.folio, v.estado, v.total, v.fecha_creacion, v.fecha_estimada_entrega
