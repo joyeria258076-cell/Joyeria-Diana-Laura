@@ -22,6 +22,8 @@ import OlvideContraseniaScreen from "../screens/auth/OlvideContraseniaScreen";
 import ReiniciarContraseniaScreen from "../screens/auth/ReiniciarContraseniaScreen";
 import RecuperarConPreguntaScreen from '../screens/auth/RecuperarConPreguntaScreen';
 import MFAVerifyScreen from "../screens/auth/MFAVerifyScreen";
+import WorkerActivacionScreen from "../screens/auth/WorkerActivacionScreen";
+import WorkerCodigoScreen from "../screens/auth/WorkerCodigoScreen";
 
 // PANTALLAS PRIVADAS (Solo con Login)
 import InicioScreen from "../screens/cliente/InicioScreen";
@@ -87,6 +89,8 @@ import AdminEditarProveedorScreen from "../screens/admin/proveedores/AdminEditar
 import AdminProveedorDetalleScreen from "../screens/admin/proveedores/AdminProveedorDetalleScreen";
 
 import AdminPrediccionScreen from "../screens/admin/AdminPrediccionScreen";
+import AdminLegalScreen from "../screens/admin/AdminLegalScreen";
+import LegalScreen from "../screens/publico/LegalScreen";
 
 // PANTALLAS DE ERROR
 import NotFoundScreen from '../screens/general/NotFoundScreen';
@@ -165,6 +169,7 @@ export default function AppRoutes() {
         <Route path="/contacto-publico" element={<ContactoPublicScreen />} />
         <Route path="/ubicacion-publica" element={<UbicacionPublicScreen />} />
         <Route path="/ayuda-publica" element={<AyudaPublicScreen />} />
+        <Route path="/legal/:tipo" element={<LegalScreen />} />
 
         {/* 2. RUTAS DE AUTENTICACIÓN */}
         <Route path="/login" element={<PublicRoute><LoginScreen /></PublicRoute>} />
@@ -172,6 +177,8 @@ export default function AppRoutes() {
         <Route path="/olvide" element={<PublicRoute><OlvideContraseniaScreen /></PublicRoute>} />
         <Route path="/reiniciar" element={<PublicRoute><ReiniciarContraseniaScreen /></PublicRoute>} />
         <Route path="/verify-mfa" element={<PublicRoute><MFAVerifyScreen /></PublicRoute>} />
+        <Route path="/worker-activacion" element={<WorkerActivacionScreen />} />
+        <Route path="/worker-codigo" element={<WorkerCodigoScreen />} />
         <Route path="/recuperar-con-pregunta" element={<RecuperarConPreguntaScreen />} />
 
         {/* 3. RUTAS PROTEGIDAS (Con PrivateLayout) */}
@@ -245,6 +252,7 @@ export default function AppRoutes() {
             <Route path="/admin-trabajadores/editar/:id" element={<AdminEditarTrabajadorScreen />} />
             <Route path="/admin-perfil"                  element={<AdminPerfilScreen />} />
             <Route path="/admin-reportes"                element={<AdminReportesScreen />} />
+            <Route path="/admin-legal"                   element={<AdminLegalScreen />} />
             <Route path="/admin/producto/:id"            element={<AdminProductoDetalleScreen />} />
             <Route path="/admin/editar-producto/:id"     element={<AdminEditarProductoScreen />} />
           </Route>

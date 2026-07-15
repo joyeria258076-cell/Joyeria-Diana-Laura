@@ -1,7 +1,7 @@
 // Ruta:Joyeria-Diana-Laura/Frontend/src/contexts/AuthContext.tsx
 
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { authAPI } from '../services/api';
+import { authAPI, workerAuthAPI } from '../services/api';
 import { initializeApp } from 'firebase/app';
 import { securityQuestionAPI } from '../services/securityQuestionAPI';
 
@@ -69,6 +69,8 @@ interface AuthContextType {
   revokeAllSessions: () => Promise<{ revokedCount: number }>;
   currentSessionToken: string | null;
   validateSession?: () => Promise<boolean>;
+  refreshUserName: (nombre: string) => void;
+  setAuthData: (data: { user: any; token: string; sessionToken: string }) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -391,6 +393,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(`🔒 Cuenta temporalmente bloqueada. Demasiados intentos fallidos. Intenta nuevamente en ${remainingTime} minutos.`);
       }
 
+      // Verificar primero si es trabajador (creado por admin, sin cuenta Firebase)
+      const preCheck = await workerAuthAPI.preLogin(email, password);
+      if (preCheck.requiresWorkerVerification) {
+        return preCheck;
+      }
+
       await auth.signOut();
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
@@ -414,7 +422,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         (mfaError as any).email = email;
         throw mfaError;
       }
-      
+
+      // Trabajador necesita verificación adicional — retornar sin guardar sesión
+      if (backendResponse.requiresWorkerVerification) {
+        return backendResponse;
+      }
+
       if (backendResponse.success) {
         const userData = backendResponse.data.user;
         const token = backendResponse.data.token;
@@ -513,10 +526,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('diana_laura_session_token');
   };
 
+  const setAuthData = (data: { user: any; token: string; sessionToken: string }) => {
+    const userWithToken = { ...data.user, token: data.token, rol: data.user.rol || 'trabajador' };
+    setUser(userWithToken);
+    setCurrentSessionToken(data.sessionToken);
+    localStorage.setItem('diana_laura_user', JSON.stringify(userWithToken));
+    localStorage.setItem('diana_laura_session_token', data.sessionToken);
+  };
+
+  const refreshUserName = (nombre: string) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, nombre };
+      localStorage.setItem('diana_laura_user', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const value: AuthContextType = {
     user, loading, login, register, logout, sendPasswordReset, verifyEmail,
     getActiveSessions, revokeSession, revokeAllOtherSessions, revokeAllSessions,
-    currentSessionToken, validateSession
+    currentSessionToken, validateSession, refreshUserName, setAuthData
   };
 
   return (

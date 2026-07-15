@@ -273,6 +273,64 @@ details[open] summary {
   animation: accordionOpen 0.35s var(--ease-expo) both;
 }
 
+/* ─── FAQ button-accordion (API-driven) ──────────── */
+.ayuda-faq-item {
+  background: var(--bg-card);
+  border: 1px solid var(--rose-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+  box-shadow: var(--shadow-card);
+}
+.ayuda-faq-item--open,
+.ayuda-faq-item:hover {
+  border-color: var(--rose-border-h);
+  background: var(--bg-card-hover);
+}
+.ayuda-faq-summary {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 1.3rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  text-align: left;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.97rem;
+  font-weight: 600;
+  color: var(--text-body);
+  transition: color 0.3s;
+}
+.ayuda-faq-item--open .ayuda-faq-summary { color: var(--white); }
+.ayuda-faq-summary .summary-icon {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba(232,120,154,0.12);
+  border: 1px solid var(--rose-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rose);
+  font-size: 1.2rem;
+  font-weight: 300;
+  flex-shrink: 0;
+  transition: all 0.3s;
+  line-height: 1;
+}
+.ayuda-faq-item--open .ayuda-faq-summary .summary-icon {
+  background: var(--rose-vivid);
+  color: var(--white);
+  border-color: var(--rose-vivid);
+}
+.ayuda-faq-loading, .ayuda-faq-empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 1rem 0;
+}
+
 /* ─── SUPPORT CARD ───────────────────────────────── */
 .support-card {
   background: var(--bg-card);

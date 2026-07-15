@@ -58,25 +58,34 @@ export const createWorkerAccount = async (req: AuthRequest, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const success = await userModel.createWorker({
+    // Generar código de activación para TODA cuenta creada manualmente
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let codigoActivacion = '';
+    for (let i = 0; i < 8; i++) codigoActivacion += chars[Math.floor(Math.random() * chars.length)];
+    const codigoActivacionHash = await bcrypt.hash(codigoActivacion, 10);
+
+    const result = await userModel.createWorker({
       nombre,
       email,
       password_hash: hashedPassword,
       firebase_uid: firebaseUser.uid,
-      rol: rol
+      rol: rol,
+      activado: false,
+      codigo_activacion_hash: codigoActivacionHash,
     });
 
-    if (success) {
+    if (result) {
       console.log(`[AUDIT] Admin ${req.user?.email} (ID: ${req.user?.userId}) creó una cuenta con rol '${rol}' para ${email}`);
-      return res.status(201).json({ 
-        success: true, 
-        message: 'Trabajador registrado correctamente en Firebase y Base de Datos' 
+      return res.status(201).json({
+        success: true,
+        message: 'Cuenta registrada correctamente',
+        data: { codigoActivacion, nombre, email },
       });
     } else {
       await admin.auth().deleteUser(firebaseUser.uid);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Error al sincronizar con la base de datos local' 
+      return res.status(500).json({
+        success: false,
+        message: 'Error al sincronizar con la base de datos local'
       });
     }
 

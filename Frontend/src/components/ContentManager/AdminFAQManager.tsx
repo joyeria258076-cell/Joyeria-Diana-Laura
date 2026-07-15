@@ -1,176 +1,215 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { contentAPI } from '../../services/api';
+import './AdminFAQManager.css';
 
 interface FAQ {
-    id: string;
-    pregunta: string;
-    respuesta: string;
-    orden: number;
-    activa: boolean;
+  id: number;
+  pregunta: string;
+  respuesta: string;
+  orden: number;
+  activa: boolean;
 }
 
+const EMPTY_FORM = { pregunta: '', respuesta: '', orden: 0 };
+
 const AdminFAQManager: React.FC = () => {
-    const [faqs, setFaqs] = useState<FAQ[]>([
-        {
-            id: '1',
-            pregunta: '¿Cuál es el tiempo de entrega?',
-            respuesta: 'El tiempo de entrega es de 5 a 7 días hábiles en la mayoría de casos.',
-            orden: 1,
-            activa: true
-        },
-        {
-            id: '2',
-            pregunta: '¿Aceptan devoluciones?',
-            respuesta: 'Sí, aceptamos devoluciones dentro de 30 días después de la compra.',
-            orden: 2,
-            activa: true
-        }
-    ]);
+  const [faqs, setFaqs]           = useState<FAQ[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [saving, setSaving]       = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [form, setForm]           = useState(EMPTY_FORM);
+  const [toast, setToast]         = useState<{ msg: string; tipo: 'ok' | 'err' } | null>(null);
+  const toastTimer                = useRef<ReturnType<typeof setTimeout>>();
 
-    const [newFAQ, setNewFAQ] = useState<Partial<FAQ>>({});
+  useEffect(() => { cargar(); }, []);
 
-    const addFAQ = () => {
-        if (newFAQ.pregunta && newFAQ.respuesta) {
-            const faq: FAQ = {
-                id: Date.now().toString(),
-                pregunta: newFAQ.pregunta,
-                respuesta: newFAQ.respuesta,
-                orden: faqs.length + 1,
-                activa: true
-            };
-            setFaqs([...faqs, faq]);
-            setNewFAQ({});
-        }
-    };
+  const cargar = async () => {
+    setLoading(true);
+    try {
+      const res = await contentAPI.getFaqs();
+      const arr = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      setFaqs(arr);
+    } catch { mostrarToast('Error al cargar FAQs', 'err'); }
+    finally { setLoading(false); }
+  };
 
-    const deleteFAQ = (id: string) => {
-        setFaqs(faqs.filter(f => f.id !== id));
-    };
+  const mostrarToast = (msg: string, tipo: 'ok' | 'err') => {
+    clearTimeout(toastTimer.current);
+    setToast({ msg, tipo });
+    toastTimer.current = setTimeout(() => setToast(null), 3000);
+  };
 
-    const toggleFAQ = (id: string) => {
-        setFaqs(faqs.map(f =>
-            f.id === id ? { ...f, activa: !f.activa } : f
-        ));
-    };
+  const abrirCrear = () => {
+    setEditingId(null);
+    setForm({ ...EMPTY_FORM, orden: faqs.length });
+    setShowModal(true);
+  };
 
-    const editFAQ = (id: string, field: keyof FAQ, value: any) => {
-        setFaqs(faqs.map(f =>
-            f.id === id ? { ...f, [field]: value } : f
-        ));
-    };
+  const abrirEditar = (f: FAQ) => {
+    setEditingId(f.id);
+    setForm({ pregunta: f.pregunta, respuesta: f.respuesta, orden: f.orden });
+    setShowModal(true);
+  };
 
-    const moveUp = (id: string) => {
-        const index = faqs.findIndex(f => f.id === id);
-        if (index > 0) {
-            const newFaqs = [...faqs];
-            [newFaqs[index].orden, newFaqs[index - 1].orden] = [newFaqs[index - 1].orden, newFaqs[index].orden];
-            newFaqs.sort((a, b) => a.orden - b.orden);
-            setFaqs(newFaqs);
-        }
-    };
+  const cerrarModal = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+  };
 
-    const moveDown = (id: string) => {
-        const index = faqs.findIndex(f => f.id === id);
-        if (index < faqs.length - 1) {
-            const newFaqs = [...faqs];
-            [newFaqs[index].orden, newFaqs[index + 1].orden] = [newFaqs[index + 1].orden, newFaqs[index].orden];
-            newFaqs.sort((a, b) => a.orden - b.orden);
-            setFaqs(newFaqs);
-        }
-    };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: name === 'orden' ? Number(value) : value }));
+  };
 
-    return (
-        <div className="content-page">
-            <h2 className="content-page-title">❓ Preguntas Frecuentes (FAQ)</h2>
-            <p className="content-page-subtitle">Gestiona las preguntas y respuestas más comunes de tus clientes</p>
+  const handleGuardar = async () => {
+    if (!form.pregunta.trim()) { mostrarToast('La pregunta es obligatoria', 'err'); return; }
+    if (!form.respuesta.trim()) { mostrarToast('La respuesta es obligatoria', 'err'); return; }
+    setSaving(true);
+    try {
+      if (editingId !== null) {
+        await contentAPI.updateFaq(editingId, form);
+        mostrarToast('FAQ actualizada', 'ok');
+      } else {
+        await contentAPI.createFaq(form);
+        mostrarToast('FAQ creada', 'ok');
+      }
+      cerrarModal();
+      cargar();
+    } catch { mostrarToast('Error al guardar', 'err'); }
+    finally { setSaving(false); }
+  };
 
-            <div className="manager-subsection">
-                <h3 className="subsection-title">➕ Agregar Nueva Pregunta</h3>
-                <p className="subsection-description">Agrega preguntas frecuentes para ayudar a tus clientes</p>
+  const handleToggle = async (f: FAQ) => {
+    try {
+      await contentAPI.toggleFaqStatus(f.id, !f.activa);
+      mostrarToast(f.activa ? 'FAQ ocultada' : 'FAQ publicada', 'ok');
+      cargar();
+    } catch { mostrarToast('Error al cambiar estado', 'err'); }
+  };
 
-                <div className="faq-form">
-                    <div className="form-group">
-                        <label>Pregunta:</label>
-                        <input
-                            type="text"
-                            placeholder="Ej: ¿Cuál es el tiempo de entrega?"
-                            value={newFAQ.pregunta || ''}
-                            onChange={(e) => setNewFAQ({ ...newFAQ, pregunta: e.target.value })}
-                        />
-                    </div>
+  const handleEliminar = async (id: number) => {
+    if (!window.confirm('¿Eliminar esta pregunta permanentemente?')) return;
+    try {
+      await contentAPI.deleteFaq(id);
+      mostrarToast('FAQ eliminada', 'ok');
+      cargar();
+    } catch { mostrarToast('Error al eliminar', 'err'); }
+  };
 
-                    <div className="form-group">
-                        <label>Respuesta:</label>
-                        <textarea
-                            placeholder="Escribe la respuesta completa..."
-                            rows={4}
-                            value={newFAQ.respuesta || ''}
-                            onChange={(e) => setNewFAQ({ ...newFAQ, respuesta: e.target.value })}
-                        />
-                    </div>
+  return (
+    <div className="faq-admin-container">
 
-                    <button className="btn-primary" onClick={addFAQ}>
-                        + Agregar Pregunta
-                    </button>
-                </div>
-            </div>
+      {toast && (
+        <div className={`faq-toast faq-toast--${toast.tipo}`}>{toast.msg}</div>
+      )}
 
-            <div className="manager-subsection">
-                <h3 className="subsection-title">📋 Preguntas Frecuentes ({faqs.length})</h3>
-                <p className="subsection-description">Organiza y gestiona todas tus FAQs</p>
-
-                <div className="faq-list">
-                    {faqs.length === 0 ? (
-                        <p className="empty-state">No hay preguntas. ¡Agrega la primera!</p>
-                    ) : (
-                        faqs.map((faq, index) => (
-                            <div key={faq.id} className="faq-card item-card">
-                                <div className="faq-header">
-                                    <div className="faq-order-badge">{index + 1}</div>
-                                    <h5>{faq.pregunta}</h5>
-                                    <span className={`badge ${faq.activa ? 'active' : 'inactive'}`}>
-                                        {faq.activa ? '✓ Visible' : '✗ Oculta'}
-                                    </span>
-                                </div>
-
-                                <p className="faq-answer">{faq.respuesta}</p>
-
-                                <div className="faq-actions">
-                                    <button 
-                                        className="btn-small" 
-                                        onClick={() => moveUp(faq.id)}
-                                        disabled={index === 0}
-                                        title="Mover hacia arriba"
-                                    >
-                                        ⬆️
-                                    </button>
-                                    <button 
-                                        className="btn-small" 
-                                        onClick={() => moveDown(faq.id)}
-                                        disabled={index === faqs.length - 1}
-                                        title="Mover hacia abajo"
-                                    >
-                                        ⬇️
-                                    </button>
-                                    <button 
-                                        className="btn-toggle" 
-                                        onClick={() => toggleFAQ(faq.id)}
-                                    >
-                                        {faq.activa ? '👁️ Ocultar' : '🔍 Mostrar'}
-                                    </button>
-                                    <button 
-                                        className="btn-delete" 
-                                        onClick={() => deleteFAQ(faq.id)}
-                                    >
-                                        🗑️ Eliminar
-                                    </button>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </div>
+      <div className="faq-admin-header">
+        <div>
+          <h1 className="faq-admin-title">Preguntas Frecuentes</h1>
+          <p className="faq-admin-subtitle">Gestiona las FAQs que aparecen en la sección de Ayuda del sitio</p>
         </div>
-    );
+        <button className="faq-btn-nueva" onClick={abrirCrear}>+ Nueva pregunta</button>
+      </div>
+
+      <div className="faq-admin-stats">
+        <div className="faq-stat"><strong>{faqs.length}</strong><span>Total</span></div>
+        <div className="faq-stat"><strong>{faqs.filter(f => f.activa).length}</strong><span>Visibles</span></div>
+        <div className="faq-stat"><strong>{faqs.filter(f => !f.activa).length}</strong><span>Ocultas</span></div>
+      </div>
+
+      {loading ? (
+        <div className="faq-admin-loading">Cargando preguntas frecuentes...</div>
+      ) : faqs.length === 0 ? (
+        <div className="faq-admin-empty">
+          <p>No hay preguntas frecuentes aún.</p>
+          <button className="faq-btn-nueva" onClick={abrirCrear}>Crear primera pregunta</button>
+        </div>
+      ) : (
+        <div className="faq-admin-list">
+          {faqs.map((f, i) => (
+            <div key={f.id} className={`faq-admin-card${f.activa ? '' : ' faq-admin-card--oculta'}`}>
+              <div className="faq-admin-num">{i + 1}</div>
+              <div className="faq-admin-body">
+                <div className="faq-admin-meta">
+                  <span className={`faq-badge${f.activa ? ' faq-badge--activa' : ' faq-badge--oculta'}`}>
+                    {f.activa ? 'Visible' : 'Oculta'}
+                  </span>
+                  <span className="faq-orden">Orden: {f.orden}</span>
+                </div>
+                <h3 className="faq-admin-pregunta">{f.pregunta}</h3>
+                <p className="faq-admin-respuesta">
+                  {f.respuesta.length > 200 ? f.respuesta.slice(0, 200) + '...' : f.respuesta}
+                </p>
+              </div>
+              <div className="faq-admin-actions">
+                <button className="faq-btn-action faq-btn-edit" onClick={() => abrirEditar(f)}>Editar</button>
+                <button
+                  className={`faq-btn-action ${f.activa ? 'faq-btn-hide' : 'faq-btn-show'}`}
+                  onClick={() => handleToggle(f)}
+                >
+                  {f.activa ? 'Ocultar' : 'Publicar'}
+                </button>
+                <button className="faq-btn-action faq-btn-delete" onClick={() => handleEliminar(f.id)}>Eliminar</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showModal && (
+        <div className="faq-overlay" onClick={cerrarModal}>
+          <div className="faq-modal" onClick={e => e.stopPropagation()}>
+            <div className="faq-modal-header">
+              <h2>{editingId !== null ? 'Editar pregunta' : 'Nueva pregunta'}</h2>
+              <button className="faq-modal-close" onClick={cerrarModal}>✕</button>
+            </div>
+            <div className="faq-modal-body">
+              <div className="faq-field">
+                <label>Pregunta *</label>
+                <input
+                  type="text"
+                  name="pregunta"
+                  value={form.pregunta}
+                  onChange={handleChange}
+                  placeholder="Ej: ¿Cuál es el tiempo de entrega?"
+                />
+              </div>
+              <div className="faq-field">
+                <label>Respuesta *</label>
+                <textarea
+                  name="respuesta"
+                  value={form.respuesta}
+                  onChange={handleChange}
+                  rows={5}
+                  placeholder="Escribe la respuesta completa..."
+                />
+              </div>
+              <div className="faq-field faq-field--inline">
+                <label>Orden</label>
+                <input
+                  type="number"
+                  name="orden"
+                  value={form.orden}
+                  onChange={handleChange}
+                  min={0}
+                  style={{ width: '80px' }}
+                />
+                <span className="faq-field-hint">Número más bajo = aparece primero</span>
+              </div>
+            </div>
+            <div className="faq-modal-footer">
+              <button className="faq-btn-cancel" onClick={cerrarModal} disabled={saving}>Cancelar</button>
+              <button className="faq-btn-save" onClick={handleGuardar} disabled={saving}>
+                {saving ? 'Guardando...' : editingId !== null ? 'Guardar cambios' : 'Crear pregunta'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default AdminFAQManager;

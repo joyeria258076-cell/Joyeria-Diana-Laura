@@ -29,6 +29,7 @@ const PublicHeader: React.FC = () => {
     { to: "/contacto-publico", label: "Contacto" },
     { to: "/ubicacion-publica",label: "Ubicación" },
     { to: "/ayuda-publica",    label: "Ayuda" },
+    { to: "/legal/terminos",   label: "Legal" },
   ];
 
   return (

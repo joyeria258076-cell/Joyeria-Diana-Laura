@@ -1,22 +1,46 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
+import { contentAPI } from "../../services/api";
 import "./AyudaPublicScreen.css";
 
+interface FAQ {
+  id: number;
+  pregunta: string;
+  respuesta: string;
+  orden: number;
+  activa: boolean;
+}
+
 const Ayuda: React.FC = () => {
+  const [faqs, setFaqs]       = useState<FAQ[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen]       = useState<number | null>(null);
+
+  useEffect(() => {
+    const cargar = async () => {
+      try {
+        const res = await contentAPI.getFaqs();
+        const arr: FAQ[] = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+        setFaqs(arr.filter(f => f.activa));
+      } catch { /* silently fallback */ }
+      finally { setLoading(false); }
+    };
+    cargar();
+  }, []);
+
+  const toggle = (id: number) => setOpen(prev => (prev === id ? null : id));
+
   return (
     <div className="ayuda-publica-wrapper">
       <PublicHeader />
 
-      {/* HERO SECTION */}
       <section className="ayuda-hero-section">
         <div className="ayuda-hero-inner">
           <span className="ayuda-tag">Soporte & Asistencia</span>
           <div className="section-header">
             <h1>Centro de <span>Ayuda</span></h1>
-            <p>
-              Resolvemos tus dudas para que tu única preocupación sea lucir nuestras joyas con elegancia.
-            </p>
+            <p>Resolvemos tus dudas para que tu única preocupación sea lucir nuestras joyas con elegancia.</p>
           </div>
         </div>
       </section>
@@ -24,89 +48,45 @@ const Ayuda: React.FC = () => {
       <div className="page-container">
         <div className="faq-grid">
 
-          {/* ─── FAQ ACCORDION ─── */}
           <section className="faq-section">
             <h2>Preguntas Frecuentes</h2>
-            <div className="faq-list">
 
-              <details>
-                <summary>
-                  ¿Cómo rastreo mi pedido?
-                  <span className="summary-icon">+</span>
-                </summary>
-                <p className="faq-answer">
-                  Puedes verificar el estado de tu envío en tiempo real desde la sección "Mis Pedidos"
-                  en tu cuenta. Recibirás también notificaciones automáticas por correo en cada etapa del proceso.
-                </p>
-              </details>
-
-              <details>
-                <summary>
-                  ¿Las joyas tienen certificado de autenticidad?
-                  <span className="summary-icon">+</span>
-                </summary>
-                <p className="faq-answer">
-                  Sí, todas nuestras piezas de diamantes y metales preciosos incluyen certificado de
-                  autenticidad emitido por laboratorios reconocidos internacionalmente. Viene incluido
-                  con cada compra sin costo adicional.
-                </p>
-              </details>
-
-              <details>
-                <summary>
-                  ¿Realizan envíos internacionales?
-                  <span className="summary-icon">+</span>
-                </summary>
-                <p className="faq-answer">
-                  Actualmente realizamos envíos a todo México y Estados Unidos con seguro incluido.
-                  Estamos trabajando para expandir nuestra cobertura a más países próximamente.
-                </p>
-              </details>
-
-              <details>
-                <summary>
-                  ¿Cuál es la política de devoluciones?
-                  <span className="summary-icon">+</span>
-                </summary>
-                <p className="faq-answer">
-                  Aceptamos devoluciones dentro de los primeros 30 días desde la recepción, siempre que
-                  las piezas estén en perfectas condiciones con su empaque original. El proceso es simple
-                  y sin complicaciones.
-                </p>
-              </details>
-
-              <details>
-                <summary>
-                  ¿Ofrecen servicio de personalización?
-                  <span className="summary-icon">+</span>
-                </summary>
-                <p className="faq-answer">
-                  Sí, contamos con un equipo de diseño dedicado a crear piezas únicas. Puedes agendar
-                  una consulta gratuita desde nuestra sección de contacto para discutir tu visión
-                  y recibir una cotización personalizada.
-                </p>
-              </details>
-
-            </div>
+            {loading ? (
+              <p className="ayuda-faq-loading">Cargando preguntas...</p>
+            ) : faqs.length === 0 ? (
+              <p className="ayuda-faq-empty">No hay preguntas frecuentes disponibles por el momento.</p>
+            ) : (
+              <div className="faq-list">
+                {faqs.map(f => (
+                  <div
+                    key={f.id}
+                    className={`ayuda-faq-item${open === f.id ? ' ayuda-faq-item--open' : ''}`}
+                  >
+                    <button className="ayuda-faq-summary" onClick={() => toggle(f.id)}>
+                      <span>{f.pregunta}</span>
+                      <span className="summary-icon">{open === f.id ? '−' : '+'}</span>
+                    </button>
+                    {open === f.id && (
+                      <p className="faq-answer">{f.respuesta}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
-          {/* ─── SUPPORT CARD ─── */}
           <section className="support-card">
             <div className="support-avatar">
               <i className="fas fa-headset" />
             </div>
             <h3>¿Aún tienes dudas?</h3>
             <p>Nuestro equipo especializado está disponible para ayudarte en todo momento.</p>
-
             <div className="support-divider" />
-
             <button className="btn-contact">
               <i className="fas fa-comments" style={{ marginRight: '0.6rem' }} />
               Chat en Vivo
             </button>
-
             <p className="email-link">soporte@dianalaura.com</p>
-
             <p className="support-status">
               <span className="status-dot" />
               En línea ahora

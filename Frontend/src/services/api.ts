@@ -144,6 +144,50 @@ class EnhancedApiService {
 const enhancedApi = new EnhancedApiService(API_BASE_URL);
 
 // ==========================================
+// 📋 API DE SOLICITUDES DE CAMBIO
+// ==========================================
+export const solicitudesAPI = {
+  crear: async (campo: string, valor_nuevo: string) =>
+    enhancedApi.post('/solicitudes', { campo, valor_nuevo }),
+  getMias: async () =>
+    enhancedApi.get('/solicitudes/mias'),
+  getTodas: async () =>
+    enhancedApi.get('/solicitudes'),
+  aprobar: async (id: number) =>
+    enhancedApi.patch(`/solicitudes/${id}/aprobar`, {}),
+  rechazar: async (id: number) =>
+    enhancedApi.patch(`/solicitudes/${id}/rechazar`, {}),
+  eliminar: async (id: number) =>
+    enhancedApi.delete(`/solicitudes/${id}`),
+  recuperarCodigoSinSesion: async (preAuthToken: string) =>
+    enhancedApi.post('/solicitudes/recuperar-codigo', { preAuthToken }),
+};
+
+// ==========================================
+// 👤 API DE PERFIL PROPIO
+// ==========================================
+export const profileAPI = {
+  getProfile: async () => enhancedApi.get('/auth/profile'),
+  updateProfile: async (data: { nombre?: string; telefono?: string }) =>
+    enhancedApi.put('/auth/profile', data),
+  changePassword: async (data: { passwordActual: string; passwordNueva: string }) =>
+    enhancedApi.put('/auth/profile/password', data),
+  changeEmail: async (data: { emailNuevo: string; passwordConfirm: string }) =>
+    enhancedApi.put('/auth/profile/email', data),
+};
+
+export const workerAuthAPI = {
+  preLogin: async (email: string, password: string) =>
+    enhancedApi.post('/auth/worker/pre-login', { email, password }),
+  activar: async (preAuthToken: string, codigo: string) =>
+    enhancedApi.post('/auth/worker/activar', { preAuthToken, codigo }),
+  verificarCodigo: async (preAuthToken: string, codigo: string) =>
+    enhancedApi.post('/auth/worker/verificar-codigo', { preAuthToken, codigo }),
+  regenerarCodigo: async (userId: number) =>
+    enhancedApi.post(`/auth/worker/regenerar-codigo/${userId}`, {}),
+};
+
+// ==========================================
 // 📥 API PARA IMPORTACIÓN DE DATOS
 // ==========================================
 export const importAPI = {
@@ -626,6 +670,23 @@ export const contentAPI = {
   },
   deleteNoticia: async (id: string) => {
     return enhancedApi.delete(`/content/noticias/${id}`);
+  },
+
+  // 3. FAQs (Preguntas Frecuentes)
+  getFaqs: async () => {
+    return enhancedApi.get('/content/faqs');
+  },
+  createFaq: async (data: { pregunta: string; respuesta: string; orden?: number }) => {
+    return enhancedApi.post('/content/faqs', data);
+  },
+  updateFaq: async (id: string | number, data: { pregunta: string; respuesta: string; orden?: number }) => {
+    return enhancedApi.put(`/content/faqs/${id}`, data);
+  },
+  toggleFaqStatus: async (id: string | number, activa: boolean) => {
+    return enhancedApi.patch(`/content/faqs/${id}/status`, { activa });
+  },
+  deleteFaq: async (id: string | number) => {
+    return enhancedApi.delete(`/content/faqs/${id}`);
   }
 };
 

@@ -72,7 +72,9 @@ export const emailExists = async (email: string): Promise<boolean> => {
 export const getUserById = async (id: number): Promise<User | null> => {
   try {
     const result = await pool.query(
-      'SELECT id, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE id = $1',
+      `SELECT id, email, nombre, rol, activo, telefono, activado, codigo_trabajador,
+              password_hash, fecha_creacion, fecha_actualizacion
+       FROM usuarios WHERE id = $1`,
       [id]
     );
     
@@ -89,7 +91,7 @@ export const getAllUsers = async (): Promise<User[]> => {
     // QUITAMOS el "WHERE activo = true" para que el Admin vea a TODOS
     // Ordenamos por activo para que los vigentes salgan primero
   const result = await pool.query(
-        'SELECT id, firebase_uid, email, nombre, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios ORDER BY activo DESC, nombre ASC'
+        'SELECT id, firebase_uid, email, nombre, rol, activo, activado, codigo_trabajador, telefono, fecha_creacion, fecha_actualizacion FROM usuarios ORDER BY activo DESC, nombre ASC'
       );
     
     return result.rows;
@@ -100,21 +102,27 @@ export const getAllUsers = async (): Promise<User[]> => {
 };
 
 // Actualizar usuario
-export const updateUser = async (id: number, updates: { nombre?: string; email?: string }): Promise<boolean> => {
+export const updateUser = async (id: number, updates: { nombre?: string; email?: string; telefono?: string }): Promise<boolean> => {
   try {
     const fields = [];
     const values = [];
     let paramCount = 1;
-    
+
     if (updates.nombre) {
       fields.push(`nombre = $${paramCount}`);
       values.push(updates.nombre);
       paramCount++;
     }
-    
+
     if (updates.email) {
       fields.push(`email = $${paramCount}`);
       values.push(updates.email);
+      paramCount++;
+    }
+
+    if (updates.telefono !== undefined) {
+      fields.push(`telefono = $${paramCount}`);
+      values.push(updates.telefono);
       paramCount++;
     }
     
@@ -262,22 +270,21 @@ export const createWorker = async (userData: {
   password_hash: string;
   nombre: string;
   firebase_uid: string;
-  rol: string; // Solo usaremos el rol
-}): Promise<boolean> => {
+  rol: string;
+  codigo_activacion_hash?: string;
+  activado?: boolean;
+}): Promise<{ id: number } | null> => {
   try {
-    const { email, password_hash, nombre, firebase_uid, rol } = userData;
-    
-    // 🎯 Quitamos 'puesto' de la lista de columnas y de los valores ($)
+    const { email, password_hash, nombre, firebase_uid, rol, codigo_activacion_hash, activado } = userData;
     const result = await pool.query(
-      `INSERT INTO usuarios (email, password_hash, nombre, firebase_uid, rol, activo) 
-       VALUES ($1, $2, $3, $4, $5, true) RETURNING id`,
-      [email, password_hash, nombre, firebase_uid, rol]
+      `INSERT INTO usuarios (email, password_hash, nombre, firebase_uid, rol, activo, activado, codigo_activacion_hash)
+       VALUES ($1, $2, $3, $4, $5, true, $6, $7) RETURNING id`,
+      [email, password_hash, nombre, firebase_uid, rol, activado ?? false, codigo_activacion_hash ?? null]
     );
-    
-    return result.rowCount ? result.rowCount > 0 : false;
+    return result.rows[0] ?? null;
   } catch (error) {
     console.error('Error en createWorker (Model):', error);
-    throw error; 
+    throw error;
   }
 };
 

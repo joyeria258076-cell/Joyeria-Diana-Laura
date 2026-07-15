@@ -73,8 +73,23 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+const CopyButton: React.FC<{ text: string }> = ({ text }) => {
+  const [copiado, setCopiado] = React.useState(false);
+  const copiar = () => {
+    navigator.clipboard.writeText(text);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  };
+  return (
+    <button className={`alta-codigo-box__copy${copiado ? ' alta-codigo-box__copy--ok' : ''}`} onClick={copiar}>
+      {copiado ? '✓ Copiado' : 'Copiar código'}
+    </button>
+  );
+};
+
 const AdminAltaTrabajadorForm: React.FC = () => {
   const navigate = useNavigate();
+  const [codigoActivacion, setCodigoActivacion] = React.useState<{ codigo: string; nombre: string; email: string } | null>(null);
 
   const { 
     register, 
@@ -132,7 +147,11 @@ const AdminAltaTrabajadorForm: React.FC = () => {
         password: data.password,
       });
       if (res.success) {
-        navigate('/admin-trabajadores');
+        setCodigoActivacion({
+          codigo: res.data?.codigoActivacion || '',
+          nombre: res.data?.nombre || data.nombre,
+          email:  res.data?.email  || data.email,
+        });
       } else {
         setGlobalError(res.message || 'Error al registrar trabajador');
       }
@@ -173,6 +192,54 @@ const AdminAltaTrabajadorForm: React.FC = () => {
     </svg>
   );
 
+  // Modal código de activación
+  if (codigoActivacion) {
+    return (
+      <div className="alta-wrap animate-in alta-wrap--center">
+        <div className="alta-codigo-modal">
+          <div className="alta-codigo-modal__check">✓</div>
+
+          <div className="alta-codigo-modal__head">
+            <h2 className="alta-codigo-modal__title">Cuenta registrada</h2>
+            <p className="alta-codigo-modal__sub">
+              <strong>{codigoActivacion.nombre}</strong> · {codigoActivacion.email}
+            </p>
+          </div>
+
+          <p className="alta-codigo-modal__desc">
+            Comparte el siguiente código con el usuario. Lo necesitará la primera vez que inicie sesión para activar su cuenta.
+            <span className="alta-codigo-modal__once"> Solo se muestra una vez.</span>
+          </p>
+
+          <div className="alta-codigo-box">
+            <span className="alta-codigo-box__label">Código de activación</span>
+            <span className="alta-codigo-box__value">{codigoActivacion.codigo}</span>
+            <CopyButton text={codigoActivacion.codigo} />
+          </div>
+
+          <div className="alta-codigo-modal__steps">
+            <div className="alta-codigo-step">
+              <span className="alta-codigo-step__n">1</span>
+              <span>El usuario inicia sesión con email y contraseña</span>
+            </div>
+            <div className="alta-codigo-step">
+              <span className="alta-codigo-step__n">2</span>
+              <span>Ingresa este código de activación</span>
+            </div>
+            <div className="alta-codigo-step">
+              <span className="alta-codigo-step__n">3</span>
+              <span>Recibe su código de acceso permanente y puede entrar al sistema</span>
+            </div>
+          </div>
+
+          <button className="alta-btn-submit" style={{ width: '100%' }} onClick={() => navigate('/admin-trabajadores')}>
+            Ir a la lista de personal
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="alta-wrap animate-in">
       <div className="alta-breadcrumb">
@@ -194,9 +261,15 @@ const AdminAltaTrabajadorForm: React.FC = () => {
             </svg>
           </div>
           <div className="alta-card-titles">
-            <h2 className="alta-card-title">Registro de Personal</h2>
-            <p className="alta-card-sub">Acceso Seguro con Validación Anti-Inyección</p>
+            <h2 className="alta-card-title">Dar de alta usuario</h2>
+            <p className="alta-card-sub">La cuenta se creará inactiva. Al registrar se generará un código de activación que deberás compartir con el usuario.</p>
           </div>
+        </div>
+
+        <div className="alta-info-pills">
+          <span className="alta-info-pill">🔑 Código de activación único</span>
+          <span className="alta-info-pill">🛡️ Código de acceso permanente</span>
+          <span className="alta-info-pill">✉️ Credenciales por separado</span>
         </div>
 
         {globalError && (

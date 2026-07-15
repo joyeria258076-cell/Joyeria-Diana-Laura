@@ -1,32 +1,69 @@
-// Ruta: src/screens/AyudaScreen.tsx
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { contentAPI } from "../../services/api";
 import "./AyudaScreen.css";
 
+interface FAQ {
+  id: number;
+  pregunta: string;
+  respuesta: string;
+  orden: number;
+  activa: boolean;
+}
+
 const Ayuda: React.FC = () => {
+  const [faqs, setFaqs]       = useState<FAQ[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen]       = useState<number | null>(null);
+
+  useEffect(() => {
+    const cargar = async () => {
+      try {
+        const res = await contentAPI.getFaqs();
+        const arr: FAQ[] = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+        setFaqs(arr.filter(f => f.activa));
+      } catch {
+        /* silently fallback to empty */
+      } finally {
+        setLoading(false);
+      }
+    };
+    cargar();
+  }, []);
+
+  const toggle = (id: number) => setOpen(prev => (prev === id ? null : id));
+
   return (
     <div className="page-container fade-in">
       <div className="section-header">
-        <h1>🆘 Centro de Ayuda</h1>
+        <h1>Centro de Ayuda</h1>
         <p>Resolvemos tus dudas para que tu única preocupación sea lucir nuestras joyas.</p>
       </div>
 
       <div className="faq-grid">
         <section className="faq-section">
           <h2>Preguntas Frecuentes</h2>
-          <div className="faq-list">
-            <details>
-              <summary>¿Cómo rastreo mi pedido?</summary>
-              <p>Puedes verificar el estado en tiempo real desde la sección "Mis Pedidos".</p>
-            </details>
-            <details>
-              <summary>¿Las joyas tienen certificado?</summary>
-              <p>Sí, todas nuestras piezas de diamantes y metales preciosos incluyen certificado de autenticidad.</p>
-            </details>
-            <details>
-              <summary>¿Realizan envíos internacionales?</summary>
-              <p>Actualmente realizamos envíos a todo México y Estados Unidos.</p>
-            </details>
-          </div>
+
+          {loading ? (
+            <p className="faq-loading">Cargando preguntas...</p>
+          ) : faqs.length === 0 ? (
+            <p className="faq-empty">No hay preguntas frecuentes disponibles por el momento.</p>
+          ) : (
+            <div className="faq-list">
+              {faqs.map(f => (
+                <div key={f.id} className={`faq-item${open === f.id ? ' faq-item--open' : ''}`}>
+                  <button className="faq-summary" onClick={() => toggle(f.id)}>
+                    <span>{f.pregunta}</span>
+                    <span className="faq-chevron">{open === f.id ? '▲' : '▼'}</span>
+                  </button>
+                  {open === f.id && (
+                    <div className="faq-answer">
+                      <p>{f.respuesta}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="support-card">

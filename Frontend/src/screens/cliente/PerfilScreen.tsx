@@ -1,16 +1,9 @@
-// Ruta: Joyeria-Diana-Laura/Frontend/src/screens/PerfilScreen.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { authAPI } from "../../services/api";
+import { authAPI, profileAPI, solicitudesAPI } from "../../services/api";
 import "./PerfilScreen.css";
 
-// 🆕 INTERFAZ para estado MFA
-interface MFAStatus {
-  mfaEnabled: boolean;
-}
-
-// 🆕 TIPO ACTUALIZADO para sesiones activas
 interface SesionActiva {
   id: number;
   device_name: string;
@@ -23,403 +16,574 @@ interface SesionActiva {
   is_current?: boolean;
 }
 
+interface MFAStatus { mfaEnabled: boolean; }
+
+type Tab = 'info' | 'seguridad' | 'sesiones';
+
 export default function PerfilScreen() {
-  const { user, logout, getActiveSessions, revokeSession, revokeAllOtherSessions, revokeAllSessions } = useAuth();
+  const { user, logout, getActiveSessions, revokeSession,
+          revokeAllOtherSessions, revokeAllSessions, refreshUserName } = useAuth();
   const navigate = useNavigate();
-  const [sesionesActivas, setSesionesActivas] = useState<SesionActiva[]>([]);
-  const [cargando, setCargando] = useState(true);
-  const [mensaje, setMensaje] = useState<string>("");
-  const [tipoMensaje, setTipoMensaje] = useState<"success" | "error">("success");
-  
-  // 🆕 ESTADO PARA MFA
-  const [mfaStatus, setMfaStatus] = useState<MFAStatus>({ mfaEnabled: false });
+
+  const userRole = user?.rol?.toLowerCase().trim() || 'cliente';
+  const isCliente = userRole === 'cliente';
+
+  // Tab activa
+  const [tab, setTab] = useState<Tab>('info');
+
+  // Toast
+  const [toast, setToast] = useState<{ msg: string; tipo: 'ok' | 'err' } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>();
+  const mostrarToast = (msg: string, tipo: 'ok' | 'err') => {
+    clearTimeout(toastTimer.current);
+    setToast({ msg, tipo });
+    toastTimer.current = setTimeout(() => setToast(null), 4000);
+  };
+
+  // ── DATOS PERSONALES (solo cliente) ────────────────────────
+  const [perfil, setPerfil]         = useState({ nombre: '', telefono: '' });
+  const [loadingPerfil, setLoadingPerfil] = useState(false);
+  const [savingPerfil, setSavingPerfil]   = useState(false);
+
+  // ── CONTRASEÑA ──────────────────────────────────────────────
+  const [passForm, setPassForm]   = useState({ actual: '', nueva: '', confirmar: '' });
+  const [savingPass, setSavingPass] = useState(false);
+  const [showPass, setShowPass]   = useState({ actual: false, nueva: false, confirmar: false });
+
+  // ── MFA ─────────────────────────────────────────────────────
+  const [mfaStatus, setMfaStatus]   = useState<MFAStatus>({ mfaEnabled: false });
   const [cargandoMFA, setCargandoMFA] = useState(false);
 
-  // 🆕 CARGAR ESTADO MFA Y SESIONES
+  // ── CÓDIGO DE TRABAJADOR ────────────────────────────────────
+  const [codigoTrabajador, setCodigoTrabajador] = useState('');
+  const [showCodigo, setShowCodigo] = useState(false);
+  const [solicitandoCodigo, setSolicitandoCodigo] = useState(false);
+
+  // ── SOLICITUD CAMBIO NOMBRE (trabajador) ────────────────────
+  const [showSolicitud, setShowSolicitud] = useState(false);
+  const [solicitudNombre, setSolicitudNombre] = useState('');
+  const [savingSolicitud, setSavingSolicitud] = useState(false);
+  const [misSolicitudes, setMisSolicitudes] = useState<any[]>([]);
+  const [filtroSolicitud, setFiltroSolicitud] = useState<'todas' | 'pendiente' | 'aprobada' | 'rechazada'>('todas');
+
+  // ── SESIONES ────────────────────────────────────────────────
+  const [sesiones, setSesiones]     = useState<SesionActiva[]>([]);
+  const [cargandoSes, setCargandoSes] = useState(true);
+
+  // Cargar datos al montar
   useEffect(() => {
-    cargarEstadoMFA();
-    cargarSesionesActivas();
+    if (isCliente) cargarPerfil();
+    if (user?.dbId) cargarMFA();
+    if (!isCliente) { cargarMisSolicitudes(); cargarCodigoTrabajador(); }
+    cargarSesiones();
   }, []);
 
-  // 🆕 FUNCIÓN PARA CARGAR ESTADO MFA
-  const cargarEstadoMFA = async () => {
-    if (!user?.dbId) return;
-    
+  const cargarMisSolicitudes = async (silencioso = false) => {
     try {
-      console.log('🔍 Cargando estado MFA...');
-      const response = await authAPI.checkMFAStatus(user.dbId);
-      
-      if (response.success) {
-        setMfaStatus(response.data);
-        console.log('✅ Estado MFA cargado:', response.data);
-      }
-    } catch (error: any) {
-      console.error('❌ Error cargando estado MFA:', error);
-    }
+      const res = await solicitudesAPI.getMias();
+      const arr: any[] = Array.isArray(res?.data) ? res.data : [];
+
+      // Detectar si alguna pasó de pendiente a aprobada
+      setMisSolicitudes(prev => {
+        const recienAprobada = arr.find(nueva =>
+          nueva.estado === 'aprobada' &&
+          prev.some(vieja => vieja.id === nueva.id && vieja.estado === 'pendiente')
+        );
+        if (recienAprobada) {
+          refreshUserName(recienAprobada.valor_nuevo);
+          if (!silencioso) mostrarToast('¡Tu nombre fue actualizado por el administrador!', 'ok');
+        }
+        return arr;
+      });
+    } catch { /**/ }
   };
 
-  // 🆕 FUNCIÓN PARA DESACTIVAR MFA
+  // Polling cada 10s si hay solicitudes pendientes
+  useEffect(() => {
+    if (isCliente) return;
+    const intervalo = setInterval(() => {
+      setMisSolicitudes(prev => {
+        const tienePendiente = prev.some(s => s.estado === 'pendiente');
+        if (tienePendiente) cargarMisSolicitudes(true);
+        return prev;
+      });
+    }, 10000);
+    return () => clearInterval(intervalo);
+  }, [isCliente]);
+
+  const handleEliminarSolicitud = async (id: number) => {
+    if (!window.confirm('¿Eliminar esta solicitud?')) return;
+    try {
+      const res = await solicitudesAPI.eliminar(id);
+      if (res.success) {
+        setMisSolicitudes(prev => prev.filter(s => s.id !== id));
+        mostrarToast('Solicitud eliminada', 'ok');
+      } else { mostrarToast(res.message || 'Error al eliminar', 'err'); }
+    } catch (e: any) { mostrarToast(e.message, 'err'); }
+  };
+
+  const handleEnviarSolicitud = async () => {
+    if (!solicitudNombre.trim()) { mostrarToast('Escribe el nombre que deseas', 'err'); return; }
+    if (solicitudNombre.trim() === user?.nombre) { mostrarToast('El nombre es igual al actual', 'err'); return; }
+    setSavingSolicitud(true);
+    try {
+      const res = await solicitudesAPI.crear('nombre', solicitudNombre.trim());
+      if (res.success) {
+        mostrarToast('Solicitud enviada al administrador', 'ok');
+        setShowSolicitud(false);
+        setSolicitudNombre('');
+        cargarMisSolicitudes();
+      } else { mostrarToast(res.message || 'Error al enviar solicitud', 'err'); }
+    } catch (e: any) { mostrarToast(e.message, 'err'); }
+    finally { setSavingSolicitud(false); }
+  };
+
+  const handleSolicitarRecuperacionCodigo = async () => {
+    if (solicitandoCodigo) return;
+    setSolicitandoCodigo(true);
+    try {
+      const res = await solicitudesAPI.crear('recuperar_codigo', 'solicitud_recuperacion');
+      if (res.success) {
+        mostrarToast('Solicitud enviada al administrador. Te avisará cuando regenere tu código.', 'ok');
+        cargarMisSolicitudes();
+      } else { mostrarToast(res.message || 'Error al enviar solicitud', 'err'); }
+    } catch (e: any) { mostrarToast(e.message || 'Error de conexión', 'err'); }
+    finally { setSolicitandoCodigo(false); }
+  };
+
+  const cargarCodigoTrabajador = async () => {
+    try {
+      const res = await profileAPI.getProfile();
+      if (res.success && res.data?.codigo_trabajador) {
+        setCodigoTrabajador(res.data.codigo_trabajador);
+      }
+    } catch { /**/ }
+  };
+
+  const cargarPerfil = async () => {
+    setLoadingPerfil(true);
+    try {
+      const res = await profileAPI.getProfile();
+      if (res.success) {
+        setPerfil({
+          nombre:   res.data.nombre   || user?.nombre || '',
+          telefono: res.data.telefono || '',
+        });
+      }
+    } catch { setPerfil({ nombre: user?.nombre || '', telefono: '' }); }
+    finally { setLoadingPerfil(false); }
+  };
+
+  const cargarMFA = async () => {
+    try {
+      const res = await authAPI.checkMFAStatus(user!.dbId!);
+      if (res.success) setMfaStatus(res.data);
+    } catch { /**/ }
+  };
+
+  const cargarSesiones = async () => {
+    setCargandoSes(true);
+    try {
+      const data = await getActiveSessions();
+      setSesiones(data);
+    } catch (e: any) { mostrarToast('Error al cargar sesiones: ' + e.message, 'err'); }
+    finally { setCargandoSes(false); }
+  };
+
+  // ── GUARDAR DATOS PERSONALES ────────────────────────────────
+  const handleGuardarPerfil = async () => {
+    if (!perfil.nombre.trim()) { mostrarToast('El nombre es obligatorio', 'err'); return; }
+    setSavingPerfil(true);
+    try {
+      const res = await profileAPI.updateProfile({ nombre: perfil.nombre, telefono: perfil.telefono });
+      if (res.success) {
+        refreshUserName(perfil.nombre);
+        mostrarToast('Perfil actualizado correctamente', 'ok');
+      } else { mostrarToast(res.message || 'Error al actualizar', 'err'); }
+    } catch (e: any) { mostrarToast(e.message, 'err'); }
+    finally { setSavingPerfil(false); }
+  };
+
+  // ── CAMBIAR CONTRASEÑA ──────────────────────────────────────
+  const handleCambiarPassword = async () => {
+    if (!passForm.actual)    { mostrarToast('Ingresa tu contraseña actual', 'err'); return; }
+    if (!passForm.nueva)     { mostrarToast('Ingresa la nueva contraseña', 'err'); return; }
+    if (passForm.nueva.length < 6) { mostrarToast('La nueva contraseña debe tener al menos 6 caracteres', 'err'); return; }
+    if (passForm.nueva !== passForm.confirmar) { mostrarToast('Las contraseñas no coinciden', 'err'); return; }
+    setSavingPass(true);
+    try {
+      const res = await profileAPI.changePassword({ passwordActual: passForm.actual, passwordNueva: passForm.nueva });
+      if (res.success) {
+        setPassForm({ actual: '', nueva: '', confirmar: '' });
+        mostrarToast('Contraseña actualizada correctamente', 'ok');
+      } else { mostrarToast(res.message || 'Error al cambiar contraseña', 'err'); }
+    } catch (e: any) { mostrarToast(e.message, 'err'); }
+    finally { setSavingPass(false); }
+  };
+
+  // ── MFA ─────────────────────────────────────────────────────
   const handleDesactivarMFA = async () => {
-    if (!user?.dbId) {
-      mostrarMensaje('❌ Error: Usuario no identificado', 'error');
-      return;
-    }
-
-    if (!window.confirm('¿Estás seguro de que quieres desactivar la Autenticación en Dos Pasos? Esto reducirá la seguridad de tu cuenta.')) {
-      return;
-    }
-
+    if (!user?.dbId) return;
+    if (!window.confirm('¿Desactivar la autenticación en dos pasos? Reducirá la seguridad de tu cuenta.')) return;
     setCargandoMFA(true);
-
     try {
-      console.log('🔐 Desactivando MFA para usuario:', user.dbId);
-      const response = await authAPI.disableMFA(user.dbId);
-      
-      if (response.success) {
-        setMfaStatus({ mfaEnabled: false });
-        mostrarMensaje('✅ Autenticación en Dos Pasos desactivada correctamente', 'success');
-        console.log('✅ MFA desactivado correctamente');
-      } else {
-        mostrarMensaje(`❌ Error al desactivar MFA: ${response.message}`, 'error');
-      }
-    } catch (error: any) {
-      console.error('❌ Error desactivando MFA:', error);
-      mostrarMensaje(`❌ Error al desactivar MFA: ${error.message}`, 'error');
-    } finally {
-      setCargandoMFA(false);
-    }
+      const res = await authAPI.disableMFA(user.dbId);
+      if (res.success) { setMfaStatus({ mfaEnabled: false }); mostrarToast('MFA desactivado', 'ok'); }
+      else mostrarToast(res.message, 'err');
+    } catch (e: any) { mostrarToast(e.message, 'err'); }
+    finally { setCargandoMFA(false); }
   };
 
-  const cargarSesionesActivas = async () => {
+  // ── SESIONES ────────────────────────────────────────────────
+  const handleCerrarSesion = async (id: number) => {
+    const s = sesiones.find(x => x.id === id);
+    if (!window.confirm(s?.is_current ? '¿Cerrar tu sesión actual?' : `¿Cerrar sesión en ${s?.device_name}?`)) return;
     try {
-      setCargando(true);
-      console.log('📋 Cargando sesiones activas del backend...');
-      
-      const sesiones = await getActiveSessions();
-      
-      console.log('✅ Sesiones cargadas:', sesiones.length);
-      console.log('🎯 Sesión actual ya marcada por backend:', sesiones.some(s => s.is_current));
-      
-      setSesionesActivas(sesiones);
-      
-    } catch (error: any) {
-      console.error("❌ Error cargando sesiones:", error);
-      mostrarMensaje("Error al cargar las sesiones activas: " + error.message, "error");
-    } finally {
-      setCargando(false);
-    }
+      await revokeSession(id);
+      if (s?.is_current) { await logout(); navigate('/login'); }
+      else { setSesiones(prev => prev.filter(x => x.id !== id)); mostrarToast('Sesión cerrada', 'ok'); }
+    } catch (e: any) { mostrarToast(e.message, 'err'); }
   };
 
-  const mostrarMensaje = (texto: string, tipo: "success" | "error") => {
-    setMensaje(texto);
-    setTipoMensaje(tipo);
-    setTimeout(() => setMensaje(""), 5000);
-  };
-
-  const handleCerrarSesionDispositivo = async (sesionId: number) => {
-    const sesion = sesionesActivas.find(s => s.id === sesionId);
-    
-    const esSesionActual = sesion?.is_current === true;
-    
-    let mensajeConfirmacion = '';
-    
-    if (esSesionActual) {
-      mensajeConfirmacion = '⚠️ ¿Cerrar tu SESIÓN ACTUAL? Serás redirigido al login.';
-    } else {
-      mensajeConfirmacion = `¿Cerrar sesión en ${sesion?.device_name} (${sesion?.location})?`;
-    }
-
-    if (!window.confirm(mensajeConfirmacion)) {
-      return;
-    }
-    
+  const handleCerrarOtras = async () => {
+    if (!window.confirm('¿Cerrar sesión en todos los otros dispositivos?')) return;
     try {
-      console.log("🔐 Cerrando sesión en dispositivo:", sesionId);
-      await revokeSession(sesionId);
-      
-      if (esSesionActual) {
-        mostrarMensaje("✅ Tu sesión actual se ha cerrado. Serás redirigido al login...", "success");
-        
-        setTimeout(async () => {
-          await logout();
-          navigate("/login");
-        }, 1000);
-      } else {
-        setSesionesActivas(prev => prev.filter(s => s.id !== sesionId));
-        mostrarMensaje("✅ Sesión cerrada exitosamente. El otro dispositivo será desconectado en 15 segundos.", "success");
-      }
-    } catch (error: any) {
-      console.error("❌ Error cerrando sesión:", error);
-      mostrarMensaje("Error al cerrar la sesión: " + error.message, "error");
-    }
+      const r = await revokeAllOtherSessions();
+      await cargarSesiones();
+      mostrarToast(`${r.revokedCount} sesiones cerradas`, 'ok');
+    } catch (e: any) { mostrarToast(e.message, 'err'); }
   };
 
-  const handleCerrarOtrasSesiones = async () => {
-    if (!window.confirm('¿Estás seguro de que quieres cerrar sesión en todos los otros dispositivos?')) {
-      return;
-    }
-    
+  const handleCerrarTodas = async () => {
+    if (!window.confirm('¿Cerrar sesión en TODOS los dispositivos incluyendo este?')) return;
     try {
-      console.log("🔐 Cerrando todas las otras sesiones...");
-      const result = await revokeAllOtherSessions();
-      
-      await cargarSesionesActivas();
-      mostrarMensaje(`✅ Se cerraron ${result.revokedCount} sesiones. Los dispositivos serán desconectados en 15 segundos.`, "success");
-    } catch (error: any) {
-      console.error("❌ Error cerrando otras sesiones:", error);
-      mostrarMensaje("Error al cerrar otras sesiones: " + error.message, "error");
-    }
+      await revokeAllSessions();
+      navigate('/login');
+    } catch (e: any) { mostrarToast(e.message, 'err'); }
   };
 
-  const handleCerrarTodasLasSesiones = async () => {
-    if (window.confirm("¿Estás seguro de que quieres cerrar todas las sesiones? Esto te cerrará la sesión en todos los dispositivos incluyendo este.")) {
-      try {
-        console.log("Cerrando TODAS las sesiones...");
-        const result = await revokeAllSessions();
-        
-        mostrarMensaje(`Se cerraron todas las sesiones (${result.revokedCount} dispositivos)`, "success");
-        
-        navigate("/login");
-      } catch (error: any) {
-        console.error("❌ Error cerrando todas las sesiones:", error);
-        mostrarMensaje("Error al cerrar todas las sesiones: " + error.message, "error");
-      }
-    }
+  const formatFecha = (f: string) => {
+    const diff = Date.now() - new Date(f).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1)  return 'Hace unos segundos';
+    if (m < 60) return `Hace ${m} min`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `Hace ${h}h`;
+    return `Hace ${Math.floor(h / 24)} días`;
   };
 
-  const handleCerrarSesionActual = async () => {
-    if (window.confirm("¿Estás seguro de que quieres cerrar sesión en este dispositivo?")) {
-      await logout();
-      navigate("/login");
-    }
-  };
-
-  const formatearFecha = (fecha: string) => {
-    const ahora = new Date();
-    const fechaSesion = new Date(fecha);
-    const diffMs = ahora.getTime() - fechaSesion.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return "Hace unos segundos";
-    if (diffMins < 60) return `Hace ${diffMins} minuto${diffMins > 1 ? 's' : ''}`;
-    if (diffHours < 24) return `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
-    return `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
-  };
+  const inicial = user?.nombre?.charAt(0).toUpperCase() || 'U';
 
   return (
-    <div className="perfil-container">
-      {/* Contenido principal del perfil */}
-      <main className="perfil-main">
-        <div className="perfil-content">
-          {/* Información del usuario */}
-          <section className="user-info-section">
-            <div className="user-avatar-large">
-              {user?.nombre?.charAt(0) || 'U'}
-            </div>
-            <div className="user-details">
-              <h1 className="user-name">{user?.nombre}</h1>
-              <p className="user-email">{user?.email}</p>
-              <p className="user-member">Miembro desde Enero 2024</p>
-            </div>
-          </section>
+    <div className="pf-container">
 
-          {/* 🆕 MENSAJES */}
-          {mensaje && (
-            <div className={`mensaje-alerta ${tipoMensaje}`}>
-              {mensaje}
+      {/* Toast */}
+      {toast && <div className={`pf-toast pf-toast--${toast.tipo}`}>{toast.msg}</div>}
+
+      {/* Header tarjeta usuario */}
+      <div className="pf-hero">
+        <div className="pf-hero-avatar">{inicial}</div>
+        <div className="pf-hero-info">
+          <h1 className="pf-hero-name">{user?.nombre}</h1>
+          <p className="pf-hero-email">{user?.email}</p>
+          <span className="pf-hero-role">
+            {userRole === 'admin' ? 'Administrador' : userRole === 'trabajador' ? 'Trabajador' : 'Cliente'}
+          </span>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="pf-tabs">
+        <button className={`pf-tab${tab === 'info' ? ' pf-tab--active' : ''}`} onClick={() => setTab('info')}>
+          {isCliente ? 'Mis datos' : 'Mi cuenta'}
+        </button>
+        <button className={`pf-tab${tab === 'seguridad' ? ' pf-tab--active' : ''}`} onClick={() => setTab('seguridad')}>
+          Seguridad
+        </button>
+        <button className={`pf-tab${tab === 'sesiones' ? ' pf-tab--active' : ''}`} onClick={() => setTab('sesiones')}>
+          Sesiones
+        </button>
+      </div>
+
+      {/* ── TAB: INFO ── */}
+      {tab === 'info' && (
+        <div className="pf-section">
+          {isCliente ? (
+            <>
+              <h2 className="pf-section-title">Datos personales</h2>
+              <p className="pf-section-sub">Puedes editar tu nombre y teléfono. El email no se puede cambiar.</p>
+
+              {loadingPerfil ? (
+                <p className="pf-loading">Cargando datos...</p>
+              ) : (
+                <div className="pf-form">
+                  <div className="pf-field">
+                    <label>Nombre completo</label>
+                    <input
+                      type="text"
+                      value={perfil.nombre}
+                      onChange={e => setPerfil(p => ({ ...p, nombre: e.target.value }))}
+                      placeholder="Tu nombre"
+                    />
+                  </div>
+                  <div className="pf-field">
+                    <label>Teléfono</label>
+                    <input
+                      type="tel"
+                      value={perfil.telefono}
+                      onChange={e => setPerfil(p => ({ ...p, telefono: e.target.value }))}
+                      placeholder="Ej: 771 123 4567"
+                    />
+                  </div>
+                  <div className="pf-field pf-field--locked">
+                    <label>Correo electrónico <span className="pf-locked-badge">No editable</span></label>
+                    <input type="email" value={user?.email || ''} disabled />
+                  </div>
+                  <button className="pf-btn-save" onClick={handleGuardarPerfil} disabled={savingPerfil}>
+                    {savingPerfil ? 'Guardando...' : 'Guardar cambios'}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <h2 className="pf-section-title">Mi cuenta</h2>
+              <p className="pf-section-sub">La información de tu cuenta es gestionada por el administrador.</p>
+              <div className="pf-form">
+                <div className="pf-field pf-field--locked">
+                  <label>Nombre <span className="pf-locked-badge">Solo lectura</span></label>
+                  <input type="text" value={user?.nombre || ''} disabled />
+                </div>
+                <div className="pf-field pf-field--locked">
+                  <label>Correo electrónico <span className="pf-locked-badge">Solo lectura</span></label>
+                  <input type="email" value={user?.email || ''} disabled />
+                </div>
+
+                {/* Código de trabajador */}
+                {codigoTrabajador && (
+                  <div className="pf-codigo-trabajador">
+                    <div className="pf-codigo-header">
+                      <span className="pf-codigo-label">Tu código de trabajador</span>
+                      <button className="pf-codigo-toggle" onClick={() => setShowCodigo(p => !p)}>
+                        {showCodigo ? 'Ocultar' : 'Mostrar'}
+                      </button>
+                    </div>
+                    <div className="pf-codigo-value">
+                      {showCodigo ? codigoTrabajador : '• • • • • •'}
+                    </div>
+                    <p className="pf-codigo-aviso">
+                      Necesitarás este código cada vez que inicies sesión.
+                    </p>
+                    <button
+                      className="pf-btn-recuperar-codigo"
+                      onClick={handleSolicitarRecuperacionCodigo}
+                      disabled={solicitandoCodigo}
+                    >
+                      {solicitandoCodigo ? 'Enviando solicitud…' : '¿Olvidaste tu código? Solicitar nuevo'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Botón solicitar cambio de nombre */}
+                {!showSolicitud ? (
+                  <button className="pf-btn-solicitar" onClick={() => setShowSolicitud(true)}>
+                    Solicitar cambio de nombre
+                  </button>
+                ) : (
+                  <div className="pf-solicitud-form">
+                    <p className="pf-solicitud-info">El administrador revisará tu solicitud y aplicará el cambio si lo aprueba.</p>
+                    <div className="pf-field">
+                      <label>Nombre que deseas</label>
+                      <input
+                        type="text"
+                        value={solicitudNombre}
+                        onChange={e => setSolicitudNombre(e.target.value)}
+                        placeholder="Escribe tu nuevo nombre"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="pf-solicitud-btns">
+                      <button className="pf-btn-secondary" onClick={() => { setShowSolicitud(false); setSolicitudNombre(''); }}>
+                        Cancelar
+                      </button>
+                      <button className="pf-btn-save" onClick={handleEnviarSolicitud} disabled={savingSolicitud}>
+                        {savingSolicitud ? 'Enviando...' : 'Enviar solicitud'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Historial de solicitudes */}
+                {misSolicitudes.length > 0 && (
+                  <div className="pf-solicitudes-historial">
+                    <div className="pf-solicitudes-header">
+                      <p className="pf-solicitudes-titulo">Mis solicitudes</p>
+                      <div className="pf-filtros-sol">
+                        {(['todas', 'pendiente', 'aprobada', 'rechazada'] as const).map(f => (
+                          <button
+                            key={f}
+                            className={`pf-filtro-btn${filtroSolicitud === f ? ' pf-filtro-btn--active' : ''}`}
+                            onClick={() => setFiltroSolicitud(f)}
+                          >
+                            {f === 'todas' ? 'Todas' : f.charAt(0).toUpperCase() + f.slice(1)}
+                            {f !== 'todas' && (
+                              <span className="pf-filtro-count">
+                                {misSolicitudes.filter(s => s.estado === f).length}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {misSolicitudes
+                      .filter(s => filtroSolicitud === 'todas' || s.estado === filtroSolicitud)
+                      .map(s => (
+                        <div key={s.id} className="pf-solicitud-item">
+                          <span className="pf-solicitud-campo">Nombre → <strong>{s.valor_nuevo}</strong></span>
+                          <div className="pf-solicitud-right">
+                            <span className={`pf-solicitud-estado pf-solicitud-estado--${s.estado}`}>
+                              {s.estado === 'pendiente' ? 'Pendiente' : s.estado === 'aprobada' ? 'Aprobada' : 'Rechazada'}
+                            </span>
+                            {s.estado !== 'pendiente' && (
+                              <button
+                                className="pf-btn-del-sol"
+                                onClick={() => handleEliminarSolicitud(s.id)}
+                                title="Eliminar"
+                              >✕</button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    }
+                    {misSolicitudes.filter(s => filtroSolicitud === 'todas' || s.estado === filtroSolicitud).length === 0 && (
+                      <p className="pf-empty-sol">Sin solicitudes en este filtro.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB: SEGURIDAD ── */}
+      {tab === 'seguridad' && (
+        <div className="pf-section">
+          {/* Cambiar contraseña */}
+          <h2 className="pf-section-title">Cambiar contraseña</h2>
+          <p className="pf-section-sub">Usa una contraseña segura de al menos 6 caracteres.</p>
+          <div className="pf-form">
+            {(['actual', 'nueva', 'confirmar'] as const).map((campo) => (
+              <div className="pf-field pf-field--pass" key={campo}>
+                <label>
+                  {campo === 'actual' ? 'Contraseña actual' : campo === 'nueva' ? 'Nueva contraseña' : 'Confirmar nueva contraseña'}
+                </label>
+                <div className="pf-pass-wrap">
+                  <input
+                    type={showPass[campo] ? 'text' : 'password'}
+                    value={passForm[campo]}
+                    onChange={e => setPassForm(p => ({ ...p, [campo]: e.target.value }))}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    className="pf-pass-eye"
+                    onClick={() => setShowPass(p => ({ ...p, [campo]: !p[campo] }))}
+                  >
+                    {showPass[campo] ? '🙈' : '👁'}
+                  </button>
+                </div>
+              </div>
+            ))}
+            <button className="pf-btn-save" onClick={handleCambiarPassword} disabled={savingPass}>
+              {savingPass ? 'Actualizando...' : 'Actualizar contraseña'}
+            </button>
+          </div>
+
+          {/* MFA */}
+          <div className="pf-divider" />
+          <h2 className="pf-section-title">Autenticación en dos pasos</h2>
+          <div className="pf-mfa-card">
+            <div className="pf-mfa-info">
+              <span className={`pf-mfa-badge${mfaStatus.mfaEnabled ? ' pf-mfa-badge--on' : ' pf-mfa-badge--off'}`}>
+                {mfaStatus.mfaEnabled ? 'Activada' : 'No activada'}
+              </span>
+              <p>{mfaStatus.mfaEnabled
+                ? 'Tu cuenta está protegida con autenticación en dos pasos.'
+                : 'Añade una capa extra de seguridad a tu cuenta.'}</p>
+            </div>
+            <div>
+              {mfaStatus.mfaEnabled ? (
+                <button className="pf-btn-danger" onClick={handleDesactivarMFA} disabled={cargandoMFA}>
+                  {cargandoMFA ? 'Desactivando...' : 'Desactivar MFA'}
+                </button>
+              ) : (
+                <button className="pf-btn-save" onClick={() => navigate('/mfa-setup')}>
+                  Activar MFA
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB: SESIONES ── */}
+      {tab === 'sesiones' && (
+        <div className="pf-section">
+          <div className="pf-section-header-row">
+            <div>
+              <h2 className="pf-section-title">Sesiones activas</h2>
+              <p className="pf-section-sub">Dispositivos donde tienes sesión iniciada.</p>
+            </div>
+            <button className="pf-btn-refresh" onClick={cargarSesiones} disabled={cargandoSes}>
+              ↻ Actualizar
+            </button>
+          </div>
+
+          {cargandoSes ? (
+            <p className="pf-loading">Cargando sesiones...</p>
+          ) : sesiones.length === 0 ? (
+            <p className="pf-empty">No hay sesiones activas.</p>
+          ) : (
+            <div className="pf-sesiones-list">
+              {sesiones.map(s => (
+                <div key={s.id} className={`pf-sesion${s.is_current ? ' pf-sesion--actual' : ''}`}>
+                  <div className="pf-sesion-icon">💻</div>
+                  <div className="pf-sesion-info">
+                    <span className="pf-sesion-device">{s.device_name}</span>
+                    <span className="pf-sesion-meta">{s.location} · {formatFecha(s.last_activity)}</span>
+                    <span className="pf-sesion-ip">IP: {s.ip_address}</span>
+                  </div>
+                  <div className="pf-sesion-right">
+                    {s.is_current && <span className="pf-sesion-actual-badge">Este dispositivo</span>}
+                    {!s.is_current && (
+                      <button className="pf-btn-cerrar-ses" onClick={() => handleCerrarSesion(s.id)}>
+                        Cerrar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
-          {/* 🆕 SECCIÓN MFA - ACTUALIZADA CON ESTADO DINÁMICO */}
-          <section className="sesiones-section">
-            <div className="section-header">
-              <h2 className="section-title">🔒 Autenticación en Dos Pasos (MFA)</h2>
-              <p className="section-subtitle">
-                Protege tu cuenta con una capa adicional de seguridad
-              </p>
-              
-              {/* 🆕 BOTÓN ACTUALIZAR ESTADO MFA */}
-              <button 
-                className="btn-actualizar"
-                onClick={cargarEstadoMFA}
-                disabled={cargandoMFA}
-              >
-                🔄 Actualizar Estado
-              </button>
-            </div>
-
-            <div className="mfa-status-card">
-              <div className="mfa-status-content">
-                <div className="mfa-status-info">
-                  {/* 🆕 ESTADO DINÁMICO */}
-                  <h3>
-                    Estado actual: 
-                    <span className={`mfa-badge ${mfaStatus.mfaEnabled ? 'mfa-enabled' : 'mfa-disabled'}`}>
-                      {mfaStatus.mfaEnabled ? 'Activada' : 'No activada'}
-                    </span>
-                  </h3>
-                  
-                  {mfaStatus.mfaEnabled ? (
-                    <div className="mfa-active-state">
-                      <p>
-                        <strong>✅ La autenticación en dos pasos está activa en tu cuenta.</strong><br/>
-                        Para iniciar sesión necesitarás tu contraseña y un código de verificación de tu aplicación authenticator.
-                      </p>
-                      
-                      <div className="mfa-benefits">
-                        <h4>Tu cuenta está protegida con:</h4>
-                        <ul>
-                          <li>Códigos que cambian cada 30 segundos</li>
-                          <li>Protección contra accesos no autorizados</li>
-                          <li>Seguridad incluso si tu contraseña es comprometida</li>
-                          <li>Compatible con Google Authenticator, Authy, etc.</li>
-                        </ul>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mfa-inactive-state">
-                      <p>
-                        La autenticación en dos pasos añade una capa extra de seguridad a tu cuenta. 
-                        Además de tu contraseña, necesitarás un código de verificación de tu aplicación móvil.
-                      </p>
-                      
-                      <div className="mfa-benefits">
-                        <h4>Beneficios al activar:</h4>
-                        <ul>
-                          <li>Protección contra accesos no autorizados</li>
-                          <li>Seguridad incluso si tu contraseña es comprometida</li>
-                          <li>Códigos que cambian cada 30 segundos</li>
-                          <li>Compatible con Google Authenticator, Authy, etc.</li>
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="mfa-action">
-                  {/* 🆕 BOTONES DINÁMICOS SEGÚN ESTADO */}
-                  {mfaStatus.mfaEnabled ? (
-                    <div className="mfa-actions-enabled">
-                      <button 
-                        className="btn-desactivar-mfa"
-                        onClick={handleDesactivarMFA}
-                        disabled={cargandoMFA}
-                      >
-                        {cargandoMFA ? 'Desactivando...' : '🚫 Desactivar MFA'}
-                      </button>
-                      <small>
-                        Al desactivar MFA, tu cuenta será menos segura. 
-                        Solo se pedirá tu contraseña para iniciar sesión.
-                      </small>
-                    </div>
-                  ) : (
-                    <div className="mfa-actions-disabled">
-                      <button 
-                        className="btn-activar-mfa"
-                        onClick={() => navigate('/mfa-setup')}
-                      >
-                        🔐 Activar Autenticación en Dos Pasos
-                      </button>
-                      <small>Puedes desactivarla en cualquier momento</small>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Gestión de sesiones activas (código existente se mantiene igual) */}
-          <section className="sesiones-section">
-            <div className="section-header">
-              <h2 className="section-title">Sesiones Activas</h2>
-              <p className="section-subtitle">
-                Gestiona tus sesiones iniciadas en diferentes dispositivos
-              </p>
-              
-              <button 
-                className="btn-actualizar"
-                onClick={cargarSesionesActivas}
-                disabled={cargando}
-              >
-                🔄 Actualizar
-              </button>
-            </div>
-
-            {cargando ? (
-              <div className="loading-sesiones">
-                <p>Cargando sesiones activas...</p>
-              </div>
-            ) : sesionesActivas.length === 0 ? (
-              <div className="sin-sesiones">
-                <p>No hay sesiones activas</p>
-              </div>
-            ) : (
-              <div className="sesiones-list">
-                {sesionesActivas.map((sesion) => (
-                  <div key={sesion.id} className={`sesion-card ${sesion.is_current ? 'sesion-actual' : ''}`}>
-                    <div className="sesion-info">
-                      <div className="sesion-dispositivo">
-                        <span className="dispositivo-icon">💻</span>
-                        <div>
-                          <h3 className="dispositivo-nombre">{sesion.device_name}</h3>
-                          <p className="sesion-detalles">
-                            {sesion.location} • {formatearFecha(sesion.last_activity)}
-                            {sesion.is_current && (
-                              <span className="badge-actual">Este dispositivo</span>
-                            )}
-                          </p>
-                          <p className="sesion-ip">IP: {sesion.ip_address}</p>
-                        </div>
-                      </div>
-                      <div className="sesion-actions">
-                        {!sesion.is_current && (
-                          <button 
-                            className="btn-cerrar-sesion"
-                            onClick={() => handleCerrarSesionDispositivo(sesion.id)}
-                          >
-                            Cerrar Sesión
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Botones para los 3 tipos de cierre (código existente) */}
-            <div className="acciones-globales">
-              <div className="botones-accion">
-                <button 
-                  className="btn-cerrar-otras"
-                  onClick={handleCerrarOtrasSesiones}
-                  disabled={sesionesActivas.filter(s => !s.is_current).length === 0}
-                >
-                  🔒 Cerrar Otras Sesiones
-                </button>
-                
-                <button 
-                  className="btn-cerrar-todas"
-                  onClick={handleCerrarTodasLasSesiones}
-                >
-                  🚫 Cerrar Todas las Sesiones
-                </button>
-              </div>
-              
-              <div className="advertencias">
-                <p className="advertencia">
-                  <strong>Cerrar Otras Sesiones:</strong> Cierra sesión en todos los dispositivos excepto en este.
-                </p>
-                <p className="advertencia peligro">
-                  <strong>Cerrar Todas las Sesiones:</strong> Cierra sesión en TODOS los dispositivos incluyendo este.
-                </p>
-              </div>
-            </div>
-          </section>
+          <div className="pf-sesiones-actions">
+            <button
+              className="pf-btn-secondary"
+              onClick={handleCerrarOtras}
+              disabled={sesiones.filter(s => !s.is_current).length === 0}
+            >
+              Cerrar otras sesiones
+            </button>
+            <button className="pf-btn-danger" onClick={handleCerrarTodas}>
+              Cerrar todas las sesiones
+            </button>
+          </div>
+          <p className="pf-sesiones-note">
+            Al cerrar otras sesiones, esos dispositivos serán desconectados en los próximos 15 segundos.
+          </p>
         </div>
-      </main>
+      )}
     </div>
   );
-};
+}

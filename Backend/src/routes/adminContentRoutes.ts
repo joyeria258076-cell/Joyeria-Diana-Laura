@@ -25,6 +25,15 @@ router.patch('/noticias/:id/status', adminContentController.toggleNoticiaStatus)
 router.delete('/noticias/:id', adminContentController.deleteNoticia);
 
 // ==========================================
+// GESTIÓN DE FAQs (Preguntas Frecuentes)
+// ==========================================
+router.get('/faqs', adminContentController.getFaqs);
+router.post('/faqs', adminContentController.createFaq);
+router.put('/faqs/:id', adminContentController.updateFaq);
+router.patch('/faqs/:id/status', adminContentController.toggleFaqStatus);
+router.delete('/faqs/:id', adminContentController.deleteFaq);
+
+// ==========================================
 // GESTIÓN DE CARRUSEL
 // ==========================================
 router.get('/carrusel', adminContentController.getCarrusel);

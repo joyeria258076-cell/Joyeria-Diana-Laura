@@ -163,12 +163,23 @@ const onSubmit = async (data: FormData) => {
     console.log('🎭 Rol comparación cliente:', response.data?.user?.rol === 'cliente');
     console.log('🎭 Rol con .toLowerCase():', response.data?.user?.rol?.toLowerCase?.());
     
+    // Flujo especial: trabajador necesita verificación adicional
+    if (response.requiresWorkerVerification) {
+      sessionStorage.setItem('worker_pre_auth_token', response.preAuthToken);
+      if (response.etapa === 'activacion') {
+        navigate('/worker-activacion');
+      } else {
+        navigate('/worker-codigo');
+      }
+      return;
+    }
+
     // 🆕 REDIRECCIONAR SEGÚN EL ROL - CON VERIFICACIÓN MÁS ROBUSTA
     const rol = response.data?.user?.rol;
     const rolLower = String(rol).toLowerCase().trim();
-    
+
     console.log('🎭 Rol normalizado:', rolLower);
-    
+
     if (rol === 'admin' || rolLower === 'admin') {
       console.log('👨‍💼 Usuario es Admin - redirigiendo a dashboard admin');
       navigate("/admin-dashboard");

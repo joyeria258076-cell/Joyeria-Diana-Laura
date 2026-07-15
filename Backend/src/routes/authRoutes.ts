@@ -1,6 +1,6 @@
 // Ruta: Joyeria-Diana-Laura/Backend/src/routes/authRoutes.ts
 import express from 'express';
-import { authenticateToken } from '../middleware/authMiddleware'; 
+import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
 // 📂 1. IMPORTACIONES DE AUTH (Carpeta: controllers/auth)
 import { 
@@ -41,9 +41,23 @@ import {
 } from '../controllers/validacion/validacionEmailController';
 
 // 📂 5. IMPORTACIONES DE USUARIO (Carpeta: controllers/usuario)
-import { 
-    checkUserExists 
+import {
+    checkUserExists
 } from '../controllers/usuario/usuarioController';
+
+import {
+    getOwnProfile,
+    updateOwnProfile,
+    changeOwnPassword,
+    changeOwnEmail
+} from '../controllers/usuario/userController';
+
+import {
+    workerPreLogin,
+    activarCuenta,
+    verificarCodigoTrabajador,
+    regenerarCodigoTrabajador,
+} from '../controllers/auth/workerAuthController';
 
 // 📂 6. IMPORTACIÓN MFA (Carpeta: controllers/seguridad)
 import { mfaController } from '../controllers/seguridad/mfaController';
@@ -105,6 +119,20 @@ router.post('/mfa/verify-enable', authenticateToken, mfaController.verifyAndEnab
 router.post('/mfa/verify-login', mfaController.verifyLoginMFA); 
 router.post('/mfa/disable', authenticateToken, mfaController.disableMFA);
 router.post('/mfa/status', authenticateToken, mfaController.checkMFAStatus);
+
+// ==========================================
+// 👤 RUTAS DE PERFIL PROPIO (solo autenticado)
+// ==========================================
+router.get('/profile', authenticateToken, getOwnProfile);
+router.put('/profile', authenticateToken, updateOwnProfile);
+router.put('/profile/password', authenticateToken, changeOwnPassword);
+router.put('/profile/email', authenticateToken, changeOwnEmail);
+
+// ── FLUJO DE VERIFICACIÓN DE TRABAJADORES ──
+router.post('/worker/pre-login', workerPreLogin);
+router.post('/worker/activar', activarCuenta);
+router.post('/worker/verificar-codigo', verificarCodigoTrabajador);
+router.post('/worker/regenerar-codigo/:id', authenticateToken, requireAdmin, regenerarCodigoTrabajador);
 
 // ==========================================
 // 🛠️ RUTAS DE DIAGNÓSTICO

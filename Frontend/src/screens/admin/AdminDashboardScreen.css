@@ -122,3 +122,50 @@
     from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ── BANNER DE ALERTA ── */
+.dash-alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(239,68,68,0.07);
+    border: 1px solid rgba(239,68,68,0.25);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.75rem;
+    animation: fadeIn 0.4s ease both;
+}
+.dash-alert-icon { font-size: 1.4rem; flex-shrink: 0; }
+.dash-alert-body { flex: 1; display: flex; flex-direction: column; gap: 0.2rem; }
+.dash-alert-title { font-size: 0.9rem; color: #fff; font-weight: 600; }
+.dash-alert-title strong { color: #f87171; }
+.dash-alert-sub { font-size: 0.76rem; color: rgba(255,255,255,0.4); }
+.dash-alert-btn {
+    background: rgba(239,68,68,0.12);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #f87171;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.5rem 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+.dash-alert-btn:hover { background: rgba(239,68,68,0.2); }
+
+/* ── CARD SOLICITUDES ── */
+.dash-card-solicitudes { transition: border-color 0.2s, transform 0.2s; }
+.dash-card-solicitudes:hover { transform: translateY(-2px); }
+.dash-card-solicitudes--alert { border-color: rgba(239,68,68,0.3) !important; }
+.stat-number--ok    { color: #86efac !important; font-size: 1.8rem; }
+.stat-number--alert { color: #f87171 !important; }
+.dash-sol-mini-list { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.5rem 0; }
+.dash-sol-mini-badge {
+    font-size: 0.68rem; font-weight: 700;
+    padding: 2px 10px; border-radius: 20px; border: 1px solid;
+}
+.dash-sol-mini-badge--codigo { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.25); color: #fbbf24; }
+.dash-sol-mini-badge--nombre { background: rgba(147,197,253,0.08); border-color: rgba(147,197,253,0.25); color: #93c5fd; }
+.stat-link { font-size: 0.75rem; color: rgba(236,178,195,0.5); margin-top: 0.4rem; }

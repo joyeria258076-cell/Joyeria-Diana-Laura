@@ -1,0 +1,241 @@
+/* ── WorkerAuth screens (activación + código) ── */
+.wauth-wrapper {
+  min-height: 100vh;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.wauth-card {
+  background: #0d0d0d;
+  border: 1px solid rgba(236,178,195,0.15);
+  border-radius: 14px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+.wauth-icon {
+  font-size: 2.4rem;
+  line-height: 1;
+  background: rgba(236,178,195,0.08);
+  border: 1px solid rgba(236,178,195,0.2);
+  border-radius: 50%;
+  width: 72px; height: 72px;
+  display: flex; align-items: center; justify-content: center;
+}
+.wauth-icon--ok {
+  background: rgba(107,203,119,0.1);
+  border-color: rgba(107,203,119,0.3);
+  color: #6bcb77;
+  font-size: 2rem;
+}
+
+.wauth-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.wauth-sub {
+  font-size: 0.85rem;
+  color: rgba(217,217,217,0.55);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.wauth-field {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.wauth-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(217,217,217,0.45);
+}
+
+.wauth-input {
+  background: #111;
+  border: 1px solid rgba(236,178,195,0.15);
+  border-radius: 8px;
+  color: #fff;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+.wauth-input:focus { outline: none; border-color: rgba(236,178,195,0.5); }
+.wauth-input--error { border-color: rgba(224,90,106,0.5); }
+.wauth-input--code {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.wauth-error {
+  font-size: 0.78rem;
+  color: #e05a6a;
+  font-weight: 600;
+}
+
+.wauth-btn-primary {
+  width: 100%;
+  padding: 0.85rem;
+  background: #ECB2C3;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.3px;
+  transition: background 0.2s;
+}
+.wauth-btn-primary:hover:not(:disabled) { background: #d4899f; }
+.wauth-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.wauth-btn-ghost {
+  background: transparent;
+  border: none;
+  color: rgba(217,217,217,0.35);
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.2s;
+  padding: 0;
+}
+.wauth-btn-ghost:hover { color: rgba(217,217,217,0.65); }
+
+.wauth-btn-recuperar {
+  background: transparent;
+  border: 1px dashed rgba(236,178,195,0.2);
+  border-radius: 8px;
+  color: rgba(236,178,195,0.45);
+  font-size: 0.76rem;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s;
+}
+.wauth-btn-recuperar:hover {
+  border-color: rgba(236,178,195,0.45);
+  color: #ECB2C3;
+  background: rgba(236,178,195,0.04);
+}
+
+.wauth-icon--ok {
+  background: rgba(134,239,172,0.1);
+  border-color: rgba(134,239,172,0.3);
+  color: #86efac;
+  font-size: 1.5rem;
+}
+
+.wauth-recuperar-pasos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  margin: 0.5rem 0;
+}
+.wauth-paso {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  font-size: 0.8rem;
+  color: rgba(217,217,217,0.5);
+  text-align: left;
+}
+.wauth-paso-n {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(134,239,172,0.1);
+  border: 1px solid rgba(134,239,172,0.25);
+  color: #86efac;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Código de trabajador generado */
+.wauth-codigo-display {
+  width: 100%;
+  background: #111;
+  border: 1px solid rgba(236,178,195,0.2);
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.wauth-codigo-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(217,217,217,0.4);
+}
+.wauth-codigo-value {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  color: #ECB2C3;
+  font-family: 'Courier New', monospace;
+}
+.wauth-btn-copiar {
+  background: rgba(236,178,195,0.08);
+  border: 1px solid rgba(236,178,195,0.25);
+  border-radius: 20px;
+  color: #ECB2C3;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.wauth-btn-copiar:hover { background: rgba(236,178,195,0.15); }
+
+.wauth-aviso {
+  width: 100%;
+  background: rgba(201,168,76,0.06);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.78rem;
+  color: rgba(217,217,217,0.5);
+  line-height: 1.5;
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  text-align: left;
+}
+.wauth-aviso-icon { color: #c9a84c; flex-shrink: 0; margin-top: 1px; }

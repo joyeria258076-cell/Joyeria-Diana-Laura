@@ -1,0 +1,273 @@
+@keyframes alegal-in { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+@keyframes alegal-spin { to { transform: rotate(360deg); } }
+
+.alegal-wrap { padding: 2rem; animation: alegal-in 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-in { animation: alegal-in 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* ── HEADER ── */
+.alegal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+.alegal-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ECB2C3;
+  opacity: 0.6;
+  margin: 0 0 0.35rem;
+}
+.alegal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 0.4rem;
+  line-height: 1.2;
+}
+.alegal-title span {
+  background: linear-gradient(135deg, #ECB2C3, #c9a84c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.alegal-sub { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin: 0; }
+
+.alegal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* ── TOAST ── */
+.alegal-toast {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  border: 1px solid;
+  animation: alegal-in 0.3s ease both;
+}
+.alegal-toast--ok  { background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.3); color: #4ade80; }
+.alegal-toast--err { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.3);  color: #f87171; }
+
+/* ── BUTTONS ── */
+.alegal-btn-preview {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.65);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.alegal-btn-preview:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+.alegal-btn-save {
+  background: linear-gradient(135deg, rgba(236,178,195,0.18), rgba(201,168,76,0.12));
+  border: 1px solid rgba(236,178,195,0.3);
+  color: #ECB2C3;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.6rem 1.4rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.alegal-btn-save:hover:not(:disabled) { background: rgba(236,178,195,0.22); }
+.alegal-btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── TABS ── */
+.alegal-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: -1px;
+  position: relative;
+  z-index: 1;
+}
+.alegal-tab {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.4);
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px 12px 0 0;
+  border-bottom: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.alegal-tab:hover { color: rgba(255,255,255,0.6); }
+.alegal-tab.active {
+  background: rgba(18,14,24,0.95);
+  border-color: rgba(236,178,195,0.2);
+  color: #ECB2C3;
+}
+.alegal-tab-fecha {
+  font-size: 0.62rem;
+  font-weight: 400;
+  color: rgba(255,255,255,0.25);
+  font-style: italic;
+}
+
+/* ── CARD / EDITOR ── */
+.alegal-card {
+  background: rgba(18,14,24,0.95);
+  border: 1px solid rgba(236,178,195,0.15);
+  border-radius: 0 16px 16px 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  min-height: 300px;
+}
+
+.alegal-field { margin-bottom: 1.5rem; }
+.alegal-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.alegal-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.45); display: block; margin-bottom: 0.5rem; }
+.alegal-hint { font-size: 0.68rem; color: rgba(255,255,255,0.2); }
+
+.alegal-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-family: inherit;
+  padding: 0.75rem 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.alegal-input:focus { border-color: rgba(236,178,195,0.4); }
+
+.alegal-textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.82rem;
+  font-family: 'Courier New', monospace;
+  line-height: 1.65;
+  padding: 1rem;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.alegal-textarea:focus { border-color: rgba(236,178,195,0.35); }
+
+.alegal-formato-tips {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.6rem;
+}
+.alegal-tip { font-size: 0.68rem; font-weight: 700; color: rgba(255,255,255,0.3); }
+.alegal-tip-item { font-size: 0.66rem; color: rgba(255,255,255,0.2); }
+.alegal-tip-item code { background: rgba(255,255,255,0.06); border-radius: 3px; padding: 1px 5px; font-size: 0.64rem; color: #ECB2C3; }
+
+/* ── PREVIEW ── */
+.alegal-preview { padding: 0.5rem 0; }
+.alegal-preview-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: #fff;
+  margin: 0 0 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(236,178,195,0.12);
+}
+.alegal-preview-body { line-height: 1.75; }
+.alegal-preview-h {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 1.5rem 0 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 3px solid #ECB2C3;
+}
+.alegal-preview-p { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin: 0 0 0.6rem; }
+.alegal-preview-li {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.6);
+  margin: 0 0 0.3rem 0;
+  padding-left: 1.2rem;
+  position: relative;
+  list-style: none;
+}
+.alegal-preview-li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: #ECB2C3;
+  opacity: 0.5;
+  font-size: 0.7rem;
+  top: 3px;
+}
+
+/* ── LOADING ── */
+.alegal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 200px;
+  color: rgba(255,255,255,0.3);
+  font-size: 0.8rem;
+}
+.alegal-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: #ECB2C3;
+  animation: alegal-spin 0.9s linear infinite;
+}
+
+/* ── INFO ROW ── */
+.alegal-info-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.alegal-info-card {
+  background: rgba(18,14,24,0.6);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.alegal-info-icon { font-size: 1.4rem; flex-shrink: 0; }
+.alegal-info-title { font-size: 0.78rem; font-weight: 700; color: #fff; margin: 0 0 0.2rem; }
+.alegal-info-sub { font-size: 0.72rem; color: rgba(255,255,255,0.3); margin: 0; line-height: 1.5; }
+.alegal-info-sub code { background: rgba(255,255,255,0.06); border-radius: 3px; padding: 1px 5px; font-size: 0.66rem; color: #ECB2C3; }
+
+@media (max-width: 700px) {
+  .alegal-header { flex-direction: column; }
+  .alegal-tabs { flex-direction: column; }
+  .alegal-tab { border-radius: 8px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-direction: row; }
+  .alegal-card { border-radius: 12px; padding: 1.25rem; }
+  .alegal-wrap { padding: 1rem; }
+}

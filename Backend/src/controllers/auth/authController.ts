@@ -5,8 +5,17 @@ import { LoginSecurityService } from '../../services/loginSecurityService';
 import { pool } from '../../config/database';
 import { SessionService } from '../../services/SessionService';
 import { JWTService } from '../../services/JWTService';
+import { JWTConfig } from '../../config/jwtConfig';
 import { CookieConfig } from '../../config/cookieConfig';
 import { validateEmailSecurity, validatePasswordSecurity } from '../../utils/inputValidation';
+import jwt from 'jsonwebtoken';
+
+const emitirPreAuthToken = (userId: number, etapa: 'activacion' | 'codigo'): string =>
+  jwt.sign(
+    { userId, etapa, tipo: 'pre_auth' },
+    JWTConfig.getSecret(),
+    { expiresIn: '5m', issuer: 'joyeria-diana-laura-backend', audience: 'joyeria-diana-laura-frontend' }
+  );
 
 // 🎯 Helpers internos para IP y User Agent
 const getClientIp = (req: Request): string => {
@@ -103,13 +112,26 @@ export const login = async (req: Request, res: Response) => {
       await LoginSecurityService.clearFailedAttempts(email);
 
       const userEmail = userRecord.email || email;
-      const userName = userRecord.displayName || (userEmail ? userEmail.split('@')[0] : 'Usuario');
-      
+
       let dbUser: any = null;
       try {
         dbUser = await userModel.getUserByEmail(userEmail);
-        
+
+        // ── FLUJO ESPECIAL: cuentas con verificación de código (activado=false o tienen codigo_trabajador) ──
+        const necesitaVerif = dbUser?.id && (!dbUser.activado || dbUser.codigo_trabajador);
+        if (necesitaVerif) {
+          const preAuthToken = emitirPreAuthToken(dbUser.id, dbUser.activado ? 'codigo' : 'activacion');
+          return res.json({
+            success: true,
+            requiresWorkerVerification: true,
+            etapa: dbUser.activado ? 'codigo' : 'activacion',
+            preAuthToken,
+          });
+        }
+        // ─────────────────────────────────────────────────────────────────────────────
+
         if (dbUser?.id) {
+          const userName = dbUser.nombre || userRecord.displayName || (userEmail ? userEmail.split('@')[0] : 'Usuario');
           const deviceInfo = SessionService.parseUserAgent(userAgent);
 
           // ─── CAMBIO: pasar el rol para calcular expiración correcta ──────────
@@ -159,17 +181,18 @@ export const login = async (req: Request, res: Response) => {
       }
 
       // Fallback si falla la sesión de base de datos pero Firebase funcionó
-      return res.json({ 
-        success: true, 
-        message: 'Login exitoso (sin sesión completa)', 
-        data: { 
-          user: { 
-            id: userRecord.uid, 
-            email: userEmail, 
-            nombre: userName, 
-            rol: String(dbUser?.rol || 'cliente') 
-          } 
-        } 
+      const fallbackName = dbUser?.nombre || userRecord.displayName || (userEmail ? userEmail.split('@')[0] : 'Usuario');
+      return res.json({
+        success: true,
+        message: 'Login exitoso (sin sesión completa)',
+        data: {
+          user: {
+            id: userRecord.uid,
+            email: userEmail,
+            nombre: fallbackName,
+            rol: String(dbUser?.rol || 'cliente')
+          }
+        }
       });
 
     } catch (firebaseError: any) {

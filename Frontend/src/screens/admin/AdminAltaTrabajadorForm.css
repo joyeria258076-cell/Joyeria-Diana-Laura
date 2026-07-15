@@ -450,3 +450,190 @@
   .alta-btn-cancel,
   .alta-btn-submit { width: 100%; flex: none; }
 }
+
+/* ─── PILLS DE INFO ── */
+.alta-info-pills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0 3rem 1.75rem;
+  position: relative;
+  z-index: 1;
+}
+.alta-info-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: rgba(236,178,195,0.07);
+  border: 1px solid rgba(236,178,195,0.18);
+  color: rgba(236,178,195,0.7);
+  letter-spacing: 0.2px;
+}
+
+/* ─── WRAPPER CENTRADO (modal de código) ── */
+.alta-wrap--center {
+  justify-content: center;
+  min-height: 80vh;
+}
+
+/* ─── MODAL CÓDIGO DE ACTIVACIÓN ── */
+.alta-codigo-modal {
+  width: 100%;
+  max-width: 480px;
+  background: linear-gradient(145deg, rgba(22,18,28,0.98) 0%, rgba(10,10,14,0.98) 100%);
+  border: 1px solid rgba(236,178,195,0.2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 2.5rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.alta-codigo-modal::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 8%; right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(107,203,119,0.6), transparent);
+}
+
+.alta-codigo-modal__check {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: rgba(107,203,119,0.1);
+  border: 1px solid rgba(107,203,119,0.3);
+  color: #6bcb77;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeSlide 0.5s var(--ease) both;
+}
+
+.alta-codigo-modal__head { display: flex; flex-direction: column; gap: 0.3rem; }
+.alta-codigo-modal__title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+}
+.alta-codigo-modal__sub {
+  font-size: 0.82rem;
+  color: rgba(217,217,217,0.45);
+  margin: 0;
+}
+.alta-codigo-modal__sub strong { color: rgba(217,217,217,0.75); }
+
+.alta-codigo-modal__desc {
+  font-size: 0.83rem;
+  color: rgba(217,217,217,0.5);
+  line-height: 1.65;
+  margin: 0;
+}
+.alta-codigo-modal__once {
+  display: inline-block;
+  color: #c9a84c;
+  font-weight: 700;
+  margin-left: 0.2rem;
+}
+
+/* Caja del código */
+.alta-codigo-box {
+  width: 100%;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(236,178,195,0.2);
+  border-radius: 12px;
+  padding: 1.5rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+}
+.alta-codigo-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: radial-gradient(ellipse at top, rgba(236,178,195,0.04) 0%, transparent 65%);
+  pointer-events: none;
+}
+.alta-codigo-box__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(217,217,217,0.35);
+}
+.alta-codigo-box__value {
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: 0.35em;
+  color: #ECB2C3;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 20px rgba(236,178,195,0.3);
+  user-select: all;
+}
+.alta-codigo-box__copy {
+  background: rgba(236,178,195,0.08);
+  border: 1px solid rgba(236,178,195,0.25);
+  border-radius: 20px;
+  color: #ECB2C3;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 20px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  transition: all 0.2s;
+}
+.alta-codigo-box__copy:hover { background: rgba(236,178,195,0.15); }
+.alta-codigo-box__copy--ok {
+  background: rgba(107,203,119,0.1);
+  border-color: rgba(107,203,119,0.3);
+  color: #6bcb77;
+}
+
+/* Pasos del flujo */
+.alta-codigo-modal__steps {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.alta-codigo-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  text-align: left;
+  font-size: 0.8rem;
+  color: rgba(217,217,217,0.5);
+}
+.alta-codigo-step__n {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(236,178,195,0.1);
+  border: 1px solid rgba(236,178,195,0.2);
+  color: #ECB2C3;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 500px) {
+  .alta-info-pills { padding: 0 1.5rem 1.5rem; }
+  .alta-codigo-modal { padding: 2rem 1.25rem; }
+  .alta-codigo-box__value { font-size: 1.6rem; letter-spacing: 0.2em; }
+}

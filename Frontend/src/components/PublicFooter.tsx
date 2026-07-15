@@ -81,9 +81,9 @@ const PublicFooter: React.FC = () => {
         <div className="footer-bottom">
           <p>&copy; 2026 Diana Laura Joyería. Todos los derechos reservados.</p>
           <div className="footer-policies">
-            <Link to="#">Política de Privacidad</Link>
+            <Link to="/legal/privacidad">Política de Privacidad</Link>
             <span className="separator">•</span>
-            <Link to="#">Términos de Servicio</Link>
+            <Link to="/legal/terminos">Términos de Servicio</Link>
           </div>
         </div>
       </div>

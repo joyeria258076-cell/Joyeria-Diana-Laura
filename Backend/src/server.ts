@@ -42,6 +42,7 @@ import { AuthRequest } from './middleware/authMiddleware';
 import alexaRoutes from './routes/alexaRoutes';
 import oauthRoutes from './routes/oauthRoutes';
 import favoritosRoutes from './routes/favoritosRoutes';
+import solicitudesRoutes from './routes/solicitudesRoutes';
 import pool from './config/database';
 
 // IAST Agent
@@ -243,6 +244,7 @@ app.use('/api/apartados', apartadoRoutes);
 app.use('/api/alexa', alexaRoutes);  
 app.use('/oauth', oauthRoutes);
 app.use('/api/favoritos', favoritosRoutes);
+app.use('/api/solicitudes', solicitudesRoutes);
 
 // 🩺 ENDPOINTS DE SALUD
 app.get('/api/health', (req, res) => {

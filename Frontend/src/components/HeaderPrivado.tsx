@@ -13,6 +13,7 @@ const HeaderPrivado: React.FC = () => {
     const sidebarRef = useRef<HTMLDivElement>(null);
 
     const [sidebarOpen, setSidebarOpen]             = useState(false);
+    const [solicitudesPendientes, setSolicitudesPendientes] = useState(0);
     const [isContentMenuOpen, setIsContentMenuOpen] = useState(false);
     const [isCatalogoMenuOpen, setIsCatalogoMenuOpen] = useState(false);
     const [isDatabaseMenuOpen, setIsDatabaseMenuOpen] = useState(false);
@@ -21,6 +22,27 @@ const HeaderPrivado: React.FC = () => {
 
     const userRole = user?.rol?.toLowerCase().trim() || 'cliente';
     const isActive = (path: string) => location.pathname.startsWith(path) ? "active" : "";
+
+    // Cargar conteo de solicitudes pendientes para admin
+    useEffect(() => {
+        if (userRole !== 'admin') return;
+        const cargar = async () => {
+            try {
+                const stored = JSON.parse(localStorage.getItem('diana_laura_user') || '{}');
+                const res = await fetch('/api/solicitudes', {
+                    headers: { Authorization: `Bearer ${stored.token}`, 'x-session-token': localStorage.getItem('diana_laura_session_token') || '' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const pendientes = (data.data || []).filter((s: any) => s.estado === 'pendiente').length;
+                    setSolicitudesPendientes(pendientes);
+                }
+            } catch { /**/ }
+        };
+        cargar();
+        const interval = setInterval(cargar, 30000); // refresca cada 30s
+        return () => clearInterval(interval);
+    }, [userRole, location.pathname]);
 
     // Cerrar sidebar al navegar en móvil
     const goTo = (path: string) => {
@@ -206,6 +228,9 @@ const HeaderPrivado: React.FC = () => {
                                         <button className={`dropdown-item ${isActive("/admin-contenido/mision") ? "active" : ""}`} onClick={() => goTo("/admin-contenido/mision")}>
                                             <span className="dropdown-icon">🎯</span> Misión, Visión y Valores
                                         </button>
+                                        <button className={`dropdown-item ${isActive("/admin-legal") ? "active" : ""}`} onClick={() => goTo("/admin-legal")}>
+                                            <span className="dropdown-icon">⚖️</span> Documentos Legales
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -218,6 +243,12 @@ const HeaderPrivado: React.FC = () => {
                             </button>
                             <button className={`nav-item ${isActive("/admin-trabajadores")}`} onClick={() => goTo("/admin-trabajadores")}>
                                 <span className="nav-icon">👥</span> Personal
+                            </button>
+                            <button className={`nav-item ${isActive("/admin-perfil")}`} onClick={() => goTo("/admin-perfil")} style={{ position: 'relative' }}>
+                                <span className="nav-icon">👤</span> Mi Perfil
+                                {solicitudesPendientes > 0 && (
+                                    <span className="nav-badge">{solicitudesPendientes}</span>
+                                )}
                             </button>
                             <button className={`nav-item ${isActive("/admin-reportes")}`} onClick={() => goTo("/admin-reportes")}>
                                 <span className="nav-icon">📈</span> Reportes
@@ -309,8 +340,11 @@ const HeaderPrivado: React.FC = () => {
                     onClick={() => navigate(userRole === 'admin' ? "/admin-perfil" : userRole === 'trabajador' ? "/trabajador/perfil" : "/perfil")}
                     style={{ cursor: 'pointer' }}
                 >
-                    <div className="user-avatar">
+                    <div className="user-avatar" style={{ position: 'relative' }}>
                         {user?.nombre?.charAt(0).toUpperCase() || "U"}
+                        {userRole === 'admin' && solicitudesPendientes > 0 && (
+                            <span className="avatar-badge">{solicitudesPendientes}</span>
+                        )}
                     </div>
                     <div className="user-details">
                         <span className="user-name">{user?.nombre || 'Mi Perfil'}</span>
