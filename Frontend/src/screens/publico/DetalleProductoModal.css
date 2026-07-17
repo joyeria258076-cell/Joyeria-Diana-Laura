@@ -316,14 +316,15 @@
 
 /* === ACCIONES === */
 .detalle-acciones {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   margin-top: 1rem;
 }
 
 .btn {
-  padding: 1rem;
+  width: 100%;
+  padding: 0.95rem 1rem;
   border: none;
   border-radius: 0.5rem;
   font-weight: 600;
@@ -383,7 +384,6 @@
   background-color: rgba(107, 114, 128, 0.2);
   color: rgba(107, 114, 128, 0.5);
   cursor: not-allowed;
-  grid-column: 1 / -1;
 }
 
 /* === RESPONSIVE === */
@@ -418,7 +418,6 @@
 
 /* === BOTÓN VER DETALLES COMPLETOS === */
 .btn-ver-detalles {
-  grid-column: 1 / -1;
   background: transparent;
   color: rgba(201,168,76,0.75);
   border: 1.5px solid rgba(201,168,76,0.25);
