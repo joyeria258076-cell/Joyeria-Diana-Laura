@@ -502,3 +502,7 @@
 .detalle-talla-input.input-error { border-color: #e05a6a; }
 .detalle-talla-error { color: #e05a6a; font-size: 0.8rem; margin-top: 4px; display: block; }
 .btn-exitoso { background: #6bcb77 !important; }
+.detalle-recomendaciones { border-top: 1px solid #2a2a3e; padding: 1rem 1.5rem 1.2rem; }
+.detalle-rec-titulo { font-size: 0.85rem; color: #c9a84c; font-weight: 600; margin: 0 0 0.6rem; }
+.detalle-rec-lista { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.detalle-rec-item { background: #1a1a2e; border: 1px solid #2a2a3e; border-radius: 20px; padding: 4px 12px; font-size: 0.78rem; color: #ECB2C3; }

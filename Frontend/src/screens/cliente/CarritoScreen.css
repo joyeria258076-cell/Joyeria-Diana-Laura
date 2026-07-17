@@ -234,3 +234,7 @@
     border-radius: 8px; padding: 12px 14px;
     font-size: 0.85rem; color: #ccc; line-height: 1.7;
 }
+.carrito-recs { padding: 1.5rem 2rem; border-top: 1px solid #2a2a3e; }
+.carrito-recs-titulo { font-size: 0.9rem; color: #c9a84c; font-weight: 600; margin: 0 0 0.8rem; }
+.carrito-recs-lista { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.carrito-recs-item { background: #1a1a2e; border: 1px solid #2a2a3e; border-radius: 20px; padding: 5px 14px; font-size: 0.8rem; color: #ECB2C3; }

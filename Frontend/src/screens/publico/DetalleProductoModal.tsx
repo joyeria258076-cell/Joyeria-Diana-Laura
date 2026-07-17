@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AiOutlineClose, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineStar, AiFillStar, AiOutlineArrowRight, AiOutlineLock } from 'react-icons/ai';
 import { useCart } from '../../contexts/CartContext';
-import { favoritosAPI } from '../../services/api';
+import { favoritosAPI, recomendacionAPI } from '../../services/api';
 import './DetalleProductoModal.css';
 
 const estaLogueado = (): boolean => {
@@ -49,17 +49,25 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
   const [exitoso, setExitoso]             = React.useState(false);
   const [esFavorito, setEsFavorito]       = React.useState(false);
   const [togglingFav, setTogglingFav]     = React.useState(false);
+  const [recomendaciones, setRecomendaciones] = React.useState<string[]>([]);
   const navigate = useNavigate();
   const logueado = estaLogueado();
   const { agregarAlCarrito } = useCart();
 
-  // Verificar si ya es favorito al abrir
   React.useEffect(() => {
     if (!isOpen || !producto || !logueado) return;
     favoritosAPI.check(producto.id)
       .then(res => setEsFavorito(!!res?.favorito))
       .catch(() => {});
   }, [isOpen, producto?.id, logueado]);
+
+  React.useEffect(() => {
+    if (!isOpen || !producto) return;
+    setRecomendaciones([]);
+    recomendacionAPI.recomendar([producto.nombre])
+      .then(recs => setRecomendaciones(recs))
+      .catch(() => {});
+  }, [isOpen, producto?.id]);
 
   if (!isOpen || !producto) return null;
 
@@ -319,6 +327,18 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
             </div>
           </div>
         </div>
+
+        {recomendaciones.length > 0 && (
+          <div className="detalle-recomendaciones">
+            <p className="detalle-rec-titulo">✨ También te puede interesar</p>
+            <ul className="detalle-rec-lista">
+              {recomendaciones.map((r, i) => (
+                <li key={i} className="detalle-rec-item">{r}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
       </div>
     </div>
   );

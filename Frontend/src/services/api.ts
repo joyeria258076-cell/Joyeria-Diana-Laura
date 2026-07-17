@@ -1485,6 +1485,25 @@ export const favoritosAPI = {
 // ==========================================
 // 📥 EXPORTACIÓN DE API (opcional, para tener todo en un solo objeto)
 // ==========================================
+const ML_BASE_URL = import.meta.env.VITE_ML_URL || 'http://127.0.0.1:5050';
+
+export const recomendacionAPI = {
+  recomendar: async (productos: string[]): Promise<string[]> => {
+    try {
+      const res = await fetch(`${ML_BASE_URL}/recomendar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productos }),
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.recomendaciones || [];
+    } catch {
+      return [];
+    }
+  },
+};
+
 export const api = {
   auth: authAPI,
   products: productsAPI,

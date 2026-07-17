@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AiOutlineDelete, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineArrowLeft } from 'react-icons/ai';
 import { useCart } from '../../contexts/CartContext';
-import { carritoAPI, apartadoAPI } from '../../services/api';
+import { carritoAPI, apartadoAPI, recomendacionAPI } from '../../services/api';
 import './CarritoScreen.css';
 
 const PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzFhMWEyZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQwIiBmaWxsPSIjZWNiMmMzIj7oo6s8L3RleHQ+PC9zdmc+';
@@ -184,6 +184,8 @@ const CarritoScreen: React.FC = () => {
     const navigate = useNavigate();
     const { items, count, total, loading, promoNoAplica, actualizarCantidad, eliminarItem, vaciarCarrito } = useCart();
 
+    const [recsCarrito, setRecsCarrito] = useState<string[]>([]);
+
     // ── Estados pedido normal ─────────────────────────────────
     const [solicitando, setSolicitando]       = useState(false);
     const [pedidoExitoso, setPedidoExitoso]   = useState(false);
@@ -211,6 +213,12 @@ const CarritoScreen: React.FC = () => {
     const [planes, setPlanes]               = useState<{ id: number; nombre: string; intervalo_dias: number; porcentaje_abono: number; descripcion: string }[]>([]);
     const [planSeleccionado, setPlanSeleccionado] = useState<number | null>(null);
     const [cargandoPlanes, setCargandoPlanes]     = useState(false);
+
+    useEffect(() => {
+        if (items.length === 0) { setRecsCarrito([]); return; }
+        const nombres = items.map(i => i.producto_nombre);
+        recomendacionAPI.recomendar(nombres).then(setRecsCarrito).catch(() => {});
+    }, [items.map(i => i.id).join(',')]);
 
     useEffect(() => {
         if (showCheckout || showApartado) {
@@ -757,6 +765,16 @@ const CarritoScreen: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            {recsCarrito.length > 0 && (
+                <section className="carrito-recs">
+                    <h3 className="carrito-recs-titulo">✨ Otros clientes también llevaron</h3>
+                    <ul className="carrito-recs-lista">
+                        {recsCarrito.map((r, i) => (
+                            <li key={i} className="carrito-recs-item">{r}</li>
+                        ))}
+                    </ul>
+                </section>
             )}
         </main>
     );
