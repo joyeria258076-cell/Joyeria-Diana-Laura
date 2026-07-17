@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { AiOutlineArrowLeft, AiOutlineCheck, AiOutlineClose, AiOutlineForm, AiOutlineUpload, AiOutlineDelete } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
-import { productsAPI, uploadAPI } from '../../services/api';
+import { productsAPI, uploadAPI, precioSugeridoAPI } from '../../services/api';
 import './AdminNuevoProductoScreen.css';
 
 interface Category {
@@ -92,6 +92,10 @@ const AdminNuevoProductoScreen: React.FC = () => {
   const [stockMinimoDefault, setStockMinimoDefault] = useState<number>(5);
   const [stockMaximoDefault, setStockMaximoDefault] = useState<number>(999);
   
+  // Precio sugerido por IA
+  const [precioSugerido, setPrecioSugerido] = useState<{ precio_sugerido: number; rango_min: number; rango_max: number } | null>(null);
+  const [loadingSugerido, setLoadingSugerido] = useState(false);
+
   // Vista previa de imagen
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -358,6 +362,28 @@ const AdminNuevoProductoScreen: React.FC = () => {
     }
   };
 
+  // Consultar precio sugerido al ML cuando los campos clave están completos
+  useEffect(() => {
+    const categoriaNombre = categorias.find(c => c.id === formData.categoria_id)?.nombre || '';
+    if (!formData.material_principal || !categoriaNombre || !formData.peso_gramos) {
+      setPrecioSugerido(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setLoadingSugerido(true);
+      const resultado = await precioSugeridoAPI.predecir({
+        material_principal: formData.material_principal,
+        categoria_nombre: categoriaNombre,
+        peso_gramos: formData.peso_gramos!,
+        dias_fabricacion: formData.dias_fabricacion,
+        permite_personalizacion: formData.permite_personalizacion,
+      });
+      setPrecioSugerido(resultado);
+      setLoadingSugerido(false);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [formData.material_principal, formData.categoria_id, formData.peso_gramos, formData.dias_fabricacion, formData.permite_personalizacion, categorias]);
+
   const precioVentaCalculado = calcularPrecioVenta(formData.precio_compra);
 
   return (
@@ -545,6 +571,24 @@ const AdminNuevoProductoScreen: React.FC = () => {
           {/* SECCIÓN 4: PRECIOS CON CÁLCULO AUTOMÁTICO */}
           <fieldset className="form-section">
             <legend>💰 Precios (Cálculo Automático)</legend>
+
+            {/* Widget precio sugerido por IA */}
+            {(loadingSugerido || precioSugerido) && (
+              <div className="precio-ia-widget">
+                <div className="precio-ia-header">
+                  <span className="precio-ia-badge">🤖 IA</span>
+                  <span className="precio-ia-label">Precio sugerido por el modelo</span>
+                </div>
+                {loadingSugerido ? (
+                  <div className="precio-ia-loading">Calculando...</div>
+                ) : precioSugerido && (
+                  <div className="precio-ia-body">
+                    <span className="precio-ia-valor">${precioSugerido.precio_sugerido.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                    <span className="precio-ia-rango">Rango similar: ${precioSugerido.rango_min.toLocaleString('es-MX', { minimumFractionDigits: 2 })} – ${precioSugerido.rango_max.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+              </div>
+            )}
             
             <div className="precio-info">
               <p><strong>Configuración de cálculo:</strong> IVA: {ivaConfig}% | Margen Ganancia: {margenConfig}%</p>

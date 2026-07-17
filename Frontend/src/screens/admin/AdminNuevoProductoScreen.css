@@ -645,3 +645,72 @@
 
   .producto-form-header h1 { font-size: 1.2rem; }
 }
+/* === WIDGET PRECIO SUGERIDO POR IA === */
+.precio-ia-widget {
+  background: linear-gradient(135deg, #1a1025 0%, #120d1e 100%);
+  border: 1.5px solid rgba(201,168,76,0.4);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  animation: fadeInWidget 0.4s ease;
+}
+
+@keyframes fadeInWidget {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.precio-ia-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.precio-ia-badge {
+  background: rgba(201,168,76,0.15);
+  border: 1px solid rgba(201,168,76,0.4);
+  color: #c9a84c;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+}
+
+.precio-ia-label {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.03em;
+}
+
+.precio-ia-loading {
+  font-size: 0.85rem;
+  color: rgba(201,168,76,0.6);
+  font-style: italic;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.precio-ia-body {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.precio-ia-valor {
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: 'Playfair Display', serif;
+  background: linear-gradient(90deg, #c9a84c, #f5d982);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.precio-ia-rango {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.4);
+  font-family: 'Montserrat', sans-serif;
+}

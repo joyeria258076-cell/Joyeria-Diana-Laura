@@ -1493,6 +1493,28 @@ export interface Recomendacion {
   imagen_url?: string | null;
 }
 
+export const precioSugeridoAPI = {
+  predecir: async (params: {
+    material_principal: string;
+    categoria_nombre: string;
+    peso_gramos: number;
+    dias_fabricacion: number;
+    permite_personalizacion: boolean;
+  }): Promise<{ precio_sugerido: number; rango_min: number; rango_max: number } | null> => {
+    try {
+      const res = await fetch(`${ML_BASE_URL}/predecir-precio`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  },
+};
+
 export const recomendacionAPI = {
   recomendar: async (productos: string[]): Promise<Recomendacion[]> => {
     try {
