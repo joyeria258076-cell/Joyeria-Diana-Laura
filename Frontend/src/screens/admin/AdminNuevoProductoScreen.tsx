@@ -93,7 +93,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
   const [stockMaximoDefault, setStockMaximoDefault] = useState<number>(999);
   
   // Precio sugerido por IA
-  const [precioSugerido, setPrecioSugerido] = useState<{ precio_sugerido: number; rango_min: number; rango_max: number } | null>(null);
+  const [precioSugerido, setPrecioSugerido] = useState<{ precio_sugerido: number; rango_min: number; rango_max: number; comparativa?: { nombre: string; precio: number }[] } | null>(null);
   const [loadingSugerido, setLoadingSugerido] = useState(false);
 
   // Vista previa de imagen
@@ -568,71 +568,108 @@ const AdminNuevoProductoScreen: React.FC = () => {
             </div>
           </fieldset>
 
-          {/* SECCIÓN 4: PRECIOS CON CÁLCULO AUTOMÁTICO */}
+          {/* SECCIÓN 4: PRECIOS */}
           <fieldset className="form-section">
-            <legend>💰 Precios (Cálculo Automático)</legend>
+            <legend>💰 Precios</legend>
 
-            {/* Widget precio sugerido por IA */}
-            {(loadingSugerido || precioSugerido) && (
-              <div className="precio-ia-widget">
-                <div className="precio-ia-header">
-                  <span className="precio-ia-badge">🤖 IA</span>
-                  <span className="precio-ia-label">Precio sugerido por el modelo</span>
+            <div className="precio-ia-layout">
+              {/* Columna izquierda: campos */}
+              <div className="precio-campos">
+                <div className="precio-info">
+                  <p><strong>IVA:</strong> {ivaConfig}% | <strong>Margen:</strong> {margenConfig}%</p>
                 </div>
-                {loadingSugerido ? (
-                  <div className="precio-ia-loading">Calculando...</div>
-                ) : precioSugerido && (
-                  <div className="precio-ia-body">
-                    <span className="precio-ia-valor">${precioSugerido.precio_sugerido.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-                    <span className="precio-ia-rango">Rango similar: ${precioSugerido.rango_min.toLocaleString('es-MX', { minimumFractionDigits: 2 })} – ${precioSugerido.rango_max.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                <div className="form-group" style={{ marginBottom: '1.2rem' }}>
+                  <label htmlFor="precio_compra">Precio de Compra *</label>
+                  <input
+                    type="number"
+                    id="precio_compra"
+                    name="precio_compra"
+                    step="0.01"
+                    min="0"
+                    value={formData.precio_compra || ''}
+                    onChange={handleInputChange}
+                    placeholder="Ej: 100.00"
+                    required
+                  />
+                </div>
+                <div className="form-group" style={{ marginBottom: '1.2rem' }}>
+                  <label>Precio de Venta (Calculado)</label>
+                  <div className="readonly-field">
+                    <strong>${precioVentaCalculado.toFixed(2)}</strong>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="precio_oferta">Precio en Oferta (Opcional)</label>
+                  <input
+                    type="number"
+                    id="precio_oferta"
+                    name="precio_oferta"
+                    step="0.01"
+                    min="0"
+                    value={formData.precio_oferta || ''}
+                    onChange={handleInputChange}
+                    placeholder="Ej: 80.00"
+                  />
+                </div>
+              </div>
+
+              {/* Columna derecha: widget IA */}
+              <div className="precio-ia-columna">
+                {!loadingSugerido && !precioSugerido && (
+                  <div className="precio-ia-placeholder">
+                    <span className="precio-ia-placeholder-icon">🤖</span>
+                    <p>Completa material, categoría y peso para ver el precio sugerido por IA</p>
+                  </div>
+                )}
+                {loadingSugerido && (
+                  <div className="precio-ia-widget">
+                    <div className="precio-ia-header">
+                      <span className="precio-ia-badge">🤖 IA</span>
+                      <span className="precio-ia-label">Calculando...</span>
+                    </div>
+                    <div className="precio-ia-loading-dots"><span /><span /><span /></div>
+                  </div>
+                )}
+                {!loadingSugerido && precioSugerido && (
+                  <div className="precio-ia-widget">
+                    <div className="precio-ia-header">
+                      <span className="precio-ia-badge">🤖 IA</span>
+                      <span className="precio-ia-label">Precio sugerido por el modelo</span>
+                    </div>
+                    <div className="precio-ia-body">
+                      <span className="precio-ia-valor">
+                        ${precioSugerido.precio_sugerido.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                      </span>
+                      <span className="precio-ia-moneda">MXN</span>
+                    </div>
+                    <span className="precio-ia-rango">
+                      Rango similar: ${precioSugerido.rango_min.toLocaleString('es-MX', { minimumFractionDigits: 2 })} – ${precioSugerido.rango_max.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                    </span>
                   </div>
                 )}
               </div>
-            )}
-            
-            <div className="precio-info">
-              <p><strong>Configuración de cálculo:</strong> IVA: {ivaConfig}% | Margen Ganancia: {margenConfig}%</p>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="precio_compra">Precio de Compra * (Base para cálculo)</label>
-                <input
-                  type="number"
-                  id="precio_compra"
-                  name="precio_compra"
-                  step="0.01"
-                  min="0"
-                  value={formData.precio_compra || ''}
-                  onChange={handleInputChange}
-                  placeholder="Ej: 100.00"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Precio de Venta (Calculado)</label>
-                <div className="readonly-field">
-                  <strong>${precioVentaCalculado.toFixed(2)}</strong>
+            {/* Comparativa de productos similares */}
+            {precioSugerido?.comparativa && precioSugerido.comparativa.length > 0 && (
+              <div className="precio-comparativa">
+                <p className="precio-comparativa-titulo">📊 Comparativa con productos similares ya registrados</p>
+                <div className="precio-comparativa-barras">
+                  {(() => {
+                    const max = Math.max(...precioSugerido.comparativa!.map(p => p.precio));
+                    return precioSugerido.comparativa!.map((p, i) => (
+                      <div key={i} className="precio-barra-item">
+                        <div className="precio-barra-wrap">
+                          <div className="precio-barra" style={{ height: `${Math.max(20, (p.precio / max) * 100)}px` }} />
+                        </div>
+                        <span className="precio-barra-valor">${p.precio.toFixed(0)}</span>
+                        <span className="precio-barra-nombre">{p.nombre}</span>
+                      </div>
+                    ));
+                  })()}
                 </div>
               </div>
-
-              <div className="form-group">
-                <label htmlFor="precio_oferta">Precio en Oferta (Opcional)</label>
-                <input
-                  type="number"
-                  id="precio_oferta"
-                  name="precio_oferta"
-                  step="0.01"
-                  min="0"
-                  value={formData.precio_oferta || ''}
-                  onChange={handleInputChange}
-                  placeholder="Ej: 80.00"
-                />
-              </div>
-            </div>
+            )}
           </fieldset>
 
           {/* SECCIÓN 5: IMAGEN DEL PRODUCTO */}

@@ -714,3 +714,162 @@
   color: rgba(255,255,255,0.4);
   font-family: 'Montserrat', sans-serif;
 }
+
+/* === LAYOUT 2 COLUMNAS PRECIOS + IA === */
+.precio-ia-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.precio-campos {
+  display: flex;
+  flex-direction: column;
+}
+
+.precio-ia-columna {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.precio-ia-placeholder {
+  height: 100%;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: rgba(201,168,76,0.03);
+  border: 1.5px dashed rgba(201,168,76,0.2);
+  border-radius: 14px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.precio-ia-placeholder-icon {
+  font-size: 2rem;
+  opacity: 0.4;
+}
+
+.precio-ia-placeholder p {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.3);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.precio-ia-widget {
+  background: linear-gradient(135deg, #1a1025 0%, #120d1e 100%);
+  border: 1.5px solid rgba(201,168,76,0.4);
+  border-radius: 14px;
+  padding: 1.5rem;
+  animation: fadeInWidget 0.4s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.precio-ia-moneda {
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(201,168,76,0.7);
+  font-family: 'Montserrat', sans-serif;
+  align-self: flex-end;
+  margin-bottom: 0.25rem;
+}
+
+.precio-ia-loading-dots {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.5rem 0;
+}
+
+.precio-ia-loading-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(201,168,76,0.5);
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+
+.precio-ia-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.precio-ia-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotPulse {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* === COMPARATIVA DE BARRAS === */
+.precio-comparativa {
+  margin-top: 1.5rem;
+  background: rgba(201,168,76,0.04);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+
+.precio-comparativa-titulo {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #c9a84c;
+  margin: 0 0 1.25rem;
+  letter-spacing: 0.03em;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.precio-comparativa-barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.precio-barra-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 60px;
+}
+
+.precio-barra-wrap {
+  display: flex;
+  align-items: flex-end;
+  height: 110px;
+}
+
+.precio-barra {
+  width: 40px;
+  background: linear-gradient(180deg, #c9a84c 0%, #a07830 100%);
+  border-radius: 6px 6px 0 0;
+  transition: height 0.4s ease;
+}
+
+.precio-barra-valor {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.6);
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+}
+
+.precio-barra-nombre {
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.35);
+  font-family: 'Montserrat', sans-serif;
+  text-align: center;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .precio-ia-layout { grid-template-columns: 1fr; }
+}
