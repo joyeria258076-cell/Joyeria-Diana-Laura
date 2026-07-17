@@ -349,7 +349,7 @@ const HeaderPrivado: React.FC = () => {
                     <div className="user-details">
                         <span className="user-name">{user?.nombre || 'Mi Perfil'}</span>
                         <span className="user-role">
-                            {userRole === 'admin' ? "Administrador" : userRole === 'trabajador' ? "Trabajador" : "Cliente Premium"}
+                            {userRole === 'admin' ? "Administrador" : userRole === 'trabajador' ? "Trabajador" : "Cliente"}
                         </span>
                     </div>
                 </div>
