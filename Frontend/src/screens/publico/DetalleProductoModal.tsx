@@ -330,6 +330,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
 
         {recomendaciones.length > 0 && (
           <div className="detalle-recomendaciones">
+            <div className="detalle-rec-inner">
             <p className="detalle-rec-titulo">✨ También te puede interesar</p>
             <ul className="detalle-rec-lista">
               {recomendaciones.map((r, i) => (
@@ -350,6 +351,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                 </li>
               ))}
             </ul>
+            </div>
           </div>
         )}
 

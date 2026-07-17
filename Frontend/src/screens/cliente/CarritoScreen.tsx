@@ -768,12 +768,22 @@ const CarritoScreen: React.FC = () => {
             )}
             {recsCarrito.length > 0 && (
                 <section className="carrito-recs">
-                    <h3 className="carrito-recs-titulo">✨ Otros clientes también llevaron</h3>
-                    <ul className="carrito-recs-lista">
-                        {recsCarrito.map((r, i) => (
-                            <li key={i} className="carrito-recs-item" onClick={() => r.id ? navigate(`/producto/${r.id}`) : navigate(`/catalogo?buscar=${encodeURIComponent(r.nombre)}`)}>{r.nombre}</li>
-                        ))}
-                    </ul>
+                    <div className="carrito-recs-inner">
+                        <h3 className="carrito-recs-titulo">✨ Otros clientes también llevaron</h3>
+                        <ul className="carrito-recs-lista">
+                            {recsCarrito.map((r, i) => (
+                                <li
+                                    key={i}
+                                    className="carrito-recs-item"
+                                    onClick={() => r.id ? navigate(`/producto/${r.id}`) : navigate(`/catalogo?buscar=${encodeURIComponent(r.nombre)}`)}
+                                >
+                                    <span className="rec-shimmer" />
+                                    {r.nombre}
+                                    <span className="rec-arrow">→</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </section>
             )}
         </main>
