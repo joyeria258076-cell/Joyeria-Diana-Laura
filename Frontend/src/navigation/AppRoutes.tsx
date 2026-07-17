@@ -89,6 +89,7 @@ import AdminEditarProveedorScreen from "../screens/admin/proveedores/AdminEditar
 import AdminProveedorDetalleScreen from "../screens/admin/proveedores/AdminProveedorDetalleScreen";
 
 import AdminPrediccionScreen from "../screens/admin/AdminPrediccionScreen";
+import AdminSegmentosScreen from "../screens/admin/AdminSegmentosScreen";
 import AdminLegalScreen from "../screens/admin/AdminLegalScreen";
 import LegalScreen from "../screens/publico/LegalScreen";
 
@@ -220,6 +221,7 @@ export default function AppRoutes() {
             <Route path="/admin-monitoreo"    element={<AdminMonitoreoScreen />} />
 
             <Route path="/admin-prediccion"   element={<AdminPrediccionScreen />} />
+            <Route path="/admin-segmentos"    element={<AdminSegmentosScreen />} />
             <Route path="/configuracion" element={<ConfiguracionScreen />} />
 
             {/* 📁 RUTAS DE CONFIGURACIÓN */}
