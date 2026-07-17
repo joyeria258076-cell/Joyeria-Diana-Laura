@@ -349,13 +349,14 @@
 .pd-btn-carrito {
     width: 100%;
     padding: 1rem;
-    background: linear-gradient(135deg, var(--pd-accent) 0%, var(--pd-accent2) 100%);
-    color: #0f0f12;
+    background: linear-gradient(135deg, #c9a84c 0%, #e8c96a 50%, #c9a84c 100%);
+    background-size: 200% auto;
+    color: #0d0d0d;
     border: none;
     border-radius: 10px;
     font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
+    font-weight: 800;
+    letter-spacing: 0.05em;
     cursor: pointer;
     transition: var(--pd-transition);
     display: flex;
@@ -363,12 +364,14 @@
     justify-content: center;
     gap: 0.6rem;
     font-family: 'Montserrat', sans-serif;
-    box-shadow: 0 4px 20px rgba(236, 178, 195, 0.25);
+    box-shadow: 0 4px 18px rgba(201,168,76,0.3);
+    text-transform: uppercase;
 }
 
 .pd-btn-carrito:hover:not(:disabled) {
+    background-position: right center;
     transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(236, 178, 195, 0.4);
+    box-shadow: 0 10px 28px rgba(201,168,76,0.5);
 }
 
 .pd-btn-carrito.success {

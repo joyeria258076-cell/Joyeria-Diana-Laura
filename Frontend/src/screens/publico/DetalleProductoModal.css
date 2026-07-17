@@ -66,25 +66,28 @@
 }
 
 .btn-close {
-  background: none;
-  border: none;
-  color: var(--gold-lux);
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(201,168,76,0.3);
+  color: #c9a84c;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  transition: all 0.3s ease;
-  font-size: 1.2rem;
+  transition: all 0.25s ease;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .btn-close:hover {
-  background-color: rgba(236, 178, 195, 0.1);
+  background: rgba(201,168,76,0.15);
+  border-color: #c9a84c;
   transform: rotate(90deg);
+  box-shadow: 0 0 12px rgba(201,168,76,0.25);
 }
 
 .detalle-modal-body {
@@ -417,16 +420,18 @@
 .btn-ver-detalles {
   grid-column: 1 / -1;
   background: transparent;
-  color: rgba(236, 178, 195, 0.7);
-  border: 1px solid rgba(236, 178, 195, 0.25);
+  color: rgba(201,168,76,0.75);
+  border: 1.5px solid rgba(201,168,76,0.25);
   font-size: 0.85rem;
+  letter-spacing: 0.06em;
 }
 
 .btn-ver-detalles:hover {
-  background-color: rgba(236, 178, 195, 0.06);
-  border-color: rgba(236, 178, 195, 0.6);
-  color: var(--gold-lux);
+  background: rgba(201,168,76,0.07);
+  border-color: rgba(201,168,76,0.7);
+  color: #c9a84c;
   transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(201,168,76,0.15);
 }
 
 /* ── AGREGAR AL FINAL de DetalleProductoModal.css ── */
@@ -480,29 +485,7 @@
   cursor: pointer;
 }
 
-/* Ícono de candado en botones */
-.btn-ver-detalles {
-  width: 100%;
-  margin-top: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  background: transparent;
-  border: 1px solid rgba(236,178,195,0.25);
-  color: #ecb2c3;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.btn-ver-detalles:hover {
-  background: rgba(236,178,195,0.08);
-  border-color: #ecb2c3;
-}
+/* candado en botones — no redefine btn-ver-detalles */
 
 .modal-agregado-ok {
     background: rgba(107, 203, 119, 0.15);
@@ -582,6 +565,7 @@
 
 .detalle-rec-inner {
   padding: 1.5rem 1.75rem 1.6rem;
+  overflow: visible;
 }
 
 .detalle-rec-titulo {
