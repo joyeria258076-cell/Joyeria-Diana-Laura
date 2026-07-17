@@ -347,6 +347,9 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                   }}
                   title={`Ver ${r.nombre}`}
                 >
+                  <div className="detalle-rec-img-circle">
+                    <span className="detalle-rec-img-fallback">💍</span>
+                  </div>
                   {r.nombre}
                 </li>
               ))}

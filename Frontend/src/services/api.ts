@@ -1490,6 +1490,7 @@ const ML_BASE_URL = import.meta.env.VITE_ML_URL || 'http://127.0.0.1:5050';
 export interface Recomendacion {
   nombre: string;
   id: number | null;
+  imagen_url?: string | null;
 }
 
 export const recomendacionAPI = {
