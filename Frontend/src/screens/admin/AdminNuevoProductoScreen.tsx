@@ -422,6 +422,9 @@ const AdminNuevoProductoScreen: React.FC = () => {
         {/* Layout principal: formulario + panel IA */}
         <div className="form-ia-master-layout">
 
+        {/* Formulario (columna izquierda — viene primero en el DOM) */}
+        {/* El aside viene después en el DOM pero CSS lo coloca en col 2 */}
+
         {/* Panel IA sticky (columna derecha) */}
         <aside className="form-ia-sidebar">
           {!loadingSugerido && !precioSugerido && (

@@ -43,7 +43,7 @@
 .producto-form-wrapper {
     position: relative;
     z-index: 1;
-    max-width: 1000px;
+    max-width: 1380px;
     margin: 0 auto;
 }
 
@@ -657,21 +657,27 @@
 /* === LAYOUT MAESTRO: FORMULARIO + PANEL IA === */
 .form-ia-master-layout {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 2rem;
   align-items: start;
 }
 
-.producto-form {
-  min-width: 0;
-}
-
+/* aside viene primero en DOM → lo forzamos a columna 2 */
 .form-ia-sidebar {
+  grid-column: 2;
+  grid-row: 1;
   position: sticky;
   top: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+/* formulario viene segundo en DOM → lo forzamos a columna 1 */
+.producto-form {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
 }
 
 /* legacy — kept for compat */
