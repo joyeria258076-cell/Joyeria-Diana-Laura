@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AiOutlineClose, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineStar, AiFillStar, AiOutlineArrowRight, AiOutlineLock } from 'react-icons/ai';
 import { useCart } from '../../contexts/CartContext';
-import { favoritosAPI, recomendacionAPI } from '../../services/api';
+import { favoritosAPI, recomendacionAPI, type Recomendacion } from '../../services/api';
 import './DetalleProductoModal.css';
 
 const estaLogueado = (): boolean => {
@@ -49,7 +49,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
   const [exitoso, setExitoso]             = React.useState(false);
   const [esFavorito, setEsFavorito]       = React.useState(false);
   const [togglingFav, setTogglingFav]     = React.useState(false);
-  const [recomendaciones, setRecomendaciones] = React.useState<string[]>([]);
+  const [recomendaciones, setRecomendaciones] = React.useState<Recomendacion[]>([]);
   const navigate = useNavigate();
   const logueado = estaLogueado();
   const { agregarAlCarrito } = useCart();
@@ -336,10 +336,17 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                 <li
                   key={i}
                   className="detalle-rec-item"
-                  onClick={() => { onClose(); navigate(`/catalogo?buscar=${encodeURIComponent(r)}`); }}
-                  title={`Ver ${r}`}
+                  onClick={() => {
+                    onClose();
+                    if (r.id) {
+                      navigate(logueado ? `/producto/${r.id}` : `/producto-publico/${r.id}`);
+                    } else {
+                      navigate(`/catalogo?buscar=${encodeURIComponent(r.nombre)}`);
+                    }
+                  }}
+                  title={`Ver ${r.nombre}`}
                 >
-                  {r}
+                  {r.nombre}
                 </li>
               ))}
             </ul>

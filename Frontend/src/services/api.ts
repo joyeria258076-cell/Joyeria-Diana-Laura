@@ -1487,8 +1487,13 @@ export const favoritosAPI = {
 // ==========================================
 const ML_BASE_URL = import.meta.env.VITE_ML_URL || 'http://127.0.0.1:5050';
 
+export interface Recomendacion {
+  nombre: string;
+  id: number | null;
+}
+
 export const recomendacionAPI = {
-  recomendar: async (productos: string[]): Promise<string[]> => {
+  recomendar: async (productos: string[]): Promise<Recomendacion[]> => {
     try {
       const res = await fetch(`${ML_BASE_URL}/recomendar`, {
         method: 'POST',
@@ -1497,7 +1502,12 @@ export const recomendacionAPI = {
       });
       if (!res.ok) return [];
       const data = await res.json();
-      return data.recomendaciones || [];
+      const recs = data.recomendaciones || [];
+      // Soporta formato legacy (string[]) y nuevo formato ({nombre, id}[])
+      if (recs.length > 0 && typeof recs[0] === 'string') {
+        return recs.map((nombre: string) => ({ nombre, id: null }));
+      }
+      return recs;
     } catch {
       return [];
     }
