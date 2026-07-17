@@ -617,34 +617,34 @@ const AdminNuevoProductoScreen: React.FC = () => {
               <div className="precio-ia-columna">
                 {!loadingSugerido && !precioSugerido && (
                   <div className="precio-ia-placeholder">
-                    <span className="precio-ia-placeholder-icon">🤖</span>
-                    <p>Completa material, categoría y peso para ver el precio sugerido por IA</p>
+                    <div className="precio-ia-placeholder-icon">💡</div>
+                    <p className="precio-ia-placeholder-titulo">Precio sugerido por IA</p>
+                    <p>Completa material, categoría y peso para que la IA calcule el precio ideal automáticamente</p>
                   </div>
                 )}
                 {loadingSugerido && (
                   <div className="precio-ia-widget">
-                    <div className="precio-ia-header">
-                      <span className="precio-ia-badge">🤖 IA</span>
-                      <span className="precio-ia-label">Calculando...</span>
+                    <div className="precio-ia-chip">💡 Precio sugerido por IA</div>
+                    <div className="precio-ia-calculando">
+                      <div className="precio-ia-loading-dots"><span /><span /><span /></div>
+                      <span className="precio-ia-calculando-txt">Calculando precio óptimo...</span>
                     </div>
-                    <div className="precio-ia-loading-dots"><span /><span /><span /></div>
                   </div>
                 )}
                 {!loadingSugerido && precioSugerido && (
                   <div className="precio-ia-widget">
-                    <div className="precio-ia-header">
-                      <span className="precio-ia-badge">🤖 IA</span>
-                      <span className="precio-ia-label">Precio sugerido por el modelo</span>
-                    </div>
-                    <div className="precio-ia-body">
+                    <div className="precio-ia-chip">💡 Precio sugerido por IA</div>
+                    <div className="precio-ia-precio-principal">
+                      <span className="precio-ia-signo">$</span>
                       <span className="precio-ia-valor">
-                        ${precioSugerido.precio_sugerido.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                        {precioSugerido.precio_sugerido.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                       </span>
                       <span className="precio-ia-moneda">MXN</span>
                     </div>
-                    <span className="precio-ia-rango">
-                      Rango similar: ${precioSugerido.rango_min.toLocaleString('es-MX', { minimumFractionDigits: 2 })} – ${precioSugerido.rango_max.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                    </span>
+                    <div className="precio-ia-rango">
+                      Rango estimado: <strong>${precioSugerido.rango_min.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</strong> – <strong>${precioSugerido.rango_max.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</strong>
+                    </div>
+                    <p className="precio-ia-nota">La IA sugiere el precio automáticamente mientras llenas el formulario, sin necesidad de guardar primero</p>
                   </div>
                 )}
               </div>
