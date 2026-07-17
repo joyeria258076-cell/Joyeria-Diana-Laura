@@ -146,7 +146,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
         <div className="detalle-modal-header">
           <h2>{producto.nombre}</h2>
           <button className="btn-close" onClick={onClose} aria-label="Cerrar">
-            <AiOutlineClose size={24} />
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
