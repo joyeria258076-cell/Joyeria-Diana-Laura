@@ -124,6 +124,22 @@ const AdminDashboardScreen: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            {/* ── IA / ML ── */}
+            <div className="quick-actions-section">
+                <h4 className="section-subtitle">✨ Inteligencia Artificial</h4>
+                <div className="quick-actions-grid">
+                    <button className="btn-action-outline dash-ia-btn" onClick={() => navigate("/admin-nuevo-producto")}>
+                        💰 Precio sugerido por IA
+                    </button>
+                    <button className="btn-action-outline dash-ia-btn" onClick={() => navigate("/admin-segmentos")}>
+                        👥 Segmentos de Clientes
+                    </button>
+                    <button className="btn-action-outline dash-ia-btn" onClick={() => navigate("/admin-prediccion")}>
+                        📈 Predicción de Ventas
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };

@@ -118,6 +118,20 @@
     color: #0f0f12;
 }
 
+.dash-ia-btn {
+    border-color: rgba(201,168,76,0.5) !important;
+    color: #c9a84c !important;
+    background: rgba(201,168,76,0.06);
+    font-weight: 600;
+}
+
+.dash-ia-btn:hover {
+    background: rgba(201,168,76,0.15) !important;
+    color: #f5d982 !important;
+    border-color: #c9a84c !important;
+    box-shadow: 0 4px 16px rgba(201,168,76,0.2);
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
