@@ -333,7 +333,14 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
             <p className="detalle-rec-titulo">✨ También te puede interesar</p>
             <ul className="detalle-rec-lista">
               {recomendaciones.map((r, i) => (
-                <li key={i} className="detalle-rec-item">{r}</li>
+                <li
+                  key={i}
+                  className="detalle-rec-item"
+                  onClick={() => { onClose(); navigate(`/catalogo?buscar=${encodeURIComponent(r)}`); }}
+                  title={`Ver ${r}`}
+                >
+                  {r}
+                </li>
               ))}
             </ul>
           </div>
