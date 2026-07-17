@@ -321,7 +321,6 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
               </button>
 
               <button className="btn btn-ver-detalles" onClick={handleVerDetalles}>
-                <AiOutlineArrowRight size={20} />
                 Ver detalles completos
               </button>
             </div>
