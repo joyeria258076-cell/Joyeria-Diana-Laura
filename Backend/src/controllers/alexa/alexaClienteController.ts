@@ -191,6 +191,10 @@ export const getMisPedidos = async (req: AlexaAuthRequest, res: Response) => {
        LEFT JOIN imagenes_producto ip ON ip.producto_id = p.id AND ip.es_principal = true
        WHERE v.cliente_id = $1
          AND v.estado NOT IN ('cancelado')
+         AND v.id NOT IN (
+             SELECT venta_id FROM apartados
+             WHERE estado != 'cancelado' AND estado != 'liquidado'
+         )
        GROUP BY v.id, v.folio, v.estado, v.total, v.fecha_creacion, v.fecha_estimada_entrega
        ORDER BY v.fecha_creacion DESC
        LIMIT 10`,

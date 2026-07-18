@@ -141,3 +141,6 @@ newrelic_agent.log
 
 # IAST Reports
 iast-reports/
+
+# Alexa skill (repo git independiente, no debe subirse a este repo)
+joyeria-diana-laura-skill/
