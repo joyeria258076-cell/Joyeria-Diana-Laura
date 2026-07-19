@@ -263,6 +263,87 @@ export const getTodosClientesApartados = async (req: AlexaAuthRequest, res: Resp
   }
 };
 
+// ── GET /api/alexa/clientes-pedidos ────────────────────────────────────────────
+// 🔒 PROTEGIDA — requiere token de Alexa (trabajador/admin vinculado)
+// Lista de clientes con pedidos (ventas que no son apartados activos)
+export const getTodosClientesPedidos = async (req: AlexaAuthRequest, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT DISTINCT
+        c.nombre || ' ' || COALESCE(c.apellido, '') AS cliente,
+        c.email,
+        v.estado,
+        v.folio,
+        v.total,
+        v.fecha_creacion,
+        v.fecha_estimada_entrega
+      FROM ventas v
+      JOIN clientes c ON c.id = v.cliente_id
+      WHERE v.estado NOT IN ('cancelado')
+        AND v.id NOT IN (
+            SELECT venta_id FROM apartados
+            WHERE estado != 'cancelado' AND estado != 'liquidado'
+        )
+      ORDER BY v.fecha_creacion DESC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (error: any) {
+    console.error('Alexa getTodosClientesPedidos error:', error?.message || error);
+    res.status(500).json({ success: false, message: error?.message || 'Error al consultar clientes' });
+  }
+};
+
+// ── GET /api/alexa/pedidos/:cliente ────────────────────────────────────────────
+// 🔒 PROTEGIDA — requiere token de Alexa (trabajador/admin vinculado)
+// Pedidos (ventas) de un cliente específico por nombre
+export const getPedidosTrabajador = async (req: AlexaAuthRequest, res: Response) => {
+  try {
+    const { cliente } = req.params;
+
+    const query = `
+      SELECT
+        v.id,
+        v.folio,
+        c.nombre || ' ' || COALESCE(c.apellido, '') AS cliente,
+        v.total,
+        v.estado,
+        v.fecha_creacion,
+        v.fecha_estimada_entrega,
+        json_agg(
+          json_build_object(
+            'producto', dv.producto_nombre,
+            'cantidad', dv.cantidad,
+            'precio', dv.precio_unitario,
+            'imagen', p.imagen_principal
+          )
+        ) AS productos
+      FROM ventas v
+      JOIN clientes c ON c.id = v.cliente_id
+      JOIN detalle_ventas dv ON dv.venta_id = v.id
+      LEFT JOIN productos p ON p.nombre = dv.producto_nombre
+      WHERE LOWER(c.nombre || ' ' || COALESCE(c.apellido, '')) ILIKE $1
+        AND v.estado NOT IN ('cancelado')
+        AND v.id NOT IN (
+            SELECT venta_id FROM apartados
+            WHERE estado != 'cancelado' AND estado != 'liquidado'
+        )
+      GROUP BY v.id, v.folio, c.nombre, c.apellido, v.total, v.estado, v.fecha_creacion, v.fecha_estimada_entrega
+      ORDER BY v.fecha_creacion DESC
+    `;
+
+    const result = await pool.query(query, [`%${cliente}%`]);
+
+    if (result.rows.length === 0) {
+      return res.json({ success: true, data: null, message: 'No se encontraron pedidos' });
+    }
+
+    res.json({ success: true, data: result.rows });
+  } catch (error: any) {
+    console.error('Alexa getPedidosTrabajador error:', error?.message || error);
+    res.status(500).json({ success: false, message: 'Error al consultar pedidos' });
+  }
+};
+
 // ── POST /api/alexa/apartados/:id/abono ────────────────────────────────────────
 // 🔒 PROTEGIDA — requiere token de Alexa (trabajador/admin vinculado)
 // Registra un abono real sobre un apartado activo

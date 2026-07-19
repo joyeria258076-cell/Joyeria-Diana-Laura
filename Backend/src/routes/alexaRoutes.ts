@@ -8,7 +8,9 @@ import {
   getApartadoTrabajador,
   postRegistrarAbono,
   getCategorias,
-  getTodosClientesApartados
+  getTodosClientesApartados,
+  getTodosClientesPedidos,
+  getPedidosTrabajador
 } from '../controllers/alexa/alexaController';
 import {
   getMiCarrito,
@@ -38,6 +40,8 @@ router.get('/mi-rol', getMiRol);
 router.get('/apartados/:cliente',        validarAlexaToken, exigirTrabajador, getApartadoTrabajador);
 router.get('/clientes-apartados', validarAlexaToken, exigirTrabajador, getTodosClientesApartados);
 router.post('/apartados/:folio/abono',   validarAlexaToken, exigirTrabajador, postRegistrarAbono);
+router.get('/pedidos/:cliente',          validarAlexaToken, exigirTrabajador, getPedidosTrabajador);
+router.get('/clientes-pedidos',          validarAlexaToken, exigirTrabajador, getTodosClientesPedidos);
 
 // ── Rutas de CLIENTE (su propio carrito) ──────────────────────────────────────
 // 🔒 Requieren solo token válido — cualquier rol (cliente, trabajador, admin)
