@@ -213,13 +213,15 @@ export const getApartadoTrabajador = async (req: AlexaAuthRequest, res: Response
           json_build_object(
             'producto', dv.producto_nombre,
             'cantidad', dv.cantidad,
-            'precio', dv.precio_unitario
+            'precio', dv.precio_unitario,
+            'imagen', p.imagen_principal
           )
         ) AS productos
       FROM apartados a
       JOIN ventas v ON v.id = a.venta_id
       JOIN clientes c ON c.id = a.cliente_id
       JOIN detalle_ventas dv ON dv.venta_id = a.venta_id
+      LEFT JOIN productos p ON p.nombre = dv.producto_nombre
       WHERE LOWER(c.nombre || ' ' || COALESCE(c.apellido, '')) ILIKE $1
       GROUP BY a.id, v.folio, c.nombre, c.apellido, a.monto_total, a.monto_pagado, a.saldo_pendiente, a.estado, a.fecha_creacion
       ORDER BY a.fecha_creacion DESC
