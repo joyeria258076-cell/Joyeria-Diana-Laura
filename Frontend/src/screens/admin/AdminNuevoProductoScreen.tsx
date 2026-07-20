@@ -484,9 +484,9 @@ const AdminNuevoProductoScreen: React.FC = () => {
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="producto-form">
 
-          {/* SECCIÓN 0: DATOS PARA PREDICCIÓN DE PRECIO (IA) */}
+          {/* SECCIÓN 0: DATOS PARA SUGERENCIA DE PRECIO (IA) */}
           <fieldset className="form-section form-section-ia">
-            <legend>🤖 Datos para Predicción de Precio (IA)</legend>
+            <legend>🤖 Datos para Sugerencia de Precio (IA)</legend>
             <p className="form-section-nota">
               Estos 3 campos son los que usa la Inteligencia Artificial para calcular el precio sugerido automáticamente. Complétalos primero.
             </p>

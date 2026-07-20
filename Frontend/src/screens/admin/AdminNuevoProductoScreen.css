@@ -168,7 +168,7 @@
     border-radius: 4px;
 }
 
-/* === SECCIÓN DESTACADA: DATOS PARA PREDICCIÓN DE PRECIO (IA) === */
+/* === SECCIÓN DESTACADA: DATOS PARA SUGERENCIA DE PRECIO (IA) === */
 .form-section-ia {
     background: linear-gradient(145deg, rgba(201,168,76,0.14) 0%, rgba(160,109,224,0.08) 50%, rgba(20,20,40,0.9) 100%);
     border: 1px solid rgba(201,168,76,0.55);
