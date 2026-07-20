@@ -491,7 +491,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
           <fieldset className="form-section form-section-ia">
             <legend>🤖 Datos para Sugerencia de Precio (IA)</legend>
             <p className="form-section-nota">
-              Estos 3 campos son los que usa la Inteligencia Artificial para calcular el precio sugerido automáticamente. Complétalos primero.
+              Categoría, Material y Peso son obligatorios para calcular el precio sugerido. Días de fabricación y Personalización son opcionales, pero también ajustan la sugerencia si los completas.
             </p>
 
             <div className="form-row">
@@ -541,6 +541,32 @@ const AdminNuevoProductoScreen: React.FC = () => {
                   onChange={handleInputChange}
                   placeholder="Ej: 2.5"
                 />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="dias_fabricacion">Días de Fabricación (opcional)</label>
+                <input
+                  type="number"
+                  id="dias_fabricacion"
+                  name="dias_fabricacion"
+                  min="0"
+                  value={formData.dias_fabricacion}
+                  onChange={handleInputChange}
+                  placeholder="0"
+                />
+              </div>
+
+              <div className="form-group checkbox">
+                <input
+                  type="checkbox"
+                  id="permite_personalizacion"
+                  name="permite_personalizacion"
+                  checked={formData.permite_personalizacion}
+                  onChange={handleInputChange}
+                />
+                <label htmlFor="permite_personalizacion">Permite Personalización (opcional)</label>
               </div>
             </div>
           </fieldset>
@@ -776,21 +802,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
           {/* SECCIÓN 7: CARACTERÍSTICAS ESPECIALES */}
           <fieldset className="form-section">
             <legend>✨ Características Especiales</legend>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="dias_fabricacion">Días de Fabricación</label>
-                <input
-                  type="number"
-                  id="dias_fabricacion"
-                  name="dias_fabricacion"
-                  min="0"
-                  value={formData.dias_fabricacion}
-                  onChange={handleInputChange}
-                  placeholder="0"
-                />
-              </div>
-            </div>
 
             <div className="form-row checkbox-group">
               <div className="form-group checkbox">
@@ -802,17 +813,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
                   onChange={handleInputChange}
                 />
                 <label htmlFor="tiene_medidas">Tiene Medidas Personalizables</label>
-              </div>
-
-              <div className="form-group checkbox">
-                <input
-                  type="checkbox"
-                  id="permite_personalizacion"
-                  name="permite_personalizacion"
-                  checked={formData.permite_personalizacion}
-                  onChange={handleInputChange}
-                />
-                <label htmlFor="permite_personalizacion">Permite Personalización</label>
               </div>
             </div>
 
