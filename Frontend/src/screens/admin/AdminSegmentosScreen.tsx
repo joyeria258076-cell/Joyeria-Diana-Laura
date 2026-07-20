@@ -1,50 +1,60 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { segmentacionAPI, type ClienteSegmentado, type Segmento } from '../../services/api';
 import './AdminSegmentosScreen.css';
 
-/* ── Datos estáticos del modelo K-Means ── */
-const SEGMENTOS = [
-  { id: 0, nombre: 'Premium',     color: '#c9a84c', clientes: 18, descripcion: 'Alto ticket, compras frecuentes',  accion: 'Atención personalizada y piezas exclusivas' },
-  { id: 1, nombre: 'Frecuente',   color: '#6b2d5e', clientes: 42, descripcion: 'Compran seguido, ticket moderado', accion: 'Programas de lealtad y descuentos por volumen' },
-  { id: 2, nombre: 'Ocasional',   color: '#d4607e', clientes: 97, descripcion: 'Pocas compras, ticket bajo',       accion: 'Campañas de reactivación y promociones especiales' },
-  { id: 3, nombre: 'De apartado', color: '#4a8c7a', clientes: 26, descripcion: 'Usan sistema de apartado',         accion: 'Facilidades de pago y recordatorios de apartado' },
-];
+/* Colores fijos por nombre de segmento (el modelo K-Means siempre produce estos 3) */
+const COLORES_SEGMENTO: Record<string, string> = {
+  'Cliente Frecuente de Alto Gasto': '#c9a84c',
+  'Cliente Ocasional': '#d4607e',
+  'Cliente Apartador': '#4a8c7a',
+};
 
-const CLIENTES: { id: number; nombre: string; compras: number; ticket: number; monto_apartado: number; usa_apartados: boolean; segmento: number }[] = [
-  { id: 12, nombre: 'María G.',   compras: 8,  ticket: 320, monto_apartado: 0,   usa_apartados: false, segmento: 1 },
-  { id: 7,  nombre: 'Jorge R.',   compras: 12, ticket: 890, monto_apartado: 0,   usa_apartados: false, segmento: 0 },
-  { id: 23, nombre: 'Ana P.',     compras: 1,  ticket: 180, monto_apartado: 0,   usa_apartados: false, segmento: 2 },
-  { id: 15, nombre: 'Luis M.',    compras: 5,  ticket: 420, monto_apartado: 0,   usa_apartados: false, segmento: 0 },
-  { id: 31, nombre: 'Rosa F.',    compras: 9,  ticket: 280, monto_apartado: 0,   usa_apartados: false, segmento: 1 },
-  { id: 44, nombre: 'Pedro S.',   compras: 1,  ticket: 150, monto_apartado: 0,   usa_apartados: false, segmento: 2 },
-  { id: 8,  nombre: 'Laura V.',   compras: 3,  ticket: 210, monto_apartado: 1200, usa_apartados: true, segmento: 3 },
-  { id: 19, nombre: 'Carlos M.',  compras: 2,  ticket: 340, monto_apartado: 800, usa_apartados: true,  segmento: 3 },
-  { id: 55, nombre: 'Diana R.',   compras: 15, ticket: 950, monto_apartado: 0,   usa_apartados: false, segmento: 0 },
-  { id: 62, nombre: 'Sofía L.',   compras: 6,  ticket: 260, monto_apartado: 0,   usa_apartados: false, segmento: 1 },
-];
+const colorDeSegmento = (nombre: string) => COLORES_SEGMENTO[nombre] || '#a06de0';
 
-/* Puntos del scatter para el mapa de clusters */
-const SCATTER_PUNTOS = [
-  { x: 72, y: 75, seg: 0 }, { x: 78, y: 68, seg: 0 }, { x: 65, y: 80, seg: 0 },
-  { x: 82, y: 72, seg: 0 }, { x: 70, y: 65, seg: 0 },
-  { x: 40, y: 45, seg: 1 }, { x: 35, y: 52, seg: 1 }, { x: 45, y: 38, seg: 1 },
-  { x: 30, y: 48, seg: 1 }, { x: 50, y: 42, seg: 1 }, { x: 38, y: 55, seg: 1 },
-  { x: 15, y: 18, seg: 2 }, { x: 20, y: 12, seg: 2 }, { x: 10, y: 22, seg: 2 },
-  { x: 25, y: 15, seg: 2 }, { x: 12, y: 28, seg: 2 }, { x: 22, y: 20, seg: 2 },
-  { x: 55, y: 25, seg: 3 }, { x: 60, y: 30, seg: 3 }, { x: 50, y: 20, seg: 3 },
-  { x: 65, y: 28, seg: 3 }, { x: 58, y: 35, seg: 3 },
-];
+/* Normaliza pca_x/pca_y (rango real, puede ser negativo) a porcentaje 0-100 para el scatter */
+function normalizarPuntos(clientes: ClienteSegmentado[]) {
+  if (clientes.length === 0) return [];
+  const xs = clientes.map(c => c.pca_x);
+  const ys = clientes.map(c => c.pca_y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const rangoX = maxX - minX || 1;
+  const rangoY = maxY - minY || 1;
+
+  return clientes.map(c => ({
+    x: 8 + ((c.pca_x - minX) / rangoX) * 84,
+    y: 8 + ((c.pca_y - minY) / rangoY) * 84,
+    segmento: c.segmento,
+  }));
+}
 
 const AdminSegmentosScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [segSeleccionado, setSegSeleccionado] = useState<number | null>(null);
-  const [filtroSeg, setFiltroSeg] = useState<number | null>(null);
+  const [segmentos, setSegmentos] = useState<Segmento[]>([]);
+  const [clientes, setClientes] = useState<ClienteSegmentado[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(false);
+
+  const [segSeleccionado, setSegSeleccionado] = useState<string | null>(null);
+  const [filtroSeg, setFiltroSeg] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
 
+  useEffect(() => {
+    segmentacionAPI.obtener().then(res => {
+      if (!res) { setError(true); setCargando(false); return; }
+      setSegmentos(res.segmentos);
+      setClientes(res.clientes);
+      setCargando(false);
+    });
+  }, []);
+
   const clientesFiltrados = filtroSeg !== null
-    ? CLIENTES.filter(c => c.segmento === filtroSeg)
-    : CLIENTES;
+    ? clientes.filter(c => c.segmento === filtroSeg)
+    : clientes;
+
+  const puntosScatter = normalizarPuntos(clientes);
 
   const handleEnviarPromocion = () => {
     if (segSeleccionado === null) return;
@@ -52,7 +62,30 @@ const AdminSegmentosScreen: React.FC = () => {
     setTimeout(() => { setEnviando(false); setEnviado(true); setTimeout(() => setEnviado(false), 3000); }, 1500);
   };
 
-  const segActivo = segSeleccionado !== null ? SEGMENTOS[segSeleccionado] : null;
+  const segActivo = segSeleccionado !== null ? segmentos.find(s => s.nombre === segSeleccionado) ?? null : null;
+
+  if (cargando) {
+    return (
+      <div className="seg-container">
+        <div className="seg-wrapper">
+          <p style={{ textAlign: 'center', padding: '4rem', opacity: 0.7 }}>Calculando segmentos con K-Means...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || segmentos.length === 0) {
+    return (
+      <div className="seg-container">
+        <div className="seg-wrapper">
+          <button className="seg-btn-back" onClick={() => navigate('/admin-dashboard')}>← Volver</button>
+          <p style={{ textAlign: 'center', padding: '4rem', opacity: 0.7 }}>
+            No se pudo cargar la segmentación. Verifica que el microservicio ML esté disponible.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="seg-container">
@@ -71,16 +104,16 @@ const AdminSegmentosScreen: React.FC = () => {
 
         {/* ── TARJETAS DE SEGMENTOS ── */}
         <section className="seg-seccion">
-          <h2 className="seg-subtitulo">Clientes por segmento</h2>
+          <h2 className="seg-subtitulo">Clientes por segmento ({clientes.length} en total)</h2>
           <div className="seg-cards-grid">
-            {SEGMENTOS.map(seg => (
+            {segmentos.map(seg => (
               <button
-                key={seg.id}
-                className={`seg-card ${segSeleccionado === seg.id ? 'seg-card--activa' : ''}`}
-                style={{ '--seg-color': seg.color } as React.CSSProperties}
+                key={seg.nombre}
+                className={`seg-card ${segSeleccionado === seg.nombre ? 'seg-card--activa' : ''}`}
+                style={{ '--seg-color': colorDeSegmento(seg.nombre) } as React.CSSProperties}
                 onClick={() => {
-                  setSegSeleccionado(prev => prev === seg.id ? null : seg.id);
-                  setFiltroSeg(prev => prev === seg.id ? null : seg.id);
+                  setSegSeleccionado(prev => prev === seg.nombre ? null : seg.nombre);
+                  setFiltroSeg(prev => prev === seg.nombre ? null : seg.nombre);
                 }}
               >
                 <div className="seg-card-circulo" />
@@ -103,8 +136,8 @@ const AdminSegmentosScreen: React.FC = () => {
               <h2 className="seg-subtitulo" style={{ margin: 0 }}>
                 Lista de clientes
                 {filtroSeg !== null && (
-                  <span className="seg-filtro-badge" style={{ background: SEGMENTOS[filtroSeg].color }}>
-                    {SEGMENTOS[filtroSeg].nombre}
+                  <span className="seg-filtro-badge" style={{ background: colorDeSegmento(filtroSeg) }}>
+                    {filtroSeg}
                   </span>
                 )}
               </h2>
@@ -129,17 +162,17 @@ const AdminSegmentosScreen: React.FC = () => {
                 </thead>
                 <tbody>
                   {clientesFiltrados.map(c => {
-                    const seg = SEGMENTOS[c.segmento];
+                    const color = colorDeSegmento(c.segmento);
                     return (
                       <tr key={c.id}>
                         <td className="seg-td-id">{c.id}</td>
                         <td className="seg-td-nombre">{c.nombre}</td>
-                        <td className="seg-td-num">{c.compras}</td>
-                        <td className="seg-td-num">${c.ticket.toLocaleString('es-MX')}</td>
-                        <td className="seg-td-num">{c.monto_apartado > 0 ? `$${c.monto_apartado.toLocaleString('es-MX')}` : '—'}</td>
+                        <td className="seg-td-num">{c.num_compras}</td>
+                        <td className="seg-td-num">${c.ticket_promedio.toLocaleString('es-MX')}</td>
+                        <td className="seg-td-num">{c.monto_apartado_promedio > 0 ? `$${c.monto_apartado_promedio.toLocaleString('es-MX')}` : '—'}</td>
                         <td>
-                          <span className="seg-badge" style={{ background: seg.color + '22', color: seg.color, border: `1px solid ${seg.color}55` }}>
-                            {seg.nombre}
+                          <span className="seg-badge" style={{ background: color + '22', color, border: `1px solid ${color}55` }}>
+                            {c.segmento}
                           </span>
                         </td>
                       </tr>
@@ -152,29 +185,29 @@ const AdminSegmentosScreen: React.FC = () => {
 
           {/* Mapa de clusters */}
           <section className="seg-seccion seg-scatter-seccion">
-            <h2 className="seg-subtitulo">Distribución (clusters)</h2>
+            <h2 className="seg-subtitulo">Distribución (clusters, proyección PCA)</h2>
             <div className="seg-scatter">
-              <span className="seg-scatter-label-y">Ticket promedio →</span>
-              {SCATTER_PUNTOS.map((p, i) => (
+              <span className="seg-scatter-label-y">Componente 2 →</span>
+              {puntosScatter.map((p, i) => (
                 <div
                   key={i}
                   className="seg-scatter-punto"
                   style={{
                     left: `${p.x}%`,
                     bottom: `${p.y}%`,
-                    background: SEGMENTOS[p.seg].color,
-                    opacity: segSeleccionado === null || segSeleccionado === p.seg ? 1 : 0.15,
-                    transform: segSeleccionado === p.seg ? 'scale(1.5)' : 'scale(1)',
+                    background: colorDeSegmento(p.segmento),
+                    opacity: segSeleccionado === null || segSeleccionado === p.segmento ? 1 : 0.15,
+                    transform: segSeleccionado === p.segmento ? 'scale(1.5)' : 'scale(1)',
                   }}
-                  title={SEGMENTOS[p.seg].nombre}
+                  title={p.segmento}
                 />
               ))}
-              <span className="seg-scatter-label-x">Nº compras →</span>
+              <span className="seg-scatter-label-x">Componente 1 →</span>
             </div>
             <div className="seg-scatter-leyenda">
-              {SEGMENTOS.map(s => (
-                <span key={s.id} className="seg-scatter-leyenda-item">
-                  <span className="seg-scatter-dot" style={{ background: s.color }} />
+              {segmentos.map(s => (
+                <span key={s.nombre} className="seg-scatter-leyenda-item">
+                  <span className="seg-scatter-dot" style={{ background: colorDeSegmento(s.nombre) }} />
                   {s.nombre}
                 </span>
               ))}
@@ -187,11 +220,11 @@ const AdminSegmentosScreen: React.FC = () => {
         <div className="seg-acciones-layout">
           <section className="seg-seccion seg-leyenda-seccion">
             <h2 className="seg-subtitulo">Estrategias por segmento</h2>
-            {SEGMENTOS.map(seg => (
+            {segmentos.map(seg => (
               <div
-                key={seg.id}
+                key={seg.nombre}
                 className="seg-estrategia"
-                style={{ '--seg-color': seg.color } as React.CSSProperties}
+                style={{ '--seg-color': colorDeSegmento(seg.nombre) } as React.CSSProperties}
               >
                 <span className="seg-estrategia-dot" />
                 <div>

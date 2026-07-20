@@ -1543,6 +1543,45 @@ export const recomendacionAPI = {
   },
 };
 
+export interface ClienteSegmentado {
+  id: number;
+  nombre: string;
+  num_compras: number;
+  ticket_promedio: number;
+  num_apartados: number;
+  monto_apartado_promedio: number;
+  usa_apartados: boolean;
+  segmento: string;
+  pca_x: number;
+  pca_y: number;
+}
+
+export interface Segmento {
+  nombre: string;
+  clientes: number;
+  descripcion: string;
+  accion: string;
+}
+
+export interface SegmentacionResultado {
+  algoritmo: string;
+  total_clientes: number;
+  segmentos: Segmento[];
+  clientes: ClienteSegmentado[];
+}
+
+export const segmentacionAPI = {
+  obtener: async (): Promise<SegmentacionResultado | null> => {
+    try {
+      const res = await fetch(`${ML_BASE_URL}/segmentos`);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  },
+};
+
 export const api = {
   auth: authAPI,
   products: productsAPI,
