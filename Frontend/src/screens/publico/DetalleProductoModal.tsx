@@ -330,12 +330,12 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
         {recomendaciones.length > 0 && (
           <div className="detalle-recomendaciones">
             <div className="detalle-rec-inner">
-            <p className="detalle-rec-titulo">✨ También te puede interesar</p>
+            <p className="detalle-rec-titulo">✨ Productos similares que te pueden interesar</p>
             <ul className="detalle-rec-lista">
               {recomendaciones.map((r, i) => (
                 <li
                   key={i}
-                  className="detalle-rec-item"
+                  className="detalle-rec-card"
                   onClick={() => {
                     onClose();
                     if (r.id) {
@@ -346,10 +346,19 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                   }}
                   title={`Ver ${r.nombre}`}
                 >
-                  <div className="detalle-rec-img-circle">
-                    <span className="detalle-rec-img-fallback">💍</span>
+                  <div className="detalle-rec-card-img">
+                    {r.imagen_url ? (
+                      <img src={r.imagen_url} alt={r.nombre} loading="lazy" />
+                    ) : (
+                      <span className="detalle-rec-img-fallback">💍</span>
+                    )}
                   </div>
-                  {r.nombre}
+                  <div className="detalle-rec-card-info">
+                    <span className="detalle-rec-card-nombre">{r.nombre}</span>
+                    {r.precio_venta != null && (
+                      <span className="detalle-rec-card-precio">${r.precio_venta.toFixed(2)}</span>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>

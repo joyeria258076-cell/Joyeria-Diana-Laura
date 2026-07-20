@@ -1491,6 +1491,7 @@ export interface Recomendacion {
   nombre: string;
   id: number | null;
   imagen_url?: string | null;
+  precio_venta?: number | null;
 }
 
 export const precioSugeridoAPI = {
@@ -1526,11 +1527,16 @@ export const recomendacionAPI = {
       if (!res.ok) return [];
       const data = await res.json();
       const recs = data.recomendaciones || [];
-      // Soporta formato legacy (string[]) y nuevo formato ({nombre, id}[])
+      // Soporta formato legacy (string[]) y nuevo formato ({nombre, id, imagen_principal, precio_venta}[])
       if (recs.length > 0 && typeof recs[0] === 'string') {
         return recs.map((nombre: string) => ({ nombre, id: null }));
       }
-      return recs;
+      return recs.map((r: any) => ({
+        nombre: r.nombre,
+        id: r.id ?? null,
+        imagen_url: r.imagen_principal ?? r.imagen_url ?? null,
+        precio_venta: r.precio_venta ?? null,
+      }));
     } catch {
       return [];
     }

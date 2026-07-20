@@ -769,16 +769,27 @@ const CarritoScreen: React.FC = () => {
             {recsCarrito.length > 0 && (
                 <section className="carrito-recs">
                     <div className="carrito-recs-inner">
-                        <h3 className="carrito-recs-titulo">✨ Otros clientes también llevaron</h3>
+                        <h3 className="carrito-recs-titulo">✨ Productos similares que podrían interesarte</h3>
                         <ul className="carrito-recs-lista">
                             {recsCarrito.map((r, i) => (
                                 <li
                                     key={i}
-                                    className="carrito-recs-item"
+                                    className="carrito-recs-card"
                                     onClick={() => r.id ? navigate(`/producto/${r.id}`) : navigate(`/catalogo?buscar=${encodeURIComponent(r.nombre)}`)}
                                 >
-                                    <span className="rec-shimmer" />
-                                    {r.nombre}
+                                    <div className="carrito-recs-card-img">
+                                        {r.imagen_url ? (
+                                            <img src={r.imagen_url} alt={r.nombre} loading="lazy" />
+                                        ) : (
+                                            <span className="carrito-recs-img-fallback">💍</span>
+                                        )}
+                                    </div>
+                                    <div className="carrito-recs-card-info">
+                                        <span className="carrito-recs-card-nombre">{r.nombre}</span>
+                                        {r.precio_venta != null && (
+                                            <span className="carrito-recs-card-precio">${r.precio_venta.toFixed(2)}</span>
+                                        )}
+                                    </div>
                                     <span className="rec-arrow">→</span>
                                 </li>
                             ))}

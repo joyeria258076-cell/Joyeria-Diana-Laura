@@ -608,92 +608,87 @@
   list-style: none !important;
   padding: 0.4rem 0.25rem !important;
   margin: 0 !important;
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  gap: 0.9rem !important;
-  overflow-x: auto !important;
-  overflow-y: visible !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+  gap: 1rem !important;
 }
 
-.detalle-rec-item {
+.detalle-rec-card {
   position: relative !important;
   overflow: hidden !important;
   display: flex !important;
-  align-items: center !important;
-  gap: 0.75rem !important;
-  padding: 0.65rem 1.1rem 0.65rem 0.65rem !important;
-  border-radius: 50px !important;
-  font-size: 0.82rem !important;
-  font-weight: 700 !important;
-  color: #f5e6d3 !important;
+  flex-direction: column !important;
+  border-radius: 16px !important;
   cursor: pointer !important;
-  letter-spacing: 0.03em !important;
-  background: linear-gradient(135deg, rgba(201,168,76,0.18) 0%, rgba(160,109,224,0.12) 50%, rgba(236,178,195,0.15) 100%) !important;
-  border: 1px solid rgba(201,168,76,0.5) !important;
+  background: linear-gradient(135deg, rgba(201,168,76,0.14) 0%, rgba(160,109,224,0.1) 50%, rgba(236,178,195,0.12) 100%) !important;
+  border: 1px solid rgba(201,168,76,0.45) !important;
   transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1) !important;
-  box-shadow: 0 2px 12px rgba(201,168,76,0.12), inset 0 1px 0 rgba(255,255,255,0.06) !important;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
+  box-shadow: 0 2px 12px rgba(201,168,76,0.1), inset 0 1px 0 rgba(255,255,255,0.05) !important;
 }
 
-.detalle-rec-img-circle {
-  width: 38px !important;
-  height: 38px !important;
-  border-radius: 50% !important;
-  border: 1.5px solid rgba(201,168,76,0.6) !important;
+.detalle-rec-card-img {
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
   background: rgba(255,255,255,0.04) !important;
   overflow: hidden !important;
-  flex-shrink: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  border-bottom: 1px solid rgba(201,168,76,0.3) !important;
 }
 
-.detalle-rec-img-circle img {
+.detalle-rec-card-img img {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
-  border-radius: 50% !important;
+  transition: transform 0.4s ease !important;
 }
 
 .detalle-rec-img-fallback {
-  width: 100% !important;
-  height: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 1rem !important;
+  font-size: 2rem !important;
   color: rgba(201,168,76,0.5) !important;
 }
 
-/* Efecto shimmer al hacer hover */
-.detalle-rec-item::before {
-  content: '' !important;
-  position: absolute !important;
-  top: 0; left: -100% !important;
-  width: 60% !important;
-  height: 100% !important;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent) !important;
-  transition: none !important;
-  transform: skewX(-20deg) !important;
-}
-.detalle-rec-item:hover::before {
-  animation: rec-shimmer 0.6s ease forwards !important;
+.detalle-rec-card-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.25rem !important;
+  padding: 0.65rem 0.75rem 0.8rem !important;
 }
 
-.detalle-rec-item:hover {
-  background: linear-gradient(135deg, rgba(201,168,76,0.35) 0%, rgba(160,109,224,0.2) 50%, rgba(236,178,195,0.25) 100%) !important;
+.detalle-rec-card-nombre {
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  color: #f5e6d3 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.25 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
+}
+
+.detalle-rec-card-precio {
+  font-size: 0.85rem !important;
+  font-weight: 900 !important;
+  background: linear-gradient(90deg, #c9a84c 0%, #f5d982 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+.detalle-rec-card:hover {
+  background: linear-gradient(135deg, rgba(201,168,76,0.3) 0%, rgba(160,109,224,0.18) 50%, rgba(236,178,195,0.22) 100%) !important;
   border-color: #c9a84c !important;
-  color: #fdf0d0 !important;
-  transform: translateY(-3px) !important;
-  box-shadow: 0 8px 24px rgba(201,168,76,0.35), 0 3px 10px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 0 10px 26px rgba(201,168,76,0.3), 0 3px 10px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08) !important;
 }
 
-.detalle-rec-item:hover .detalle-rec-img-circle {
-  border-color: #c9a84c !important;
+.detalle-rec-card:hover .detalle-rec-card-img img {
+  transform: scale(1.08) !important;
 }
 
-.detalle-rec-item:active {
-  transform: translateY(-1px) scale(1.02) !important;
+.detalle-rec-card:active {
+  transform: translateY(-1px) scale(0.99) !important;
 }
