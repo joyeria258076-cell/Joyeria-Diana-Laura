@@ -76,11 +76,16 @@ const AdminSegmentosScreen: React.FC = () => {
     });
 
     setEnviando(false);
-    if (resultado.success) {
+    const enviados = resultado.enviados ?? 0;
+    const fallidos = resultado.fallidos ?? 0;
+
+    if (resultado.success && enviados > 0 && fallidos === 0) {
       setEnviado(true);
       setTimeout(() => setEnviado(false), 4000);
+    } else if (resultado.success && enviados > 0 && fallidos > 0) {
+      setErrorEnvio(`Se enviaron ${enviados} de ${enviados + fallidos} correos. ${fallidos} fallaron (revisa los emails de esos clientes).`);
     } else {
-      setErrorEnvio(resultado.message || 'No se pudo enviar la promoción');
+      setErrorEnvio(resultado.message || `No se pudo enviar ningún correo (0 de ${enviados + fallidos}). Verifica la configuración de Brevo en el servidor.`);
     }
   };
 
