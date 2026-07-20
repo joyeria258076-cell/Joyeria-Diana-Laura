@@ -390,6 +390,12 @@
   margin: 0;
 }
 
+.seg-accion-error {
+  font-size: 0.82rem;
+  color: #f87171;
+  margin: 0.75rem 0 0;
+}
+
 .seg-accion-btn {
   margin-top: 0.5rem;
   background: linear-gradient(135deg, #c9a84c 0%, #f5d982 100%);

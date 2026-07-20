@@ -1580,6 +1580,18 @@ export const segmentacionAPI = {
       return null;
     }
   },
+  enviarPromocion: async (params: {
+    cliente_ids: number[];
+    segmento: string;
+    asunto: string;
+    mensaje: string;
+  }): Promise<{ success: boolean; total?: number; enviados?: number; fallidos?: number; message?: string }> => {
+    try {
+      return await enhancedApi.post('/admin/promociones/enviar-segmento', params);
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Error al enviar la promoción' };
+    }
+  },
 };
 
 export const api = {

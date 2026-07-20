@@ -40,6 +40,7 @@ const AdminSegmentosScreen: React.FC = () => {
   const [filtroSeg, setFiltroSeg] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
+  const [errorEnvio, setErrorEnvio] = useState('');
 
   useEffect(() => {
     segmentacionAPI.obtener().then(res => {
@@ -56,10 +57,31 @@ const AdminSegmentosScreen: React.FC = () => {
 
   const puntosScatter = normalizarPuntos(clientes);
 
-  const handleEnviarPromocion = () => {
+  const handleEnviarPromocion = async () => {
     if (segSeleccionado === null) return;
+    const seg = segmentos.find(s => s.nombre === segSeleccionado);
+    if (!seg) return;
+
+    const clienteIds = clientes.filter(c => c.segmento === segSeleccionado).map(c => c.id);
+    if (clienteIds.length === 0) return;
+
     setEnviando(true);
-    setTimeout(() => { setEnviando(false); setEnviado(true); setTimeout(() => setEnviado(false), 3000); }, 1500);
+    setErrorEnvio('');
+
+    const resultado = await segmentacionAPI.enviarPromocion({
+      cliente_ids: clienteIds,
+      segmento: segSeleccionado,
+      asunto: `Una oferta especial para ti, de parte de Joyería Diana Laura`,
+      mensaje: seg.accion,
+    });
+
+    setEnviando(false);
+    if (resultado.success) {
+      setEnviado(true);
+      setTimeout(() => setEnviado(false), 4000);
+    } else {
+      setErrorEnvio(resultado.message || 'No se pudo enviar la promoción');
+    }
   };
 
   const segActivo = segSeleccionado !== null ? segmentos.find(s => s.nombre === segSeleccionado) ?? null : null;
@@ -250,6 +272,7 @@ const AdminSegmentosScreen: React.FC = () => {
                 >
                   {enviando ? 'Enviando...' : enviado ? '✓ Promoción enviada' : 'Enviar promoción'}
                 </button>
+                {errorEnvio && <p className="seg-accion-error">{errorEnvio}</p>}
               </>
             ) : (
               <p className="seg-accion-placeholder">
