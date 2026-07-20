@@ -144,3 +144,6 @@ iast-reports/
 
 # Alexa skill (repo git independiente, no debe subirse a este repo)
 joyeria-diana-laura-skill/
+
+# ML (repo git independiente, no debe subirse a este repo)
+Joyeria Diana Laura ML/
