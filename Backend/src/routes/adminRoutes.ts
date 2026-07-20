@@ -1,5 +1,6 @@
 import express from 'express';
 import { createWorkerAccount, getRoles, toggleWorkerAccountStatus, updateWorker } from '../controllers/admin/adminController';
+import { enviarPromocionSegmento } from '../controllers/admin/promocionesSegmentoController';
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.post('/workers', createWorkerAccount);
 router.get('/roles', getRoles);
 router.patch('/workers/:id/status', toggleWorkerAccountStatus);
 router.put('/workers/:id', updateWorker);
+router.post('/promociones/enviar-segmento', enviarPromocionSegmento);
 
 export default router;
