@@ -188,13 +188,16 @@ const AdminNuevoProductoScreen: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    
+
     if (type === 'checkbox') {
       setFormData(prev => ({
         ...prev,
         [name]: (e.target as HTMLInputElement).checked
       }));
-    } else if (type === 'number') {
+    } else if (type === 'number' || name.endsWith('_id')) {
+      // Los <select> de IDs (categoria_id, proveedor_id, etc.) tienen type="select-one",
+      // no "number" — sin este caso se guardaban como string y las comparaciones
+      // estrictas (c.id === formData.categoria_id) fallaban siempre.
       const numValue = value === '' ? null : Number.parseFloat(value);
       setFormData(prev => ({
         ...prev,
