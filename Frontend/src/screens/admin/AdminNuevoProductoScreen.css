@@ -168,6 +168,31 @@
     border-radius: 4px;
 }
 
+/* === SECCIÓN DESTACADA: DATOS PARA PREDICCIÓN DE PRECIO (IA) === */
+.form-section-ia {
+    background: linear-gradient(145deg, rgba(201,168,76,0.14) 0%, rgba(160,109,224,0.08) 50%, rgba(20,20,40,0.9) 100%);
+    border: 1px solid rgba(201,168,76,0.55);
+}
+
+.form-section-ia::before {
+    background: linear-gradient(90deg, #c9a84c, #f5d982, #ecb2c3, #c9a84c);
+}
+
+.form-section-ia legend {
+    background: linear-gradient(145deg, #1a1830 0%, #141428 100%);
+}
+
+.form-section-nota {
+    margin: -0.5rem 0 1.5rem;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    font-size: 0.85rem;
+    color: #e8d9b5;
+    line-height: 1.4;
+}
+
 /* === LAYOUT DE FILAS === */
 .form-row {
     display: grid;

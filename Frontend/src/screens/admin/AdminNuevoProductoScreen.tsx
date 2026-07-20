@@ -484,10 +484,68 @@ const AdminNuevoProductoScreen: React.FC = () => {
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="producto-form">
 
+          {/* SECCIÓN 0: DATOS PARA PREDICCIÓN DE PRECIO (IA) */}
+          <fieldset className="form-section form-section-ia">
+            <legend>🤖 Datos para Predicción de Precio (IA)</legend>
+            <p className="form-section-nota">
+              Estos 3 campos son los que usa la Inteligencia Artificial para calcular el precio sugerido automáticamente. Complétalos primero.
+            </p>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="categoria_id">Categoría *</label>
+                <select
+                  id="categoria_id"
+                  name="categoria_id"
+                  value={formData.categoria_id || ''}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Seleccionar categoría</option>
+                  {categorias.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="material_principal">Material Principal *</label>
+                <select
+                  id="material_principal"
+                  name="material_principal"
+                  value={formData.material_principal}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Seleccionar material</option>
+                  <option value="Plata">Plata</option>
+                  <option value="Plata ley .925">Plata ley .925</option>
+                  <option value="Chapa de oro">Chapa de oro</option>
+                  <option value="Laminado de oro">Laminado de oro</option>
+                  <option value="Baño en rodio">Baño en rodio</option>
+                  <option value="Acero/cuentas plásticas (bisutería)">Acero/cuentas plásticas (bisutería)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="peso_gramos">Peso (gramos) *</label>
+                <input
+                  type="number"
+                  id="peso_gramos"
+                  name="peso_gramos"
+                  step="0.01"
+                  min="0"
+                  value={formData.peso_gramos || ''}
+                  onChange={handleInputChange}
+                  placeholder="Ej: 2.5"
+                />
+              </div>
+            </div>
+          </fieldset>
+
           {/* SECCIÓN 1: INFORMACIÓN BÁSICA */}
           <fieldset className="form-section">
             <legend>📋 Información Básica</legend>
-            
+
             <div className="form-row">
               <div className="form-group full">
                 <label htmlFor="nombre">Nombre del Producto *</label>
@@ -521,22 +579,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="categoria_id">Categoría *</label>
-                <select
-                  id="categoria_id"
-                  name="categoria_id"
-                  value={formData.categoria_id || ''}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="">Seleccionar categoría</option>
-                  {categorias.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
                 <label htmlFor="tipo_producto_id">Tipo de Producto</label>
                 <select
                   id="tipo_producto_id"
@@ -556,7 +598,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
           {/* SECCIÓN 2: REFERENCIAS */}
           <fieldset className="form-section">
             <legend>🔗 Referencias</legend>
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="proveedor_id">Proveedor</label>
@@ -586,46 +628,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
                     <option key={temp.id} value={temp.id}>{temp.nombre}</option>
                   ))}
                 </select>
-              </div>
-            </div>
-          </fieldset>
-
-          {/* SECCIÓN 3: MATERIAL E INFORMACIÓN FÍSICA */}
-          <fieldset className="form-section">
-            <legend>💎 Material e Información Física</legend>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="material_principal">Material Principal</label>
-                <select
-                  id="material_principal"
-                  name="material_principal"
-                  value={formData.material_principal}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Seleccionar material</option>
-                  <option value="Oro">Oro</option>
-                  <option value="Plata">Plata</option>
-                  <option value="Platino">Platino</option>
-                  <option value="Acero">Acero Quirúrgico</option>
-                  <option value="Bronce">Bronce</option>
-                  <option value="Cobre">Cobre</option>
-                  <option value="Otras">Otras</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="peso_gramos">Peso (gramos)</label>
-                <input
-                  type="number"
-                  id="peso_gramos"
-                  name="peso_gramos"
-                  step="0.01"
-                  min="0"
-                  value={formData.peso_gramos || ''}
-                  onChange={handleInputChange}
-                  placeholder="Ej: 2.5"
-                />
               </div>
             </div>
           </fieldset>
