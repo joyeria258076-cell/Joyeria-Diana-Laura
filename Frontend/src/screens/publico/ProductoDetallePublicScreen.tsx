@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AiOutlineArrowLeft, AiOutlineShoppingCart, AiOutlineStar, AiOutlineLock } from 'react-icons/ai';
-import { productsAPI } from '../../services/api';
+import { productsAPI, recomendacionAPI } from '../../services/api';
 import PublicHeader from '../../components/PublicHeader';
 import PublicFooter from '../../components/PublicFooter';
 import './ProductoDetallePublicScreen.css';
@@ -36,6 +36,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
     const [producto, setProducto] = useState<Producto | null>(null);
     const [relacionados, setRelacionados] = useState<Producto[]>([]);
     const [tePodrianGustar, setTePodrianGustar] = useState<Producto[]>([]);
+    const [similaresIA, setSimilaresIA] = useState<Producto[]>([]);
     const [loading, setLoading] = useState(true);
     const [tabActiva, setTabActiva] = useState<'descripcion' | 'specs' | 'fabricacion'>('descripcion');
     const [showLoginAlert, setShowLoginAlert] = useState(false);
@@ -82,6 +83,17 @@ const ProductoDetallePublicScreen: React.FC = () => {
                         setTePodrianGustar(otros);
                     }
                 } catch { setTePodrianGustar([]); }
+
+                try {
+                    const recs = await recomendacionAPI.recomendar([prod.nombre]);
+                    setSimilaresIA(recs.map(r => ({
+                        id: r.id ?? 0,
+                        nombre: r.nombre,
+                        precio_venta: r.precio_venta ?? 0,
+                        imagen_principal: r.imagen_url ?? undefined,
+                        stock_actual: 0,
+                    })));
+                } catch { setSimilaresIA([]); }
 
             } catch {
                 navigate('/catalogo-publico');
@@ -361,6 +373,9 @@ const ProductoDetallePublicScreen: React.FC = () => {
                     </div>
                 </section>
 
+                {similaresIA.length > 0 && (
+                    <SeccionProductos titulo="✨ Productos similares que te pueden interesar" items={similaresIA} />
+                )}
                 {relacionados.length > 0 && (
                     <SeccionProductos titulo={`Más en ${producto.categoria_nombre || 'esta categoría'}`} items={relacionados} />
                 )}

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AiOutlineArrowLeft, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart } from 'react-icons/ai';
-import { productsAPI } from '../../services/api';
+import { productsAPI, recomendacionAPI } from '../../services/api';
 import { useCart } from '../../contexts/CartContext';
 import './ProductoDetalleScreen.css';
 
@@ -34,6 +34,7 @@ const ProductoDetalleScreen: React.FC = () => {
     const [producto, setProducto] = useState<Producto | null>(null);
     const [relacionados, setRelacionados] = useState<Producto[]>([]);        // misma categoría
     const [tePodrianGustar, setTePodrianGustar] = useState<Producto[]>([]);  // otras categorías
+    const [similaresIA, setSimilaresIA] = useState<Producto[]>([]);         // Content-Based Filtering (coseno)
     const [loading, setLoading] = useState(true);
     const [cantidad, setCantidad] = useState(1);
     const [agregando, setAgregando] = useState(false);
@@ -93,6 +94,20 @@ const ProductoDetalleScreen: React.FC = () => {
                     }
                 } catch {
                     setTePodrianGustar([]);
+                }
+
+                // ── 3. Similares por Content-Based Filtering (similitud coseno) ──
+                try {
+                    const recs = await recomendacionAPI.recomendar([prod.nombre]);
+                    setSimilaresIA(recs.map(r => ({
+                        id: r.id ?? 0,
+                        nombre: r.nombre,
+                        precio_venta: r.precio_venta ?? 0,
+                        imagen_principal: r.imagen_url ?? undefined,
+                        stock_actual: 0,
+                    })));
+                } catch {
+                    setSimilaresIA([]);
                 }
 
             } catch (err) {
@@ -409,6 +424,14 @@ const ProductoDetalleScreen: React.FC = () => {
                     )}
                 </div>
             </section>
+
+            {/* ── SIMILARES POR CONTENT-BASED FILTERING (similitud coseno) ── */}
+            {similaresIA.length > 0 && (
+                <SeccionProductos
+                    titulo="✨ Productos similares que te pueden interesar"
+                    items={similaresIA}
+                />
+            )}
 
             {/* ── PRODUCTOS DE LA MISMA CATEGORÍA ── */}
             {relacionados.length > 0 && (
