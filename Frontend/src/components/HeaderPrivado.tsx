@@ -257,7 +257,7 @@ const HeaderPrivado: React.FC = () => {
                                 <span className="nav-icon">🔮</span> Modelo Predictivo
                             </button>
                             <button className={`nav-item ${isActive("/admin-segmentos")}`} onClick={() => goTo("/admin-segmentos")}>
-                                <span className="nav-icon">👥</span> Segmentos IA
+                                <span className="nav-icon">👥</span> Segmentos
                             </button>
                         </>
                     ) : userRole === 'trabajador' ? (
