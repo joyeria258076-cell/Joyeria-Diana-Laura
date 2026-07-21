@@ -1015,3 +1015,72 @@
   }
   .precio-ia-placeholder { min-height: 160px; }
 }
+
+/* ── Ubicaciones de entrega ── */
+.ubicaciones-chips-sugeridas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ubicacion-chip-sugerida {
+  background: transparent;
+  border: 1.5px solid;
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.ubicacion-chip-sugerida:hover { background: rgba(255,255,255,0.06); }
+
+.ubicacion-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.ubicacion-input-row input { flex: 1; }
+.btn-agregar-ubicacion {
+  background: rgba(236,178,195,0.12);
+  border: 1px solid rgba(236,178,195,0.3);
+  color: #ecb2c3;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-agregar-ubicacion:hover { background: rgba(236,178,195,0.2); }
+
+.ubicaciones-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ubicacion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 5px 8px 5px 14px;
+  border-radius: 20px;
+}
+.ubicacion-chip button {
+  background: rgba(255,255,255,0.25);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ubicacion-chip button:hover { background: rgba(255,255,255,0.4); }

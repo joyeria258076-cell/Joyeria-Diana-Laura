@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { coleccionesAPI, productsAPI } from '../../services/api';
+import { coleccionesAPI, productsAPI, uploadAPI } from '../../services/api';
 import './AdminColeccionesScreen.css';
 
 interface Producto {
@@ -47,6 +47,20 @@ const AdminColeccionesScreen: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = useState<Coleccion | null>(null);
   const busquedaRef = useRef<HTMLInputElement>(null);
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const cargar = async () => {
     setLoading(true);
     try {
@@ -72,6 +86,8 @@ const AdminColeccionesScreen: React.FC = () => {
     setProductosSeleccionados([]);
     setBusqueda('');
     setError('');
+    setSelectedFile(null);
+    setImagePreview(null);
     setModalOpen(true);
   };
 
@@ -89,11 +105,13 @@ const AdminColeccionesScreen: React.FC = () => {
       setProductosSeleccionados(detalle.productos || []);
       setBusqueda('');
       setError('');
+      setSelectedFile(null);
+      setImagePreview(detalle.imagen_url || null);
       setModalOpen(true);
     } catch { alert('Error al cargar detalle'); }
   };
 
-  const cerrarModal = () => { setModalOpen(false); setEditando(null); };
+  const cerrarModal = () => { setModalOpen(false); setEditando(null); setSelectedFile(null); setImagePreview(null); };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -110,10 +128,29 @@ const AdminColeccionesScreen: React.FC = () => {
   const handleGuardar = async () => {
     if (!form.nombre.trim()) { setError('El nombre es obligatorio'); return; }
     setSaving(true); setError('');
+
+    let imagenUrlFinal = form.imagen_url.trim() || null;
+
+    if (selectedFile) {
+      setUploadingImage(true);
+      try {
+        const resUpload = await uploadAPI.uploadImage(selectedFile, 'joyeria/colecciones');
+        if (!resUpload.success) throw new Error(resUpload.message || 'Error al subir la imagen');
+        imagenUrlFinal = resUpload.data.url;
+      } catch (err: any) {
+        setError(err.message || 'Error al subir la imagen');
+        setSaving(false);
+        setUploadingImage(false);
+        return;
+      } finally {
+        setUploadingImage(false);
+      }
+    }
+
     const payload = {
       nombre: form.nombre.trim(),
       descripcion: form.descripcion.trim() || null,
-      imagen_url: form.imagen_url.trim() || null,
+      imagen_url: imagenUrlFinal,
       orden: parseInt(form.orden) || 0,
       productos: productosSeleccionados.map(p => p.id),
     };
@@ -216,8 +253,28 @@ const AdminColeccionesScreen: React.FC = () => {
                 <textarea name="descripcion" value={form.descripcion} onChange={handleChange} rows={2} placeholder="Descripción breve visible en el catálogo" />
               </div>
               <div className="ac-field ac-full">
-                <label>URL de imagen de portada</label>
-                <input name="imagen_url" value={form.imagen_url} onChange={handleChange} placeholder="https://..." />
+                <label>Imagen de portada</label>
+                {imagePreview && (
+                  <div className="ac-imagen-preview-wrap">
+                    <img src={imagePreview} alt="Vista previa" className="ac-imagen-preview" />
+                    <button
+                      type="button"
+                      className="ac-btn-quitar-imagen"
+                      onClick={() => { setSelectedFile(null); setImagePreview(null); setForm(prev => ({ ...prev, imagen_url: '' })); }}
+                    >Quitar imagen</button>
+                  </div>
+                )}
+                <input type="file" accept="image/*" onChange={handleImageChange} />
+                {uploadingImage && <p className="ac-subiendo-texto">Subiendo imagen...</p>}
+                <details className="ac-url-alterna">
+                  <summary>¿Prefieres pegar una URL en vez de subir un archivo?</summary>
+                  <input
+                    name="imagen_url"
+                    value={form.imagen_url}
+                    onChange={e => { handleChange(e); setSelectedFile(null); setImagePreview(e.target.value || null); }}
+                    placeholder="https://..."
+                  />
+                </details>
               </div>
               <div className="ac-field">
                 <label>Orden de aparición</label>
@@ -285,8 +342,8 @@ const AdminColeccionesScreen: React.FC = () => {
 
             <div className="ac-modal-footer">
               <button className="ac-btn-secondary" onClick={cerrarModal}>Cancelar</button>
-              <button className="ac-btn-primary" onClick={handleGuardar} disabled={saving}>
-                {saving ? 'Guardando...' : editando ? 'Guardar cambios' : 'Crear colección'}
+              <button className="ac-btn-primary" onClick={handleGuardar} disabled={saving || uploadingImage}>
+                {uploadingImage ? 'Subiendo imagen...' : saving ? 'Guardando...' : editando ? 'Guardar cambios' : 'Crear colección'}
               </button>
             </div>
           </div>

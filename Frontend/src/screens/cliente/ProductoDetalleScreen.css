@@ -282,6 +282,27 @@
     font-family: 'Montserrat', sans-serif;
 }
 
+/* Lugares de entrega */
+.pd-ubicaciones-entrega { display: flex; flex-direction: column; gap: 0.5rem; }
+.pd-ubicaciones-titulo {
+    margin: 0;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--pd-muted);
+    font-family: 'Montserrat', sans-serif;
+}
+.pd-ubicaciones-lista { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.pd-ubicacion-chip {
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    font-family: 'Montserrat', sans-serif;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
 /* Formulario de personalización */
 .pd-personalizacion-form {
     display: flex;

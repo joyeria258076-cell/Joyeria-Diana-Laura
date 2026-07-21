@@ -1,5 +1,5 @@
 .ac-container {
-  max-width: 1100px;
+  max-width: 1500px;
   margin: 0 auto;
   padding: 24px 20px;
 }
@@ -325,4 +325,50 @@
 @media (max-width: 520px) {
   .ac-form-grid { grid-template-columns: 1fr; }
   .ac-full { grid-column: 1; }
+}
+
+/* ── Subida de imagen de portada ── */
+.ac-imagen-preview-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.ac-imagen-preview {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.ac-btn-quitar-imagen {
+  background: rgba(224,90,106,0.12);
+  border: 1px solid rgba(224,90,106,0.3);
+  color: #e05a6a;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ac-btn-quitar-imagen:hover { background: rgba(224,90,106,0.2); }
+
+.ac-subiendo-texto {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: #c9a84c;
+}
+
+.ac-url-alterna {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+}
+.ac-url-alterna summary {
+  cursor: pointer;
+  color: #ecb2c3;
+}
+.ac-url-alterna input {
+  margin-top: 8px;
+  width: 100%;
 }

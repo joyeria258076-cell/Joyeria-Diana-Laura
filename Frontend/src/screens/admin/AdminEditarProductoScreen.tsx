@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AiOutlineArrowLeft, AiOutlineCheck, AiOutlineClose, AiOutlineUpload, AiOutlineDelete } from 'react-icons/ai';
 import { productsAPI, uploadAPI } from '../../services/api';
+import { UBICACIONES_SUGERIDAS, colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import './AdminEditarProductoScreen.css';
 
 interface Category {
@@ -50,6 +51,7 @@ interface FormData {
   permite_personalizacion: boolean;
   precio_personalizacion: number;
   dias_fabricacion: number;
+  ubicaciones_entrega: string[];
   imagen_principal: string;
   imagen_public_id?: string;
   es_nuevo: boolean;
@@ -103,11 +105,25 @@ const AdminEditarProductoScreen: React.FC = () => {
     permite_personalizacion: false,
     precio_personalizacion: 0,
     dias_fabricacion: 0,
+    ubicaciones_entrega: [],
     imagen_principal: '',
     es_nuevo: false,
     es_destacado: false,
     activo: true
   });
+
+  const [nuevaUbicacion, setNuevaUbicacion] = useState('');
+
+  const agregarUbicacion = (nombre: string) => {
+    const limpio = nombre.trim();
+    if (!limpio || formData.ubicaciones_entrega.includes(limpio)) return;
+    setFormData(prev => ({ ...prev, ubicaciones_entrega: [...prev.ubicaciones_entrega, limpio] }));
+    setNuevaUbicacion('');
+  };
+
+  const quitarUbicacion = (nombre: string) => {
+    setFormData(prev => ({ ...prev, ubicaciones_entrega: prev.ubicaciones_entrega.filter(u => u !== nombre) }));
+  };
 
   // Cargar datos del producto y referencias
   useEffect(() => {
@@ -143,6 +159,7 @@ const AdminEditarProductoScreen: React.FC = () => {
           permite_personalizacion: producto.permite_personalizacion || false,
           precio_personalizacion: producto.precio_personalizacion || 0,
           dias_fabricacion: producto.dias_fabricacion || 0,
+          ubicaciones_entrega: Array.isArray(producto.ubicaciones_entrega) ? producto.ubicaciones_entrega : [],
           imagen_principal: producto.imagen_principal || '',
           es_nuevo: producto.es_nuevo || false,
           es_destacado: producto.es_destacado || false,
@@ -753,6 +770,45 @@ const AdminEditarProductoScreen: React.FC = () => {
                 </div>
               </div>
             )}
+
+            <div className="form-row">
+              <div className="form-group full">
+                <label>Lugares de entrega (opcional)</label>
+                <div className="ubicaciones-chips-sugeridas">
+                  {UBICACIONES_SUGERIDAS.filter(u => !formData.ubicaciones_entrega.includes(u)).map(u => (
+                    <button
+                      type="button"
+                      key={u}
+                      className="ubicacion-chip-sugerida"
+                      style={{ borderColor: colorDeUbicacion(u), color: colorDeUbicacion(u) }}
+                      onClick={() => agregarUbicacion(u)}
+                    >
+                      + {u}
+                    </button>
+                  ))}
+                </div>
+                <div className="ubicacion-input-row">
+                  <input
+                    type="text"
+                    value={nuevaUbicacion}
+                    onChange={e => setNuevaUbicacion(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); agregarUbicacion(nuevaUbicacion); } }}
+                    placeholder="Otra ubicación..."
+                  />
+                  <button type="button" className="btn-agregar-ubicacion" onClick={() => agregarUbicacion(nuevaUbicacion)}>Agregar</button>
+                </div>
+                {formData.ubicaciones_entrega.length > 0 && (
+                  <div className="ubicaciones-chips">
+                    {formData.ubicaciones_entrega.map(u => (
+                      <span key={u} className="ubicacion-chip" style={{ background: colorDeUbicacion(u) }}>
+                        {u}
+                        <button type="button" onClick={() => quitarUbicacion(u)}>×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </fieldset>
 
           {/* Estado */}

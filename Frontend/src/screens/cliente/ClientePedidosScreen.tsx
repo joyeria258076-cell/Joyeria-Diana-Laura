@@ -637,7 +637,7 @@ const ClientePedidosScreen: React.FC = () => {
                                     )}
 
 
-                                    {(['aprobado','pagado'].includes(pedidoDetalle.estado_pago) || pedidoDetalle.estado === 'entregado') && (
+                                    {pedidoDetalle.estado === 'entregado' && (
                                         <button className="cp-btn-recibo" onClick={() => descargarRecibo(pedidoDetalle)}>📄 Ver / Descargar recibo</button>
                                     )}
                                 </>
@@ -646,16 +646,6 @@ const ClientePedidosScreen: React.FC = () => {
                     </div>
                 </div>
             )}
-
-            <footer className="cp-footer">
-                <div className="cp-footer-grid">
-                    <div><h6>Contacto</h6><p><span>info@dianaalaura.com</span><br /><span>+1 (234) 567-890</span></p></div>
-                    <div><h6>Acerca de</h6><p>Joyería y Bisutería con esencia femenina. Diseños exclusivos y de calidad.</p></div>
-                    <div><h6>Ubicación</h6><p>Calle Principal 123<br />Ciudad, Estado 12345</p></div>
-                    <div><h6>Redes Sociales</h6><div className="cp-footer-social"><span>📸</span><span>👥</span><span>🎵</span></div></div>
-                </div>
-                <hr className="cp-footer-hr" />
-            </footer>
         </main>
     );
 };

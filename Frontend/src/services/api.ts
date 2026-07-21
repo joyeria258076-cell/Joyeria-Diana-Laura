@@ -669,6 +669,14 @@ export const contentAPI = {
     return enhancedApi.put(`/content/pages/${pageName}`, data);
   },
 
+  // 1.5 Información empresarial ("Sobre Nosotros")
+  getInfoEmpresa: async () => {
+    return enhancedApi.get('/content/info-empresa');
+  },
+  updateInfoEmpresa: async (data: Record<string, any>) => {
+    return enhancedApi.put('/content/info-empresa', data);
+  },
+
   // 2. Gestión de artículos individuales (Noticias)
   getNoticias: async () => {
     return enhancedApi.get('/content/noticias');

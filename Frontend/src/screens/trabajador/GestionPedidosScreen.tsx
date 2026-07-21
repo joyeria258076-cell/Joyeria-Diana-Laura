@@ -224,6 +224,7 @@ const GestionPedidosScreen: React.FC = () => {
     const [cargando, setCargando]         = useState(false);
     const [msg, setMsg]                   = useState('');
     const [tomando, setTomando]           = useState(false);
+    const [avisoTomar, setAvisoTomar]     = useState('');
     const [estados, setEstados]           = useState<EstadoConfig[]>([]);
     const pollingRef                      = useRef<ReturnType<typeof setInterval> | null>(null);
     const estadosRef                      = useRef<Record<number, string>>({});
@@ -445,16 +446,23 @@ const GestionPedidosScreen: React.FC = () => {
 
     const tomarPedido = async (pedido: Pedido) => {
         setTomando(true);
+        setAvisoTomar('');
         try {
             const data = await carritoAPI.tomarPedido(pedido.id);
             if (data.success) {
                 setPedidos(prev => prev.map(p =>
                     p.id === pedido.id ? { ...p, trabajador_id: miId, trabajador_asignado_nombre: user?.nombre } : p
                 ));
-                setMsg('✅ Pedido tomado. Ya puedes gestionarlo.');
+                setAvisoTomar('✅ Pedido tomado. Ya puedes gestionarlo.');
             }
-        } catch (err: any) { setMsg(`❌ ${err.message}`); }
-        finally { setTomando(false); }
+        } catch (err: any) {
+            setAvisoTomar(`⚠️ ${err.message}`);
+            cargarPedidos(); // refresca la lista para reflejar quién lo tomó realmente
+        }
+        finally {
+            setTomando(false);
+            setTimeout(() => setAvisoTomar(''), 5000);
+        }
     };
 
     const guardarDetalles = async () => {
@@ -706,6 +714,12 @@ const GestionPedidosScreen: React.FC = () => {
 
     return (
         <div className="gp-container">
+            {avisoTomar && (
+                <div className={`gp-aviso-tomar ${avisoTomar.startsWith('✅') ? 'gp-aviso-tomar-ok' : 'gp-aviso-tomar-warn'}`}>
+                    {avisoTomar}
+                    <button onClick={() => setAvisoTomar('')}>×</button>
+                </div>
+            )}
             <div className="gp-header">
                 <h2 className="gp-titulo">Gestión de Pedidos</h2>
                 <div className="gp-header-acciones">

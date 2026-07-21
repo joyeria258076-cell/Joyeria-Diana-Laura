@@ -10,6 +10,22 @@
     font-family: 'Montserrat', sans-serif;
 }
 
+/* ── Aviso al tomar pedido ── */
+.gp-aviso-tomar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0.75rem 1.1rem;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+}
+.gp-aviso-tomar-ok { background: rgba(107,203,119,0.12); border: 1px solid rgba(107,203,119,0.3); color: #6bcb77; }
+.gp-aviso-tomar-warn { background: rgba(245,200,66,0.12); border: 1px solid rgba(245,200,66,0.3); color: #f5c842; }
+.gp-aviso-tomar button { background: transparent; border: none; color: inherit; font-size: 1.2rem; cursor: pointer; line-height: 1; }
+
 /* ── Header ── */
 .gp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; }
 .gp-titulo { font-size: 1.8rem; font-weight: 700; color: #f0e6ea; margin: 0; font-family: 'Playfair Display', serif; }

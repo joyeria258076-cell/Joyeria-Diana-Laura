@@ -583,11 +583,27 @@ export const actualizarEstadoPedido = async (req: Request, res: Response) => {
             });
         }
 
-        // ✅ Validar que el cliente haya pagado antes de marcar como enviado o entregado
-        if (['enviado', 'entregado'].includes(estado) && ventaActual.estado_pago !== 'aprobado') {
-            return res.status(400).json({ 
-                success: false, 
+        // ✅ Validar que el cliente haya pagado antes de marcar como en preparación, enviado o entregado
+        if (['en_preparacion', 'enviado', 'entregado'].includes(estado) && ventaActual.estado_pago !== 'aprobado') {
+            return res.status(400).json({
+                success: false,
                 message: `No puedes marcar como "${labelEstado(estado)}" — el cliente aún no ha realizado el pago.`
+            });
+        }
+
+        // ✅ "Entregado" solo puede llegar por el flujo de código de entrega (confirmarEntregaCodigo)
+        if (estado === 'entregado') {
+            return res.status(400).json({
+                success: false,
+                message: 'No puedes marcar el pedido como "Entregado" desde aquí. Pide el código de entrega al cliente e ingrésalo en el formulario de confirmación.'
+            });
+        }
+
+        // ✅ "Enviado" solo aplica a pedidos a domicilio, no a los que se recogen en tienda
+        if (estado === 'enviado' && (!ventaActual.tipo_entrega || ventaActual.tipo_entrega === 'tienda')) {
+            return res.status(400).json({
+                success: false,
+                message: 'El estado "Enviado" no aplica para pedidos en tienda — solo para entregas a domicilio.'
             });
         }
 
@@ -1110,6 +1126,18 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
         const esStaff = ['admin','trabajador'].includes(usuarioRol);
         if (!esOwner && !esStaff)
             return res.status(403).json({ success: false, message: 'Acceso denegado' });
+
+        // ✅ El recibo solo se genera hasta que la compra esté finalizada (pedido entregado)
+        if (venta.estado !== 'entregado') {
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            return res.status(400).send(`
+                <div style="font-family:Arial,sans-serif; text-align:center; padding:60px 20px; color:#333;">
+                    <h2>📄 Recibo no disponible todavía</h2>
+                    <p>El recibo de este pedido se genera hasta que sea marcado como <strong>entregado</strong>.</p>
+                    <p>Estado actual: <strong>${labelEstado(venta.estado)}</strong></p>
+                </div>
+            `);
+        }
 
         const itemsHTML = (venta.items || []).map((item: any) => `
             <tr>

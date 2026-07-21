@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AiOutlineArrowLeft, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart } from 'react-icons/ai';
 import { productsAPI, recomendacionAPI, resenasAPI } from '../../services/api';
+import { colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import { useCart } from '../../contexts/CartContext';
 import './ProductoDetalleScreen.css';
 
@@ -25,6 +26,7 @@ interface Producto {
     dias_fabricacion?: number;
     permite_personalizacion?: boolean;
     precio_personalizacion?: number;
+    ubicaciones_entrega?: string[];
 }
 
 interface Resena {
@@ -355,6 +357,19 @@ const ProductoDetalleScreen: React.FC = () => {
                                     : `En stock (${producto.stock_actual} unidades)`}
                         </span>
                     </div>
+
+                    {!!producto.ubicaciones_entrega?.length && (
+                        <div className="pd-ubicaciones-entrega">
+                            <p className="pd-ubicaciones-titulo">📍 Lugares de entrega</p>
+                            <div className="pd-ubicaciones-lista">
+                                {producto.ubicaciones_entrega.map(u => (
+                                    <span key={u} className="pd-ubicacion-chip" style={{ background: colorDeUbicacion(u) }}>
+                                        {u}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {producto.stock_actual > 0 && producto.permite_personalizacion && (
                         <div className="pd-personalizacion-form">

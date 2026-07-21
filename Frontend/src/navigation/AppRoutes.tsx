@@ -101,6 +101,7 @@ import ClientePedidosScreen from "../screens/cliente/ClientePedidosScreen";
 import CarritoScreen from "../screens/cliente/CarritoScreen";
 import MisApartadosScreen from "../screens/cliente/MisApartadosScreen";
 import NotificacionesScreen from "../screens/cliente/NotificacionesScreen";
+import MisFavoritosScreen from "../screens/cliente/MisFavoritosScreen";
 import ProductoDetalleScreen from "../screens/cliente/ProductoDetalleScreen";
 
 
@@ -204,6 +205,7 @@ export default function AppRoutes() {
           <Route path="/carrito" element={<CarritoScreen />} />
           <Route path="/mis-apartados" element={<MisApartadosScreen />} />
           <Route path="/notificaciones" element={<NotificacionesScreen />} />
+          <Route path="/favoritos" element={<MisFavoritosScreen />} />
           <Route path="/producto/:id" element={<ProductoDetalleScreen />} />
 
           {/* 🔐 RUTAS EXCLUSIVAS ADMIN */}

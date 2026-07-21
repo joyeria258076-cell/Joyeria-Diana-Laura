@@ -295,6 +295,9 @@ const HeaderPrivado: React.FC = () => {
                             <button className={`nav-item ${isActive("/mis-apartados")}`} onClick={() => goTo("/mis-apartados")}>
                                 <span className="nav-icon">🔖</span> Mis Apartados
                             </button>
+                            <button className={`nav-item ${isActive("/favoritos")}`} onClick={() => goTo("/favoritos")}>
+                                <span className="nav-icon">❤️</span> Mis Favoritos
+                            </button>
                             <button className={`nav-item ${isActive("/carrito")}`} onClick={() => goTo("/carrito")}>
                                 <span className="nav-icon">🛒</span>
                                 Mi Carrito
@@ -340,33 +343,35 @@ const HeaderPrivado: React.FC = () => {
                 <div className="header-welcome">
                     Bienvenido, <strong>{user?.nombre || 'Usuario'}</strong>
                 </div>
-                {userRole === 'cliente' && (
-                    <button
-                        className="header-notif-btn"
-                        onClick={() => navigate('/notificaciones')}
-                        aria-label="Notificaciones"
-                        title="Notificaciones"
+                <div className="header-acciones-derecha">
+                    {userRole === 'cliente' && (
+                        <button
+                            className="header-notif-btn"
+                            onClick={() => navigate('/notificaciones')}
+                            aria-label="Notificaciones"
+                            title="Notificaciones"
+                        >
+                            🔔
+                            {noLeidas > 0 && <span className="header-notif-badge">{noLeidas > 9 ? '9+' : noLeidas}</span>}
+                        </button>
+                    )}
+                    <div
+                        className="user-profile-info"
+                        onClick={() => navigate(userRole === 'admin' ? "/admin-perfil" : userRole === 'trabajador' ? "/trabajador/perfil" : "/perfil")}
+                        style={{ cursor: 'pointer' }}
                     >
-                        🔔
-                        {noLeidas > 0 && <span className="header-notif-badge">{noLeidas > 9 ? '9+' : noLeidas}</span>}
-                    </button>
-                )}
-                <div
-                    className="user-profile-info"
-                    onClick={() => navigate(userRole === 'admin' ? "/admin-perfil" : userRole === 'trabajador' ? "/trabajador/perfil" : "/perfil")}
-                    style={{ cursor: 'pointer' }}
-                >
-                    <div className="user-avatar" style={{ position: 'relative' }}>
-                        {user?.nombre?.charAt(0).toUpperCase() || "U"}
-                        {userRole === 'admin' && solicitudesPendientes > 0 && (
-                            <span className="avatar-badge">{solicitudesPendientes}</span>
-                        )}
-                    </div>
-                    <div className="user-details">
-                        <span className="user-name">{user?.nombre || 'Mi Perfil'}</span>
-                        <span className="user-role">
-                            {userRole === 'admin' ? "Administrador" : userRole === 'trabajador' ? "Trabajador" : "Cliente"}
-                        </span>
+                        <div className="user-avatar" style={{ position: 'relative' }}>
+                            {user?.nombre?.charAt(0).toUpperCase() || "U"}
+                            {userRole === 'admin' && solicitudesPendientes > 0 && (
+                                <span className="avatar-badge">{solicitudesPendientes}</span>
+                            )}
+                        </div>
+                        <div className="user-details">
+                            <span className="user-name">{user?.nombre || 'Mi Perfil'}</span>
+                            <span className="user-role">
+                                {userRole === 'admin' ? "Administrador" : userRole === 'trabajador' ? "Trabajador" : "Cliente"}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </header>

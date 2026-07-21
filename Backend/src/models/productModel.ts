@@ -164,6 +164,7 @@ interface ProductoData {
     permite_personalizacion?: boolean;
     precio_personalizacion?: number;
     dias_fabricacion?: number;
+    ubicaciones_entrega?: string[];
     imagen_principal?: string;
     es_nuevo?: boolean;
     es_destacado?: boolean;
@@ -271,6 +272,7 @@ export const ProductModel = {
             permite_personalizacion,
             precio_personalizacion,
             dias_fabricacion,
+            ubicaciones_entrega,
             imagen_principal,
             es_nuevo,
             es_destacado,
@@ -305,6 +307,7 @@ export const ProductModel = {
                 permite_personalizacion,
                 precio_personalizacion,
                 dias_fabricacion,
+                ubicaciones_entrega,
                 imagen_principal,
                 es_nuevo,
                 es_destacado,
@@ -316,7 +319,7 @@ export const ProductModel = {
             ) VALUES (
                 $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
                 $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
-                $21, $22, $23, $24, $25, true, $26, $27,
+                $21, $22, $23, $24, $25, $26, true, $27, $28,
                 CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
             ) RETURNING *
         `;
@@ -344,6 +347,7 @@ export const ProductModel = {
             permite_personalizacion || false,
             precio_personalizacion || 0,
             dias_fabricacion || 0,
+            JSON.stringify(ubicaciones_entrega || []),
             imagen_principal || null,
             es_nuevo || false,
             es_destacado || false,
@@ -366,7 +370,8 @@ export const ProductModel = {
             'tipo_producto_id', 'material_principal', 'peso_gramos', 'precio_compra',
             'margen_ganancia', 'precio_venta', 'precio_oferta', 'stock_actual',
             'stock_minimo', 'stock_maximo', 'ubicacion_fisica', 'tiene_medidas',
-            'medidas', 'permite_personalizacion', 'precio_personalizacion', 'dias_fabricacion', 'imagen_principal',
+            'medidas', 'permite_personalizacion', 'precio_personalizacion', 'dias_fabricacion',
+            'ubicaciones_entrega', 'imagen_principal',
             'es_nuevo', 'es_destacado', 'activo', 'actualizado_por'
         ];
 
@@ -374,7 +379,7 @@ export const ProductModel = {
             if (data[field as keyof ProductoData] !== undefined) {
                 let value = data[field as keyof ProductoData];
                 // Convertir objetos a JSON
-                if (field === 'medidas' && typeof value === 'object') {
+                if ((field === 'medidas' || field === 'ubicaciones_entrega') && typeof value === 'object') {
                     value = JSON.stringify(value);
                 }
                 campos.push(`${field} = $${paramCount++}`);

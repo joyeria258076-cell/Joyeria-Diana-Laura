@@ -55,6 +55,60 @@ export const adminContentController = {
   },
 
   // ==========================================
+  // 1.5. INFORMACIÓN EMPRESARIAL ("Sobre Nosotros")
+  // ==========================================
+  getInfoEmpresa: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const result = await pool.query('SELECT * FROM informacion_empresa WHERE id = 1');
+      res.json({ success: true, data: result.rows[0] || null });
+    } catch (error) {
+      console.error('Error en getInfoEmpresa:', error);
+      res.status(500).json({ success: false, message: 'Error al obtener información empresarial' });
+    }
+  },
+
+  updateInfoEmpresa: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const {
+        nombre, descripcion, direccion, telefono, email, horario,
+        mision, artesania, anios_tradicion, clientes_felices,
+        facebook_url, instagram_url, whatsapp, tiktok_url, imagen_hero
+      } = req.body;
+
+      if (hasInvalidInput(nombre, descripcion, direccion, mision, artesania)) {
+        res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' }); return;
+      }
+      if (!nombre?.trim()) {
+        res.status(400).json({ success: false, message: 'El nombre es obligatorio' }); return;
+      }
+
+      const userId = (req as any).user?.userId || (req as any).user?.id;
+
+      const result = await pool.query(
+        `UPDATE informacion_empresa SET
+          nombre = $1, descripcion = $2, direccion = $3, telefono = $4, email = $5,
+          horario = $6, mision = $7, artesania = $8, anios_tradicion = $9, clientes_felices = $10,
+          facebook_url = $11, instagram_url = $12, whatsapp = $13, tiktok_url = $14, imagen_hero = $15,
+          actualizado_por = $16, fecha_actualizacion = CURRENT_TIMESTAMP
+         WHERE id = 1
+         RETURNING *`,
+        [
+          nombre.trim(), descripcion || null, direccion || null, telefono || null, email || null,
+          horario || null, mision || null, artesania || null,
+          Number.parseInt(anios_tradicion) || 0, Number.parseInt(clientes_felices) || 0,
+          facebook_url || null, instagram_url || null, whatsapp || null, tiktok_url || null,
+          imagen_hero || null, userId || null
+        ]
+      );
+
+      res.json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      console.error('Error en updateInfoEmpresa:', error);
+      res.status(500).json({ success: false, message: 'Error al actualizar información empresarial' });
+    }
+  },
+
+  // ==========================================
   // 2. GESTIÓN DE NOTICIAS (Artículos)
   // ==========================================
   getNoticias: async (req: Request, res: Response): Promise<void> => {

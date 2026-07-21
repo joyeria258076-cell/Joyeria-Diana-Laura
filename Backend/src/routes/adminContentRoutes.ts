@@ -17,6 +17,12 @@ router.get('/pages/:pageName', adminContentController.getPageConfig);
 router.put('/pages/:pageName', adminContentController.updatePageConfig);
 
 // ==========================================
+// INFORMACIÓN EMPRESARIAL ("Sobre Nosotros")
+// ==========================================
+router.get('/info-empresa', adminContentController.getInfoEmpresa);
+router.put('/info-empresa', adminContentController.updateInfoEmpresa);
+
+// ==========================================
 // GESTIÓN DE NOTICIAS (Artículos)
 // ==========================================
 router.get('/noticias', adminContentController.getNoticias);

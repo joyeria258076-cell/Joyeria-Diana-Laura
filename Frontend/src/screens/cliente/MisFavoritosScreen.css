@@ -1,0 +1,118 @@
+/* Ruta: Frontend/src/screens/cliente/MisFavoritosScreen.css */
+
+.mf-body {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+}
+
+.mf-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.mf-titulo {
+    color: #fff;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.mf-contador {
+    color: #ecb2c3;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.mf-loading, .mf-vacio {
+    text-align: center;
+    padding: 60px 20px;
+    color: #8a7a82;
+}
+.mf-vacio-icono { font-size: 2.8rem; display: block; margin-bottom: 14px; }
+.mf-vacio p { margin: 0 0 18px; font-size: 0.95rem; }
+
+.mf-btn-catalogo {
+    background: linear-gradient(135deg, #ecb2c3, #d4607e);
+    color: #1a0a10;
+    border: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.75rem 1.8rem;
+    border-radius: 50px;
+    cursor: pointer;
+}
+
+.mf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.mf-card {
+    background: #16161d;
+    border: 1px solid rgba(236,178,195,0.12);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+}
+.mf-card:hover { border-color: rgba(236,178,195,0.35); transform: translateY(-3px); }
+
+.mf-card-imagen {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: #1e1e28;
+}
+.mf-card-imagen img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.mf-badge-nuevo {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #ecb2c3;
+    color: #0f0f12;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 9px;
+    border-radius: 4px;
+}
+
+.mf-btn-quitar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(15,15,18,0.7);
+    border: none;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.mf-btn-quitar:hover { background: rgba(224,90,106,0.4); }
+.mf-btn-quitar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.mf-card-info { padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+.mf-card-categoria { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8a7a82; margin: 0; }
+.mf-card-nombre { font-size: 0.95rem; font-weight: 700; color: #f0e6ea; margin: 0 0 4px; font-family: 'Playfair Display', serif; line-height: 1.3; }
+
+.mf-card-precios { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.mf-precio-tachado { font-size: 0.78rem; color: #8a7a82; text-decoration: line-through; }
+.mf-precio-final { font-size: 1rem; font-weight: 700; color: #ecb2c3; }
+
+.mf-stock-agotado { font-size: 0.75rem; color: #e05a6a; }
+.mf-stock-poco { font-size: 0.75rem; color: #f5c842; }
+.mf-stock-ok { font-size: 0.75rem; color: #6bcb77; }
+
+@media (max-width: 500px) {
+    .mf-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+}
