@@ -358,19 +358,6 @@ const ProductoDetalleScreen: React.FC = () => {
                         </span>
                     </div>
 
-                    {!!producto.ubicaciones_entrega?.length && (
-                        <div className="pd-ubicaciones-entrega">
-                            <p className="pd-ubicaciones-titulo">📍 Lugares de entrega</p>
-                            <div className="pd-ubicaciones-lista">
-                                {producto.ubicaciones_entrega.map(u => (
-                                    <span key={u} className="pd-ubicacion-chip" style={{ background: colorDeUbicacion(u) }}>
-                                        {u}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
                     {producto.stock_actual > 0 && producto.permite_personalizacion && (
                         <div className="pd-personalizacion-form">
                             <p className="pd-personalizacion-titulo">✏️ Personaliza tu pieza</p>
@@ -470,6 +457,24 @@ const ProductoDetalleScreen: React.FC = () => {
                             </div>
                         )}
                     </div>
+
+                    {!!producto.ubicaciones_entrega?.length && (
+                        <div className="pd-ubicaciones-entrega">
+                            <p className="pd-ubicaciones-titulo">📍 Lugares de entrega</p>
+                            <div className="pd-ubicaciones-lista">
+                                {producto.ubicaciones_entrega.map(u => (
+                                    <button
+                                        key={u}
+                                        type="button"
+                                        className="pd-ubicacion-boton"
+                                        style={{ background: colorDeUbicacion(u), boxShadow: `0 4px 14px ${colorDeUbicacion(u)}55` }}
+                                    >
+                                        {u}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </section>
 

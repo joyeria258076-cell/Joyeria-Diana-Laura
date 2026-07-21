@@ -24,7 +24,7 @@
     background: var(--pd-bg);
     color: var(--pd-text);
     padding: 1.5rem 2rem 5rem;
-    max-width: 1280px;
+    max-width: 1400px;
     margin: 0 auto;
     font-family: 'Cormorant Garamond', 'Georgia', serif;
 }
@@ -283,25 +283,37 @@
 }
 
 /* Lugares de entrega */
-.pd-ubicaciones-entrega { display: flex; flex-direction: column; gap: 0.5rem; }
+.pd-ubicaciones-entrega {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--pd-border);
+}
 .pd-ubicaciones-titulo {
     margin: 0;
-    font-size: 0.78rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--pd-muted);
-    font-family: 'Montserrat', sans-serif;
-}
-.pd-ubicaciones-lista { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.pd-ubicacion-chip {
-    color: #fff;
     font-size: 0.8rem;
     font-weight: 700;
-    padding: 0.35rem 0.9rem;
-    border-radius: 20px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--pd-text);
     font-family: 'Montserrat', sans-serif;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
+.pd-ubicaciones-lista { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.pd-ubicacion-boton {
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    padding: 0.55rem 1.3rem;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Montserrat', sans-serif;
+    cursor: default;
+    transition: transform 0.2s;
+}
+.pd-ubicacion-boton:hover { transform: translateY(-2px); }
 
 /* Formulario de personalización */
 .pd-personalizacion-form {

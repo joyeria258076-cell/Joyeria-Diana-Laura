@@ -38,7 +38,7 @@
 
 /* ===== FAVORITOS ===== */
 .favoritos-section {
-    max-width: 1300px;
+    max-width: 1400px;
     margin: 0 auto 2.5rem;
     background: linear-gradient(135deg, rgba(201,168,76,.07), rgba(201,168,76,.02));
     border: 1.5px solid rgba(201,168,76,.22);
@@ -72,7 +72,7 @@
     border-radius: 16px;
     padding: 1.5rem 1.8rem;
     margin-bottom: 2.5rem;
-    max-width: 1300px;
+    max-width: 1400px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -188,7 +188,7 @@
 
 /* ===== SECCIONES DE CATEGORÍAS ===== */
 .categorias-sections {
-    max-width: 1300px;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
@@ -239,7 +239,7 @@
 }
 
 /* ===== RESULTADOS ===== */
-.resultados-section { max-width: 1300px; margin: 0 auto; }
+.resultados-section { max-width: 1400px; margin: 0 auto; }
 .resultados-title {
     font-size: 1.2rem;
     font-weight: 700;
@@ -465,7 +465,7 @@
     background: rgba(18,18,18,.9);
     border: 1px solid rgba(201,168,76,.15);
     border-radius: 16px;
-    max-width: 1300px;
+    max-width: 1400px;
     margin: 2rem auto;
 }
 .no-results p { font-size: 1.1rem; color: #888; margin-bottom: 1.2rem; }
