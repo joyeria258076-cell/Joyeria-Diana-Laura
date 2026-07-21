@@ -100,6 +100,7 @@ import ServerErrorScreen from '../screens/general/ServerErrorScreen';
 import ClientePedidosScreen from "../screens/cliente/ClientePedidosScreen";
 import CarritoScreen from "../screens/cliente/CarritoScreen";
 import MisApartadosScreen from "../screens/cliente/MisApartadosScreen";
+import NotificacionesScreen from "../screens/cliente/NotificacionesScreen";
 import ProductoDetalleScreen from "../screens/cliente/ProductoDetalleScreen";
 
 
@@ -202,6 +203,7 @@ export default function AppRoutes() {
           <Route path="/pedidos" element={<ClientePedidosScreen />} />
           <Route path="/carrito" element={<CarritoScreen />} />
           <Route path="/mis-apartados" element={<MisApartadosScreen />} />
+          <Route path="/notificaciones" element={<NotificacionesScreen />} />
           <Route path="/producto/:id" element={<ProductoDetalleScreen />} />
 
           {/* 🔐 RUTAS EXCLUSIVAS ADMIN */}

@@ -259,6 +259,43 @@
     opacity: 0.8;
 }
 
+/* ── Campanita de notificaciones ── */
+.header-notif-btn {
+    position: relative;
+    background: transparent;
+    border: 1px solid rgba(236,178,195,0.25);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    margin-right: 6px;
+}
+.header-notif-btn:hover {
+    background: rgba(236,178,195,0.1);
+    border-color: rgba(236,178,195,0.4);
+    transform: translateY(-1px);
+}
+.header-notif-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--rosa-joyeria);
+    color: #0f0f12;
+    font-size: 0.62rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 3px 5px;
+    border-radius: 50px;
+    min-width: 16px;
+    text-align: center;
+    box-shadow: 0 0 0 2px #0f0f12;
+}
+
 /* ── Botón hamburguesa (oculto en desktop) ── */
 .hamburger-btn {
     display: none;

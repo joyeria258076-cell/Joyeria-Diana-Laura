@@ -36,6 +36,8 @@
 .carrito-item-nombre { font-size: 1rem; font-weight: 700; color: #f0e6ea; margin: 0; line-height: 1.3; font-family: 'Playfair Display', serif; }
 .carrito-item-detalle { font-size: 0.8rem; color: #8a7a82; margin: 0; }
 .carrito-item-nota { color: rgba(236,178,195,0.7); font-style: italic; }
+.carrito-badge-personalizado { display: inline-block; margin-left: 0.5rem; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #0f0f12; background: linear-gradient(135deg, #c9a84c, #f5d982); padding: 0.15rem 0.5rem; border-radius: 20px; vertical-align: middle; font-family: 'Montserrat', sans-serif; }
+.carrito-item-cargo { font-size: 0.78rem; color: #c9a84c; font-weight: 600; margin: 0; }
 .carrito-item-precios { display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem; }
 .carrito-precio-tachado { font-size: 0.8rem; color: #8a7a82; text-decoration: line-through; }
 .carrito-precio-final { font-size: 1rem; font-weight: 700; color: #ecb2c3; }

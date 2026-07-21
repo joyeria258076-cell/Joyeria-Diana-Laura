@@ -150,9 +150,9 @@ const AdminEditarProveedorScreen: React.FC = () => {
       <div className="editar-proveedor-wrapper">
         {/* Header */}
         <div className="editar-proveedor-header">
-          <button className="btn-back" onClick={() => navigate(`/admin/proveedor/${id}`)}>
+          <button className="btn-back" onClick={() => navigate(-1)}>
             <AiOutlineArrowLeft size={20} />
-            <span>Volver al Detalle</span>
+            <span>Volver</span>
           </button>
           <h1>✏️ Editar Proveedor</h1>
         </div>
@@ -331,7 +331,7 @@ const AdminEditarProveedorScreen: React.FC = () => {
             <button
               type="button"
               className="btn-cancel"
-              onClick={() => navigate(`/admin/proveedor/${id}`)}
+              onClick={() => navigate(-1)}
             >
               Cancelar
             </button>

@@ -41,6 +41,19 @@ const AdminSegmentosScreen: React.FC = () => {
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [errorEnvio, setErrorEnvio] = useState('');
+  const [asuntoPersonalizado, setAsuntoPersonalizado] = useState('');
+  const [mensajePersonalizado, setMensajePersonalizado] = useState('');
+
+  const ASUNTO_DEFAULT = 'Una oferta especial para ti, de parte de Joyería Diana Laura';
+
+  const seleccionarSegmento = (seg: Segmento) => {
+    setSegSeleccionado(prev => {
+      const nuevo = prev === seg.nombre ? null : seg.nombre;
+      if (nuevo) { setAsuntoPersonalizado(ASUNTO_DEFAULT); setMensajePersonalizado(seg.accion); }
+      return nuevo;
+    });
+    setFiltroSeg(prev => prev === seg.nombre ? null : seg.nombre);
+  };
 
   useEffect(() => {
     segmentacionAPI.obtener().then(res => {
@@ -71,8 +84,8 @@ const AdminSegmentosScreen: React.FC = () => {
     const resultado = await segmentacionAPI.enviarPromocion({
       cliente_ids: clienteIds,
       segmento: segSeleccionado,
-      asunto: `Una oferta especial para ti, de parte de Joyería Diana Laura`,
-      mensaje: seg.accion,
+      asunto: asuntoPersonalizado.trim() || ASUNTO_DEFAULT,
+      mensaje: mensajePersonalizado.trim() || seg.accion,
     });
 
     setEnviando(false);
@@ -138,10 +151,7 @@ const AdminSegmentosScreen: React.FC = () => {
                 key={seg.nombre}
                 className={`seg-card ${segSeleccionado === seg.nombre ? 'seg-card--activa' : ''}`}
                 style={{ '--seg-color': colorDeSegmento(seg.nombre) } as React.CSSProperties}
-                onClick={() => {
-                  setSegSeleccionado(prev => prev === seg.nombre ? null : seg.nombre);
-                  setFiltroSeg(prev => prev === seg.nombre ? null : seg.nombre);
-                }}
+                onClick={() => seleccionarSegmento(seg)}
               >
                 <div className="seg-card-circulo" />
                 <div className="seg-card-info">
@@ -269,11 +279,34 @@ const AdminSegmentosScreen: React.FC = () => {
                 <p className="seg-accion-texto">
                   Enviar promoción personalizada al segmento <strong>"{segActivo.nombre}"</strong>
                 </p>
-                <p className="seg-accion-sub">{segActivo.accion}</p>
+                <p className="seg-accion-sub">Estrategia sugerida: {segActivo.accion}</p>
+
+                <div className="seg-personalizar">
+                  <label className="seg-personalizar-label">Asunto del correo</label>
+                  <input
+                    className="seg-personalizar-input"
+                    value={asuntoPersonalizado}
+                    onChange={e => setAsuntoPersonalizado(e.target.value)}
+                    placeholder={ASUNTO_DEFAULT}
+                    maxLength={150}
+                  />
+
+                  <label className="seg-personalizar-label">Mensaje personalizado</label>
+                  <textarea
+                    className="seg-personalizar-textarea"
+                    value={mensajePersonalizado}
+                    onChange={e => setMensajePersonalizado(e.target.value)}
+                    placeholder={segActivo.accion}
+                    rows={4}
+                    maxLength={500}
+                  />
+                  <span className="seg-personalizar-contador">{mensajePersonalizado.length}/500</span>
+                </div>
+
                 <button
                   className={`seg-accion-btn ${enviado ? 'seg-accion-btn--ok' : ''}`}
                   onClick={handleEnviarPromocion}
-                  disabled={enviando || enviado}
+                  disabled={enviando || enviado || !mensajePersonalizado.trim()}
                 >
                   {enviando ? 'Enviando...' : enviado ? '✓ Promoción enviada' : 'Enviar promoción'}
                 </button>

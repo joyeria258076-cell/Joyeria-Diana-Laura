@@ -444,6 +444,17 @@ export const authAPI = {
   }
 };
 
+export const resenasAPI = {
+  // ⭐ Obtener reseñas de un producto (+ promedio, si el usuario ya reseñó / puede reseñar)
+  getByProducto: async (producto_id: number) => {
+    return enhancedApi.get(`/products/${producto_id}/resenas`);
+  },
+  // ⭐ Crear o actualizar mi reseña de un producto
+  crear: async (producto_id: number, calificacion: number, comentario?: string) => {
+    return enhancedApi.post(`/products/${producto_id}/resenas`, { calificacion, comentario });
+  },
+};
+
 export const productsAPI = {
   // 📦 Obtener catálogo completo
   getAll: async () => {

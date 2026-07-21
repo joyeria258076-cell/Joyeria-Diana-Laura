@@ -19,6 +19,7 @@ export interface CartItem {
     precio_promocion?:       number;
     stock_actual:            number;
     permite_personalizacion: boolean;
+    precio_personalizacion?: number;
     tiene_medidas:           boolean;
     categoria_nombre:        string;
 }
@@ -56,7 +57,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCount(cartItems.reduce((s, i) => s + i.cantidad, 0));
         setTotal(cartItems.reduce((s, i) => {
             const precio = Number.parseFloat(String(i.precio_promocion ?? i.precio_oferta ?? i.precio_venta));
-            return s + precio * i.cantidad;
+            const cargo = (i.permite_personalizacion && (i.talla_medida || i.nota)) ? Number(i.precio_personalizacion || 0) : 0;
+            return s + (precio + cargo) * i.cantidad;
         }, 0));
     };
 

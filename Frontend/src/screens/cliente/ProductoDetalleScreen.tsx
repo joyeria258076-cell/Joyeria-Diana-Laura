@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AiOutlineArrowLeft, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart } from 'react-icons/ai';
-import { productsAPI, recomendacionAPI } from '../../services/api';
+import { productsAPI, recomendacionAPI, resenasAPI } from '../../services/api';
 import { useCart } from '../../contexts/CartContext';
 import './ProductoDetalleScreen.css';
 
@@ -24,6 +24,15 @@ interface Producto {
     es_destacado?: boolean;
     dias_fabricacion?: number;
     permite_personalizacion?: boolean;
+    precio_personalizacion?: number;
+}
+
+interface Resena {
+    id: number;
+    cliente_nombre: string;
+    calificacion: number;
+    comentario?: string;
+    fecha_creacion: string;
 }
 
 const PLACEHOLDER = `data:image/svg+xml;utf8,<svg width="600" height="600" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="600" fill="%230d0d0d"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="24" fill="%23ecb2c3" font-family="Arial">Joya Diana Laura</text></svg>`;
@@ -39,9 +48,59 @@ const ProductoDetalleScreen: React.FC = () => {
     const [cantidad, setCantidad] = useState(1);
     const [agregando, setAgregando] = useState(false);
     const [exitoso, setExitoso] = useState(false);
+    const [tallaMedida, setTallaMedida] = useState('');
+    const [notaPersonalizacion, setNotaPersonalizacion] = useState('');
+    const [errorPersonalizacion, setErrorPersonalizacion] = useState('');
     const [tabActiva, setTabActiva] = useState<'descripcion' | 'specs' | 'fabricacion'>('descripcion');
 
+    const [resenas, setResenas] = useState<Resena[]>([]);
+    const [promedioResenas, setPromedioResenas] = useState(0);
+    const [totalResenas, setTotalResenas] = useState(0);
+    const [puedeResenar, setPuedeResenar] = useState(false);
+    const [calificacionForm, setCalificacionForm] = useState(0);
+    const [comentarioForm, setComentarioForm] = useState('');
+    const [enviandoResena, setEnviandoResena] = useState(false);
+    const [errorResena, setErrorResena] = useState('');
+    const [exitoResena, setExitoResena] = useState(false);
+
     const { agregarAlCarrito } = useCart();
+
+    const cargarResenas = async (productoId: number) => {
+        try {
+            const resp = await resenasAPI.getByProducto(productoId);
+            if (resp?.success) {
+                setResenas(resp.data.resenas || []);
+                setPromedioResenas(resp.data.promedio || 0);
+                setTotalResenas(resp.data.total || 0);
+                setPuedeResenar(!!resp.data.puedeResenar);
+                if (resp.data.miResena) {
+                    setCalificacionForm(resp.data.miResena.calificacion);
+                    setComentarioForm(resp.data.miResena.comentario || '');
+                }
+            }
+        } catch {
+            setResenas([]);
+        }
+    };
+
+    const handleEnviarResena = async () => {
+        if (!producto || calificacionForm < 1) {
+            setErrorResena('Selecciona una calificación de 1 a 5 estrellas.');
+            return;
+        }
+        setErrorResena('');
+        setEnviandoResena(true);
+        try {
+            await resenasAPI.crear(producto.id, calificacionForm, comentarioForm.trim() || undefined);
+            setExitoResena(true);
+            await cargarResenas(producto.id);
+            setTimeout(() => setExitoResena(false), 3000);
+        } catch (err: any) {
+            setErrorResena(err?.message || 'No se pudo enviar tu reseña. Intenta de nuevo.');
+        } finally {
+            setEnviandoResena(false);
+        }
+    };
 
     useEffect(() => {
         if (!id) return;
@@ -56,6 +115,10 @@ const ProductoDetalleScreen: React.FC = () => {
                 const prod: Producto = resp?.data;
                 if (!prod) { navigate('/catalogo'); return; }
                 setProducto(prod);
+
+                setCalificacionForm(0);
+                setComentarioForm('');
+                cargarResenas(prod.id);
 
                 // ── 1. Productos de la misma categoría ──────────────────────
                 let idsExcluir = new Set<number>([prod.id]);
@@ -123,10 +186,17 @@ const ProductoDetalleScreen: React.FC = () => {
 
     const handleAgregar = async () => {
         if (!producto) return;
+        if (producto.permite_personalizacion && !tallaMedida.trim() && !notaPersonalizacion.trim()) {
+            setErrorPersonalizacion('Indica al menos la talla/medida o describe cómo quieres personalizar tu pieza.');
+            return;
+        }
+        setErrorPersonalizacion('');
         setAgregando(true);
         try {
-            await agregarAlCarrito(producto.id, cantidad);
+            await agregarAlCarrito(producto.id, cantidad, tallaMedida.trim() || undefined, notaPersonalizacion.trim() || undefined);
             setExitoso(true);
+            setTallaMedida('');
+            setNotaPersonalizacion('');
             setTimeout(() => setExitoso(false), 2500);
         } catch (err: any) {
             alert(err?.message || 'No se pudo agregar. Intenta de nuevo.');
@@ -286,6 +356,38 @@ const ProductoDetalleScreen: React.FC = () => {
                         </span>
                     </div>
 
+                    {producto.stock_actual > 0 && producto.permite_personalizacion && (
+                        <div className="pd-personalizacion-form">
+                            <p className="pd-personalizacion-titulo">✏️ Personaliza tu pieza</p>
+                            {!!producto.precio_personalizacion && (
+                                <p className="pd-personalizacion-cargo">
+                                    + ${Number(producto.precio_personalizacion).toLocaleString('es-MX')} por personalización
+                                </p>
+                            )}
+                            <div className="pd-personalizacion-campo">
+                                <label>Talla / medida</label>
+                                <input
+                                    type="text"
+                                    value={tallaMedida}
+                                    onChange={e => { setTallaMedida(e.target.value); setErrorPersonalizacion(''); }}
+                                    placeholder="Ej. Talla de anillo 7, 45cm de cadena..."
+                                    maxLength={80}
+                                />
+                            </div>
+                            <div className="pd-personalizacion-campo">
+                                <label>Grabado / instrucciones (opcional)</label>
+                                <textarea
+                                    value={notaPersonalizacion}
+                                    onChange={e => { setNotaPersonalizacion(e.target.value); setErrorPersonalizacion(''); }}
+                                    placeholder="Ej. Grabado con el nombre 'Ana', en oro rosa..."
+                                    rows={3}
+                                    maxLength={300}
+                                />
+                            </div>
+                            {errorPersonalizacion && <p className="pd-personalizacion-error">{errorPersonalizacion}</p>}
+                        </div>
+                    )}
+
                     {producto.stock_actual > 0 && (
                         <div className="pd-compra-section">
                             <div className="pd-cantidad-wrap">
@@ -416,13 +518,88 @@ const ProductoDetalleScreen: React.FC = () => {
                                     <span className="pd-fab-icon">✏️</span>
                                     <div>
                                         <h4>Personalización disponible</h4>
-                                        <p>Esta pieza puede personalizarse con grabado, talla o material a tu elección. Contáctanos para coordinar los detalles.</p>
+                                        <p>Esta pieza puede personalizarse con grabado, talla o material a tu elección. Indica los detalles en el formulario de personalización antes de agregarla al carrito.</p>
                                     </div>
                                 </div>
                             )}
                         </div>
                     )}
                 </div>
+            </section>
+
+            {/* ── OPINIONES Y RESEÑAS ── */}
+            <section className="pd-resenas-section">
+                <div className="pd-resenas-header">
+                    <h2 className="pd-resenas-titulo">💬 Opiniones y reseñas</h2>
+                    {totalResenas > 0 ? (
+                        <div className="pd-resenas-resumen">
+                            <span className="pd-resenas-estrellas-grandes">
+                                {[1, 2, 3, 4, 5].map(n => (
+                                    <span key={n} className={n <= Math.round(promedioResenas) ? 'estrella-llena' : 'estrella-vacia'}>★</span>
+                                ))}
+                            </span>
+                            <span className="pd-resenas-promedio">{promedioResenas.toFixed(1)}</span>
+                            <span className="pd-resenas-total">({totalResenas} {totalResenas === 1 ? 'reseña' : 'reseñas'})</span>
+                        </div>
+                    ) : (
+                        <p className="pd-resenas-vacio">Este producto aún no tiene reseñas.</p>
+                    )}
+                </div>
+
+                {puedeResenar && (
+                    <div className="pd-resena-form">
+                        <p className="pd-resena-form-titulo">✏️ Escribe tu opinión</p>
+                        <div className="pd-resena-estrellas-input">
+                            {[1, 2, 3, 4, 5].map(n => (
+                                <button
+                                    key={n}
+                                    type="button"
+                                    className={n <= calificacionForm ? 'estrella-llena' : 'estrella-vacia'}
+                                    onClick={() => { setCalificacionForm(n); setErrorResena(''); }}
+                                    aria-label={`${n} estrellas`}
+                                >★</button>
+                            ))}
+                        </div>
+                        <textarea
+                            className="pd-resena-textarea"
+                            value={comentarioForm}
+                            onChange={e => setComentarioForm(e.target.value)}
+                            placeholder="Cuéntanos qué te pareció esta joya... (opcional)"
+                            rows={3}
+                            maxLength={500}
+                        />
+                        {errorResena && <p className="pd-resena-error">{errorResena}</p>}
+                        {exitoResena && <p className="pd-resena-exito">✓ ¡Gracias por tu opinión!</p>}
+                        <button className="pd-resena-btn-enviar" onClick={handleEnviarResena} disabled={enviandoResena}>
+                            {enviandoResena ? 'Enviando...' : 'Publicar reseña'}
+                        </button>
+                    </div>
+                )}
+
+                {!puedeResenar && (
+                    <p className="pd-resenas-aviso">
+                        ⓘ Solo los clientes que ya recibieron este producto pueden dejar una reseña.
+                    </p>
+                )}
+
+                {resenas.length > 0 && (
+                    <div className="pd-resenas-lista">
+                        {resenas.map(r => (
+                            <div key={r.id} className="pd-resena-item">
+                                <div className="pd-resena-item-header">
+                                    <span className="pd-resena-item-nombre">{r.cliente_nombre}</span>
+                                    <span className="pd-resena-item-estrellas">
+                                        {[1, 2, 3, 4, 5].map(n => (
+                                            <span key={n} className={n <= r.calificacion ? 'estrella-llena' : 'estrella-vacia'}>★</span>
+                                        ))}
+                                    </span>
+                                </div>
+                                {r.comentario && <p className="pd-resena-item-comentario">{r.comentario}</p>}
+                                <p className="pd-resena-item-fecha">{new Date(r.fecha_creacion).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </section>
 
             {/* ── SIMILARES POR CONTENT-BASED FILTERING (similitud coseno) ── */}

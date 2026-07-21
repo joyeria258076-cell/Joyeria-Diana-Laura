@@ -2,6 +2,135 @@
 import { Request, Response } from 'express';
 import { pool } from '../../config/database';
 import { AuthRequest } from '../../middleware/authMiddleware';
+import axios from 'axios';
+
+// ─── Notificación por email de estado de apartado (reemplaza el banner in-app) ──
+const BREVO_ENDPOINT = 'https://api.brevo.com/v3/smtp/email';
+const REMITENTE_EMAIL = process.env.BREVO_SENDER_EMAIL || '';
+const REMITENTE_NOMBRE = process.env.BREVO_SENDER_NOMBRE || 'Joyeria Diana Laura';
+
+type TipoNotifApartado = 'activo' | 'liquidado' | 'cancelado' | 'advertencia';
+
+const APARTADO_NOTIF_META: Record<TipoNotifApartado, { color: string; colorClaro: string; icono: string; titulo: string; mensaje: string }> = {
+    activo:      { color: '#d4607e', colorClaro: '#f4c2d1', icono: '✅', titulo: 'Apartado confirmado', mensaje: 'Tu pago inicial fue confirmado y tu apartado ya está activo.' },
+    liquidado:   { color: '#4c9a5b', colorClaro: '#b8e6c2', icono: '🎁', titulo: '¡Apartado liquidado!', mensaje: 'Terminaste de pagar tu apartado. Ya puedes recoger tu pedido.' },
+    cancelado:   { color: '#8a2b2b', colorClaro: '#e6a8a8', icono: '✖️', titulo: 'Apartado cancelado', mensaje: 'Tu apartado fue cancelado.' },
+    advertencia: { color: '#c9a84c', colorClaro: '#e6d9a8', icono: '⚠️', titulo: 'Tu apartado está por vencer', mensaje: 'Realiza tu siguiente abono pronto para no perder tu apartado.' },
+};
+
+const construirHtmlNotificacionApartado = (apartado: any, tipo: TipoNotifApartado): string => {
+    const meta = APARTADO_NOTIF_META[tipo];
+    const nombrePila = (apartado.cliente_nombre || '').split(' ')[0];
+
+    const montoTotal    = Number(apartado.monto_total) || 0;
+    const montoPagado   = Number(apartado.monto_pagado) || 0;
+    const saldo         = Number(apartado.saldo_pendiente) || 0;
+    const porcentaje    = montoTotal > 0 ? Math.min(100, Math.round((montoPagado / montoTotal) * 100)) : 0;
+
+    return `
+    <div style="background:#050505; padding:40px 16px; font-family:Georgia,'Times New Roman',serif;">
+      <table role="presentation" width="100%" style="max-width:560px; margin:0 auto; background:linear-gradient(160deg,#161116 0%,#0b0708 55%,#050405 100%); border-radius:24px; overflow:hidden; border:1px solid ${meta.color}40; box-shadow:0 24px 60px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.04);">
+        <tr><td style="height:6px; background:linear-gradient(90deg,#c9a84c,${meta.color},${meta.colorClaro},${meta.color},#c9a84c); background-size:200% 100%;"></td></tr>
+
+        <tr>
+          <td style="padding:48px 36px 30px; text-align:center; background:radial-gradient(circle at 50% -10%, ${meta.color}22 0%, transparent 60%);">
+            <p style="margin:0 0 10px; font-size:11px; letter-spacing:6px; text-transform:uppercase; color:${meta.colorClaro}; font-family:Georgia,serif;">Joyería</p>
+            <h1 style="margin:0 0 22px; font-family:'Playfair Display',Georgia,serif; font-weight:700; font-style:italic; font-size:36px; color:#ffffff; text-shadow:0 2px 12px rgba(0,0,0,0.4);">Diana Laura</h1>
+            <div style="display:inline-block; background:linear-gradient(135deg,${meta.color}2b,${meta.color}10); border:1px solid ${meta.color}80; border-radius:50px; padding:11px 26px; box-shadow:0 6px 18px ${meta.color}25;">
+              <span style="font-size:16px; vertical-align:middle;">${meta.icono}</span>
+              <span style="font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:${meta.colorClaro}; font-weight:700; vertical-align:middle; margin-left:9px; font-family:'Segoe UI',Arial,sans-serif;">${meta.titulo}</span>
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:6px 36px 8px;">
+            <p style="margin:0 0 8px; font-size:24px; color:#ffffff; font-family:'Playfair Display',Georgia,serif; font-style:italic;">Hola, ${nombrePila} 👋</p>
+            <p style="margin:0 0 26px; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.65); font-family:'Segoe UI',Arial,sans-serif;">${meta.mensaje}</p>
+
+            <table role="presentation" width="100%" style="background:linear-gradient(160deg,${meta.color}1a 0%, rgba(255,255,255,0.02) 100%); border:1px solid ${meta.color}4a; border-radius:16px; margin:0 0 22px;">
+              <tr><td style="padding:24px 26px;">
+                <table role="presentation" width="100%">
+                  <tr>
+                    <td>
+                      <p style="margin:0 0 3px; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:${meta.colorClaro}; font-family:'Segoe UI',Arial,sans-serif;">Folio de apartado</p>
+                      <p style="margin:0; font-size:18px; color:#fff; font-weight:700; font-family:'Segoe UI',Arial,sans-serif; letter-spacing:0.3px;">${apartado.folio}</p>
+                    </td>
+                  </tr>
+                </table>
+
+                <div style="height:1px; background:${meta.color}30; margin:18px 0;"></div>
+
+                <table role="presentation" width="100%" style="margin-bottom:14px;">
+                  <tr>
+                    <td style="font-size:13px; color:rgba(255,255,255,0.55); font-family:'Segoe UI',Arial,sans-serif; padding-bottom:6px;">Total del apartado</td>
+                    <td style="font-size:13px; color:#fff; text-align:right; font-family:'Segoe UI',Arial,sans-serif; padding-bottom:6px;">$${montoTotal.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td style="font-size:13px; color:rgba(255,255,255,0.55); font-family:'Segoe UI',Arial,sans-serif; padding-bottom:6px;">Monto pagado</td>
+                    <td style="font-size:13px; color:#a8e6b8; font-weight:700; text-align:right; font-family:'Segoe UI',Arial,sans-serif; padding-bottom:6px;">$${montoPagado.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td style="font-size:13px; color:rgba(255,255,255,0.55); font-family:'Segoe UI',Arial,sans-serif;">Saldo pendiente</td>
+                    <td style="font-size:14px; color:${meta.colorClaro}; font-weight:800; text-align:right; font-family:'Segoe UI',Arial,sans-serif;">$${saldo.toFixed(2)}</td>
+                  </tr>
+                </table>
+
+                <div style="background:rgba(255,255,255,0.08); border-radius:50px; height:10px; overflow:hidden; margin-bottom:6px;">
+                  <div style="height:100%; width:${porcentaje}%; background:linear-gradient(90deg,${meta.color},${meta.colorClaro}); border-radius:50px;"></div>
+                </div>
+                <p style="margin:0; font-size:11px; color:rgba(255,255,255,0.45); text-align:right; font-family:'Segoe UI',Arial,sans-serif;">${porcentaje}% completado</p>
+              </td></tr>
+            </table>
+
+            <div style="text-align:center; margin:0 0 8px;">
+              <a href="https://joyeria-diana-laura.vercel.app/mis-apartados" style="display:inline-block; background:linear-gradient(135deg,${meta.color} 0%,${meta.colorClaro} 100%); color:#1a0a10; text-decoration:none; font-weight:700; font-size:12.5px; letter-spacing:1.5px; padding:15px 40px; border-radius:50px; box-shadow:0 10px 26px ${meta.color}45; font-family:'Segoe UI',Arial,sans-serif; text-transform:uppercase;">Ver mi apartado</a>
+            </div>
+          </td>
+        </tr>
+
+        <tr><td style="padding:20px 36px 0;"><div style="height:1px; background:linear-gradient(90deg,transparent,${meta.color}45,transparent);"></div></td></tr>
+        <tr>
+          <td style="padding:22px 36px 36px; text-align:center;">
+            <p style="margin:0 0 5px; font-size:16px; color:${meta.colorClaro}; font-weight:700; font-style:italic; font-family:'Playfair Display',Georgia,serif;">Joyería Diana Laura</p>
+            <p style="margin:0 0 12px; font-size:11px; letter-spacing:0.5px; color:rgba(255,255,255,0.35); font-family:'Segoe UI',Arial,sans-serif;">✨ Elegancia que brilla contigo ✨</p>
+            <p style="margin:0; font-size:11px; color:rgba(255,255,255,0.3); font-family:'Segoe UI',Arial,sans-serif;">📩 Mantente atento a tu correo: aquí te avisaremos de cualquier novedad de tu apartado.</p>
+          </td>
+        </tr>
+      </table>
+    </div>`;
+};
+
+const enviarEmailApartado = async (apartadoId: number, tipo: TipoNotifApartado): Promise<void> => {
+    try {
+        const result = await pool.query(
+            `SELECT a.*, c.nombre || ' ' || COALESCE(c.apellido, '') AS cliente_nombre, c.email AS cliente_email
+             FROM apartados a JOIN clientes c ON c.id = a.cliente_id WHERE a.id = $1`,
+            [apartadoId]
+        );
+        const apartado = result.rows[0];
+        if (!apartado?.cliente_email) return;
+
+        await axios.post(
+            BREVO_ENDPOINT,
+            {
+                sender: { name: REMITENTE_NOMBRE, email: REMITENTE_EMAIL },
+                to: [{ email: apartado.cliente_email, name: apartado.cliente_nombre || '' }],
+                subject: `${APARTADO_NOTIF_META[tipo].titulo} — Apartado ${apartado.folio}`,
+                htmlContent: construirHtmlNotificacionApartado(apartado, tipo),
+            },
+            {
+                headers: {
+                    'api-key': process.env.BREVO_API_KEY,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+            }
+        );
+    } catch (err: any) {
+        console.error('⚠️ Error enviando notificación de apartado:', err.response?.data || err.message);
+    }
+};
 
 // ─── Utilidad: fecha local México + N días ────────────────────
 const fechaMexMasDias = (dias: number): string => {
@@ -365,6 +494,7 @@ export const confirmarPagoInicial = async (req: AuthRequest, res: Response) => {
         );
 
         await client.query('COMMIT');
+        enviarEmailApartado(Number.parseInt(id), 'activo');
         res.json({ success: true, message: 'Pago inicial confirmado. Apartado activo y stock reservado.' });
 
     } catch (error: any) {
@@ -786,6 +916,7 @@ export const cancelarApartado = async (req: AuthRequest, res: Response) => {
         );
 
         await client.query('COMMIT');
+        enviarEmailApartado(Number.parseInt(id), 'cancelado');
         res.json({ success: true, message: 'Apartado cancelado correctamente.' });
 
     } catch (error: any) {
@@ -809,6 +940,7 @@ export const marcarAdvertencia = async (req: AuthRequest, res: Response) => {
              WHERE id = $2 AND estado = 'activo'`,
             [userId, id]
         );
+        enviarEmailApartado(Number.parseInt(id), 'advertencia');
         res.json({ success: true, message: 'Advertencia registrada.' });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
@@ -1205,6 +1337,7 @@ export const confirmarAbonoPendiente = async (req: AuthRequest, res: Response) =
         }
 
         await client.query('COMMIT');
+        if (liquidado) enviarEmailApartado(Number.parseInt(id), 'liquidado');
         res.json({
             success: true,
             message: liquidado
@@ -1429,6 +1562,7 @@ const confirmarAbonoPorPago = async (abono_id: number, transaction_id: string, m
         }
 
         await client.query('COMMIT');
+        if (liquidado) enviarEmailApartado(abono.apartado_id, 'liquidado');
         console.log(`✅ Abono ${abono_id} confirmado por ${metodo}`);
     } catch (err) {
         await client.query('ROLLBACK');
@@ -1506,6 +1640,7 @@ const confirmarApartadoPorPago = async (apartado_id: number, transaction_id: str
             await client.query(`UPDATE ventas SET estado = 'confirmado' WHERE id = $1`, [apartado.venta_id]);
         }
         await client.query('COMMIT');
+        enviarEmailApartado(apartado_id, estadoNuevo as TipoNotifApartado);
         console.log(`✅ Apartado ${apartado_id} confirmado por ${metodo}`);
     } catch (err) {
         await client.query('ROLLBACK');

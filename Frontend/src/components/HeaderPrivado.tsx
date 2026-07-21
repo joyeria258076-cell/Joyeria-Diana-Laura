@@ -3,11 +3,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from '../contexts/CartContext';
+import { useNotificaciones } from '../contexts/NotificacionesContext';
 import "../styles/HeaderPrivado.css";
 
 const HeaderPrivado: React.FC = () => {
     const { user, logout } = useAuth();
     const { count: cartCount } = useCart();
+    const { noLeidas } = useNotificaciones();
     const navigate = useNavigate();
     const location = useLocation();
     const sidebarRef = useRef<HTMLDivElement>(null);
@@ -338,6 +340,17 @@ const HeaderPrivado: React.FC = () => {
                 <div className="header-welcome">
                     Bienvenido, <strong>{user?.nombre || 'Usuario'}</strong>
                 </div>
+                {userRole === 'cliente' && (
+                    <button
+                        className="header-notif-btn"
+                        onClick={() => navigate('/notificaciones')}
+                        aria-label="Notificaciones"
+                        title="Notificaciones"
+                    >
+                        🔔
+                        {noLeidas > 0 && <span className="header-notif-badge">{noLeidas > 9 ? '9+' : noLeidas}</span>}
+                    </button>
+                )}
                 <div
                     className="user-profile-info"
                     onClick={() => navigate(userRole === 'admin' ? "/admin-perfil" : userRole === 'trabajador' ? "/trabajador/perfil" : "/perfil")}

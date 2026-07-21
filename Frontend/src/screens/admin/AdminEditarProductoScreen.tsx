@@ -48,6 +48,7 @@ interface FormData {
   tiene_medidas: boolean;
   medidas: string;
   permite_personalizacion: boolean;
+  precio_personalizacion: number;
   dias_fabricacion: number;
   imagen_principal: string;
   imagen_public_id?: string;
@@ -100,6 +101,7 @@ const AdminEditarProductoScreen: React.FC = () => {
     tiene_medidas: false,
     medidas: '',
     permite_personalizacion: false,
+    precio_personalizacion: 0,
     dias_fabricacion: 0,
     imagen_principal: '',
     es_nuevo: false,
@@ -139,6 +141,7 @@ const AdminEditarProductoScreen: React.FC = () => {
           tiene_medidas: producto.tiene_medidas || false,
           medidas: typeof producto.medidas === 'string' ? producto.medidas : JSON.stringify(producto.medidas) || '',
           permite_personalizacion: producto.permite_personalizacion || false,
+          precio_personalizacion: producto.precio_personalizacion || 0,
           dias_fabricacion: producto.dias_fabricacion || 0,
           imagen_principal: producto.imagen_principal || '',
           es_nuevo: producto.es_nuevo || false,
@@ -717,6 +720,24 @@ const AdminEditarProductoScreen: React.FC = () => {
                 Permite Personalización
               </label>
             </div>
+
+            {formData.permite_personalizacion && (
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="precio_personalizacion">Cargo extra por personalización ($)</label>
+                  <input
+                    type="number"
+                    id="precio_personalizacion"
+                    name="precio_personalizacion"
+                    step="0.01"
+                    min="0"
+                    value={formData.precio_personalizacion || ''}
+                    onChange={handleInputChange}
+                    placeholder="Ej: 150"
+                  />
+                </div>
+              </div>
+            )}
 
             {formData.tiene_medidas && (
               <div className="form-row">

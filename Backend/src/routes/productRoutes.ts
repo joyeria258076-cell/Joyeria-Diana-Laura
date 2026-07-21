@@ -28,7 +28,9 @@ import {
     getProductsByCategories
 } from '../controllers/producto/productoController';
 
-import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
+import { getResenasProducto, crearResena } from '../controllers/producto/resenaController';
+
+import { authenticateToken, requireAdmin, optionalAuth } from '../middleware/authMiddleware';
 
 const router = Router();
 
@@ -65,6 +67,10 @@ router.get('/tipos-producto/:id', getTipoProductoById); // Ver un tipo específi
 router.get('/configuracion', getConfiguracion); // Ver toda la configuración
 router.get('/configuracion/clave/:clave', getConfiguracionByClave); // Ver config por clave
 router.get('/configuracion/categoria/:categoria', getConfiguracionByCategoria); // Ver config por categoría
+
+// --- RUTAS DE RESEÑAS ---
+router.get('/:id/resenas', optionalAuth, getResenasProducto);   // Ver reseñas de un producto (+ si el usuario ya reseñó / puede reseñar)
+router.post('/:id/resenas', authenticateToken, crearResena);    // Crear/actualizar mi reseña de un producto
 
 router.get('/:id', getProductById);              // Ver producto específico (ÚLTIMA ruta genérica)
 

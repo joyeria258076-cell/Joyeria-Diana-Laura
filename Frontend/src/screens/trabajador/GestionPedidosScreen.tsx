@@ -41,6 +41,7 @@ interface Pedido {
     comprobante_transferencia_url?: string;
     es_apartado?: boolean;
     apartado_folio?: string;
+    es_personalizado?: boolean;
     items?: ItemPedido[];
     codigo_entrega?: string; 
     costo_envio?: number;
@@ -651,6 +652,11 @@ const GestionPedidosScreen: React.FC = () => {
                 {pedido.es_apartado && (
                     <span style={{ display: 'block', fontSize: '0.7rem', marginTop: 2, background: '#a78bfa22', color: '#a78bfa', borderRadius: 4, padding: '1px 6px', fontWeight: 600 }}>
                         🔖 Apartado {pedido.apartado_folio}
+                    </span>
+                )}
+                {pedido.es_personalizado && (
+                    <span style={{ display: 'block', fontSize: '0.7rem', marginTop: 2, background: '#c9a84c22', color: '#c9a84c', borderRadius: 4, padding: '1px 6px', fontWeight: 600 }}>
+                        ✏️ Personalizado
                     </span>
                 )}
             </td>

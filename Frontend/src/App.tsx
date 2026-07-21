@@ -5,6 +5,7 @@ import './App.css';
 import AppRoutes from './navigation/AppRoutes';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { NotificacionesProvider } from './contexts/NotificacionesContext';
 import './styles/AccessibilityFonts.css';
 
 function App(): React.JSX.Element {
@@ -35,6 +36,7 @@ function App(): React.JSX.Element {
   return (
     <AuthProvider>
       <CartProvider>
+      <NotificacionesProvider>
         {/* Botones de control de accesibilidad */}
         <div className={`global-accessibility-buttons ${showControls ? 'expanded' : 'minimized'}`}>
           <button
@@ -58,6 +60,7 @@ function App(): React.JSX.Element {
 
         {/* Sistema de rutas */}
         <AppRoutes />
+      </NotificacionesProvider>
       </CartProvider>
     </AuthProvider>
   );

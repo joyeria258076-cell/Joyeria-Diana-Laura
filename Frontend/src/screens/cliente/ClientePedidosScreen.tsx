@@ -48,20 +48,14 @@ interface Pedido {
     dir_telefono_contacto?: string;
     es_apartado?: boolean;
     apartado_folio?: string;
+    es_personalizado?: boolean;
 }
 
 interface EstadoConfig { value: string; label: string; color: string; bg: string; }
-interface Notificacion { id: string; folio: string; mensaje: string; fecha: string; leida: boolean; }
 
-const STORAGE_KEY_NOTIFS  = 'diana_laura_notifs';
 const STORAGE_KEY_ESTADOS = 'diana_laura_estados_pedidos';
 const POLLING_INTERVAL    = 30000;
 
-const cargarNotifs = (): Notificacion[] => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIFS) || '[]'); }
-    catch { return []; }
-};
-const guardarNotifs = (n: Notificacion[]) => localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(n));
 const cargarEstadosAnteriores = (): Record<number, string> => {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY_ESTADOS) || '{}'); }
     catch { return {}; }
@@ -78,14 +72,6 @@ const COLORES_ESTADO: Record<string, { color: string; bg: string }> = {
 };
 const COLOR_DEFAULT = { color: '#fff', bg: '#555555' };
 const labelEstado = (v: string) => v.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
-const MENSAJE_ESTADO: Record<string, string> = {
-    confirmado:     '✅ Tu pedido fue confirmado. Ya puedes realizar el pago.',
-    en_preparacion: '🔧 Tu pedido está siendo preparado.',
-    enviado:        '🚚 Tu pedido fue enviado. ¡Pronto llegará!',
-    entregado:      '📦 Tu pedido fue entregado. ¡Gracias por tu compra!',
-    cancelado:      '🚫 Tu pedido fue cancelado.',
-};
 
 const FASES_STEPPER = [
     { key: 'pendiente',      label: 'Pedido',     icon: '📋' },
@@ -199,23 +185,8 @@ const ClientePedidosScreen: React.FC = () => {
     const [subiendo, setSubiendo]               = useState(false);
     const [msgComprobante, setMsgComprobante]   = useState('');
     const fileInputRef                          = useRef<HTMLInputElement>(null);
-    const [notifs, setNotifs]                   = useState<Notificacion[]>(cargarNotifs);
-    const [mostrarNotifs, setMostrarNotifs]     = useState(false);
-    const notifRef                              = useRef<HTMLDivElement>(null);
     const estadosAnteriores                     = useRef<Record<number, string>>(cargarEstadosAnteriores());
     const pollingRef                            = useRef<ReturnType<typeof setInterval> | null>(null);
-    const noLeidas = notifs.filter(n => !n.leida).length;
-
-    useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (notifRef.current && !notifRef.current.contains(e.target as Node)) setMostrarNotifs(false);
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, []);
-
-    const marcarTodasLeidas = () => { const u = notifs.map(n => ({ ...n, leida: true })); setNotifs(u); guardarNotifs(u); };
-    const borrarNotif = (id: string) => { const u = notifs.filter(n => n.id !== id); setNotifs(u); guardarNotifs(u); };
 
     useEffect(() => {
         const pago = searchParams.get('pago'); const pedidoId = searchParams.get('pedido'); const metodo = searchParams.get('metodo') || '';
@@ -254,20 +225,15 @@ const ClientePedidosScreen: React.FC = () => {
         try {
             const data = await carritoAPI.getEstadosPedidosCliente();
             if (!data.success) return;
-            const nuevasNotifs: Notificacion[] = [];
+            let huboCambios = false;
             const estadosGuardados = cargarEstadosAnteriores();
             data.data.forEach((p: any) => {
                 const anterior = estadosGuardados[p.id];
-                if (anterior && anterior !== p.estado && MENSAJE_ESTADO[p.estado]) {
-                    nuevasNotifs.push({ id: `${p.id}-${p.estado}-${Date.now()}`, folio: p.folio, mensaje: MENSAJE_ESTADO[p.estado], fecha: new Date().toISOString(), leida: false });
-                }
+                if (anterior && anterior !== p.estado) huboCambios = true;
                 estadosAnteriores.current[p.id] = p.estado;
             });
             guardarEstadosAnteriores(estadosAnteriores.current);
-            if (nuevasNotifs.length > 0) {
-                const todas = [...nuevasNotifs, ...cargarNotifs()].slice(0, 20);
-                setNotifs(todas); guardarNotifs(todas); cargarPedidos();
-            }
+            if (huboCambios) cargarPedidos();
         } catch { }
     };
 
@@ -297,17 +263,8 @@ const ClientePedidosScreen: React.FC = () => {
             const data = await carritoAPI.getMisPedidos();
             if (data.success) {
                 const nuevos: Pedido[] = data.data || [];
-console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
-                const nuevasNotifs: Notificacion[] = [];
-                const estadosGuardados = cargarEstadosAnteriores();
-                nuevos.forEach(p => {
-                    const anterior = estadosGuardados[p.id];
-                    if (anterior && anterior !== p.estado && MENSAJE_ESTADO[p.estado])
-                        nuevasNotifs.push({ id: `${p.id}-${p.estado}-${Date.now()}`, folio: p.folio, mensaje: MENSAJE_ESTADO[p.estado], fecha: new Date().toISOString(), leida: false });
-                    estadosAnteriores.current[p.id] = p.estado;
-                });
+                nuevos.forEach(p => { estadosAnteriores.current[p.id] = p.estado; });
                 guardarEstadosAnteriores(estadosAnteriores.current);
-                if (nuevasNotifs.length > 0) { const todas = [...nuevasNotifs, ...cargarNotifs()].slice(0, 20); setNotifs(todas); guardarNotifs(todas); }
                 setPedidos(nuevos);
             }
         } catch (err) { console.error(err); }
@@ -444,6 +401,11 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
                         🔖 Apartado {pedido.apartado_folio}
                     </span>
                 )}
+                {pedido.es_personalizado && (
+                    <span style={{ display: 'block', fontSize: '0.72rem', marginTop: 3, background: '#c9a84c22', color: '#c9a84c', borderRadius: 4, padding: '1px 6px', fontWeight: 600 }}>
+                        ✏️ Personalizado
+                    </span>
+                )}
             </td>
             <td>{formatFechaHora(pedido.fecha_creacion)}</td>
             <td className="cp-fecha-est">
@@ -478,29 +440,6 @@ console.log('FECHA RAW CLIENTE:', nuevos[0]?.fecha_creacion);
             <div className="cp-header">
                 <h2 className="cp-titulo">Mis Pedidos</h2>
                 <div className="cp-header-acciones">
-                    <div className="cp-notif-wrap" ref={notifRef}>
-                        <button className="cp-notif-btn" onClick={() => { setMostrarNotifs(!mostrarNotifs); if (!mostrarNotifs) marcarTodasLeidas(); }}>
-                            🔔{noLeidas > 0 && <span className="cp-notif-badge">{noLeidas}</span>}
-                        </button>
-                        {mostrarNotifs && (
-                            <div className="cp-notif-dropdown">
-                                <div className="cp-notif-header">
-                                    <span>Notificaciones</span>
-                                    {notifs.length > 0 && <button className="cp-notif-limpiar" onClick={() => { setNotifs([]); guardarNotifs([]); }}>Limpiar todo</button>}
-                                </div>
-                                {notifs.length === 0 ? <div className="cp-notif-vacio">Sin notificaciones</div> : notifs.map(n => (
-                                    <div key={n.id} className={`cp-notif-item ${n.leida ? 'leida' : ''}`}>
-                                        <div className="cp-notif-content">
-                                            <p className="cp-notif-folio">{n.folio}</p>
-                                            <p className="cp-notif-msg">{n.mensaje}</p>
-                                            <p className="cp-notif-fecha">{formatFechaHora(n.fecha)}</p>
-                                        </div>
-                                        <button className="cp-notif-borrar" onClick={() => borrarNotif(n.id)}>×</button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
                     <button className="cp-btn-nuevo" onClick={() => navigate('/carrito')}>🛒 Ir al carrito</button>
                 </div>
             </div>

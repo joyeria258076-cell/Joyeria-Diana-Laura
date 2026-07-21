@@ -20,6 +20,7 @@ export const CarritoModel = {
                 p.precio_oferta,
                 p.stock_actual,
                 p.permite_personalizacion,
+                p.precio_personalizacion,
                 p.tiene_medidas,
                 cat.nombre          AS categoria_nombre,
                 (
@@ -158,6 +159,9 @@ export const VentaModel = {
             cantidad:        number;
             precio_unitario: number;
             precio_original?: number;
+            talla_medida?:   string;
+            nota?:           string;
+            cargo_personalizacion?: number;
         }[];
     }) => {
         const client = await pool.connect();
@@ -203,18 +207,28 @@ export const VentaModel = {
                 const descuento = item.precio_original && item.precio_original > item.precio_unitario
                     ? Number((item.precio_original - item.precio_unitario).toFixed(2))
                     : null;
+                const personalizacion = (item.talla_medida || item.nota)
+                    ? JSON.stringify({
+                        talla_medida: item.talla_medida || null,
+                        nota: item.nota || null,
+                        cargo_personalizacion: item.cargo_personalizacion || 0
+                    })
+                    : null;
+
                 await client.query(`
                     INSERT INTO detalle_ventas (
                         venta_id, producto_id, producto_codigo,
                         producto_nombre, producto_imagen,
-                        cantidad, precio_unitario, precio_original, descuento_unitario, subtotal
-                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+                        cantidad, precio_unitario, precio_original, descuento_unitario, subtotal,
+                        personalizacion
+                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
                 `, [
                     venta.id, item.producto_id, item.producto_codigo,
                     item.producto_nombre, item.producto_imagen || null,
                     item.cantidad, item.precio_unitario,
                     item.precio_original || null, descuento,
-                    item.cantidad * item.precio_unitario
+                    item.cantidad * item.precio_unitario,
+                    personalizacion
                 ]);
             }
 
@@ -259,12 +273,19 @@ export const VentaModel = {
                         'precio_unitario',      dv.precio_unitario,
                         'precio_original',      dv.precio_original,
                         'descuento_unitario',   dv.descuento_unitario,
-                        'subtotal',             dv.subtotal
+                        'subtotal',             dv.subtotal,
+                        'talla_medida',         dv.personalizacion->>'talla_medida',
+                        'nota',                 dv.personalizacion->>'nota',
+                        'cargo_personalizacion', (dv.personalizacion->>'cargo_personalizacion')::numeric
                     ))
                     FROM detalle_ventas dv WHERE dv.venta_id = v.id
                 ) AS items,
                 ap.id IS NOT NULL AS es_apartado,
-                ap.folio AS apartado_folio
+                ap.folio AS apartado_folio,
+                EXISTS (
+                    SELECT 1 FROM detalle_ventas dv
+                    WHERE dv.venta_id = v.id AND dv.personalizacion IS NOT NULL
+                ) AS es_personalizado
             FROM ventas v
             LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
             LEFT JOIN usuarios tw ON v.trabajador_id = tw.id
@@ -300,7 +321,11 @@ export const VentaModel = {
                 EXTRACT(EPOCH FROM (NOW() - v.fecha_actualizacion))/60 AS minutos_sin_pago,
                 v.fecha_limite_pago,
                 ap.id IS NOT NULL AS es_apartado,
-                ap.folio AS apartado_folio
+                ap.folio AS apartado_folio,
+                EXISTS (
+                    SELECT 1 FROM detalle_ventas dv
+                    WHERE dv.venta_id = v.id AND dv.personalizacion IS NOT NULL
+                ) AS es_personalizado
             FROM ventas v
             JOIN clientes c ON v.cliente_id = c.id
             LEFT JOIN metodos_pago mp ON v.metodo_pago_id = mp.id
@@ -351,6 +376,10 @@ export const VentaModel = {
                     END AS estado_pago,
                     ap.id IS NOT NULL AS es_apartado,
                     ap.folio AS apartado_folio,
+                    EXISTS (
+                        SELECT 1 FROM detalle_ventas dv
+                        WHERE dv.venta_id = v.id AND dv.personalizacion IS NOT NULL
+                    ) AS es_personalizado,
                     (
                         SELECT json_agg(json_build_object(
                             'id',               dv.id,
@@ -359,7 +388,10 @@ export const VentaModel = {
                             'producto_imagen',  dv.producto_imagen,
                             'cantidad',         dv.cantidad,
                             'precio_unitario',  dv.precio_unitario,
-                            'subtotal',         dv.subtotal
+                            'subtotal',         dv.subtotal,
+                            'talla_medida',     dv.personalizacion->>'talla_medida',
+                            'nota',             dv.personalizacion->>'nota',
+                            'cargo_personalizacion', (dv.personalizacion->>'cargo_personalizacion')::numeric
                         ))
                         FROM detalle_ventas dv WHERE dv.venta_id = v.id
                     ) AS items

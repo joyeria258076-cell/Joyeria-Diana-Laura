@@ -282,6 +282,77 @@
     font-family: 'Montserrat', sans-serif;
 }
 
+/* Formulario de personalización */
+.pd-personalizacion-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(150deg, rgba(236,178,195,0.08) 0%, var(--pd-surface) 60%);
+    border: 1px solid rgba(201,169,110,0.35);
+    border-radius: var(--pd-radius);
+}
+
+.pd-personalizacion-titulo {
+    margin: 0;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--pd-gold);
+}
+
+.pd-personalizacion-cargo {
+    margin: -0.4rem 0 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--pd-accent);
+    font-family: 'Montserrat', sans-serif;
+}
+
+.pd-personalizacion-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.pd-personalizacion-campo label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--pd-muted);
+    font-family: 'Montserrat', sans-serif;
+}
+
+.pd-personalizacion-campo input,
+.pd-personalizacion-campo textarea {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--pd-border);
+    border-radius: 8px;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.92rem;
+    color: var(--pd-text);
+    font-family: 'Montserrat', sans-serif;
+    outline: none;
+    resize: vertical;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.pd-personalizacion-campo input::placeholder,
+.pd-personalizacion-campo textarea::placeholder { color: rgba(240,230,234,0.35); }
+
+.pd-personalizacion-campo input:focus,
+.pd-personalizacion-campo textarea:focus {
+    border-color: var(--pd-gold);
+    background: rgba(0,0,0,0.35);
+}
+
+.pd-personalizacion-error {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--pd-danger);
+}
+
 /* Sección de compra */
 .pd-compra-section {
     display: flex;
@@ -730,6 +801,130 @@
     50%       { transform: translateY(-12px); }
 }
 
+/* ── Opiniones y reseñas ─────────────────────────────────────────────────── */
+.pd-resenas-section {
+    background: var(--pd-surface);
+    border: 1px solid var(--pd-border);
+    border-radius: var(--pd-radius);
+    padding: 2rem;
+    margin-bottom: 3rem;
+}
+
+.pd-resenas-header { margin-bottom: 1.5rem; }
+
+.pd-resenas-titulo {
+    font-size: 1.4rem;
+    font-family: 'Playfair Display', Georgia, serif;
+    color: var(--pd-text);
+    margin: 0 0 0.6rem;
+}
+
+.pd-resenas-resumen { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.pd-resenas-estrellas-grandes { font-size: 1.3rem; letter-spacing: 2px; }
+.pd-resenas-promedio { font-size: 1.2rem; font-weight: 700; color: var(--pd-gold); font-family: 'Montserrat', sans-serif; }
+.pd-resenas-total { font-size: 0.85rem; color: var(--pd-muted); font-family: 'Montserrat', sans-serif; }
+.pd-resenas-vacio { font-size: 0.9rem; color: var(--pd-muted); margin: 0; font-family: 'Montserrat', sans-serif; }
+
+.estrella-llena { color: var(--pd-gold); }
+.estrella-vacia { color: rgba(255,255,255,0.15); }
+
+.pd-resena-form {
+    background: linear-gradient(150deg, rgba(236,178,195,0.06) 0%, var(--pd-surface2) 60%);
+    border: 1px solid var(--pd-border);
+    border-radius: var(--pd-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.pd-resena-form-titulo {
+    margin: 0;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    color: var(--pd-gold);
+    font-size: 1rem;
+}
+
+.pd-resena-estrellas-input { display: flex; gap: 0.3rem; }
+.pd-resena-estrellas-input button {
+    background: transparent;
+    border: none;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.15s;
+}
+.pd-resena-estrellas-input button:hover { transform: scale(1.15); }
+
+.pd-resena-textarea {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--pd-border);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.9rem;
+    color: var(--pd-text);
+    font-family: 'Montserrat', sans-serif;
+    outline: none;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+.pd-resena-textarea::placeholder { color: rgba(240,230,234,0.35); }
+.pd-resena-textarea:focus { border-color: var(--pd-gold); }
+
+.pd-resena-error { margin: 0; font-size: 0.8rem; color: var(--pd-danger); }
+.pd-resena-exito { margin: 0; font-size: 0.8rem; color: var(--pd-ok); font-weight: 600; }
+
+.pd-resena-btn-enviar {
+    align-self: flex-start;
+    background: linear-gradient(135deg, var(--pd-accent), var(--pd-accent2));
+    color: #1a0a10;
+    border: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.75rem 1.8rem;
+    border-radius: 50px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    transition: var(--pd-transition);
+}
+.pd-resena-btn-enviar:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(236,178,195,0.3); }
+.pd-resena-btn-enviar:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.pd-resenas-aviso {
+    font-size: 0.85rem;
+    color: var(--pd-muted);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--pd-border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin: 0 0 1.5rem;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.pd-resenas-lista { display: flex; flex-direction: column; gap: 1rem; }
+
+.pd-resena-item {
+    border-top: 1px solid var(--pd-border);
+    padding-top: 1rem;
+}
+
+.pd-resena-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+}
+
+.pd-resena-item-nombre { font-weight: 700; color: var(--pd-text); font-family: 'Montserrat', sans-serif; font-size: 0.9rem; }
+.pd-resena-item-estrellas { font-size: 0.95rem; letter-spacing: 1px; }
+.pd-resena-item-comentario { font-size: 0.9rem; color: rgba(240,230,234,0.85); line-height: 1.5; margin: 0 0 0.4rem; }
+.pd-resena-item-fecha { font-size: 0.72rem; color: var(--pd-muted); margin: 0; font-family: 'Montserrat', sans-serif; }
+
 /* ── Responsive general ──────────────────────────────────────────────────── */
 @media (max-width: 600px) {
     .pd-body { padding: 1rem 0.75rem 4rem; }
@@ -737,4 +932,5 @@
     .pd-tab { padding: 0.75rem 1rem; font-size: 0.75rem; }
     .pd-tab-content { padding: 1.25rem; }
     .pd-precio-final { font-size: 1.8rem; }
+    .pd-resenas-section { padding: 1.25rem; }
 }

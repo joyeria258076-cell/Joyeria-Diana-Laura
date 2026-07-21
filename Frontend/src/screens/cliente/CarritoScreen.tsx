@@ -399,9 +399,12 @@ const CarritoScreen: React.FC = () => {
                         <div className="carrito-loading"><div className="carrito-spinner" /><p>Cargando carrito...</p></div>
                     ) : (
                         items.map(item => {
-                            const precio       = Number.parseFloat(String(item.precio_promocion ?? item.precio_oferta ?? item.precio_venta));
+                            const precioBase   = Number.parseFloat(String(item.precio_promocion ?? item.precio_oferta ?? item.precio_venta));
+                            const esPersonalizado = !!(item.permite_personalizacion && (item.talla_medida || item.nota));
+                            const cargoPersonalizacion = esPersonalizado ? Number(item.precio_personalizacion || 0) : 0;
+                            const precio       = precioBase + cargoPersonalizacion;
                             const subtotal     = precio * item.cantidad;
-                            const hayDescuento = precio < Number.parseFloat(String(item.precio_venta));
+                            const hayDescuento = precioBase < Number.parseFloat(String(item.precio_venta));
                             const pocoPoco     = item.stock_actual <= STOCK_POCO && item.stock_actual > 0;
                             const sinStock     = item.stock_actual === 0;
                             return (
@@ -412,9 +415,15 @@ const CarritoScreen: React.FC = () => {
                                     </div>
                                     <div className="carrito-item-info">
                                         <p className="carrito-item-categoria">{item.categoria_nombre}</p>
-                                        <h3 className="carrito-item-nombre">{item.producto_nombre}</h3>
+                                        <h3 className="carrito-item-nombre">
+                                            {item.producto_nombre}
+                                            {esPersonalizado && <span className="carrito-badge-personalizado">✏️ Personalizado</span>}
+                                        </h3>
                                         {item.talla_medida && <p className="carrito-item-detalle">Talla/Medida: <strong>{item.talla_medida}</strong></p>}
                                         {item.nota && <p className="carrito-item-detalle carrito-item-nota">📝 {item.nota}</p>}
+                                        {cargoPersonalizacion > 0 && (
+                                            <p className="carrito-item-cargo">+ ${cargoPersonalizacion.toLocaleString('es-MX')} por personalización</p>
+                                        )}
                                         <div className="carrito-item-precios">
                                             {hayDescuento && <span className="carrito-precio-tachado">${Number.parseFloat(String(item.precio_venta)).toLocaleString('es-MX')}</span>}
                                             <span className="carrito-precio-final">${precio.toLocaleString('es-MX')}</span>

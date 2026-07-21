@@ -396,6 +396,53 @@
   margin: 0.75rem 0 0;
 }
 
+.seg-personalizar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0.25rem;
+  position: relative;
+}
+
+.seg-personalizar-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(245,217,130,0.75);
+  margin-top: 0.4rem;
+}
+
+.seg-personalizar-input,
+.seg-personalizar-textarea {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+  color: #fff;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  resize: vertical;
+}
+
+.seg-personalizar-input::placeholder,
+.seg-personalizar-textarea::placeholder { color: rgba(255,255,255,0.3); }
+
+.seg-personalizar-input:focus,
+.seg-personalizar-textarea:focus {
+  border-color: #c9a84c;
+  background: rgba(0,0,0,0.35);
+}
+
+.seg-personalizar-contador {
+  align-self: flex-end;
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.3);
+  margin-top: -0.3rem;
+}
+
 .seg-accion-btn {
   margin-top: 0.5rem;
   background: linear-gradient(135deg, #c9a84c 0%, #f5d982 100%);
