@@ -209,25 +209,25 @@ const AdminCategoriasScreen: React.FC = () => {
                           className="btn-action-lux edit"
                           onClick={() => handleAbrirModal(cat)}
                           title="Editar"
+                          aria-label="Editar"
                         >
                           <AiOutlineEdit className="btn-icon" />
-                          Editar
                         </button>
                         <button
                           className={`btn-action-lux ${isActivo ? 'hide' : 'show'}`}
                           onClick={() => handleToggleEstado(cat.id, isActivo)}
                           title={isActivo ? 'Ocultar' : 'Mostrar'}
+                          aria-label={isActivo ? 'Ocultar' : 'Mostrar'}
                         >
                           {isActivo ? <AiOutlineEye className="btn-icon" /> : <AiOutlineEyeInvisible className="btn-icon" />}
-                          {isActivo ? 'Ocultar' : 'Mostrar'}
                         </button>
                         <button
                           className="btn-action-lux delete"
                           onClick={() => handleEliminarCategoria(cat.id)}
                           title="Eliminar"
+                          aria-label="Eliminar"
                         >
                           <AiOutlineDelete className="btn-icon" />
-                          Eliminar
                         </button>
                       </td>
                     </tr>
