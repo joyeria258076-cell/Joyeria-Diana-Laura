@@ -23,7 +23,7 @@
 }
 
 .ap-header {
-  max-width: 1400px;
+  max-width: 1800px;
   margin: 0 auto 2rem;
   display: flex;
   align-items: center;
@@ -113,7 +113,7 @@
 .ap-btn-del:hover { background: rgba(224,90,106,0.18); }
 
 .ap-loading, .ap-empty {
-  max-width: 1400px;
+  max-width: 1800px;
   margin: 0 auto;
   text-align: center;
   padding: 4rem 20px;
@@ -124,7 +124,7 @@
 }
 
 .ap-table-wrap {
-  max-width: 1400px;
+  max-width: 1800px;
   margin: 0 auto;
   overflow-x: auto;
   border-radius: 16px;
