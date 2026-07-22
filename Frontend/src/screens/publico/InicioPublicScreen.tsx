@@ -198,12 +198,8 @@ const InicioPublicScreen: React.FC = () => {
         <PublicHeader />
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div className="noticias-loading">
-            <div className="loading-spinner">
-              <div className="spinner-ring" />
-              <span className="spinner-gem">💎</span>
-            </div>
-            <p className="loading-text" style={{ marginTop: '1.5rem' }}>Preparando la experiencia...</p>
-            <div className="loading-dots"><span /><span /><span /></div>
+            <div className="dl-loader-bars"><span /><span /><span /><span /></div>
+            <p className="loading-text" style={{ marginTop: '1rem' }}>Cargando...</p>
           </div>
         </div>
         <PublicFooter />

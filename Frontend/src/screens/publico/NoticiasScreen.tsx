@@ -100,12 +100,8 @@ const NoticiasScreen: React.FC = () => {
           {/* LOADING */}
           {loading && (
             <div className="noticias-loading">
-              <div className="loading-spinner">
-                <div className="spinner-ring" />
-                <span className="spinner-gem">💎</span>
-              </div>
-              <p className="loading-text">Cargando novedades</p>
-              <div className="loading-dots"><span /><span /><span /></div>
+              <div className="dl-loader-bars"><span /><span /><span /><span /></div>
+              <p className="loading-text">Cargando novedades...</p>
             </div>
           )}
 

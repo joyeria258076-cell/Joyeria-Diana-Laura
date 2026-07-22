@@ -187,11 +187,8 @@ const AdminInitoManager: React.FC = () => {
         return (
             <div className="content-page animate-fade-in" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
                 <div className="noticias-loading">
-                    <div className="loading-spinner">
-                        <div className="spinner-ring" />
-                        <span className="spinner-gem">💎</span>
-                    </div>
-                    <p className="loading-text" style={{ marginTop: '1.5rem' }}>Conectando con la base de datos...</p>
+                    <div className="dl-loader-bars"><span /><span /><span /><span /></div>
+                    <p className="loading-text" style={{ marginTop: '1rem' }}>Conectando con la base de datos...</p>
                     <div className="loading-dots"><span /><span /><span /></div>
                 </div>
             </div>

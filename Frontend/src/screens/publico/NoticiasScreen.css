@@ -508,20 +508,23 @@
   align-items:center; padding:8rem 2rem; gap:1.25rem;
 }
 
-.loading-spinner { position:relative; width:60px; height:60px; }
-
-.spinner-ring {
-  position:absolute; inset:0; border-radius:50%;
-  border:3px solid rgba(236,178,195,.14);
-  border-top-color:var(--rose);
-  animation:spin .9s cubic-bezier(.5,0,.5,1) infinite;
+.dl-loader-bars {
+  display:flex; align-items:flex-end; gap:5px; height:28px;
 }
 
-.spinner-gem {
-  position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  font-size:1.15rem; line-height:1;
-  animation:pulseDot 1.6s ease-in-out infinite;
+.dl-loader-bars span {
+  width:4px; height:100%; border-radius:3px;
+  background:var(--rose);
+  animation:dlBarPulse 1s ease-in-out infinite;
+}
+
+.dl-loader-bars span:nth-child(2){ animation-delay:.12s }
+.dl-loader-bars span:nth-child(3){ animation-delay:.24s }
+.dl-loader-bars span:nth-child(4){ animation-delay:.36s }
+
+@keyframes dlBarPulse {
+  0%,100% { transform:scaleY(.35); opacity:.4; }
+  50%     { transform:scaleY(1);   opacity:1;  }
 }
 
 .loading-text {
