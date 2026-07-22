@@ -1,7 +1,7 @@
 /* ContactoScreen.css */
 
 .contacto-container {
-  background: linear-gradient(135deg, #0f0f12 0%, #0a0a0a 100%);
+  background: #0f0f12;
   color: #d4b5c8;
   min-height: 100vh;
   font-family: 'Montserrat', sans-serif;

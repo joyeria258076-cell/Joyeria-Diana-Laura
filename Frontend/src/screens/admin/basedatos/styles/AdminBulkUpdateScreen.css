@@ -3,7 +3,7 @@
 .bulk-update-container {
   flex: 1;
   padding: 2rem;
-  background: linear-gradient(135deg, #050505 0%, #0a0a0f 100%);
+  background: #0f0f12;
   min-height: 100vh;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
