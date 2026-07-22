@@ -189,8 +189,7 @@ const AdminInitoManager: React.FC = () => {
                 <div className="noticias-loading">
                     <div className="loading-spinner">
                         <div className="spinner-ring" />
-                        <div className="spinner-ring spinner-ring--2" />
-                        <div className="spinner-dot" />
+                        <span className="spinner-gem">💎</span>
                     </div>
                     <p className="loading-text" style={{ marginTop: '1.5rem' }}>Conectando con la base de datos...</p>
                     <div className="loading-dots"><span /><span /><span /></div>

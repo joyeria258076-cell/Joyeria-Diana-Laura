@@ -102,8 +102,7 @@ const NoticiasScreen: React.FC = () => {
             <div className="noticias-loading">
               <div className="loading-spinner">
                 <div className="spinner-ring" />
-                <div className="spinner-ring spinner-ring--2" />
-                <div className="spinner-dot" />
+                <span className="spinner-gem">💎</span>
               </div>
               <p className="loading-text">Cargando novedades</p>
               <div className="loading-dots"><span /><span /><span /></div>
