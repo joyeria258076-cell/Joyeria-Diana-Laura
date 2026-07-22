@@ -17,7 +17,7 @@
 /* === CONTENEDOR PRINCIPAL === */
 .admin-nuevo-producto-container {
     min-height: 100vh;
-    background: linear-gradient(160deg, #080810 0%, #0a0a18 50%, #080810 100%);
+    background: #0f0f12;
     color: #FFFFFF;
     font-family: 'Montserrat', sans-serif;
     padding: 3rem;

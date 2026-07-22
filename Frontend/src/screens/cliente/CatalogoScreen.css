@@ -18,7 +18,7 @@
 /* ===== LAYOUT PRINCIPAL ===== */
 .catalogo-body {
     min-height: 100vh;
-    background: #080808;
+    background: #0f0f12;
     color: #fff;
     padding: 2.5rem 1.5rem 4rem;
     font-family: 'Montserrat', sans-serif;
@@ -40,10 +40,8 @@
 .favoritos-section {
     max-width: 1800px;
     margin: 0 auto 2.5rem;
-    background: linear-gradient(135deg, rgba(201,168,76,.07), rgba(201,168,76,.02));
-    border: 1.5px solid rgba(201,168,76,.22);
-    border-radius: 18px;
-    padding: 1.4rem 1.4rem 1rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(201,168,76,.15);
 }
 .favoritos-header {
     display: flex;
@@ -67,14 +65,12 @@
 
 /* ===== FILTROS ===== */
 .filtros-container {
-    background: rgba(18,18,18,.98);
-    border: 1px solid rgba(201,168,76,.2);
-    border-radius: 16px;
-    padding: 1.5rem 1.8rem;
-    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
     max-width: 1800px;
     margin-left: auto;
     margin-right: auto;
+    border-bottom: 1px solid rgba(201,168,76,.15);
 }
 
 .search-section { margin-bottom: 1.2rem; }
@@ -488,7 +484,7 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: #080808;
+    background: #0f0f12;
     font-size: 1.3rem;
     color: #c9a84c;
     font-family: 'Montserrat', sans-serif;
