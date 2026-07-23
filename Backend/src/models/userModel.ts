@@ -73,7 +73,7 @@ export const getUserById = async (id: number): Promise<User | null> => {
   try {
     const result = await pool.query(
       `SELECT id, email, nombre, rol, activo, telefono, activado, codigo_trabajador,
-              password_hash, fecha_creacion, fecha_actualizacion
+              foto_perfil_url, password_hash, fecha_creacion, fecha_actualizacion
        FROM usuarios WHERE id = $1`,
       [id]
     );
@@ -102,7 +102,7 @@ export const getAllUsers = async (): Promise<User[]> => {
 };
 
 // Actualizar usuario
-export const updateUser = async (id: number, updates: { nombre?: string; email?: string; telefono?: string }): Promise<boolean> => {
+export const updateUser = async (id: number, updates: { nombre?: string; email?: string; telefono?: string; foto_perfil_url?: string }): Promise<boolean> => {
   try {
     const fields = [];
     const values = [];
@@ -125,7 +125,13 @@ export const updateUser = async (id: number, updates: { nombre?: string; email?:
       values.push(updates.telefono);
       paramCount++;
     }
-    
+
+    if (updates.foto_perfil_url !== undefined) {
+      fields.push(`foto_perfil_url = $${paramCount}`);
+      values.push(updates.foto_perfil_url);
+      paramCount++;
+    }
+
     if (fields.length === 0) {
       return false;
     }

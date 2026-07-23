@@ -1,144 +1,263 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { solicitudesAPI } from '../../services/api';
+import { Line } from 'react-chartjs-2';
 import {
-    AiOutlineDollarCircle, AiOutlineStar, AiOutlineBarChart, AiOutlineArrowUp,
-    AiOutlineFileText, AiOutlineKey, AiOutlineEdit, AiOutlineBell, AiOutlineInbox,
-    AiOutlineShoppingCart, AiOutlineTeam, AiOutlineLineChart, AiOutlineBulb,
-    AiOutlineUsergroupAdd, AiOutlineRise,
+    Chart as ChartJS, CategoryScale, LinearScale, PointElement,
+    LineElement, Tooltip, Filler,
+} from 'chart.js';
+import { solicitudesAPI, reportesAPI } from '../../services/api';
+import {
+    AiOutlineDollarCircle, AiOutlineTrophy, AiOutlineBell, AiOutlineKey,
+    AiOutlineEdit, AiOutlineInbox, AiOutlineShoppingCart, AiOutlineTeam,
+    AiOutlineLineChart, AiOutlineBulb, AiOutlineUsergroupAdd,
+    AiOutlineWarning, AiOutlineCheckCircle, AiOutlineCrown, AiOutlineStar,
+    AiOutlinePieChart,
 } from 'react-icons/ai';
 import './AdminDashboardScreen.css';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
+
+const money = (n: number | string) =>
+    `$${Number(n || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 })}`;
 
 const AdminDashboardScreen: React.FC = () => {
     const navigate = useNavigate();
     const [solicitudes, setSolicitudes] = useState<any[]>([]);
     const [loadingS, setLoadingS] = useState(true);
 
-    useEffect(() => {
-        const cargar = async () => {
-            try {
-                const res = await solicitudesAPI.getTodas();
-                if (res.success) setSolicitudes(res.data || []);
-            } catch { /**/ }
-            finally { setLoadingS(false); }
-        };
-        cargar();
+    const [ventas, setVentas] = useState<any>(null);
+    const [productos, setProductos] = useState<any>(null);
+    const [inventario, setInventario] = useState<any>(null);
+    const [trabajadores, setTrabajadores] = useState<any>(null);
+    const [loadingR, setLoadingR] = useState(true);
+
+    const cargarSolicitudes = useCallback(async () => {
+        try {
+            const res = await solicitudesAPI.getTodas();
+            if (res.success) setSolicitudes(res.data || []);
+        } catch { /**/ }
+        finally { setLoadingS(false); }
     }, []);
 
-    const pendientes        = solicitudes.filter(s => s.estado === 'pendiente');
-    const recuperaciones    = pendientes.filter(s => s.campo === 'recuperar_codigo');
-    const cambiosNombre     = pendientes.filter(s => s.campo === 'nombre');
+    const cargarReportes = useCallback(async () => {
+        try {
+            const [v, p, inv, t] = await Promise.all([
+                reportesAPI.getVentas(30),
+                reportesAPI.getProductos(30, 3),
+                reportesAPI.getInventario(),
+                reportesAPI.getTrabajadores(30),
+            ]);
+            setVentas(v);
+            setProductos(p);
+            setInventario(inv);
+            setTrabajadores(t);
+        } catch { /**/ }
+        finally { setLoadingR(false); }
+    }, []);
+
+    useEffect(() => { cargarSolicitudes(); cargarReportes(); }, [cargarSolicitudes, cargarReportes]);
+
+    const pendientes     = solicitudes.filter(s => s.estado === 'pendiente');
+    const recuperaciones = pendientes.filter(s => s.campo === 'recuperar_codigo');
+    const cambiosNombre  = pendientes.filter(s => s.campo === 'nombre');
+    const medallas = ['dc-medal--oro', 'dc-medal--plata', 'dc-medal--bronce'];
+
+    const hoyStr = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    const serie = ventas?.serie || [];
+    const sparkData = {
+        labels: serie.map((d: any) => d.dia),
+        datasets: [{
+            data: serie.map((d: any) => Number(d.ingresos)),
+            borderColor: '#c9956c',
+            backgroundColor: 'rgba(201,149,108,0.18)',
+            fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2,
+        }],
+    };
+    const sparkOptions = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        scales: { x: { display: false }, y: { display: false } },
+    };
+
+    const mejorCliente = ventas?.topClientes?.[0] || null;
+    const mejorTrabajador = trabajadores?.trabajadores?.[0] || null;
+    const porEstado = ventas?.porEstado || [];
+    const maxEstado = porEstado.length ? Math.max(...porEstado.map((e: any) => Number(e.total))) : 0;
+
+    const ACCIONES = [
+        { label: 'Inventario', icon: AiOutlineInbox, ruta: '/admin-inventario' },
+        { label: 'Pedidos', icon: AiOutlineShoppingCart, ruta: '/pedidos-admin' },
+        { label: 'Personal', icon: AiOutlineTeam, ruta: '/admin-trabajadores' },
+        { label: 'Reportes', icon: AiOutlineLineChart, ruta: '/admin-reportes' },
+    ];
+    const HERRAMIENTAS = [
+        { label: 'Precio sugerido', icon: AiOutlineDollarCircle, ruta: '/admin-nuevo-producto' },
+        { label: 'Segmentos', icon: AiOutlineUsergroupAdd, ruta: '/admin-segmentos' },
+    ];
 
     return (
-        <div className="dashboard-container">
-            <h2 className="dashboard-title">Dashboard Informativo</h2>
+        <div className="dc-wrap animate-in">
+            <div className="dc-header">
+                <h1 className="dc-titulo"><AiOutlineLineChart size={22} /> Dashboard Informativo</h1>
+                <p className="dc-subtitulo">Resumen de tu negocio hoy, {hoyStr}</p>
+            </div>
 
-            {!loadingS && pendientes.length > 0 && (
-                <div className="dash-alert-banner">
-                    <div className="dash-alert-icon"><AiOutlineBell size={20} /></div>
-                    <div className="dash-alert-body">
-                        <span className="dash-alert-title">
-                            Tienes <strong>{pendientes.length}</strong> solicitud{pendientes.length !== 1 ? 'es' : ''} pendiente{pendientes.length !== 1 ? 's' : ''}
-                        </span>
-                        <span className="dash-alert-sub">
-                            {recuperaciones.length > 0 && `${recuperaciones.length} recuperación${recuperaciones.length !== 1 ? 'es' : ''} de código`}
-                            {recuperaciones.length > 0 && cambiosNombre.length > 0 && ' · '}
-                            {cambiosNombre.length > 0 && `${cambiosNombre.length} cambio${cambiosNombre.length !== 1 ? 's' : ''} de nombre`}
-                        </span>
+            <div className="dc-bento">
+                {/* ── Bloque hero de ingresos con sparkline ── */}
+                <div className="dc-tile dc-tile--hero">
+                    <div className="dc-hero-texto">
+                        <span className="dc-hero-label"><AiOutlineDollarCircle size={14} /> Ingresos últimos 30 días</span>
+                        <span className="dc-hero-val">{loadingR ? '—' : money(ventas?.resumen?.ingresos_totales)}</span>
+                        <div className="dc-hero-mini">
+                            <span><strong>{loadingR ? '—' : ventas?.resumen?.total_ventas ?? 0}</strong> ventas</span>
+                            <span className="dc-hero-mini-sep">·</span>
+                            <span>promedio por venta: <strong>{loadingR ? '—' : money(ventas?.resumen?.ticket_promedio)}</strong></span>
+                        </div>
                     </div>
-                    <button className="dash-alert-btn" onClick={() => navigate('/admin-perfil')}>
-                        Revisar ahora →
-                    </button>
+                    {!loadingR && serie.length > 1 && (
+                        <div className="dc-hero-spark"><Line data={sparkData} options={sparkOptions} /></div>
+                    )}
                 </div>
-            )}
 
-            <div className="dashboard-cards">
-                <div className="dashboard-card">
-                    <h4><AiOutlineDollarCircle size={15} /> Resumen de Ventas</h4>
-                    <div className="stat-number">$12,450</div>
-                    <div className="stat-label">Este mes</div>
-                    <div className="stat-trend positive">
-                        <AiOutlineArrowUp size={13} /> 12% respecto al mes anterior
+                <div className="dc-tile dc-tile--mini">
+                    <span className="dc-mini-label">Valor de inventario</span>
+                    <span className="dc-mini-val">{loadingR ? '—' : money(inventario?.resumen?.valor_inventario)}</span>
+                </div>
+
+                <div className={`dc-tile dc-tile--mini${Number(inventario?.resumen?.productos_stock_bajo) > 0 ? ' dc-tile--warn' : ''}`}
+                    onClick={() => navigate('/admin-reportes')} role="button" tabIndex={0}>
+                    <span className="dc-mini-label"><AiOutlineWarning size={13} /> Stock bajo</span>
+                    <span className="dc-mini-val">{loadingR ? '—' : inventario?.resumen?.productos_stock_bajo ?? 0}</span>
+                </div>
+
+                {/* ── Ranking de productos ── */}
+                <div className="dc-tile dc-tile--ranking">
+                    <div className="dc-tile-head">
+                        <h3><AiOutlineTrophy size={16} /> Productos más vendidos</h3>
+                        <button className="dc-tile-link" onClick={() => navigate('/admin-reportes')}>Ver todos</button>
                     </div>
+                    {loadingR ? (
+                        <p className="dc-empty">Cargando...</p>
+                    ) : productos?.top?.length ? (
+                        <div className="dc-podio">
+                            {productos.top.map((p: any, i: number) => (
+                                <div key={p.producto_id} className="dc-podio-row">
+                                    <span className={`dc-medal ${medallas[i] || ''}`}>{i + 1}</span>
+                                    <span className="dc-podio-nombre">{p.producto_nombre}</span>
+                                    <span className="dc-podio-val">{p.unidades_vendidas} ventas</span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="dc-empty">Sin ventas registradas en los últimos 30 días.</p>
+                    )}
                 </div>
 
-                <div className="dashboard-card">
-                    <h4><AiOutlineStar size={15} /> Productos Más Vendidos</h4>
-                    <div className="top-products-list">
-                        <div className="top-product-item">Anillo Estrella - 45 ventas</div>
-                        <div className="top-product-item">Collar Elegancia - 38 ventas</div>
-                        <div className="top-product-item">Aretes Diamante - 32 ventas</div>
-                    </div>
-                </div>
-
-                <div className="dashboard-card">
-                    <h4><AiOutlineBarChart size={15} /> Movimientos</h4>
-                    <div className="stat-number">127</div>
-                    <div className="stat-label">Transacciones hoy</div>
-                </div>
-
-                <div className={`dashboard-card dash-card-solicitudes ${pendientes.length > 0 ? 'dash-card-solicitudes--alert' : ''}`}
-                    onClick={() => navigate('/admin-perfil')}>
-                    <h4><AiOutlineFileText size={15} /> Solicitudes de personal</h4>
+                {/* ── Solicitudes de personal ── */}
+                <div className={`dc-tile dc-tile--alert${pendientes.length > 0 ? ' dc-tile--activo' : ''}`}
+                    onClick={() => navigate('/admin-perfil')} role="button" tabIndex={0}>
+                    <div className="dc-alert-head"><AiOutlineBell size={16} /><span>Solicitudes de personal</span></div>
                     {loadingS ? (
-                        <div className="stat-label">Cargando...</div>
+                        <p className="dc-empty">Cargando...</p>
                     ) : pendientes.length === 0 ? (
-                        <>
-                            <div className="stat-number stat-number--ok">✓</div>
-                            <div className="stat-label">Sin solicitudes pendientes</div>
-                        </>
+                        <div className="dc-alert-ok"><AiOutlineCheckCircle size={16} /> Sin solicitudes pendientes</div>
                     ) : (
                         <>
-                            <div className="stat-number stat-number--alert">{pendientes.length}</div>
-                            <div className="stat-label">Pendiente{pendientes.length !== 1 ? 's' : ''} de revisión</div>
-                            <div className="dash-sol-mini-list">
+                            <span className="dc-alert-num">{pendientes.length}</span>
+                            <p className="dc-alert-sub">Pendiente{pendientes.length !== 1 ? 's' : ''} de revisión</p>
+                            <div className="dc-alert-badges">
                                 {recuperaciones.length > 0 && (
-                                    <span className="dash-sol-mini-badge dash-sol-mini-badge--codigo">
-                                        <AiOutlineKey size={11} /> {recuperaciones.length} código{recuperaciones.length !== 1 ? 's' : ''}
-                                    </span>
+                                    <span className="dc-badge"><AiOutlineKey size={11} /> {recuperaciones.length} código{recuperaciones.length !== 1 ? 's' : ''}</span>
                                 )}
                                 {cambiosNombre.length > 0 && (
-                                    <span className="dash-sol-mini-badge dash-sol-mini-badge--nombre">
-                                        <AiOutlineEdit size={11} /> {cambiosNombre.length} nombre{cambiosNombre.length !== 1 ? 's' : ''}
-                                    </span>
+                                    <span className="dc-badge"><AiOutlineEdit size={11} /> {cambiosNombre.length} nombre{cambiosNombre.length !== 1 ? 's' : ''}</span>
                                 )}
                             </div>
-                            <div className="stat-link">Ir a Mi Perfil para revisar →</div>
                         </>
+                    )}
+                </div>
+
+                {/* ── Ventas por estado ── */}
+                <div className="dc-tile dc-tile--estados">
+                    <div className="dc-tile-head">
+                        <h3><AiOutlinePieChart size={16} /> Ventas por estado</h3>
+                    </div>
+                    {loadingR ? (
+                        <p className="dc-empty">Cargando...</p>
+                    ) : porEstado.length ? (
+                        <div className="dc-estados-list">
+                            {porEstado.map((e: any) => (
+                                <div key={e.estado} className="dc-estado-row">
+                                    <span className="dc-estado-label">{e.estado}</span>
+                                    <div className="dc-estado-track">
+                                        <div className="dc-estado-fill" style={{ width: `${maxEstado ? (e.total / maxEstado) * 100 : 0}%` }} />
+                                    </div>
+                                    <span className="dc-estado-val">{e.total}</span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="dc-empty">Sin datos.</p>
+                    )}
+                </div>
+
+                {/* ── Mejor cliente ── */}
+                <div className="dc-tile dc-tile--persona">
+                    <div className="dc-persona-icon"><AiOutlineStar size={18} /></div>
+                    <span className="dc-mini-label">Mejor cliente (30 días)</span>
+                    {loadingR ? (
+                        <p className="dc-empty">Cargando...</p>
+                    ) : mejorCliente ? (
+                        <>
+                            <span className="dc-persona-nombre">{mejorCliente.nombre} {mejorCliente.apellido}</span>
+                            <span className="dc-persona-sub">{money(mejorCliente.gasto_total)} en compras</span>
+                        </>
+                    ) : (
+                        <p className="dc-empty">Sin datos.</p>
+                    )}
+                </div>
+
+                {/* ── Trabajador destacado ── */}
+                <div className="dc-tile dc-tile--persona" onClick={() => navigate('/admin-reportes')} role="button" tabIndex={0}>
+                    <div className="dc-persona-icon dc-persona-icon--gold"><AiOutlineCrown size={18} /></div>
+                    <span className="dc-mini-label">Trabajador destacado</span>
+                    {loadingR ? (
+                        <p className="dc-empty">Cargando...</p>
+                    ) : mejorTrabajador ? (
+                        <>
+                            <span className="dc-persona-nombre">{mejorTrabajador.nombre}</span>
+                            <span className="dc-persona-sub">
+                                {Number(mejorTrabajador.ventas_gestionadas) + Number(mejorTrabajador.apartados_gestionados) + Number(mejorTrabajador.abonos_registrados)} gestiones
+                            </span>
+                        </>
+                    ) : (
+                        <p className="dc-empty">Sin actividad registrada.</p>
                     )}
                 </div>
             </div>
 
-            <div className="quick-actions-section">
-                <h4 className="section-subtitle">Acciones Rápidas</h4>
-                <div className="quick-actions-grid">
-                    <button className="btn-action-outline" onClick={() => navigate("/admin-inventario")}>
-                        <AiOutlineInbox size={16} /> Ver Inventario
-                    </button>
-                    <button className="btn-action-outline" onClick={() => navigate("/pedidos-admin")}>
-                        <AiOutlineShoppingCart size={16} /> Ver Pedidos
-                    </button>
-                    <button className="btn-action-outline" onClick={() => navigate("/admin-trabajadores")}>
-                        <AiOutlineTeam size={16} /> Gestionar Personal
-                    </button>
-                    <button className="btn-action-outline" onClick={() => navigate("/admin-reportes")}>
-                        <AiOutlineLineChart size={16} /> Ver Reportes
-                    </button>
+            <div className="dc-section">
+                <h4 className="dc-section-titulo">Acciones rápidas</h4>
+                <div className="dc-launcher">
+                    {ACCIONES.map(a => (
+                        <button key={a.label} className="dc-launcher-item" onClick={() => navigate(a.ruta)}>
+                            <span className="dc-launcher-icon"><a.icon size={20} /></span>
+                            <span>{a.label}</span>
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            <div className="quick-actions-section">
-                <h4 className="section-subtitle"><AiOutlineBulb size={18} /> Herramientas Inteligentes</h4>
-                <div className="quick-actions-grid">
-                    <button className="btn-action-outline dash-ia-btn" onClick={() => navigate("/admin-nuevo-producto")}>
-                        <AiOutlineDollarCircle size={16} /> Precio sugerido
-                    </button>
-                    <button className="btn-action-outline dash-ia-btn" onClick={() => navigate("/admin-segmentos")}>
-                        <AiOutlineUsergroupAdd size={16} /> Segmentos de Clientes
-                    </button>
-                    <button className="btn-action-outline dash-ia-btn" onClick={() => navigate("/admin-prediccion")}>
-                        <AiOutlineRise size={16} /> Predicción de Ventas
-                    </button>
+            <div className="dc-section">
+                <h4 className="dc-section-titulo"><AiOutlineBulb size={16} /> Herramientas inteligentes</h4>
+                <div className="dc-launcher">
+                    {HERRAMIENTAS.map(a => (
+                        <button key={a.label} className="dc-launcher-item dc-launcher-item--ia" onClick={() => navigate(a.ruta)}>
+                            <span className="dc-launcher-icon dc-launcher-icon--ia"><a.icon size={20} /></span>
+                            <span>{a.label}</span>
+                        </button>
+                    ))}
                 </div>
             </div>
         </div>

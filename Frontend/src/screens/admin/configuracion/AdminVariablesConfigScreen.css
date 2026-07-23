@@ -1,21 +1,23 @@
 /* Frontend/src/screens/admin/configuracion/AdminVariablesConfigScreen.css */
 
 .variables-container {
-  min-height: 100vh;
-  background: var(--color-bg);
+  min-height: 0;
+  background: transparent;
   color: #FFFFFF;
   font-family: var(--font-body);
-  padding: 2rem;
+  padding: 0;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* Loading */
 .variables-loading {
-  min-height: 100vh;
+  min-height: 320px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg);
+  background: transparent;
   color: var(--color-rose-gold);
 }
 
@@ -63,14 +65,19 @@
 }
 
 .variables-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
   font-family: var(--font-display);
   font-size: 2rem;
+  font-weight: 300;
+  letter-spacing: 0.02em;
   margin: 0;
   flex: 1;
-  background: linear-gradient(135deg, #FFFFFF 0%, var(--color-rose-gold) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--color-text, #fff);
 }
+
+.variables-header h1 svg { color: var(--color-rose-gold); width: 22px; height: 22px; flex-shrink: 0; }
 
 .btn-save-all {
   display: flex;
@@ -135,6 +142,157 @@
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
+}
+
+/* ── VC: rail de secciones + panel tipo "ajustes del sistema" ── */
+.vc-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 1.3rem;
+  align-items: start;
+}
+
+.vc-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(236, 178, 195, 0.15);
+  border-radius: 8px;
+  padding: 0.6rem;
+  position: sticky;
+  top: 0;
+}
+
+.vc-rail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0.65rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.vc-rail-item:hover { background: rgba(236, 178, 195, 0.06); color: #fff; }
+.vc-rail-item.active {
+  background: rgba(236, 178, 195, 0.14);
+  border-color: rgba(236, 178, 195, 0.4);
+  color: var(--color-rose-gold);
+}
+
+.vc-rail-count {
+  margin-left: auto;
+  background: rgba(236, 178, 195, 0.15);
+  color: var(--color-rose-gold);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+}
+
+.vc-panel {
+  position: relative;
+  background: linear-gradient(145deg, rgba(20, 20, 20, 0.6) 0%, rgba(10, 10, 10, 0.8) 100%);
+  border: 1px solid rgba(236, 178, 195, 0.2);
+  border-radius: 8px;
+  padding: 1.7rem;
+  min-height: 360px;
+  overflow: hidden;
+}
+
+.vc-panel::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236, 178, 195, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.vc-panel-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: var(--color-rose-gold);
+  margin: 0 0 1.3rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid rgba(236, 178, 195, 0.15);
+}
+
+.vc-panel-title svg { flex-shrink: 0; }
+
+.vc-settings-list { position: relative; display: flex; flex-direction: column; gap: 0.9rem; }
+
+.vc-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.1rem 1.3rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 3px solid rgba(236, 178, 195, 0.45);
+  border-radius: 8px;
+  flex-wrap: wrap;
+  transition: all 0.25s ease;
+}
+
+.vc-setting-row:hover {
+  background: rgba(236, 178, 195, 0.05);
+  border-left-color: var(--color-rose-gold);
+  transform: translateX(2px);
+}
+
+.vc-setting-info { flex: 1; min-width: 220px; }
+
+.vc-setting-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.vc-setting-name-row strong {
+  font-size: 0.94rem;
+  color: #fff;
+  text-transform: capitalize;
+  letter-spacing: 0.2px;
+}
+
+.vc-setting-info .variable-descripcion { margin: 0.35rem 0 0.25rem; }
+.vc-setting-info .fecha-actualizacion { text-align: left; display: block; }
+
+.vc-setting-control { flex-shrink: 0; min-width: 220px; }
+.vc-setting-control .variable-valor {
+  min-width: 200px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(236, 178, 195, 0.3);
+  box-shadow: inset 0 0 12px rgba(236, 178, 195, 0.04);
+}
+.vc-setting-control .variable-valor:hover {
+  box-shadow: 0 0 0 1px var(--color-rose-gold), inset 0 0 12px rgba(236, 178, 195, 0.08);
+}
+.vc-setting-control .variable-edit { min-width: 220px; }
+
+@media (max-width: 800px) {
+  .vc-layout { grid-template-columns: 1fr; }
+  .vc-rail { position: static; flex-direction: row; overflow-x: auto; }
+  .vc-setting-row { flex-direction: column; align-items: stretch; }
+  .vc-setting-control { min-width: 0; }
 }
 
 .categoria-section {
@@ -310,16 +468,22 @@
 }
 
 .btn-save-small, .btn-cancel-small {
-  width: 32px;
-  height: 32px;
+  width: auto;
+  height: auto;
+  white-space: nowrap;
   border: none;
-  border-radius: 2px;
+  border-radius: 4px;
+  padding: 0.55rem 0.9rem;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
 }
+
+.btn-save-small svg, .btn-cancel-small svg { flex-shrink: 0; }
 
 .btn-save-small {
   background: #10b981;

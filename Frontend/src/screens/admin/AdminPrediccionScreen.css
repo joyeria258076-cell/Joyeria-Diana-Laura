@@ -47,7 +47,7 @@
   border-radius: 2px;
 }
 
-section {
+.prediccion-container section {
   background: #1a1a22;
   border-radius: 4px;
   padding: 20px;
@@ -63,7 +63,7 @@ section {
   height: 350px;
 }
 
-canvas {
+.grafica-container canvas {
   background: var(--color-bg) !important;
 }
 

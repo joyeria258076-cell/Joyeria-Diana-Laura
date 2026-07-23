@@ -10,7 +10,7 @@ import {
     AiOutlineImport, AiOutlineExport, AiOutlineSync, AiOutlineDesktop, AiOutlineSetting, AiOutlineTool,
     AiOutlineEdit, AiOutlineFileText, AiOutlineProfile, AiOutlineBgColors, AiOutlineRead,
     AiOutlineInfoCircle, AiOutlineQuestionCircle, AiOutlineAim, AiOutlineAudit, AiOutlineShoppingCart,
-    AiOutlineFlag, AiOutlineTeam, AiOutlineUser, AiOutlineBarChart, AiOutlineExperiment,
+    AiOutlineFlag, AiOutlineTeam, AiOutlineUser, AiOutlineBarChart,
     AiOutlineUsergroupAdd, AiOutlineCheckSquare, AiOutlineHome, AiOutlineShop, AiOutlineHeart,
     AiOutlineBook, AiOutlineEnvironment, AiOutlineLogout, AiOutlineBell, AiOutlineDown,
 } from "react-icons/ai";
@@ -31,6 +31,7 @@ const HeaderPrivado: React.FC = () => {
     const [isDatabaseMenuOpen, setIsDatabaseMenuOpen] = useState(false);
     const [isConfigMenuOpen, setIsConfigMenuOpen]   = useState(false);
     const [isProveedoresMenuOpen, setIsProveedoresMenuOpen] = useState(false);
+    const [isOperacionMenuOpen, setIsOperacionMenuOpen] = useState(false);
 
     const userRole = user?.rol?.toLowerCase().trim() || 'cliente';
     const isActive = (path: string) => location.pathname.startsWith(path) ? "active" : "";
@@ -103,10 +104,14 @@ const HeaderPrivado: React.FC = () => {
                 <nav className="sidebar-nav">
                     {userRole === 'admin' ? (
                         <>
+                            <div className="nav-section">
                             <button className={`nav-item ${isActive("/admin-dashboard")}`} onClick={() => goTo("/admin-dashboard")}>
                                 <span className="nav-icon"><AiOutlineDashboard size={16} /></span> Dashboard Admin
                             </button>
+                            </div>
 
+                            <div className="nav-section">
+                            <span className="nav-section-label">Gestión</span>
                             <div className="nav-item-group">
                                 <button
                                     className={`nav-item ${isActive("/admin-inventario") || isActive("/admin-nuevo-producto") || isActive("/admin-categorias") ? "active" : ""} dropdown-toggle`}
@@ -239,31 +244,39 @@ const HeaderPrivado: React.FC = () => {
                                     </div>
                                 )}
                             </div>
+                            </div>
 
-                            <button className={`nav-item ${isActive("/pedidos-admin")}`} onClick={() => goTo("/pedidos-admin")}>
-                                <span className="nav-icon"><AiOutlineShoppingCart size={16} /></span> Pedidos Tienda
-                            </button>
-                            <button className={`nav-item ${isActive("/apartados-admin")}`} onClick={() => goTo("/apartados-admin")}>
-                                <span className="nav-icon"><AiOutlineFlag size={16} /></span> Apartados
-                            </button>
-                            <button className={`nav-item ${isActive("/admin-trabajadores")}`} onClick={() => goTo("/admin-trabajadores")}>
-                                <span className="nav-icon"><AiOutlineTeam size={16} /></span> Personal
-                            </button>
-                            <button className={`nav-item ${isActive("/admin-perfil")}`} onClick={() => goTo("/admin-perfil")} style={{ position: 'relative' }}>
-                                <span className="nav-icon"><AiOutlineUser size={16} /></span> Mi Perfil
-                                {solicitudesPendientes > 0 && (
-                                    <span className="nav-badge">{solicitudesPendientes}</span>
+                            <div className="nav-section">
+                            <span className="nav-section-label">Operación</span>
+                            <div className="nav-item-group">
+                                <button
+                                    className={`nav-item ${isActive("/pedidos-admin") || isActive("/apartados-admin") || isActive("/admin-trabajadores") || isActive("/admin-reportes") || isActive("/admin-segmentos") ? "active" : ""} dropdown-toggle`}
+                                    onClick={() => setIsOperacionMenuOpen(!isOperacionMenuOpen)}
+                                >
+                                    <span className="nav-icon"><AiOutlineShoppingCart size={16} /></span> Operación de la tienda
+                                    <span className={`dropdown-arrow ${isOperacionMenuOpen ? 'open' : ''}`}><AiOutlineDown size={12} /></span>
+                                </button>
+                                {isOperacionMenuOpen && (
+                                    <div className="dropdown-menu">
+                                        <button className={`dropdown-item ${isActive("/pedidos-admin") ? "active" : ""}`} onClick={() => goTo("/pedidos-admin")}>
+                                            <span className="dropdown-icon"><AiOutlineShoppingCart size={14} /></span> Pedidos Tienda
+                                        </button>
+                                        <button className={`dropdown-item ${isActive("/apartados-admin") ? "active" : ""}`} onClick={() => goTo("/apartados-admin")}>
+                                            <span className="dropdown-icon"><AiOutlineFlag size={14} /></span> Apartados
+                                        </button>
+                                        <button className={`dropdown-item ${isActive("/admin-trabajadores") ? "active" : ""}`} onClick={() => goTo("/admin-trabajadores")}>
+                                            <span className="dropdown-icon"><AiOutlineTeam size={14} /></span> Personal
+                                        </button>
+                                        <button className={`dropdown-item ${isActive("/admin-reportes") ? "active" : ""}`} onClick={() => goTo("/admin-reportes")}>
+                                            <span className="dropdown-icon"><AiOutlineBarChart size={14} /></span> Reportes
+                                        </button>
+                                        <button className={`dropdown-item ${isActive("/admin-segmentos") ? "active" : ""}`} onClick={() => goTo("/admin-segmentos")}>
+                                            <span className="dropdown-icon"><AiOutlineUsergroupAdd size={14} /></span> Segmentos
+                                        </button>
+                                    </div>
                                 )}
-                            </button>
-                            <button className={`nav-item ${isActive("/admin-reportes")}`} onClick={() => goTo("/admin-reportes")}>
-                                <span className="nav-icon"><AiOutlineBarChart size={16} /></span> Reportes
-                            </button>
-                            <button className={`nav-item ${isActive("/admin-prediccion")}`} onClick={() => goTo("/admin-prediccion")}>
-                                <span className="nav-icon"><AiOutlineExperiment size={16} /></span> Modelo Predictivo
-                            </button>
-                            <button className={`nav-item ${isActive("/admin-segmentos")}`} onClick={() => goTo("/admin-segmentos")}>
-                                <span className="nav-icon"><AiOutlineUsergroupAdd size={16} /></span> Segmentos
-                            </button>
+                            </div>
+                            </div>
                         </>
                     ) : userRole === 'trabajador' ? (
                         <>
@@ -279,9 +292,6 @@ const HeaderPrivado: React.FC = () => {
                             <div className="sidebar-divider"></div>
                             <button className={`nav-item ${isActive("/trabajador/actividades")}`} onClick={() => goTo("/trabajador/actividades")}>
                                 <span className="nav-icon"><AiOutlineCheckSquare size={16} /></span> Mis Actividades
-                            </button>
-                            <button className={`nav-item ${isActive("/trabajador/perfil")}`} onClick={() => goTo("/trabajador/perfil")}>
-                                <span className="nav-icon"><AiOutlineUser size={16} /></span> Mi Perfil
                             </button>
                         </>
                     ) : (
@@ -358,8 +368,12 @@ const HeaderPrivado: React.FC = () => {
                         onClick={() => navigate(userRole === 'admin' ? "/admin-perfil" : userRole === 'trabajador' ? "/trabajador/perfil" : "/perfil")}
                         style={{ cursor: 'pointer' }}
                     >
-                        <div className="user-avatar" style={{ position: 'relative' }}>
-                            {user?.nombre?.charAt(0).toUpperCase() || "U"}
+                        <div className="user-avatar" style={{ position: 'relative', overflow: 'hidden' }}>
+                            {user?.fotoPerfilUrl ? (
+                                <img src={user.fotoPerfilUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                            ) : (
+                                user?.nombre?.charAt(0).toUpperCase() || "U"
+                            )}
                             {userRole === 'admin' && solicitudesPendientes > 0 && (
                                 <span className="avatar-badge">{solicitudesPendientes}</span>
                             )}

@@ -1,5 +1,5 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/screens/RegistroScreen.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +8,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { securityQuestionAPI } from "../../services/securityQuestionAPI";
-import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineLock, AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/ai";
+import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineLock, AiOutlineArrowLeft, AiOutlineArrowRight, AiOutlineCamera } from "react-icons/ai";
 import AuthBackground from "../../components/AuthBackground";
 import "./RegistroScreen.css";
 
@@ -130,6 +130,18 @@ export default function RegistroScreen() {
     
     // ESTADO PARA SABER QUÉ INPUT ESTÁ SELECCIONADO (Foco)
     const [focusedField, setFocusedField] = useState<string | null>(null);
+    const [fotoPreview, setFotoPreview] = useState<string | null>(null);
+    const fotoInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+        if (!file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onloadend = () => setFotoPreview(reader.result as string);
+        reader.readAsDataURL(file);
+    };
 
     const questionType = watch('questionType');
     const customQuestion = watch('customQuestion');
@@ -195,13 +207,18 @@ export default function RegistroScreen() {
         setLoading(true);
         try {
             await register(
-                data.email, 
-                data.password, 
-                data.nombre, 
-                data.questionType, 
-                data.customQuestion || '', 
+                data.email,
+                data.password,
+                data.nombre,
+                data.questionType,
+                data.customQuestion || '',
                 data.securityAnswer
             );
+            if (fotoPreview) {
+                // No hay sesión todavía (falta verificar email) — se guarda y se sube
+                // automáticamente en el primer inicio de sesión exitoso.
+                localStorage.setItem(`dl_pending_photo_${data.email.toLowerCase()}`, fotoPreview);
+            }
             alert("Usuario registrado correctamente. Revisa tu email para verificar tu cuenta antes de iniciar sesión.");
             navigate("/login");
         } catch (error: any) {
@@ -437,6 +454,25 @@ export default function RegistroScreen() {
                                             </ul>
                                         </div>
                                     )}
+                                </div>
+                            </div>
+
+                            <div className="security-question-section">
+                                <h3><AiOutlineCamera size={18} /> Foto de perfil (opcional)</h3>
+                                <p>Puedes agregarla ahora o más tarde desde tu perfil.</p>
+                                <div className="registro-foto-picker">
+                                    <div className="registro-foto-preview" onClick={() => fotoInputRef.current?.click()}>
+                                        {fotoPreview ? <img src={fotoPreview} alt="Vista previa" /> : <AiOutlineCamera size={22} />}
+                                    </div>
+                                    <div>
+                                        <button type="button" className="registro-foto-btn" onClick={() => fotoInputRef.current?.click()}>
+                                            {fotoPreview ? 'Cambiar foto' : 'Elegir foto'}
+                                        </button>
+                                        {fotoPreview && (
+                                            <button type="button" className="registro-foto-quitar" onClick={() => setFotoPreview(null)}>Quitar</button>
+                                        )}
+                                    </div>
+                                    <input ref={fotoInputRef} type="file" accept="image/*" hidden onChange={handleFotoChange} />
                                 </div>
                             </div>
 

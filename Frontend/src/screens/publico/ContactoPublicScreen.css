@@ -1,7 +1,14 @@
 /* ContactoScreen.css */
 
 .contacto-container {
-  background: linear-gradient(135deg, #0f0f12 0%, #0a0a0a 100%);
+  background-color: #0a0a0a;
+  background-image:
+    linear-gradient(rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0.9)),
+    url('https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/fondo_pagina.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: #d4b5c8;
   min-height: 100vh;
   font-family: 'Montserrat', sans-serif;
@@ -170,7 +177,7 @@
   font-weight: 400;
 }
 
-.btn {
+.contacto-container .btn {
   padding: 13px 30px;
   border-radius: 12px;
   text-decoration: none;
@@ -185,7 +192,7 @@
   text-transform: uppercase;
 }
 
-.btn-primary {
+.contacto-container .btn-primary {
   background: linear-gradient(135deg, #ECB2C3 0%, #f5c5d8 100%);
   color: #0f0f12;
   width: 100%;
@@ -193,7 +200,7 @@
   box-shadow: 0 10px 30px rgba(236, 178, 195, 0.35);
 }
 
-.btn-primary:hover {
+.contacto-container .btn-primary:hover {
   background: linear-gradient(135deg, #f5c5d8 0%, #ECB2C3 100%);
   transform: translateY(-4px);
   box-shadow: 0 15px 45px rgba(236, 178, 195, 0.5);
@@ -360,7 +367,7 @@
     font-size: 1rem;
   }
 
-  .btn {
+  .contacto-container .btn {
     padding: 12px 24px;
     font-size: 0.95rem;
   }

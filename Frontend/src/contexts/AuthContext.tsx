@@ -1,7 +1,7 @@
 // Ruta:Joyeria-Diana-Laura/Frontend/src/contexts/AuthContext.tsx
 
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { authAPI, workerAuthAPI } from '../services/api';
+import { authAPI, workerAuthAPI, uploadAPI, profileAPI } from '../services/api';
 import { initializeApp } from 'firebase/app';
 import { securityQuestionAPI } from '../services/securityQuestionAPI';
 
@@ -35,6 +35,7 @@ interface User {
   nombre: string;
   dbId?: number;
   rol?: 'admin' | 'trabajador' | 'cliente';
+  fotoPerfilUrl?: string | null;
 }
 
 interface ActiveSession {
@@ -70,6 +71,7 @@ interface AuthContextType {
   currentSessionToken: string | null;
   validateSession?: () => Promise<boolean>;
   refreshUserName: (nombre: string) => void;
+  refreshUserFoto: (fotoPerfilUrl: string | null) => void;
   setAuthData: (data: { user: any; token: string; sessionToken: string }) => void;
 }
 
@@ -383,6 +385,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Si el usuario eligió una foto al registrarse (guardada como base64 en localStorage
+  // porque en ese momento aún no hay sesión para subirla), la sube ahora que ya inició sesión.
+  const aplicarFotoPendiente = async (emailUsuario: string) => {
+    const clave = `dl_pending_photo_${emailUsuario.toLowerCase()}`;
+    const dataUrl = localStorage.getItem(clave);
+    if (!dataUrl) return;
+    localStorage.removeItem(clave);
+    try {
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], 'foto-perfil.jpg', { type: blob.type || 'image/jpeg' });
+      const up = await uploadAPI.uploadImage(file, 'joyeria/usuarios');
+      if (!up.success) return;
+      await profileAPI.updateProfile({ foto_perfil_url: up.data.url });
+      refreshUserFoto(up.data.url);
+    } catch (e) {
+      console.warn('No se pudo aplicar la foto de perfil pendiente:', e);
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
       console.log('🔐 Iniciando proceso de login...');
@@ -447,6 +468,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('diana_laura_session_token', sessionToken);
         console.log('✅ Login completo exitoso - SESIÓN INICIADA CON JWT');
         handleUserActivity();
+        aplicarFotoPendiente(email);
         return backendResponse;
       } else {
         throw new Error(backendResponse.message);
@@ -543,10 +565,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   };
 
+  const refreshUserFoto = (fotoPerfilUrl: string | null) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, fotoPerfilUrl };
+      localStorage.setItem('diana_laura_user', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const value: AuthContextType = {
     user, loading, login, register, logout, sendPasswordReset, verifyEmail,
     getActiveSessions, revokeSession, revokeAllOtherSessions, revokeAllSessions,
-    currentSessionToken, validateSession, refreshUserName, setAuthData
+    currentSessionToken, validateSession, refreshUserName, refreshUserFoto, setAuthData
   };
 
   return (

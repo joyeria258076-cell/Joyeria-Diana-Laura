@@ -661,8 +661,13 @@ const GestionPedidosScreen: React.FC = () => {
             : minutosExpiracion !== null && (pedido.minutos_sin_pago || 0) > minutosExpiracion // fallback para pedidos sin fecha_limite_pago
         );
 
+    const colorEstado = COLORES_ESTADO[pedido.estado] || COLOR_DEFAULT;
+
     return (
-    <div key={pedido.id} className={`gp-card ${esMio(pedido) ? 'gp-card-mia' : ''} ${estaVencido ? 'gp-card-vencida' : ''}`}>
+    <div key={pedido.id}
+        className={`gp-card ${esMio(pedido) ? 'gp-card-mia' : ''} ${estaVencido ? 'gp-card-vencida' : ''}`}
+        style={{ '--estado-color': colorEstado } as React.CSSProperties}
+    >
         <div className="gp-card-principal">
             <div className="gp-card-folio-col">
                 <span className="gp-folio">{pedido.folio}</span>
@@ -750,10 +755,10 @@ const GestionPedidosScreen: React.FC = () => {
 
             <div className="gp-resumen">
                 {estados.filter(e => e.value !== 'cancelado').map((e) => (
-                    <div key={e.value} className="gp-stat"
-                        style={{ borderTop: `2px solid ${e.color}`, cursor: 'pointer' }}
+                    <div key={e.value}
+                        className={`gp-stat ${filtroEstado === e.value ? 'gp-stat-activo' : ''}`}
                         onClick={() => setFiltroEstado(filtroEstado === e.value ? '' : e.value)}>
-                        <p className="gp-stat-val" style={{ color: e.color }}>{loading ? '…' : contar(e.value)}</p>
+                        <p className="gp-stat-val">{loading ? '…' : contar(e.value)}</p>
                         <p className="gp-stat-label">{e.label}</p>
                     </div>
                 ))}

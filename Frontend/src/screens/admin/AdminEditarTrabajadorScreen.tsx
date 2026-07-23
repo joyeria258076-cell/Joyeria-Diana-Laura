@@ -1,35 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { workersAPI } from '../../services/api';
+import { AiOutlineEdit } from 'react-icons/ai';
 import './AdminEditarTrabajadorScreen.css';
+
+const initials = (nombre: string) => {
+    const partes = nombre.trim().split(/\s+/);
+    return `${partes[0]?.[0] || ''}${partes[1]?.[0] || partes[0]?.[1] || ''}`.toUpperCase();
+};
 
 const AdminEditarTrabajadorScreen = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    
-    // Estado del formulario
-    const [formData, setFormData] = useState({ 
-        nombre: '', 
-        rol: '', 
-        email: '' 
+
+    const [formData, setFormData] = useState({
+        nombre: '',
+        rol: '',
+        email: ''
     });
-    
-    // Estado para la lista dinámica de roles
-    const [roles, setRoles] = useState<string[]>([]); 
+
+    const [roles, setRoles] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
+    const [guardando, setGuardando] = useState(false);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const initializeData = async () => {
             try {
                 setLoading(true);
-                
-                // 1. Llamadas en paralelo: Datos del trabajador + Lista de roles
                 const [workerRes, rolesRes] = await Promise.all([
                     workersAPI.getById(id!),
                     workersAPI.getRoles()
                 ]);
 
-                // 2. Procesar y guardar la lista de roles
                 let rolesList: string[] = [];
                 if (Array.isArray(rolesRes)) {
                     rolesList = rolesRes;
@@ -38,21 +41,18 @@ const AdminEditarTrabajadorScreen = () => {
                 }
                 setRoles(rolesList);
 
-                // 3. Procesar datos del trabajador
                 const actualData = workerRes.data || workerRes;
-                
-                // Normalización del rol para que coincida con el select
                 const rolRecibido = actualData.rol ? actualData.rol.toString().toLowerCase() : '';
 
-                setFormData({ 
-                    nombre: actualData.nombre || '', 
-                    rol: rolRecibido, 
-                    email: actualData.email || '' 
+                setFormData({
+                    nombre: actualData.nombre || '',
+                    rol: rolRecibido,
+                    email: actualData.email || ''
                 });
 
                 setLoading(false);
             } catch (err) {
-                console.error("❌ Error inicializando:", err);
+                console.error("Error inicializando:", err);
                 navigate('/admin-trabajadores');
             }
         };
@@ -62,23 +62,26 @@ const AdminEditarTrabajadorScreen = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+        setError('');
+
         if (!formData.rol) {
-            alert("Por favor, selecciona un rol válido.");
+            setError('Debes seleccionar un rol válido.');
             return;
         }
 
+        setGuardando(true);
         try {
-            await workersAPI.update(id!, { 
-                nombre: formData.nombre, 
-                rol: formData.rol, 
-                email: formData.email 
+            await workersAPI.update(id!, {
+                nombre: formData.nombre,
+                rol: formData.rol,
+                email: formData.email
             });
-            // Usamos un alert sencillo, pero el diseño ya invita a una navegación fluida
             navigate('/admin-trabajadores');
         } catch (err) {
             console.error("Error al actualizar:", err);
-            alert("Error al actualizar: Verifica si el correo ya existe.");
+            setError('Error al actualizar: verifica si el correo ya existe.');
+        } finally {
+            setGuardando(false);
         }
     };
 
@@ -95,69 +98,79 @@ const AdminEditarTrabajadorScreen = () => {
 
     return (
         <div className="admin-edit-wrap animate-in">
-            <div className="admin-container">
-                {/* Icono de cabecera decorativo */}
-                <div className="admin-header-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/>
-                    </svg>
+            <div className="ae-layout">
+                {/* ── Panel de identidad: vista previa en vivo ── */}
+                <aside className="ae-identidad">
+                    <div className="ae-identidad-avatar">{initials(formData.nombre) || '—'}</div>
+                    <p className="ae-identidad-nombre">{formData.nombre || 'Sin nombre'}</p>
+                    <p className="ae-identidad-email">{formData.email || 'sin-correo@ejemplo.com'}</p>
+                    {formData.rol && (
+                        <span className="ae-identidad-rol">{formData.rol.charAt(0).toUpperCase() + formData.rol.slice(1)}</span>
+                    )}
+                    <div className="ae-identidad-nota">
+                        Esta es una vista previa de cómo se identificará este usuario en el panel de personal.
+                    </div>
+                </aside>
+
+                {/* ── Formulario en filas ── */}
+                <div className="ae-panel">
+                    <h1 className="ae-titulo"><AiOutlineEdit size={22} /> Editar perfil</h1>
+                    <p className="ae-subtitulo">Modifica los accesos y datos del personal</p>
+
+                    {error && <div className="ae-error">{error}</div>}
+
+                    <form onSubmit={handleSubmit} className="ae-form">
+                        <div className="ae-fila">
+                            <label>Nombre completo</label>
+                            <input
+                                type="text"
+                                placeholder="Ej: Juan Pérez"
+                                required
+                                value={formData.nombre}
+                                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="ae-fila">
+                            <label>Correo electrónico</label>
+                            <input
+                                type="email"
+                                placeholder="correo@ejemplo.com"
+                                required
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="ae-fila">
+                            <label>Rol asignado</label>
+                            <select
+                                value={formData.rol}
+                                onChange={(e) => setFormData({ ...formData, rol: e.target.value })}
+                                required
+                            >
+                                <option value="" disabled>— Selecciona un rol —</option>
+                                {roles.map((rol) => (
+                                    <option key={rol} value={rol.toLowerCase()}>
+                                        {rol.charAt(0).toUpperCase() + rol.slice(1)}
+                                    </option>
+                                ))}
+                            </select>
+                            {formData.rol === '' && (
+                                <small className="ae-hint-warn">Debes re-asignar un rol para continuar.</small>
+                            )}
+                        </div>
+
+                        <div className="ae-acciones">
+                            <button type="button" onClick={() => navigate(-1)} className="ae-btn-cancel">
+                                Cancelar
+                            </button>
+                            <button type="submit" className="ae-btn-submit" disabled={guardando}>
+                                {guardando ? 'Guardando...' : 'Guardar cambios'}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                <h1>Editar Perfil</h1>
-                <p className="admin-subtitle">Modifica los accesos y datos del personal</p>
-                
-                <form onSubmit={handleSubmit} className="admin-form">
-                    
-                    <div className="form-group">
-                        <label>Nombre Completo</label>
-                        <input 
-                            type="text" 
-                            placeholder="Ej: Juan Pérez"
-                            required
-                            value={formData.nombre} 
-                            onChange={(e) => setFormData({...formData, nombre: e.target.value})} 
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Correo Electrónico</label>
-                        <input 
-                            type="email" 
-                            placeholder="correo@ejemplo.com"
-                            required
-                            value={formData.email} 
-                            onChange={(e) => setFormData({...formData, email: e.target.value})} 
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Rol Asignado</label>
-                        <select 
-                            value={formData.rol} 
-                            onChange={(e) => setFormData({...formData, rol: e.target.value})}
-                            required
-                        >
-                            <option value="" disabled>-- Seleccione un rol --</option>
-                            {roles.map((rol) => (
-                                <option key={rol} value={rol.toLowerCase()}>
-                                    {rol.charAt(0).toUpperCase() + rol.slice(1)}
-                                </option>
-                            ))}
-                        </select>
-                        {formData.rol === '' && (
-                            <small>⚠️ Debes re-asignar un rol para continuar.</small>
-                        )}
-                    </div>
-
-                    <div className="button-group">
-                        <button type="submit" className="btn-submit">
-                            Actualizar Trabajador
-                        </button>
-                        <button type="button" onClick={() => navigate(-1)} className="btn-cancel">
-                            Volver atrás
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
     );

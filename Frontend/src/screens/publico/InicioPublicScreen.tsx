@@ -2,23 +2,25 @@ import React, { useState, useEffect } from "react";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { Link } from "react-router-dom";
-// ¡IMPORTANTE! Asegúrate de importar carruselAPI, promocionesAPI y productsAPI
 import { contentAPI, carruselAPI, promocionesAPI, productsAPI, paginasAPI, seccionesAPI, contenidosAPI, coleccionesAPI } from "../../services/api";
-import { AiOutlineTag, AiOutlineClose, AiOutlineLeft, AiOutlineRight, AiOutlineCar, AiOutlineGift, AiOutlineFolderOpen } from "react-icons/ai";
+import {
+  AiOutlineTag, AiOutlineClose, AiOutlineLeft, AiOutlineRight, AiOutlineCar, AiOutlineGift,
+  AiOutlineFolderOpen, AiOutlineStar, AiOutlineHeart, AiOutlinePhone, AiOutlineSafetyCertificate,
+  AiOutlineBulb, AiOutlineSmile, AiOutlineTool,
+} from "react-icons/ai";
 import "./InicioPublicScreen.css";
 
 const JDL_CLOUD = 'https://res.cloudinary.com/dltvkwwq4/image/upload';
 
 const InicioPublicScreen: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  
+
   // ── ESTADOS DE CARGA Y DATOS DINÁMICOS ──
   const [initialLoading, setInitialLoading] = useState(true);
   const [slides, setSlides] = useState<any[]>([]);
   const [promociones, setPromociones] = useState<any[]>([]);
   const [productosDestacados, setProductosDestacados] = useState<any[]>([]);
   const [noticiasHome, setNoticiasHome] = useState<any[]>([]);
-  const [grupoProductos, setGrupoProductos] = useState(0);
   const [colecciones, setColecciones] = useState<any[]>([]);
   const [tickerIdx, setTickerIdx] = useState(0);
   const [tickerCerrado, setTickerCerrado] = useState(false);
@@ -56,29 +58,24 @@ const InicioPublicScreen: React.FC = () => {
       try {
         // 1. CARRUSEL - Traer datos de la BD (Página Inicio > Sección Carrusel > Contenidos)
         try {
-          // Obtener página "Inicio"
           const paginas = await paginasAPI.getAll();
           const paginaInicio = Array.isArray(paginas)
             ? paginas.find((p: any) => p.slug === 'inicio')
             : paginas.data?.find((p: any) => p.slug === 'inicio');
 
           if (paginaInicio) {
-            // Obtener secciones de la página Inicio
             const secciones = await seccionesAPI.getByPagina(paginaInicio.id);
             const seccionesArray = Array.isArray(secciones) ? secciones : secciones.data || [];
-            
-            // Buscar la sección "carrusel"
-            const seccionCarrusel = seccionesArray.find((s: any) => 
-              s.nombre?.toLowerCase().includes('carrusel') || 
+
+            const seccionCarrusel = seccionesArray.find((s: any) =>
+              s.nombre?.toLowerCase().includes('carrusel') ||
               s.nombre?.toLowerCase().includes('carousel')
             );
 
             if (seccionCarrusel) {
-              // Obtener contenidos de la sección Carrusel
               const contenidos = await contenidosAPI.getBySeccion(seccionCarrusel.id);
               const contenidosArray = Array.isArray(contenidos) ? contenidos : contenidos.data || [];
-              
-              // Convertir contenidos a formato de slides
+
               const slidesFromDB = contenidosArray
                 .filter((c: any) => c.activo !== false)
                 .sort((a: any, b: any) => (a.orden || 0) - (b.orden || 0))
@@ -93,21 +90,16 @@ const InicioPublicScreen: React.FC = () => {
                   enlace_nueva_ventana: c.enlace_nueva_ventana
                 }));
 
-              if (slidesFromDB.length > 0) {
-                setSlides(slidesFromDB);
-              } else {
-                setSlides(defaultSlides);
-              }
+              setSlides(slidesFromDB.length > 0 ? slidesFromDB : defaultSlides);
             } else {
-              // Si no existe sección de carrusel, usar datos por defecto
               setSlides(defaultSlides);
             }
           } else {
             setSlides(defaultSlides);
           }
-        } catch (e) { 
+        } catch (e) {
           console.error("Error obteniendo carrusel de BD:", e);
-          setSlides(defaultSlides); 
+          setSlides(defaultSlides);
         }
 
         // 2. Promociones activas
@@ -123,10 +115,8 @@ const InicioPublicScreen: React.FC = () => {
           let prods = [];
           if (Array.isArray(prodRes)) prods = prodRes;
           else if (prodRes && Array.isArray(prodRes.data)) prods = prodRes.data;
-          
-          if (prods.length > 0) {
-            setProductosDestacados(prods);
-          }
+
+          if (prods.length > 0) setProductosDestacados(prods);
         } catch (e) { console.log("Error cargando productos"); }
 
         // 4. Colecciones
@@ -168,16 +158,8 @@ const InicioPublicScreen: React.FC = () => {
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
-  const totalGrupos = Math.ceil(productosDestacados.length / 4);
-  const productosGrupo = productosDestacados.slice(grupoProductos * 4, grupoProductos * 4 + 4);
-
-  useEffect(() => {
-    if (totalGrupos <= 1) return;
-    const t = setInterval(() => {
-      setGrupoProductos(prev => (prev + 1) % totalGrupos);
-    }, 6000);
-    return () => clearInterval(t);
-  }, [totalGrupos]);
+  const productosDestacadosEd   = productosDestacados.slice(0, 3);
+  const productosDestacadosGrid = productosDestacados.slice(3, 11);
 
   useEffect(() => {
     if (promociones.length <= 1) return;
@@ -236,8 +218,8 @@ const InicioPublicScreen: React.FC = () => {
 
       <PublicHeader />
 
-      {/* ═══════════ CAROUSEL DINÁMICO ═══════════ */}
-      <section className="carousel-section">
+      {/* ═══════════ HERO / CARRUSEL PRINCIPAL ═══════════ */}
+      <section className="hero-carousel-section">
         <div className="carousel-container">
           <div className="carousel-wrapper">
             {slides.map((slide, index) => (
@@ -249,13 +231,12 @@ const InicioPublicScreen: React.FC = () => {
                 <div className="carousel-overlay" />
                 <div className="carousel-content">
                   <span className="carousel-tag">{slide.tag || "Exclusivo"}</span>
-                  <h3 className="carousel-title">{slide.titulo || slide.title}</h3>
+                  <h1 className="carousel-title">{slide.titulo || slide.title}</h1>
                   <p className="carousel-desc">{slide.descripcion || slide.description}</p>
-                  {slide.enlace && (
-                    <Link to={slide.enlace} className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
-                      Explorar
-                    </Link>
-                  )}
+                  <div className="carousel-actions">
+                    <Link to={slide.enlace || "/catalogo-publico"} className="btn btn-primary">Explorar colección</Link>
+                    <Link to="/catalogo-publico" className="btn btn-secondary">Ver catálogo completo</Link>
+                  </div>
                 </div>
               </div>
             ))}
@@ -277,155 +258,179 @@ const InicioPublicScreen: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════ HERO ═══════════ */}
-      <section className="hero-section">
-        <div className="container-lg">
-          <div className="hero-content">
-            <div className="hero-text">
-              <span className="section-label">Joyería Exclusiva</span>
-              <h1 className="hero-title">Elegancia que <span>brilla</span> contigo</h1>
-              <p className="hero-subtitle">
-                Joyería pensada para quienes aprecian lo extraordinario. Diseño delicado,
-                acabados únicos y un estilo femenino contemporáneo que te acompaña en cada momento.
-              </p>
-              <div className="hero-buttons">
-                <Link to="/catalogo-publico" className="btn btn-primary">Descubre nuestras Colecciones</Link>
-                <button className="btn btn-secondary">Pide tu diseño</button>
-              </div>
+      {/* ═══════════ BARRA DE CONFIANZA ═══════════ */}
+      <section className="trust-strip">
+        <div className="container-lg trust-grid">
+          <div className="trust-item">
+            <AiOutlineHeart size={20} />
+            <div>
+              <strong>Hecho con amor</strong>
+              <span>Piezas artesanales, una a una</span>
             </div>
-
-            <div className="hero-images">
-              <div className="image-grid">
-                <div className="image-item img-1"><img src={`${JDL_CLOUD}/joyeria/imagenes/imagen_usar_4.jpg`} alt="Joyería Diana Laura" loading="lazy" /></div>
-                <div className="image-item img-2"><img src={`${JDL_CLOUD}/joyeria/imagenes/imagen_usar_9.jpg`} alt="Piezas exclusivas" loading="lazy" /></div>
-                <div className="image-item img-3"><img src={`${JDL_CLOUD}/joyeria/imagenes/imagen_usar_15.jpg`} alt="Colección Diana Laura" loading="lazy" /></div>
-              </div>
+          </div>
+          <div className="trust-item">
+            <AiOutlineSafetyCertificate size={20} />
+            <div>
+              <strong>Calidad garantizada</strong>
+              <span>Materiales premium certificados</span>
+            </div>
+          </div>
+          <div className="trust-item">
+            <AiOutlineCar size={20} />
+            <div>
+              <strong>Envíos a todo Huejutla</strong>
+              <span>Seguimiento en tiempo real</span>
+            </div>
+          </div>
+          <div className="trust-item">
+            <AiOutlinePhone size={20} />
+            <div>
+              <strong>Atención personalizada</strong>
+              <span>Estamos aquí para ayudarte</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ═══════════ NUEVO: PRODUCTOS DESTACADOS ═══════════ */}
-      {/* Reutilizamos las clases de news-section para mantener el estilo exacto */}
-      {productosDestacados.length > 0 && (
-        <section className="news-section" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
+      {/* ═══════════ STATS BAND ═══════════ */}
+      <div className="stats-band">
+        {[
+          { icon: AiOutlineBulb, n: "", l: "Muchos diseños exclusivos" },
+          { icon: AiOutlineSmile, n: "", l: "Muchos clientes satisfechos" },
+          { icon: AiOutlineTool, n: "100%", l: "Hecho a mano" },
+          { icon: AiOutlineStar, n: "5 ★", l: "Calidad garantizada" },
+        ].map((s, i, arr) => (
+          <React.Fragment key={i}>
+            <div className="stats-band-item">
+              <s.icon size={20} className="stats-band-icon" />
+              {s.n && <strong>{s.n}</strong>}
+              <span>{s.l}</span>
+            </div>
+            {i < arr.length - 1 && <div className="stats-band-sep" />}
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* ═══════════ COLECCIONES ═══════════ */}
+      {colecciones.length > 0 && (
+        <section className="showcase-section">
           <div className="container-lg">
             <div className="section-header text-center mb-5">
-              <span className="section-label" style={{ margin: '0 auto' }}>Nuestro Catálogo</span>
-              <h2 className="section-title">Piezas <span>Exclusivas</span></h2>
-              <p className="section-subtitle">Descubre los productos favoritos de nuestras clientas</p>
+              <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Selecciones especiales</span><span className="eyebrow-line" /></div>
+              <h2 className="section-title">Nuestras <span>Colecciones</span></h2>
+              <p className="section-subtitle">Piezas curadas para cada estilo y ocasión</p>
             </div>
-
-            <style>{`
-              @keyframes fadeInUp {
-                from { opacity: 0; transform: translateY(18px); }
-                to   { opacity: 1; transform: translateY(0); }
-              }
-              .prod-card-rot {
-                animation: fadeInUp 0.8s cubic-bezier(.4,0,.2,1) both;
-              }
-              .prod-card-rot:nth-child(2) { animation-delay: 0.1s; }
-              .prod-card-rot:nth-child(3) { animation-delay: 0.18s; }
-              .prod-card-rot:nth-child(4) { animation-delay: 0.26s; }
-              .prod-card-rot img { transition: transform 0.5s ease; }
-              .prod-card-rot:hover img { transform: scale(1.05); }
-            `}</style>
-            <div key={grupoProductos} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-              {productosGrupo.map(prod => (
-                <div className="prod-card-rot" key={prod.id} style={{
-                  background: 'var(--bg-card)', borderRadius: 14,
-                  overflow: 'hidden', boxShadow: '0 4px 18px rgba(0,0,0,0.18)',
-                  border: '1px solid var(--rose-border)'
-                }}>
-                  <div style={{ height: 160, overflow: 'hidden' }}>
-                    <img src={prod.imagen_principal || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"}
-                      alt={prod.nombre} loading="lazy"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div className="showcase-grid">
+              {colecciones.map((col: any) => (
+                <Link key={col.id} to="/catalogo-publico" className="showcase-card">
+                  <div className="showcase-card-img">
+                    {col.imagen_url ? (
+                      <img src={col.imagen_url} alt={col.nombre} loading="lazy" />
+                    ) : (
+                      <div className="showcase-card-fallback"><AiOutlineFolderOpen size={32} /></div>
+                    )}
                   </div>
-                  <div style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                    <h5 style={{ margin: '0 0 4px', fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600 }}>{prod.nombre}</h5>
-                    {(() => {
-                      const precioFinal = prod.precio_promocion ?? prod.precio_oferta;
-                      return precioFinal ? (
-                        <div style={{ margin: '0 0 10px' }}>
-                          <span style={{ textDecoration: 'line-through', fontSize: '0.8rem', opacity: 0.6, marginRight: 6 }}>
-                            ${Number(prod.precio_venta).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                          </span>
-                          <span style={{ color: 'var(--rose)', fontSize: '1rem', fontWeight: 'bold' }}>
-                            ${Number(precioFinal).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                          </span>
-                          {prod.precio_promocion && <AiOutlineTag style={{ marginLeft: 4, verticalAlign: 'middle' }} size={13} />}
-                        </div>
-                      ) : (
-                        <p style={{ color: 'var(--rose)', fontSize: '1rem', fontWeight: 'bold', margin: '0 0 10px' }}>
-                          ${Number(prod.precio_venta).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                        </p>
-                      );
-                    })()}
-                    <Link to={`/producto/${prod.id}`} className="btn btn-secondary"
-                      style={{ width: '100%', display: 'block', textAlign: 'center', fontSize: '0.8rem', padding: '6px 0' }}>
-                      Ver Detalles
-                    </Link>
+                  <div className="showcase-card-body">
+                    <h3>{col.nombre}</h3>
+                    {col.descripcion && <p>{col.descripcion}</p>}
+                    <span className="showcase-card-count">
+                      {col.productos.length} pieza{col.productos.length !== 1 ? 's' : ''} →
+                    </span>
                   </div>
-                </div>
+                </Link>
               ))}
-            </div>
-
-            {totalGrupos > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '1.5rem' }}>
-                {Array.from({ length: totalGrupos }).map((_, i) => (
-                  <button key={i} onClick={() => setGrupoProductos(i)}
-                    style={{ width: 10, height: 10, borderRadius: '50%', border: 'none', cursor: 'pointer',
-                      background: i === grupoProductos ? 'var(--rose)' : 'var(--rose-soft)', padding: 0 }} />
-                ))}
-              </div>
-            )}
-
-            <div className="text-center mt-5">
-              <Link to="/catalogo-publico" className="btn btn-primary">Ver todo el catálogo</Link>
             </div>
           </div>
         </section>
       )}
 
-      {/* ═══════════ COLECCIONES ═══════════ */}
-      {colecciones.length > 0 && (
-        <section className="news-section">
+      {/* ═══════════ PIEZAS DESTACADAS (editorial) ═══════════ */}
+      {productosDestacadosEd.length > 0 && (
+        <section className="showcase-section showcase-section--alt">
           <div className="container-lg">
-            <div className="section-header text-center mb-5">
-              <span className="section-label" style={{ margin: '0 auto' }}>Selecciones especiales</span>
-              <h2 className="section-title">Nuestras <span>Colecciones</span></h2>
-              <p className="section-subtitle">Piezas curadas para cada estilo y ocasión</p>
+            <div className="section-header mb-5">
+              <div className="eyebrow-row"><span className="eyebrow-line" /><span className="eyebrow-txt">Piezas destacadas</span></div>
+              <h2 className="section-title">Lo que más <span>enamora</span></h2>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.2rem' }}>
-              {colecciones.map((col: any) => (
-                <Link key={col.id} to={`/catalogo-publico`}
-                  style={{ textDecoration: 'none', borderRadius: 14, overflow: 'hidden', display: 'block',
-                    border: '1px solid var(--rose-border)', background: 'var(--bg-card)',
-                    boxShadow: '0 4px 18px rgba(0,0,0,0.18)', transition: 'transform 0.25s' }}
-                  onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-4px)')}
-                  onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}>
-                  {col.imagen_url ? (
-                    <img src={col.imagen_url} alt={col.nombre}
-                      style={{ width: '100%', height: 140, objectFit: 'cover', display: 'block' }} />
-                  ) : (
-                    <div style={{ height: 140, background: 'var(--bg-card-hover)', display: 'flex', alignItems: 'center',
-                      justifyContent: 'center', color: 'var(--color-rose-gold)' }}><AiOutlineFolderOpen size={32} /></div>
-                  )}
-                  <div style={{ padding: '12px 16px' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: 4 }}>{col.nombre}</div>
-                    {col.descripcion && (
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', overflow: 'hidden',
-                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any }}>
-                        {col.descripcion}
-                      </div>
-                    )}
-                    <div style={{ marginTop: 8, fontSize: '0.78rem', color: 'var(--rose)' }}>
-                      {col.productos.length} pieza{col.productos.length !== 1 ? 's' : ''} →
+
+            <div className="editorial-grid">
+              {productosDestacadosEd.map(prod => {
+                const precioFinal = prod.precio_promocion ?? prod.precio_oferta;
+                const conDesc = precioFinal && precioFinal < prod.precio_venta;
+                return (
+                  <Link to={`/producto/${prod.id}`} className="editorial-card" key={prod.id}>
+                    <div className="editorial-card-img">
+                      <img
+                        src={prod.imagen_principal || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"}
+                        alt={prod.nombre}
+                        loading="lazy"
+                      />
+                      {prod.es_nuevo && <span className="prod-badge prod-badge--nuevo">Nuevo</span>}
+                      {conDesc && <span className="prod-badge prod-badge--oferta">Oferta</span>}
                     </div>
-                  </div>
-                </Link>
-              ))}
+                    <div className="editorial-card-body">
+                      {prod.categoria_nombre && <span className="prod-categoria">{prod.categoria_nombre}</span>}
+                      <h3>{prod.nombre}</h3>
+                      <div className="product-card-precio">
+                        {conDesc && (
+                          <span className="precio-tachado">${Number(prod.precio_venta).toLocaleString('es-MX')}</span>
+                        )}
+                        <span className="precio-final">${Number(precioFinal ?? prod.precio_venta).toLocaleString('es-MX')}</span>
+                      </div>
+                      <span className="product-card-link">Ver pieza →</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════ SELECCIÓN (bento) ═══════════ */}
+      {productosDestacadosGrid.length > 0 && (
+        <section className="showcase-section">
+          <div className="container-lg">
+            <div className="section-header-row mb-5">
+              <div className="eyebrow-row"><span className="eyebrow-line" /><span className="eyebrow-txt">Selección</span></div>
+              <Link to="/catalogo-publico" className="ver-todos-link">Ver todos →</Link>
+            </div>
+            <h2 className="section-title" style={{ marginTop: '-1rem', marginBottom: '2rem' }}>Productos <span>Recientes</span></h2>
+
+            <div className="product-grid">
+              {productosDestacadosGrid.map(prod => {
+                const precioFinal = prod.precio_promocion ?? prod.precio_oferta;
+                const conDesc = precioFinal && precioFinal < prod.precio_venta;
+                return (
+                  <Link to={`/producto/${prod.id}`} className="product-card" key={prod.id}>
+                    <div className="product-card-img">
+                      <img
+                        src={prod.imagen_principal || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"}
+                        alt={prod.nombre}
+                        loading="lazy"
+                      />
+                      {prod.es_nuevo && <span className="prod-badge prod-badge--nuevo">Nuevo</span>}
+                      {conDesc && <span className="prod-badge prod-badge--oferta">Oferta</span>}
+                      {prod.stock_actual === 0 && <span className="prod-badge prod-badge--agotado">Agotado</span>}
+                      <div className="product-card-overlay"><span>Ver pieza →</span></div>
+                    </div>
+                    <div className="product-card-body">
+                      {prod.categoria_nombre && <span className="prod-categoria">{prod.categoria_nombre}</span>}
+                      <h5>{prod.nombre}</h5>
+                      <div className="product-card-precio">
+                        {conDesc && (
+                          <span className="precio-tachado">${Number(prod.precio_venta).toLocaleString('es-MX')}</span>
+                        )}
+                        <span className="precio-final">${Number(precioFinal ?? prod.precio_venta).toLocaleString('es-MX')}</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="text-center mt-5">
+              <Link to="/catalogo-publico" className="btn btn-primary">Ver todo el catálogo</Link>
             </div>
           </div>
         </section>
@@ -436,38 +441,29 @@ const InicioPublicScreen: React.FC = () => {
         <section className="features-section">
           <div className="container-lg">
             <div className="section-header text-center mb-5">
-              <span className="section-label" style={{ margin: '0 auto' }}>Ofertas Especiales</span>
+              <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Ofertas especiales</span><span className="eyebrow-line" /></div>
               <h2 className="section-title">Promociones <span>Activas</span></h2>
             </div>
             <div className="features-grid">
               {promociones.map(promo => (
-                <div className="feature-card" key={promo.id}
-                  style={{ position: 'relative', overflow: 'hidden', border: '1px solid var(--rose-border)' }}>
+                <div className="feature-card promo-card" key={promo.id}>
                   {(promo.tipo === 'porcentaje' || promo.tipo === 'monto_fijo' || promo.tipo === 'cupon') && (
-                    <div style={{ position: 'absolute', top: '15px', right: '-35px', background: 'var(--rose-vivid)',
-                      color: '#fff', padding: '0.3rem 3rem', transform: 'rotate(45deg)',
-                      fontWeight: 'bold', fontSize: '0.85rem', zIndex: 2, boxShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+                    <div className="promo-ribbon">
                       {promo.tipo === 'monto_fijo' ? `-$${promo.valor_descuento}` : `-${promo.valor_descuento}%`}
                     </div>
                   )}
                   <div className="feature-icon">
                     {promo.tipo === 'envio_gratis' ? <AiOutlineCar size={22} /> : promo.tipo === '2x1' ? <AiOutlineGift size={22} /> : <AiOutlineTag size={22} />}
                   </div>
-                  <h4 style={{ color: 'var(--rose-light)' }}>{promo.nombre}</h4>
-                  <p style={{ fontSize: '0.88rem', opacity: 0.85 }}>{promoLabel(promo)}</p>
+                  <h4>{promo.nombre}</h4>
+                  <p>{promoLabel(promo)}</p>
                   {promo.monto_minimo_compra && (
-                    <p style={{ fontSize: '0.78rem', color: 'var(--rose)', marginTop: 4 }}>
-                      Compra mínima: ${promo.monto_minimo_compra}
-                    </p>
+                    <p className="promo-minimo">Compra mínima: ${promo.monto_minimo_compra}</p>
                   )}
                   {promo.codigo_cupon && (
-                    <div style={{ marginTop: 8, background: 'rgba(201,168,76,0.15)', borderRadius: 8,
-                      padding: '4px 10px', display: 'inline-block', fontSize: '0.82rem',
-                      fontWeight: 700, letterSpacing: 1, color: '#c9a84c' }}>
-                      {promo.codigo_cupon}
-                    </div>
+                    <div className="promo-codigo">{promo.codigo_cupon}</div>
                   )}
-                  <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: 8 }}>
+                  <p className="promo-vigencia">
                     Hasta {new Date(promo.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}
                   </p>
                 </div>
@@ -477,33 +473,33 @@ const InicioPublicScreen: React.FC = () => {
         </section>
       )}
 
-      {/* ═══════════ FEATURES ═══════════ */}
+      {/* ═══════════ POR QUÉ ELEGIRNOS ═══════════ */}
       <section className="features-section" style={{ borderTop: '1px solid var(--rose-soft)' }}>
         <div className="container-lg">
           <div className="section-header text-center mb-5">
-            <span className="section-label" style={{ margin: '0 auto' }}>Por qué elegirnos</span>
+            <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Por qué elegirnos</span><span className="eyebrow-line" /></div>
             <h2 className="section-title">Lo que nos hace <span>especiales</span></h2>
             <p className="section-subtitle">Cada detalle importa, cada pieza cuenta una historia</p>
           </div>
 
           <div className="features-grid">
             <div className="feature-card">
-              <div className="feature-icon"><i className="fas fa-gem" /></div>
+              <div className="feature-icon"><AiOutlineStar size={22} /></div>
               <h4>Diseño Premium</h4>
               <p>Cada pieza es cuidadosamente diseñada con materiales de alta calidad y atención al detalle.</p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon"><i className="fas fa-heart" /></div>
+              <div className="feature-icon"><AiOutlineHeart size={22} /></div>
               <h4>Hecho con Amor</h4>
               <p>Creado con pasión artesanal y dedicación en cada proceso de fabricación.</p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon"><i className="fas fa-headset" /></div>
+              <div className="feature-icon"><AiOutlinePhone size={22} /></div>
               <h4>Soporte 24/7</h4>
               <p>Nuestro equipo está disponible para ayudarte en cualquier momento que lo necesites.</p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon"><i className="fas fa-truck" /></div>
+              <div className="feature-icon"><AiOutlineCar size={22} /></div>
               <h4>Envío Rápido</h4>
               <p>Entrega segura y rápida a cualquier lugar, con seguimiento en tiempo real.</p>
             </div>
@@ -515,7 +511,7 @@ const InicioPublicScreen: React.FC = () => {
       <section className="news-section">
         <div className="container-lg">
           <div className="section-header text-center mb-5">
-            <span className="section-label" style={{ margin: '0 auto' }}>Últimas novedades</span>
+            <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Últimas novedades</span><span className="eyebrow-line" /></div>
             <h2 className="section-title">Noticias &amp; <span>Novedades</span></h2>
             <p className="section-subtitle">Mantente al día con nuestras últimas colecciones y promociones</p>
           </div>
@@ -533,8 +529,8 @@ const InicioPublicScreen: React.FC = () => {
                 <div className="news-content">
                   <h5 className="news-title">{noticia.titulo}</h5>
                   <p className="news-description">
-                    {noticia.contenido && noticia.contenido.length > 100 
-                      ? `${noticia.contenido.substring(0, 100)}...` 
+                    {noticia.contenido && noticia.contenido.length > 100
+                      ? `${noticia.contenido.substring(0, 100)}...`
                       : noticia.contenido}
                   </p>
                   <div className="news-divider" />

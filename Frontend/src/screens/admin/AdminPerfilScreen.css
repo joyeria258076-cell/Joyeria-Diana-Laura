@@ -31,6 +31,25 @@
   display: flex; align-items: center; justify-content: center;
   font-size: 1.6rem; font-weight: 800; color: var(--color-rose-gold); flex-shrink: 0;
 }
+.apf-avatar-wrap {
+  position: relative;
+  width: 64px; height: 64px; border-radius: 50%;
+  cursor: pointer; flex-shrink: 0;
+}
+.apf-avatar-img {
+  width: 64px; height: 64px; border-radius: 50%;
+  object-fit: cover; border: 2px solid rgba(236,178,195,0.5);
+  box-shadow: 0 0 14px rgba(236,178,195,0.15);
+  display: block;
+}
+.apf-avatar-overlay {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: rgba(0,0,0,0.6);
+  color: #fff; font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  opacity: 0; transition: opacity 0.2s;
+}
+.apf-avatar-wrap:hover .apf-avatar-overlay { opacity: 1; }
 .apf-hero-info { display: flex; flex-direction: column; gap: 0.25rem; }
 .apf-hero-name  { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0; }
 .apf-hero-email { font-size: 0.82rem; color: rgba(217,217,217,0.5); margin: 0; }

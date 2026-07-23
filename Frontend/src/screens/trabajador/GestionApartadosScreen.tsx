@@ -3,9 +3,22 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { apartadoAPI } from '../../services/api';
 import {
     AiOutlineCheckCircle, AiOutlineDollarCircle, AiOutlineStop, AiOutlineFlag,
-    AiOutlineShoppingCart, AiOutlineHistory, AiOutlinePaperClip,
+    AiOutlineShoppingCart, AiOutlineHistory, AiOutlinePaperClip, AiOutlineShopping,
+    AiOutlineBank, AiOutlineCreditCard, AiOutlineWallet, AiOutlineClockCircle,
+    AiOutlineWarning, AiOutlineCloseCircle, AiOutlineLock, AiOutlineInbox,
+    AiOutlineUser, AiOutlineMail, AiOutlinePhone, AiOutlineCalendar, AiOutlineSearch,
+    AiOutlineInbox as AiOutlineArchive, AiOutlineFolderOpen, AiOutlineFire,
+    AiOutlineThunderbolt, AiOutlineDown, AiOutlineUp, AiOutlineReload, AiOutlineClose,
 } from 'react-icons/ai';
 import './GestionApartadosScreen.css';
+
+const IconoMetodo: React.FC<{ codigo?: string; size?: number }> = ({ codigo, size = 13 }) => {
+    if (codigo === 'mercadopago')   return <AiOutlineShopping size={size} />;
+    if (codigo === 'paypal')        return <AiOutlineCreditCard size={size} />;
+    if (codigo === 'transferencia') return <AiOutlineBank size={size} />;
+    if (codigo === 'efectivo')      return <AiOutlineWallet size={size} />;
+    return <AiOutlineDollarCircle size={size} />;
+};
 
 interface Abono {
     id: number;
@@ -64,19 +77,12 @@ interface Meta {
     total_paginas: number;
 }
 
-const ICONOS_METODO: Record<string, string> = {
-    mercadopago:   '🛒',
-    paypal:        '🅿️',
-    transferencia: '🏦',
-    efectivo:      '💵',
-};
-
-const ESTADO_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-    pendiente_pago: { label: 'Pend. pago',  color: '#a78bfa', icon: '🕐' },
-    activo:         { label: 'Activo',       color: '#6bcb77', icon: '🟢' },
-    liquidado:      { label: 'Liquidado',    color: '#ecb2c3', icon: '✅' },
-    cancelado:      { label: 'Cancelado',    color: '#e74c3c', icon: '❌' },
-    vencido:        { label: 'Vencido',      color: '#f39c12', icon: '⚠️' },
+const ESTADO_CONFIG: Record<string, { label: string; color: string; icon: React.ComponentType<{size?:number}> }> = {
+    pendiente_pago: { label: 'Pend. pago',  color: '#a78bfa', icon: AiOutlineClockCircle },
+    activo:         { label: 'Activo',       color: '#6bcb77', icon: AiOutlineThunderbolt },
+    liquidado:      { label: 'Liquidado',    color: '#ecb2c3', icon: AiOutlineCheckCircle },
+    cancelado:      { label: 'Cancelado',    color: '#e74c3c', icon: AiOutlineCloseCircle },
+    vencido:        { label: 'Vencido',      color: '#f39c12', icon: AiOutlineWarning },
 };
 
 const fmtFecha = (f: string) => {
@@ -99,6 +105,24 @@ const diasRestantes = (fecha: string) => {
     fechaLocal.setHours(0, 0, 0, 0);
     const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
     return Math.ceil((fechaLocal.getTime() - hoy.getTime()) / 86400000);
+};
+
+// Agrupa apartados por fecha de creación — para no mostrarlos todos de golpe
+const agruparApartadosPorFecha = (lista: Apartado[]): { label: string; items: Apartado[] }[] => {
+    const hoy    = new Date(); hoy.setHours(0, 0, 0, 0);
+    const ayer   = new Date(hoy); ayer.setDate(ayer.getDate() - 1);
+    const semana = new Date(hoy); semana.setDate(semana.getDate() - 7);
+    const grupos: Record<string, Apartado[]> = { 'Hoy': [], 'Ayer': [], 'Esta semana': [], 'Más antiguos': [] };
+    lista.forEach(a => {
+        const [y, m, d] = a.fecha_apartado.substring(0, 10).split('-').map(Number);
+        const fecha = new Date(y, m - 1, d);
+        fecha.setHours(0, 0, 0, 0);
+        if (fecha.getTime() === hoy.getTime())       grupos['Hoy'].push(a);
+        else if (fecha.getTime() === ayer.getTime()) grupos['Ayer'].push(a);
+        else if (fecha >= semana)                    grupos['Esta semana'].push(a);
+        else                                          grupos['Más antiguos'].push(a);
+    });
+    return Object.entries(grupos).filter(([, items]) => items.length > 0).map(([label, items]) => ({ label, items }));
 };
 
 // ── Modal confirmar pago inicial ──────────────────────────────
@@ -153,7 +177,7 @@ const ModalConfirmarPago: React.FC<ModalConfirmarPagoProps> = ({ apartado, onCer
                         </div>
                         <div className="gapt-resumen-fila">
                             <span>Método de pago</span>
-                            <strong>{ICONOS_METODO[metodo] || '💰'} {metodoNombre}</strong>
+                            <strong><IconoMetodo codigo={metodo} /> {metodoNombre}</strong>
                         </div>
                         <div className="gapt-resumen-fila">
                             <span>Abono inicial</span>
@@ -186,7 +210,7 @@ const ModalConfirmarPago: React.FC<ModalConfirmarPagoProps> = ({ apartado, onCer
                     {/* Comprobante de transferencia */}
                     {tieneComprobante && (
                         <div className="gapt-comprobante-preview">
-                            <p>📎 Comprobante subido por el cliente:</p>
+                            <p><AiOutlinePaperClip size={13} /> Comprobante subido por el cliente:</p>
                             <a href={apartado.comprobante_url!} target="_blank" rel="noreferrer">Ver comprobante →</a>
                             <img src={apartado.comprobante_url!} alt="Comprobante"
                                 style={{ display: 'block', marginTop: 8, maxWidth: '100%', maxHeight: 160, borderRadius: 6, objectFit: 'contain' }} />
@@ -220,13 +244,13 @@ const ModalConfirmarPago: React.FC<ModalConfirmarPagoProps> = ({ apartado, onCer
                         </>
                     )}
 
-                    {error && <div className="gapt-error">⚠️ {error}</div>}
+                    {error && <div className="gapt-error"><AiOutlineWarning size={13} /> {error}</div>}
                 </div>
                 <div className="gapt-modal-footer">
                     <button className="gapt-btn-sec" onClick={onCerrar}>Cancelar</button>
                     {!esPasarela && (
                         <button className="gapt-btn-pri" onClick={handleConfirmar} disabled={guardando}>
-                            {guardando ? '⏳ Confirmando...' : '✅ Confirmar pago'}
+                            {guardando ? 'Confirmando...' : <><AiOutlineCheckCircle size={14} /> Confirmar pago</>}
                         </button>
                     )}
                 </div>
@@ -292,57 +316,62 @@ const ModalAbono: React.FC<ModalAbonoProps> = ({ apartado, metodosPago, onCerrar
                     <button className="gapt-modal-close" onClick={onCerrar}>×</button>
                 </div>
                 <div className="gapt-modal-body">
-                    <div className="gapt-modal-resumen">
-                        <div className="gapt-resumen-fila">
-                            <span>Cliente</span>
+
+                    {/* Franja cliente + saldo */}
+                    <div className="gapt-abono-franja">
+                        <div>
+                            <span className="gapt-abono-franja-label">Cliente</span>
                             <strong>{apartado.cliente_nombre}</strong>
                         </div>
-                        <div className="gapt-resumen-fila">
-                            <span>Saldo pendiente</span>
+                        <div>
+                            <span className="gapt-abono-franja-label">Saldo pendiente</span>
                             <strong style={{ color: '#ecb2c3' }}>{fmtMoneda(apartado.saldo_pendiente)}</strong>
                         </div>
-                        {montoNum > 0 && (
-                            <div className="gapt-resumen-fila">
-                                <span>Saldo tras este abono</span>
-                                <strong style={{ color: saldoDespues === 0 ? '#6bcb77' : '#e0e0e0' }}>
-                                    {fmtMoneda(saldoDespues)}
-                                    {saldoDespues === 0 && ' ✅ ¡Liquidado!'}
-                                </strong>
-                            </div>
-                        )}
-                        {saldoDespues === 0 && montoNum > 0 && (
-                            <div className="gapt-resumen-fila" style={{ background: '#2d1f0e', borderRadius: 6, padding: '8px 12px', marginTop: 6 }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: '#f39c12', fontWeight: 500, fontSize: '0.85rem' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={confirmarLiquidacion}
-                                        onChange={e => setConfirmarLiquidacion(e.target.checked)}
-                                        style={{ width: 16, height: 16, accentColor: '#f39c12' }}
-                                    />
-                                    Confirmo que el cliente ya realizó el pago total del saldo pendiente
-                                </label>
-                            </div>
-                        )}
                     </div>
 
-                    <div className="gapt-form-group">
-                        <label>Monto del abono <span className="gapt-req">*</span></label>
-                        <input type="number" className="gapt-input"
-                            placeholder={`Máx: ${fmtMoneda(apartado.saldo_pendiente)}`}
+                    {/* Entrada de monto tipo "hero" */}
+                    <div className="gapt-abono-hero">
+                        <span className="gapt-abono-hero-simbolo">$</span>
+                        <input type="number" className="gapt-abono-hero-input"
+                            placeholder="0.00"
                             min={1} max={parseFloat(String(apartado.saldo_pendiente))}
                             value={monto} onChange={e => setMonto(e.target.value)} />
                     </div>
+                    <div className="gapt-abono-barra-wrap">
+                        <div className="gapt-abono-barra">
+                            <div className="gapt-abono-barra-fill"
+                                style={{ width: `${Math.min(100, (montoNum / parseFloat(String(apartado.saldo_pendiente))) * 100)}%` }} />
+                        </div>
+                        <div className="gapt-abono-barra-info">
+                            {montoNum > 0 ? (
+                                <span style={{ color: saldoDespues === 0 ? '#6bcb77' : '#aaa' }}>
+                                    Saldo tras este abono: <strong>{fmtMoneda(saldoDespues)}</strong>
+                                    {saldoDespues === 0 && ' — ¡Liquidado!'}
+                                </span>
+                            ) : <span>Ingresa un monto (máx. {fmtMoneda(apartado.saldo_pendiente)})</span>}
+                        </div>
+                    </div>
+
+                    {saldoDespues === 0 && montoNum > 0 && (
+                        <label className="gapt-abono-confirmar-liq">
+                            <input
+                                type="checkbox"
+                                checked={confirmarLiquidacion}
+                                onChange={e => setConfirmarLiquidacion(e.target.checked)}
+                            />
+                            Confirmo que el cliente ya realizó el pago total del saldo pendiente
+                        </label>
+                    )}
 
                     <div className="gapt-form-group">
                         <label>Método de pago <span className="gapt-req">*</span></label>
-                        <div className="gapt-metodos">
+                        <div className="gapt-metodos-chips">
                             {metodosPago.filter(m => m.codigo === 'efectivo').map(m => (
-                                <label key={m.id} className={`gapt-metodo-opt ${metodoPagoId === m.id ? 'sel' : ''}`}>
-                                    <input type="radio" name="metodo_abono"
-                                        checked={metodoPagoId === m.id}
-                                        onChange={() => setMetodoPagoId(m.id)} />
-                                    {m.nombre}
-                                </label>
+                                <button type="button" key={m.id}
+                                    className={`gapt-metodo-chip ${metodoPagoId === m.id ? 'sel' : ''}`}
+                                    onClick={() => setMetodoPagoId(m.id)}>
+                                    <IconoMetodo codigo={m.codigo} size={15} /> {m.nombre}
+                                </button>
                             ))}
                         </div>
                         <small className="gapt-ayuda" style={{ color: '#888', marginTop: 4, display: 'block' }}>
@@ -350,35 +379,38 @@ const ModalAbono: React.FC<ModalAbonoProps> = ({ apartado, metodosPago, onCerrar
                         </small>
                     </div>
 
-                    <div className="gapt-form-group">
-                        <label>Actualizar fecha límite liquidación (opcional)</label>
-                        <input type="date" className="gapt-input"
-                            value={fechaLimiteLiq}
-                            onChange={e => setFechaLimiteLiq(e.target.value)} />
-                        <small className="gapt-ayuda">Solo si quieres modificar la fecha límite actual.</small>
-                    </div>
+                    <details className="gapt-abono-opcionales">
+                        <summary>Opciones adicionales (fechas y notas)</summary>
+                        <div className="gapt-form-group">
+                            <label>Actualizar fecha límite liquidación</label>
+                            <input type="date" className="gapt-input"
+                                value={fechaLimiteLiq}
+                                onChange={e => setFechaLimiteLiq(e.target.value)} />
+                            <small className="gapt-ayuda">Solo si quieres modificar la fecha límite actual.</small>
+                        </div>
 
-                    <div className="gapt-form-group">
-                        <label>Fecha límite siguiente abono (opcional)</label>
-                        <input type="date" className="gapt-input"
-                            min={new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                            value={fechaLimiteSig}
-                            onChange={e => setFechaLimiteSig(e.target.value)} />
-                    </div>
+                        <div className="gapt-form-group">
+                            <label>Fecha límite siguiente abono</label>
+                            <input type="date" className="gapt-input"
+                                min={new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                                value={fechaLimiteSig}
+                                onChange={e => setFechaLimiteSig(e.target.value)} />
+                        </div>
 
-                    <div className="gapt-form-group">
-                        <label>Notas (opcional)</label>
-                        <textarea className="gapt-textarea" rows={2}
-                            placeholder="Ej: Pagó en efectivo..."
-                            value={notas} onChange={e => setNotas(e.target.value)} />
-                    </div>
+                        <div className="gapt-form-group">
+                            <label>Notas</label>
+                            <textarea className="gapt-textarea" rows={2}
+                                placeholder="Ej: Pagó en efectivo..."
+                                value={notas} onChange={e => setNotas(e.target.value)} />
+                        </div>
+                    </details>
 
-                    {error && <div className="gapt-error">⚠️ {error}</div>}
+                    {error && <div className="gapt-error"><AiOutlineWarning size={13} /> {error}</div>}
                 </div>
                 <div className="gapt-modal-footer">
                     <button className="gapt-btn-sec" onClick={onCerrar}>Cancelar</button>
                     <button className="gapt-btn-pri" onClick={handleGuardar} disabled={guardando}>
-                        {guardando ? '⏳ Guardando...' : '💰 Registrar abono'}
+                        {guardando ? 'Guardando...' : <><AiOutlineDollarCircle size={14} /> Registrar abono</>}
                     </button>
                 </div>
             </div>
@@ -452,7 +484,7 @@ const ModalConfirmarAbono: React.FC<ModalConfirmarAbonoProps> = ({ apartado, onC
                             <span>Saldo tras confirmar</span>
                             <strong style={{ color: liquidado ? '#6bcb77' : '#ecb2c3' }}>
                                 {fmtMoneda(saldoDespues)}
-                                {liquidado && ' ✅ Liquidado'}
+                                {liquidado && ' Liquidado'}
                             </strong>
                         </div>
                     </div>
@@ -463,7 +495,7 @@ const ModalConfirmarAbono: React.FC<ModalConfirmarAbonoProps> = ({ apartado, onC
                             <label>Comprobante del cliente</label>
                             <a href={ab.comprobante_url} target="_blank" rel="noreferrer"
                                 className="gapt-comprobante-link" style={{ display: 'block', marginTop: 6 }}>
-                                📎 Ver comprobante →
+                                <AiOutlinePaperClip size={13} /> Ver comprobante →
                             </a>
                             <img src={ab.comprobante_url} alt="Comprobante"
                                 style={{ marginTop: 8, maxWidth: '100%', maxHeight: 180, borderRadius: 6, objectFit: 'contain' }} />
@@ -502,12 +534,12 @@ const ModalConfirmarAbono: React.FC<ModalConfirmarAbonoProps> = ({ apartado, onC
                             value={notas} onChange={e => setNotas(e.target.value)} />
                     </div>
 
-                    {error && <div className="gapt-error">⚠️ {error}</div>}
+                    {error && <div className="gapt-error"><AiOutlineWarning size={13} /> {error}</div>}
                 </div>
                 <div className="gapt-modal-footer">
                     <button className="gapt-btn-sec" onClick={onCerrar}>Cancelar</button>
                     <button className="gapt-btn-pri" onClick={handleConfirmar} disabled={guardando}>
-                        {guardando ? '⏳ Confirmando...' : '✅ Confirmar abono'}
+                        {guardando ? 'Confirmando...' : <><AiOutlineCheckCircle size={14} /> Confirmar abono</>}
                     </button>
                 </div>
             </div>
@@ -556,12 +588,12 @@ const ModalCancelar: React.FC<ModalCancelarProps> = ({ apartado, onCerrar, onExi
                             placeholder="Ej: Cliente no respondió, venció el plazo..."
                             value={motivo} onChange={e => setMotivo(e.target.value)} />
                     </div>
-                    {error && <div className="gapt-error">⚠️ {error}</div>}
+                    {error && <div className="gapt-error"><AiOutlineWarning size={13} /> {error}</div>}
                 </div>
                 <div className="gapt-modal-footer">
                     <button className="gapt-btn-sec" onClick={onCerrar}>Volver</button>
                     <button className="gapt-btn-danger" onClick={handleCancelar} disabled={guardando}>
-                        {guardando ? '⏳ Cancelando...' : '❌ Confirmar cancelación'}
+                        {guardando ? 'Cancelando...' : <><AiOutlineClose size={14} /> Confirmar cancelación</>}
                     </button>
                 </div>
             </div>
@@ -628,15 +660,15 @@ const GestionApartadosScreen: React.FC = () => {
     const porcentaje = (a: Apartado) =>
         Math.min(100, Math.round((Number(a.monto_pagado) / Number(a.monto_total)) * 100));
 
-    const estadoVisual = (a: Apartado) => {
-        if (a.estado === 'liquidado')      return { icon: '✅', label: 'Liquidado',  color: '#ecb2c3' };
-        if (a.estado === 'cancelado')      return { icon: '❌', label: 'Cancelado',  color: '#e74c3c' };
-        if (a.estado === 'vencido')        return { icon: '⚠️', label: 'Vencido',    color: '#f39c12' };
-        if (a.estado === 'pendiente_pago') return { icon: '⏳', label: 'Pendiente',  color: '#a78bfa' };
+    const estadoVisual = (a: Apartado): { icon: React.ComponentType<{size?:number}>; label: string; color: string } => {
+        if (a.estado === 'liquidado')      return { icon: AiOutlineCheckCircle, label: 'Liquidado',  color: '#ecb2c3' };
+        if (a.estado === 'cancelado')      return { icon: AiOutlineCloseCircle, label: 'Cancelado',  color: '#e74c3c' };
+        if (a.estado === 'vencido')        return { icon: AiOutlineWarning, label: 'Vencido',    color: '#f39c12' };
+        if (a.estado === 'pendiente_pago') return { icon: AiOutlineClockCircle, label: 'Pendiente',  color: '#a78bfa' };
         const pct = porcentaje(a);
-        if (pct < 50)  return { icon: '🔒', label: 'Reservado',  color: '#60a5fa' };
-        if (pct < 100) return { icon: '📦', label: 'En proceso', color: '#f59e0b' };
-        return { icon: '✅', label: 'Liquidado', color: '#ecb2c3' };
+        if (pct < 50)  return { icon: AiOutlineLock, label: 'Reservado',  color: '#60a5fa' };
+        if (pct < 100) return { icon: AiOutlineInbox, label: 'En proceso', color: '#f59e0b' };
+        return { icon: AiOutlineCheckCircle, label: 'Liquidado', color: '#ecb2c3' };
     };
 
     // Conteo por estado para las tarjetas resumen (solo no archivados)
@@ -652,7 +684,7 @@ const GestionApartadosScreen: React.FC = () => {
                 <button
                     className={`gapt-btn-archivo ${verArchivados ? 'activo' : ''}`}
                     onClick={() => { setVerArchivados(!verArchivados); setPagina(1); setFiltro('todos'); }}>
-                    {verArchivados ? '📂 Ver activos' : '🗄️ Ver archivados'}
+                    {verArchivados ? <><AiOutlineFolderOpen size={14} /> Ver activos</> : <><AiOutlineArchive size={14} /> Ver archivados</>}
                 </button>
             </div>
 
@@ -660,16 +692,15 @@ const GestionApartadosScreen: React.FC = () => {
             {!verArchivados && (
                 <div className="gapt-resumen-cards">
                     {[
-                        { label: 'Pend. pago',  estado: 'pendiente_pago', color: '#a78bfa' },
-                        { label: 'Activos',     estado: 'activo',         color: '#6bcb77' },
-                        { label: 'Vencidos',    estado: 'vencido',        color: '#f39c12' },
-                        { label: 'Liquidados',  estado: 'liquidado',      color: '#ecb2c3' },
-                        { label: 'Cancelados',  estado: 'cancelado',      color: '#e74c3c' },
+                        { label: 'Pend. pago',  estado: 'pendiente_pago' },
+                        { label: 'Activos',     estado: 'activo' },
+                        { label: 'Vencidos',    estado: 'vencido' },
+                        { label: 'Liquidados',  estado: 'liquidado' },
+                        { label: 'Cancelados',  estado: 'cancelado' },
                     ].map(c => (
                         <div key={c.estado} className={`gapt-stat-card ${filtro === c.estado ? 'sel' : ''}`}
-                            style={{ borderTop: `3px solid ${c.color}` }}
                             onClick={() => { setFiltro(c.estado); setPagina(1); }}>
-                            <span className="gapt-stat-num" style={{ color: c.color }}>
+                            <span className="gapt-stat-num">
                                 {apartados.filter(a => a.estado === c.estado).length}
                             </span>
                             <span className="gapt-stat-label">{c.label}</span>
@@ -681,7 +712,7 @@ const GestionApartadosScreen: React.FC = () => {
             {/* Barra de búsqueda + filtros */}
             <div className="gapt-controles">
                 <div className="gapt-search-wrap">
-                    <span className="gapt-search-icon">🔍</span>
+                    <span className="gapt-search-icon"><AiOutlineSearch size={15} /></span>
                     <input
                         type="text"
                         className="gapt-search"
@@ -700,7 +731,9 @@ const GestionApartadosScreen: React.FC = () => {
                             <button key={f}
                                 className={`gapt-filtro-btn ${filtro === f ? 'activo' : ''}`}
                                 onClick={() => { setFiltro(f); setPagina(1); }}>
-                                {f === 'todos' ? 'Todos' : ESTADO_CONFIG[f]?.icon + ' ' + ESTADO_CONFIG[f]?.label}
+                                {f === 'todos' ? 'Todos' : (
+                                    <>{React.createElement(ESTADO_CONFIG[f].icon, { size: 13 })} {ESTADO_CONFIG[f]?.label}</>
+                                )}
                             </button>
                         ))}
                     </div>
@@ -714,7 +747,7 @@ const GestionApartadosScreen: React.FC = () => {
                     {verArchivados ? ' archivados' : ''}</span>
             </div>
 
-            {error && <div className="gapt-error-banner">⚠️ {error}</div>}
+            {error && <div className="gapt-error-banner"><AiOutlineWarning size={13} /> {error}</div>}
 
             {cargando ? (
                 <div className="gapt-loading"><div className="gapt-spinner" /><p>Cargando...</p></div>
@@ -724,8 +757,14 @@ const GestionApartadosScreen: React.FC = () => {
                 </div>
             ) : (
                 <>
-                    <div className="gapt-lista">
-                        {apartados.map(a => {
+                    {agruparApartadosPorFecha(apartados).map(grupo => (
+                    <div key={grupo.label} className="gapt-fecha-grupo">
+                        <div className="gapt-fecha-grupo-label">
+                            <span>{grupo.label}</span>
+                            <span className="gapt-fecha-grupo-count">{grupo.items.length} apartado{grupo.items.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="gapt-lista">
+                        {grupo.items.map(a => {
                             const cfg    = estadoVisual(a);
                             const pct    = porcentaje(a);
                             const abierto = expandido === a.id;
@@ -739,32 +778,32 @@ const GestionApartadosScreen: React.FC = () => {
                                         <div className="gapt-card-header-izq">
                                             <span className="gapt-folio">{a.folio}</span>
                                             <span className="gapt-badge" style={{ color: cfg.color }}>
-                                                {cfg.icon} {cfg.label}
+                                                <cfg.icon size={12} /> {cfg.label}
                                             </span>
                                             {a.estado === 'activo' && dias <= 7 && dias >= 0 && (
-                                                <span className="gapt-badge-urgente">🔥 Vence en {dias}d</span>
+                                                <span className="gapt-badge-urgente"><AiOutlineFire size={11} /> Vence en {dias}d</span>
                                             )}
                                             {a.estado === 'activo' && dias < 0 && (
-                                                <span className="gapt-badge-vencido">⛔ Vencido hace {Math.abs(dias)}d</span>
+                                                <span className="gapt-badge-vencido"><AiOutlineStop size={11} /> Vencido hace {Math.abs(dias)}d</span>
                                             )}
                                             {a.estado === 'pendiente_pago' && a.comprobante_url && (
-                                                <span className="gapt-badge-comprobante">📎 Comprobante listo</span>
+                                                <span className="gapt-badge-comprobante"><AiOutlinePaperClip size={11} /> Comprobante listo</span>
                                             )}
                                             {a.estado === 'activo' && a.abono_pendiente && (
                                                 <span className="gapt-badge-comprobante" style={{ background: '#1a3a1a', color: '#6bcb77' }}>
-                                                    💰 Abono pendiente ({a.abono_pendiente.metodo_nombre})
+                                                    <AiOutlineDollarCircle size={11} /> Abono pendiente ({a.abono_pendiente.metodo_nombre})
                                                 </span>
                                             )}
                                         </div>
-                                        <span className="gapt-chevron">{abierto ? '▲' : '▼'}</span>
+                                        <span className="gapt-chevron">{abierto ? <AiOutlineUp size={14} /> : <AiOutlineDown size={14} />}</span>
                                     </div>
 
                                     {/* Info cliente */}
                                     <div className="gapt-cliente-info">
-                                        <span>👤 <strong>{a.cliente_nombre}</strong></span>
-                                        <span>📧 {a.cliente_email}</span>
-                                        {a.cliente_telefono && <span>📱 {a.cliente_telefono}</span>}
-                                        <span className="gapt-cliente-fecha">📅 {fmtFecha(a.fecha_apartado)}</span>
+                                        <span><AiOutlineUser size={13} /> <strong>{a.cliente_nombre}</strong></span>
+                                        <span><AiOutlineMail size={13} /> {a.cliente_email}</span>
+                                        {a.cliente_telefono && <span><AiOutlinePhone size={13} /> {a.cliente_telefono}</span>}
+                                        <span className="gapt-cliente-fecha"><AiOutlineCalendar size={13} /> {fmtFecha(a.fecha_apartado)}</span>
                                     </div>
 
                                     {/* Barra progreso */}
@@ -802,7 +841,7 @@ const GestionApartadosScreen: React.FC = () => {
                                         <div className="gapt-dato">
                                             <span className="gapt-dato-label">Método pago</span>
                                             <span className="gapt-dato-val">
-                                                {ICONOS_METODO[a.metodo_pago_inicial || ''] || '💰'} {a.metodo_pago_inicial_nombre || '—'}
+                                                <IconoMetodo codigo={a.metodo_pago_inicial || undefined} /> {a.metodo_pago_inicial_nombre || '—'}
                                             </span>
                                         </div>
                                         <div className="gapt-dato">
@@ -822,9 +861,10 @@ const GestionApartadosScreen: React.FC = () => {
                                                 {['efectivo', 'transferencia'].includes(a.metodo_pago_inicial || '') ? (
                                                     <>
                                                         <div className="gapt-pago-pendiente-info">
+                                                            <IconoMetodo codigo={a.metodo_pago_inicial || undefined} />{' '}
                                                             {a.metodo_pago_inicial === 'efectivo'
-                                                                ? '💵 El cliente pagará en efectivo en tienda. Confirma cuando recibas el pago.'
-                                                                : '🏦 El cliente subió un comprobante de transferencia. Verifica antes de confirmar.'
+                                                                ? 'El cliente pagará en efectivo en tienda. Confirma cuando recibas el pago.'
+                                                                : 'El cliente subió un comprobante de transferencia. Verifica antes de confirmar.'
                                                             }
                                                             {a.comprobante_url && (
                                                                 <a href={a.comprobante_url} target="_blank" rel="noreferrer"
@@ -835,20 +875,21 @@ const GestionApartadosScreen: React.FC = () => {
                                                         </div>
                                                         <button className="gapt-btn-pri"
                                                             onClick={() => setModalConfirmar(a)}>
-                                                            ✅ Confirmar pago inicial
+                                                            <AiOutlineCheckCircle size={14} /> Confirmar pago inicial
                                                         </button>
                                                         <button className="gapt-btn-danger-sm"
                                                             onClick={() => setModalCancelar(a)}>
-                                                            ❌ Rechazar
+                                                            <AiOutlineClose size={14} /> Rechazar
                                                         </button>
                                                     </>
                                                 ) : (
                                                     <div className="gapt-pago-pendiente-info">
+                                                        <IconoMetodo codigo={a.metodo_pago_inicial || undefined} />{' '}
                                                         {a.metodo_pago_inicial === 'mercadopago'
-                                                            ? '🛒 El cliente está completando el pago en MercadoPago. Se confirmará automáticamente.'
+                                                            ? 'El cliente está completando el pago en MercadoPago. Se confirmará automáticamente.'
                                                             : a.metodo_pago_inicial === 'paypal'
-                                                            ? '🅿️ El cliente está completando el pago en PayPal. Se confirmará automáticamente.'
-                                                            : '🕐 Esperando que el cliente realice el pago.'
+                                                            ? 'El cliente está completando el pago en PayPal. Se confirmará automáticamente.'
+                                                            : 'Esperando que el cliente realice el pago.'
                                                         }
                                                     </div>
                                                 )}
@@ -861,46 +902,46 @@ const GestionApartadosScreen: React.FC = () => {
                                                         const esPas = cod === 'paypal' || cod === 'mercadopago';
                                                         return esPas ? (
                                                             <div className="gapt-pago-pendiente-info" style={{ background: '#1a2e1a', borderColor: '#6bcb77', color: '#6bcb77' }}>
-                                                                {ICONOS_METODO[cod]} Abono de <strong>{fmtMoneda(a.abono_pendiente.monto)}</strong> via {a.abono_pendiente.metodo_nombre} — se confirma automáticamente al completar el pago. Recarga si ya pagó.
+                                                                <IconoMetodo codigo={cod} /> Abono de <strong>{fmtMoneda(a.abono_pendiente.monto)}</strong> via {a.abono_pendiente.metodo_nombre} — se confirma automáticamente al completar el pago. Recarga si ya pagó.
                                                                 <button className="gapt-btn-sec" style={{ fontSize: '0.78rem', padding: '3px 8px', marginLeft: 8 }}
-                                                                    onClick={() => window.location.reload()}>🔄 Recargar</button>
+                                                                    onClick={() => window.location.reload()}><AiOutlineReload size={12} /> Recargar</button>
                                                             </div>
                                                         ) : (
                                                             <button className="gapt-btn-pri"
                                                                 onClick={() => setModalConfirmarAbono(a)}
                                                                 style={{ background: '#1a4a2a', borderColor: '#6bcb77' }}>
-                                                                ✅ Confirmar abono de {fmtMoneda(a.abono_pendiente.monto)} ({a.abono_pendiente.metodo_nombre})
+                                                                <AiOutlineCheckCircle size={14} /> Confirmar abono de {fmtMoneda(a.abono_pendiente.monto)} ({a.abono_pendiente.metodo_nombre})
                                                             </button>
                                                         );
                                                     })()}
                                                     <button className="gapt-btn-pri"
                                                         onClick={() => setModalAbono(a)}>
-                                                        💰 Registrar abono
+                                                        <AiOutlineDollarCircle size={14} /> Registrar abono
                                                     </button>
                                                     {!a.advertencia_enviada ? (
                                                         <button className="gapt-btn-warn"
                                                             onClick={() => handleAdvertencia(a.id)}>
-                                                            ⚠️ Marcar advertencia
+                                                            <AiOutlineWarning size={14} /> Marcar advertencia
                                                         </button>
                                                     ) : (
-                                                        <span className="gapt-advertencia-badge">⚠️ Advertencia enviada</span>
+                                                        <span className="gapt-advertencia-badge"><AiOutlineWarning size={12} /> Advertencia enviada</span>
                                                     )}
                                                     <button className="gapt-btn-danger-sm"
                                                         onClick={() => setModalCancelar(a)}>
-                                                        ❌ Cancelar
+                                                        <AiOutlineClose size={14} /> Cancelar
                                                     </button>
                                                 </div>
                                             )}
                                             {a.estado === 'liquidado' && (
                                                 <div style={{ margin: '12px 0', padding: '14px 18px', background: '#0f2a1a', border: '1px solid #6bcb77', borderRadius: 10, color: '#6bcb77', textAlign: 'center' }}>
-                                                    ✅ <strong>Apartado liquidado</strong> — El cliente completó todos sus pagos.
+                                                    <AiOutlineCheckCircle size={15} /> <strong>Apartado liquidado</strong> — El cliente completó todos sus pagos.
                                                 </div>
                                             )}
                                             {['liquidado', 'cancelado'].includes(a.estado) && (
                                                 <div className="gapt-acciones">
                                                     <button className="gapt-btn-archivar"
                                                         onClick={() => handleArchivar(a.id, true)}>
-                                                        🗄️ Archivar
+                                                        <AiOutlineArchive size={14} /> Archivar
                                                     </button>
                                                 </div>
                                             )}
@@ -910,7 +951,7 @@ const GestionApartadosScreen: React.FC = () => {
                                         <div className="gapt-acciones">
                                             <button className="gapt-btn-sec"
                                                 onClick={() => handleArchivar(a.id, false)}>
-                                                📂 Desarchivar
+                                                <AiOutlineFolderOpen size={14} /> Desarchivar
                                             </button>
                                         </div>
                                     )}
@@ -934,15 +975,7 @@ const GestionApartadosScreen: React.FC = () => {
                                             <div className="gapt-seccion">
                                                 <h4><AiOutlineHistory size={14} /> Historial de abonos</h4>
                                                 {a.abonos && a.abonos.length > 0 ? (
-                                                    <div className="gapt-abonos-tabla">
-                                                        <div className="gapt-abonos-header">
-                                                            <span>Pago</span>
-                                                            <span>Fecha</span>
-                                                            <span>Método</span>
-                                                            <span>Monto</span>
-                                                            <span>Saldo restante</span>
-                                                            <span>Próx. límite</span>
-                                                        </div>
+                                                    <div className="gapt-abonos-timeline">
                                                         {a.abonos.map((ab, i) => {
                                                             const parseLocal = (s: string) => { const [y,m,d] = s.substring(0,10).split('-').map(Number); return new Date(y,m-1,d); };
                                                             const esAdelanto = ab.fecha_limite_siguiente &&
@@ -950,18 +983,21 @@ const GestionApartadosScreen: React.FC = () => {
                                                                 i > 0 && a.abonos[i - 1].fecha_limite_siguiente &&
                                                                 parseLocal(ab.fecha_abono) < parseLocal(a.abonos[i - 1].fecha_limite_siguiente!);
                                                             return (
-                                                            <div key={ab.id} className="gapt-abono-fila">
-                                                                <span style={{ fontWeight: 600, color: '#ecb2c3' }}>Pago {i + 1}</span>
-                                                                <span>
-                                                                    {fmtFecha(ab.fecha_abono)}
-                                                                    {esAdelanto && <span style={{ fontSize: '0.7rem', color: '#f39c12', marginLeft: 4 }}>⚡ adelanto</span>}
-                                                                </span>
-                                                                <span style={{ fontSize: '0.82rem' }}>
-                                                                    {ICONOS_METODO[ab.metodo_codigo || ''] || '💰'} {ab.metodo_nombre || '—'}
-                                                                </span>
-                                                                <span style={{ color: '#6bcb77' }}>+{fmtMoneda(ab.monto)}</span>
-                                                                <span>{fmtMoneda(ab.monto_despues)}</span>
-                                                                <span>{ab.fecha_limite_siguiente ? fmtFecha(ab.fecha_limite_siguiente) : '—'}</span>
+                                                            <div key={ab.id} className="gapt-abono-item">
+                                                                <div className="gapt-abono-dot"><IconoMetodo codigo={ab.metodo_codigo || undefined} size={12} /></div>
+                                                                <div className="gapt-abono-contenido">
+                                                                    <div className="gapt-abono-top">
+                                                                        <strong>Pago {i + 1}</strong>
+                                                                        <span className="gapt-abono-monto">+{fmtMoneda(ab.monto)}</span>
+                                                                    </div>
+                                                                    <div className="gapt-abono-meta">
+                                                                        <span>{fmtFecha(ab.fecha_abono)}</span>
+                                                                        <span>{ab.metodo_nombre || '—'}</span>
+                                                                        <span>Saldo restante: <strong>{fmtMoneda(ab.monto_despues)}</strong></span>
+                                                                        {ab.fecha_limite_siguiente && <span>Próx. límite: {fmtFecha(ab.fecha_limite_siguiente)}</span>}
+                                                                        {esAdelanto && <span className="gapt-abono-adelanto"><AiOutlineThunderbolt size={10} /> adelanto</span>}
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                             );
                                                         })}
@@ -985,7 +1021,9 @@ const GestionApartadosScreen: React.FC = () => {
                                 </div>
                             );
                         })}
+                        </div>
                     </div>
+                    ))}
 
                     {/* Paginación */}
                     {meta.total_paginas > 1 && (

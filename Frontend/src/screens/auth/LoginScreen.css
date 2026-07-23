@@ -7,7 +7,14 @@
     min-height: 100vh;
     width: 100%;
     overflow-x: hidden;
-    background: var(--color-bg);
+    background-color: var(--color-bg);
+    background-image:
+        linear-gradient(rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0.9)),
+        url('https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/fondo_pagina.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
 }
 
 .login-container {

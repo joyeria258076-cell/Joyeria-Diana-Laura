@@ -3,9 +3,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 :root {
-  --rose:          #e8789a;
-  --rose-vivid:    #d4567a;
-  --rose-light:    #f5c5d8;
+  --rose:          var(--color-rose-gold);
+  --rose-vivid:    var(--color-champagne);
+  --rose-light:    var(--color-champagne);
   --rose-soft:     rgba(232,120,154,0.12);
   --rose-border:   rgba(232,120,154,0.25);
   --rose-border-h: rgba(232,120,154,0.6);
@@ -52,7 +52,14 @@
 
 /* ─── BASE ──────────────────────────────────────── */
 .ayuda-publica-wrapper {
-  background: var(--bg-black);
+  background-color: var(--bg-black);
+  background-image:
+    linear-gradient(rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0.9)),
+    url('https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/fondo_pagina.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   min-height: 100vh;
   font-family: 'DM Sans', sans-serif;
   color: var(--text-main);
@@ -83,7 +90,7 @@
   position: absolute;
   bottom: -60px; left: -60px;
   width: 280px; height: 280px;
-  background: radial-gradient(circle, rgba(212,86,122,0.06) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(201,149,108,0.06) 0%, transparent 65%);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -384,7 +391,7 @@ details[open] summary {
   margin: 0 auto 1.5rem;
   font-size: 1.8rem;
   color: var(--rose);
-  box-shadow: 0 8px 24px rgba(212,86,122,0.2);
+  box-shadow: 0 8px 24px rgba(201,149,108,0.2);
   transition: all 0.4s var(--ease-expo);
 }
 
@@ -420,7 +427,7 @@ details[open] summary {
   display: block;
   width: 100%;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, var(--rose-vivid) 0%, #a02858 100%);
+  background: linear-gradient(135deg, var(--rose) 0%, var(--rose-vivid) 100%);
   color: var(--white);
   border: none;
   border-radius: 10px;
@@ -431,7 +438,7 @@ details[open] summary {
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.4s var(--ease-expo);
-  box-shadow: 0 6px 22px rgba(212,86,122,0.35);
+  box-shadow: 0 6px 22px rgba(201,149,108,0.35);
   margin-bottom: 1.25rem;
   position: relative;
   overflow: hidden;
@@ -448,7 +455,7 @@ details[open] summary {
 
 .btn-contact:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 38px rgba(212,86,122,0.45);
+  box-shadow: 0 12px 38px rgba(201,149,108,0.45);
 }
 
 .btn-contact:hover::before { transform: translateX(100%); }

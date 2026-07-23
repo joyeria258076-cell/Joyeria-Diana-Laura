@@ -9,6 +9,238 @@
   font-family: var(--font-body);
 }
 
+/* ══════════════════════════════════════════
+   EX3 — Maestro-detalle + hoja de cálculo simulada
+══════════════════════════════════════════ */
+.ex3-container {
+  background: transparent;
+  padding: 0;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.ex3-header { margin-bottom: 1.4rem; }
+
+.ex3-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.ex3-header h1 svg { color: var(--color-rose-gold); width: 22px; height: 22px; flex-shrink: 0; }
+.ex3-header p { margin: 0.3rem 0 0; font-size: 0.85rem; color: var(--color-text-muted); }
+
+.ex3-layout {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 1.2rem;
+  align-items: start;
+}
+
+/* Lista maestra en texto plano */
+.ex3-lista {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  position: sticky;
+  top: 0;
+}
+
+.ex3-lista-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-rose-gold);
+  font-weight: 700;
+  padding: 0.5rem 0.7rem 0.3rem;
+}
+
+.ex3-lista-item {
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  padding: 0.6rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.86rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: var(--ease-silk, all 0.2s ease);
+}
+
+.ex3-lista-item:hover { background: rgba(201, 168, 76, 0.06); color: var(--color-text); }
+
+.ex3-lista-item.active {
+  background: rgba(201, 168, 76, 0.1);
+  border-left-color: var(--color-rose-gold);
+  color: var(--color-rose-gold);
+  font-weight: 600;
+}
+
+/* Hoja de cálculo simulada */
+.ex3-sheet {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ex3-sheet-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.2rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.ex3-sheet-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.ex3-sheet-title svg { color: var(--color-rose-gold); flex-shrink: 0; }
+.ex3-sheet-loading { font-size: 0.72rem; color: var(--color-text-muted); font-style: italic; }
+
+.ex3-sheet-actions { display: flex; align-items: center; gap: 0.6rem; }
+
+.ex3-btn-filtros {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  padding: 0.5rem 0.9rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--ease-silk, all 0.2s ease);
+}
+
+.ex3-btn-filtros:hover, .ex3-btn-filtros.active { border-color: rgba(201, 168, 76, 0.4); color: var(--color-rose-gold); }
+
+.ex3-filtros-count {
+  background: var(--color-rose-gold);
+  color: var(--color-bg);
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.ex3-filtros-panel {
+  padding: 1.1rem 1.2rem;
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(0, 0, 0, 0.12);
+  animation: ex3FadeIn 0.25s ease both;
+}
+
+@keyframes ex3FadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.ex3-sheet-body {
+  overflow: auto;
+  min-height: 280px;
+  max-height: 480px;
+}
+
+.ex3-sheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.ex3-sheet-table th {
+  position: sticky;
+  top: 0;
+  background: rgba(201, 168, 76, 0.1);
+  color: var(--color-rose-gold);
+  font-weight: 700;
+  text-align: left;
+  padding: 0.5rem 0.8rem;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.ex3-sheet-corner {
+  width: 40px;
+  background: rgba(0, 0, 0, 0.25) !important;
+}
+
+.ex3-sheet-table td {
+  padding: 0.45rem 0.8rem;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.ex3-sheet-rownum {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--color-text-muted);
+  text-align: center;
+  font-size: 0.72rem;
+}
+
+.ex3-sheet-table tr:hover td:not(.ex3-sheet-rownum) { background: rgba(201, 168, 76, 0.04); }
+
+.ex3-sheet-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  padding: 4rem 2rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.ex3-sheet-empty svg { color: var(--color-rose-gold); opacity: 0.5; }
+.ex3-sheet-empty p { margin: 0; font-size: 0.85rem; max-width: 32ch; }
+
+.ex3-sheet-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.2rem;
+  border-top: 1px solid var(--color-border);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.ex3-sheet-total { font-size: 0.82rem; color: var(--color-text-muted); }
+.ex3-sheet-total::before { content: ''; }
+
+.ex3-export-btn { margin-left: auto; }
+
+@media (max-width: 800px) {
+  .ex3-layout { grid-template-columns: 1fr; }
+  .ex3-lista { position: static; flex-direction: row; overflow-x: auto; }
+}
+
 /* Header */
 .export-header {
   display: flex;
@@ -174,6 +406,60 @@
 .table-option.selected {
   background: rgba(236, 178, 195, 0.15);
   border-width: 2px;
+}
+
+/* ── Tiles de tabla del acordeón de Exportación (distintos a table-option) ── */
+.ex2-table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.9rem;
+}
+
+.ex2-table-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1.2rem 0.8rem;
+  cursor: pointer;
+  transition: var(--ease-silk, all 0.25s ease);
+  color: var(--color-text-muted);
+}
+
+.ex2-table-tile:hover { transform: translateY(-3px); border-color: rgba(201, 168, 76, 0.35); }
+
+.ex2-table-tile.selected {
+  background: rgba(201, 168, 76, 0.08);
+  border-color: var(--color-rose-gold);
+  box-shadow: 0 8px 20px rgba(201, 168, 76, 0.15);
+}
+
+.ex2-table-tile-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ex2-table-tile-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.ex2-table-tile-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: var(--color-rose-gold);
+  display: flex;
 }
 
 /* Loading Metadata */

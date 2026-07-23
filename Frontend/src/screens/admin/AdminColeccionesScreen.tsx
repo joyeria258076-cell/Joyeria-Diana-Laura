@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   AiOutlineFolderOpen, AiOutlineShopping, AiOutlineEdit, AiOutlineDelete, AiOutlineCheckCircle,
-  AiOutlineStop, AiOutlinePlus, AiOutlineFolder,
+  AiOutlineStop, AiOutlinePlus, AiOutlineFolder, AiOutlineCloudUpload,
 } from 'react-icons/ai';
 import { coleccionesAPI, productsAPI, uploadAPI } from '../../services/api';
 import './AdminColeccionesScreen.css';
@@ -52,20 +52,33 @@ const AdminColeccionesScreen: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Panel de detalle (maestro-detalle)
   const [seleccionadaId, setSeleccionadaId] = useState<number | null>(null);
   const [detalleSeleccionada, setDetalleSeleccionada] = useState<ColeccionDetalle | null>(null);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
 
+  const procesarArchivo = (file: File) => {
+    if (!file.type.startsWith('image/')) { alert('El archivo debe ser una imagen'); return; }
+    setSelectedFile(file);
+    setForm(prev => ({ ...prev, imagen_url: '' }));
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
+    const file = e.target.files?.[0];
+    if (file) procesarArchivo(file);
+    e.target.value = '';
+  };
+
+  const handleImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) procesarArchivo(file);
   };
 
   const cargar = async () => {
@@ -245,8 +258,12 @@ const AdminColeccionesScreen: React.FC = () => {
         <div className="ac2-loading"><div className="ac2-spinner" /><p>Cargando...</p></div>
       ) : colecciones.length === 0 ? (
         <div className="ac2-empty">
-          <AiOutlineFolderOpen size={36} />
-          <p>No hay colecciones. ¡Crea la primera!</p>
+          <div className="ac2-empty-icon"><AiOutlineFolderOpen size={34} /></div>
+          <p>Aún no hay colecciones</p>
+          <span>Agrupa productos por temática (ej. Primavera, Novias, Edición limitada) para destacarlos en el catálogo.</span>
+          <button className="ac2-empty-btn" onClick={abrirCrear}>
+            <AiOutlinePlus size={16} /> Crear la primera colección
+          </button>
         </div>
       ) : (
         <div className="ac2-layout">
@@ -350,27 +367,35 @@ const AdminColeccionesScreen: React.FC = () => {
               </div>
               <div className="ac-field ac-full">
                 <label>Imagen de portada</label>
-                {imagePreview && (
-                  <div className="ac-imagen-preview-wrap">
-                    <img src={imagePreview} alt="Vista previa" className="ac-imagen-preview" />
+                {imagePreview ? (
+                  <div className="ac-image-preview">
+                    <img src={imagePreview} alt="Vista previa" />
                     <button
                       type="button"
-                      className="ac-btn-quitar-imagen"
+                      className="ac-image-remove"
                       onClick={() => { setSelectedFile(null); setImagePreview(null); setForm(prev => ({ ...prev, imagen_url: '' })); }}
-                    >Quitar imagen</button>
+                    ><AiOutlineDelete size={14} /> Quitar imagen</button>
+                  </div>
+                ) : (
+                  <div
+                    className={`ac-dropzone ${isDragging ? 'dragging' : ''} ${uploadingImage ? 'uploading' : ''}`}
+                    onClick={() => !uploadingImage && document.getElementById('ac-file-input')?.click()}
+                    onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleImageDrop}
+                  >
+                    <input
+                      id="ac-file-input"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={handleImageChange}
+                      hidden
+                    />
+                    <AiOutlineCloudUpload size={28} />
+                    <p>{uploadingImage ? 'Subiendo imagen...' : <>Arrastra una imagen aquí o <span>haz clic para elegir</span></>}</p>
+                    <small>JPG, PNG, WEBP o GIF · máx. 10MB</small>
                   </div>
                 )}
-                <input type="file" accept="image/*" onChange={handleImageChange} />
-                {uploadingImage && <p className="ac-subiendo-texto">Subiendo imagen...</p>}
-                <details className="ac-url-alterna">
-                  <summary>¿Prefieres pegar una URL en vez de subir un archivo?</summary>
-                  <input
-                    name="imagen_url"
-                    value={form.imagen_url}
-                    onChange={e => { handleChange(e); setSelectedFile(null); setImagePreview(e.target.value || null); }}
-                    placeholder="https://..."
-                  />
-                </details>
               </div>
               <div className="ac-field">
                 <label>Orden de aparición</label>

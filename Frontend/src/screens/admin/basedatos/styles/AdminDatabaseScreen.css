@@ -1,6 +1,9 @@
 /* Frontend/src/screens/admin/basedatos/styles/AdminDatabaseScreen.css */
 
-:root {
+/* Escapadas bajo .database-screen-container: antes vivían en :root y
+   sobreescribían --text-primary/--text-secondary globales (usados por
+   muchas otras pantallas) para TODA la app. */
+.database-screen-container {
   --dark-prime: var(--color-bg);
   --dark-surface: var(--color-bg);
   --dark-surface-light: rgba(30, 30, 35, 0.7);

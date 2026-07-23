@@ -3,9 +3,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 :root {
-  --rose:          #e8789a;
-  --rose-vivid:    #d4567a;
-  --rose-light:    #f5c5d8;
+  --rose:          var(--color-rose-gold);
+  --rose-vivid:    var(--color-champagne);
+  --rose-light:    var(--color-champagne);
   --rose-soft:     rgba(232,120,154,0.12);
   --rose-border:   rgba(232,120,154,0.25);
   --rose-border-h: rgba(232,120,154,0.6);
@@ -50,7 +50,14 @@
 
 /* ─── BASE ──────────────────────────────────────── */
 .ubicacion-publica-wrapper {
-  background: var(--bg-black);
+  background-color: var(--bg-black);
+  background-image:
+    linear-gradient(rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0.9)),
+    url('https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/fondo_pagina.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   min-height: 100vh;
   font-family: 'DM Sans', sans-serif;
   color: var(--text-main);
@@ -81,7 +88,7 @@
   position: absolute;
   bottom: -60px; left: -60px;
   width: 280px; height: 280px;
-  background: radial-gradient(circle, rgba(212,86,122,0.06) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(201,149,108,0.06) 0%, transparent 65%);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -294,7 +301,7 @@
 
 /* Featured boutique card */
 .info-card.info-featured {
-  background: linear-gradient(135deg, var(--rose-vivid) 0%, #a02858 100%);
+  background: linear-gradient(135deg, var(--rose) 0%, var(--rose-vivid) 100%);
   border-color: transparent;
 }
 

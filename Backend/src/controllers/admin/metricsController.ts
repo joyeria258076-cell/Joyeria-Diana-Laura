@@ -87,6 +87,25 @@ export const getEndpointsLentos = async (req: Request, res: Response): Promise<v
   }
 };
 
+// ─── Auto-resolución ──────────────────────────────────────────────────────────
+// Un error de sistema se marca resuelto solo si es la última ocurrencia registrada
+// de su (tipo, endpoint) y no ha vuelto a pasar en las últimas 24h — es decir, el
+// sistema infiere que ya no ocurre. No requiere que el admin lo marque a mano.
+const autoResolverErroresInactivos = async (): Promise<void> => {
+  await pool.query(`
+    UPDATE system_errors se
+    SET resuelta = TRUE, fecha_resolucion = NOW()
+    WHERE resuelta = FALSE
+      AND se.fecha < NOW() - INTERVAL '24 hours'
+      AND NOT EXISTS (
+        SELECT 1 FROM system_errors se2
+        WHERE se2.tipo = se.tipo
+          AND COALESCE(se2.endpoint, '') = COALESCE(se.endpoint, '')
+          AND se2.fecha > se.fecha
+      )
+  `);
+};
+
 // ─── 4. Errores con paginación ────────────────────────────────────────────────
 // Fechas convertidas a México en el backend
 export const getErrores = async (req: Request, res: Response): Promise<void> => {
@@ -95,6 +114,8 @@ export const getErrores = async (req: Request, res: Response): Promise<void> => 
     const limit           = Math.min(Number.parseInt(req.query.limit as string) || 15, 50);
     const offset          = (page - 1) * limit;
     const soloNoResueltos = req.query.soloNoResueltos === 'true';
+
+    await autoResolverErroresInactivos().catch(e => console.error('[metricsController] autoResolverErroresInactivos:', e));
 
     const { rows: countRows } = await pool.query(`
       SELECT

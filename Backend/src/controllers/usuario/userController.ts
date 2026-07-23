@@ -97,12 +97,12 @@ export const updateOwnProfile = async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
     if (!userId) return res.status(401).json({ success: false, message: 'No autenticado' });
 
-    const { nombre, telefono } = req.body;
-    if (!nombre && telefono === undefined) {
+    const { nombre, telefono, foto_perfil_url } = req.body;
+    if (!nombre && telefono === undefined && foto_perfil_url === undefined) {
       return res.status(400).json({ success: false, message: 'Sin campos para actualizar' });
     }
 
-    const ok = await userModel.updateUser(Number(userId), { nombre, telefono });
+    const ok = await userModel.updateUser(Number(userId), { nombre, telefono, foto_perfil_url });
     if (ok) res.json({ success: true, message: 'Perfil actualizado correctamente' });
     else res.status(404).json({ success: false, message: 'Usuario no encontrado' });
   } catch (error) {

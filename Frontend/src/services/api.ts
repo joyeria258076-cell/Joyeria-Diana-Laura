@@ -168,7 +168,7 @@ export const solicitudesAPI = {
 // ==========================================
 export const profileAPI = {
   getProfile: async () => enhancedApi.get('/auth/profile'),
-  updateProfile: async (data: { nombre?: string; telefono?: string }) =>
+  updateProfile: async (data: { nombre?: string; telefono?: string; foto_perfil_url?: string }) =>
     enhancedApi.put('/auth/profile', data),
   changePassword: async (data: { passwordActual: string; passwordNueva: string }) =>
     enhancedApi.put('/auth/profile/password', data),
@@ -1610,6 +1610,24 @@ export const segmentacionAPI = {
     } catch (err: any) {
       return { success: false, message: err.message || 'Error al enviar la promoción' };
     }
+  },
+};
+
+// ==========================================
+// 📊 API PARA REPORTES Y ANÁLISIS
+// ==========================================
+export const reportesAPI = {
+  getVentas: async (dias: number = 30) => {
+    return enhancedApi.get(`/reportes/ventas?dias=${dias}`);
+  },
+  getProductos: async (dias: number = 30, limite: number = 10) => {
+    return enhancedApi.get(`/reportes/productos?dias=${dias}&limite=${limite}`);
+  },
+  getTrabajadores: async (dias: number = 30) => {
+    return enhancedApi.get(`/reportes/trabajadores?dias=${dias}`);
+  },
+  getInventario: async () => {
+    return enhancedApi.get('/reportes/inventario');
   },
 };
 

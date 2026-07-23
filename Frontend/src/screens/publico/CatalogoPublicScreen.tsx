@@ -1,110 +1,124 @@
 // Frontend/src/screens/publico/CatalogoPublicScreen.tsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { AiOutlineSearch, AiOutlineTag } from "react-icons/ai";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import DetalleProductoModal from "./DetalleProductoModal";
-import { productsAPI, coleccionesAPI, promocionesAPI } from "../../services/api";
-import { AiOutlineSearch } from "react-icons/ai";
+import { productsAPI, promocionesAPI, favoritosAPI } from "../../services/api";
 import "./CatalogoPublicScreen.css";
+
+const estaLogueado = (): boolean => {
+  try {
+    const userData = localStorage.getItem('diana_laura_user');
+    const sessionToken = localStorage.getItem('diana_laura_session_token');
+    return !!(userData && sessionToken);
+  } catch {
+    return false;
+  }
+};
 
 interface Producto {
   id: number;
   nombre: string;
+  precio_venta: number;
+  precio_oferta?: number;
+  precio_promocion?: number;
   descripcion?: string;
+  imagen_principal?: string;
   categoria_id?: number;
   categoria_nombre?: string;
   tipo_producto_nombre?: string;
   material_principal?: string;
-  precio_venta: number;
-  precio_oferta?: number;
-  imagen_principal?: string;
   stock_actual: number;
   es_nuevo?: boolean;
   dias_fabricacion?: number;
   permite_personalizacion?: boolean;
 }
 
-interface ProductosPorCategoria {
-  [key: string]: Producto[];
+interface CategoriaConProductos {
+  categoria_id: number;
+  categoria_nombre: string;
+  productos: Producto[];
+  total: number;
 }
 
 interface FiltrosSearch {
-  nombre: string;
+  nombre?: string;
   categoria_id?: number | string;
   tipo_producto_id?: number | string;
-  material_principal: string;
-  precio_min: string;
-  precio_max: string;
+  material_principal?: string;
+  precio_min?: number;
+  precio_max?: number;
 }
+
+interface Categoria { id: number; nombre: string; }
+interface TipoProducto { id: number; nombre: string; }
 
 const PAGE_SIZE = 10;
 
 const CatalogoPublicScreen: React.FC = () => {
-  // ===== ESTADOS DE DATOS =====
-  const [productosPorCategoria, setProductosPorCategoria] = useState<ProductosPorCategoria>({});
+  const navigate = useNavigate();
+  const logueado = estaLogueado();
+
+  // --- ESTADOS DE DATOS ---
+  const [productosPorCategoria, setProductosPorCategoria] = useState<{ [key: string]: Producto[] }>({});
   const [resultadosBusqueda, setResultadosBusqueda] = useState<Producto[]>([]);
-  const [categorias, setCategorias] = useState<Array<{ id: number; nombre: string }>>([]);
-  const [tiposProducto, setTiposProducto] = useState<Array<{ id: number; nombre: string }>>([]);
-
-  // ===== COLECCIONES =====
-  const [colecciones, setColecciones] = useState<any[]>([]);
-  const [coleccionActiva, setColeccionActiva] = useState<number | null>(null);
-
-  // ===== PROMOCIONES TICKER =====
-  const [promociones, setPromociones] = useState<any[]>([]);
-  const [tickerIdx, setTickerIdx] = useState(0);
-  const [tickerCerrado, setTickerCerrado] = useState(false);
-
-  // ===== ESTADOS DE UI =====
-  const [searchMode, setSearchMode] = useState(false);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [tiposProducto, setTiposProducto] = useState<TipoProducto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchMode, setSearchMode] = useState(false);
+
+  // --- PAGINACIÓN (solo modo búsqueda) ---
+  const [paginaBusqueda, setPaginaBusqueda] = useState(0);
+
+  // --- ESTADOS DE FILTRADO ---
+  const [filtros, setFiltros] = useState<FiltrosSearch>({
+    nombre: '',
+    categoria_id: '',
+    tipo_producto_id: '',
+    material_principal: '',
+    precio_min: 0,
+    precio_max: 100000,
+  });
+
+  // --- ESTADOS DE UI ---
   const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // ===== PAGINACIÓN (solo modo búsqueda) =====
-  const [paginaBusqueda, setPaginaBusqueda] = useState(0);
+  // --- TICKER PROMOCIONES ---
+  const [promociones, setPromociones] = useState<any[]>([]);
+  const [tickerCerrado, setTickerCerrado] = useState(false);
 
-  // ===== FILTROS =====
-  const [filtros, setFiltros] = useState<FiltrosSearch>({
-    nombre: "",
-    material_principal: "",
-    precio_min: "",
-    precio_max: "",
-  });
+  // --- FAVORITOS (solo si está logueado) ---
+  const [favoritos, setFavoritos] = useState<Producto[]>([]);
+  const [favoritosIds, setFavoritosIds] = useState<Set<number>>(new Set());
+  const [togglingFav, setTogglingFav] = useState<number | null>(null);
 
-  // ===== CARGAR DATOS INICIALES =====
+  const placeholderImg = `data:image/svg+xml;utf8,<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="%23141414"/><g transform="translate(200,200)" stroke="%23594936" stroke-width="1.5" fill="none" opacity="0.7"><path d="M-22,-14 L22,-14 L32,-2 L0,34 L-32,-2 Z"/><path d="M-22,-14 L0,-2 L22,-14 M-32,-2 L32,-2 M0,-2 L0,34"/></g></svg>`;
+
+  // --- CARGAR DATOS INICIALES ---
   useEffect(() => {
-    const cargarDatos = async () => {
+    const loadInitialData = async () => {
       try {
         setLoading(true);
 
-        // Sin límite — trae todos los productos
-        const respCategorias = await productsAPI.getProductsByCategories();
-        const categoriasArray = Array.isArray(respCategorias?.data)
-          ? respCategorias.data
-          : [];
+        const respProductos = await productsAPI.getProductsByCategories();
+        const rawData = Array.isArray(respProductos?.data) ? respProductos.data : [];
 
-        const categoriasObj: ProductosPorCategoria = {};
-        categoriasArray.forEach((cat: any) => {
-          categoriasObj[cat.categoria_nombre] = cat.productos || [];
-        });
+        const categoriasObj: { [key: string]: Producto[] } = {};
+        rawData
+          .filter((c: CategoriaConProductos) => c.total > 0)
+          .forEach((c: CategoriaConProductos) => {
+            categoriasObj[c.categoria_nombre] = c.productos || [];
+          });
         setProductosPorCategoria(categoriasObj);
 
-        const respAllCategorias = await productsAPI.getCategories();
-        setCategorias(
-          Array.isArray(respAllCategorias?.data) ? respAllCategorias.data : []
-        );
+        const respCategorias = await productsAPI.getCategories();
+        setCategorias(Array.isArray(respCategorias?.data) ? respCategorias.data : []);
 
         const respTipos = await productsAPI.getTiposProducto();
-        setTiposProducto(
-          Array.isArray(respTipos?.data) ? respTipos.data : []
-        );
-
-        try {
-          const resCol = await coleccionesAPI.getPublicas();
-          const cols = Array.isArray(resCol) ? resCol : (resCol.data || []);
-          setColecciones(cols.filter((c: any) => c.productos?.length > 0));
-        } catch { /* sin colecciones */ }
+        setTiposProducto(Array.isArray(respTipos?.data) ? respTipos.data : []);
 
         try {
           const resPromo = await promocionesAPI.getActivas();
@@ -112,17 +126,36 @@ const CatalogoPublicScreen: React.FC = () => {
           setPromociones(lista);
         } catch { /* sin promociones */ }
 
+        if (logueado) {
+          try {
+            const resFavs = await favoritosAPI.getAll();
+            const lista: Producto[] = Array.isArray(resFavs?.data) ? resFavs.data.map((f: any) => ({
+              id: f.producto_id,
+              nombre: f.nombre,
+              precio_venta: f.precio_venta,
+              precio_oferta: f.precio_oferta,
+              precio_promocion: f.precio_promocion,
+              imagen_principal: f.imagen_principal,
+              stock_actual: f.stock_actual,
+              es_nuevo: f.es_nuevo,
+              categoria_nombre: f.categoria_nombre,
+            })) : [];
+            setFavoritos(lista);
+            setFavoritosIds(new Set(lista.map(p => p.id)));
+          } catch { /* sin favoritos */ }
+        }
+
       } catch (error) {
-        console.error("Error cargando datos del catálogo:", error);
+        console.error('Error cargando datos iniciales:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    cargarDatos();
-  }, []);
+    loadInitialData();
+  }, [logueado]);
 
-  // ===== BÚSQUEDA =====
+  // --- BÚSQUEDA ---
   const handleBuscar = async () => {
     try {
       setLoading(true);
@@ -130,24 +163,23 @@ const CatalogoPublicScreen: React.FC = () => {
       setPaginaBusqueda(0);
 
       const response = await productsAPI.searchAndFilter({
-        nombre: filtros.nombre || undefined,
-        categoria_id: filtros.categoria_id ? Number(filtros.categoria_id) : undefined,
-        tipo_producto_id: filtros.tipo_producto_id ? Number(filtros.tipo_producto_id) : undefined,
-        material_principal: filtros.material_principal || undefined,
-        precio_min: filtros.precio_min ? Number(filtros.precio_min) : undefined,
-        precio_max: filtros.precio_max ? Number(filtros.precio_max) : undefined,
+        nombre: filtros.nombre,
+        categoria_id: filtros.categoria_id as number,
+        tipo_producto_id: filtros.tipo_producto_id as number,
+        material_principal: filtros.material_principal,
+        precio_min: filtros.precio_min,
+        precio_max: filtros.precio_max,
       });
-
       setResultadosBusqueda(Array.isArray(response?.data) ? response.data : []);
     } catch (error) {
-      console.error("Error en búsqueda:", error);
+      console.error('Error en búsqueda:', error);
       setResultadosBusqueda([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // ===== VER MÁS DE UNA CATEGORÍA → entra a modo búsqueda con paginación =====
+  // --- VER MÁS DE UNA CATEGORÍA → entra a modo búsqueda con paginación ---
   const handleVerMasCategoria = async (categoria_id: number) => {
     try {
       setLoading(true);
@@ -157,7 +189,7 @@ const CatalogoPublicScreen: React.FC = () => {
       const response = await productsAPI.searchAndFilter({ categoria_id });
       setResultadosBusqueda(Array.isArray(response?.data) ? response.data : []);
     } catch (error) {
-      console.error("Error cargando categoría:", error);
+      console.error('Error cargando categoría:', error);
       setResultadosBusqueda([]);
     } finally {
       setLoading(false);
@@ -166,96 +198,72 @@ const CatalogoPublicScreen: React.FC = () => {
 
   const handleLimpiarFiltros = () => {
     setFiltros({
-      nombre: "",
-      material_principal: "",
-      precio_min: "",
-      precio_max: "",
+      nombre: '',
+      categoria_id: '',
+      tipo_producto_id: '',
+      material_principal: '',
+      precio_min: 0,
+      precio_max: 100000,
     });
     setSearchMode(false);
     setResultadosBusqueda([]);
     setPaginaBusqueda(0);
   };
 
-  const handleAbrirDetalle = (producto: Producto) => {
+  // --- FAVORITOS TOGGLE (requiere sesión) ---
+  const handleToggleFavorito = async (e: React.MouseEvent, productoId: number) => {
+    e.stopPropagation();
+    if (!logueado) {
+      navigate('/login');
+      return;
+    }
+    if (togglingFav === productoId) return;
+    setTogglingFav(productoId);
+    try {
+      const res = await favoritosAPI.toggle(productoId);
+      if (res.favorito) {
+        setFavoritosIds(prev => new Set([...prev, productoId]));
+        const resFavs = await favoritosAPI.getAll();
+        const lista: Producto[] = Array.isArray(resFavs?.data) ? resFavs.data.map((f: any) => ({
+          id: f.producto_id,
+          nombre: f.nombre,
+          precio_venta: f.precio_venta,
+          precio_oferta: f.precio_oferta,
+          precio_promocion: f.precio_promocion,
+          imagen_principal: f.imagen_principal,
+          stock_actual: f.stock_actual,
+          es_nuevo: f.es_nuevo,
+          categoria_nombre: f.categoria_nombre,
+        })) : [];
+        setFavoritos(lista);
+        setFavoritosIds(new Set(lista.map(p => p.id)));
+      } else {
+        setFavoritosIds(prev => { const s = new Set(prev); s.delete(productoId); return s; });
+        setFavoritos(prev => prev.filter(p => p.id !== productoId));
+      }
+    } catch { /* ignorar */ } finally {
+      setTogglingFav(null);
+    }
+  };
+
+  // --- MODAL ---
+  const verDetalles = (producto: Producto) => {
     setSelectedProducto(producto);
     setModalOpen(true);
   };
 
-  const handleCerrarModal = () => {
+  const cerrarModal = () => {
     setModalOpen(false);
     setSelectedProducto(null);
   };
 
-  // ===== CÁLCULOS DE PAGINACIÓN =====
+  // --- CÁLCULOS DE PAGINACIÓN ---
   const totalPaginas = Math.ceil(resultadosBusqueda.length / PAGE_SIZE);
   const productosPaginaActual = resultadosBusqueda.slice(
     paginaBusqueda * PAGE_SIZE,
     (paginaBusqueda + 1) * PAGE_SIZE
   );
 
-  // ===== TICKER EFECTO =====
-  useEffect(() => {
-    if (promociones.length <= 1) return;
-    const t = setInterval(() => setTickerIdx(prev => (prev + 1) % promociones.length), 4000);
-    return () => clearInterval(t);
-  }, [promociones.length]);
-
-  const promoLabel = (p: any) => {
-    if (p.tipo === 'porcentaje') return `${p.valor_descuento}% de descuento`;
-    if (p.tipo === 'monto_fijo') return `$${p.valor_descuento} de descuento`;
-    if (p.tipo === '2x1') return '2×1 en productos seleccionados';
-    if (p.tipo === 'envio_gratis') return 'Envío gratis';
-    if (p.tipo === 'cupon') return `Cupón ${p.codigo_cupon ? p.codigo_cupon + ' — ' : ''}${p.valor_descuento}% off`;
-    return p.nombre;
-  };
-
-  // ===== PLACEHOLDER =====
-  const placeholderImage =
-      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzBkMGQwZCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZWNiMmMzIiBmb250LWZhbWlseT0iQXJpYWwiPkpveWE8L3RleHQ+PC9zdmc+";
-  // ===== RENDER TARJETA =====
-  const renderCard = (producto: Producto) => (
-    <div
-      key={producto.id}
-      className="producto-card"
-      onClick={() => handleAbrirDetalle(producto)}
-    >
-      <div
-        className="producto-image"
-        style={{
-          backgroundImage: `url(${producto.imagen_principal || placeholderImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        {producto.es_nuevo && <span className="badge-nuevo">Nuevo</span>}
-        {producto.precio_oferta && <span className="badge-descuento">Oferta</span>}
-      </div>
-      <div className="producto-info">
-        <h4 className="producto-nombre">{producto.nombre}</h4>
-        <p className="producto-categoria">{producto.categoria_nombre}</p>
-        <div className="producto-footer">
-          <div className="precio-display">
-            {(() => {
-              const precioFinal = (producto as any).precio_promocion ?? producto.precio_oferta;
-              if (precioFinal) {
-                return <>
-                  <span className="precio-original">${(producto.precio_venta ?? 0).toLocaleString("es-MX")}</span>
-                  <span className="precio-oferta">${Number(precioFinal).toLocaleString("es-MX")}</span>
-                  {(producto as any).precio_promocion && <span className="badge-promo">🏷️</span>}
-                </>;
-              }
-              return <span className="precio-actual">${(producto.precio_venta ?? 0).toLocaleString("es-MX")}</span>;
-            })()}
-          </div>
-          <button className="btn-ver" title="Ver detalles">
-            Ver
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  // ===== RENDER PAGINACIÓN =====
   const renderPaginacion = () => {
     if (totalPaginas <= 1) return null;
 
@@ -271,21 +279,13 @@ const CatalogoPublicScreen: React.FC = () => {
 
     const irA = (p: number) => {
       setPaginaBusqueda(p);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     return (
       <div className="paginacion-container">
-        <button
-          className="paginacion-btn"
-          onClick={() => irA(0)}
-          disabled={paginaBusqueda === 0}
-        >«</button>
-        <button
-          className="paginacion-btn"
-          onClick={() => irA(paginaBusqueda - 1)}
-          disabled={paginaBusqueda === 0}
-        >‹</button>
+        <button className="paginacion-btn" onClick={() => irA(0)} disabled={paginaBusqueda === 0}>«</button>
+        <button className="paginacion-btn" onClick={() => irA(paginaBusqueda - 1)} disabled={paginaBusqueda === 0}>‹</button>
 
         {range[0] > 0 && (
           <>
@@ -297,7 +297,7 @@ const CatalogoPublicScreen: React.FC = () => {
         {range.map((p) => (
           <button
             key={p}
-            className={`paginacion-btn${p === paginaBusqueda ? " paginacion-btn--activo" : ""}`}
+            className={`paginacion-btn${p === paginaBusqueda ? ' paginacion-btn--activo' : ''}`}
             onClick={() => irA(p)}
           >
             {p + 1}
@@ -315,26 +315,90 @@ const CatalogoPublicScreen: React.FC = () => {
           </>
         )}
 
-        <button
-          className="paginacion-btn"
-          onClick={() => irA(paginaBusqueda + 1)}
-          disabled={paginaBusqueda === totalPaginas - 1}
-        >›</button>
-        <button
-          className="paginacion-btn"
-          onClick={() => irA(totalPaginas - 1)}
-          disabled={paginaBusqueda === totalPaginas - 1}
-        >»</button>
+        <button className="paginacion-btn" onClick={() => irA(paginaBusqueda + 1)} disabled={paginaBusqueda === totalPaginas - 1}>›</button>
+        <button className="paginacion-btn" onClick={() => irA(totalPaginas - 1)} disabled={paginaBusqueda === totalPaginas - 1}>»</button>
       </div>
     );
   };
 
-  // ===== RENDER =====
+  // --- CARD REUTILIZABLE ---
+  const ProductoCard = ({ producto, indice = 0 }: { producto: Producto; indice?: number }) => {
+    const esFav = favoritosIds.has(producto.id);
+    return (
+      <div
+        className="producto-card reveal-stagger"
+        style={{ ['--stagger-i' as any]: indice % 8 }}
+        onClick={() => verDetalles(producto)}
+      >
+        <div className="producto-imagen">
+          {producto.imagen_principal ? (
+            <img
+              src={producto.imagen_principal}
+              alt={producto.nombre}
+              onError={(e) => { (e.target as HTMLImageElement).src = placeholderImg; }}
+            />
+          ) : (
+            <img src={placeholderImg} alt={producto.nombre} />
+          )}
+          {producto.es_nuevo && <span className="badge-nuevo">Nuevo</span>}
+          {(producto.precio_oferta || producto.precio_promocion) && <span className="badge-oferta">{producto.precio_promocion ? 'Promo' : 'Oferta'}</span>}
+          {producto.stock_actual === 0 && <span className="badge-agotado">Agotado</span>}
+          {producto.stock_actual > 0 && producto.stock_actual <= 5 && (
+            <span className="badge-poco-stock">¡Últimas {producto.stock_actual}!</span>
+          )}
+          <div className="producto-overlay"><span>Ver pieza →</span></div>
+          <button
+            className={`btn-favorito${esFav ? ' btn-favorito--activo' : ''}`}
+            onClick={(e) => handleToggleFavorito(e, producto.id)}
+            disabled={togglingFav === producto.id}
+            aria-label={esFav ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+          >
+            {esFav ? '♥' : '♡'}
+          </button>
+        </div>
+        <div className="producto-info">
+          <h4>{producto.nombre}</h4>
+          <p className="tipo">{producto.tipo_producto_nombre || producto.categoria_nombre}</p>
+          <div className="precio-section">
+            {(() => {
+              const precioFinal = producto.precio_promocion ?? producto.precio_oferta;
+              if (precioFinal) {
+                return <>
+                  <span className="precio original">${(producto.precio_venta ?? 0).toLocaleString('es-MX')}</span>
+                  <span className="precio oferta">${Number(precioFinal).toLocaleString('es-MX')}</span>
+                  {producto.precio_promocion && <AiOutlineTag size={13} />}
+                </>;
+              }
+              return <span className="precio">${(producto.precio_venta ?? 0).toLocaleString('es-MX')}</span>;
+            })()}
+          </div>
+          <div className="producto-stock">
+            {producto.stock_actual === 0 ? (
+              <span className="stock-agotado">Agotado</span>
+            ) : producto.stock_actual <= 5 ? (
+              <span className="stock-poco">Quedan {producto.stock_actual} unidades</span>
+            ) : (
+              <span className="stock-ok">{producto.stock_actual} disponibles</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const promoLabel = (p: any) => {
+    if (p.tipo === 'porcentaje') return `${p.valor_descuento}% de descuento`;
+    if (p.tipo === 'monto_fijo') return `-$${p.valor_descuento} MXN`;
+    return p.nombre;
+  };
+
   return (
     <div className="catalogo-public-container">
+      <PublicHeader />
+
       {promociones.length > 0 && !tickerCerrado && (
         <div className="promo-ticker-fixed">
-          <span className="promo-ticker-badge">🏷️ OFERTA</span>
+          <span className="promo-ticker-badge">Ofertas</span>
           <div className="promo-ticker-scroll-wrap">
             <div className="promo-ticker-scroll-track">
               {[...promociones, ...promociones].map((p, i) => (
@@ -351,255 +415,190 @@ const CatalogoPublicScreen: React.FC = () => {
           <button className="promo-ticker-close" onClick={() => setTickerCerrado(true)} aria-label="Cerrar">✕</button>
         </div>
       )}
-      {promociones.length > 0 && !tickerCerrado && <div className="promo-ticker-spacer" />}
-      <PublicHeader />
 
-      {/* HERO */}
-      <section className="catalogo-hero">
-        <div className="container-lg">
-          <h1 className="catalogo-title">Nuestro Catálogo</h1>
-          <p className="catalogo-subtitle">Joyas únicas que cuentan historias</p>
+      {loading ? (
+        <div className="loading-screen">Cargando joyas exclusivas...</div>
+      ) : (
+      <main className="catalogo-body" style={promociones.length > 0 && !tickerCerrado ? { paddingTop: '36px' } : {}}>
+        <div className="catalogo-encabezado">
+          <span className="catalogo-eyebrow">Colección completa</span>
+          <h2 className="page-title">Catálogo</h2>
+          <p className="catalogo-subtitulo">Cada pieza, seleccionada con la misma atención al detalle con la que la harías tú.</p>
         </div>
-      </section>
 
-      {/* BÚSQUEDA Y FILTROS */}
-      <section className="busqueda-filtros-section">
-        <div className="container-lg">
-          <div className="busqueda-container">
-            <div className="search-bar">
-              <AiOutlineSearch className="search-icon" />
+        <div className="catalogo-shell">
+          <aside className="catalogo-filtros-panel">
+            <div className="filtro-buscador">
+              <AiOutlineSearch size={16} className="filtro-buscador-icon" />
               <input
                 type="text"
-                placeholder="Buscar por nombre..."
+                placeholder="Buscar producto..."
                 value={filtros.nombre}
                 onChange={(e) => setFiltros({ ...filtros, nombre: e.target.value })}
-                onKeyDown={(e) => e.key === "Enter" && handleBuscar()}
+                onKeyDown={(e) => e.key === 'Enter' && handleBuscar()}
               />
             </div>
 
-            <div className="filtros-row">
-              <div className="form-group">
-                <label htmlFor="categoria">Categoría</label>
-                <select
-                  id="categoria"
-                  value={filtros.categoria_id || ""}
-                  onChange={(e) =>
-                    setFiltros({
-                      ...filtros,
-                      categoria_id: e.target.value ? Number(e.target.value) : undefined,
-                    })
-                  }
-                >
-                  <option value="">Todas las categorías</option>
-                  {categorias.map((cat: any) => (
-                    <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="tipo">Tipo de Producto</label>
-                <select
-                  id="tipo"
-                  value={filtros.tipo_producto_id || ""}
-                  onChange={(e) =>
-                    setFiltros({
-                      ...filtros,
-                      tipo_producto_id: e.target.value ? Number(e.target.value) : undefined,
-                    })
-                  }
-                >
-                  <option value="">Todos los tipos</option>
-                  {tiposProducto.map((tipo: any) => (
-                    <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="material">Material</label>
-                <input
-                  id="material"
-                  type="text"
-                  placeholder="Ej: Oro, Plata..."
-                  value={filtros.material_principal}
-                  onChange={(e) =>
-                    setFiltros({ ...filtros, material_principal: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="precio-min">Precio Mínimo</label>
-                <input
-                  id="precio-min"
-                  type="number"
-                  placeholder="$0"
-                  value={filtros.precio_min}
-                  onChange={(e) => setFiltros({ ...filtros, precio_min: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="precio-max">Precio Máximo</label>
-                <input
-                  id="precio-max"
-                  type="number"
-                  placeholder="$999,999"
-                  value={filtros.precio_max}
-                  onChange={(e) => setFiltros({ ...filtros, precio_max: e.target.value })}
-                />
-              </div>
-
-              <div className="botones-filtros">
-                <button className="btn-buscar" onClick={handleBuscar}>Buscar</button>
-                <button className="btn-limpiar" onClick={handleLimpiarFiltros}>Limpiar</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* COLECCIONES */}
-      {!searchMode && colecciones.length > 0 && (
-        <section className="colecciones-section">
-          <div className="container-lg">
-            <div className="colecciones-header">
-              <h2 className="colecciones-title">Colecciones</h2>
-              <p className="colecciones-subtitle">Explora nuestras selecciones especiales</p>
-            </div>
-            <div className="colecciones-tabs">
-              <button
-                className={`col-tab ${coleccionActiva === null ? 'col-tab-activo' : ''}`}
-                onClick={() => setColeccionActiva(null)}
+            <div className="form-group">
+              <label>Categoría</label>
+              <select
+                value={filtros.categoria_id}
+                onChange={(e) => setFiltros({ ...filtros, categoria_id: e.target.value })}
               >
-                Todas
-              </button>
-              {colecciones.map(c => (
-                <button
-                  key={c.id}
-                  className={`col-tab ${coleccionActiva === c.id ? 'col-tab-activo' : ''}`}
-                  onClick={() => setColeccionActiva(coleccionActiva === c.id ? null : c.id)}
-                >
-                  {c.nombre}
-                </button>
-              ))}
+                <option value="">Todas las categorías</option>
+                {categorias.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                ))}
+              </select>
             </div>
-            {coleccionActiva !== null && (() => {
-              const col = colecciones.find(c => c.id === coleccionActiva);
-              if (!col) return null;
-              return (
-                <div className="coleccion-detalle">
-                  {col.imagen_url && (
-                    <div className="coleccion-banner">
-                      <img src={col.imagen_url} alt={col.nombre} />
-                      <div className="coleccion-banner-overlay">
-                        <h3>{col.nombre}</h3>
-                        {col.descripcion && <p>{col.descripcion}</p>}
-                      </div>
-                    </div>
-                  )}
-                  <div className="productos-grid-4">
-                    {col.productos.map((prod: any) => renderCard(prod))}
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        </section>
-      )}
 
-      {/* CONTENIDO */}
-      <section className="catalogo-section">
-        <div className="container-lg">
-          {loading ? (
-            <div className="loading-state">
-              <div className="spinner"></div>
-              <p>Cargando catálogo...</p>
+            <div className="form-group">
+              <label>Tipo de Producto</label>
+              <select
+                value={filtros.tipo_producto_id}
+                onChange={(e) => setFiltros({ ...filtros, tipo_producto_id: e.target.value })}
+              >
+                <option value="">Todos los tipos</option>
+                {tiposProducto.map((tipo) => (
+                  <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
+                ))}
+              </select>
             </div>
-          ) : searchMode ? (
 
-            // ===== MODO BÚSQUEDA — paginación numérica =====
-            <>
-              <div className="resultados-header">
-                <h2>Resultados de búsqueda</h2>
-                <p className="resultados-count">
-                  {resultadosBusqueda.length} producto{resultadosBusqueda.length !== 1 ? "s" : ""} encontrado{resultadosBusqueda.length !== 1 ? "s" : ""}
-                  {totalPaginas > 1 && ` — página ${paginaBusqueda + 1} de ${totalPaginas}`}
-                </p>
+            <div className="form-group">
+              <label>Material</label>
+              <input
+                type="text"
+                placeholder="Ej: Oro, Plata..."
+                value={filtros.material_principal}
+                onChange={(e) => setFiltros({ ...filtros, material_principal: e.target.value })}
+              />
+            </div>
+
+            <div className="filtro-precio-row">
+              <div className="form-group">
+                <label>Precio Mín</label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={filtros.precio_min}
+                  onChange={(e) => setFiltros({ ...filtros, precio_min: Number(e.target.value) })}
+                />
               </div>
 
-              {resultadosBusqueda.length > 0 ? (
-                <>
+              <div className="form-group">
+                <label>Precio Máx</label>
+                <input
+                  type="number"
+                  placeholder="100000"
+                  value={filtros.precio_max}
+                  onChange={(e) => setFiltros({ ...filtros, precio_max: Number(e.target.value) })}
+                />
+              </div>
+            </div>
+
+            <div className="filtros-actions">
+              <button className="btn-primary" onClick={handleBuscar}>Buscar</button>
+              <button className="btn-secondary" onClick={handleLimpiarFiltros}>Limpiar</button>
+            </div>
+          </aside>
+
+          <div className="catalogo-contenido">
+
+            {favoritos.length > 0 && !searchMode && (
+              <section className="favoritos-section">
+                <div className="favoritos-header">
+                  <span className="favoritos-titulo">Mis Favoritos</span>
+                  <span className="favoritos-count">{favoritos.length} producto{favoritos.length !== 1 ? 's' : ''}</span>
+                </div>
+                <div className="productos-grid favoritos-grid">
+                  {favoritos.map((producto, i) => (
+                    <ProductoCard key={`fav-${producto.id}`} producto={producto} indice={i} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {!searchMode && (
+              Object.entries(productosPorCategoria).length > 0 ? (
+                <div className="categorias-sections">
+                  {Object.entries(productosPorCategoria).map(([nombreCategoria, productos]) => {
+                    const productosPreview = productos.slice(0, PAGE_SIZE);
+                    const hayMas = productos.length > PAGE_SIZE;
+                    const categoria_id = productos[0]?.categoria_id || 0;
+
+                    return (
+                      <section key={nombreCategoria} className="categoria-section">
+                        <div className="categoria-header-row">
+                          <h3 className="categoria-title">{nombreCategoria}</h3>
+                          <span className="categoria-count">
+                            {productos.length} producto{productos.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+
+                        <div className="productos-grid">
+                          {productosPreview.map((producto, i) => (
+                            <ProductoCard key={producto.id} producto={producto} indice={i} />
+                          ))}
+                        </div>
+
+                        {hayMas && (
+                          <div className="categoria-ver-mas">
+                            <button
+                              className="btn-ver-mas"
+                              onClick={() => handleVerMasCategoria(categoria_id)}
+                            >
+                              Ver todos en {nombreCategoria} ({productos.length} productos)
+                            </button>
+                          </div>
+                        )}
+                      </section>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="no-results">
+                  <p>No hay productos disponibles en este momento.</p>
+                </div>
+              )
+            )}
+
+            {searchMode && (
+              resultadosBusqueda.length > 0 ? (
+                <div className="resultados-section">
+                  <h3 className="resultados-title">
+                    Resultados ({resultadosBusqueda.length})
+                    {totalPaginas > 1 && ` — página ${paginaBusqueda + 1} de ${totalPaginas}`}
+                  </h3>
                   <div className="productos-grid">
-                    {productosPaginaActual.map((producto) => renderCard(producto))}
+                    {productosPaginaActual.map((producto, i) => (
+                      <ProductoCard key={producto.id} producto={producto} indice={i} />
+                    ))}
                   </div>
                   {renderPaginacion()}
-                </>
+                </div>
               ) : (
-                <div className="empty-state">
-                  <p>No se encontraron productos con los criterios seleccionados.</p>
-                  <button className="btn-volver" onClick={handleLimpiarFiltros}>
-                    Ver catálogo completo
+                <div className="no-results">
+                  <p>No encontramos productos con esos criterios.</p>
+                  <button className="btn-link" onClick={handleLimpiarFiltros}>
+                    Limpiar filtros
                   </button>
                 </div>
-              )}
-            </>
+              )
+            )}
 
-          ) : (
-
-            // ===== MODO CATEGORÍAS — muestra 10, botón "Ver más" → pasa a modo búsqueda =====
-            Object.entries(productosPorCategoria).length > 0 ? (
-              Object.entries(productosPorCategoria).map(([nombreCategoria, productos]) => {
-                // Solo mostramos los primeros 10 en vista de catálogo
-                const productosPreview = productos.slice(0, PAGE_SIZE);
-                const hayMas = productos.length > PAGE_SIZE;
-
-                return (
-                  <div key={nombreCategoria} className="categoria-seccion">
-                    <div className="categoria-header">
-                      <h2 className="categoria-nombre">{nombreCategoria}</h2>
-                      <span className="categoria-total">
-                        {productos.length} producto{productos.length !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-
-                    <div className="productos-grid-4">
-                      {productosPreview.map((producto) => renderCard(producto))}
-                    </div>
-
-                    {/* Si hay más de 10 → botón que lleva a modo búsqueda con paginación */}
-                    {hayMas && (
-                      <div className="categoria-footer">
-                        <button
-                          className="btn-ver-mas"
-                          onClick={() =>
-                            handleVerMasCategoria(productos[0].categoria_id || 0)
-                          }
-                        >
-                          Ver todos en {nombreCategoria} ({productos.length} productos)
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            ) : (
-              <div className="empty-state">
-                <p>No hay productos disponibles en este momento.</p>
-              </div>
-            )
-          )}
+          </div>
         </div>
-      </section>
 
-      {selectedProducto && (
-        <DetalleProductoModal
-          isOpen={modalOpen}
-          producto={selectedProducto}
-          onClose={handleCerrarModal}
-          promoFechaFin={(selectedProducto as any).precio_promocion && promociones.length > 0 ? promociones[0].fecha_fin : undefined}
-        />
+        {modalOpen && selectedProducto && (
+          <DetalleProductoModal
+            isOpen={modalOpen}
+            producto={selectedProducto}
+            onClose={cerrarModal}
+            promoFechaFin={(selectedProducto as any).precio_promocion && promociones.length > 0 ? promociones[0].fecha_fin : undefined}
+          />
+        )}
+      </main>
       )}
 
       <PublicFooter />

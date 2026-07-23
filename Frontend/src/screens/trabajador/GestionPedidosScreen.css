@@ -36,9 +36,10 @@
 .gp-resumen { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
 @media (max-width: 900px) { .gp-resumen { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 500px) { .gp-resumen { grid-template-columns: repeat(2, 1fr); } }
-.gp-stat { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 4px; padding: 1rem 0.85rem; text-align: center; transition: all 0.35s var(--ease-silk); }
-.gp-stat:hover { border-color: rgba(201,149,108,0.35); transform: translateY(-2px); }
-.gp-stat-val { font-family: var(--font-display); font-size: 1.7rem; font-weight: 400; margin: 0 0 0.3rem; }
+.gp-stat { --stat-color: var(--color-rose-gold); background: var(--color-surface); border: 1px solid var(--color-border); border-top: 2px solid var(--stat-color); border-radius: 4px; padding: 1rem 0.85rem; text-align: center; cursor: pointer; transition: all 0.35s var(--ease-silk); }
+.gp-stat:hover { border-color: rgba(201,149,108,0.35); border-top-color: var(--stat-color); transform: translateY(-2px); }
+.gp-stat-activo { background: color-mix(in srgb, var(--stat-color) 12%, var(--color-surface)); border-color: var(--stat-color); box-shadow: 0 4px 14px color-mix(in srgb, var(--stat-color) 20%, transparent); }
+.gp-stat-val { font-family: var(--font-display); font-size: 1.7rem; font-weight: 400; margin: 0 0 0.3rem; color: var(--color-rose-gold); }
 .gp-stat-label { font-size: 0.66rem; color: var(--color-text-muted); margin: 0; text-transform: uppercase; letter-spacing: 0.08em; }
 
 /* ── Filtros ── */
@@ -63,15 +64,16 @@
 
 /* ── Tarjeta de pedido (mismo lenguaje visual que Mis Pedidos del cliente) ── */
 .gp-card {
+    --estado-color: var(--color-rose-gold);
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-left: 2px solid transparent;
+    border-left: 3px solid var(--estado-color);
     border-radius: 4px;
     padding: 1.25rem 1.5rem;
     transition: all 0.35s var(--ease-silk);
 }
-.gp-card:hover { border-color: rgba(201,149,108,0.35); box-shadow: 0 12px 32px rgba(201,149,108,0.1); }
-.gp-card-mia { border-left-color: var(--color-rose-gold); }
+.gp-card:hover { border-top-color: rgba(201,149,108,0.35); border-right-color: rgba(201,149,108,0.35); border-bottom-color: rgba(201,149,108,0.35); box-shadow: 0 12px 32px rgba(201,149,108,0.1); }
+.gp-card-mia { box-shadow: inset 0 0 0 1px rgba(201,149,108,0.25); }
 .gp-card-vencida { background: rgba(224,90,106,0.05); border-color: rgba(224,90,106,0.25); }
 
 .gp-card-principal {

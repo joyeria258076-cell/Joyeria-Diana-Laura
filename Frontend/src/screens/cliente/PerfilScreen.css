@@ -48,6 +48,21 @@
   color: var(--color-rose-gold);
   flex-shrink: 0;
 }
+.pf-hero-avatar-wrap { position: relative; width: 64px; height: 64px; border-radius: 50%; cursor: pointer; flex-shrink: 0; }
+.pf-hero-avatar-img {
+  width: 64px; height: 64px; border-radius: 50%;
+  object-fit: cover; border: 2px solid rgba(201,149,108,0.5);
+  box-shadow: 0 0 14px rgba(201,149,108,0.15);
+  display: block;
+}
+.pf-hero-avatar-overlay {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: rgba(0,0,0,0.6); color: #fff;
+  font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  opacity: 0; transition: opacity 0.2s;
+}
+.pf-hero-avatar-wrap:hover .pf-hero-avatar-overlay { opacity: 1; }
 .pf-hero-info { display: flex; flex-direction: column; gap: 0.25rem; }
 .pf-hero-name { font-family: var(--font-display); font-size: 1.6rem; font-weight: 400; letter-spacing: 0.02em; color: var(--color-text); margin: 0; }
 .pf-hero-email { font-size: 0.82rem; color: rgba(245,240,235,0.5); margin: 0; }

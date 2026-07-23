@@ -81,6 +81,25 @@
 .sidebar-nav::-webkit-scrollbar-thumb { background: var(--rosa-joyeria); border-radius: 3px; }
 .sidebar-nav::-webkit-scrollbar-thumb:hover { background: var(--color-champagne); }
 
+.nav-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--color-border);
+}
+.nav-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.nav-section-label {
+    font-size: 0.66rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--color-text-muted);
+    opacity: 0.55;
+    padding: 4px 14px 6px;
+}
+
 .nav-item {
     background: transparent;
     border: none;

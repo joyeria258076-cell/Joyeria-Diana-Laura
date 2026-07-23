@@ -1,9 +1,20 @@
 // Frontend/src/screens/admin/configuracion/AdminVariablesConfigScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AiOutlineSave, AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
+import {
+  AiOutlineSave, AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineSetting,
+  AiOutlineDollarCircle, AiOutlineShoppingCart, AiOutlineInbox, AiOutlineBarChart,
+  AiOutlineTag, AiOutlinePlus, AiOutlineEdit, AiOutlineCheckCircle, AiOutlineStop,
+} from 'react-icons/ai';
 import { configAPI, apartadoAPI } from '../../../services/api';
 import './AdminVariablesConfigScreen.css';
+
+const ICONOS_CATEGORIA: Record<string, React.ComponentType<{size?:number}>> = {
+  fiscal: AiOutlineDollarCircle,
+  ventas: AiOutlineShoppingCart,
+  envios: AiOutlineInbox,
+  inventario: AiOutlineBarChart,
+};
 
 interface VariableConfig {
   id: number;
@@ -277,6 +288,16 @@ const AdminVariablesConfigScreen: React.FC = () => {
   };
 
   const categoriasOrdenadas = Object.keys(grupos).sort();
+  const [seccionActiva, setSeccionActiva] = useState<string>('__primera__');
+  const seccionReal = seccionActiva === '__primera__' ? (categoriasOrdenadas[0] || 'planes') : seccionActiva;
+
+  const nombreCategoria = (categoria: string) => {
+    const nombres: Record<string,string> = {
+      fiscal: 'Configuración fiscal', ventas: 'Configuración de ventas',
+      envios: 'Configuración de envíos', inventario: 'Configuración de inventario',
+    };
+    return nombres[categoria] || categoria;
+  };
 
   if (loading) {
     return (
@@ -291,7 +312,7 @@ const AdminVariablesConfigScreen: React.FC = () => {
     <div className="variables-container">
       {/* Header */}
       <div className="variables-header">
-        <h1>⚙️ Variables de Configuración</h1>
+        <h1><AiOutlineSetting size={22} /> Variables de configuración</h1>
         {Object.keys(editValues).length > 0 && (
           <button className="btn-save-all" onClick={handleSaveAll} disabled={saving}>
             <AiOutlineSave size={18} />
@@ -308,28 +329,46 @@ const AdminVariablesConfigScreen: React.FC = () => {
       )}
       {success && <div className="alert alert-success"><span>{success}</span></div>}
 
-      {/* Variables por categoría — sin cambios */}
-      <div className="variables-content">
-        {categoriasOrdenadas.length === 0 ? (
-          <div className="empty-state"><p>No hay variables de configuración disponibles</p></div>
-        ) : (
-          categoriasOrdenadas.map(categoria => (
-            <section key={categoria} className="categoria-section">
-              <h2 className="categoria-titulo">
-                {categoria === 'fiscal'     && '💰 Configuración Fiscal'}
-                {categoria === 'ventas'     && '🛒 Configuración de Ventas'}
-                {categoria === 'envios'     && '📦 Configuración de Envíos'}
-                {categoria === 'inventario' && '📊 Configuración de Inventario'}
-                {!['fiscal', 'ventas', 'envios', 'inventario'].includes(categoria) && categoria}
+      {/* Panel de ajustes: rail de secciones + lista de la sección activa */}
+      <div className="vc-layout">
+        <nav className="vc-rail">
+          {categoriasOrdenadas.map(categoria => {
+            const Icono = ICONOS_CATEGORIA[categoria] || AiOutlineTag;
+            return (
+              <button
+                key={categoria}
+                className={`vc-rail-item ${seccionReal === categoria ? 'active' : ''}`}
+                onClick={() => setSeccionActiva(categoria)}
+              >
+                <Icono size={16} /> {nombreCategoria(categoria)}
+                <span className="vc-rail-count">{grupos[categoria].length}</span>
+              </button>
+            );
+          })}
+          <button
+            className={`vc-rail-item ${seccionReal === 'planes' ? 'active' : ''}`}
+            onClick={() => setSeccionActiva('planes')}
+          >
+            <AiOutlineTag size={16} /> Planes de abono
+            <span className="vc-rail-count">{planes.length}</span>
+          </button>
+        </nav>
+
+        <div className="vc-panel">
+          {categoriasOrdenadas.length === 0 && seccionReal !== 'planes' ? (
+            <div className="empty-state"><p>No hay variables de configuración disponibles</p></div>
+          ) : seccionReal !== 'planes' ? (
+            <section className="vc-settings-list">
+              <h2 className="vc-panel-title">
+                {React.createElement(ICONOS_CATEGORIA[seccionReal] || AiOutlineTag, { size: 18 })}
+                {nombreCategoria(seccionReal)}
               </h2>
-              <div className="variables-grid">
-                {grupos[categoria].map(variable => (
-                  <div key={variable.id} className="variable-card">
-                    <div className="variable-header">
-                      <div className="variable-titulo">
-                        <h3>{variable.clave.replace(/_/g, ' ')}</h3>
-                        <span className="variable-tipo">{formatTipoDato(variable.tipo_dato)}</span>
-                      </div>
+              {(grupos[seccionReal] || []).map(variable => (
+                <div key={variable.id} className="vc-setting-row">
+                  <div className="vc-setting-info">
+                    <div className="vc-setting-name-row">
+                      <strong>{variable.clave.replace(/_/g, ' ')}</strong>
+                      <span className="variable-tipo">{formatTipoDato(variable.tipo_dato)}</span>
                       {variable.es_sensible && (
                         <button className="btn-toggle-sensitive" onClick={() => toggleShowSensitive(variable.clave)}>
                           {showSensitive[variable.clave] ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
@@ -337,6 +376,10 @@ const AdminVariablesConfigScreen: React.FC = () => {
                       )}
                     </div>
                     <p className="variable-descripcion">{variable.descripcion}</p>
+                    <span className="fecha-actualizacion">Actualizado: {formatFecha(variable.fecha_actualizacion)}</span>
+                  </div>
+
+                  <div className="vc-setting-control">
                     {editMode[variable.clave] ? (
                       <div className="variable-edit">
                         {variable.clave === 'unidad_expiracion_pago' ? (
@@ -365,43 +408,38 @@ const AdminVariablesConfigScreen: React.FC = () => {
                         )}
                         <div className="edit-actions">
                           <button className="btn-save-small" onClick={() => handleSave(variable.clave)} disabled={saving}>
-                            <AiOutlineSave size={16} />
+                            <AiOutlineSave size={15} /> {saving ? 'Guardando...' : 'Guardar'}
                           </button>
                           <button className="btn-cancel-small" onClick={() => handleCancel(variable.clave)}>
-                            <AiOutlineClose size={16} />
+                            <AiOutlineClose size={15} /> Cancelar
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <div className="variable-valor-container">
-                        <div className="variable-valor" onClick={() => handleEdit(variable.clave, variable.valor)}>
-                          {variable.es_sensible && !showSensitive[variable.clave] ? (
-                            <span className="valor-oculto">••••••••</span>
-                          ) : (
-                            <span className={`valor-actual ${variable.tipo_dato === 'decimal' || variable.tipo_dato === 'integer' ? 'valor-numerico' : ''}`}>
-                              {variable.tipo_dato === 'boolean'
-                                ? (variable.valor === 'true' ? '✓ Verdadero' : '✗ Falso')
-                                : variable.valor}
-                            </span>
-                          )}
-                          <span className="edit-hint">(clic para editar)</span>
-                        </div>
-                        <span className="fecha-actualizacion">Actualizado: {formatFecha(variable.fecha_actualizacion)}</span>
+                      <div className="variable-valor" onClick={() => handleEdit(variable.clave, variable.valor)}>
+                        {variable.es_sensible && !showSensitive[variable.clave] ? (
+                          <span className="valor-oculto">••••••••</span>
+                        ) : (
+                          <span className={`valor-actual ${variable.tipo_dato === 'decimal' || variable.tipo_dato === 'integer' ? 'valor-numerico' : ''}`}>
+                            {variable.tipo_dato === 'boolean'
+                              ? (variable.valor === 'true' ? '✓ Verdadero' : '✗ Falso')
+                              : variable.valor}
+                          </span>
+                        )}
+                        <span className="edit-hint">(clic para editar)</span>
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </section>
-          ))
-        )}
-
-        {/* ── SECCIÓN PLANES DE ABONO ─────────────────────── */}
+          ) : (
+        /* ── SECCIÓN PLANES DE ABONO ─────────────────────── */
         <section className="categoria-section planes-abono-section">
           <div className="planes-header">
-            <h2 className="categoria-titulo">🔖 Planes de Abono (Apartados)</h2>
+            <h2 className="categoria-titulo"><AiOutlineTag size={18}/> Planes de abono (apartados)</h2>
             <button className="btn-nuevo-plan" onClick={() => abrirFormPlan()}>
-              + Nuevo plan
+              <AiOutlinePlus size={14}/> Nuevo plan
             </button>
           </div>
           <p className="planes-descripcion">
@@ -423,14 +461,14 @@ const AdminVariablesConfigScreen: React.FC = () => {
                     <div className="plan-info">
                       <h3>{plan.nombre}</h3>
                       <span className={`plan-estado-badge ${plan.activo ? 'activo' : 'inactivo'}`}>
-                        {plan.activo ? '✅ Activo' : '⛔ Inactivo'}
+                        {plan.activo ? <><AiOutlineCheckCircle size={12}/> Activo</> : <><AiOutlineStop size={12}/> Inactivo</>}
                       </span>
                     </div>
                     <div className="plan-acciones">
-                      <button className="plan-btn-editar" onClick={() => abrirFormPlan(plan)} title="Editar">✏️</button>
+                      <button className="plan-btn-editar" onClick={() => abrirFormPlan(plan)} title="Editar"><AiOutlineEdit size={15}/></button>
                       <button className="plan-btn-toggle" onClick={() => handleTogglePlan(plan)}
                         title={plan.activo ? 'Desactivar' : 'Activar'}>
-                        {plan.activo ? '⛔' : '✅'}
+                        {plan.activo ? <AiOutlineStop size={15}/> : <AiOutlineCheckCircle size={15}/>}
                       </button>
                     </div>
                   </div>
@@ -458,6 +496,8 @@ const AdminVariablesConfigScreen: React.FC = () => {
             </div>
           )}
         </section>
+          )}
+        </div>
       </div>
 
       {/* Modal form plan */}

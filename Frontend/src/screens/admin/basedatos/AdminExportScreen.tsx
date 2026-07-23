@@ -3,10 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { exportAPI } from '../../../services/api';
 import FilterBuilder from './components/FilterBuilder';
 import './styles/AdminExportScreen.css';
-import { 
-  FiDownload, FiFilter, FiDatabase, FiClock, FiCheckCircle,
-  FiXCircle, FiRefreshCw, FiInfo, FiPackage, FiUsers,
-  FiTruck, FiFolder, FiCalendar, FiTag, FiGift
+import {
+  FiDownload, FiFilter, FiDatabase,
+  FiXCircle, FiRefreshCw, FiInfo, FiCheckCircle,
 } from 'react-icons/fi';
 
 const AdminExportScreen: React.FC = () => {
@@ -19,14 +18,15 @@ const AdminExportScreen: React.FC = () => {
   const [previewData, setPreviewData] = useState<any>(null);
   const [message, setMessage] = useState<any>(null);
   const [exporting, setExporting] = useState(false);
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
 
   const tables = [
-    { value: 'productos', label: 'Productos', icon: FiPackage, color: '#ECB2C3' },
-    { value: 'proveedores', label: 'Proveedores', icon: FiTruck, color: '#3498db' },
-    { value: 'clientes', label: 'Clientes', icon: FiUsers, color: '#2ecc71' },
-    { value: 'categorias', label: 'Categorías', icon: FiFolder, color: '#f39c12' },
-    { value: 'temporadas', label: 'Temporadas', icon: FiCalendar, color: '#9b59b6' },
-    { value: 'tipos_producto', label: 'Tipos', icon: FiTag, color: '#e74c3c' }
+    { value: 'productos', label: 'Productos' },
+    { value: 'proveedores', label: 'Proveedores' },
+    { value: 'clientes', label: 'Clientes' },
+    { value: 'categorias', label: 'Categorías' },
+    { value: 'temporadas', label: 'Temporadas' },
+    { value: 'tipos_producto', label: 'Tipos' },
   ];
 
   useEffect(() => {
@@ -51,7 +51,7 @@ const AdminExportScreen: React.FC = () => {
       const response = await exportAPI.previewExport(selectedTable, filters);
       if (response.success) {
         setPreviewData(response.data);
-        showMessage('success', `📊 ${response.data.total} registros encontrados`);
+        showMessage('success', `${response.data.total} registros encontrados`);
       }
     } catch (error: any) {
       showMessage('error', error.message);
@@ -71,7 +71,7 @@ const AdminExportScreen: React.FC = () => {
       a.download = `export_${selectedTable}_${new Date().toISOString().split('T')[0]}.xlsx`;
       a.click();
       window.URL.revokeObjectURL(url);
-      showMessage('success', '✅ Exportación completada');
+      showMessage('success', 'Exportación completada');
     } catch (error: any) {
       showMessage('error', error.message);
     } finally {
@@ -84,18 +84,19 @@ const AdminExportScreen: React.FC = () => {
     setTimeout(() => setMessage(null), 5000);
   };
 
+  const cambiarTabla = (value: string) => {
+    setSelectedTable(value);
+    setPreviewData(null);
+    setFilters([]);
+  };
+
+  const headers = previewData?.sample?.[0] ? Object.keys(previewData.sample[0]).slice(0, 7) : [];
+
   return (
-    <div className="export-screen-container">
-      <div className="export-header">
-        <div className="header-left">
-          <h1 className="page-title"><FiDownload className="title-icon" /> Exportación de Datos</h1>
-          <p className="page-description">Exporta datos para análisis o actualización masiva</p>
-        </div>
-        <div className="header-actions">
-          <button className="btn-refresh" onClick={loadMetadata}>
-            <FiRefreshCw className={loadingMetadata ? 'spin' : ''} />
-          </button>
-        </div>
+    <div className="ex3-container">
+      <div className="ex3-header">
+        <h1><FiDownload size={22} /> Exportación de datos</h1>
+        <p>Exporta datos para análisis o actualización masiva</p>
       </div>
 
       {message && (
@@ -107,95 +108,101 @@ const AdminExportScreen: React.FC = () => {
         </div>
       )}
 
-      <div className="table-selector-card">
-        <div className="selector-header">
-          <FiDatabase className="selector-icon" />
-          <h3>Seleccionar Tabla</h3>
+      <div className="ex3-layout">
+        {/* Maestro: lista de tablas en texto plano */}
+        <div className="ex3-lista">
+          <span className="ex3-lista-label">Tablas disponibles</span>
+          {tables.map(t => (
+            <button
+              key={t.value}
+              className={`ex3-lista-item ${selectedTable === t.value ? 'active' : ''}`}
+              onClick={() => cambiarTabla(t.value)}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
-        <div className="table-grid">
-          {tables.map(table => {
-            const Icon = table.icon;
-            const isSelected = selectedTable === table.value;
-            return (
-              <button key={table.value} className={`table-option ${isSelected ? 'selected' : ''}`}
-                onClick={() => setSelectedTable(table.value)} style={{ borderColor: isSelected ? table.color : 'transparent' }}>
-                <Icon size={24} color={table.color} />
-                <span>{table.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
-      {loadingMetadata ? (
-        <div className="loading-metadata">
-          <div className="spinner-large"></div>
-          <p>Cargando estructura...</p>
-        </div>
-      ) : metadata ? (
-        <>
-          <div className="filters-card">
-            <div className="filters-header">
-              <FiFilter className="filters-icon" />
-              <h3>Filtros</h3>
-              <span className="filters-badge">{filters.length} filtros</span>
+        {/* Detalle: hoja de cálculo simulada */}
+        <div className="ex3-sheet">
+          <div className="ex3-sheet-toolbar">
+            <div className="ex3-sheet-title">
+              <FiDatabase size={15} /> <strong>{tables.find(t => t.value === selectedTable)?.label}</strong>
+              {loadingMetadata && <span className="ex3-sheet-loading">cargando estructura...</span>}
             </div>
-            <FilterBuilder
-              tableName={selectedTable}
-              columns={metadata.metadata.columns}
-              filterOptions={metadata.filterOptions}
-              onFiltersChange={setFilters}
-            />
-            <div className="filters-footer">
-              <label className="checkbox-option">
-                <input type="checkbox" checked={includeRelations} onChange={(e) => setIncludeRelations(e.target.checked)} />
-                <span>Incluir hoja de catálogos</span>
-              </label>
+            <div className="ex3-sheet-actions">
+              <button className={`ex3-btn-filtros ${filtrosAbiertos ? 'active' : ''}`} onClick={() => setFiltrosAbiertos(v => !v)}>
+                <FiFilter size={14} /> Filtros {filters.length > 0 && <span className="ex3-filtros-count">{filters.length}</span>}
+              </button>
+              <button className="btn-preview" onClick={handlePreview} disabled={loading || exporting}>
+                {loading ? <><span className="spinner-small"></span> Procesando...</> : <><FiRefreshCw /> Vista previa</>}
+              </button>
             </div>
           </div>
 
-          <div className="export-actions-card">
-            <div className="actions-left">
-              <button className="btn-preview" onClick={handlePreview} disabled={loading || exporting}>
-                {loading ? <><span className="spinner-small"></span> Procesando...</> : <><FiRefreshCw /> Previsualizar</>}
-              </button>
+          {filtrosAbiertos && (
+            <div className="ex3-filtros-panel">
+              {metadata ? (
+                <>
+                  <FilterBuilder
+                    tableName={selectedTable}
+                    columns={metadata.metadata.columns}
+                    filterOptions={metadata.filterOptions}
+                    onFiltersChange={setFilters}
+                  />
+                  <div className="filters-footer">
+                    <label className="checkbox-option">
+                      <input type="checkbox" checked={includeRelations} onChange={(e) => setIncludeRelations(e.target.checked)} />
+                      <span>Incluir hoja de catálogos</span>
+                    </label>
+                  </div>
+                </>
+              ) : (
+                <div className="loading-metadata">
+                  <div className="spinner-large"></div>
+                  <p>Cargando estructura...</p>
+                </div>
+              )}
             </div>
-            {previewData && (
-              <div className="preview-stats">
-                <FiDatabase />
-                <span><strong>{previewData.total.toLocaleString()}</strong> registros</span>
+          )}
+
+          {/* Hoja de cálculo */}
+          <div className="ex3-sheet-body">
+            {previewData ? (
+              <table className="ex3-sheet-table">
+                <thead>
+                  <tr>
+                    <th className="ex3-sheet-corner" />
+                    {headers.map((h, i) => <th key={h}>{String.fromCharCode(65 + i)} · {h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {previewData.sample.slice(0, 12).map((row: any, idx: number) => (
+                    <tr key={idx}>
+                      <td className="ex3-sheet-rownum">{idx + 1}</td>
+                      {headers.map(h => (
+                        <td key={h} title={String(row[h])}>{String(row[h] ?? '').substring(0, 24)}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="ex3-sheet-empty">
+                <FiDatabase size={28} />
+                <p>Presiona "Vista previa" para ver una muestra de los datos de esta tabla.</p>
               </div>
             )}
           </div>
 
-          {previewData && (
-            <div className="preview-results-card">
-              <div className="preview-header">
-                <h3><FiClock className="preview-icon" /> Vista Previa</h3>
-                <button className="btn-export" onClick={handleExport} disabled={exporting || previewData.total === 0}>
-                  {exporting ? <><span className="spinner-small"></span> Exportando...</> : <><FiDownload /> Exportar</>}
-                </button>
-              </div>
-              <div className="table-container">
-                <table className="preview-table">
-                  <thead>
-                    <tr>{previewData.sample[0] && Object.keys(previewData.sample[0]).slice(0,6).map(k => <th key={k}>{k}</th>)}</tr>
-                  </thead>
-                  <tbody>
-                    {previewData.sample.map((row: any, idx: number) => (
-                      <tr key={idx}>
-                        {Object.keys(row).slice(0,6).map(k => (
-                          <td key={k} title={String(row[k])}>{String(row[k]).substring(0,30)}</td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </>
-      ) : null}
+          <div className="ex3-sheet-footer">
+            {previewData && <span className="ex3-sheet-total">{previewData.total.toLocaleString()} registros encontrados</span>}
+            <button className="btn-export ex3-export-btn" onClick={handleExport} disabled={exporting || !previewData || previewData.total === 0}>
+              {exporting ? <><span className="spinner-small"></span> Exportando...</> : <><FiDownload /> Exportar a Excel</>}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { segmentacionAPI, type ClienteSegmentado, type Segmento } from '../../services/api';
+import { AiOutlineUsergroupAdd, AiOutlineDotChart, AiOutlineMail, AiOutlineCheckCircle } from 'react-icons/ai';
 import './AdminSegmentosScreen.css';
 
 /* Colores fijos por nombre de segmento (el modelo K-Means siempre produce estos 3) */
@@ -30,7 +30,6 @@ function normalizarPuntos(clientes: ClienteSegmentado[]) {
 }
 
 const AdminSegmentosScreen: React.FC = () => {
-  const navigate = useNavigate();
   const [segmentos, setSegmentos] = useState<Segmento[]>([]);
   const [clientes, setClientes] = useState<ClienteSegmentado[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -106,216 +105,178 @@ const AdminSegmentosScreen: React.FC = () => {
 
   if (cargando) {
     return (
-      <div className="seg-container">
-        <div className="seg-wrapper">
-          <p style={{ textAlign: 'center', padding: '4rem', opacity: 0.7 }}>Calculando segmentos con K-Means...</p>
-        </div>
+      <div className="sg-wrap">
+        <p className="sg-estado">Calculando segmentos con K-Means...</p>
       </div>
     );
   }
 
   if (error || segmentos.length === 0) {
     return (
-      <div className="seg-container">
-        <div className="seg-wrapper">
-          <p style={{ textAlign: 'center', padding: '4rem', opacity: 0.7 }}>
-            No se pudo cargar la segmentación. Verifica que el microservicio ML esté disponible.
-          </p>
-        </div>
+      <div className="sg-wrap">
+        <p className="sg-estado">No se pudo cargar la segmentación. Verifica que el microservicio ML esté disponible.</p>
       </div>
     );
   }
 
   return (
-    <div className="seg-container">
-      <div className="seg-wrapper">
+    <div className="sg-wrap animate-in">
+      <div className="sg-header">
+        <h1 className="sg-titulo"><AiOutlineUsergroupAdd size={22} /> Segmentos de Clientes</h1>
+        <p className="sg-subtitulo">Clasificación automática con K-Means · {clientes.length} clientes analizados</p>
+      </div>
 
-        {/* Header */}
-        <div className="seg-header">
-          <div>
-            <p className="seg-eyebrow">Propuesta 3 · K-Means Clustering</p>
-            <h1 className="seg-titulo">Panel de Segmentos de Clientes</h1>
+      {/* ── Tarjetas de segmento ── */}
+      <div className="sg-segmentos-grid">
+        {segmentos.map(seg => (
+          <button
+            key={seg.nombre}
+            className={`sg-seg-card${segSeleccionado === seg.nombre ? ' sel' : ''}`}
+            style={{ '--seg-color': colorDeSegmento(seg.nombre) } as React.CSSProperties}
+            onClick={() => seleccionarSegmento(seg)}
+          >
+            <span className="sg-seg-count">{seg.clientes}</span>
+            <span className="sg-seg-nombre">{seg.nombre}</span>
+            <span className="sg-seg-desc">{seg.descripcion}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="sg-layout">
+        {/* ── Columna principal: tabla ── */}
+        <div className="sg-main">
+          <div className="sg-tabla-head">
+            <h3>Lista de clientes</h3>
+            {filtroSeg !== null && (
+              <div className="sg-filtro-activo">
+                <span className="sg-filtro-dot" style={{ background: colorDeSegmento(filtroSeg) }} />
+                {filtroSeg}
+                <button onClick={() => { setFiltroSeg(null); setSegSeleccionado(null); }}>Ver todos</button>
+              </div>
+            )}
+          </div>
+
+          <div className="sg-tabla-wrap">
+            <table className="sg-tabla">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Compras</th>
+                  <th>Ticket prom.</th>
+                  <th>Monto apart.</th>
+                  <th>Segmento</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clientesFiltrados.map(c => {
+                  const color = colorDeSegmento(c.segmento);
+                  return (
+                    <tr key={c.id}>
+                      <td className="sg-td-muted">{c.id}</td>
+                      <td className="sg-td-nombre">{c.nombre}</td>
+                      <td className="sg-td-muted">{c.num_compras}</td>
+                      <td className="sg-td-muted">${c.ticket_promedio.toLocaleString('es-MX')}</td>
+                      <td className="sg-td-muted">{c.monto_apartado_promedio > 0 ? `$${c.monto_apartado_promedio.toLocaleString('es-MX')}` : '—'}</td>
+                      <td>
+                        <span className="sg-badge" style={{ color, borderColor: color + '55', background: color + '18' }}>
+                          {c.segmento}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* ── TARJETAS DE SEGMENTOS ── */}
-        <section className="seg-seccion">
-          <h2 className="seg-subtitulo">Clientes por segmento ({clientes.length} en total)</h2>
-          <div className="seg-cards-grid">
-            {segmentos.map(seg => (
-              <button
-                key={seg.nombre}
-                className={`seg-card ${segSeleccionado === seg.nombre ? 'seg-card--activa' : ''}`}
-                style={{ '--seg-color': colorDeSegmento(seg.nombre) } as React.CSSProperties}
-                onClick={() => seleccionarSegmento(seg)}
-              >
-                <div className="seg-card-circulo" />
-                <div className="seg-card-info">
-                  <span className="seg-card-nombre">{seg.nombre}</span>
-                  <span className="seg-card-count">{seg.clientes} clientes</span>
-                  <span className="seg-card-desc">{seg.descripcion}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* ── TABLA + SCATTER ── */}
-        <div className="seg-medio">
-
-          {/* Tabla de clientes */}
-          <section className="seg-seccion seg-tabla-seccion">
-            <div className="seg-tabla-header">
-              <h2 className="seg-subtitulo" style={{ margin: 0 }}>
-                Lista de clientes
-                {filtroSeg !== null && (
-                  <span className="seg-filtro-badge" style={{ background: colorDeSegmento(filtroSeg) }}>
-                    {filtroSeg}
-                  </span>
-                )}
-              </h2>
-              {filtroSeg !== null && (
-                <button className="seg-clear-btn" onClick={() => { setFiltroSeg(null); setSegSeleccionado(null); }}>
-                  Ver todos
-                </button>
-              )}
-            </div>
-
-            <div className="seg-tabla-wrap">
-              <table className="seg-tabla">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Compras</th>
-                    <th>Ticket Prom.</th>
-                    <th>Monto Apart.</th>
-                    <th>Segmento</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {clientesFiltrados.map(c => {
-                    const color = colorDeSegmento(c.segmento);
-                    return (
-                      <tr key={c.id}>
-                        <td className="seg-td-id">{c.id}</td>
-                        <td className="seg-td-nombre">{c.nombre}</td>
-                        <td className="seg-td-num">{c.num_compras}</td>
-                        <td className="seg-td-num">${c.ticket_promedio.toLocaleString('es-MX')}</td>
-                        <td className="seg-td-num">{c.monto_apartado_promedio > 0 ? `$${c.monto_apartado_promedio.toLocaleString('es-MX')}` : '—'}</td>
-                        <td>
-                          <span className="seg-badge" style={{ background: color + '22', color, border: `1px solid ${color}55` }}>
-                            {c.segmento}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          {/* Mapa de clusters */}
-          <section className="seg-seccion seg-scatter-seccion">
-            <h2 className="seg-subtitulo">Distribución (clusters, proyección PCA)</h2>
-            <div className="seg-scatter">
-              <span className="seg-scatter-label-y">Componente 2 →</span>
+        {/* ── Barra lateral: mapa de clusters + acción ── */}
+        <aside className="sg-side">
+          <div className="sg-card">
+            <h3><AiOutlineDotChart size={16} /> Distribución de clusters</h3>
+            <div className="sg-scatter">
               {puntosScatter.map((p, i) => (
                 <div
                   key={i}
-                  className="seg-scatter-punto"
+                  className="sg-scatter-punto"
                   style={{
                     left: `${p.x}%`,
                     bottom: `${p.y}%`,
                     background: colorDeSegmento(p.segmento),
                     opacity: segSeleccionado === null || segSeleccionado === p.segmento ? 1 : 0.15,
-                    transform: segSeleccionado === p.segmento ? 'scale(1.5)' : 'scale(1)',
+                    transform: segSeleccionado === p.segmento ? 'scale(1.6)' : 'scale(1)',
                   }}
                   title={p.segmento}
                 />
               ))}
-              <span className="seg-scatter-label-x">Componente 1 →</span>
             </div>
-            <div className="seg-scatter-leyenda">
+            <div className="sg-scatter-leyenda">
               {segmentos.map(s => (
-                <span key={s.nombre} className="seg-scatter-leyenda-item">
-                  <span className="seg-scatter-dot" style={{ background: colorDeSegmento(s.nombre) }} />
+                <span key={s.nombre} className="sg-scatter-leyenda-item">
+                  <span className="sg-scatter-dot" style={{ background: colorDeSegmento(s.nombre) }} />
                   {s.nombre}
                 </span>
               ))}
             </div>
-          </section>
+          </div>
 
-        </div>
-
-        {/* ── ACCIONES SUGERIDAS ── */}
-        <div className="seg-acciones-layout">
-          <section className="seg-seccion seg-leyenda-seccion">
-            <h2 className="seg-subtitulo">Estrategias por segmento</h2>
-            {segmentos.map(seg => (
-              <div
-                key={seg.nombre}
-                className="seg-estrategia"
-                style={{ '--seg-color': colorDeSegmento(seg.nombre) } as React.CSSProperties}
-              >
-                <span className="seg-estrategia-dot" />
-                <div>
-                  <strong>{seg.nombre}</strong>
-                  <span> → {seg.accion}</span>
-                </div>
-              </div>
-            ))}
-          </section>
-
-          <section className="seg-seccion seg-accion-seccion">
-            <p className="seg-accion-eyebrow">Acción sugerida</p>
+          <div className="sg-card">
+            <h3><AiOutlineMail size={16} /> Acción sugerida</h3>
             {segActivo ? (
               <>
-                <p className="seg-accion-texto">
-                  Enviar promoción personalizada al segmento <strong>"{segActivo.nombre}"</strong>
+                <p className="sg-accion-texto">
+                  Enviar promoción a <strong style={{ color: colorDeSegmento(segActivo.nombre) }}>{segActivo.nombre}</strong>
                 </p>
-                <p className="seg-accion-sub">Estrategia sugerida: {segActivo.accion}</p>
+                <p className="sg-accion-sub">{segActivo.accion}</p>
 
-                <div className="seg-personalizar">
-                  <label className="seg-personalizar-label">Asunto del correo</label>
-                  <input
-                    className="seg-personalizar-input"
-                    value={asuntoPersonalizado}
-                    onChange={e => setAsuntoPersonalizado(e.target.value)}
-                    placeholder={ASUNTO_DEFAULT}
-                    maxLength={150}
-                  />
+                <label className="sg-label">Asunto del correo</label>
+                <input
+                  className="sg-input"
+                  value={asuntoPersonalizado}
+                  onChange={e => setAsuntoPersonalizado(e.target.value)}
+                  placeholder={ASUNTO_DEFAULT}
+                  maxLength={150}
+                />
 
-                  <label className="seg-personalizar-label">Mensaje personalizado</label>
-                  <textarea
-                    className="seg-personalizar-textarea"
-                    value={mensajePersonalizado}
-                    onChange={e => setMensajePersonalizado(e.target.value)}
-                    placeholder={segActivo.accion}
-                    rows={4}
-                    maxLength={500}
-                  />
-                  <span className="seg-personalizar-contador">{mensajePersonalizado.length}/500</span>
-                </div>
+                <label className="sg-label">Mensaje personalizado</label>
+                <textarea
+                  className="sg-textarea"
+                  value={mensajePersonalizado}
+                  onChange={e => setMensajePersonalizado(e.target.value)}
+                  placeholder={segActivo.accion}
+                  rows={4}
+                  maxLength={500}
+                />
+                <span className="sg-contador">{mensajePersonalizado.length}/500</span>
 
                 <button
-                  className={`seg-accion-btn ${enviado ? 'seg-accion-btn--ok' : ''}`}
+                  className={`sg-btn-enviar${enviado ? ' sg-btn-enviar--ok' : ''}`}
                   onClick={handleEnviarPromocion}
                   disabled={enviando || enviado || !mensajePersonalizado.trim()}
                 >
-                  {enviando ? 'Enviando...' : enviado ? '✓ Promoción enviada' : 'Enviar promoción'}
+                  {enviando ? 'Enviando...' : enviado ? (<><AiOutlineCheckCircle size={15} /> Promoción enviada</>) : 'Enviar promoción'}
                 </button>
-                {errorEnvio && <p className="seg-accion-error">{errorEnvio}</p>}
+                {errorEnvio && <p className="sg-accion-error">{errorEnvio}</p>}
               </>
             ) : (
-              <p className="seg-accion-placeholder">
-                Selecciona un segmento arriba para ver la acción recomendada y enviar una promoción
-              </p>
+              <p className="sg-accion-placeholder">Selecciona un segmento arriba para ver la acción recomendada y enviar una promoción.</p>
             )}
-          </section>
-        </div>
+          </div>
 
+          <div className="sg-estrategias">
+            <h4>Estrategias por segmento</h4>
+            {segmentos.map(seg => (
+              <div key={seg.nombre} className="sg-estrategia-row">
+                <span className="sg-estrategia-dot" style={{ background: colorDeSegmento(seg.nombre) }} />
+                <div>
+                  <strong>{seg.nombre}</strong>
+                  <span> — {seg.accion}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </aside>
       </div>
     </div>
   );

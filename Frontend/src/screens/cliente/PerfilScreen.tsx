@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { authAPI, profileAPI, solicitudesAPI } from "../../services/api";
+import { authAPI, profileAPI, solicitudesAPI, uploadAPI } from "../../services/api";
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineDesktop, AiOutlineReload } from "react-icons/ai";
 import "./PerfilScreen.css";
 
@@ -23,8 +23,12 @@ type Tab = 'info' | 'seguridad' | 'sesiones';
 
 export default function PerfilScreen() {
   const { user, logout, getActiveSessions, revokeSession,
-          revokeAllOtherSessions, revokeAllSessions, refreshUserName } = useAuth();
+          revokeAllOtherSessions, revokeAllSessions, refreshUserName, refreshUserFoto } = useAuth();
   const navigate = useNavigate();
+
+  const [fotoUrl, setFotoUrl] = useState<string | null>(null);
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
+  const fotoInputRef = useRef<HTMLInputElement>(null);
 
   const userRole = user?.rol?.toLowerCase().trim() || 'cliente';
   const isCliente = userRole === 'cliente';
@@ -77,7 +81,30 @@ export default function PerfilScreen() {
     if (user?.dbId) cargarMFA();
     if (!isCliente) { cargarMisSolicitudes(); cargarCodigoTrabajador(); }
     cargarSesiones();
+    profileAPI.getProfile().then(res => { if (res.success) setFotoUrl(res.data.foto_perfil_url || null); }).catch(() => {});
   }, []);
+
+  const handleSubirFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { mostrarToast('El archivo debe ser una imagen', 'err'); return; }
+    setSubiendoFoto(true);
+    try {
+      const up = await uploadAPI.uploadImage(file, 'joyeria/usuarios');
+      if (!up.success) throw new Error(up.message || 'Error al subir la imagen');
+      const url = up.data.url;
+      const res = await profileAPI.updateProfile({ foto_perfil_url: url });
+      if (!res.success) throw new Error(res.message || 'Error al guardar la foto');
+      setFotoUrl(url);
+      refreshUserFoto(url);
+      mostrarToast('Foto de perfil actualizada', 'ok');
+    } catch (err: any) {
+      mostrarToast(err.message || 'Error al actualizar la foto', 'err');
+    } finally {
+      setSubiendoFoto(false);
+    }
+  };
 
   const cargarMisSolicitudes = async (silencioso = false) => {
     try {
@@ -283,7 +310,11 @@ export default function PerfilScreen() {
 
       {/* Header tarjeta usuario */}
       <div className="pf-hero">
-        <div className="pf-hero-avatar">{inicial}</div>
+        <div className="pf-hero-avatar-wrap" onClick={() => !subiendoFoto && fotoInputRef.current?.click()} title="Cambiar foto de perfil">
+          {fotoUrl ? <img src={fotoUrl} alt="Foto de perfil" className="pf-hero-avatar-img" /> : <div className="pf-hero-avatar">{inicial}</div>}
+          <div className="pf-hero-avatar-overlay">{subiendoFoto ? '...' : 'Cambiar'}</div>
+          <input ref={fotoInputRef} type="file" accept="image/*" hidden onChange={handleSubirFoto} />
+        </div>
         <div className="pf-hero-info">
           <h1 className="pf-hero-name">{user?.nombre}</h1>
           <p className="pf-hero-email">{user?.email}</p>

@@ -4,8 +4,7 @@ import { bulkUpdateAPI } from '../../../services/api';
 import './styles/AdminBulkUpdateScreen.css';
 import {
   FiUpload, FiRefreshCw, FiCheckCircle, FiXCircle, FiInfo,
-  FiAlertTriangle, FiDatabase, FiPackage, FiUsers, FiTruck,
-  FiFolder, FiCalendar, FiTag, FiEye, FiEdit3, FiSave, FiArrowRight, FiDownload
+  FiAlertTriangle, FiDatabase, FiEye, FiEdit3, FiSave, FiDownload,
 } from 'react-icons/fi';
 
 const AdminBulkUpdateScreen: React.FC = () => {
@@ -17,15 +16,23 @@ const AdminBulkUpdateScreen: React.FC = () => {
   const [executing, setExecuting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [downloadingTemplate, setDownloadingTemplate] = useState(false);
+  const [showInstrucciones, setShowInstrucciones] = useState(false);
 
   const tables = [
-    { value: 'productos', label: 'Productos', icon: FiPackage, color: '#ECB2C3' },
-    { value: 'proveedores', label: 'Proveedores', icon: FiTruck, color: '#3498db' },
-    { value: 'clientes', label: 'Clientes', icon: FiUsers, color: '#2ecc71' },
-    { value: 'categorias', label: 'Categorías', icon: FiFolder, color: '#f39c12' },
-    { value: 'temporadas', label: 'Temporadas', icon: FiCalendar, color: '#9b59b6' },
-    { value: 'tipos_producto', label: 'Tipos de Producto', icon: FiTag, color: '#e91e63' }
+    { value: 'productos', label: 'Productos' },
+    { value: 'proveedores', label: 'Proveedores' },
+    { value: 'clientes', label: 'Clientes' },
+    { value: 'categorias', label: 'Categorías' },
+    { value: 'temporadas', label: 'Temporadas' },
+    { value: 'tipos_producto', label: 'Tipos de producto' },
   ];
+
+  const handleTableChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedTable(e.target.value);
+    setFile(null);
+    setPreview(null);
+    setMessage(null);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -54,7 +61,6 @@ const AdminBulkUpdateScreen: React.FC = () => {
     }
   };
 
-  // ✅ NUEVO: Descargar plantilla
   const handleDownloadTemplate = async () => {
     setDownloadingTemplate(true);
     try {
@@ -86,7 +92,7 @@ const AdminBulkUpdateScreen: React.FC = () => {
       const response = await bulkUpdateAPI.previewUpdate(formData);
       if (response.success) {
         setPreview(response.data);
-        showMessage('success', `✅ ${response.data.totalRows} registros con cambios`);
+        showMessage('success', `${response.data.totalRows} registros con cambios`);
       }
     } catch (error: any) {
       showMessage('error', error.message);
@@ -105,7 +111,6 @@ const AdminBulkUpdateScreen: React.FC = () => {
         showMessage('success', response.data.message);
         setPreview(null);
         setFile(null);
-        // Reset file input
         const fileInput = document.getElementById('file-upload') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
       } else {
@@ -123,20 +128,13 @@ const AdminBulkUpdateScreen: React.FC = () => {
     setTimeout(() => setMessage(null), 5000);
   };
 
-  const getTableIcon = (tableValue: string) => {
-    const table = tables.find(t => t.value === tableValue);
-    if (table) {
-      const Icon = table.icon;
-      return <Icon size={20} color={table.color} />;
-    }
-    return <FiDatabase size={20} />;
-  };
-
   return (
-    <div className="bulk-update-container">
-      <div className="bulk-header">
-        <h1 className="page-title"><FiEdit3 className="title-icon" /> Actualización Masiva</h1>
-        <p className="page-description">Actualiza múltiples registros usando archivos Excel</p>
+    <div className="bu2-container">
+      <div className="bu2-header">
+        <div>
+          <h1><FiEdit3 size={22} /> Actualización masiva</h1>
+          <p>Actualiza múltiples registros a la vez usando un archivo Excel</p>
+        </div>
       </div>
 
       {message && (
@@ -149,150 +147,91 @@ const AdminBulkUpdateScreen: React.FC = () => {
         </div>
       )}
 
-      <div className="table-selector-card">
-        <div className="selector-header">
-          <FiDatabase className="selector-icon" />
-          <h3>Seleccionar Tabla</h3>
-        </div>
-        <div className="table-selector">
-          {tables.map(table => {
-            const Icon = table.icon;
-            const isSelected = selectedTable === table.value;
-            return (
-              <button 
-                key={table.value} 
-                className={`table-option ${isSelected ? 'selected' : ''}`}
-                onClick={() => {
-                  setSelectedTable(table.value);
-                  setFile(null);
-                  setPreview(null);
-                  setMessage(null);
-                }}
-              >
-                <Icon size={20} color={table.color} />
-                <span>{table.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="upload-section">
-        <div className="upload-instructions">
-          <FiInfo className="instructions-icon" size={24} />
-          <div className="instructions-text">
-            <strong>Instrucciones:</strong>
-            <ol>
-              <li>Descarga la plantilla con el botón "📥 Descargar Plantilla"</li>
-              <li>Abre el archivo Excel y ve a la hoja "ACTUALIZACION"</li>
-              <li>La columna <strong>"id"</strong> es OBLIGATORIA</li>
-              <li>Completa SOLO las columnas que quieras actualizar</li>
-              <li>Las celdas vacías se ignorarán</li>
-              <li>Guarda el archivo y súbelo aquí</li>
-            </ol>
-          </div>
+      {/* Barra compacta: tabla + plantilla + archivo, todo en una franja */}
+      <div className="bu2-toolbar">
+        <div className="bu2-toolbar-field">
+          <label><FiDatabase size={13} /> Tabla</label>
+          <select value={selectedTable} onChange={handleTableChange}>
+            {tables.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
         </div>
 
-        {/* Botón de descarga de plantilla */}
-        <div className="template-download-section">
-          <button 
-            className="btn-download-template"
-            onClick={handleDownloadTemplate}
-            disabled={downloadingTemplate}
-          >
-            {downloadingTemplate ? (
-              <><span className="spinner-small"></span> Descargando...</>
-            ) : (
-              <><FiDownload /> Descargar Plantilla Excel</>
-            )}
-          </button>
-          <p className="template-hint">
-            La plantilla incluye las columnas necesarias para actualizar {tables.find(t => t.value === selectedTable)?.label}
-          </p>
-        </div>
+        <button className="bu2-btn-template" onClick={handleDownloadTemplate} disabled={downloadingTemplate}>
+          {downloadingTemplate ? <><span className="spinner-small"></span> Descargando...</> : <><FiDownload size={14} /> Descargar plantilla</>}
+        </button>
 
-        <div className="file-upload-divider">
-          <span>O</span>
-        </div>
+        <button className="bu2-btn-info" onClick={() => setShowInstrucciones(v => !v)}>
+          <FiInfo size={14} /> Instrucciones
+        </button>
 
-        <div className={`file-upload-area ${dragActive ? 'drag-active' : ''} ${file ? 'has-file' : ''}`}
-          onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}>
-          <input 
-            type="file" 
-            id="file-upload"
-            accept=".xlsx" 
-            onChange={handleFileChange} 
-            disabled={loading || executing} 
-          />
+        <div
+          className={`bu2-dropzone-inline ${dragActive ? 'drag-active' : ''} ${file ? 'has-file' : ''}`}
+          onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
+          onClick={() => document.getElementById('file-upload')?.click()}
+        >
+          <input type="file" id="file-upload" accept=".xlsx" onChange={handleFileChange} disabled={loading || executing} hidden />
           {file ? (
-            <div className="file-info">
-              <FiCheckCircle size={32} color="#4CAF50" />
-              <div className="file-details">
-                <span className="file-name">{file.name}</span>
-                <span className="file-size">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
-              </div>
-              <button className="btn-change-file" onClick={() => { setFile(null); setPreview(null); }}>Cambiar</button>
-            </div>
+            <><FiCheckCircle size={15} color="#4CAF50" /> <span>{file.name}</span></>
           ) : (
-            <div className="upload-prompt">
-              <FiUpload size={40} />
-              <p>Arrastra o selecciona archivo Excel</p>
-              <span className="file-types">.xlsx</span>
-            </div>
+            <><FiUpload size={15} /> <span>Arrastra o elige tu archivo .xlsx</span></>
           )}
         </div>
 
-        <div className="upload-actions">
-          <button className="btn-preview" onClick={handlePreview} disabled={!file || loading || executing}>
-            {loading ? <><span className="spinner-small"></span> Procesando...</> : <><FiEye /> Vista Previa</>}
-          </button>
-        </div>
+        <button className="btn-preview bu2-btn-preview" onClick={handlePreview} disabled={!file || loading || executing}>
+          {loading ? <><span className="spinner-small"></span> Procesando...</> : <><FiEye /> Vista previa</>}
+        </button>
       </div>
 
+      {showInstrucciones && (
+        <div className="bu2-instrucciones">
+          <ol>
+            <li>Descarga la plantilla con el botón "Descargar plantilla".</li>
+            <li>Abre el archivo Excel y ve a la hoja "ACTUALIZACION".</li>
+            <li>La columna <strong>"id"</strong> es obligatoria.</li>
+            <li>Completa solo las columnas que quieras actualizar; las celdas vacías se ignoran.</li>
+            <li>Guarda el archivo y súbelo en la franja de arriba.</li>
+          </ol>
+        </div>
+      )}
+
+      {/* Revisor de cambios tipo "diff" */}
       {preview && (
-        <div className="preview-section">
-          <div className="preview-header">
-            <h3><FiRefreshCw className="preview-icon" /> Cambios Detectados</h3>
-            <div className="preview-stats">
-              <span className="stat-badge"><FiDatabase /> {preview.totalRows} registros</span>
-            </div>
+        <div className="bu2-diff-section">
+          <div className="bu2-diff-header">
+            <h2><FiRefreshCw size={16} /> Cambios detectados</h2>
+            <span className="bu2-diff-count">{preview.totalRows} registros</span>
           </div>
 
           {preview.changes && preview.changes.length > 0 ? (
-            <div className="changes-table-container">
-              <table className="changes-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Campo</th>
-                    <th>Valor Actual</th>
-                    <th></th>
-                    <th>Nuevo Valor</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {preview.changes.map((change: any) => (
-                    Object.keys(change.updated).filter(k => k !== 'id').map((field, idx) => (
-                      <tr key={`${change.id}-${field}`}>
-                        {idx === 0 && <td rowSpan={Object.keys(change.updated).length - 1}><strong>{change.id}</strong></td>}
-                        <td><code>{field}</code></td>
-                        <td className="current-value">{String(change.current[field] !== null && change.current[field] !== undefined ? change.current[field] : '—')}</td>
-                        <td className="arrow-cell"><FiArrowRight /></td>
-                        <td className="new-value"><strong>{String(change.updated[field] !== null && change.updated[field] !== undefined ? change.updated[field] : '—')}</strong></td>
-                      </tr>
-                    ))
-                  ))}
-                </tbody>
-              </table>
+            <div className="bu2-diff-list">
+              {preview.changes.map((change: any) => (
+                <div key={change.id} className="bu2-diff-card">
+                  <div className="bu2-diff-card-id">Registro #{change.id}</div>
+                  <div className="bu2-diff-fields">
+                    {Object.keys(change.updated).filter(k => k !== 'id').map(field => (
+                      <div key={field} className="bu2-diff-field">
+                        <span className="bu2-diff-field-name">{field}</span>
+                        <span className="bu2-diff-old">
+                          {String(change.current[field] !== null && change.current[field] !== undefined ? change.current[field] : '—')}
+                        </span>
+                        <span className="bu2-diff-arrow">→</span>
+                        <span className="bu2-diff-new">
+                          {String(change.updated[field] !== null && change.updated[field] !== undefined ? change.updated[field] : '—')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
-            <div className="no-changes"><FiInfo size={48} /><p>No hay cambios detectados</p></div>
+            <div className="no-changes"><FiInfo size={40} /><p>No hay cambios detectados</p></div>
           )}
 
-          <div className="preview-footer">
+          <div className="bu2-diff-footer">
             <div className="warning-box"><FiAlertTriangle /> Esta acción es permanente y no se puede deshacer</div>
             <button className="btn-execute" onClick={handleExecute} disabled={executing || (preview.changes && preview.changes.length === 0)}>
-              {executing ? <><span className="spinner-small"></span> Aplicando...</> : <><FiSave /> Ejecutar Actualización</>}
+              {executing ? <><span className="spinner-small"></span> Aplicando...</> : <><FiSave /> Ejecutar actualización</>}
             </button>
           </div>
         </div>

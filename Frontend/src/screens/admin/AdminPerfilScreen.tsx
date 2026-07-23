@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { profileAPI, solicitudesAPI, workerAuthAPI, workersAPI } from '../../services/api';
+import { profileAPI, solicitudesAPI, workerAuthAPI, workersAPI, uploadAPI } from '../../services/api';
 import './AdminPerfilScreen.css';
 
 export default function AdminPerfilScreen() {
-  const { user, refreshUserName } = useAuth();
+  const { user, refreshUserName, refreshUserFoto } = useAuth();
 
   const [perfil, setPerfil]       = useState({ nombre: '', telefono: '' });
+  const [fotoUrl, setFotoUrl]     = useState<string | null>(null);
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
+  const fotoInputRef              = useRef<HTMLInputElement>(null);
   const [loadingP, setLoadingP]   = useState(false);
   const [savingP, setSavingP]     = useState(false);
   const [codigoAcceso, setCodigoAcceso] = useState('');
@@ -49,6 +52,7 @@ export default function AdminPerfilScreen() {
       if (res.success) {
         setPerfil({ nombre: res.data.nombre || '', telefono: res.data.telefono || '' });
         if (res.data.codigo_trabajador) setCodigoAcceso(res.data.codigo_trabajador);
+        setFotoUrl(res.data.foto_perfil_url || null);
       }
     } catch { setPerfil({ nombre: user?.nombre || '', telefono: '' }); }
     finally { setLoadingP(false); }
@@ -93,6 +97,28 @@ export default function AdminPerfilScreen() {
       else mostrarToast(res.message || 'Error', 'err');
     } catch (e: any) { mostrarToast(e.message, 'err'); }
     finally { setSavingP(false); }
+  };
+
+  const handleSubirFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { mostrarToast('El archivo debe ser una imagen', 'err'); return; }
+    setSubiendoFoto(true);
+    try {
+      const up = await uploadAPI.uploadImage(file, 'joyeria/usuarios');
+      if (!up.success) throw new Error(up.message || 'Error al subir la imagen');
+      const url = up.data.url;
+      const res = await profileAPI.updateProfile({ foto_perfil_url: url });
+      if (!res.success) throw new Error(res.message || 'Error al guardar la foto');
+      setFotoUrl(url);
+      refreshUserFoto(url);
+      mostrarToast('Foto de perfil actualizada', 'ok');
+    } catch (err: any) {
+      mostrarToast(err.message || 'Error al actualizar la foto', 'err');
+    } finally {
+      setSubiendoFoto(false);
+    }
   };
 
   const handleCambiarPassword = async () => {
@@ -159,7 +185,11 @@ export default function AdminPerfilScreen() {
 
       {/* Hero */}
       <div className="apf-hero">
-        <div className="apf-avatar">{inicial}</div>
+        <div className="apf-avatar-wrap" onClick={() => !subiendoFoto && fotoInputRef.current?.click()} title="Cambiar foto de perfil">
+          {fotoUrl ? <img src={fotoUrl} alt="Foto de perfil" className="apf-avatar-img" /> : <div className="apf-avatar">{inicial}</div>}
+          <div className="apf-avatar-overlay">{subiendoFoto ? '...' : 'Cambiar'}</div>
+          <input ref={fotoInputRef} type="file" accept="image/*" hidden onChange={handleSubirFoto} />
+        </div>
         <div className="apf-hero-info">
           <h1 className="apf-hero-name">{user?.nombre}</h1>
           <p className="apf-hero-email">{user?.email}</p>

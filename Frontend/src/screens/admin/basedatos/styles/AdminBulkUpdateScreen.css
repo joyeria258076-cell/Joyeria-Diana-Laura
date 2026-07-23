@@ -9,6 +9,228 @@
   font-family: var(--font-body);
 }
 
+/* ══════════════════════════════════════════
+   BU2 — Barra compacta + revisor de cambios tipo diff
+══════════════════════════════════════════ */
+.bu2-container {
+  background: transparent;
+  padding: 0;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.bu2-header { margin-bottom: 1.3rem; }
+
+.bu2-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.bu2-header h1 svg { color: var(--color-rose-gold); width: 22px; height: 22px; flex-shrink: 0; }
+.bu2-header p { margin: 0.3rem 0 0; font-size: 0.85rem; color: var(--color-text-muted); }
+
+/* Barra compacta */
+.bu2-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.bu2-toolbar-field { display: flex; align-items: center; gap: 0.5rem; }
+
+.bu2-toolbar-field label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-rose-gold);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.bu2-toolbar-field select {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 0.84rem;
+}
+
+.bu2-btn-template, .bu2-btn-info {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  padding: 0.5rem 0.85rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--ease-silk, all 0.2s ease);
+}
+
+.bu2-btn-template:hover, .bu2-btn-info:hover { border-color: rgba(201, 168, 76, 0.4); color: var(--color-rose-gold); }
+.bu2-btn-template:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.bu2-dropzone-inline {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border: 1.5px dashed var(--color-border);
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: var(--ease-silk, all 0.2s ease);
+}
+
+.bu2-dropzone-inline svg { flex-shrink: 0; color: var(--color-rose-gold); }
+.bu2-dropzone-inline span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bu2-dropzone-inline:hover, .bu2-dropzone-inline.drag-active { border-color: var(--color-rose-gold); background: rgba(201, 168, 76, 0.06); }
+.bu2-dropzone-inline.has-file { border-style: solid; border-color: rgba(76, 175, 80, 0.4); color: var(--color-text); }
+
+.bu2-btn-preview { white-space: nowrap; }
+
+/* Instrucciones */
+.bu2-instrucciones {
+  background: rgba(33, 150, 243, 0.06);
+  border: 1px solid rgba(33, 150, 243, 0.25);
+  border-radius: 8px;
+  padding: 1rem 1.3rem;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+}
+
+.bu2-instrucciones ol { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.3rem; }
+
+/* Revisor de cambios tipo diff */
+.bu2-diff-section { margin-top: 1.2rem; }
+
+.bu2-diff-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.bu2-diff-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.bu2-diff-header h2 svg { color: var(--color-rose-gold); }
+
+.bu2-diff-count {
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  color: var(--color-rose-gold);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.7rem;
+  border-radius: 12px;
+}
+
+.bu2-diff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.bu2-diff-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-rose-gold);
+  border-radius: 6px;
+  padding: 0.9rem 1.1rem;
+}
+
+.bu2-diff-card-id {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-rose-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.6rem;
+}
+
+.bu2-diff-fields { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.bu2-diff-field {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.82rem;
+  flex-wrap: wrap;
+}
+
+.bu2-diff-field-name {
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-muted);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  min-width: 100px;
+}
+
+.bu2-diff-old {
+  color: #ff8a80;
+  text-decoration: line-through;
+  opacity: 0.75;
+}
+
+.bu2-diff-arrow { color: var(--color-text-muted); }
+
+.bu2-diff-new { color: #7ee0a0; font-weight: 600; }
+
+.bu2-diff-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 700px) {
+  .bu2-toolbar { flex-direction: column; align-items: stretch; }
+  .bu2-diff-field { flex-direction: column; align-items: flex-start; gap: 0.15rem; }
+}
+
 /* Header */
 .bulk-header {
   display: flex;

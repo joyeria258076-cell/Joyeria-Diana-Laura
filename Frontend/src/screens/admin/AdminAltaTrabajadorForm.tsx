@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { workersAPI } from '../../services/api';
+import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineUserAdd, AiOutlineCheckCircle, AiOutlineCopy } from 'react-icons/ai';
 import './AdminAltaTrabajadorForm.css';
 
 // ─── FUNCIONES DE VALIDACIÓN PARA PREVENIR INYECCIONES ───
@@ -38,28 +39,28 @@ const validateNoXSS = (value: string) => {
   return !xssPatterns.some(p => p.test(value));
 };
 
-// ─── ESQUEMA DE VALIDACIÓN ZOD (Ajustado a 50 caracteres) ───
+// ─── ESQUEMA DE VALIDACIÓN ZOD ───
 const schema = z.object({
   nombre: z.string()
     .min(1, "El nombre completo es requerido")
     .min(3, "El nombre debe tener al menos 3 caracteres")
-    .max(50, "El nombre no puede tener más de 50 caracteres") // ← Coincide con backend
+    .max(50, "El nombre no puede tener más de 50 caracteres")
     .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, "El nombre solo puede contener letras")
     .refine(val => !/^\s+$/.test(val), "El nombre no puede contener solo espacios")
     .refine(val => !val.startsWith(' ') && !val.endsWith(' '), "Sin espacios al inicio o final")
     .refine(validateNoSQLInjection, "Caracteres no permitidos detectados")
     .refine(validateNoXSS, "Caracteres no permitidos detectados"),
-  
+
   email: z.string()
     .min(1, "El correo electrónico es requerido")
     .email("Correo electrónico inválido")
     .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, "Formato de email inválido")
     .refine(validateNoSQLInjection, "Caracteres no permitidos detectados")
     .refine(validateNoXSS, "Caracteres no permitidos detectados"),
-  
+
   rol: z.string()
     .min(1, "Debes seleccionar un rol para el trabajador"),
-  
+
   password: z.string()
     .min(1, "La contraseña es requerida")
     .min(8, "La contraseña debe tener al menos 8 caracteres")
@@ -73,6 +74,11 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+const initials = (nombre: string) => {
+  const partes = nombre.trim().split(/\s+/);
+  return `${partes[0]?.[0] || ''}${partes[1]?.[0] || partes[0]?.[1] || ''}`.toUpperCase();
+};
+
 const CopyButton: React.FC<{ text: string }> = ({ text }) => {
   const [copiado, setCopiado] = React.useState(false);
   const copiar = () => {
@@ -81,8 +87,8 @@ const CopyButton: React.FC<{ text: string }> = ({ text }) => {
     setTimeout(() => setCopiado(false), 2000);
   };
   return (
-    <button className={`alta-codigo-box__copy${copiado ? ' alta-codigo-box__copy--ok' : ''}`} onClick={copiar}>
-      {copiado ? '✓ Copiado' : 'Copiar código'}
+    <button className={`altacod-copy${copiado ? ' altacod-copy--ok' : ''}`} onClick={copiar}>
+      <AiOutlineCopy size={14} /> {copiado ? 'Copiado' : 'Copiar código'}
     </button>
   );
 };
@@ -91,12 +97,11 @@ const AdminAltaTrabajadorForm: React.FC = () => {
   const navigate = useNavigate();
   const [codigoActivacion, setCodigoActivacion] = React.useState<{ codigo: string; nombre: string; email: string } | null>(null);
 
-  const { 
-    register, 
-    handleSubmit, 
-    watch, 
-    formState: { errors, isValid, isSubmitting }, 
-    setError 
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isValid, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     mode: "onChange"
@@ -105,14 +110,16 @@ const AdminAltaTrabajadorForm: React.FC = () => {
   const [rolesEnum, setRolesEnum] = useState<string[]>([]);
   const [showPass, setShowPass] = useState(false);
   const [globalError, setGlobalError] = useState('');
-  const [focusedField, setFocusedField] = useState<string | null>(null);
 
+  const currentNombre = watch("nombre", "");
+  const currentEmail = watch("email", "");
+  const currentRol = watch("rol", "");
   const currentPassword = watch("password", "");
 
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const data = await workersAPI.getRoles(); 
+        const data = await workersAPI.getRoles();
         const roles = Array.isArray(data) ? data : data?.roles || [];
         setRolesEnum(roles);
         if (roles.length === 0) {
@@ -126,7 +133,6 @@ const AdminAltaTrabajadorForm: React.FC = () => {
     fetchRoles();
   }, []);
 
-  // Handlers de sanitización
   const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const cleaned = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
     if (cleaned !== e.target.value) e.target.value = cleaned;
@@ -143,14 +149,14 @@ const AdminAltaTrabajadorForm: React.FC = () => {
       const res = await workersAPI.create({
         nombre: data.nombre,
         email: data.email,
-        rol: data.rol, 
+        rol: data.rol,
         password: data.password,
       });
       if (res.success) {
         setCodigoActivacion({
           codigo: res.data?.codigoActivacion || '',
           nombre: res.data?.nombre || data.nombre,
-          email:  res.data?.email  || data.email,
+          email: res.data?.email || data.email,
         });
       } else {
         setGlobalError(res.message || 'Error al registrar trabajador');
@@ -160,7 +166,6 @@ const AdminAltaTrabajadorForm: React.FC = () => {
     }
   };
 
-  // Fortaleza de contraseña
   const passwordStrength = () => {
     if (!currentPassword) return { n: 0, label: '', color: '' };
     let score = 0;
@@ -168,7 +173,7 @@ const AdminAltaTrabajadorForm: React.FC = () => {
     if (/[A-Z]/.test(currentPassword)) score++;
     if (/[0-9]/.test(currentPassword)) score++;
     if (/[^A-Za-z0-9]/.test(currentPassword)) score++;
-    
+
     if (score <= 1) return { n: 1, label: 'Débil', color: '#f87171' };
     if (score <= 2) return { n: 2, label: 'Regular', color: '#fbbf24' };
     return { n: 3, label: 'Fuerte', color: '#86efac' };
@@ -178,61 +183,36 @@ const AdminAltaTrabajadorForm: React.FC = () => {
   const nombreReg = register("nombre");
   const passwordReg = register("password");
 
-  // Íconos SVG para el ojo
-  const EyeIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-  const EyeOffIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
-  );
-
-  // Modal código de activación
+  // ─── Modal código de activación ───
   if (codigoActivacion) {
     return (
-      <div className="alta-wrap animate-in alta-wrap--center">
-        <div className="alta-codigo-modal">
-          <div className="alta-codigo-modal__check">✓</div>
+      <div className="ae2-wrap ae2-wrap--center animate-in">
+        <div className="altacod-modal">
+          <div className="altacod-check"><AiOutlineCheckCircle size={28} /></div>
 
-          <div className="alta-codigo-modal__head">
-            <h2 className="alta-codigo-modal__title">Cuenta registrada</h2>
-            <p className="alta-codigo-modal__sub">
-              <strong>{codigoActivacion.nombre}</strong> · {codigoActivacion.email}
-            </p>
+          <div className="altacod-head">
+            <h2>Cuenta registrada</h2>
+            <p><strong>{codigoActivacion.nombre}</strong> · {codigoActivacion.email}</p>
           </div>
 
-          <p className="alta-codigo-modal__desc">
+          <p className="altacod-desc">
             Comparte el siguiente código con el usuario. Lo necesitará la primera vez que inicie sesión para activar su cuenta.
-            <span className="alta-codigo-modal__once"> Solo se muestra una vez.</span>
+            <span className="altacod-once"> Solo se muestra una vez.</span>
           </p>
 
-          <div className="alta-codigo-box">
-            <span className="alta-codigo-box__label">Código de activación</span>
-            <span className="alta-codigo-box__value">{codigoActivacion.codigo}</span>
+          <div className="altacod-box">
+            <span className="altacod-label">Código de activación</span>
+            <span className="altacod-value">{codigoActivacion.codigo}</span>
             <CopyButton text={codigoActivacion.codigo} />
           </div>
 
-          <div className="alta-codigo-modal__steps">
-            <div className="alta-codigo-step">
-              <span className="alta-codigo-step__n">1</span>
-              <span>El usuario inicia sesión con email y contraseña</span>
-            </div>
-            <div className="alta-codigo-step">
-              <span className="alta-codigo-step__n">2</span>
-              <span>Ingresa este código de activación</span>
-            </div>
-            <div className="alta-codigo-step">
-              <span className="alta-codigo-step__n">3</span>
-              <span>Recibe su código de acceso permanente y puede entrar al sistema</span>
-            </div>
+          <div className="altacod-steps">
+            <div className="altacod-step"><span>1</span> El usuario inicia sesión con email y contraseña</div>
+            <div className="altacod-step"><span>2</span> Ingresa este código de activación</div>
+            <div className="altacod-step"><span>3</span> Recibe su código de acceso permanente y puede entrar al sistema</div>
           </div>
 
-          <button className="alta-btn-submit" style={{ width: '100%' }} onClick={() => navigate('/admin-trabajadores')}>
+          <button className="ae2-btn-submit" style={{ width: '100%' }} onClick={() => navigate('/admin-trabajadores')}>
             Ir a la lista de personal
           </button>
         </div>
@@ -241,164 +221,122 @@ const AdminAltaTrabajadorForm: React.FC = () => {
   }
 
   return (
-    <div className="alta-wrap animate-in">
-      <div className="alta-breadcrumb">
-        <button className="alta-back-btn" onClick={() => navigate('/admin-trabajadores')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14">
-            <path d="M19 12H5M12 5l-7 7 7 7"/>
-          </svg>
-          Panel de Personal
-        </button>
-        <span className="alta-breadcrumb-sep">›</span>
-        <span className="alta-breadcrumb-current">Nuevo Trabajador</span>
-      </div>
-
-      <div className="alta-card">
-        <div className="alta-card-header">
-          <div className="alta-card-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="26" height="26">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M16 11l2 2 4-4" strokeWidth="2"/>
-            </svg>
+    <div className="ae2-wrap animate-in">
+      <div className="ae2-layout">
+        {/* ── Panel de identidad: vista previa en vivo ── */}
+        <aside className="ae2-identidad">
+          <div className="ae2-identidad-avatar">{initials(currentNombre) || <AiOutlineUserAdd size={26} />}</div>
+          <p className="ae2-identidad-nombre">{currentNombre || 'Nuevo trabajador'}</p>
+          <p className="ae2-identidad-email">{currentEmail || 'sin-correo@ejemplo.com'}</p>
+          {currentRol && (
+            <span className="ae2-identidad-rol">{currentRol.charAt(0).toUpperCase() + currentRol.slice(1)}</span>
+          )}
+          <div className="ae2-identidad-nota">
+            La cuenta se crea inactiva. Al registrar se genera un código de activación de un solo uso que deberás compartir con el usuario.
           </div>
-          <div className="alta-card-titles">
-            <h2 className="alta-card-title">Dar de alta usuario</h2>
-            <p className="alta-card-sub">La cuenta se creará inactiva. Al registrar se generará un código de activación que deberás compartir con el usuario.</p>
-          </div>
-        </div>
+        </aside>
 
-        <div className="alta-info-pills">
-          <span className="alta-info-pill">🔑 Código de activación único</span>
-          <span className="alta-info-pill">🛡️ Código de acceso permanente</span>
-          <span className="alta-info-pill">✉️ Credenciales por separado</span>
-        </div>
+        {/* ── Formulario en filas ── */}
+        <div className="ae2-panel">
+          <h1 className="ae2-titulo"><AiOutlineUserAdd size={22} /> Nuevo trabajador</h1>
+          <p className="ae2-subtitulo">Da de alta una cuenta para el equipo</p>
 
-        {globalError && (
-          <div className="alta-global-error">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <span>{globalError}</span>
-          </div>
-        )}
+          {globalError && <div className="ae2-error">{globalError}</div>}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="alta-form" noValidate>
-          <div className="alta-form-grid">
-            
-            {/* NOMBRE COMPLETO */}
-            <div className={`alta-field ${errors.nombre ? 'has-error' : ''}`}>
-              <label className="alta-label">Nombre Completo <span className="req">*</span></label>
-              <input 
-                type="text" 
-                className="alta-input" 
-                placeholder="Ej: María García" 
-                maxLength={50}
-                {...nombreReg}
-                onFocus={() => setFocusedField('nombre')}
-                onBlur={(e) => { nombreReg.onBlur(e); setFocusedField(null); }}
-                onChange={(e) => {
-                  handleNombreChange(e);
-                  nombreReg.onChange(e);
-                }}
-              />
-              {errors.nombre && <span className="alta-field-err">{errors.nombre.message}</span>}
-              {focusedField === 'nombre' && !errors.nombre && (
-                <span style={{ fontSize: '0.7rem', color: 'var(--gold)', marginLeft: '0.2rem' }}>Solo letras, sin números ni símbolos.</span>
-              )}
-            </div>
-
-            {/* EMAIL */}
-            <div className={`alta-field ${errors.email ? 'has-error' : ''}`}>
-              <label className="alta-label">Correo Electrónico <span className="req">*</span></label>
-              <input 
-                type="email" 
-                className="alta-input" 
-                placeholder="correo@joyeriadiana.com" 
-                maxLength={60}
-                {...register("email")}
-              />
-              {errors.email && <span className="alta-field-err">{errors.email.message}</span>}
-            </div>
-
-            {/* ROL / PUESTO */}
-            <div className={`alta-field ${errors.rol ? 'has-error' : ''}`}>
-              <label className="alta-label">Rol / Puesto <span className="req">*</span></label>
-              <select className="alta-input alta-select" {...register("rol")}>
-                <option value="">— Selecciona un rol —</option>
-                {rolesEnum.map(rolStr => (
-                  <option key={rolStr} value={rolStr}>
-                    {rolStr.charAt(0).toUpperCase() + rolStr.slice(1)}
-                  </option>
-                ))}
-              </select>
-              {errors.rol && <span className="alta-field-err">{errors.rol.message}</span>}
-              {rolesEnum.length === 0 && !globalError && (
-                <span className="alta-field-err">No hay roles disponibles</span>
-              )}
-            </div>
-
-            {/* CONTRASEÑA */}
-            <div className={`alta-field ${errors.password ? 'has-error' : ''}`}>
-              <label className="alta-label">Contraseña Temporal <span className="req">*</span></label>
-              <div className="alta-pass-wrap">
-                <input 
-                  type={showPass ? 'text' : 'password'} 
-                  className="alta-input" 
-                  placeholder="Mínimo 8 caracteres" 
-                  maxLength={16}
-                  {...passwordReg}
-                  onFocus={() => setFocusedField('password')}
-                  onBlur={(e) => { passwordReg.onBlur(e); setFocusedField(null); }}
-                  onChange={(e) => {
-                    handlePasswordChange(e);
-                    passwordReg.onChange(e);
-                  }}
+          <form onSubmit={handleSubmit(onSubmit)} className="ae2-form" noValidate>
+            <div className="ae2-fila">
+              <label>Nombre completo <span className="ae2-req">*</span></label>
+              <div>
+                <input
+                  type="text"
+                  placeholder="Ej: María García"
+                  maxLength={50}
+                  {...nombreReg}
+                  onChange={(e) => { handleNombreChange(e); nombreReg.onChange(e); }}
                 />
-                <button 
-                  type="button" 
-                  className="alta-pass-eye" 
-                  onClick={() => setShowPass(!showPass)}
-                  tabIndex={-1}
-                  aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
-                >
-                  {showPass ? <EyeOffIcon /> : <EyeIcon />}
-                </button>
+                {errors.nombre && <small className="ae2-hint-err">{errors.nombre.message}</small>}
               </div>
-
-              {(focusedField === 'password' || errors.password) && (
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginLeft: '0.2rem', marginTop: '0.3rem', lineHeight: '1.4' }}>
-                  <strong>Requiere:</strong> 8-16 chars, 1 Mayúscula, 1 Minúscula y 1 Número.
-                </div>
-              )}
-
-              {currentPassword && !errors.password && (
-                <div className="alta-strength">
-                  <div className="alta-strength-bars">
-                    {[1, 2, 3].map(n => (
-                      <div key={n} className="alta-strength-bar" style={{ background: n <= fuerza.n ? fuerza.color : 'rgba(255,255,255,0.1)', transition: 'background 0.3s ease' }} />
-                    ))}
-                  </div>
-                  <span className="alta-strength-label" style={{ color: fuerza.color }}>{fuerza.label}</span>
-                </div>
-              )}
             </div>
-          </div>
 
-          <div className="alta-actions">
-            <button type="button" className="alta-btn-cancel" onClick={() => navigate('/admin-trabajadores')} disabled={isSubmitting}>
-              Cancelar
-            </button>
-            <button type="submit" className="alta-btn-submit" disabled={!isValid || isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <span className="alta-spin" />
-                  Creando cuenta...
-                </>
-              ) : (
-                'Confirmar Alta Segura'
-              )}
-            </button>
-          </div>
-        </form>
+            <div className="ae2-fila">
+              <label>Correo electrónico <span className="ae2-req">*</span></label>
+              <div>
+                <input
+                  type="email"
+                  placeholder="correo@joyeriadiana.com"
+                  maxLength={60}
+                  {...register("email")}
+                />
+                {errors.email && <small className="ae2-hint-err">{errors.email.message}</small>}
+              </div>
+            </div>
+
+            <div className="ae2-fila">
+              <label>Rol / Puesto <span className="ae2-req">*</span></label>
+              <div>
+                <select {...register("rol")}>
+                  <option value="">— Selecciona un rol —</option>
+                  {rolesEnum.map(rolStr => (
+                    <option key={rolStr} value={rolStr}>
+                      {rolStr.charAt(0).toUpperCase() + rolStr.slice(1)}
+                    </option>
+                  ))}
+                </select>
+                {errors.rol && <small className="ae2-hint-err">{errors.rol.message}</small>}
+                {rolesEnum.length === 0 && !globalError && (
+                  <small className="ae2-hint-err">No hay roles disponibles</small>
+                )}
+              </div>
+            </div>
+
+            <div className="ae2-fila">
+              <label>Contraseña temporal <span className="ae2-req">*</span></label>
+              <div>
+                <div className="altacod-pass-wrap">
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    placeholder="Mínimo 8 caracteres"
+                    maxLength={16}
+                    {...passwordReg}
+                    onChange={(e) => { handlePasswordChange(e); passwordReg.onChange(e); }}
+                  />
+                  <button
+                    type="button"
+                    className="altacod-pass-eye"
+                    onClick={() => setShowPass(!showPass)}
+                    tabIndex={-1}
+                    aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  >
+                    {showPass ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
+                  </button>
+                </div>
+                {errors.password && <small className="ae2-hint-err">{errors.password.message}</small>}
+                {!errors.password && (
+                  <small className="ae2-hint">8-16 caracteres, 1 mayúscula, 1 minúscula y 1 número.</small>
+                )}
+                {currentPassword && !errors.password && (
+                  <div className="altacod-strength">
+                    <div className="altacod-strength-bars">
+                      {[1, 2, 3].map(n => (
+                        <div key={n} className="altacod-strength-bar" style={{ background: n <= fuerza.n ? fuerza.color : 'rgba(255,255,255,0.1)' }} />
+                      ))}
+                    </div>
+                    <span style={{ color: fuerza.color }}>{fuerza.label}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="ae2-acciones">
+              <button type="button" className="ae2-btn-cancel" onClick={() => navigate('/admin-trabajadores')} disabled={isSubmitting}>
+                Cancelar
+              </button>
+              <button type="submit" className="ae2-btn-submit" disabled={!isValid || isSubmitting}>
+                {isSubmitting ? 'Creando cuenta...' : 'Confirmar alta'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

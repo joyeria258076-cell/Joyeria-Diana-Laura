@@ -2,6 +2,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { metricsAPI } from '../../../services/metricsAPI';
 import './styles/AdminMonitoreoScreen.css';
+import {
+  AiOutlineDesktop, AiOutlineReload, AiOutlineWarning, AiOutlineBarChart,
+  AiOutlineDashboard, AiOutlineExclamationCircle, AiOutlineTeam, AiOutlineDatabase,
+  AiOutlineClockCircle, AiOutlineThunderbolt,
+} from 'react-icons/ai';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface Resumen {
@@ -119,6 +124,7 @@ const AdminMonitoreoScreen: React.FC = () => {
   const [resultados, setResultados] = useState<Record<string,{tipo:'ok'|'error';msg:string}>>({});
   
   const [mostrarTodasTablas, setMostrarTodasTablas] = useState(false);
+  const [mostrarMasMant, setMostrarMasMant] = useState(false);
 
   const cargarTodo = useCallback(async () => {
     setCargando(true); setError(null);
@@ -184,54 +190,68 @@ const AdminMonitoreoScreen: React.FC = () => {
 
   const maxRequests = Math.max(...rendimiento.map(p=>Number(p.total_requests)), 5);
 
-  const TABS: {id:Tab;icon:string;label:string}[] = [
-    {id:'rendimiento', icon:'📈', label:'Rendimiento'},
-    {id:'endpoints',   icon:'🐢', label:'Endpoints'},
-    {id:'errores',     icon:'🚨', label:'Errores'},
-    {id:'actividad',   icon:'👥', label:'Actividad'},
-    {id:'database',    icon:'🗄️', label:'Base de datos'},
+  const [tablaRendCompleta, setTablaRendCompleta] = useState(false);
+  const statsRend = (() => {
+    if (rendimiento.length === 0) return null;
+    const totalReq = rendimiento.reduce((a,p)=>a+Number(p.total_requests),0);
+    const totalErr = rendimiento.reduce((a,p)=>a+Number(p.errores),0);
+    const avgMs = rendimiento.reduce((a,p)=>a+Number(p.avg_ms),0) / rendimiento.length;
+    const pico = [...rendimiento].sort((a,b)=>Number(b.total_requests)-Number(a.total_requests))[0];
+    const top5 = [...rendimiento].sort((a,b)=>Number(b.total_requests)-Number(a.total_requests)).slice(0,5);
+    return { totalReq, totalErr, avgMs, pico, top5 };
+  })();
+
+  const TABS: {id:Tab;icon:React.ComponentType<{size?:number}>;label:string}[] = [
+    {id:'rendimiento', icon:AiOutlineBarChart,          label:'Rendimiento'},
+    {id:'endpoints',   icon:AiOutlineThunderbolt,       label:'Endpoints'},
+    {id:'errores',     icon:AiOutlineExclamationCircle, label:'Errores'},
+    {id:'actividad',   icon:AiOutlineTeam,              label:'Actividad'},
+    {id:'database',    icon:AiOutlineDatabase,          label:'Base de datos'},
   ];
 
   return (
     <div className="monitoreo-screen">
       <div className="monitoreo-header">
         <div>
-          <div className="monitoreo-titulo"><h1>🖥️ Monitor del sistema</h1></div>
+          <div className="monitoreo-titulo"><h1><AiOutlineDesktop size={20} /> Monitor del sistema</h1></div>
           <p>Última actualización: {ultimaAct.toLocaleTimeString('es-MX', { timeZone: 'America/Mexico_City' })}</p>
         </div>
-        <button className="btn-refresh" onClick={cargarTodo} disabled={cargando}>
-          {cargando ? <><span className="spinner"/> Cargando…</> : '↺ Actualizar'}
+        <button className="mon-btn-refresh" onClick={cargarTodo} disabled={cargando}>
+          <span className="mon-btn-refresh-icon">{cargando ? <span className="spinner"/> : <AiOutlineReload size={14} />}</span>
+          {cargando ? 'Cargando…' : 'Actualizar'}
         </button>
       </div>
 
-      {error && <div className="estado-error">⚠️ {error}</div>}
+      {error && <div className="estado-error"><AiOutlineWarning size={14} /> {error}</div>}
 
       {cargando && !resumen ? (
         <div className="estado-carga"><span className="spinner"/> Cargando métricas…</div>
       ) : resumen && (
-        <div className="tarjetas-grid">
+        <div className="mon-ticker">
           {[
-            {clase:'t-purple',icono:'purple',emoji:'📊',valor:Number(resumen.total_requests).toLocaleString(),     label:'Requests (24h)'},
-            {clase:'t-red',   icono:'red',   emoji:'🔴',valor:Number(resumen.total_errores).toLocaleString(),      label:'Errores HTTP'},
-            {clase:'t-blue',  icono:'blue',  emoji:'⚡',valor:fmtMs(Number(resumen.avg_respuesta_ms)),             label:'Tiempo promedio'},
-            {clase:'t-amber', icono:'amber', emoji:'🐢',valor:Number(resumen.requests_lentos).toLocaleString(),    label:'Requests lentos'},
-            {clase:'t-teal',  icono:'teal',  emoji:'🧠',valor:`${Number(resumen.avg_memoria_mb).toFixed(1)} MB`,   label:'Memoria promedio'},
-            {clase:'t-green', icono:'green', emoji:'👥',valor:Number(resumen.sesiones_activas).toLocaleString(),   label:'Sesiones activas'},
-            {clase:'t-rose',  icono:'rose',  emoji:'🚨',valor:Number(resumen.errores_sin_resolver).toLocaleString(),label:'Sin resolver'},
+            {icono:AiOutlineBarChart,          valor:Number(resumen.total_requests).toLocaleString(),      label:'Requests (24h)', alerta:false},
+            {icono:AiOutlineExclamationCircle,  valor:Number(resumen.total_errores).toLocaleString(),       label:'Errores HTTP', alerta:Number(resumen.total_errores)>0},
+            {icono:AiOutlineThunderbolt,        valor:fmtMs(Number(resumen.avg_respuesta_ms)),              label:'Tiempo promedio', alerta:false},
+            {icono:AiOutlineClockCircle,        valor:Number(resumen.requests_lentos).toLocaleString(),     label:'Requests lentos', alerta:false},
+            {icono:AiOutlineDashboard,          valor:`${Number(resumen.avg_memoria_mb).toFixed(1)} MB`,    label:'Memoria promedio', alerta:false},
+            {icono:AiOutlineTeam,               valor:Number(resumen.sesiones_activas).toLocaleString(),    label:'Sesiones activas', alerta:false},
+            {icono:AiOutlineWarning,            valor:Number(resumen.errores_sin_resolver).toLocaleString(),label:'Sin resolver', alerta:Number(resumen.errores_sin_resolver)>0},
           ].map((t,i)=>(
-            <div key={i} className={`tarjeta ${t.clase}`}>
-              <div className="tarjeta-top"><div className={`tarjeta-icono ${t.icono}`}>{t.emoji}</div></div>
-              <div className="tarjeta-valor">{t.valor}</div>
-              <div className="tarjeta-label">{t.label}</div>
+            <div key={i} className={`mon-ticker-item ${t.alerta ? 'alerta' : ''}`}>
+              <t.icono size={16} />
+              <div className="mon-ticker-text">
+                <span className="mon-ticker-valor">{t.valor}</span>
+                <span className="mon-ticker-label">{t.label}</span>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      <div className="tabs-nav">
+      <div className="mon-segmented">
         {TABS.map(t=>(
-          <button key={t.id} className={`tab-btn${tab===t.id?' activo':''}`} onClick={()=>setTab(t.id)}>
-            {t.icon} {t.label}
+          <button key={t.id} className={`mon-segment${tab===t.id?' activo':''}`} onClick={()=>setTab(t.id)}>
+            <t.icon size={15} /> {t.label}
           </button>
         ))}
       </div>
@@ -248,7 +268,8 @@ const AdminMonitoreoScreen: React.FC = () => {
               <option value={168}>Última semana</option>
             </select>
           </div>
-          <div className="grafica-wrapper">
+          <div className="mon-rend-layout">
+          <div className="grafica-wrapper mon-rend-chart">
             <p className="seccion-titulo">Requests en el tiempo</p>
             <div className="grafica-leyenda">
               <span className="leyenda-item"><span className="leyenda-dot" style={{background:'#ecb2c3'}}/> Normal</span>
@@ -314,26 +335,72 @@ const AdminMonitoreoScreen: React.FC = () => {
             ) : <div className="estado-carga">Sin datos para el período seleccionado</div>}
           </div>
 
-          <p className="seccion-titulo">Detalle por hora</p>
-          <div className="tabla-wrapper">
-            <table>
-              <thead><tr><th>Hora</th><th>Requests</th><th>Prom.</th><th>Máx.</th><th>Errores</th><th>Memoria</th></tr></thead>
-              <tbody>
-                {rendimiento.length===0
-                  ? <tr><td colSpan={6} style={{textAlign:'center',color:'#334155'}}>Sin datos</td></tr>
-                  : rendimiento.slice().reverse().map((p,i)=>(
-                    <tr key={i}>
-                      <td style={{color:'#64748b',fontSize:12}}>{fmtFechaUTC(p.hora)}</td>
-                      <td>{p.total_requests}</td>
-                      <td><MsBadge ms={Number(p.avg_ms)}/></td>
-                      <td><MsBadge ms={Number(p.max_ms)}/></td>
-                      <td>{Number(p.errores)>0?<span className="badge error">{p.errores}</span>:<span className="badge ok">0</span>}</td>
-                      <td style={{color:'#64748b'}}>{Number(p.avg_memoria_mb).toFixed(1)} MB</td>
-                    </tr>
+          {/* Panel lateral de estadísticas rápidas */}
+          <div className="mon-stats-panel">
+            <span className="mon-stats-panel-label">Resumen del período</span>
+            {statsRend && (
+              <>
+                <div className="mon-stat-row">
+                  <AiOutlineBarChart size={15} />
+                  <div><strong>{statsRend.totalReq.toLocaleString()}</strong><span>Total de requests</span></div>
+                </div>
+                <div className="mon-stat-row">
+                  <AiOutlineExclamationCircle size={15} />
+                  <div><strong style={{color: statsRend.totalErr>0 ? '#f87171':undefined}}>{statsRend.totalErr.toLocaleString()}</strong><span>Errores acumulados</span></div>
+                </div>
+                <div className="mon-stat-row">
+                  <AiOutlineThunderbolt size={15} />
+                  <div><strong>{fmtMs(statsRend.avgMs)}</strong><span>Latencia promedio</span></div>
+                </div>
+                {statsRend.pico && (
+                  <div className="mon-stat-row">
+                    <AiOutlineClockCircle size={15} />
+                    <div><strong>{fmtHoraUTC(statsRend.pico.hora)}</strong><span>Hora pico ({statsRend.pico.total_requests} reqs)</span></div>
+                  </div>
+                )}
+
+                <span className="mon-stats-panel-label" style={{marginTop:'0.9rem'}}>Top 5 horas con más tráfico</span>
+                <div className="mon-bar-list">
+                  {statsRend.top5.map((p,i)=>(
+                    <div key={i} className="mon-bar-row">
+                      <span className="mon-bar-label">{fmtHoraUTC(p.hora)}</span>
+                      <div className="mon-bar-track">
+                        <div className="mon-bar-fill" style={{width:`${(Number(p.total_requests)/statsRend.top5[0].total_requests)*100}%`}} />
+                      </div>
+                      <span className="mon-bar-value">{p.total_requests}</span>
+                    </div>
                   ))}
-              </tbody>
-            </table>
+                </div>
+              </>
+            )}
           </div>
+          </div>
+
+          <button className="mon-toggle-tabla" onClick={()=>setTablaRendCompleta(v=>!v)}>
+            {tablaRendCompleta ? 'Ocultar tabla completa ▲' : 'Ver tabla completa por hora ▼'}
+          </button>
+
+          {tablaRendCompleta && (
+            <div className="tabla-wrapper">
+              <table>
+                <thead><tr><th>Hora</th><th>Requests</th><th>Prom.</th><th>Máx.</th><th>Errores</th><th>Memoria</th></tr></thead>
+                <tbody>
+                  {rendimiento.length===0
+                    ? <tr><td colSpan={6} style={{textAlign:'center',color:'#334155'}}>Sin datos</td></tr>
+                    : rendimiento.slice().reverse().map((p,i)=>(
+                      <tr key={i}>
+                        <td style={{color:'#64748b',fontSize:12}}>{fmtFechaUTC(p.hora)}</td>
+                        <td>{p.total_requests}</td>
+                        <td><MsBadge ms={Number(p.avg_ms)}/></td>
+                        <td><MsBadge ms={Number(p.max_ms)}/></td>
+                        <td>{Number(p.errores)>0?<span className="badge error">{p.errores}</span>:<span className="badge ok">0</span>}</td>
+                        <td style={{color:'#64748b'}}>{Number(p.avg_memoria_mb).toFixed(1)} MB</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       )}
 
@@ -847,78 +914,56 @@ const AdminMonitoreoScreen: React.FC = () => {
 
               <div className="db-mantenimiento-card">
                 <div className="db-mant-header">
-                  <span className="db-mant-titulo">🧹 VACUUM — Limpieza de Filas Muertas</span>
-                  <button className="btn-vacuum" disabled={!!ejecutandoVacuum} onClick={()=>handleVacuum()}>
-                    {ejecutandoVacuum==='all'?<><span className="spinner"/> Ejecutando…</>:'Ejecutar en todas'}
-                  </button>
+                  <span className="db-mant-titulo"><AiOutlineThunderbolt size={14}/> Mantenimiento de tablas — VACUUM &amp; ANALYZE</span>
+                  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                    <button className="btn-vacuum" disabled={!!ejecutandoVacuum} onClick={()=>handleVacuum()}>
+                      {ejecutandoVacuum==='all'?<><span className="spinner"/> Ejecutando…</>:'VACUUM en todas'}
+                    </button>
+                    <button className="btn-analyze" disabled={!!ejecutandoAnalyze} onClick={()=>handleAnalyze()}>
+                      {ejecutandoAnalyze==='all'?<><span className="spinner"/> Ejecutando…</>:'ANALYZE en todas'}
+                    </button>
+                  </div>
                 </div>
                 {resultados['v_all'] && (
                   <div className={`db-accion-resultado ${resultados['v_all'].tipo}`}>
-                    {resultados['v_all'].tipo==='ok'?'✅':'⚠️'} {resultados['v_all'].msg}
+                    {resultados['v_all'].tipo==='ok'?<AiOutlineCheckCircle size={13}/>:<AiOutlineWarning size={13}/>} {resultados['v_all'].msg}
                   </div>
                 )}
-                <div className="tabla-wrapper" style={{marginTop:12}}>
-                  <table>
-                    <thead><tr><th>Tabla</th><th>Último vacuum</th><th>Filas muertas</th><th>Estado</th><th>Acción</th></tr></thead>
-                    <tbody>
-                      {dbStats.tablas.map((t,i)=>(
-                        <tr key={i}>
-                          <td style={{fontFamily:'monospace',fontSize:12,color:'#94a3b8'}}>{t.tabla}</td>
-                          <td style={{fontSize:12,color:'#64748b'}}>{t.ultimo_vacuum??'—'}</td>
-                          <td>{Number(t.filas_muertas)>0?<span className="badge warn">{Number(t.filas_muertas).toLocaleString()}</span>:<span style={{color:'#334155'}}>0</span>}</td>
-                          <td>
-                            {resultados[`v_${t.tabla}`]
-                              ? <span className={`badge ${resultados[`v_${t.tabla}`].tipo==='ok'?'ok':'error'}`}>{resultados[`v_${t.tabla}`].tipo==='ok'?'✅ OK':'⚠️ Ver'}</span>
-                              : <span className="badge ok">✅ OK</span>}
-                          </td>
-                          <td>
-                            <button className="btn-resolver" disabled={!!ejecutandoVacuum} onClick={()=>handleVacuum(t.tabla)} title="VACUUM ANALYZE esta tabla">
-                              {ejecutandoVacuum===t.tabla?<span className="spinner"/>:'🧹'}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="db-mantenimiento-card">
-                <div className="db-mant-header">
-                  <span className="db-mant-titulo">📊 ANALYZE — Estadísticas del Planificador</span>
-                  <button className="btn-analyze" disabled={!!ejecutandoAnalyze} onClick={()=>handleAnalyze()}>
-                    {ejecutandoAnalyze==='all'?<><span className="spinner"/> Ejecutando…</>:'Ejecutar en todas'}
-                  </button>
-                </div>
                 {resultados['a_all'] && (
                   <div className={`db-accion-resultado ${resultados['a_all'].tipo}`}>
-                    {resultados['a_all'].tipo==='ok'?'✅':'⚠️'} {resultados['a_all'].msg}
+                    {resultados['a_all'].tipo==='ok'?<AiOutlineCheckCircle size={13}/>:<AiOutlineWarning size={13}/>} {resultados['a_all'].msg}
                   </div>
                 )}
                 <div className="tabla-wrapper" style={{marginTop:12}}>
                   <table>
-                    <thead><tr><th>Tabla</th><th>Último analyze</th><th>Esc. secuencial</th><th>Estado</th><th>Acción</th></tr></thead>
+                    <thead><tr><th>Tabla</th><th>Último mantenimiento</th><th>Filas muertas</th><th>Esc. secuencial</th><th>Acciones</th></tr></thead>
                     <tbody>
-                      {dbStats.tablas.map((t,i)=>(
+                      {(mostrarMasMant ? dbStats.tablas : dbStats.tablas.slice(0,8)).map((t,i)=>(
                         <tr key={i}>
-                          <td style={{fontFamily:'monospace',fontSize:12,color:'#94a3b8'}}>{t.tabla}</td>
-                          <td style={{fontSize:12,color:'#64748b'}}>{t.ultimo_vacuum??'—'}</td>
-                          <td style={{color:Number(t.escaneos_secuenciales)>1000?'#f87171':'#64748b'}}>{Number(t.escaneos_secuenciales).toLocaleString()}</td>
+                          <td style={{fontFamily:'monospace',fontSize:12,color:'var(--color-text-muted)'}}>{t.tabla}</td>
+                          <td style={{fontSize:12,color:'var(--color-text-muted)'}}>{t.ultimo_vacuum??'—'}</td>
+                          <td>{Number(t.filas_muertas)>0?<span className="badge warn">{Number(t.filas_muertas).toLocaleString()}</span>:<span style={{color:'var(--color-text-muted)'}}>0</span>}</td>
+                          <td style={{color:Number(t.escaneos_secuenciales)>1000?'#f87171':'var(--color-text-muted)'}}>{Number(t.escaneos_secuenciales).toLocaleString()}</td>
                           <td>
-                            {resultados[`a_${t.tabla}`]
-                              ? <span className={`badge ${resultados[`a_${t.tabla}`].tipo==='ok'?'ok':'error'}`}>{resultados[`a_${t.tabla}`].tipo==='ok'?'✅ OK':'❌ Error'}</span>
-                              : <span className="badge ok">✅ OK</span>}
-                          </td>
-                          <td>
-                            <button className="btn-resolver" disabled={!!ejecutandoAnalyze} onClick={()=>handleAnalyze(t.tabla)} title="ANALYZE esta tabla">
-                              {ejecutandoAnalyze===t.tabla?<span className="spinner"/>:'📊'}
-                            </button>
+                            <div style={{display:'flex',gap:6}}>
+                              <button className="btn-resolver" disabled={!!ejecutandoVacuum} onClick={()=>handleVacuum(t.tabla)} title="VACUUM esta tabla">
+                                {ejecutandoVacuum===t.tabla?<span className="spinner"/>:<AiOutlineThunderbolt size={13}/>}
+                              </button>
+                              <button className="btn-resolver" disabled={!!ejecutandoAnalyze} onClick={()=>handleAnalyze(t.tabla)} title="ANALYZE esta tabla">
+                                {ejecutandoAnalyze===t.tabla?<span className="spinner"/>:<AiOutlineBarChart size={13}/>}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
+                {dbStats.tablas.length > 8 && (
+                  <button className="mon-toggle-tabla" style={{marginTop:12,marginBottom:0}} onClick={()=>setMostrarMasMant(v=>!v)}>
+                    {mostrarMasMant ? 'Mostrar menos ▲' : `Mostrar más (${dbStats.tablas.length - 8} tablas más) ▼`}
+                  </button>
+                )}
               </div>
             </>
           )}
