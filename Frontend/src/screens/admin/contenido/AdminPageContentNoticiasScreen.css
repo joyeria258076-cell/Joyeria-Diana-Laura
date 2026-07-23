@@ -2,7 +2,7 @@
 .an-container {
   padding: 2rem;
   max-width: 1800px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
   position: relative;
 }
 
@@ -13,7 +13,7 @@
   right: 1.5rem;
   z-index: 9999;
   padding: 0.85rem 1.5rem;
-  border-radius: 6px;
+  border-radius: 2px;
   font-size: 0.88rem;
   font-weight: 600;
   animation: an-fade-in 0.2s ease;
@@ -44,7 +44,7 @@
 }
 .an-btn-nueva {
   padding: 0.7rem 1.5rem;
-  background: #ECB2C3;
+  background: var(--color-rose-gold);
   color: #000;
   border: none;
   border-radius: 4px;
@@ -65,7 +65,7 @@
 .an-stat {
   background: #111;
   border: 1px solid rgba(236,178,195,0.12);
-  border-radius: 6px;
+  border-radius: 2px;
   padding: 0.9rem 1.5rem;
   display: flex;
   flex-direction: column;
@@ -74,7 +74,7 @@
 }
 .an-stat strong {
   font-size: 1.6rem;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   font-weight: 700;
   line-height: 1;
 }
@@ -106,7 +106,7 @@
 .an-card {
   background: #111;
   border: 1px solid rgba(236,178,195,0.12);
-  border-radius: 8px;
+  border-radius: 2px;
   display: flex;
   align-items: stretch;
   overflow: hidden;
@@ -149,7 +149,7 @@
   font-size: 0.65rem;
   font-weight: 700;
   padding: 2px 8px;
-  border-radius: 20px;
+  border-radius: 2px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -190,7 +190,7 @@
   transition: all 0.15s;
   white-space: nowrap;
 }
-.an-btn-edit   { background: rgba(201,168,76,0.12); color: #c9a84c; border-color: rgba(201,168,76,0.25); }
+.an-btn-edit   { background: rgba(201,168,76,0.12); color: var(--color-rose-gold); border-color: rgba(201,168,76,0.25); }
 .an-btn-edit:hover { background: rgba(201,168,76,0.22); }
 .an-btn-hide   { background: rgba(217,217,217,0.06); color: #aaa; border-color: rgba(255,255,255,0.1); }
 .an-btn-hide:hover { background: rgba(217,217,217,0.12); }
@@ -213,7 +213,7 @@
 .an-modal {
   background: #111;
   border: 1px solid rgba(236,178,195,0.2);
-  border-radius: 10px;
+  border-radius: 4px;
   width: 90%;
   max-width: 580px;
   max-height: 90vh;
@@ -262,7 +262,7 @@
 .an-field textarea {
   background: #0d0d0d;
   border: 1px solid rgba(236,178,195,0.15);
-  border-radius: 6px;
+  border-radius: 2px;
   color: #fff;
   padding: 0.7rem 1rem;
   font-size: 0.9rem;
@@ -278,7 +278,7 @@
 /* Dropzone */
 .an-dropzone {
   border: 2px dashed rgba(236,178,195,0.25);
-  border-radius: 8px;
+  border-radius: 2px;
   min-height: 140px;
   display: flex;
   flex-direction: column;
@@ -292,7 +292,7 @@
   position: relative;
 }
 .an-dropzone:hover { border-color: rgba(236,178,195,0.5); background: rgba(236,178,195,0.04); }
-.an-dropzone--over { border-color: #ECB2C3; background: rgba(236,178,195,0.08); }
+.an-dropzone--over { border-color: var(--color-rose-gold); background: rgba(236,178,195,0.08); }
 .an-dropzone--loading { pointer-events: none; opacity: 0.7; }
 
 .an-dz-icon { font-size: 2rem; color: rgba(236,178,195,0.35); line-height: 1; }
@@ -310,7 +310,7 @@
   margin-top: 0.5rem;
   background: #0d0d0d;
   border: 1px solid rgba(236,178,195,0.1);
-  border-radius: 6px;
+  border-radius: 2px;
   color: rgba(217,217,217,0.5);
   padding: 0.55rem 1rem;
   font-size: 0.82rem;
@@ -341,7 +341,7 @@
 .an-btn-cancel:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
 .an-btn-save {
   padding: 0.7rem 1.75rem;
-  background: #ECB2C3;
+  background: var(--color-rose-gold);
   color: #000;
   border: none;
   border-radius: 4px;

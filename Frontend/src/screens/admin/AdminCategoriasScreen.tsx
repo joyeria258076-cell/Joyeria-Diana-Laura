@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import './AdminCategoriasScreen.css';
 import { productsAPI } from '../../services/api';
 import CategoriaModal from './CategoriaModal';
-import { AiOutlineReload, AiOutlinePlus, AiOutlineEdit, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineDelete } from 'react-icons/ai';
+import {
+  AiOutlineReload, AiOutlinePlus, AiOutlineEdit, AiOutlineEye, AiOutlineEyeInvisible,
+  AiOutlineDelete, AiOutlineSearch, AiOutlineAppstore, AiOutlineTags, AiOutlineFolder,
+  AiOutlineHolder,
+} from 'react-icons/ai';
 
 interface Categoria {
   id: number;
@@ -17,6 +21,8 @@ interface Categoria {
   fecha_actualizacion?: string;
 }
 
+const inicial = (nombre: string) => nombre.trim().charAt(0).toUpperCase() || '?';
+
 const AdminCategoriasScreen: React.FC = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,6 +30,9 @@ const AdminCategoriasScreen: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [categoriaEditar, setCategoriaEditar] = useState<Categoria | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [draggedId, setDraggedId] = useState<number | null>(null);
+  const [dragOverId, setDragOverId] = useState<number | null>(null);
+  const [reordering, setReordering] = useState(false);
 
   const cargarCategorias = async () => {
     setLoading(true);
@@ -63,19 +72,17 @@ const AdminCategoriasScreen: React.FC = () => {
   const handleSubmitModal = async (formData: Categoria) => {
     try {
       setLoading(true);
-      
+
       if (isEditing && categoriaEditar?.id) {
         await productsAPI.updateCategory(categoriaEditar.id, formData);
-        alert('✅ Categoría actualizada correctamente');
       } else {
         await productsAPI.createCategory(formData);
-        alert('✅ Categoría creada correctamente');
       }
-      
+
       handleCerrarModal();
       cargarCategorias();
     } catch (error: any) {
-      alert("❌ Error: " + error.message);
+      alert("Error: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -90,162 +97,248 @@ const AdminCategoriasScreen: React.FC = () => {
       await productsAPI.toggleCategoryStatus(id, !estadoActual);
       cargarCategorias();
     } catch (error: any) {
-      alert("❌ Error: " + error.message);
+      alert("Error: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleEliminarCategoria = async (id: number) => {
-    if (!window.confirm("🚨 ¡ADVERTENCIA! ¿Estás seguro de eliminar esta categoría permanentemente?")) return;
+    if (!window.confirm("¿Estás seguro de eliminar esta categoría permanentemente?")) return;
 
     try {
       setLoading(true);
       await productsAPI.deleteCategory(id);
       cargarCategorias();
     } catch (error: any) {
-      alert("❌ Error: " + error.message);
+      alert("Error: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const categoriasFiltradas = categorias.filter(cat =>
-    cat.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (cat.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const persistarOrden = async (lista: Categoria[]) => {
+    setReordering(true);
+    try {
+      await Promise.all(
+        lista.map((cat, index) =>
+          cat.orden === index ? null : productsAPI.updateCategory(cat.id, { ...cat, orden: index })
+        )
+      );
+      await cargarCategorias();
+    } catch (error: any) {
+      alert("Error al reordenar: " + error.message);
+    } finally {
+      setReordering(false);
+    }
+  };
 
-  const getNombreCategoriaPadre = (id?: number | null) => {
-    if (!id) return 'Categoría Principal';
-    const padre = categorias.find(c => c.id === id);
-    return padre ? padre.nombre : 'Desconocida';
+  const handleDrop = (lista: Categoria[], targetId: number) => {
+    if (draggedId == null || draggedId === targetId) {
+      setDraggedId(null);
+      setDragOverId(null);
+      return;
+    }
+    const nueva = [...lista];
+    const fromIndex = nueva.findIndex(c => c.id === draggedId);
+    const toIndex = nueva.findIndex(c => c.id === targetId);
+    if (fromIndex === -1 || toIndex === -1) {
+      setDraggedId(null);
+      setDragOverId(null);
+      return;
+    }
+    const [movido] = nueva.splice(fromIndex, 1);
+    nueva.splice(toIndex, 0, movido);
+    setDraggedId(null);
+    setDragOverId(null);
+    persistarOrden(nueva);
+  };
+
+  const handleReorderHermanas = async (cambios: { id: number; orden: number }[]) => {
+    setReordering(true);
+    try {
+      await Promise.all(
+        cambios.map(({ id, orden }) => {
+          const cat = categorias.find(c => c.id === id);
+          return cat ? productsAPI.updateCategory(id, { ...cat, orden }) : null;
+        })
+      );
+      await cargarCategorias();
+    } catch (error: any) {
+      alert("Error al reordenar: " + error.message);
+    } finally {
+      setReordering(false);
+    }
+  };
+
+  const term = searchTerm.toLowerCase();
+  const coincide = (cat: Categoria) =>
+    cat.nombre.toLowerCase().includes(term) ||
+    (cat.descripcion?.toLowerCase().includes(term));
+
+  const principales = categorias
+    .filter(c => !c.categoria_padre_id)
+    .sort((a, b) => (a.orden || 0) - (b.orden || 0));
+
+  const hijosDe = (id: number) =>
+    categorias
+      .filter(c => c.categoria_padre_id === id)
+      .sort((a, b) => (a.orden || 0) - (b.orden || 0));
+
+  const grupos = principales
+    .map(p => ({ padre: p, hijos: hijosDe(p.id) }))
+    .filter(({ padre, hijos }) =>
+      !searchTerm.trim() || coincide(padre) || hijos.some(coincide)
+    );
+
+  const totalActivas = categorias.filter(c => c.activo !== false).length;
+  const totalSub = categorias.filter(c => c.categoria_padre_id).length;
+
+  const renderAcciones = (cat: Categoria) => {
+    const isActivo = cat.activo !== false;
+    return (
+      <div className="cat2-actions">
+        <button onClick={() => handleAbrirModal(cat)} title="Editar">
+          <AiOutlineEdit size={14} />
+        </button>
+        <button onClick={() => handleToggleEstado(cat.id, isActivo)} title={isActivo ? 'Ocultar' : 'Mostrar'}>
+          {isActivo ? <AiOutlineEye size={14} /> : <AiOutlineEyeInvisible size={14} />}
+        </button>
+        <button className="danger" onClick={() => handleEliminarCategoria(cat.id)} title="Eliminar">
+          <AiOutlineDelete size={14} />
+        </button>
+      </div>
+    );
   };
 
   return (
-    <div className="admin-categorias-container animate-fade-in">
-      <div className="bg-glow"></div>
+    <div className="cat2-container">
+      <div className="cat2-header">
+        <h1><AiOutlineTags size={24} /> Gestión de Categorías</h1>
+        <button className="cat2-btn-nuevo" onClick={() => handleAbrirModal()}>
+          <AiOutlinePlus size={18} /> Nueva Categoría
+        </button>
+      </div>
 
-      {/* ENCABEZADO */}
-      <div className="admin-page-header">
-        <div className="header-title-section">
-          <h2>Gestión de Categorías</h2>
-          <p className="subtitle">Catálogo Exclusivo Diana Laura</p>
+      <div className="cat2-stats">
+        <div className="cat2-stat">
+          <span className="cat2-stat-num">{categorias.length}</span>
+          <span className="cat2-stat-label">Total</span>
         </div>
-        <div className="header-buttons">
-          <button className="btn-refresh-lux" onClick={cargarCategorias} disabled={loading}>
-            <AiOutlineReload className="icon" /> Actualizar
-          </button>
-          <button className="btn-new-lux" onClick={() => handleAbrirModal()}>
-            <AiOutlinePlus className="icon" /> Nueva Categoría
-          </button>
+        <div className="cat2-stat">
+          <span className="cat2-stat-num">{principales.length}</span>
+          <span className="cat2-stat-label">Principales</span>
+        </div>
+        <div className="cat2-stat">
+          <span className="cat2-stat-num">{totalSub}</span>
+          <span className="cat2-stat-label">Subcategorías</span>
+        </div>
+        <div className="cat2-stat cat2-stat-ok">
+          <span className="cat2-stat-num">{totalActivas}</span>
+          <span className="cat2-stat-label">Activas</span>
         </div>
       </div>
 
-      {/* BÚSQUEDA */}
-      <div className="search-container">
-        <input
-          type="text"
-          placeholder="🔍 Buscar categoría por nombre o descripción..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-        {categoriasFiltradas.length > 0 && (
-          <span className="search-count">{categoriasFiltradas.length} resultados</span>
-        )}
+      <div className="cat2-toolbar">
+        <div className="cat2-search">
+          <AiOutlineSearch />
+          <input
+            type="text"
+            placeholder="Buscar categoría o subcategoría..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <button className="cat2-btn-refrescar" onClick={cargarCategorias} disabled={loading}>
+          <AiOutlineReload size={15} />
+          {loading ? 'Cargando...' : 'Refrescar'}
+        </button>
       </div>
 
-      {/* TABLA DE RESULTADOS */}
-      <div className="table-container-lux">
-        <div className="table-responsive">
-          <table className="admin-custom-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Tipo</th>
-                <th>Orden</th>
-                <th>Estado</th>
-                <th className="txt-center">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categoriasFiltradas.length > 0 ? (
-                categoriasFiltradas.map((cat) => {
-                  const isActivo = cat.activo !== false;
-                  const isPrincipal = !cat.categoria_padre_id;
-                  
-                  return (
-                    <tr key={cat.id} className={isActivo ? 'row-active' : 'row-inactive'}>
-                      <td className="id-cell">#{cat.id}</td>
-                      <td className="name-cell">
-                        <div className="category-info-wrapper">
-                          <span className="category-name">{cat.nombre}</span>
-                          {!isActivo && <span className="status-pill hidden-pill">Oculta</span>}
+      {/* Árbol de categorías */}
+      {grupos.length === 0 ? (
+        <div className="cat2-empty">
+          <AiOutlineFolder size={36} />
+          <p>{searchTerm ? 'No se encontraron categorías' : 'No hay categorías registradas'}</p>
+        </div>
+      ) : (
+        <div className="cat2-tree">
+          {grupos.map(({ padre, hijos }) => {
+            const isActivo = padre.activo !== false;
+            return (
+              <div
+                key={padre.id}
+                className={`cat2-group ${!isActivo ? 'cat2-group-inactivo' : ''} ${dragOverId === padre.id ? 'cat2-drag-over' : ''} ${draggedId === padre.id ? 'cat2-dragging' : ''}`}
+                onDragOver={e => { e.preventDefault(); setDragOverId(padre.id); }}
+                onDragLeave={() => setDragOverId(prev => prev === padre.id ? null : prev)}
+                onDrop={e => { e.preventDefault(); handleDrop(principales, padre.id); }}
+              >
+                <div className="cat2-group-header">
+                  <span
+                    className="cat2-drag-handle"
+                    draggable
+                    onDragStart={() => setDraggedId(padre.id)}
+                    onDragEnd={() => { setDraggedId(null); setDragOverId(null); }}
+                    title="Arrastrar para reordenar"
+                  >
+                    <AiOutlineHolder size={16} />
+                  </span>
+                  <div className="cat2-group-icon"><AiOutlineAppstore size={18} /></div>
+                  <div className="cat2-group-info">
+                    <div className="cat2-group-nombre">
+                      {padre.nombre}
+                      <span className="cat2-orden">#{padre.orden || 0}</span>
+                    </div>
+                    {padre.descripcion && <p className="cat2-group-desc">{padre.descripcion}</p>}
+                  </div>
+                  <span className={`cat2-dot ${isActivo ? 'on' : 'off'}`}>{isActivo ? 'Activa' : 'Inactiva'}</span>
+                  {renderAcciones(padre)}
+                </div>
+
+                {hijos.length > 0 && (
+                  <div className="cat2-children">
+                    {hijos.map(hijo => {
+                      const hijoActivo = hijo.activo !== false;
+                      return (
+                        <div
+                          key={hijo.id}
+                          className={`cat2-child ${!hijoActivo ? 'cat2-child-inactivo' : ''} ${dragOverId === hijo.id ? 'cat2-drag-over' : ''} ${draggedId === hijo.id ? 'cat2-dragging' : ''}`}
+                          onDragOver={e => { e.preventDefault(); setDragOverId(hijo.id); }}
+                          onDragLeave={() => setDragOverId(prev => prev === hijo.id ? null : prev)}
+                          onDrop={e => { e.preventDefault(); e.stopPropagation(); handleDrop(hijos, hijo.id); }}
+                        >
+                          <span
+                            className="cat2-drag-handle"
+                            draggable
+                            onDragStart={e => { e.stopPropagation(); setDraggedId(hijo.id); }}
+                            onDragEnd={() => { setDraggedId(null); setDragOverId(null); }}
+                            title="Arrastrar para reordenar"
+                          >
+                            <AiOutlineHolder size={14} />
+                          </span>
+                          <span className="cat2-child-avatar">{inicial(hijo.nombre)}</span>
+                          <div className="cat2-child-info">
+                            <span className="cat2-child-nombre">
+                              {hijo.nombre}
+                              <span className="cat2-orden small">#{hijo.orden || 0}</span>
+                            </span>
+                            {hijo.descripcion && <span className="cat2-child-desc">{hijo.descripcion}</span>}
+                          </div>
+                          <span className={`cat2-dot small ${hijoActivo ? 'on' : 'off'}`}>{hijoActivo ? 'Activa' : 'Inactiva'}</span>
+                          {renderAcciones(hijo)}
                         </div>
-                      </td>
-                      <td className="description-cell">
-                        <span className="text-truncate" title={cat.descripcion}>
-                          {cat.descripcion || '-'}
-                        </span>
-                      </td>
-                      <td className="type-cell">
-                        <span className={`type-badge ${isPrincipal ? 'principal' : 'sub'}`}>
-                          {isPrincipal ? 'Principal' : `Sub (${getNombreCategoriaPadre(cat.categoria_padre_id)})`}
-                        </span>
-                      </td>
-                      <td className="orden-cell">
-                        <span className="orden-badge">{cat.orden || 0}</span>
-                      </td>
-                      <td className="status-cell">
-                        <div className="status-container">
-                          <span className={`dot-status ${isActivo ? 'active' : 'inactive'}`}></span>
-                          <span className="status-text">{isActivo ? 'Activa' : 'Inactiva'}</span>
-                        </div>
-                      </td>
-                      <td className="actions-cell">
-                        <button
-                          className="btn-action-lux edit"
-                          onClick={() => handleAbrirModal(cat)}
-                          title="Editar"
-                          aria-label="Editar"
-                        >
-                          <AiOutlineEdit className="btn-icon" />
-                        </button>
-                        <button
-                          className={`btn-action-lux ${isActivo ? 'hide' : 'show'}`}
-                          onClick={() => handleToggleEstado(cat.id, isActivo)}
-                          title={isActivo ? 'Ocultar' : 'Mostrar'}
-                          aria-label={isActivo ? 'Ocultar' : 'Mostrar'}
-                        >
-                          {isActivo ? <AiOutlineEye className="btn-icon" /> : <AiOutlineEyeInvisible className="btn-icon" />}
-                        </button>
-                        <button
-                          className="btn-action-lux delete"
-                          onClick={() => handleEliminarCategoria(cat.id)}
-                          title="Eliminar"
-                          aria-label="Eliminar"
-                        >
-                          <AiOutlineDelete className="btn-icon" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={7} className="no-data">
-                    {searchTerm ? 'No se encontraron categorías con ese término' : 'No se han encontrado categorías registradas'}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      </div>
+      )}
 
-      {/* MODAL */}
+      {reordering && <div className="cat2-reordering-toast">Guardando nuevo orden...</div>}
+
       <CategoriaModal
         isOpen={modalOpen}
         isEditing={isEditing}
@@ -253,6 +346,7 @@ const AdminCategoriasScreen: React.FC = () => {
         todascategorias={categorias}
         onClose={handleCerrarModal}
         onSubmit={handleSubmitModal}
+        onReorderHermanas={handleReorderHermanas}
         loading={loading}
       />
     </div>

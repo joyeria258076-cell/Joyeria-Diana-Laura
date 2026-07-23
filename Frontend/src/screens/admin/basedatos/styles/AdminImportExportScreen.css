@@ -3,10 +3,10 @@
 .import-export-screen-container {
   flex: 1;
   padding: 2rem;
-  background: #0f0f12;
+  background: var(--color-bg);
   min-height: 100vh;
   color: #ffffff;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
 }
 
 /* Header */
@@ -17,11 +17,11 @@
 }
 
 .page-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, #ECB2C3 0%, #e49bb3 100%);
+  background: linear-gradient(135deg, var(--color-rose-gold) 0%, #e49bb3 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -53,21 +53,21 @@
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   transition: all 0.3s ease;
-  border-radius: 8px;
+  border-radius: 2px;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .tab-btn:hover {
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   background: rgba(236, 178, 195, 0.1);
 }
 
 .tab-btn.active {
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   background: rgba(236, 178, 195, 0.15);
-  border-bottom: 2px solid #ECB2C3;
+  border-bottom: 2px solid var(--color-rose-gold);
 }
 
 /* Export Config Grid */
@@ -81,15 +81,15 @@
 .config-card {
   background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, rgba(10, 10, 15, 0.7) 100%);
   border: 1px solid rgba(236, 178, 195, 0.2);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 1.5rem;
   backdrop-filter: blur(10px);
 }
 
 .config-card h3 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1.3rem;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   margin: 0 0 1.2rem 0;
 }
 
@@ -108,7 +108,7 @@
   padding: 1rem;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(236, 178, 195, 0.1);
-  border-radius: 8px;
+  border-radius: 2px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -119,7 +119,7 @@
 
 .format-option.selected {
   background: rgba(236, 178, 195, 0.15);
-  border-color: #ECB2C3;
+  border-color: var(--color-rose-gold);
 }
 
 .format-option input[type="radio"] {
@@ -147,7 +147,7 @@
 .btn-select-all {
   background: none;
   border: 1px solid rgba(236, 178, 195, 0.3);
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   padding: 0.4rem 0.8rem;
   border-radius: 4px;
   font-size: 0.85rem;
@@ -179,7 +179,7 @@
 }
 
 .table-checkbox input[type="checkbox"] {
-  accent-color: #ECB2C3;
+  accent-color: var(--color-rose-gold);
 }
 
 .table-info {
@@ -215,7 +215,7 @@
   padding: 0.8rem;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(236, 178, 195, 0.2);
-  border-radius: 6px;
+  border-radius: 2px;
   color: #ffffff;
   font-size: 0.95rem;
   transition: all 0.3s ease;
@@ -223,7 +223,7 @@
 
 .form-input:focus, .form-select:focus {
   outline: none;
-  border-color: #ECB2C3;
+  border-color: var(--color-rose-gold);
   background: rgba(0, 0, 0, 0.4);
 }
 
@@ -237,14 +237,14 @@
 }
 
 .checkbox-option input[type="checkbox"] {
-  accent-color: #ECB2C3;
+  accent-color: var(--color-rose-gold);
 }
 
 /* Progress Section */
 .progress-section {
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(236, 178, 195, 0.2);
-  border-radius: 8px;
+  border-radius: 2px;
   padding: 1rem;
   margin-bottom: 2rem;
 }
@@ -266,7 +266,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ECB2C3, #e49bb3);
+  background: linear-gradient(90deg, var(--color-rose-gold), #e49bb3);
   transition: width 0.3s ease;
 }
 
@@ -289,7 +289,7 @@
 
 .btn-export, .btn-import, .btn-preview, .btn-validate {
   padding: 1rem 2rem;
-  border-radius: 8px;
+  border-radius: 2px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -299,8 +299,8 @@
 }
 
 .btn-export, .btn-import {
-  background: linear-gradient(135deg, #ECB2C3 0%, #e49bb3 100%);
-  color: #0f0f12;
+  background: linear-gradient(135deg, var(--color-rose-gold) 0%, #e49bb3 100%);
+  color: var(--color-bg);
   box-shadow: 0 10px 20px rgba(236, 178, 195, 0.2);
 }
 
@@ -317,7 +317,7 @@
 .btn-preview {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(236, 178, 195, 0.3);
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
 }
 
 .btn-preview:hover {
@@ -338,15 +338,15 @@
 .history-section {
   background: linear-gradient(145deg, rgba(20, 20, 25, 0.5) 0%, rgba(8, 8, 12, 0.8) 100%);
   border: 1px solid rgba(236, 178, 195, 0.2);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 1.5rem;
   backdrop-filter: blur(15px);
 }
 
 .history-section h3 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1.3rem;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   margin: 0 0 1.2rem 0;
 }
 
@@ -362,7 +362,7 @@
   gap: 1rem;
   padding: 0.8rem;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+  border-radius: 2px;
   transition: all 0.3s ease;
 }
 
@@ -378,7 +378,7 @@
   align-items: center;
   justify-content: center;
   background: rgba(236, 178, 195, 0.1);
-  border-radius: 8px;
+  border-radius: 2px;
 }
 
 .history-details {
@@ -401,7 +401,7 @@
 .history-status {
   font-size: 0.85rem;
   padding: 0.3rem 0.8rem;
-  border-radius: 20px;
+  border-radius: 2px;
   min-width: 100px;
   text-align: center;
 }
@@ -427,14 +427,14 @@
   color: #ffffff;
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: 2px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .btn-download:hover {
   background: rgba(236, 178, 195, 0.1);
-  border-color: #ECB2C3;
+  border-color: var(--color-rose-gold);
 }
 
 /* Import Grid */
@@ -452,14 +452,14 @@
 
 .file-upload-area {
   border: 2px dashed rgba(236, 178, 195, 0.3);
-  border-radius: 8px;
+  border-radius: 2px;
   padding: 2rem;
   text-align: center;
   transition: all 0.3s ease;
 }
 
 .file-upload-area:hover {
-  border-color: #ECB2C3;
+  border-color: var(--color-rose-gold);
   background: rgba(236, 178, 195, 0.05);
 }
 
@@ -512,7 +512,7 @@
   text-align: left;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   position: sticky;
   top: 0;
 }

@@ -1,7 +1,7 @@
 .filter-builder {
   background: rgba(255,255,255,0.02);
   border: 1px solid rgba(236,178,195,0.1);
-  border-radius: 8px;
+  border-radius: 2px;
   padding: 1.2rem;
 }
 
@@ -18,15 +18,15 @@
   gap: 0.5rem;
 }
 
-.filter-icon { color: #ECB2C3; }
+.filter-icon { color: var(--color-rose-gold); }
 .filter-title h4 { margin: 0; font-size: 0.95rem; }
 
 .btn-add-filter {
   background: rgba(236,178,195,0.1);
   border: 1px solid rgba(236,178,195,0.3);
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   padding: 0.4rem 0.8rem;
-  border-radius: 6px;
+  border-radius: 2px;
   display: flex;
   align-items: center;
   gap: 0.3rem;
@@ -56,7 +56,7 @@
   align-items: center;
   background: rgba(0,0,0,0.2);
   border: 1px solid rgba(236,178,195,0.1);
-  border-radius: 6px;
+  border-radius: 2px;
   padding: 0.8rem;
 }
 
@@ -82,7 +82,7 @@
 }
 
 .between-inputs input { flex: 1; }
-.between-inputs span { color: #ECB2C3; }
+.between-inputs span { color: var(--color-rose-gold); }
 
 .btn-remove-filter {
   width: 30px;

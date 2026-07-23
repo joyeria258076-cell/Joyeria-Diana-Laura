@@ -1,63 +1,57 @@
-/* Ruta: src/styles/UbicacionScreen.css */
-.page-container {
-    padding: 30px;
-    max-width: 1800px;
-    margin: 0 auto;
-}
+/* Ruta: Frontend/src/screens/cliente/UbicacionScreen.css
+   Identidad Joyería Diana Laura: negro cálido + rose gold/champagne/blush. */
 
-.section-header {
-    margin-bottom: 40px;
-    text-align: center;
-}
-
-.section-header h1 {
-    font-family: 'Playfair Display', serif;
-    color: var(--rosa-joyeria);
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-}
-
-.section-header p {
-    color: #999;
-    font-size: 1.1rem;
+.ubicacion-eyebrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    color: var(--color-rose-gold);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0 0 0.5rem;
 }
 
 .map-card {
-    background: var(--negro-panel);
-    border-radius: 20px;
-    border: 1px solid rgba(236, 178, 195, 0.15);
+    background: var(--color-surface);
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    transition: transform 0.3s ease;
+    transition: transform 0.35s var(--ease-silk), border-color 0.35s var(--ease-silk);
 }
 
 .map-card:hover {
-    transform: translateY(-5px);
-    border-color: rgba(236, 178, 195, 0.3);
+    transform: translateY(-4px);
+    border-color: var(--color-rose-gold);
 }
 
 .map-container {
-    line-height: 0; /* Elimina espacio extra debajo del iframe */
+    line-height: 0;
 }
 
 .address-details {
-    padding: 30px;
+    padding: 2rem;
     text-align: center;
-    background: linear-gradient(to bottom, transparent, rgba(236, 178, 195, 0.05));
+    background: var(--color-glow);
 }
 
 .address-details h3 {
-    color: #fff;
-    font-size: 1.5rem;
-    margin-bottom: 10px;
+    color: var(--color-text);
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.4rem;
+    margin: 0 0 0.6rem;
 }
 
 .address-details p {
-    color: #ccc;
-    margin: 5px 0;
-    font-size: 1rem;
+    color: var(--color-text-muted);
+    margin: 0.3rem 0;
+    font-size: 0.95rem;
 }
 
 .address-details strong {
-    color: var(--rosa-joyeria);
+    color: var(--color-rose-gold);
+    font-weight: 500;
 }

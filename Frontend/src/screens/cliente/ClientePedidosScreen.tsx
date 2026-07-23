@@ -2,6 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { carritoAPI } from '../../services/api';
+import {
+    AiOutlineFileText, AiOutlineCheckCircle, AiOutlineCreditCard,
+    AiOutlineTool, AiOutlineCar, AiOutlineGift,
+} from 'react-icons/ai';
 import './ClientePedidosScreen.css';
 
 interface ItemPedido {
@@ -63,23 +67,23 @@ const cargarEstadosAnteriores = (): Record<number, string> => {
 const guardarEstadosAnteriores = (e: Record<number, string>) => localStorage.setItem(STORAGE_KEY_ESTADOS, JSON.stringify(e));
 
 const COLORES_ESTADO: Record<string, { color: string; bg: string }> = {
-    pendiente:      { color: '#0f0f12', bg: '#f5c842' },
-    confirmado:     { color: '#0f0f12', bg: '#6bcb77' },
-    en_preparacion: { color: '#0f0f12', bg: '#4d96ff' },
-    enviado:        { color: '#0f0f12', bg: '#f5d8e8' },
-    entregado:      { color: '#0f0f12', bg: '#ecb2c3' },
+    pendiente:      { color: '#0a0a0a', bg: '#f5c842' },
+    confirmado:     { color: '#0a0a0a', bg: '#6bcb77' },
+    en_preparacion: { color: '#0a0a0a', bg: '#4d96ff' },
+    enviado:        { color: '#0a0a0a', bg: '#f5d8e8' },
+    entregado:      { color: '#0a0a0a', bg: '#c9956c' },
     cancelado:      { color: '#fff',    bg: '#e05a6a' },
 };
 const COLOR_DEFAULT = { color: '#fff', bg: '#555555' };
 const labelEstado = (v: string) => v.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
 const FASES_STEPPER = [
-    { key: 'pendiente',      label: 'Pedido',     icon: '📋' },
-    { key: 'confirmado',     label: 'Confirmado', icon: '✅' },
-    { key: 'pago',           label: 'Pago',       icon: '💳' },
-    { key: 'en_preparacion', label: 'Preparando', icon: '🔧' },
-    { key: 'enviado',        label: 'Enviado',    icon: '🚚' },
-    { key: 'entregado',      label: 'Entregado',  icon: '📦' },
+    { key: 'pendiente',      label: 'Pedido',     Icon: AiOutlineFileText },
+    { key: 'confirmado',     label: 'Confirmado', Icon: AiOutlineCheckCircle },
+    { key: 'pago',           label: 'Pago',       Icon: AiOutlineCreditCard },
+    { key: 'en_preparacion', label: 'Preparando', Icon: AiOutlineTool },
+    { key: 'enviado',        label: 'Enviado',    Icon: AiOutlineCar },
+    { key: 'entregado',      label: 'Entregado',  Icon: AiOutlineGift },
 ];
 
 const getFaseIndex = (estado: string, estado_pago: string): number => {
@@ -93,14 +97,16 @@ const getFaseIndex = (estado: string, estado_pago: string): number => {
 };
 
 const StepperPedido: React.FC<{ estado: string; estado_pago: string }> = ({ estado, estado_pago }) => {
-    if (estado === 'cancelado') return <div className="cp-stepper-cancelado">🚫 Este pedido fue cancelado</div>;
+    if (estado === 'cancelado') return <div className="cp-stepper-cancelado">Este pedido fue cancelado</div>;
     const faseActual = getFaseIndex(estado, estado_pago);
     return (
         <div className="cp-stepper">
             {FASES_STEPPER.map((fase, i) => (
                 <div key={fase.key} className="cp-step-wrap">
                     <div className={`cp-step ${i < faseActual ? 'completado' : i === faseActual ? 'activo' : 'inactivo'}`}>
-                        <div className="cp-step-icono">{i < faseActual ? '✓' : fase.icon}</div>
+                        <div className="cp-step-icono">
+                            {i < faseActual ? <AiOutlineCheckCircle size={16} /> : <fase.Icon size={16} />}
+                        </div>
                         <div className="cp-step-label">{fase.label}</div>
                     </div>
                     {i < FASES_STEPPER.length - 1 && (
@@ -177,22 +183,22 @@ const ClientePedidosScreen: React.FC = () => {
     const PEDIDOS_POR_PAGINA = 10;
     const [pedidoDetalle, setPedidoDetalle]     = useState<Pedido | null>(null);
     const [cargandoDetalle, setCargandoDetalle] = useState(false);
-    const [notifPago, setNotifPago]             = useState('');
+    const [notifPago, setNotifPago]             = useState<{ tipo: 'ok' | 'error' | 'pending'; mensaje: string } | null>(null);
     const [estados, setEstados]                 = useState<EstadoConfig[]>([]);
     const [estadosPagables, setEstadosPagables] = useState<string[]>([]);
     const [procesandoPago, setProcesandoPago]   = useState(false);
     const [errorPago, setErrorPago]             = useState('');
     const [subiendo, setSubiendo]               = useState(false);
-    const [msgComprobante, setMsgComprobante]   = useState('');
+    const [msgComprobante, setMsgComprobante]   = useState<{ tipo: 'ok' | 'error'; mensaje: string } | null>(null);
     const fileInputRef                          = useRef<HTMLInputElement>(null);
     const estadosAnteriores                     = useRef<Record<number, string>>(cargarEstadosAnteriores());
     const pollingRef                            = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         const pago = searchParams.get('pago'); const pedidoId = searchParams.get('pedido'); const metodo = searchParams.get('metodo') || '';
-        if (pago === 'exitoso')   setNotifPago(`✅ Pago recibido para el pedido #${pedidoId}. ¡Gracias por tu compra!`);
-        if (pago === 'fallido')   setNotifPago(`❌ El pago del pedido #${pedidoId} no se completó. Intenta de nuevo.`);
-        if (pago === 'pendiente') setNotifPago(`⏳ El pago del pedido #${pedidoId} está pendiente de confirmación.`);
+        if (pago === 'exitoso')   setNotifPago({ tipo: 'ok', mensaje: `Pago recibido para el pedido #${pedidoId}. ¡Gracias por tu compra!` });
+        if (pago === 'fallido')   setNotifPago({ tipo: 'error', mensaje: `El pago del pedido #${pedidoId} no se completó. Intenta de nuevo.` });
+        if (pago === 'pendiente') setNotifPago({ tipo: 'pending', mensaje: `El pago del pedido #${pedidoId} está pendiente de confirmación.` });
         if (pago === 'exitoso' && metodo === 'paypal') {
             const orderId = searchParams.get('token');
             if (orderId && pedidoId) {
@@ -246,11 +252,11 @@ const ClientePedidosScreen: React.FC = () => {
             }
         } catch {
             setEstados([
-                { value: 'pendiente', label: 'Pendiente', color: '#0f0f12', bg: '#f5c842' },
-                { value: 'confirmado', label: 'Confirmado', color: '#0f0f12', bg: '#6bcb77' },
-                { value: 'en_preparacion', label: 'En Preparacion', color: '#0f0f12', bg: '#4d96ff' },
-                { value: 'enviado', label: 'Enviado', color: '#0f0f12', bg: '#f5d8e8' },
-                { value: 'entregado', label: 'Entregado', color: '#0f0f12', bg: '#ecb2c3' },
+                { value: 'pendiente', label: 'Pendiente', color: '#0a0a0a', bg: '#f5c842' },
+                { value: 'confirmado', label: 'Confirmado', color: '#0a0a0a', bg: '#6bcb77' },
+                { value: 'en_preparacion', label: 'En Preparacion', color: '#0a0a0a', bg: '#4d96ff' },
+                { value: 'enviado', label: 'Enviado', color: '#0a0a0a', bg: '#f5d8e8' },
+                { value: 'entregado', label: 'Entregado', color: '#0a0a0a', bg: '#c9956c' },
                 { value: 'cancelado', label: 'Cancelado', color: '#fff', bg: '#e05a6a' },
             ]);
             setEstadosPagables(['confirmado', 'en_preparacion']);
@@ -272,7 +278,7 @@ const ClientePedidosScreen: React.FC = () => {
     };
 
     const abrirDetalle = async (pedido: Pedido) => {
-        setErrorPago(''); setMsgComprobante(''); setPedidoDetalle(pedido); setCargandoDetalle(true);
+        setErrorPago(''); setMsgComprobante(null); setPedidoDetalle(pedido); setCargandoDetalle(true);
         try { const data = await carritoAPI.getPedidoById(pedido.id); if (data.success) setPedidoDetalle(data.data); } catch { }
         finally { setCargandoDetalle(false); }
     };
@@ -296,14 +302,14 @@ const ClientePedidosScreen: React.FC = () => {
     };
 
     const subirComprobante = async (pedido: Pedido, file: File) => {
-        setSubiendo(true); setMsgComprobante('');
+        setSubiendo(true); setMsgComprobante(null);
         try {
             const data = await carritoAPI.subirComprobante(pedido.id, file);
             if (!data.success) throw new Error(data.message);
-            setMsgComprobante('✅ Comprobante enviado. El trabajador lo revisará pronto.');
+            setMsgComprobante({ tipo: 'ok', mensaje: 'Comprobante enviado. El trabajador lo revisará pronto.' });
             const det = await carritoAPI.getPedidoById(pedido.id);
             if (det.success) setPedidoDetalle(det.data);
-        } catch (err: any) { setMsgComprobante(`❌ ${err.message || 'Error al subir'}`); }
+        } catch (err: any) { setMsgComprobante({ tipo: 'error', mensaje: err.message || 'Error al subir' }); }
         finally { setSubiendo(false); }
     };
 
@@ -336,27 +342,27 @@ const ClientePedidosScreen: React.FC = () => {
         return (
             <div className="cp-seccion-pago">
                 <div className="cp-pago-titulo">
-                    <span className="cp-pago-icon">💳</span>
+                    
                     <div><h4>Tu pedido está listo para pagar</h4><p>Método: <strong>{pedido.metodo_pago_nombre || codigo}</strong></p></div>
                 </div>
-                {errorPago && <div className="cp-pago-error">⚠️ {errorPago}</div>}
+                {errorPago && <div className="cp-pago-error">{errorPago}</div>}
                 {codigo === 'mercadopago' && (
                     <><div className="cp-pago-botones">
                         <button className="cp-btn-mp" onClick={() => pagarConMercadoPago(pedido)} disabled={procesandoPago}>
-                            {procesandoPago ? '⏳ Redirigiendo...' : <><span className="cp-btn-pago-logo">🛒</span><span><strong>Pagar con MercadoPago</strong><small>Tarjeta, transferencia o efectivo</small></span></>}
+                            {procesandoPago ? 'Redirigiendo...' : <><span><strong>Pagar con MercadoPago</strong><small>Tarjeta, transferencia o efectivo</small></span></>}
                         </button>
-                    </div><p className="cp-pago-seguro">🔒 Serás redirigido a MercadoPago</p></>
+                    </div><p className="cp-pago-seguro">Serás redirigido a MercadoPago</p></>
                 )}
                 {codigo === 'paypal' && (
                     <><div className="cp-pago-botones">
                         <button className="cp-btn-paypal" onClick={() => pagarConPayPal(pedido)} disabled={procesandoPago}>
-                            {procesandoPago ? '⏳ Redirigiendo...' : <><span className="cp-btn-pago-logo">🅿️</span><span><strong>Pagar con PayPal</strong><small>Cuenta PayPal o tarjeta</small></span></>}
+                            {procesandoPago ? 'Redirigiendo...' : <><span><strong>Pagar con PayPal</strong><small>Cuenta PayPal o tarjeta</small></span></>}
                         </button>
-                    </div><p className="cp-pago-seguro">🔒 Serás redirigido a PayPal</p></>
+                    </div><p className="cp-pago-seguro">Serás redirigido a PayPal</p></>
                 )}
                 {codigo === 'transferencia' && (
                     <div className="cp-pago-instrucciones">
-                        <p>🏦 <strong>Datos para transferencia:</strong></p>
+                        <p><strong>Datos para transferencia:</strong></p>
                         <div className="cp-transferencia-datos">
                             <div className="cp-transferencia-fila"><span>Banco:</span><strong>BBVA</strong></div>
                             <div className="cp-transferencia-fila"><span>Titular:</span><strong>Diana Laura Cabrera Cruz</strong></div>
@@ -365,26 +371,26 @@ const ClientePedidosScreen: React.FC = () => {
                         </div>
                         {pedido.comprobante_transferencia_url ? (
                             <div className="cp-comprobante-enviado">
-                                <p>✅ Comprobante enviado al trabajador</p>
+                                <p>Comprobante enviado al trabajador</p>
                                 <img src={pedido.comprobante_transferencia_url} alt="Comprobante" className="cp-comprobante-img" />
                                 <p className="cp-transferencia-nota">El trabajador verificará tu pago pronto.</p>
                             </div>
                         ) : (
                             <div className="cp-comprobante-upload">
-                                <p className="cp-transferencia-nota">📎 Una vez realizada la transferencia, sube tu comprobante:</p>
+                                <p className="cp-transferencia-nota">Una vez realizada la transferencia, sube tu comprobante:</p>
                                 <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }}
                                     onChange={e => { const file = e.target.files?.[0]; if (file) subirComprobante(pedido, file); }} />
                                 <button className="cp-btn-subir-comprobante" onClick={() => fileInputRef.current?.click()} disabled={subiendo}>
-                                    {subiendo ? '⏳ Subiendo...' : '📎 Subir comprobante'}
+                                    {subiendo ? 'Subiendo...' : 'Subir comprobante'}
                                 </button>
-                                {msgComprobante && <div className={`cp-comprobante-msg ${msgComprobante.startsWith('✅') ? 'ok' : 'error'}`}>{msgComprobante}</div>}
+                                {msgComprobante && <div className={`cp-comprobante-msg ${msgComprobante.tipo}`}>{msgComprobante.mensaje}</div>}
                             </div>
                         )}
                     </div>
                 )}
                 {codigo === 'efectivo' && (
                     <div className="cp-pago-instrucciones">
-                        <p>💵 <strong>Pago en efectivo:</strong></p>
+                        <p><strong>Pago en efectivo:</strong></p>
                         <p className="cp-transferencia-nota">El trabajador confirmará tu pago al momento de la entrega o en tienda.</p>
                     </div>
                 )}
@@ -392,67 +398,68 @@ const ClientePedidosScreen: React.FC = () => {
         );
     };
 
-    const renderFilaPedido = (pedido: Pedido) => (
-        <tr key={pedido.id}>
-            <td className="cp-folio">
-                {pedido.folio}
-                {pedido.es_apartado && (
-                    <span style={{ display: 'block', fontSize: '0.72rem', marginTop: 3, background: '#a78bfa22', color: '#a78bfa', borderRadius: 4, padding: '1px 6px', fontWeight: 600 }}>
-                        🔖 Apartado {pedido.apartado_folio}
+    const renderCardPedido = (pedido: Pedido) => (
+        <div key={pedido.id} className="cp-card" onClick={() => abrirDetalle(pedido)}>
+            <div className="cp-card-principal">
+                <div className="cp-card-folio-col">
+                    <span className="cp-card-folio">{pedido.folio}</span>
+                    <span className="cp-card-fecha">{formatFechaHora(pedido.fecha_creacion)}</span>
+                    <div className="cp-card-tags">
+                        {pedido.es_apartado && <span className="cp-tag cp-tag-apartado">Apartado {pedido.apartado_folio}</span>}
+                        {pedido.es_personalizado && <span className="cp-tag cp-tag-personalizado">Personalizado</span>}
+                    </div>
+                </div>
+                <div className="cp-card-estado-col">
+                    {getBadge(pedido.estado)}
+                    {['aprobado','pagado'].includes(pedido.estado_pago) ? (
+                        <span className="cp-pago-badge cp-pago-ok">Pago completado</span>
+                    ) : esPagable(pedido) ? (
+                        <span className="cp-pago-badge cp-pago-pendiente">
+                            {pedido.metodo_pago_codigo === 'efectivo' ? 'Pago en efectivo' :
+                             pedido.metodo_pago_codigo === 'transferencia' ? 'Transferencia pendiente' : 'Pago pendiente'}
+                        </span>
+                    ) : null}
+                </div>
+                <div className="cp-card-entrega-col">
+                    <span className="cp-card-label">Entrega estimada</span>
+                    <span className="cp-fecha-est">
+                        {pedido.fecha_estimada_entrega && ['aprobado','pagado'].includes(pedido.estado_pago)
+                            ? formatFecha(pedido.fecha_estimada_entrega)
+                            : <span className="cp-fecha-est-vacia">Por confirmar</span>}
                     </span>
-                )}
-                {pedido.es_personalizado && (
-                    <span style={{ display: 'block', fontSize: '0.72rem', marginTop: 3, background: '#c9a84c22', color: '#c9a84c', borderRadius: 4, padding: '1px 6px', fontWeight: 600 }}>
-                        ✏️ Personalizado
-                    </span>
-                )}
-            </td>
-            <td>{formatFechaHora(pedido.fecha_creacion)}</td>
-            <td className="cp-fecha-est">
-                {pedido.fecha_estimada_entrega && ['aprobado','pagado'].includes(pedido.estado_pago)
-                    ? formatFecha(pedido.fecha_estimada_entrega)
-                    : <span className="cp-fecha-est-vacia">Por confirmar</span>}
-            </td>
-            <td>
-                {getBadge(pedido.estado)}
-                {['aprobado','pagado'].includes(pedido.estado_pago) ? (
-                    <span className="cp-pago-badge cp-pago-ok">✅ Pago completado</span>
-                ) : esPagable(pedido) ? (
-                    <span className="cp-pago-badge cp-pago-pendiente">
-                        {pedido.metodo_pago_codigo === 'efectivo' ? '💵 Pago en efectivo' :
-                         pedido.metodo_pago_codigo === 'transferencia' ? '🏦 Transferencia pendiente' : '💳 Pago pendiente'}
-                    </span>
-                ) : null}
-            </td>
-            <td className="cp-total">${Number.parseFloat(String(pedido.total)).toLocaleString('es-MX')}</td>
-            <td><button className="cp-btn-ver" onClick={() => abrirDetalle(pedido)}>👁 Ver</button></td>
-        </tr>
+                </div>
+                <div className="cp-card-total-col">
+                    <span className="cp-total">${Number.parseFloat(String(pedido.total)).toLocaleString('es-MX')}</span>
+                    <button className="cp-btn-ver" onClick={e => { e.stopPropagation(); abrirDetalle(pedido); }}>Ver detalle →</button>
+                </div>
+            </div>
+        </div>
     );
 
     return (
         <main className="cp-body">
             {notifPago && (
-                <div className={`cp-notif-pago ${notifPago.startsWith('✅') ? 'ok' : notifPago.startsWith('❌') ? 'error' : 'pending'}`}>
-                    {notifPago}<button onClick={() => setNotifPago('')}>×</button>
+                <div className={`cp-notif-pago ${notifPago.tipo}`}>
+                    {notifPago.mensaje}<button onClick={() => setNotifPago(null)}>×</button>
                 </div>
             )}
 
             <div className="cp-header">
                 <h2 className="cp-titulo">Mis Pedidos</h2>
                 <div className="cp-header-acciones">
-                    <button className="cp-btn-nuevo" onClick={() => navigate('/carrito')}>🛒 Ir al carrito</button>
+                    <button className="cp-btn-nuevo" onClick={() => navigate('/carrito')}>Ir al carrito</button>
                 </div>
             </div>
 
             <div className="cp-stats">
                 {[
-                    { label: 'En proceso', value: enProceso, icon: '⏳' },
-                    { label: 'Enviados', value: contar('enviado'), icon: '🚚' },
-                    { label: 'Entregados', value: contar('entregado'), icon: '✅' },
-                    { label: 'Cancelados', value: contar('cancelado'), icon: '❌' },
+                    { label: 'En proceso', value: enProceso },
+                    { label: 'Enviados', value: contar('enviado') },
+                    { label: 'Entregados', value: contar('entregado') },
+                    { label: 'Cancelados', value: contar('cancelado') },
                 ].map((s, i) => (
                     <div key={i} className="cp-stat-card">
-                        <span className="cp-stat-icon">{s.icon}</span>
+                        
                         <p className="cp-stat-label">{s.label}</p>
                         <p className="cp-stat-valor">{loading ? '…' : s.value}</p>
                     </div>
@@ -465,13 +472,13 @@ const ClientePedidosScreen: React.FC = () => {
                     <input
                         className="cp-input cp-busqueda"
                         type="text"
-                        placeholder="🔍 Buscar por folio o fecha (ej: 09/04/2026)..."
+                        placeholder="Buscar por folio o fecha (ej: 09/04/2026)..."
                         value={busqueda}
                         onChange={e => setBusqueda(e.target.value)}
                     />
                     <label className="cp-filtro-agrupar">
                         <input type="checkbox" checked={agrupar} onChange={e => setAgrupar(e.target.checked)} />
-                        📅 Agrupar por fecha
+                        Agrupar por fecha
                     </label>
                 </div>
             )}
@@ -484,25 +491,18 @@ const ClientePedidosScreen: React.FC = () => {
                     <button className="cp-btn-nuevo" onClick={() => navigate('/catalogo')}>Ver catálogo</button>
                 </div>
             ) : (
-                <div className="cp-tabla-wrap">
+                <div className="cp-lista-wrap">
                     {grupos.map(({ label, pedidos: ps }) => (
                         <div key={label || 'todos'}>
-                            {/* ✅ Encabezado de grupo */}
                             {label && (
                                 <div className="cp-grupo-label">
                                     <span>{label}</span>
                                     <span className="cp-grupo-count">{ps.length} pedido{ps.length !== 1 ? 's' : ''}</span>
                                 </div>
                             )}
-                            <table className="cp-tabla">
-                                <thead>
-                                    <tr>
-                                        <th>Folio</th><th>Fecha pedido</th><th>Entrega est.</th>
-                                        <th>Estado</th><th>Total</th><th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>{ps.map(renderFilaPedido)}</tbody>
-                            </table>
+                            <div className="cp-cards-lista">
+                                {ps.map(renderCardPedido)}
+                            </div>
                         </div>
                     ))}
             {totalPaginas > 1 && (
@@ -525,7 +525,7 @@ const ClientePedidosScreen: React.FC = () => {
                                 <h3>Pedido {pedidoDetalle.folio}</h3>
                                 {pedidoDetalle.es_apartado && (
                                     <span style={{ fontSize: '0.78rem', background: '#a78bfa22', color: '#a78bfa', borderRadius: 4, padding: '2px 8px', fontWeight: 600 }}>
-                                        🔖 Originado de apartado {pedidoDetalle.apartado_folio}
+                                        Originado de apartado {pedidoDetalle.apartado_folio}
                                     </span>
                                 )}
                                 <p className="cp-modal-fecha">{formatFechaHora(pedidoDetalle.fecha_creacion)}</p>
@@ -540,7 +540,7 @@ const ClientePedidosScreen: React.FC = () => {
                                     <StepperPedido estado={pedidoDetalle.estado} estado_pago={pedidoDetalle.estado_pago || 'pendiente'} />
                                     <div className="cp-modal-estado">
                                         {getBadge(pedidoDetalle.estado)}
-                                        {['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && <span className="cp-pago-badge cp-pago-ok">✅ Pago completado</span>}
+                                        {['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && <span className="cp-pago-badge cp-pago-ok">Pago completado</span>}
                                         {pedidoDetalle.trabajador_nombre && pedidoDetalle.estado !== 'pendiente' && (
                                             <span className="cp-modal-trabajador">Atendido por: {pedidoDetalle.trabajador_nombre}</span>
                                         )}
@@ -548,38 +548,38 @@ const ClientePedidosScreen: React.FC = () => {
                                     {pedidoDetalle.notas_internas && (
                                         <div className="cp-modal-nota-trabajador">
                                             <p>
-                                                {pedidoDetalle.estado === 'cancelado' ? '🚫' : '💬'}
+                                                
                                                 <strong> {pedidoDetalle.estado === 'cancelado' ? 'Motivo de cancelación:' : 'Nota del trabajador:'}</strong> {pedidoDetalle.notas_internas.replace('CANCELADO: ', '')}
                                             </p>
                                         </div>
                                     )}
                                     <div className="cp-modal-seccion">
-                                        <h4>📅 Fecha estimada de entrega</h4>
+                                        <h4>Fecha estimada de entrega</h4>
                                         <p>{pedidoDetalle.fecha_estimada_entrega ? formatFecha(pedidoDetalle.fecha_estimada_entrega) : 'Por confirmar — el trabajador la indicará al procesar tu pedido'}</p>
                                     </div>
                                     {pedidoDetalle.tipo_entrega === 'domicilio' && pedidoDetalle.dir_calle ? (
                                         <div className="cp-modal-seccion">
-                                            <h4>📍 Dirección de envío</h4>
+                                            <h4>Dirección de envío</h4>
                                             <p>
                                                 {pedidoDetalle.dir_calle} {pedidoDetalle.dir_numero}{pedidoDetalle.dir_numero_interior ? ` Int. ${pedidoDetalle.dir_numero_interior}` : ''}, {pedidoDetalle.dir_colonia}, {pedidoDetalle.dir_ciudad}, {pedidoDetalle.dir_estado}, CP {pedidoDetalle.dir_codigo_postal}
-                                                {pedidoDetalle.dir_telefono_contacto && <><br/>📱 {pedidoDetalle.dir_telefono_contacto}</>}
-                                                {pedidoDetalle.dir_referencias && <><br/>📌 {pedidoDetalle.dir_referencias}</>}
+                                                {pedidoDetalle.dir_telefono_contacto && <><br/>Tel. {pedidoDetalle.dir_telefono_contacto}</>}
+                                                {pedidoDetalle.dir_referencias && <><br/>{pedidoDetalle.dir_referencias}</>}
                                             </p>
                                         </div>
                                     ) : pedidoDetalle.tipo_entrega === 'tienda' ? (
                                         <div className="cp-modal-seccion">
-                                            <h4>📍 Tipo de entrega</h4>
-                                            <p>🏪 Recoger en tienda</p>
+                                            <h4>Tipo de entrega</h4>
+                                            <p>Recoger en tienda</p>
                                         </div>
                                     ) : null}
                                     {pedidoDetalle.notas_cliente && (
                                         <div className="cp-modal-seccion">
-                                            <h4>📝 Notas del pedido</h4>
+                                            <h4>Notas del pedido</h4>
                                             <p>{pedidoDetalle.notas_cliente}</p>
                                         </div>
                                     )}
                                     <div className="cp-modal-seccion">
-                                        <h4>🛍 Productos</h4>
+                                        <h4>Productos</h4>
                                         <div className="cp-modal-items">
                                             {(pedidoDetalle.items || []).map((item, i) => (
                                                 <div key={i} className="cp-modal-item">
@@ -592,7 +592,7 @@ const ClientePedidosScreen: React.FC = () => {
                                                         {item.precio_original && item.precio_original > item.precio_unitario ? (
                                                             <>
                                                                 <p className="cp-modal-item-sub" style={{textDecoration:'line-through', opacity:0.5}}>{item.cantidad} × ${Number.parseFloat(String(item.precio_original)).toLocaleString('es-MX')}</p>
-                                                                <p className="cp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')} <span style={{color:'#c9a84c', fontWeight:600}}>🏷️ -${Number.parseFloat(String(item.descuento_unitario)).toLocaleString('es-MX')} c/u</span></p>
+                                                                <p className="cp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')} <span className="cp-descuento-unitario">-${Number.parseFloat(String(item.descuento_unitario)).toLocaleString('es-MX')} c/u</span></p>
                                                             </>
                                                         ) : (
                                                             <p className="cp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')}</p>
@@ -607,22 +607,22 @@ const ClientePedidosScreen: React.FC = () => {
                                         <div className="cp-modal-total-fila"><span>Subtotal</span><span>${Number.parseFloat(String(pedidoDetalle.subtotal)).toLocaleString('es-MX')}</span></div>
                                         <div className="cp-modal-total-fila"><span>IVA (16%)</span><span>${Number.parseFloat(String(pedidoDetalle.iva)).toLocaleString('es-MX')}</span></div>
                                         {Number.parseFloat(String(pedidoDetalle.costo_envio)) > 0 && (
-                                            <div className="cp-modal-total-fila"><span>🚚 Envío a domicilio</span><span>+${Number.parseFloat(String(pedidoDetalle.costo_envio)).toLocaleString('es-MX')}</span></div>
+                                            <div className="cp-modal-total-fila"><span>Envío a domicilio</span><span>+${Number.parseFloat(String(pedidoDetalle.costo_envio)).toLocaleString('es-MX')}</span></div>
                                         )}
                                         <div className="cp-modal-total-fila cp-modal-total-final"><span>Total</span><span>${Number.parseFloat(String(pedidoDetalle.total)).toLocaleString('es-MX')}</span></div>
                                     </div>
                                     {pedidoDetalle.es_apartado && (
                                         <div className="cp-pago-completado" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
-                                            <div>✅ <strong>Pago completado — Pedido originado de apartado</strong></div>
+                                            <div><strong>Pago completado — Pedido originado de apartado</strong></div>
                                             <div style={{ fontSize: '0.85em', opacity: 0.85, lineHeight: '1.5' }}>
-                                                💳 Este pedido fue liquidado mediante un plan de apartado.<br />
-                                                🏪 Recuerda pasar a recoger tu producto a la tienda una vez que esté listo.
+                                                Este pedido fue liquidado mediante un plan de apartado.<br />
+                                                Recuerda pasar a recoger tu producto a la tienda una vez que esté listo.
                                             </div>
                                         </div>
                                     )}
                                     {!pedidoDetalle.es_apartado && renderSeccionPago(pedidoDetalle)}
                                     {!pedidoDetalle.es_apartado && ['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && (
-                                        <div className="cp-pago-completado">✅ <strong>Pago completado</strong></div>
+                                        <div className="cp-pago-completado"><strong>Pago completado</strong></div>
                                     )}
 
                                     {/* ✅ Código de entrega */}
@@ -630,7 +630,7 @@ const ClientePedidosScreen: React.FC = () => {
                                     pedidoDetalle.codigo_entrega &&
                                     !['entregado','cancelado'].includes(pedidoDetalle.estado) && (
                                         <div className="cp-codigo-entrega">
-                                            <h4>🎟️ Tu código de entrega</h4>
+                                            <h4>Tu código de entrega</h4>
                                             <p className="cp-codigo-entrega-desc">Muestra este código al trabajador al momento de recibir tu pedido</p>
                                             <div className="cp-codigo-valor">{pedidoDetalle.codigo_entrega}</div>
                                         </div>
@@ -638,7 +638,7 @@ const ClientePedidosScreen: React.FC = () => {
 
 
                                     {pedidoDetalle.estado === 'entregado' && (
-                                        <button className="cp-btn-recibo" onClick={() => descargarRecibo(pedidoDetalle)}>📄 Ver / Descargar recibo</button>
+                                        <button className="cp-btn-recibo" onClick={() => descargarRecibo(pedidoDetalle)}>Ver / Descargar recibo</button>
                                     )}
                                 </>
                             )}

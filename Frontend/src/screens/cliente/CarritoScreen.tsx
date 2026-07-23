@@ -1,12 +1,15 @@
 // Ruta: Frontend/src/screens/cliente/CarritoScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AiOutlineDelete, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineArrowLeft } from 'react-icons/ai';
+import {
+    AiOutlineDelete, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart,
+    AiOutlineShop, AiOutlineCar, AiOutlineCreditCard, AiOutlineBank, AiOutlineDollarCircle,
+} from 'react-icons/ai';
 import { useCart } from '../../contexts/CartContext';
 import { carritoAPI, apartadoAPI, recomendacionAPI, type Recomendacion } from '../../services/api';
 import './CarritoScreen.css';
 
-const PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzFhMWEyZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQwIiBmaWxsPSIjZWNiMmMzIj7oo6s8L3RleHQ+PC9zdmc+';
+const PLACEHOLDER = `data:image/svg+xml;utf8,<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="%23141414"/><g transform="translate(150,150)" stroke="%23594936" stroke-width="1.5" fill="none" opacity="0.7"><path d="M-22,-14 L22,-14 L32,-2 L0,34 L-32,-2 Z"/><path d="M-22,-14 L0,-2 L22,-14 M-32,-2 L32,-2 M0,-2 L0,34"/></g></svg>`;
 const STOCK_POCO = 5;
 
 interface MetodoPago {
@@ -17,11 +20,11 @@ interface MetodoPago {
     es_pasarela: boolean;
 }
 
-const ICONOS_METODO: Record<string, string> = {
-    mercadopago:   '🛒',
-    paypal:        '🅿️',
-    transferencia: '🏦',
-    efectivo:      '💵',
+const ICONOS_METODO: Record<string, React.ReactNode> = {
+    mercadopago:   <AiOutlineCreditCard size={18} />,
+    paypal:        <AiOutlineCreditCard size={18} />,
+    transferencia: <AiOutlineBank size={18} />,
+    efectivo:      <AiOutlineDollarCircle size={18} />,
 };
 
 interface DireccionData {
@@ -109,9 +112,9 @@ const SelectorDireccion: React.FC<{ onChange: (dir: DireccionData) => void }> = 
                 <label>Código Postal <span className="carrito-requerido">*</span></label>
                 <input type="text" className={ic} placeholder="Ej: 43000"
                     value={cp} onChange={e => handleCpChange(e.target.value)} maxLength={5} />
-                {cargando && <span className="carrito-dir-cargando">⏳ Buscando...</span>}
-                {cpValido && !cargando && <span className="carrito-cp-ok">✅ CP encontrado — {colonias.length} colonias disponibles</span>}
-                {cpError  && <span className="carrito-cp-error">⚠️ {cpError}</span>}
+                {cargando && <span className="carrito-dir-cargando">Buscando...</span>}
+                {cpValido && !cargando && <span className="carrito-cp-ok">CP encontrado — {colonias.length} colonias disponibles</span>}
+                {cpError  && <span className="carrito-cp-error">{cpError}</span>}
             </div>
             {cpValido && (
                 <div className="carrito-dir-fila-2">
@@ -131,7 +134,7 @@ const SelectorDireccion: React.FC<{ onChange: (dir: DireccionData) => void }> = 
                     <select className={ic} value={colonia} onChange={e => setColonia(e.target.value)}>
                         <option value="">— Selecciona una colonia —</option>
                         {colonias.map((c, i) => <option key={i} value={c}>{c}</option>)}
-                        <option value="__otra__">✏️ Mi colonia no aparece</option>
+                        <option value="__otra__">Mi colonia no aparece</option>
                     </select>
                     {colonia === '__otra__' && (
                         <input type="text" className={ic} style={{ marginTop: '8px' }}
@@ -171,7 +174,7 @@ const SelectorDireccion: React.FC<{ onChange: (dir: DireccionData) => void }> = 
             </div>
             {cpValido && calle && colonia && (
                 <div className="carrito-dir-preview">
-                    <span>📍</span>
+                    
                     <p>{[calle && numero ? `${calle} ${numero}` : calle, colonia, municipio, estado, `CP ${cp}`].filter(Boolean).join(', ')}</p>
                 </div>
             )}
@@ -337,7 +340,7 @@ const CarritoScreen: React.FC = () => {
         return (
             <main className="carrito-body">
                 <div className="carrito-exito">
-                    <div className="carrito-exito-icon">🔖</div>
+                    <div className="carrito-exito-icon" />
                     <h2>¡Producto apartado!</h2>
                     <p>Tu apartado <strong>{folioApartado}</strong> fue registrado correctamente.</p>
                     <p className="carrito-exito-sub">Recuerda realizar tus abonos a tiempo para no perder tu apartado.</p>
@@ -355,7 +358,7 @@ const CarritoScreen: React.FC = () => {
         return (
             <main className="carrito-body">
                 <div className="carrito-exito">
-                    <div className="carrito-exito-icon">🎉</div>
+                    <div className="carrito-exito-icon" />
                     <h2>¡Pedido solicitado!</h2>
                     <p>Tu pedido <strong>{folioPedido}</strong> fue recibido correctamente.</p>
                     <p className="carrito-exito-sub">Un trabajador revisará tu pedido y te notificará cuando esté confirmado.</p>
@@ -383,15 +386,25 @@ const CarritoScreen: React.FC = () => {
 
     return (
         <main className="carrito-body">
-            <nav className="carrito-breadcrumb">
-                <button className="carrito-back-btn" onClick={() => navigate('/catalogo')}>
-                    <AiOutlineArrowLeft size={16} /> Catálogo
-                </button>
-                <span className="carrito-bc-sep">/</span>
-                <span className="carrito-bc-current">Mi Carrito</span>
-            </nav>
-
-            <h1 className="carrito-titulo">Mi Carrito <span className="carrito-count-badge">{count}</span></h1>
+            <div className="carrito-encabezado">
+                <h1 className="carrito-titulo">Mi Carrito <span className="carrito-count-badge">{count}</span></h1>
+                <ol className="carrito-stepper">
+                    <li className="carrito-stepper-paso is-activo">
+                        <span className="carrito-stepper-num">1</span>
+                        <span className="carrito-stepper-label">Tu selección</span>
+                    </li>
+                    <li className="carrito-stepper-linea" />
+                    <li className="carrito-stepper-paso">
+                        <span className="carrito-stepper-num">2</span>
+                        <span className="carrito-stepper-label">Entrega y pago</span>
+                    </li>
+                    <li className="carrito-stepper-linea" />
+                    <li className="carrito-stepper-paso">
+                        <span className="carrito-stepper-num">3</span>
+                        <span className="carrito-stepper-label">Confirmación</span>
+                    </li>
+                </ol>
+            </div>
 
             <div className="carrito-layout">
                 <section className="carrito-items">
@@ -417,10 +430,10 @@ const CarritoScreen: React.FC = () => {
                                         <p className="carrito-item-categoria">{item.categoria_nombre}</p>
                                         <h3 className="carrito-item-nombre">
                                             {item.producto_nombre}
-                                            {esPersonalizado && <span className="carrito-badge-personalizado">✏️ Personalizado</span>}
+                                            {esPersonalizado && <span className="carrito-badge-personalizado">Personalizado</span>}
                                         </h3>
                                         {item.talla_medida && <p className="carrito-item-detalle">Talla/Medida: <strong>{item.talla_medida}</strong></p>}
-                                        {item.nota && <p className="carrito-item-detalle carrito-item-nota">📝 {item.nota}</p>}
+                                        {item.nota && <p className="carrito-item-detalle carrito-item-nota">{item.nota}</p>}
                                         {cargoPersonalizacion > 0 && (
                                             <p className="carrito-item-cargo">+ ${cargoPersonalizacion.toLocaleString('es-MX')} por personalización</p>
                                         )}
@@ -429,11 +442,11 @@ const CarritoScreen: React.FC = () => {
                                             <span className="carrito-precio-final">${precio.toLocaleString('es-MX')}</span>
                                         </div>
                                         {sinStock ? (
-                                            <span className="carrito-stock carrito-stock-agotado">❌ Sin stock</span>
+                                            <span className="carrito-stock carrito-stock-agotado">Sin stock</span>
                                         ) : pocoPoco ? (
-                                            <span className="carrito-stock carrito-stock-poco">⚠️ Quedan solo {item.stock_actual} unidades</span>
+                                            <span className="carrito-stock carrito-stock-poco">Quedan solo {item.stock_actual} unidades</span>
                                         ) : (
-                                            <span className="carrito-stock carrito-stock-ok">✅ Disponible ({item.stock_actual} en stock)</span>
+                                            <span className="carrito-stock carrito-stock-ok">Disponible ({item.stock_actual} en stock)</span>
                                         )}
                                     </div>
                                     <div className="carrito-item-acciones">
@@ -451,7 +464,7 @@ const CarritoScreen: React.FC = () => {
                     )}
                     {items.length > 0 && (
                         <div className="carrito-vaciar-row">
-                            <button className="carrito-btn-vaciar" onClick={vaciarCarrito}>🗑️ Vaciar carrito</button>
+                            <button className="carrito-btn-vaciar" onClick={vaciarCarrito}>Vaciar carrito</button>
                         </div>
                     )}
                 </section>
@@ -459,7 +472,7 @@ const CarritoScreen: React.FC = () => {
                 <aside className="carrito-resumen">
                     {promoNoAplica && (
                         <div className="carrito-promo-aviso">
-                            ⚠️ La promoción <strong>"{promoNoAplica.nombre}"</strong> requiere un mínimo de compra de <strong>${promoNoAplica.minimo.toLocaleString('es-MX')}</strong>. Agrega más productos para obtener el descuento.
+                            La promoción <strong>"{promoNoAplica.nombre}"</strong> requiere un mínimo de compra de <strong>${promoNoAplica.minimo.toLocaleString('es-MX')}</strong>. Agrega más productos para obtener el descuento.
                         </div>
                     )}
                     <div className="carrito-resumen-card">
@@ -470,7 +483,7 @@ const CarritoScreen: React.FC = () => {
                             return ahorro > 0 ? (
                                 <>
                                     <div className="carrito-resumen-fila" style={{textDecoration:'line-through', opacity:0.5}}><span>Precio normal</span><span>${totalSinPromo.toLocaleString('es-MX')}</span></div>
-                                    <div className="carrito-resumen-fila" style={{color:'#c9a84c', fontWeight:600}}><span>🏷️ Descuento promo</span><span>-${ahorro.toLocaleString('es-MX')}</span></div>
+                                    <div className="carrito-resumen-fila" style={{color:'#e8d5b7', fontWeight:600}}><span>Descuento promo</span><span>-${ahorro.toLocaleString('es-MX')}</span></div>
                                 </>
                             ) : null;
                         })()}
@@ -486,7 +499,7 @@ const CarritoScreen: React.FC = () => {
                         <button className="carrito-btn-apartado"
                             onClick={() => { setShowApartado(true); cargarMetodosPago(); }}
                             disabled={items.length === 0}>
-                            🔖 Apartar (50% ahora)
+                            Apartar (50% ahora)
                         </button>
                         <p className="carrito-resumen-nota">Un trabajador revisará tu pedido antes de confirmar el pago.</p>
                         <p className="carrito-apartado-nota">Aparta tus productos pagando el 50% y liquida el resto en cómodas parcialidades.</p>
@@ -517,15 +530,15 @@ const CarritoScreen: React.FC = () => {
                                         <input type="radio" name="tipo_entrega" value="tienda"
                                             checked={tipoEntrega === 'tienda'}
                                             onChange={() => setTipoEntrega('tienda')} />
-                                        <span className="carrito-metodo-icono">🏪</span>
-                                        <span className="carrito-metodo-nombre">Recoger en tienda <small style={{color:'#6bcb77'}}>(Sin costo)</small></span>
+                                        <span className="carrito-metodo-icono"><AiOutlineShop size={18} /></span>
+                                        <span className="carrito-metodo-nombre">Recoger en tienda <small className="carrito-metodo-nota carrito-metodo-nota--ok">(Sin costo)</small></span>
                                     </label>
                                     <label className={`carrito-metodo-opcion ${tipoEntrega === 'domicilio' ? 'seleccionado' : ''}`}>
                                         <input type="radio" name="tipo_entrega" value="domicilio"
                                             checked={tipoEntrega === 'domicilio'}
                                             onChange={() => setTipoEntrega('domicilio')} />
-                                        <span className="carrito-metodo-icono">🚚</span>
-                                        <span className="carrito-metodo-nombre">Envío a domicilio <small style={{color:'#ecb2c3'}}>(+${costoEnvio.toLocaleString('es-MX')} MXN)</small></span>
+                                        <span className="carrito-metodo-icono"><AiOutlineCar size={18} /></span>
+                                        <span className="carrito-metodo-nombre">Envío a domicilio <small className="carrito-metodo-nota">(+${costoEnvio.toLocaleString('es-MX')} MXN)</small></span>
                                     </label>
                                 </div>
                             </div>
@@ -536,25 +549,25 @@ const CarritoScreen: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="carrito-metodo-info">
-                                    🏪 <strong>Recoger en tienda:</strong> Te avisaremos cuando tu pedido esté listo. Preséntate en nuestra sucursal con tu código de entrega.
+                                    <strong>Recoger en tienda:</strong> Te avisaremos cuando tu pedido esté listo. Preséntate en nuestra sucursal con tu código de entrega.
                                 </div>
                             )}
                             <div className="carrito-form-group">
                                 <label>Método de pago <span className="carrito-requerido">*</span></label>
                                 {cargandoMetodos ? (
-                                    <div className="carrito-dir-cargando">⏳ Cargando métodos de pago...</div>
+                                    <div className="carrito-dir-cargando">Cargando métodos de pago...</div>
                                 ) : (
                                     <div className="carrito-metodos-pago">
                                         {pasarelas.length > 0 && (
                                             <div className="carrito-metodos-grupo">
-                                                <p className="carrito-metodos-titulo">💳 Pago en línea</p>
+                                                <p className="carrito-metodos-titulo">Pago en línea</p>
                                                 <div className="carrito-metodos-opciones">
                                                     {pasarelas.map(m => (
                                                         <label key={m.id} className={`carrito-metodo-opcion ${metodoPagoId === m.id ? 'seleccionado' : ''}`}>
                                                             <input type="radio" name="metodo_pago" value={m.id}
                                                                 checked={metodoPagoId === m.id}
                                                                 onChange={() => setMetodoPagoId(m.id)} />
-                                                            <span className="carrito-metodo-icono">{ICONOS_METODO[m.codigo] || '💳'}</span>
+                                                            <span className="carrito-metodo-icono">{ICONOS_METODO[m.codigo] || <AiOutlineCreditCard size={18} />}</span>
                                                             <span className="carrito-metodo-nombre">{m.nombre}</span>
                                                         </label>
                                                     ))}
@@ -563,14 +576,14 @@ const CarritoScreen: React.FC = () => {
                                         )}
                                         {otros.length > 0 && (
                                             <div className="carrito-metodos-grupo">
-                                                <p className="carrito-metodos-titulo">🏪 Otros métodos</p>
+                                                <p className="carrito-metodos-titulo">Otros métodos</p>
                                                 <div className="carrito-metodos-opciones">
                                                     {otros.map(m => (
                                                         <label key={m.id} className={`carrito-metodo-opcion ${metodoPagoId === m.id ? 'seleccionado' : ''}`}>
                                                             <input type="radio" name="metodo_pago" value={m.id}
                                                                 checked={metodoPagoId === m.id}
                                                                 onChange={() => setMetodoPagoId(m.id)} />
-                                                            <span className="carrito-metodo-icono">{ICONOS_METODO[m.codigo] || '💰'}</span>
+                                                            <span className="carrito-metodo-icono">{ICONOS_METODO[m.codigo] || <AiOutlineDollarCircle size={18} />}</span>
                                                             <span className="carrito-metodo-nombre">{m.nombre}</span>
                                                         </label>
                                                     ))}
@@ -582,17 +595,17 @@ const CarritoScreen: React.FC = () => {
                                             if (!m) return null;
                                             if (m.es_pasarela) return (
                                                 <div className="carrito-metodo-info">
-                                                    💳 Serás redirigido a <strong>{m.nombre}</strong> para completar el pago después de que el trabajador confirme tu pedido.
+                                                    Serás redirigido a <strong>{m.nombre}</strong> para completar el pago después de que el trabajador confirme tu pedido.
                                                 </div>
                                             );
                                             if (m.codigo === 'transferencia') return (
                                                 <div className="carrito-metodo-info">
-                                                    🏦 Deberás realizar una transferencia bancaria y subir tu comprobante. El trabajador verificará el pago.
+                                                    Deberás realizar una transferencia bancaria y subir tu comprobante. El trabajador verificará el pago.
                                                 </div>
                                             );
                                             if (m.codigo === 'efectivo') return (
                                                 <div className="carrito-metodo-info">
-                                                    💵 Podrás pagar en efectivo al momento de la entrega o en nuestra tienda.
+                                                    Podrás pagar en efectivo al momento de la entrega o en nuestra tienda.
                                                 </div>
                                             );
                                             return null;
@@ -601,21 +614,21 @@ const CarritoScreen: React.FC = () => {
                                 )}
                             </div>
                             <div className="carrito-form-group">
-                                <label>📝 Notas e instrucciones para tu pedido (opcional)</label>
+                                <label>Notas e instrucciones para tu pedido (opcional)</label>
                                 <textarea rows={3}
                                     placeholder="Ej: talla del anillo 7, grabado con nombre 'Ana', color preferido..."
                                     value={notasCliente} onChange={e => setNotasCliente(e.target.value)}
                                     className="carrito-textarea" />
                                 <small className="carrito-form-ayuda">¿Necesitas alguna personalización, talla específica o tienes alguna indicación para tu pedido? Escríbela aquí.</small>
                             </div>
-                            {errorMsg && <div className="carrito-error-msg">⚠️ {errorMsg}</div>}
+                            {errorMsg && <div className="carrito-error-msg">{errorMsg}</div>}
                             <div className="carrito-modal-resumen">
                                 {(() => {
                                     const totalSinPromo = items.reduce((s, i) => s + Number.parseFloat(String(i.precio_venta)) * i.cantidad, 0);
                                     const ahorro = totalSinPromo - total;
                                     return ahorro > 0 ? (
-                                        <div className="carrito-resumen-fila" style={{color:'#c9a84c', fontSize:'0.85rem'}}>
-                                            <span>🏷️ Descuento aplicado</span><span>-${ahorro.toLocaleString('es-MX')}</span>
+                                        <div className="carrito-resumen-fila" style={{color:'#e8d5b7', fontSize:'0.85rem'}}>
+                                            <span>Descuento aplicado</span><span>-${ahorro.toLocaleString('es-MX')}</span>
                                         </div>
                                     ) : null;
                                 })()}
@@ -638,7 +651,7 @@ const CarritoScreen: React.FC = () => {
                         <div className="carrito-modal-footer">
                             <button className="carrito-btn-secundario" onClick={() => setShowCheckout(false)}>Cancelar</button>
                             <button className="carrito-btn-primario" onClick={handleSolicitarPedido} disabled={solicitando}>
-                                {solicitando ? '⏳ Enviando...' : '✅ Confirmar pedido'}
+                                {solicitando ? 'Enviando...' : 'Confirmar pedido'}
                             </button>
                         </div>
                     </div>
@@ -650,12 +663,12 @@ const CarritoScreen: React.FC = () => {
                 <div className="carrito-modal-overlay" onClick={() => setShowApartado(false)}>
                     <div className="carrito-modal carrito-modal-grande" onClick={e => e.stopPropagation()}>
                         <div className="carrito-modal-header">
-                            <h2>🔖 Apartar productos</h2>
+                            <h2>Apartar productos</h2>
                             <button className="carrito-modal-close" onClick={() => setShowApartado(false)}>×</button>
                         </div>
                         <div className="carrito-modal-body">
                             <div className="carrito-apartado-info">
-                                <p>💡 Al apartar, el <strong>50% mínimo</strong> se cobra ahora y el stock queda reservado para ti.</p>
+                                <p>Al apartar, el <strong>50% mínimo</strong> se cobra ahora y el stock queda reservado para ti.</p>
                             </div>
                             <div className="carrito-modal-resumen">
                                 {(() => {
@@ -666,8 +679,8 @@ const CarritoScreen: React.FC = () => {
                                             <div className="carrito-resumen-fila" style={{opacity:0.5, textDecoration:'line-through', fontSize:'0.85rem'}}>
                                                 <span>Precio original</span><span>${totalSinPromo.toLocaleString('es-MX')}</span>
                                             </div>
-                                            <div className="carrito-resumen-fila" style={{color:'#c9a84c', fontSize:'0.85rem', fontWeight:600}}>
-                                                <span>🏷️ Descuento aplicado</span><span>-${ahorro.toLocaleString('es-MX')}</span>
+                                            <div className="carrito-resumen-fila" style={{color:'#e8d5b7', fontSize:'0.85rem', fontWeight:600}}>
+                                                <span>Descuento aplicado</span><span>-${ahorro.toLocaleString('es-MX')}</span>
                                             </div>
                                         </>
                                     ) : null;
@@ -676,7 +689,7 @@ const CarritoScreen: React.FC = () => {
                                     <span>Total del pedido</span>
                                     <span>${total.toLocaleString('es-MX')}</span>
                                 </div>
-                                <div className="carrito-resumen-fila" style={{ color: '#6bcb77' }}>
+                                <div className="carrito-resumen-fila" style={{ color: '#e8d5b7' }}>
                                     <span>Mínimo para apartar (50%)</span>
                                     <span>${(total * 0.5).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
                                 </div>
@@ -698,7 +711,7 @@ const CarritoScreen: React.FC = () => {
                             <div className="carrito-form-group">
                                 <label>Plan de pagos (opcional)</label>
                                 {cargandoPlanes ? (
-                                    <div className="carrito-dir-cargando">⏳ Cargando planes...</div>
+                                    <div className="carrito-dir-cargando">Cargando planes...</div>
                                 ) : planes.length === 0 ? (
                                     <p className="carrito-form-ayuda">No hay planes disponibles por el momento.</p>
                                 ) : (
@@ -734,10 +747,10 @@ const CarritoScreen: React.FC = () => {
                                             const numPagos = montoPag > 0 ? Math.ceil(saldo / montoPag) : 0;
                                             return (
                                                 <div className="carrito-plan-preview">
-                                                    <p>📅 <strong>Tu calendario de pagos:</strong></p>
+                                                    <p><strong>Tu calendario de pagos:</strong></p>
                                                     <p>Abono inicial ahora: <strong>${abono.toLocaleString('es-MX')}</strong></p>
                                                     {saldo <= 0
-                                                        ? <p style={{ color: '#6bcb77' }}>✅ Con este abono liquidas el apartado completo.</p>
+                                                        ? <p style={{ color: '#e8d5b7' }}>Con este abono liquidas el apartado completo.</p>
                                                         : <p>Luego: <strong>{numPagos} pago{numPagos !== 1 ? 's' : ''}</strong> de <strong>${montoPag.toLocaleString('es-MX')}</strong> cada <strong>{plan.intervalo_dias} días</strong></p>
                                                     }
                                                 </div>
@@ -749,7 +762,7 @@ const CarritoScreen: React.FC = () => {
                             <div className="carrito-form-group">
                                 <label>Método de pago del abono inicial <span className="carrito-requerido">*</span></label>
                                 {cargandoMetodos ? (
-                                    <div className="carrito-dir-cargando">⏳ Cargando métodos de pago...</div>
+                                    <div className="carrito-dir-cargando">Cargando métodos de pago...</div>
                                 ) : (
                                     <div className="carrito-metodos-opciones">
                                         {metodosPago.map(m => (
@@ -757,19 +770,19 @@ const CarritoScreen: React.FC = () => {
                                                 <input type="radio" name="metodo_apartado"
                                                     checked={metodoPagoApartadoId === m.id}
                                                     onChange={() => setMetodoPagoApartadoId(m.id)} />
-                                                <span className="carrito-metodo-icono">{ICONOS_METODO[m.codigo] || '💰'}</span>
+                                                <span className="carrito-metodo-icono">{ICONOS_METODO[m.codigo] || <AiOutlineDollarCircle size={18} />}</span>
                                                 <span className="carrito-metodo-nombre">{m.nombre}</span>
                                             </label>
                                         ))}
                                     </div>
                                 )}
                             </div>
-                            {errorApartado && <div className="carrito-error-msg">⚠️ {errorApartado}</div>}
+                            {errorApartado && <div className="carrito-error-msg">{errorApartado}</div>}
                         </div>
                         <div className="carrito-modal-footer">
                             <button className="carrito-btn-secundario" onClick={() => setShowApartado(false)}>Cancelar</button>
                             <button className="carrito-btn-primario" onClick={handleApartar} disabled={solicitandoApartado}>
-                                {solicitandoApartado ? '⏳ Apartando...' : '🔖 Confirmar apartado'}
+                                {solicitandoApartado ? 'Apartando...' : 'Confirmar apartado'}
                             </button>
                         </div>
                     </div>
@@ -778,7 +791,7 @@ const CarritoScreen: React.FC = () => {
             {recsCarrito.length > 0 && (
                 <section className="carrito-recs">
                     <div className="carrito-recs-inner">
-                        <h3 className="carrito-recs-titulo">✨ Productos similares que podrían interesarte</h3>
+                        <h3 className="carrito-recs-titulo">Productos similares que podrían interesarte</h3>
                         <ul className="carrito-recs-lista">
                             {recsCarrito.map((r, i) => (
                                 <li
@@ -787,11 +800,8 @@ const CarritoScreen: React.FC = () => {
                                     onClick={() => r.id ? navigate(`/producto/${r.id}`) : navigate(`/catalogo?buscar=${encodeURIComponent(r.nombre)}`)}
                                 >
                                     <div className="carrito-recs-card-img">
-                                        {r.imagen_url ? (
-                                            <img src={r.imagen_url} alt={r.nombre} loading="lazy" />
-                                        ) : (
-                                            <span className="carrito-recs-img-fallback">💍</span>
-                                        )}
+                                        <img src={r.imagen_url || PLACEHOLDER} alt={r.nombre} loading="lazy"
+                                            onError={e => { (e.target as HTMLImageElement).src = PLACEHOLDER; }} />
                                     </div>
                                     <div className="carrito-recs-card-info">
                                         <span className="carrito-recs-card-nombre">{r.nombre}</span>

@@ -1,7 +1,11 @@
 // Frontend/src/screens/admin/proveedores/AdminProveedoresScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AiOutlinePlus, AiOutlineSearch, AiOutlineReload, AiOutlineEdit, AiOutlineDelete, AiOutlineInfo, AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
+import {
+  AiOutlinePlus, AiOutlineSearch, AiOutlineReload, AiOutlineEdit, AiOutlineDelete, AiOutlineInfo,
+  AiOutlineMail, AiOutlinePhone, AiOutlineShop, AiOutlineIdcard, AiOutlineCheckCircle, AiOutlineStop,
+  AiOutlineLeft, AiOutlineRight,
+} from 'react-icons/ai';
 import { proveedoresAPI } from '../../../services/api';
 import './AdminProveedoresScreen.css';
 
@@ -15,7 +19,11 @@ interface Proveedor {
   persona_contacto: string;
   activo: boolean;
   fecha_creacion: string;
+  imagen_url?: string;
 }
+
+const iniciales = (nombre: string) =>
+  nombre.trim().split(/\s+/).slice(0, 2).map(p => p[0]?.toUpperCase()).join('') || '?';
 
 const AdminProveedoresScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +33,8 @@ const AdminProveedoresScreen: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
   const [filtroActivo, setFiltroActivo] = useState<'todos' | 'activos' | 'inactivos'>('todos');
+  const [paginaActual, setPaginaActual] = useState(1);
+  const PROVEEDORES_POR_PAGINA = 9;
 
   useEffect(() => {
     cargarProveedores();
@@ -33,6 +43,10 @@ const AdminProveedoresScreen: React.FC = () => {
   useEffect(() => {
     filtrarProveedores();
   }, [searchTerm, filtroActivo, proveedores]);
+
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [searchTerm, filtroActivo]);
 
   const cargarProveedores = async () => {
     try {
@@ -56,17 +70,15 @@ const AdminProveedoresScreen: React.FC = () => {
   const filtrarProveedores = () => {
     let filtrados = [...proveedores];
 
-    // Filtrar por estado
     if (filtroActivo === 'activos') {
       filtrados = filtrados.filter(p => p.activo);
     } else if (filtroActivo === 'inactivos') {
       filtrados = filtrados.filter(p => !p.activo);
     }
 
-    // Filtrar por búsqueda
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
-      filtrados = filtrados.filter(p => 
+      filtrados = filtrados.filter(p =>
         p.nombre.toLowerCase().includes(term) ||
         p.razon_social?.toLowerCase().includes(term) ||
         p.rfc?.toLowerCase().includes(term) ||
@@ -82,7 +94,6 @@ const AdminProveedoresScreen: React.FC = () => {
     if (!window.confirm(`¿Estás seguro de que deseas eliminar al proveedor "${nombre}"?`)) {
       return;
     }
-
     try {
       const response = await proveedoresAPI.delete(id);
       if (response.success) {
@@ -109,38 +120,55 @@ const AdminProveedoresScreen: React.FC = () => {
   };
 
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('es-CO', {
+    return new Date(dateString).toLocaleDateString('es-MX', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
   };
 
+  const totalActivos = proveedores.filter(p => p.activo).length;
+  const totalInactivos = proveedores.length - totalActivos;
+
+  const totalPaginas = Math.max(1, Math.ceil(proveedoresFiltrados.length / PROVEEDORES_POR_PAGINA));
+  const proveedoresPagina = proveedoresFiltrados.slice(
+    (paginaActual - 1) * PROVEEDORES_POR_PAGINA,
+    paginaActual * PROVEEDORES_POR_PAGINA
+  );
+
   return (
-    <div className="proveedores-container">
+    <div className="pv-container">
       {/* Header */}
-      <div className="proveedores-header">
-        <h1>🏢 Proveedores</h1>
-        <button
-          className="btn-nuevo-proveedor"
-          onClick={() => navigate('/admin/proveedor/nuevo')}
-        >
+      <div className="pv-header">
+        <h1><AiOutlineShop size={24} /> Proveedores</h1>
+        <button className="pv-btn-nuevo" onClick={() => navigate('/admin/proveedor/nuevo')}>
           <AiOutlinePlus size={20} />
           Nuevo Proveedor
         </button>
       </div>
 
-      {/* Error Alert */}
-      {error && (
-        <div className="alert alert-error">
-          {error}
+      {/* Estadísticas */}
+      <div className="pv-stats">
+        <div className="pv-stat">
+          <span className="pv-stat-num">{proveedores.length}</span>
+          <span className="pv-stat-label">Total</span>
         </div>
-      )}
+        <div className="pv-stat pv-stat-ok">
+          <span className="pv-stat-num">{totalActivos}</span>
+          <span className="pv-stat-label">Activos</span>
+        </div>
+        <div className="pv-stat pv-stat-off">
+          <span className="pv-stat-num">{totalInactivos}</span>
+          <span className="pv-stat-label">Inactivos</span>
+        </div>
+      </div>
 
-      {/* Filtros y Búsqueda */}
-      <div className="filtros-section">
-        <div className="search-box">
-          <AiOutlineSearch className="search-icon" />
+      {error && <div className="pv-alert">{error}</div>}
+
+      {/* Toolbar */}
+      <div className="pv-toolbar">
+        <div className="pv-search">
+          <AiOutlineSearch />
           <input
             type="text"
             placeholder="Buscar por nombre, RFC, email..."
@@ -149,130 +177,130 @@ const AdminProveedoresScreen: React.FC = () => {
           />
         </div>
 
-        <div className="filtros-estado">
-          <button 
-            className={`filtro-btn ${filtroActivo === 'todos' ? 'active' : ''}`}
-            onClick={() => setFiltroActivo('todos')}
-          >
-            Todos
-          </button>
-          <button 
-            className={`filtro-btn ${filtroActivo === 'activos' ? 'active' : ''}`}
-            onClick={() => setFiltroActivo('activos')}
-          >
-            Activos
-          </button>
-          <button 
-            className={`filtro-btn ${filtroActivo === 'inactivos' ? 'active' : ''}`}
-            onClick={() => setFiltroActivo('inactivos')}
-          >
-            Inactivos
-          </button>
+        <div className="pv-filtros">
+          {(['todos', 'activos', 'inactivos'] as const).map(f => (
+            <button
+              key={f}
+              className={`pv-filtro-btn ${filtroActivo === f ? 'active' : ''}`}
+              onClick={() => setFiltroActivo(f)}
+            >
+              {f === 'todos' ? 'Todos' : f === 'activos' ? 'Activos' : 'Inactivos'}
+            </button>
+          ))}
         </div>
 
-        <button className="btn-refrescar" onClick={cargarProveedores} disabled={loading}>
-          <AiOutlineReload size={18} />
+        <button className="pv-btn-refrescar" onClick={cargarProveedores} disabled={loading}>
+          <AiOutlineReload size={17} />
           {loading ? 'Cargando...' : 'Refrescar'}
         </button>
       </div>
 
-      {/* Tabla de Proveedores */}
+      {/* Cuadrícula de tarjetas */}
       {loading ? (
-        <div className="loading-state">
-          <div className="spinner"></div>
+        <div className="pv-loading">
+          <div className="pv-spinner" />
           <p>Cargando proveedores...</p>
         </div>
       ) : proveedoresFiltrados.length === 0 ? (
-        <div className="empty-state">
+        <div className="pv-empty">
+          <AiOutlineShop size={36} />
           <p>{searchTerm ? 'No se encontraron proveedores' : 'No hay proveedores registrados'}</p>
           {!searchTerm && (
-            <button 
-              className="btn-primer-proveedor"
-              onClick={() => navigate('/admin/proveedor/nuevo')}
-            >
+            <button className="pv-btn-nuevo" onClick={() => navigate('/admin/proveedor/nuevo')}>
               <AiOutlinePlus size={18} />
               Agregar primer proveedor
             </button>
           )}
         </div>
       ) : (
-        <div className="table-wrapper">
-          <table className="proveedores-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Proveedor</th>
-                <th>RFC</th>
-                <th>Contacto</th>
-                <th>Email / Teléfono</th>
-                <th>Fecha Registro</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {proveedoresFiltrados.map(proveedor => (
-                <tr key={proveedor.id} className={!proveedor.activo ? 'inactivo' : ''}>
-                  <td className="table-id">#{proveedor.id}</td>
-                  <td className="table-proveedor">
-                    <strong>{proveedor.nombre}</strong>
-                    {proveedor.razon_social && (
-                      <small>{proveedor.razon_social}</small>
-                    )}
-                  </td>
-                  <td>{proveedor.rfc || '-'}</td>
-                  <td>{proveedor.persona_contacto || '-'}</td>
-                  <td>
-                    {proveedor.email && (
-                      <div className="contact-info">
-                        <AiOutlineMail size={14} />
-                        <span>{proveedor.email}</span>
-                      </div>
-                    )}
-                    {proveedor.telefono && (
-                      <div className="contact-info">
-                        <AiOutlinePhone size={14} />
-                        <span>{proveedor.telefono}</span>
-                      </div>
-                    )}
-                  </td>
-                  <td>{formatDate(proveedor.fecha_creacion)}</td>
-                  <td>
-                    <button
-                      className={`status-badge ${proveedor.activo ? 'active' : 'inactive'}`}
-                      onClick={() => handleToggleStatus(proveedor.id, proveedor.activo)}
-                      title={proveedor.activo ? 'Hacer inactivo' : 'Activar'}
-                    >
-                      {proveedor.activo ? '✓ Activo' : '✗ Inactivo'}
-                    </button>
-                  </td>
-                  <td className="table-actions">
-                    <button
-                      className="btn-action btn-info"
-                      onClick={() => navigate(`/admin/proveedor/${proveedor.id}`)}
-                      title="Ver detalles"
-                    >
-                      <AiOutlineInfo size={16} />
-                    </button>
-                    <button
-                      className="btn-action btn-edit"
-                      onClick={() => navigate(`/admin/editar-proveedor/${proveedor.id}`)}
-                      title="Editar"
-                    >
-                      <AiOutlineEdit size={16} />
-                    </button>
-                    <button
-                      className="btn-action btn-delete"
-                      onClick={() => handleDelete(proveedor.id, proveedor.nombre)}
-                      title="Eliminar"
-                    >
-                      <AiOutlineDelete size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="pv-grid">
+          {proveedoresPagina.map(proveedor => (
+            <div key={proveedor.id} className={`pv-card ${!proveedor.activo ? 'pv-card-inactivo' : ''}`}>
+              <div className="pv-card-top">
+                <div className="pv-card-avatar">
+                  {proveedor.imagen_url ? <img src={proveedor.imagen_url} alt="" /> : iniciales(proveedor.nombre)}
+                </div>
+                <button
+                  className={`pv-status ${proveedor.activo ? 'on' : 'off'}`}
+                  onClick={() => handleToggleStatus(proveedor.id, proveedor.activo)}
+                  title={proveedor.activo ? 'Hacer inactivo' : 'Activar'}
+                >
+                  {proveedor.activo ? <AiOutlineCheckCircle size={13} /> : <AiOutlineStop size={13} />}
+                  {proveedor.activo ? 'Activo' : 'Inactivo'}
+                </button>
+              </div>
+
+              <h3 className="pv-card-nombre">{proveedor.nombre}</h3>
+              {proveedor.razon_social && <p className="pv-card-razon">{proveedor.razon_social}</p>}
+
+              <div className="pv-card-id">#{proveedor.id} · {formatDate(proveedor.fecha_creacion)}</div>
+
+              <div className="pv-card-divider" />
+
+              <div className="pv-card-info">
+                <div className="pv-card-row">
+                  <AiOutlineIdcard size={14} />
+                  <span>{proveedor.rfc || 'RFC no especificado'}</span>
+                </div>
+                {proveedor.persona_contacto && (
+                  <div className="pv-card-row">
+                    <span className="pv-card-dot" />
+                    <span>{proveedor.persona_contacto}</span>
+                  </div>
+                )}
+                {proveedor.email && (
+                  <div className="pv-card-row">
+                    <AiOutlineMail size={14} />
+                    <span>{proveedor.email}</span>
+                  </div>
+                )}
+                {proveedor.telefono && (
+                  <div className="pv-card-row">
+                    <AiOutlinePhone size={14} />
+                    <span>{proveedor.telefono}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="pv-card-actions">
+                <button onClick={() => navigate(`/admin/proveedor/${proveedor.id}`)} title="Ver detalles">
+                  <AiOutlineInfo size={16} />
+                </button>
+                <button onClick={() => navigate(`/admin/editar-proveedor/${proveedor.id}`)} title="Editar">
+                  <AiOutlineEdit size={16} />
+                </button>
+                <button className="danger" onClick={() => handleDelete(proveedor.id, proveedor.nombre)} title="Eliminar">
+                  <AiOutlineDelete size={16} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Paginación */}
+      {!loading && proveedoresFiltrados.length > PROVEEDORES_POR_PAGINA && (
+        <div className="pv-pagination">
+          <button
+            className="pv-page-btn"
+            onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+            disabled={paginaActual === 1}
+          >
+            <AiOutlineLeft size={14} />
+          </button>
+
+          <span className="pv-page-info">
+            Página {paginaActual} de {totalPaginas}
+            <small> · {proveedoresFiltrados.length} proveedores</small>
+          </span>
+
+          <button
+            className="pv-page-btn"
+            onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+            disabled={paginaActual === totalPaginas}
+          >
+            <AiOutlineRight size={14} />
+          </button>
         </div>
       )}
     </div>

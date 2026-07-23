@@ -2,12 +2,12 @@
 
 /* ─── VARIABLES ── */
 :root {
-  --gold:          #ECB2C3;
+  --gold:          var(--color-rose-gold);
   --gold-h:        #f5d8e8;
   --gold-dim:      rgba(236,178,195,0.1);
   --gold-border:   rgba(236,178,195,0.25);
   --gold-glow:     rgba(236,178,195,0.4);
-  --dark:          #050505;
+  --dark:          var(--color-bg);
   --surface:       #0d0d10;
   --surface-hover: rgba(255,255,255,0.03);
   --text:          #ffffff;
@@ -42,7 +42,7 @@
 /* ─── CONTENEDOR PRINCIPAL ── */
 .alta-wrap {
   padding: 3rem 2rem;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
   color: var(--text);
   display: flex;
   flex-direction: column;
@@ -72,7 +72,7 @@
   background: none; 
   border: none;
   color: var(--gold);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
   cursor: pointer;
   padding: 0.4rem 0.75rem;
@@ -145,7 +145,7 @@
 .alta-card-icon {
   width: 60px; 
   height: 60px;
-  border-radius: 16px;
+  border-radius: 4px;
   background: var(--gold-dim);
   border: 1px solid var(--gold-border);
   display: flex; 
@@ -163,7 +163,7 @@
 }
 
 .alta-card-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1.8rem;
   font-weight: 700;
   background: linear-gradient(135deg, #fff 0%, var(--gold) 100%);
@@ -244,7 +244,7 @@
   color: var(--text);
   padding: 1.1rem 1.3rem;
   border-radius: var(--radius-sm);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.95rem;
   line-height: 1.5;
   transition: all 0.25s var(--ease);
@@ -378,7 +378,7 @@
 .alta-btn-submit {
   padding: 1rem 1.5rem;
   border-radius: var(--radius-sm);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
@@ -464,7 +464,7 @@
   font-size: 0.72rem;
   font-weight: 600;
   padding: 4px 14px;
-  border-radius: 20px;
+  border-radius: 2px;
   background: rgba(236,178,195,0.07);
   border: 1px solid rgba(236,178,195,0.18);
   color: rgba(236,178,195,0.7);
@@ -537,7 +537,7 @@
 }
 .alta-codigo-modal__once {
   display: inline-block;
-  color: #c9a84c;
+  color: var(--color-rose-gold);
   font-weight: 700;
   margin-left: 0.2rem;
 }
@@ -547,7 +547,7 @@
   width: 100%;
   background: rgba(0,0,0,0.4);
   border: 1px solid rgba(236,178,195,0.2);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 1.5rem 1.25rem 1.25rem;
   display: flex;
   flex-direction: column;
@@ -559,7 +559,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 12px;
+  border-radius: 4px;
   background: radial-gradient(ellipse at top, rgba(236,178,195,0.04) 0%, transparent 65%);
   pointer-events: none;
 }
@@ -574,7 +574,7 @@
   font-size: 2.2rem;
   font-weight: 900;
   letter-spacing: 0.35em;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   font-family: 'Courier New', monospace;
   text-shadow: 0 0 20px rgba(236,178,195,0.3);
   user-select: all;
@@ -582,13 +582,13 @@
 .alta-codigo-box__copy {
   background: rgba(236,178,195,0.08);
   border: 1px solid rgba(236,178,195,0.25);
-  border-radius: 20px;
-  color: #ECB2C3;
+  border-radius: 2px;
+  color: var(--color-rose-gold);
   font-size: 0.75rem;
   font-weight: 600;
   padding: 5px 20px;
   cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
   transition: all 0.2s;
 }
 .alta-codigo-box__copy:hover { background: rgba(236,178,195,0.15); }
@@ -611,7 +611,7 @@
   gap: 0.75rem;
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 8px;
+  border-radius: 2px;
   padding: 0.65rem 1rem;
   text-align: left;
   font-size: 0.8rem;
@@ -623,7 +623,7 @@
   border-radius: 50%;
   background: rgba(236,178,195,0.1);
   border: 1px solid rgba(236,178,195,0.2);
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   font-size: 0.72rem;
   font-weight: 800;
   display: flex;

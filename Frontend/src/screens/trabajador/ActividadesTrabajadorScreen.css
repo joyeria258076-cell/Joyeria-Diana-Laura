@@ -1,250 +1,223 @@
-:root {
-  --primary-pink: #ECB2C3;
-  --primary-pink-low: rgba(236, 178, 195, 0.15);
-  --primary-pink-medium: rgba(236, 178, 195, 0.4);
-  --bg-dark: #0f0f12;
-  --card-bg: rgba(30, 26, 33, 0.7);
-  --text-light: #ffffff;
-  --text-muted: #D4B5C8;
-  --transition-smooth: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
+/* Ruta: Frontend/src/screens/trabajador/ActividadesTrabajadorScreen.css
+   Identidad Joyería Diana Laura: negro cálido + rose gold/champagne/blush. */
 
-/* Contenedor principal */
 .actividades-container {
-  padding: 2.5rem;
-  background-color: var(--bg-dark);
-  min-height: calc(100vh - 60px); /* Ajuste para el header si existe */
-  color: var(--text-light);
-  font-family: 'Montserrat', sans-serif;
-  animation: fadeIn 0.6s ease-out;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  animation: at-fadeIn 0.6s var(--ease-silk);
 }
 
-@keyframes fadeIn {
+@keyframes at-fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .actividades-titulo {
-  color: var(--text-light);
-  font-family: 'Playfair Display', serif;
-  margin-bottom: 2.5rem;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  font-weight: 800;
-  font-size: 2rem;
-  letter-spacing: 0.5px;
-}
-
-.actividades-titulo i {
-  color: var(--primary-pink);
-  filter: drop-shadow(0 0 8px var(--primary-pink-medium));
-}
-
-/* Tarjeta de Actividad con Efecto Glassmorphism */
-.activity-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--primary-pink-medium);
-  border-radius: 16px;
-  padding: 2.5rem;
-  margin-bottom: 2rem;
-  transition: var(--transition-smooth);
-  position: relative;
-  overflow: hidden;
-}
-
-.activity-card::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; width: 4px; height: 100%;
-  background: var(--primary-pink);
-  opacity: 0;
-  transition: var(--transition-smooth);
-}
-
-.activity-card:hover {
-  background: rgba(42, 29, 36, 0.8);
-  transform: translateY(-8px) scale(1.01);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 
-              0 0 20px rgba(236, 178, 195, 0.1);
-  border-color: var(--primary-pink);
-}
-
-.activity-card:hover::before {
-  opacity: 1;
-}
-
-.activity-card h3 {
-  color: var(--primary-pink);
-  font-family: 'Playfair Display', serif;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  font-size: 1.6rem;
-}
-
-/* Badge de Estado */
-.activity-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--primary-pink-low);
-  color: var(--primary-pink);
-  padding: 0.5rem 1.2rem;
-  border-radius: 50px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: 1px solid var(--primary-pink-medium);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.activity-description {
-  color: var(--text-muted);
-  margin-bottom: 2rem;
-  line-height: 1.8;
-  font-size: 1.05rem;
-  max-width: 90%;
-}
-
-/* Bloque de Detalles Internos */
-.activity-details-box {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.activity-details-box p {
-  color: var(--text-muted);
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Grid de Permisos */
-.permissions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.permission-tag {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(236, 178, 195, 0.2);
-  padding: 0.8rem 1.2rem;
-  border-radius: 10px;
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-weight: 400;
+  margin: 0 0 2rem;
   display: flex;
   align-items: center;
   gap: 10px;
-  transition: var(--transition-smooth);
+  font-size: 1.8rem;
+  letter-spacing: 0.02em;
+}
+.actividades-titulo svg { color: var(--color-rose-gold); }
+
+.activity-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.35s var(--ease-silk);
+  position: relative;
 }
 
-.permission-tag i {
-  color: var(--primary-pink);
+.activity-card:hover {
+  border-color: rgba(201,149,108,0.4);
+  box-shadow: 0 16px 40px rgba(201,149,108,0.12);
 }
+
+.activity-card h3 {
+  color: var(--color-rose-gold);
+  font-family: var(--font-display);
+  font-weight: 400;
+  margin: 0 0 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.3rem;
+}
+
+.activity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-glow);
+  color: var(--color-rose-gold);
+  padding: 0.35rem 0.9rem;
+  border-radius: 2px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: var(--font-body);
+}
+
+.activity-description {
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+  font-size: 0.92rem;
+  max-width: 640px;
+}
+
+.activity-details-box {
+  background: var(--color-glow);
+  border-radius: 2px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--color-border);
+}
+
+.activity-details-box p {
+  color: var(--color-text-muted);
+  margin: 0 0 0.75rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+}
+.activity-details-box p:last-child { margin-bottom: 0; text-transform: none; letter-spacing: normal; font-size: 0.88rem; }
+
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 0.75rem;
+}
+
+.permission-tag {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  padding: 0.7rem 1rem;
+  border-radius: 2px;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.35s var(--ease-silk);
+}
+.permission-tag svg { color: var(--color-rose-gold); flex-shrink: 0; }
 
 .permission-tag:hover {
-  background: var(--primary-pink-low);
-  color: var(--text-light);
-  border-color: var(--primary-pink);
-  transform: translateX(5px);
+  background: var(--color-glow);
+  color: var(--color-text);
+  border-color: var(--color-rose-gold);
 }
 
-/* Botones de Acción Estilo Luxury */
 .activity-actions {
   display: flex;
-  gap: 1.5rem;
-  margin-top: 2.5rem;
+  gap: 1rem;
+  margin-top: 1.75rem;
+  flex-wrap: wrap;
 }
 
 .btn-primary-worker {
-  background: var(--primary-pink);
-  color: #0f0f12 !important;
-  padding: 14px 28px;
-  border-radius: 10px;
-  font-weight: 700;
+  background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+  color: var(--color-bg) !important;
+  padding: 12px 24px;
+  border-radius: 2px;
+  font-weight: 500;
   text-transform: uppercase;
-  font-size: 0.9rem;
-  letter-spacing: 1px;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   border: none;
-  transition: var(--transition-smooth);
+  text-decoration: none;
+  transition: all 0.35s var(--ease-silk);
+  font-family: var(--font-body);
 }
 
 .btn-primary-worker:hover {
-  background: #f8d7e0;
-  transform: translateY(-4px);
-  box-shadow: 0 10px 20px rgba(236, 178, 195, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(201,149,108,0.3);
 }
 
 .btn-secondary-worker {
   background: transparent;
-  border: 2px solid var(--primary-pink);
-  color: var(--primary-pink) !important;
-  padding: 12px 26px;
-  border-radius: 10px;
-  font-weight: 700;
+  border: 1px solid rgba(201,149,108,0.4);
+  color: var(--color-rose-gold) !important;
+  padding: 11px 22px;
+  border-radius: 2px;
+  font-weight: 500;
   text-transform: uppercase;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
   display: flex;
   align-items: center;
-  gap: 12px;
-  transition: var(--transition-smooth);
+  gap: 8px;
+  text-decoration: none;
+  transition: all 0.35s var(--ease-silk);
+  font-family: var(--font-body);
 }
 
 .btn-secondary-worker:hover {
-  background: var(--primary-pink-low);
-  transform: translateY(-4px);
+  background: var(--color-glow);
 }
 
-/* Sección No Habilitada */
 .inactive-section-title {
-  color: var(--text-light);
-  font-family: 'Playfair Display', serif;
-  margin: 5rem 0 2rem 0;
-  font-size: 1.8rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-weight: 400;
+  margin: 3rem 0 1.25rem;
+  font-size: 1.3rem;
   display: flex;
   align-items: center;
-  gap: 15px;
-  opacity: 0.8;
+  gap: 8px;
 }
 
 .empty-activities-placeholder {
-  background: rgba(255, 255, 255, 0.02);
-  border: 2px dashed var(--primary-pink-medium);
-  border-radius: 20px;
-  padding: 4rem 2rem;
+  background: var(--color-glow);
+  border: 1px dashed var(--color-border);
+  border-radius: 4px;
+  padding: 3rem 2rem;
   text-align: center;
-}
-
-.empty-activities-placeholder i {
-  font-size: 3rem;
-  color: var(--primary-pink-medium);
-  margin-bottom: 1.5rem;
+  color: var(--color-rose-gold);
 }
 
 .empty-activities-placeholder p {
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  max-width: 450px;
-  margin: 0 auto;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  max-width: 420px;
+  margin: 1rem auto 0;
   line-height: 1.6;
 }
 
-/* Responsividad */
+.actividades-highlight { color: var(--color-rose-gold); }
+.actividades-icon-ok { color: #6bcb77; }
+.actividades-spin { animation: at-spin 0.9s linear infinite; }
+@keyframes at-spin { to { transform: rotate(360deg); } }
+
+.actividades-badge-count {
+  background: var(--color-bg);
+  color: var(--color-rose-gold);
+  border-radius: 50%;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  margin-left: 0.4rem;
+}
+
 @media (max-width: 768px) {
-  .actividades-container { padding: 1.5rem; }
   .activity-actions { flex-direction: column; }
   .btn-primary-worker, .btn-secondary-worker { justify-content: center; }
-  .actividades-titulo { font-size: 1.6rem; }
+  .actividades-titulo { font-size: 1.5rem; }
 }

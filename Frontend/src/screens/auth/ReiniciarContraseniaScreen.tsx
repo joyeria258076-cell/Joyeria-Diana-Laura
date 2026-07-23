@@ -5,6 +5,8 @@ import PublicHeader from '../../components/PublicHeader';
 import PublicFooter from '../../components/PublicFooter';
 import { authAPI } from '../../services/api';
 import { getAuth, verifyPasswordResetCode, confirmPasswordReset } from 'firebase/auth';
+import AuthBackground from '../../components/AuthBackground';
+import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineArrowLeft } from 'react-icons/ai';
 import './ReiniciarContraseniaScreen.css';
 
 const ResetPasswordScreen: React.FC = () => {
@@ -90,20 +92,20 @@ const ResetPasswordScreen: React.FC = () => {
         } else {
           // 🎯 FORMATO NO COMPATIBLE
           console.log('❌ Formato de URL no reconocido');
-          setError('❌ Enlace de recuperación inválido. Por favor, solicita un nuevo enlace.');
+          setError('Enlace de recuperación inválido. Por favor, solicita un nuevo enlace.');
           setValidCode(false);
         }
       } catch (error: any) {
         console.error('❌ Error verificando código:', error);
         
         if (error.code === 'auth/expired-action-code') {
-          setError('❌ El enlace ha expirado. Por favor, solicita uno nuevo.');
+          setError('El enlace ha expirado. Por favor, solicita uno nuevo.');
         } else if (error.code === 'auth/invalid-action-code') {
-          setError('❌ Enlace inválido. Por favor, solicita uno nuevo.');
+          setError('Enlace inválido. Por favor, solicita uno nuevo.');
         } else if (error.code === 'auth/user-disabled') {
-          setError('❌ Esta cuenta ha sido deshabilitada.');
+          setError('Esta cuenta ha sido deshabilitada.');
         } else {
-          setError('❌ Error al verificar el enlace: ' + error.message);
+          setError('Error al verificar el enlace: ' + error.message);
         }
         setValidCode(false);
       } finally {
@@ -178,7 +180,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           console.log('⚠️ Error reseteando intentos (no crítico):', resetError);
         }
         
-        setMessage('✅ Contraseña actualizada correctamente. Redirigiendo al login...');
+        setMessage('Contraseña actualizada correctamente. Redirigiendo al login...');
         setTimeout(() => navigate('/login'), 3000);
       } else {
         setError(response.message);
@@ -186,7 +188,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     } catch (backendError: any) {
       // SI FALLA EL BACKEND PERO FIREBASE SÍ FUNCIONÓ, MOSTRAR ÉXITO PARCIAL
       console.log('⚠️ Firebase OK pero error en backend:', backendError);
-      setMessage('✅ Contraseña actualizada. Redirigiendo al login...');
+      setMessage('Contraseña actualizada. Redirigiendo al login...');
       setTimeout(() => navigate('/login'), 3000);
     }
 
@@ -194,15 +196,15 @@ const handleSubmit = async (e: React.FormEvent) => {
     console.error('❌ Error en Firebase:', firebaseError);
     
     if (firebaseError.code === 'auth/expired-action-code') {
-      setError('❌ El enlace ha expirado. Por favor, solicita uno nuevo.');
+      setError('El enlace ha expirado. Por favor, solicita uno nuevo.');
     } else if (firebaseError.code === 'auth/invalid-action-code') {
-      setError('❌ Enlace inválido. Por favor, solicita uno nuevo.');
+      setError('Enlace inválido. Por favor, solicita uno nuevo.');
     } else if (firebaseError.code === 'auth/user-disabled') {
-      setError('❌ Esta cuenta ha sido deshabilitada.');
+      setError('Esta cuenta ha sido deshabilitada.');
     } else if (firebaseError.code === 'auth/weak-password') {
-      setError('❌ La contraseña es demasiado débil. Debe tener al menos 6 caracteres.');
+      setError('La contraseña es demasiado débil. Debe tener al menos 6 caracteres.');
     } else {
-      setError('❌ Error al actualizar la contraseña: ' + firebaseError.message);
+      setError('Error al actualizar la contraseña: ' + firebaseError.message);
     }
   } finally {
     setLoading(false);
@@ -232,9 +234,10 @@ const handleSubmit = async (e: React.FormEvent) => {
       <div className="reiniciar-page-wrapper">
         <PublicHeader />
         <div className="reset-password-container">
+          <AuthBackground />
           <div className="reset-password-card">
             <div className="verifying-message">
-              <p>🔍 Verificando enlace de recuperación...</p>
+              <p>Verificando enlace de recuperación...</p>
             </div>
           </div>
         </div>
@@ -248,6 +251,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       <div className="reiniciar-page-wrapper">
         <PublicHeader />
         <div className="reset-password-container">
+          <AuthBackground />
           <div className="reset-password-card">
             <div className="error-message">
               <p>{error}</p>
@@ -256,7 +260,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   onClick={() => navigate('/olvide')} 
                   className="back-button"
                 >
-                  ← Solicitar nuevo enlace
+                  <AiOutlineArrowLeft size={14} /> Solicitar nuevo enlace
                 </button>
                 <button 
                   onClick={() => navigate('/login')} 
@@ -277,12 +281,13 @@ const handleSubmit = async (e: React.FormEvent) => {
     <div className="reiniciar-page-wrapper">
       <PublicHeader />
       <div className="reset-password-container">
+          <AuthBackground />
         <div className="reset-password-card">
           <div className="reset-password-header">
             <h2>Establecer Nueva Contraseña</h2>
             <p>Creando nueva contraseña para: <strong>{email}</strong></p>
             <div className="security-notice">
-              <small>🔒 Solo puedes cambiar la contraseña de esta cuenta</small>
+              <small>Solo puedes cambiar la contraseña de esta cuenta</small>
             </div>
           </div>
           
@@ -318,7 +323,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 className="password-toggle"
                 onClick={() => setShowNewPassword(!showNewPassword)}
               >
-                {showNewPassword ? "🙈" : "👁️"}
+                {showNewPassword ? <AiOutlineEyeInvisible size={16} /> : <AiOutlineEye size={16} />}
               </button>
             </div>
             <div className="password-requirements">
@@ -353,7 +358,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 className="password-toggle"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
-                {showConfirmPassword ? "🙈" : "👁️"}
+                {showConfirmPassword ? <AiOutlineEyeInvisible size={16} /> : <AiOutlineEye size={16} />}
               </button>
             </div>
           </div>
@@ -372,7 +377,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             onClick={() => navigate('/login')} 
             className="reset-password-link"
           >
-            ← Volver al Login
+            <AiOutlineArrowLeft size={14} /> Volver al Login
           </button>
         </div>
       </div>

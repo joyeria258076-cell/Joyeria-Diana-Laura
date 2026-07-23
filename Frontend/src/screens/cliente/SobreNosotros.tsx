@@ -1,7 +1,10 @@
 // Ruta: src/screens/SobreNosotros.tsx
 import React, { useEffect, useState } from "react";
 import { contentAPI } from "../../services/api";
+import { AiFillFacebook, AiFillInstagram, AiOutlineTikTok, AiOutlineWhatsApp, AiOutlineHeart, AiOutlineStar, AiOutlineEnvironment, AiOutlineHome, AiOutlinePhone, AiOutlineMail, AiOutlineClockCircle } from "react-icons/ai";
 import "./SobreNosotros.css";
+
+const JDL_HERO_FALLBACK = 'https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/imagen_usar_7.jpg';
 
 interface InfoEmpresa {
   nombre: string;
@@ -36,16 +39,16 @@ const SobreNosotros: React.FC = () => {
     return <div className="sn-container fade-in"><p className="sn-loading">Cargando...</p></div>;
   }
 
-  const heroStyle = info?.imagen_hero
-    ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('${info.imagen_hero}')` }
-    : undefined;
+  const heroStyle = {
+    backgroundImage: `linear-gradient(rgba(10,10,10,0.75), rgba(10,10,10,0.75)), url('${info?.imagen_hero || JDL_HERO_FALLBACK}')`
+  };
 
   const redes = [
-    info?.facebook_url && { icon: '📘', label: 'Facebook', url: info.facebook_url },
-    info?.instagram_url && { icon: '📷', label: 'Instagram', url: info.instagram_url },
-    info?.tiktok_url && { icon: '🎵', label: 'TikTok', url: info.tiktok_url },
-    info?.whatsapp && { icon: '💬', label: 'WhatsApp', url: `https://wa.me/${info.whatsapp.replace(/\D/g, '')}` },
-  ].filter(Boolean) as { icon: string; label: string; url: string }[];
+    info?.facebook_url && { icon: <AiFillFacebook size={16} />, label: 'Facebook', url: info.facebook_url },
+    info?.instagram_url && { icon: <AiFillInstagram size={16} />, label: 'Instagram', url: info.instagram_url },
+    info?.tiktok_url && { icon: <AiOutlineTikTok size={16} />, label: 'TikTok', url: info.tiktok_url },
+    info?.whatsapp && { icon: <AiOutlineWhatsApp size={16} />, label: 'WhatsApp', url: `https://wa.me/${info.whatsapp.replace(/\D/g, '')}` },
+  ].filter(Boolean) as { icon: React.ReactNode; label: string; url: string }[];
 
   return (
     <div className="sn-container fade-in">
@@ -59,12 +62,12 @@ const SobreNosotros: React.FC = () => {
 
       <div className="sn-grid">
         <div className="sn-card">
-          <span className="sn-card-icon">💍</span>
+          <span className="sn-card-icon"><AiOutlineHeart size={26} /></span>
           <h3>Misión</h3>
           <p>{info?.mision || 'Ofrecer joyería de alta calidad que realce la belleza natural y la confianza de cada mujer.'}</p>
         </div>
         <div className="sn-card">
-          <span className="sn-card-icon">✨</span>
+          <span className="sn-card-icon"><AiOutlineStar size={26} /></span>
           <h3>Artesanía</h3>
           <p>{info?.artesania || 'Utilizamos materiales premium y procesos hechos a mano para garantizar piezas únicas y duraderas.'}</p>
         </div>
@@ -78,29 +81,29 @@ const SobreNosotros: React.FC = () => {
 
       {(info?.direccion || info?.telefono || info?.email || info?.horario) && (
         <section className="sn-contacto">
-          <h3 className="sn-contacto-titulo">📍 Visítanos</h3>
+          <h3 className="sn-contacto-titulo"><AiOutlineEnvironment size={18} />Visítanos</h3>
           <div className="sn-contacto-grid">
             {info?.direccion && (
               <div className="sn-contacto-item">
-                <span className="sn-contacto-icon">🏠</span>
+                <span className="sn-contacto-icon"><AiOutlineHome size={18} /></span>
                 <div><p className="sn-contacto-label">Dirección</p><p>{info.direccion}</p></div>
               </div>
             )}
             {info?.telefono && (
               <div className="sn-contacto-item">
-                <span className="sn-contacto-icon">📞</span>
+                <span className="sn-contacto-icon"><AiOutlinePhone size={18} /></span>
                 <div><p className="sn-contacto-label">Teléfono</p><p>{info.telefono}</p></div>
               </div>
             )}
             {info?.email && (
               <div className="sn-contacto-item">
-                <span className="sn-contacto-icon">✉️</span>
+                <span className="sn-contacto-icon"><AiOutlineMail size={18} /></span>
                 <div><p className="sn-contacto-label">Email</p><p>{info.email}</p></div>
               </div>
             )}
             {info?.horario && (
               <div className="sn-contacto-item">
-                <span className="sn-contacto-icon">🕐</span>
+                <span className="sn-contacto-icon"><AiOutlineClockCircle size={18} /></span>
                 <div><p className="sn-contacto-label">Horario</p><p style={{ whiteSpace: 'pre-line' }}>{info.horario}</p></div>
               </div>
             )}
@@ -110,7 +113,7 @@ const SobreNosotros: React.FC = () => {
             <div className="sn-redes">
               {redes.map(r => (
                 <a key={r.label} href={r.url} target="_blank" rel="noreferrer" className="sn-red-link">
-                  <span>{r.icon}</span> {r.label}
+                  {r.icon} {r.label}
                 </a>
               ))}
             </div>

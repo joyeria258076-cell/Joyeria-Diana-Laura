@@ -1,185 +1,215 @@
+/* Ruta: Frontend/src/screens/admin/AdminDashboardScreen.css
+   Identidad Joyería Diana Laura: negro cálido + rose gold/champagne/blush. */
+
 .dashboard-container {
-    padding: 1rem;
-    animation: fadeIn 0.6s ease-out;
+    padding: 0;
+    animation: dash-fadeIn 0.6s var(--ease-silk);
 }
 
 .dashboard-title {
-    color: white;
-    font-family: 'Playfair Display', serif;
-    margin-bottom: 2rem;
-    font-size: 1.8rem;
+    color: var(--color-text);
+    font-family: var(--font-display);
+    font-weight: 400;
+    margin-bottom: 1.75rem;
+    font-size: 1.9rem;
+    letter-spacing: 0.02em;
 }
 
 .dashboard-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
 }
 
 .dashboard-card {
-    background: rgba(42, 29, 36, 0.6);
-    border: 1px solid #ECB2C3;
-    border-radius: 12px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
     padding: 1.5rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.35s var(--ease-silk);
 }
 
 .dashboard-card:hover {
-    background-color: rgba(236, 178, 195, 0.1);
-    transform: translateY(-8px);
-    box-shadow: 0 12px 25px rgba(236, 178, 195, 0.15);
+    border-color: rgba(201,149,108,0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(201,149,108,0.12);
 }
 
 .dashboard-card h4 {
-    color: #ECB2C3;
-    font-size: 1.1rem;
-    margin-bottom: 1.2rem;
-    font-family: 'Playfair Display', serif;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-rose-gold);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0 0 1.25rem;
+    font-family: var(--font-body);
 }
 
 .stat-number {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: white;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--color-text);
     margin-bottom: 0.3rem;
 }
 
 .stat-label {
-    color: #D4B5C8;
-    font-size: 0.85rem;
-    margin-bottom: 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+    margin-bottom: 0.75rem;
 }
 
 .stat-trend.positive {
-    color: #2ecc71;
-    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #6bcb77;
+    font-size: 0.78rem;
 }
 
 .top-products-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .top-product-item {
     padding: 8px 0;
-    border-bottom: 1px solid rgba(236, 178, 195, 0.2);
-    color: #D4B5C8;
-    font-size: 0.9rem;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
 }
+.top-product-item:last-child { border-bottom: none; }
 
-.stat-link a {
-    color: #ECB2C3;
+.stat-link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-rose-gold);
     text-decoration: none;
-    font-size: 0.85rem;
-    transition: 0.3s;
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+    transition: color 0.35s var(--ease-silk);
 }
+.stat-link:hover { color: var(--color-champagne); }
 
-.stat-link a:hover { text-decoration: underline; color: white; }
-
-/* Acciones Rápidas */
+/* ── Acciones Rápidas ── */
 .quick-actions-section {
-    background: rgba(42, 29, 36, 0.4);
-    border: 1px solid rgba(236, 178, 195, 0.3);
-    border-radius: 12px;
-    padding: 2rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
 }
 
 .section-subtitle {
-    color: #ECB2C3;
-    margin-bottom: 1.5rem;
-    font-family: 'Playfair Display', serif;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-text);
+    margin: 0 0 1.25rem;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.2rem;
 }
+.section-subtitle svg { color: var(--color-rose-gold); }
 
 .quick-actions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
+    gap: 0.85rem;
 }
 
 .btn-action-outline {
-    border: 1px solid #ECB2C3;
-    color: #ECB2C3;
+    background: transparent;
+    border: 1px solid rgba(201,149,108,0.4);
+    color: var(--color-rose-gold);
     text-decoration: none;
     padding: 12px;
     text-align: center;
-    border-radius: 8px;
+    border-radius: 2px;
     font-weight: 500;
-    transition: 0.3s;
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.35s var(--ease-silk);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    font-family: var(--font-body);
 }
 
 .btn-action-outline:hover {
-    background: #ECB2C3;
-    color: #0f0f12;
+    background: var(--color-glow);
+    border-color: var(--color-rose-gold);
+    transform: translateY(-2px);
 }
 
 .dash-ia-btn {
-    border-color: rgba(201,168,76,0.5) !important;
-    color: #c9a84c !important;
-    background: rgba(201,168,76,0.06);
-    font-weight: 600;
+    border-color: rgba(232,213,183,0.4);
+    color: var(--color-champagne);
+    background: rgba(232,213,183,0.05);
+    font-weight: 500;
 }
 
 .dash-ia-btn:hover {
-    background: rgba(201,168,76,0.15) !important;
-    color: #f5d982 !important;
-    border-color: #c9a84c !important;
-    box-shadow: 0 4px 16px rgba(201,168,76,0.2);
+    background: rgba(232,213,183,0.12);
+    border-color: var(--color-champagne);
+    box-shadow: 0 8px 24px rgba(232,213,183,0.15);
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
+@keyframes dash-fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── BANNER DE ALERTA ── */
+/* ── Banner de alerta ── */
 .dash-alert-banner {
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: rgba(239,68,68,0.07);
-    border: 1px solid rgba(239,68,68,0.25);
-    border-radius: 12px;
+    background: rgba(224,90,106,0.06);
+    border: 1px solid rgba(224,90,106,0.25);
+    border-radius: 4px;
     padding: 1rem 1.25rem;
-    margin-bottom: 1.75rem;
-    animation: fadeIn 0.4s ease both;
+    margin-bottom: 1.5rem;
+    animation: dash-fadeIn 0.4s var(--ease-silk) both;
 }
-.dash-alert-icon { font-size: 1.4rem; flex-shrink: 0; }
+.dash-alert-icon { color: #e05a6a; flex-shrink: 0; display: flex; }
 .dash-alert-body { flex: 1; display: flex; flex-direction: column; gap: 0.2rem; }
-.dash-alert-title { font-size: 0.9rem; color: #fff; font-weight: 600; }
-.dash-alert-title strong { color: #f87171; }
-.dash-alert-sub { font-size: 0.76rem; color: rgba(255,255,255,0.4); }
+.dash-alert-title { font-size: 0.88rem; color: var(--color-text); font-weight: 500; }
+.dash-alert-title strong { color: #e05a6a; }
+.dash-alert-sub { font-size: 0.75rem; color: var(--color-text-muted); }
 .dash-alert-btn {
-    background: rgba(239,68,68,0.12);
-    border: 1px solid rgba(239,68,68,0.3);
-    color: #f87171;
+    background: rgba(224,90,106,0.1);
+    border: 1px solid rgba(224,90,106,0.3);
+    color: #e05a6a;
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     padding: 0.5rem 1.1rem;
-    border-radius: 8px;
+    border-radius: 2px;
     cursor: pointer;
     white-space: nowrap;
-    font-family: inherit;
-    transition: all 0.2s;
+    font-family: var(--font-body);
+    transition: all 0.35s var(--ease-silk);
 }
-.dash-alert-btn:hover { background: rgba(239,68,68,0.2); }
+.dash-alert-btn:hover { background: rgba(224,90,106,0.18); }
 
-/* ── CARD SOLICITUDES ── */
-.dash-card-solicitudes { transition: border-color 0.2s, transform 0.2s; }
-.dash-card-solicitudes:hover { transform: translateY(-2px); }
-.dash-card-solicitudes--alert { border-color: rgba(239,68,68,0.3) !important; }
-.stat-number--ok    { color: #86efac !important; font-size: 1.8rem; }
-.stat-number--alert { color: #f87171 !important; }
+/* ── Card solicitudes ── */
+.dash-card-solicitudes { cursor: pointer; }
+.dash-card-solicitudes--alert { border-color: rgba(224,90,106,0.3) !important; }
+.stat-number--ok    { color: #6bcb77 !important; font-size: 1.7rem; }
+.stat-number--alert { color: #e05a6a !important; }
 .dash-sol-mini-list { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.5rem 0; }
 .dash-sol-mini-badge {
-    font-size: 0.68rem; font-weight: 700;
-    padding: 2px 10px; border-radius: 20px; border: 1px solid;
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 0.66rem; font-weight: 500;
+    padding: 2px 8px; border-radius: 2px; border: 1px solid;
 }
-.dash-sol-mini-badge--codigo { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.25); color: #fbbf24; }
-.dash-sol-mini-badge--nombre { background: rgba(147,197,253,0.08); border-color: rgba(147,197,253,0.25); color: #93c5fd; }
-.stat-link { font-size: 0.75rem; color: rgba(236,178,195,0.5); margin-top: 0.4rem; }
+.dash-sol-mini-badge--codigo { background: rgba(232,213,183,0.08); border-color: rgba(232,213,183,0.3); color: var(--color-champagne); }
+.dash-sol-mini-badge--nombre { background: rgba(96,165,250,0.08); border-color: rgba(96,165,250,0.3); color: #93c5fd; }

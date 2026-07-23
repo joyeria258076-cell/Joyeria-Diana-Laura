@@ -1,7 +1,10 @@
 // Frontend/src/screens/admin/proveedores/AdminProveedorDetalleScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AiOutlineArrowLeft, AiOutlineEdit, AiOutlineDelete, AiOutlineMail, AiOutlinePhone, AiOutlineGlobal, AiOutlineUser, AiOutlineIdcard } from 'react-icons/ai';
+import {
+  AiOutlineEdit, AiOutlineDelete, AiOutlineMail, AiOutlinePhone, AiOutlineGlobal, AiOutlineUser,
+  AiOutlineIdcard, AiOutlineEnvironment, AiOutlineFileText, AiOutlineCalendar,
+} from 'react-icons/ai';
 import { proveedoresAPI } from '../../../services/api';
 import './AdminProveedorDetalleScreen.css';
 
@@ -19,7 +22,11 @@ interface Proveedor {
   activo: boolean;
   fecha_creacion: string;
   fecha_actualizacion: string;
+  imagen_url?: string;
 }
+
+const iniciales = (nombre: string) =>
+  nombre.trim().split(/\s+/).slice(0, 2).map(p => p[0]?.toUpperCase()).join('') || '?';
 
 const AdminProveedorDetalleScreen: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -53,11 +60,9 @@ const AdminProveedorDetalleScreen: React.FC = () => {
 
   const handleDelete = async () => {
     if (!proveedor) return;
-    
     if (!window.confirm(`¿Estás seguro de que deseas eliminar al proveedor "${proveedor.nombre}"?`)) {
       return;
     }
-
     try {
       const response = await proveedoresAPI.delete(proveedor.id);
       if (response.success) {
@@ -72,19 +77,19 @@ const AdminProveedorDetalleScreen: React.FC = () => {
   };
 
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('es-CO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString('es-MX', {
+      year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
+  };
+
+  const formatDateShort = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   if (loading) {
     return (
-      <div className="proveedor-detalle-loading">
-        <div className="spinner"></div>
+      <div className="pd2-loading">
+        <div className="pd2-spinner" />
         <p>Cargando proveedor...</p>
       </div>
     );
@@ -92,155 +97,112 @@ const AdminProveedorDetalleScreen: React.FC = () => {
 
   if (error || !proveedor) {
     return (
-      <div className="proveedor-detalle-error">
+      <div className="pd2-error">
         <h2>Error</h2>
         <p>{error || 'Proveedor no encontrado'}</p>
-        <button className="btn-volver" onClick={() => navigate('/admin/proveedores')}>
-          Volver a Proveedores
-        </button>
       </div>
     );
   }
 
   return (
-    <div className="proveedor-detalle-container">
-      {/* Header */}
-      <div className="proveedor-detalle-header">
-        <button className="btn-back" onClick={() => navigate('/admin/proveedores')}>
-          <AiOutlineArrowLeft size={20} />
-          <span>Volver a Proveedores</span>
-        </button>
-        <div className="header-actions">
-          <button 
-            className="btn-edit"
-            onClick={() => navigate(`/admin/editar-proveedor/${proveedor.id}`)}
-          >
-            <AiOutlineEdit size={18} />
-            Editar
+    <div className="pd2-container">
+      {/* Banner de perfil */}
+      <div className="pd2-hero">
+        <div className="pd2-hero-avatar">
+          {proveedor.imagen_url ? <img src={proveedor.imagen_url} alt={proveedor.nombre} /> : iniciales(proveedor.nombre)}
+        </div>
+
+        <div className="pd2-hero-info">
+          <div className="pd2-hero-top">
+            <h1>{proveedor.nombre}</h1>
+            <span className={`pd2-badge ${proveedor.activo ? 'on' : 'off'}`}>
+              {proveedor.activo ? 'Activo' : 'Inactivo'}
+            </span>
+          </div>
+          {proveedor.razon_social && <p className="pd2-hero-razon">{proveedor.razon_social}</p>}
+
+          <div className="pd2-hero-chips">
+            {proveedor.email && (
+              <a href={`mailto:${proveedor.email}`} className="pd2-chip">
+                <AiOutlineMail size={14} /> {proveedor.email}
+              </a>
+            )}
+            {proveedor.telefono && (
+              <a href={`tel:${proveedor.telefono}`} className="pd2-chip">
+                <AiOutlinePhone size={14} /> {proveedor.telefono}
+              </a>
+            )}
+            {proveedor.sitio_web && (
+              <a href={proveedor.sitio_web} target="_blank" rel="noopener noreferrer" className="pd2-chip">
+                <AiOutlineGlobal size={14} /> Sitio web
+              </a>
+            )}
+          </div>
+        </div>
+
+        <div className="pd2-hero-actions">
+          <button className="pd2-btn-edit" onClick={() => navigate(`/admin/editar-proveedor/${proveedor.id}`)}>
+            <AiOutlineEdit size={16} /> Editar
           </button>
-          <button 
-            className="btn-delete"
-            onClick={handleDelete}
-          >
-            <AiOutlineDelete size={18} />
-            Eliminar
+          <button className="pd2-btn-delete" onClick={handleDelete}>
+            <AiOutlineDelete size={16} />
           </button>
         </div>
       </div>
 
-      {/* Contenido */}
-      <div className="proveedor-detalle-content">
-        {/* Header con nombre y estado */}
-        <div className="detalle-header-card">
-          <div className="detalle-titulo">
-            <h1>{proveedor.nombre}</h1>
-            <span className={`estado-badge ${proveedor.activo ? 'activo' : 'inactivo'}`}>
-              {proveedor.activo ? '✓ Activo' : '✗ Inactivo'}
-            </span>
+      {/* Contenido: sidebar meta + tarjetas principales */}
+      <div className="pd2-layout">
+        <aside className="pd2-sidebar">
+          <div className="pd2-sidebar-sticky">
+            <div className="pd2-meta-card">
+              <span className="pd2-meta-label"><AiOutlineIdcard size={14} /> RFC</span>
+              <span className="pd2-meta-value">{proveedor.rfc || 'No especificado'}</span>
+            </div>
+            <div className="pd2-meta-card">
+              <span className="pd2-meta-label"><AiOutlineUser size={14} /> Contacto</span>
+              <span className="pd2-meta-value">{proveedor.persona_contacto || 'No especificado'}</span>
+            </div>
+            <div className="pd2-meta-card">
+              <span className="pd2-meta-label"><AiOutlineCalendar size={14} /> Registrado</span>
+              <span className="pd2-meta-value">{formatDateShort(proveedor.fecha_creacion)}</span>
+            </div>
+            {proveedor.fecha_actualizacion && (
+              <div className="pd2-meta-card">
+                <span className="pd2-meta-label"><AiOutlineCalendar size={14} /> Actualizado</span>
+                <span className="pd2-meta-value">{formatDateShort(proveedor.fecha_actualizacion)}</span>
+              </div>
+            )}
           </div>
-          {proveedor.razon_social && (
-            <p className="razon-social">{proveedor.razon_social}</p>
+        </aside>
+
+        <div className="pd2-main">
+          <div className="pd2-panel">
+            <h3><AiOutlineCalendar size={16} /> Historial</h3>
+            <div className="pd2-panel-row">
+              <span>Fecha de creación</span>
+              <strong>{formatDate(proveedor.fecha_creacion)}</strong>
+            </div>
+            {proveedor.fecha_actualizacion && (
+              <div className="pd2-panel-row">
+                <span>Última actualización</span>
+                <strong>{formatDate(proveedor.fecha_actualizacion)}</strong>
+              </div>
+            )}
+          </div>
+
+          {proveedor.direccion && (
+            <div className="pd2-panel">
+              <h3><AiOutlineEnvironment size={16} /> Dirección</h3>
+              <p className="pd2-panel-text">{proveedor.direccion}</p>
+            </div>
           )}
-        </div>
 
-        {/* Grid de información */}
-        <div className="detalle-grid">
-          {/* Columna izquierda */}
-          <div className="detalle-col">
-            {/* Información fiscal */}
-            <div className="info-card">
-              <h3>
-                <AiOutlineIdcard size={20} />
-                Información Fiscal
-              </h3>
-              <div className="info-content">
-                <div className="info-row">
-                  <span className="info-label">RFC:</span>
-                  <span className="info-value">{proveedor.rfc || 'No especificado'}</span>
-                </div>
-              </div>
+          {proveedor.notas && (
+            <div className="pd2-panel">
+              <h3><AiOutlineFileText size={16} /> Notas</h3>
+              <p className="pd2-panel-text">{proveedor.notas}</p>
             </div>
-
-            {/* Contacto */}
-            <div className="info-card">
-              <h3>
-                <AiOutlineUser size={20} />
-                Contacto
-              </h3>
-              <div className="info-content">
-                {proveedor.persona_contacto && (
-                  <div className="info-row">
-                    <span className="info-label">Persona de contacto:</span>
-                    <span className="info-value">{proveedor.persona_contacto}</span>
-                  </div>
-                )}
-                {proveedor.email && (
-                  <div className="info-row contact-item">
-                    <AiOutlineMail size={16} />
-                    <a href={`mailto:${proveedor.email}`} className="contact-link">
-                      {proveedor.email}
-                    </a>
-                  </div>
-                )}
-                {proveedor.telefono && (
-                  <div className="info-row contact-item">
-                    <AiOutlinePhone size={16} />
-                    <a href={`tel:${proveedor.telefono}`} className="contact-link">
-                      {proveedor.telefono}
-                    </a>
-                  </div>
-                )}
-                {proveedor.sitio_web && (
-                  <div className="info-row contact-item">
-                    <AiOutlineGlobal size={16} />
-                    <a href={proveedor.sitio_web} target="_blank" rel="noopener noreferrer" className="contact-link">
-                      {proveedor.sitio_web}
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Columna derecha */}
-          <div className="detalle-col">
-            {/* Dirección */}
-            {proveedor.direccion && (
-              <div className="info-card">
-                <h3>📍 Dirección</h3>
-                <div className="info-content">
-                  <p className="direccion-text">{proveedor.direccion}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Notas */}
-            {proveedor.notas && (
-              <div className="info-card">
-                <h3>📝 Notas</h3>
-                <div className="info-content">
-                  <p className="notas-text">{proveedor.notas}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Fechas */}
-            <div className="info-card">
-              <h3>📅 Fechas</h3>
-              <div className="info-content">
-                <div className="info-row">
-                  <span className="info-label">Creado:</span>
-                  <span className="info-value">{formatDate(proveedor.fecha_creacion)}</span>
-                </div>
-                {proveedor.fecha_actualizacion && (
-                  <div className="info-row">
-                    <span className="info-label">Actualizado:</span>
-                    <span className="info-value">{formatDate(proveedor.fecha_actualizacion)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import PublicHeader from "../../components/PublicHeader";
-import PublicFooter from "../../components/PublicFooter";
+import { AiOutlineMail, AiOutlinePhone, AiOutlineEnvironment, AiOutlineClockCircle, AiOutlineInstagram, AiOutlineFacebook, AiOutlineTwitter } from "react-icons/ai";
 import "./ContactoScreen.css";
 
 const ContactoScreen: React.FC = () => {
@@ -30,20 +29,13 @@ const ContactoScreen: React.FC = () => {
 
   return (
     <div className="contacto-container">
-      {/* HERO SECTION */}
-      <section className="contacto-hero">
-        <div className="container-lg">
-          <h1 className="contacto-title">Contáctanos</h1>
-          <p className="contacto-subtitle">
-            Estamos aquí para ayudarte. Envíanos tu mensaje.
-          </p>
-        </div>
-      </section>
+      <p className="contacto-eyebrow"><AiOutlineMail size={14} />Contacto</p>
+      <h1 className="contacto-title">Contáctanos</h1>
+      <p className="contacto-subtitle">
+        Estamos aquí para ayudarte. Envíanos tu mensaje.
+      </p>
 
-      {/* SECCIÓN DE CONTACTO */}
-      <section className="contacto-section">
-        <div className="container-lg">
-          <div className="contacto-grid">
+      <div className="contacto-grid">
             {/* Formulario */}
             <div className="contacto-form-wrapper">
               <h2 className="form-title">Envíanos un Mensaje</h2>
@@ -107,9 +99,7 @@ const ContactoScreen: React.FC = () => {
               <h2 className="info-title">Información de Contacto</h2>
 
               <div className="info-item">
-                <div className="info-icon">
-                  <i className="fas fa-phone"></i>
-                </div>
+                <div className="info-icon"><AiOutlinePhone size={18} /></div>
                 <div className="info-content">
                   <h4>Teléfono</h4>
                   <p>+1 (555) 123-4567</p>
@@ -117,9 +107,7 @@ const ContactoScreen: React.FC = () => {
               </div>
 
               <div className="info-item">
-                <div className="info-icon">
-                  <i className="fas fa-envelope"></i>
-                </div>
+                <div className="info-icon"><AiOutlineMail size={18} /></div>
                 <div className="info-content">
                   <h4>Correo Electrónico</h4>
                   <p>info@dianaLaura.com</p>
@@ -127,9 +115,7 @@ const ContactoScreen: React.FC = () => {
               </div>
 
               <div className="info-item">
-                <div className="info-icon">
-                  <i className="fas fa-map-marker-alt"></i>
-                </div>
+                <div className="info-icon"><AiOutlineEnvironment size={18} /></div>
                 <div className="info-content">
                   <h4>Ubicación</h4>
                   <p>Calle Principal 123, Ciudad, País</p>
@@ -137,9 +123,7 @@ const ContactoScreen: React.FC = () => {
               </div>
 
               <div className="info-item">
-                <div className="info-icon">
-                  <i className="fas fa-clock"></i>
-                </div>
+                <div className="info-icon"><AiOutlineClockCircle size={18} /></div>
                 <div className="info-content">
                   <h4>Horario de Atención</h4>
                   <p>
@@ -155,24 +139,13 @@ const ContactoScreen: React.FC = () => {
               <div className="socials-section">
                 <h4>Síguenos en Redes Sociales</h4>
                 <div className="socials">
-                  <a href="#" className="social-link" title="Instagram">
-                    <i className="fab fa-instagram"></i>
-                  </a>
-                  <a href="#" className="social-link" title="Facebook">
-                    <i className="fab fa-facebook"></i>
-                  </a>
-                  <a href="#" className="social-link" title="Twitter">
-                    <i className="fab fa-twitter"></i>
-                  </a>
-                  <a href="#" className="social-link" title="Pinterest">
-                    <i className="fab fa-pinterest"></i>
-                  </a>
+                  <a href="#" className="social-link" title="Instagram"><AiOutlineInstagram size={18} /></a>
+                  <a href="#" className="social-link" title="Facebook"><AiOutlineFacebook size={18} /></a>
+                  <a href="#" className="social-link" title="Twitter"><AiOutlineTwitter size={18} /></a>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
     </div>
   );
 };

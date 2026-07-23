@@ -118,7 +118,6 @@ const AdminSegmentosScreen: React.FC = () => {
     return (
       <div className="seg-container">
         <div className="seg-wrapper">
-          <button className="seg-btn-back" onClick={() => navigate('/admin-dashboard')}>← Volver</button>
           <p style={{ textAlign: 'center', padding: '4rem', opacity: 0.7 }}>
             No se pudo cargar la segmentación. Verifica que el microservicio ML esté disponible.
           </p>
@@ -133,9 +132,6 @@ const AdminSegmentosScreen: React.FC = () => {
 
         {/* Header */}
         <div className="seg-header">
-          <button className="seg-btn-back" onClick={() => navigate('/admin-dashboard')}>
-            ← Volver
-          </button>
           <div>
             <p className="seg-eyebrow">Propuesta 3 · K-Means Clustering</p>
             <h1 className="seg-titulo">Panel de Segmentos de Clientes</h1>

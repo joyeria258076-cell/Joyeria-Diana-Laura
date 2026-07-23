@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { AiOutlinePhone, AiOutlineMail, AiOutlineEnvironment, AiOutlineInstagram, AiOutlineFacebook, AiOutlineTwitter } from "react-icons/ai";
 import "../styles/PublicFooter.css";
 
 const PublicFooter: React.FC = () => {
@@ -40,15 +41,15 @@ const PublicFooter: React.FC = () => {
             <h5 className="footer-title">Contacto</h5>
             <ul className="footer-info">
               <li>
-                <i className="fas fa-phone"></i>
+                <AiOutlinePhone size={15} />
                 <span>+1 (555) 123-4567</span>
               </li>
               <li>
-                <i className="fas fa-envelope"></i>
+                <AiOutlineMail size={15} />
                 <span>info@dianaLaura.com</span>
               </li>
               <li>
-                <i className="fas fa-map-marker-alt"></i>
+                <AiOutlineEnvironment size={15} />
                 <span>Ciudad, País</span>
               </li>
             </ul>
@@ -59,16 +60,13 @@ const PublicFooter: React.FC = () => {
             <h5 className="footer-title">Síguenos</h5>
             <div className="footer-socials">
               <a href="#" className="social-link" title="Instagram">
-                <i className="fab fa-instagram"></i>
+                <AiOutlineInstagram size={16} />
               </a>
               <a href="#" className="social-link" title="Facebook">
-                <i className="fab fa-facebook"></i>
+                <AiOutlineFacebook size={16} />
               </a>
               <a href="#" className="social-link" title="Twitter">
-                <i className="fab fa-twitter"></i>
-              </a>
-              <a href="#" className="social-link" title="Pinterest">
-                <i className="fab fa-pinterest"></i>
+                <AiOutlineTwitter size={16} />
               </a>
             </div>
           </div>

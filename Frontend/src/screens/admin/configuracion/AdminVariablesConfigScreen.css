@@ -2,9 +2,9 @@
 
 .variables-container {
   min-height: 100vh;
-  background: #0f0f12;
+  background: var(--color-bg);
   color: #FFFFFF;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
   padding: 2rem;
 }
 
@@ -15,15 +15,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #0f0f12;
-  color: #ECB2C3;
+  background: var(--color-bg);
+  color: var(--color-rose-gold);
 }
 
 .variables-loading .spinner {
   width: 50px;
   height: 50px;
   border: 3px solid rgba(236, 178, 195, 0.1);
-  border-top-color: #ECB2C3;
+  border-top-color: var(--color-rose-gold);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -49,25 +49,25 @@
   gap: 0.5rem;
   background: rgba(236, 178, 195, 0.1);
   border: 1px solid rgba(236, 178, 195, 0.3);
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   padding: 0.7rem 1.2rem;
-  border-radius: 8px;
+  border-radius: 2px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .btn-back:hover {
   background: rgba(236, 178, 195, 0.2);
-  border-color: #ECB2C3;
+  border-color: var(--color-rose-gold);
   transform: translateX(-2px);
 }
 
 .variables-header h1 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 2rem;
   margin: 0;
   flex: 1;
-  background: linear-gradient(135deg, #FFFFFF 0%, #ECB2C3 100%);
+  background: linear-gradient(135deg, #FFFFFF 0%, var(--color-rose-gold) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -76,11 +76,11 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #ECB2C3 0%, #f7d2dc 100%);
-  color: #050505;
+  background: linear-gradient(135deg, var(--color-rose-gold) 0%, #f7d2dc 100%);
+  color: var(--color-bg);
   border: none;
   padding: 0.7rem 1.2rem;
-  border-radius: 8px;
+  border-radius: 2px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -102,7 +102,7 @@
   align-items: center;
   gap: 0.8rem;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 2px;
   margin-bottom: 1.5rem;
   animation: slideIn 0.3s ease;
 }
@@ -140,15 +140,15 @@
 .categoria-section {
   background: linear-gradient(145deg, rgba(20, 20, 20, 0.6) 0%, rgba(10, 10, 10, 0.8) 100%);
   border: 1px solid rgba(236, 178, 195, 0.2);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 1.5rem;
   backdrop-filter: blur(10px);
 }
 
 .categoria-titulo {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1.5rem;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   margin: 0 0 1.5rem 0;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid rgba(236, 178, 195, 0.2);
@@ -163,7 +163,7 @@
 .variable-card {
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(236, 178, 195, 0.1);
-  border-radius: 10px;
+  border-radius: 4px;
   padding: 1.2rem;
   transition: all 0.3s ease;
 }
@@ -189,7 +189,7 @@
 .variable-titulo h3 {
   margin: 0;
   font-size: 1rem;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -215,7 +215,7 @@
 }
 
 .btn-toggle-sensitive:hover {
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
 }
 
 .variable-descripcion {
@@ -234,7 +234,7 @@
 .variable-valor {
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(236, 178, 195, 0.2);
-  border-radius: 6px;
+  border-radius: 2px;
   padding: 0.8rem;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -244,7 +244,7 @@
 }
 
 .variable-valor:hover {
-  border-color: #ECB2C3;
+  border-color: var(--color-rose-gold);
   background: rgba(236, 178, 195, 0.05);
 }
 
@@ -287,8 +287,8 @@
 .variable-input {
   flex: 1;
   background: rgba(0, 0, 0, 0.5);
-  border: 1px solid #ECB2C3;
-  border-radius: 6px;
+  border: 1px solid var(--color-rose-gold);
+  border-radius: 2px;
   padding: 0.8rem;
   color: #fff;
   font-size: 0.95rem;
@@ -313,7 +313,7 @@
   width: 32px;
   height: 32px;
   border: none;
-  border-radius: 6px;
+  border-radius: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -418,8 +418,8 @@
 }
 
 .btn-nuevo-plan {
-  padding: 8px 16px; background: #ecb2c3;
-  color: #1a1a2e; border: none; border-radius: 8px;
+  padding: 8px 16px; background: var(--color-rose-gold);
+  color: var(--color-surface); border: none; border-radius: 2px;
   font-weight: 600; font-size: 0.88rem;
   cursor: pointer; transition: opacity 0.2s;
 }
@@ -442,9 +442,9 @@
 }
 
 .plan-card {
-  background: #1a1a2e; border: 1px solid #2a2a3e;
-  border-radius: 12px; padding: 16px;
-  border-left: 3px solid #ecb2c3;
+  background: var(--color-surface); border: 1px solid #2a2a3e;
+  border-radius: 4px; padding: 16px;
+  border-left: 3px solid var(--color-rose-gold);
   transition: border-color 0.2s;
 }
 .plan-card.plan-inactivo { border-left-color: #555; opacity: 0.7; }
@@ -454,11 +454,11 @@
   align-items: flex-start; margin-bottom: 12px;
 }
 
-.plan-info h3 { font-size: 1rem; color: #ecb2c3; margin: 0 0 4px; }
+.plan-info h3 { font-size: 1rem; color: var(--color-rose-gold); margin: 0 0 4px; }
 
 .plan-estado-badge {
   font-size: 0.75rem; padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: 4px;
 }
 .plan-estado-badge.activo { background: #0f2a1a; color: #6bcb77; }
 .plan-estado-badge.inactivo { background: #2a1a1a; color: #888; }
@@ -486,9 +486,9 @@
 }
 
 .plan-ejemplo {
-  background: #0f0f12; border-radius: 6px;
+  background: var(--color-bg); border-radius: 2px;
   padding: 8px 12px; font-size: 0.78rem;
-  color: #888; border-left: 2px solid #ecb2c3;
+  color: #888; border-left: 2px solid var(--color-rose-gold);
 }
 
 /* Modal plan */
@@ -499,7 +499,7 @@
   z-index: 1000; padding: 20px;
 }
 .plan-modal {
-  background: #1a1a2e; border-radius: 14px;
+  background: var(--color-surface); border-radius: 4px;
   border: 1px solid #2a2a3e; width: 100%;
   max-width: 500px; max-height: 90vh;
   display: flex; flex-direction: column; overflow: hidden;
@@ -509,7 +509,7 @@
   align-items: center; padding: 16px 20px;
   border-bottom: 1px solid #2a2a3e;
 }
-.plan-modal-header h3 { font-size: 1rem; color: #ecb2c3; margin: 0; }
+.plan-modal-header h3 { font-size: 1rem; color: var(--color-rose-gold); margin: 0; }
 .plan-modal-close {
   background: none; border: none;
   color: #888; font-size: 1.4rem; cursor: pointer;
@@ -529,23 +529,23 @@
 
 .plan-input {
   width: 100%; padding: 10px 12px;
-  background: #0f0f12; border: 1px solid #2a2a3e;
-  border-radius: 8px; color: #e0e0e0;
+  background: var(--color-bg); border: 1px solid #2a2a3e;
+  border-radius: 2px; color: #e0e0e0;
   font-size: 0.9rem; box-sizing: border-box;
 }
-.plan-input:focus { outline: none; border-color: #ecb2c3; }
+.plan-input:focus { outline: none; border-color: var(--color-rose-gold); }
 
 .plan-textarea {
   width: 100%; padding: 10px 12px;
-  background: #0f0f12; border: 1px solid #2a2a3e;
-  border-radius: 8px; color: #e0e0e0;
+  background: var(--color-bg); border: 1px solid #2a2a3e;
+  border-radius: 2px; color: #e0e0e0;
   font-size: 0.9rem; resize: vertical; box-sizing: border-box;
 }
-.plan-textarea:focus { outline: none; border-color: #ecb2c3; }
+.plan-textarea:focus { outline: none; border-color: var(--color-rose-gold); }
 
 .plan-preview {
   background: #0f2a1a; border: 1px solid #6bcb77;
-  border-radius: 8px; padding: 12px 16px;
+  border-radius: 2px; padding: 12px 16px;
   margin-bottom: 16px; font-size: 0.85rem;
   color: #ccc; line-height: 1.7;
 }
@@ -553,17 +553,17 @@
 .plan-error {
   background: #2a1a1a; border: 1px solid #e74c3c;
   color: #e74c3c; padding: 10px 14px;
-  border-radius: 8px; font-size: 0.85rem;
+  border-radius: 2px; font-size: 0.85rem;
 }
 
 .plan-btn-cancelar {
   padding: 9px 18px; background: transparent;
   border: 1px solid #2a2a3e; color: #aaa;
-  border-radius: 8px; cursor: pointer; font-size: 0.88rem;
+  border-radius: 2px; cursor: pointer; font-size: 0.88rem;
 }
 .plan-btn-guardar {
-  padding: 9px 18px; background: #ecb2c3;
-  color: #1a1a2e; border: none; border-radius: 8px;
+  padding: 9px 18px; background: var(--color-rose-gold);
+  color: var(--color-surface); border: none; border-radius: 2px;
   font-weight: 600; cursor: pointer; font-size: 0.88rem;
 }
 .plan-btn-guardar:disabled { opacity: 0.5; cursor: not-allowed; }

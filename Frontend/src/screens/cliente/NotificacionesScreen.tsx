@@ -1,6 +1,7 @@
 // Ruta: Frontend/src/screens/cliente/NotificacionesScreen.tsx
 import React, { useMemo, useState } from 'react';
 import { useNotificaciones, Notificacion } from '../../contexts/NotificacionesContext';
+import { AiOutlineBell, AiOutlineInbox, AiOutlineClose } from 'react-icons/ai';
 import './NotificacionesScreen.css';
 
 type Filtro = 'dia' | 'semana' | 'mes' | 'todas';
@@ -60,7 +61,8 @@ const NotificacionesScreen: React.FC = () => {
         <main className="notif-page">
             <div className="notif-page-header">
                 <div>
-                    <h2 className="notif-page-titulo">🔔 Notificaciones</h2>
+                    <p className="notif-page-eyebrow"><AiOutlineBell size={14} />Centro de avisos</p>
+                    <h2 className="notif-page-titulo">Notificaciones</h2>
                     <p className="notif-page-sub">{noLeidas > 0 ? `${noLeidas} sin leer` : 'Estás al día'}</p>
                 </div>
                 <div className="notif-page-acciones">
@@ -83,7 +85,7 @@ const NotificacionesScreen: React.FC = () => {
 
             {grupos.length === 0 ? (
                 <div className="notif-vacio">
-                    <span className="notif-vacio-icono">📭</span>
+                    <span className="notif-vacio-icono"><AiOutlineInbox size={40} /></span>
                     <p>No tienes notificaciones en este periodo.</p>
                 </div>
             ) : (
@@ -107,7 +109,7 @@ const NotificacionesScreen: React.FC = () => {
                                         className="notif-item-borrar"
                                         onClick={(e) => { e.stopPropagation(); borrarNotif(n.id); }}
                                         aria-label="Borrar notificación"
-                                    >×</button>
+                                    ><AiOutlineClose size={14} /></button>
                                 </div>
                             ))}
                         </div>

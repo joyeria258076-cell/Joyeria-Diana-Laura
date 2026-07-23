@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authAPI } from '../../services/api';
+import AuthBackground from '../../components/AuthBackground';
+import { AiOutlineSafety, AiOutlineArrowLeft } from 'react-icons/ai';
 import "./MFAVerifyScreen.css";
 
 export default function MFAVerifyScreen() {
@@ -19,9 +21,9 @@ export default function MFAVerifyScreen() {
     if (location.state) {
       setUserId(location.state.userId);
       setEmail(location.state.email);
-      console.log('📧 Datos MFA recibidos:', { userId: location.state.userId, email: location.state.email });
+      console.log('Datos MFA recibidos:', { userId: location.state.userId, email: location.state.email });
     } else {
-      console.log('❌ No hay datos de navegación, redirigiendo al login');
+      console.log('No hay datos de navegación, redirigiendo al login');
       navigate('/login');
     }
   }, [location, navigate]);
@@ -43,22 +45,22 @@ export default function MFAVerifyScreen() {
     setError('');
 
     try {
-      console.log('🔐 Verificando código MFA para usuario:', userId);
+      console.log('Verificando código MFA para usuario:', userId);
       
       const response = await authAPI.verifyLoginMFA(userId, mfaCode);
       
       if (response.success && response.verified) {
-        console.log('✅ MFA verificado correctamente');
+        console.log('MFA verificado correctamente');
         
-        // 🆕 CORRECCIÓN: MANEJAR LA RESPUESTA COMPLETA
+        // CORRECCIÓN: MANEJAR LA RESPUESTA COMPLETA
         if (response.data) {
-          console.log('✅ Datos de sesión recibidos:', response.data);
+          console.log('Datos de sesión recibidos:', response.data);
           
           const userData = response.data.user;
           const token = response.data.token;
           const sessionToken = response.data.sessionToken;
           
-          // 🆕 GUARDAR DIRECTAMENTE EN LOCALSTORAGE
+          // GUARDAR DIRECTAMENTE EN LOCALSTORAGE
           const userWithToken = {
             ...userData,
             token: token
@@ -67,23 +69,23 @@ export default function MFAVerifyScreen() {
           localStorage.setItem('diana_laura_user', JSON.stringify(userWithToken));
           localStorage.setItem('diana_laura_session_token', sessionToken);
           
-          console.log('✅ Usuario guardado en localStorage:', userData.email);
+          console.log('Usuario guardado en localStorage:', userData.email);
           
-          // 🆕 FORZAR REDIRECCIÓN CON TIMEOUT
+          // FORZAR REDIRECCIÓN CON TIMEOUT
           setTimeout(() => {
-            console.log('🔄 Redirigiendo a /inicio...');
-            window.location.href = '/inicio'; // 🆕 USAR window.location PARA FORZAR
+            console.log('Redirigiendo a /inicio...');
+            window.location.href = '/inicio'; // USAR window.location PARA FORZAR
           }, 100);
           
         } else {
-          console.error('❌ No hay datos de sesión en la respuesta');
+          console.error('No hay datos de sesión en la respuesta');
           setError('Error: No se recibieron datos de sesión. Intenta nuevamente.');
         }
       } else {
         setError(response.message || 'Código MFA inválido');
       }
     } catch (error: any) {
-      console.error('❌ Error verificando MFA:', error);
+      console.error('Error verificando MFA:', error);
       setError(error.message || 'Error verificando el código MFA');
     } finally {
       setLoading(false);
@@ -97,6 +99,7 @@ export default function MFAVerifyScreen() {
   if (!userId) {
     return (
       <div className="mfa-verify-container">
+        <AuthBackground />
         <div className="mfa-verify-card">
           <h2>Cargando...</h2>
         </div>
@@ -106,9 +109,10 @@ export default function MFAVerifyScreen() {
 
   return (
     <div className="mfa-verify-container">
+      <AuthBackground />
       <div className="mfa-verify-card">
         <div className="mfa-header">
-          <h1>🔒 Verificación en Dos Pasos</h1>
+          <h1><AiOutlineSafety size={26} style={{ verticalAlign: 'middle', marginRight: 10, color: 'var(--color-rose-gold)' }} />Verificación en Dos Pasos</h1>
           <p>Para continuar, ingresa el código de tu aplicación authenticator</p>
           <p className="user-email">Usuario: <strong>{email}</strong></p>
         </div>
@@ -162,7 +166,7 @@ export default function MFAVerifyScreen() {
           className="back-button"
           disabled={loading}
         >
-          ← Volver al Login
+          <AiOutlineArrowLeft size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} />Volver al Login
         </button>
       </div>
     </div>

@@ -1,7 +1,10 @@
 // Frontend/src/screens/admin/AdminInventarioScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AiOutlinePlus, AiOutlineSearch, AiOutlineReload, AiOutlineEdit, AiOutlineDelete, AiOutlineInfo } from 'react-icons/ai';
+import {
+  AiOutlinePlus, AiOutlineSearch, AiOutlineReload, AiOutlineEdit, AiOutlineDelete, AiOutlineInfo,
+  AiOutlineInbox, AiOutlineWarning, AiOutlineCheckCircle, AiOutlineLeft, AiOutlineRight, AiOutlineStar,
+} from 'react-icons/ai';
 import { productsAPI } from '../../services/api';
 import './AdminInventarioScreen.css';
 
@@ -23,27 +26,25 @@ interface Producto {
   imagen_principal?: string;
 }
 
+const PRODUCTOS_POR_PAGINA = 9;
+
 const AdminInventarioScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [loadingRecent, setLoadingRecent] = useState(false);
   const [loadingAll, setLoadingAll] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
-  
-  // Productos recientes
+  const [vista, setVista] = useState<'recientes' | 'todos'>('recientes');
+  const [paginaActual, setPaginaActual] = useState(1);
+
   const [productosRecientes, setProductosRecientes] = useState<Producto[]>([]);
-  
-  // Todos los productos
   const [todosProductos, setTodosProductos] = useState<Producto[]>([]);
   const [productosFiltrados, setProductosFiltrados] = useState<Producto[]>([]);
 
-  // Cargar datos al montar componente
   useEffect(() => {
     loadRecent();
     loadAll();
   }, []);
 
-  // Realizar búsqueda
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setProductosFiltrados(todosProductos);
@@ -57,21 +58,18 @@ const AdminInventarioScreen: React.FC = () => {
     }
   }, [searchTerm, todosProductos]);
 
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [searchTerm, vista]);
+
   const loadRecent = async () => {
-    setLoadingRecent(true);
     setError('');
     try {
       const response = await productsAPI.getRecent(10);
-      if (response.success && Array.isArray(response.data)) {
-        setProductosRecientes(response.data);
-      } else {
-        setProductosRecientes([]);
-      }
+      setProductosRecientes(response.success && Array.isArray(response.data) ? response.data : []);
     } catch (err: any) {
       console.error('Error loading recent products:', err);
       setError('Error cargando productos recientes');
-    } finally {
-      setLoadingRecent(false);
     }
   };
 
@@ -80,13 +78,9 @@ const AdminInventarioScreen: React.FC = () => {
     setError('');
     try {
       const response = await productsAPI.getAll();
-      if (response.success && Array.isArray(response.data)) {
-        setTodosProductos(response.data);
-        setProductosFiltrados(response.data);
-      } else {
-        setTodosProductos([]);
-        setProductosFiltrados([]);
-      }
+      const data = response.success && Array.isArray(response.data) ? response.data : [];
+      setTodosProductos(data);
+      setProductosFiltrados(data);
     } catch (err: any) {
       console.error('Error loading products:', err);
       setError('Error cargando productos');
@@ -95,242 +89,177 @@ const AdminInventarioScreen: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number, nombre: string) => {
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar "${nombre}"?`)) {
-      return;
-    }
+  const handleRefrescar = () => {
+    loadRecent();
+    loadAll();
+  };
 
+  const handleDelete = async (id: number, nombre: string) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar "${nombre}"?`)) return;
     try {
       await productsAPI.delete(id);
-      setProductosRecientes(productosRecientes.filter(p => p.id !== id));
-      setTodosProductos(todosProductos.filter(p => p.id !== id));
+      setProductosRecientes(prev => prev.filter(p => p.id !== id));
+      setTodosProductos(prev => prev.filter(p => p.id !== id));
     } catch (err: any) {
       alert(`Error al eliminar: ${err.message}`);
     }
   };
 
-  const getStockColor = (actual: number, minimo: number): string => {
-    if (actual <= minimo) return 'stock-bajo';
-    if (actual <= minimo * 2) return 'stock-medio';
-    return 'stock-ok';
+  const getStockNivel = (actual: number, minimo: number): 'bajo' | 'medio' | 'ok' => {
+    if (actual <= minimo) return 'bajo';
+    if (actual <= minimo * 2) return 'medio';
+    return 'ok';
   };
 
-  const getStockLabel = (actual: number, minimo: number): string => {
-    if (actual <= minimo) return '⚠️ Bajo Stock';
-    if (actual <= minimo * 2) return '⚠️ Stock Medio';
-    return '✓ Stock OK';
-  };
+  const formatPrice = (price: number): string =>
+    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price);
 
-  const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
+  const listaActiva = vista === 'recientes' ? productosRecientes : productosFiltrados;
+  const totalPaginas = Math.max(1, Math.ceil(listaActiva.length / PRODUCTOS_POR_PAGINA));
+  const productosPagina = listaActiva.slice((paginaActual - 1) * PRODUCTOS_POR_PAGINA, paginaActual * PRODUCTOS_POR_PAGINA);
 
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('es-CO', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  const totalStockBajo = todosProductos.filter(p => p.stock_actual <= p.stock_minimo).length;
+  const totalActivos = todosProductos.filter(p => p.activo).length;
+  const totalNuevos = todosProductos.filter(p => p.es_nuevo).length;
 
   return (
-    <div className="inventario-container">
-      {/* Header */}
-      <div className="inventario-header">
-        <h1>📦 Inventario de Productos</h1>
-        <button
-          className="btn-new-product"
-          onClick={() => navigate('/admin-nuevo-producto')}
-        >
-          <AiOutlinePlus size={20} />
-          Nuevo Producto
+    <div className="inv2-container">
+      <div className="inv2-header">
+        <h1><AiOutlineInbox size={22} /> Inventario de Productos</h1>
+        <button className="inv2-btn-nuevo" onClick={() => navigate('/admin-nuevo-producto')}>
+          <AiOutlinePlus size={18} /> Nuevo Producto
         </button>
       </div>
 
-      {/* Alert */}
-      {error && (
-        <div className="alert alert-error">
-          {error}
+      <div className="inv2-stats">
+        <div className="inv2-stat">
+          <span className="inv2-stat-num">{todosProductos.length}</span>
+          <span className="inv2-stat-label">Total</span>
         </div>
-      )}
+        <div className="inv2-stat inv2-stat-bad">
+          <span className="inv2-stat-num">{totalStockBajo}</span>
+          <span className="inv2-stat-label">Stock Bajo</span>
+        </div>
+        <div className="inv2-stat inv2-stat-ok">
+          <span className="inv2-stat-num">{totalActivos}</span>
+          <span className="inv2-stat-label">Activos</span>
+        </div>
+        <div className="inv2-stat">
+          <span className="inv2-stat-num">{totalNuevos}</span>
+          <span className="inv2-stat-label">Nuevos</span>
+        </div>
+      </div>
 
-      {/* SECTION 1: PRODUCTOS RECIENTES */}
-      <section className="inventory-section">
-        <div className="section-header">
-          <h2>📅 Productos Recientes (Últimos 7 días)</h2>
-          <button
-            className="btn-refresh"
-            onClick={loadRecent}
-            disabled={loadingRecent}
-          >
-            <AiOutlineReload size={18} />
-            {loadingRecent ? 'Cargando...' : 'Recargar'}
+      {error && <div className="inv2-alert">{error}</div>}
+
+      <div className="inv2-toolbar">
+        <div className="inv2-tabs">
+          <button className={`inv2-tab ${vista === 'recientes' ? 'active' : ''}`} onClick={() => setVista('recientes')}>
+            Recientes
+          </button>
+          <button className={`inv2-tab ${vista === 'todos' ? 'active' : ''}`} onClick={() => setVista('todos')}>
+            Todos ({todosProductos.length})
           </button>
         </div>
 
-        {loadingRecent ? (
-          <div className="loading-state">Cargando productos recientes...</div>
-        ) : productosRecientes.length === 0 ? (
-          <div className="empty-state">
-            <p>No hay productos recientes</p>
-          </div>
-        ) : (
-          <div className="table-wrapper">
-            <table className="inventory-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Categoría</th>
-                  <th>Stock</th>
-                  <th>Precio</th>
-                  <th>Fecha</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {productosRecientes.map(producto => (
-                  <tr key={producto.id} className={producto.activo ? '' : 'inactive'}>
-                    <td className="table-id">#{producto.id}</td>
-                    <td className="table-nombre">
-                      <span>{producto.nombre}</span>
-                      {producto.es_nuevo && <span className="badge-new">Nuevo</span>}
-                      {producto.es_destacado && <span className="badge-featured">Destacado</span>}
-                    </td>
-                    <td>{producto.categoria_nombre || '-'}</td>
-                    <td>
-                      <span className={`stock-badge ${getStockColor(producto.stock_actual, producto.stock_minimo)}`}>
-                        {getStockLabel(producto.stock_actual, producto.stock_minimo)}
-                      </span>
-                      <span className="stock-number">({producto.stock_actual})</span>
-                    </td>
-                    <td className="table-price">{formatPrice(producto.precio_venta)}</td>
-                    <td className="table-date">{formatDate(producto.fecha_creacion)}</td>
-                    <td className="table-actions">
-                      <button
-                        className="btn-action btn-info"
-                        onClick={() => navigate(`/admin/producto/${producto.id}`)}
-                        title="Ver detalles"
-                      >
-                        <AiOutlineInfo size={16} />
-                      </button>
-                      <button
-                        className="btn-action btn-edit"
-                        onClick={() => navigate(`/admin/editar-producto/${producto.id}`)}
-                        title="Editar"
-                      >
-                        <AiOutlineEdit size={16} />
-                      </button>
-                      <button
-                        className="btn-action btn-delete"
-                        onClick={() => handleDelete(producto.id, producto.nombre)}
-                        title="Eliminar"
-                      >
-                        <AiOutlineDelete size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      {/* SECTION 2: TODOS LOS PRODUCTOS */}
-      <section className="inventory-section">
-        <div className="section-header">
-          <h2>📋 Inventario General ({productosFiltrados.length})</h2>
-          <div className="search-box">
-            <AiOutlineSearch size={18} />
+        {vista === 'todos' && (
+          <div className="inv2-search">
+            <AiOutlineSearch />
             <input
               type="text"
               placeholder="Buscar por nombre, descripción o categoría..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
-        </div>
-
-        {loadingAll ? (
-          <div className="loading-state">Cargando inventario...</div>
-        ) : productosFiltrados.length === 0 ? (
-          <div className="empty-state">
-            <p>{searchTerm ? 'No se encontraron productos' : 'No hay productos disponibles'}</p>
-          </div>
-        ) : (
-          <div className="table-wrapper">
-            <table className="inventory-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Categoría</th>
-                  <th>Proveedor</th>
-                  <th>Stock</th>
-                  <th>Precio</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {productosFiltrados.map(producto => (
-                  <tr key={producto.id} className={producto.activo ? '' : 'inactive'}>
-                    <td className="table-id">#{producto.id}</td>
-                    <td className="table-nombre">
-                      <span>{producto.nombre}</span>
-                      {producto.es_nuevo && <span className="badge-new">Nuevo</span>}
-                      {producto.es_destacado && <span className="badge-featured">Destacado</span>}
-                    </td>
-                    <td>{producto.categoria_nombre || '-'}</td>
-                    <td>{producto.proveedor_nombre || '-'}</td>
-                    <td>
-                      <span className={`stock-badge ${getStockColor(producto.stock_actual, producto.stock_minimo)}`}>
-                        {getStockLabel(producto.stock_actual, producto.stock_minimo)}
-                      </span>
-                      <span className="stock-number">({producto.stock_actual})</span>
-                    </td>
-                    <td className="table-price">{formatPrice(producto.precio_venta)}</td>
-                    <td>
-                      <span className={`status-badge ${producto.activo ? 'active' : 'inactive'}`}>
-                        {producto.activo ? '✓ Activo' : '✗ Inactivo'}
-                      </span>
-                    </td>
-                    <td className="table-actions">
-                      <button
-                        className="btn-action btn-info"
-                        onClick={() => navigate(`/admin/producto/${producto.id}`)}
-                        title="Ver detalles"
-                      >
-                        <AiOutlineInfo size={16} />
-                      </button>
-                      <button
-                        className="btn-action btn-edit"
-                        onClick={() => navigate(`/admin/editar-producto/${producto.id}`)}
-                        title="Editar"
-                      >
-                        <AiOutlineEdit size={16} />
-                      </button>
-                      <button
-                        className="btn-action btn-delete"
-                        onClick={() => handleDelete(producto.id, producto.nombre)}
-                        title="Eliminar"
-                      >
-                        <AiOutlineDelete size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         )}
-      </section>
+
+        <button className="inv2-btn-refrescar" onClick={handleRefrescar} disabled={loadingAll}>
+          <AiOutlineReload size={15} />
+          {loadingAll ? 'Cargando...' : 'Refrescar'}
+        </button>
+      </div>
+
+      {loadingAll && listaActiva.length === 0 ? (
+        <div className="inv2-loading">
+          <div className="inv2-spinner" />
+          <p>Cargando inventario...</p>
+        </div>
+      ) : productosPagina.length === 0 ? (
+        <div className="inv2-empty">
+          <AiOutlineInbox size={36} />
+          <p>{searchTerm ? 'No se encontraron productos' : 'No hay productos disponibles'}</p>
+        </div>
+      ) : (
+        <div className="inv2-grid">
+          {productosPagina.map(producto => {
+            const nivel = getStockNivel(producto.stock_actual, producto.stock_minimo);
+            const porcentaje = Math.min(100, Math.round((producto.stock_actual / (producto.stock_minimo * 2 || 1)) * 100));
+            return (
+              <div key={producto.id} className={`inv2-card ${!producto.activo ? 'inv2-card-inactivo' : ''}`}>
+                <div className="inv2-card-media">
+                  {producto.imagen_principal ? (
+                    <img src={producto.imagen_principal} alt={producto.nombre} />
+                  ) : (
+                    <div className="inv2-card-media-placeholder"><AiOutlineInbox size={26} /></div>
+                  )}
+                  <div className="inv2-card-badges">
+                    {producto.es_nuevo && <span className="inv2-badge new">Nuevo</span>}
+                    {producto.es_destacado && <span className="inv2-badge featured"><AiOutlineStar size={11} /> Destacado</span>}
+                  </div>
+                  {!producto.activo && <span className="inv2-badge-inactivo">Inactivo</span>}
+                </div>
+
+                <div className="inv2-card-body">
+                  <div className="inv2-card-id">#{producto.id} · {producto.categoria_nombre || 'Sin categoría'}</div>
+                  <h3 className="inv2-card-nombre">{producto.nombre}</h3>
+                  <div className="inv2-card-precio">{formatPrice(producto.precio_venta)}</div>
+
+                  <div className="inv2-stock-wrap">
+                    <div className="inv2-stock-top">
+                      <span className={`inv2-stock-label ${nivel}`}>
+                        {nivel === 'bajo' ? <AiOutlineWarning size={12} /> : <AiOutlineCheckCircle size={12} />}
+                        {nivel === 'bajo' ? 'Stock bajo' : nivel === 'medio' ? 'Stock medio' : 'Stock OK'}
+                      </span>
+                      <span className="inv2-stock-num">{producto.stock_actual} uds.</span>
+                    </div>
+                    <div className="inv2-stock-bar">
+                      <div className={`inv2-stock-fill ${nivel}`} style={{ width: `${porcentaje}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="inv2-card-actions">
+                    <button onClick={() => navigate(`/admin/producto/${producto.id}`)} title="Ver detalles">
+                      <AiOutlineInfo size={16} />
+                    </button>
+                    <button onClick={() => navigate(`/admin/editar-producto/${producto.id}`)} title="Editar">
+                      <AiOutlineEdit size={16} />
+                    </button>
+                    <button className="danger" onClick={() => handleDelete(producto.id, producto.nombre)} title="Eliminar">
+                      <AiOutlineDelete size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {listaActiva.length > PRODUCTOS_POR_PAGINA && (
+        <div className="inv2-pagination">
+          <button className="inv2-page-btn" onClick={() => setPaginaActual(p => Math.max(1, p - 1))} disabled={paginaActual === 1}>
+            <AiOutlineLeft size={14} />
+          </button>
+          <span className="inv2-page-info">
+            Página {paginaActual} de {totalPaginas}
+            <small> · {listaActiva.length} productos</small>
+          </span>
+          <button className="inv2-page-btn" onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))} disabled={paginaActual === totalPaginas}>
+            <AiOutlineRight size={14} />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

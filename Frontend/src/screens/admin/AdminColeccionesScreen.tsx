@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {
+  AiOutlineFolderOpen, AiOutlineShopping, AiOutlineEdit, AiOutlineDelete, AiOutlineCheckCircle,
+  AiOutlineStop, AiOutlinePlus, AiOutlineFolder,
+} from 'react-icons/ai';
 import { coleccionesAPI, productsAPI, uploadAPI } from '../../services/api';
 import './AdminColeccionesScreen.css';
 
@@ -33,7 +36,6 @@ interface ColeccionDetalle extends Coleccion {
 const defaultForm = { nombre: '', descripcion: '', imagen_url: '', orden: '0' };
 
 const AdminColeccionesScreen: React.FC = () => {
-  const navigate = useNavigate();
   const [colecciones, setColecciones] = useState<Coleccion[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -51,6 +53,11 @@ const AdminColeccionesScreen: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
 
+  // Panel de detalle (maestro-detalle)
+  const [seleccionadaId, setSeleccionadaId] = useState<number | null>(null);
+  const [detalleSeleccionada, setDetalleSeleccionada] = useState<ColeccionDetalle | null>(null);
+  const [loadingDetalle, setLoadingDetalle] = useState(false);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -65,7 +72,11 @@ const AdminColeccionesScreen: React.FC = () => {
     setLoading(true);
     try {
       const res = await coleccionesAPI.getAll();
-      setColecciones(Array.isArray(res) ? res : res.data || []);
+      const lista = Array.isArray(res) ? res : res.data || [];
+      setColecciones(lista);
+      if (!seleccionadaId && lista.length > 0) {
+        setSeleccionadaId(lista[0].id);
+      }
     } catch { setError('Error al cargar colecciones'); }
     finally { setLoading(false); }
   };
@@ -79,6 +90,22 @@ const AdminColeccionesScreen: React.FC = () => {
   };
 
   useEffect(() => { cargar(); cargarProductos(); }, []);
+
+  useEffect(() => {
+    const cargarDetalle = async () => {
+      if (!seleccionadaId) { setDetalleSeleccionada(null); return; }
+      setLoadingDetalle(true);
+      try {
+        const res = await coleccionesAPI.getById(seleccionadaId);
+        setDetalleSeleccionada(res.data || res);
+      } catch {
+        setDetalleSeleccionada(null);
+      } finally {
+        setLoadingDetalle(false);
+      }
+    };
+    cargarDetalle();
+  }, [seleccionadaId]);
 
   const abrirCrear = () => {
     setEditando(null);
@@ -125,6 +152,11 @@ const AdminColeccionesScreen: React.FC = () => {
     );
   };
 
+  const refrescarTrasGuardar = async (idAfectada: number) => {
+    await cargar();
+    setSeleccionadaId(idAfectada);
+  };
+
   const handleGuardar = async () => {
     if (!form.nombre.trim()) { setError('El nombre es obligatorio'); return; }
     setSaving(true); setError('');
@@ -155,13 +187,16 @@ const AdminColeccionesScreen: React.FC = () => {
       productos: productosSeleccionados.map(p => p.id),
     };
     try {
+      let idResultante = editando?.id;
       if (editando) {
         await coleccionesAPI.update(editando.id, payload);
       } else {
-        await coleccionesAPI.create(payload);
+        const res = await coleccionesAPI.create(payload);
+        idResultante = (res.data || res)?.id;
       }
       cerrarModal();
-      cargar();
+      if (idResultante) await refrescarTrasGuardar(idResultante);
+      else await cargar();
     } catch { setError('Error al guardar la colección'); }
     finally { setSaving(false); }
   };
@@ -170,6 +205,10 @@ const AdminColeccionesScreen: React.FC = () => {
     try {
       await coleccionesAPI.toggleStatus(c.id, !c.activo);
       cargar();
+      if (seleccionadaId === c.id) {
+        const res = await coleccionesAPI.getById(c.id);
+        setDetalleSeleccionada(res.data || res);
+      }
     } catch { alert('Error al cambiar estado'); }
   };
 
@@ -177,8 +216,10 @@ const AdminColeccionesScreen: React.FC = () => {
     if (!confirmDelete) return;
     try {
       await coleccionesAPI.delete(confirmDelete.id);
+      const eraSeleccionada = seleccionadaId === confirmDelete.id;
       setConfirmDelete(null);
-      cargar();
+      await cargar();
+      if (eraSeleccionada) setSeleccionadaId(null);
     } catch { alert('Error al eliminar'); }
   };
 
@@ -187,53 +228,108 @@ const AdminColeccionesScreen: React.FC = () => {
   );
 
   return (
-    <div className="ac-container">
-      <div className="ac-header">
-        <button className="ac-back" onClick={() => navigate(-1)}>← Volver</button>
+    <div className="ac2-container">
+      <div className="ac2-header">
         <div>
-          <h1 className="ac-title">Colecciones</h1>
-          <p className="ac-subtitle">Agrupa productos en colecciones temáticas para el catálogo</p>
+          <h1><AiOutlineFolder size={22} /> Colecciones</h1>
+          <p>Agrupa productos en colecciones temáticas para el catálogo</p>
         </div>
-        <button className="ac-btn-primary" onClick={abrirCrear}>+ Nueva colección</button>
+        <button className="ac2-btn-nuevo" onClick={abrirCrear}>
+          <AiOutlinePlus size={18} /> Nueva Colección
+        </button>
       </div>
 
-      {error && <div className="ac-error-global">{error}</div>}
+      {error && <div className="ac2-error-global">{error}</div>}
 
       {loading ? (
-        <div className="ac-loading">Cargando...</div>
+        <div className="ac2-loading"><div className="ac2-spinner" /><p>Cargando...</p></div>
       ) : colecciones.length === 0 ? (
-        <div className="ac-empty">
-          <div className="ac-empty-icon">🗂️</div>
+        <div className="ac2-empty">
+          <AiOutlineFolderOpen size={36} />
           <p>No hay colecciones. ¡Crea la primera!</p>
         </div>
       ) : (
-        <div className="ac-grid">
-          {colecciones.map(c => (
-            <div key={c.id} className={`ac-card ${!c.activo ? 'ac-card-inactiva' : ''}`}>
-              {c.imagen_url ? (
-                <img src={c.imagen_url} alt={c.nombre} className="ac-card-img" />
-              ) : (
-                <div className="ac-card-img-placeholder">🗂️</div>
-              )}
-              <div className="ac-card-body">
-                <div className="ac-card-nombre">{c.nombre}</div>
-                {c.descripcion && <div className="ac-card-desc">{c.descripcion}</div>}
-                <div className="ac-card-meta">
-                  <span className="ac-chip ac-chip-prods">🛍 {c.total_productos} productos</span>
-                  <span className={`ac-chip ${c.activo ? 'ac-chip-activo' : 'ac-chip-inactivo'}`}>
-                    {c.activo ? 'Visible' : 'Oculta'}
-                  </span>
+        <div className="ac2-layout">
+          {/* Lista maestra */}
+          <div className="ac2-lista">
+            {colecciones.map(c => (
+              <button
+                key={c.id}
+                className={`ac2-lista-item ${seleccionadaId === c.id ? 'active' : ''} ${!c.activo ? 'inactiva' : ''}`}
+                onClick={() => setSeleccionadaId(c.id)}
+              >
+                <div className="ac2-lista-thumb">
+                  {c.imagen_url ? <img src={c.imagen_url} alt={c.nombre} /> : <AiOutlineFolderOpen size={18} />}
                 </div>
-              </div>
-              <div className="ac-card-actions">
-                <button className="ac-btn-icon" title="Editar" onClick={() => abrirEditar(c)}>✏️</button>
-                <button className="ac-btn-icon" title={c.activo ? 'Ocultar' : 'Mostrar'} onClick={() => handleToggle(c)}>
-                  {c.activo ? '🔴' : '🟢'}
-                </button>
-                <button className="ac-btn-icon" title="Eliminar" onClick={() => setConfirmDelete(c)}>🗑️</button>
-              </div>
-            </div>
-          ))}
+                <div className="ac2-lista-info">
+                  <span className="ac2-lista-nombre">{c.nombre}</span>
+                  <span className="ac2-lista-count">{c.total_productos} productos</span>
+                </div>
+                <span className={`ac2-lista-dot ${c.activo ? 'on' : 'off'}`} />
+              </button>
+            ))}
+          </div>
+
+          {/* Panel de detalle */}
+          <div className="ac2-detalle">
+            {loadingDetalle ? (
+              <div className="ac2-detalle-loading">Cargando colección...</div>
+            ) : detalleSeleccionada ? (
+              <>
+                <div className="ac2-detalle-hero">
+                  {detalleSeleccionada.imagen_url ? (
+                    <img src={detalleSeleccionada.imagen_url} alt={detalleSeleccionada.nombre} />
+                  ) : (
+                    <div className="ac2-detalle-hero-placeholder"><AiOutlineFolderOpen size={40} /></div>
+                  )}
+                  <div className="ac2-detalle-hero-overlay">
+                    <span className={`ac2-detalle-badge ${detalleSeleccionada.activo ? 'on' : 'off'}`}>
+                      {detalleSeleccionada.activo ? 'Visible en catálogo' : 'Oculta'}
+                    </span>
+                    <h2>{detalleSeleccionada.nombre}</h2>
+                    {detalleSeleccionada.descripcion && <p>{detalleSeleccionada.descripcion}</p>}
+                  </div>
+                </div>
+
+                <div className="ac2-detalle-actions">
+                  <button onClick={() => abrirEditar(detalleSeleccionada)}>
+                    <AiOutlineEdit size={15} /> Editar
+                  </button>
+                  <button onClick={() => handleToggle(detalleSeleccionada)}>
+                    {detalleSeleccionada.activo ? <AiOutlineStop size={15} /> : <AiOutlineCheckCircle size={15} />}
+                    {detalleSeleccionada.activo ? 'Ocultar' : 'Mostrar'}
+                  </button>
+                  <button className="danger" onClick={() => setConfirmDelete(detalleSeleccionada)}>
+                    <AiOutlineDelete size={15} /> Eliminar
+                  </button>
+                </div>
+
+                <div className="ac2-detalle-productos-header">
+                  <AiOutlineShopping size={15} />
+                  <span>{detalleSeleccionada.productos?.length || 0} productos en esta colección</span>
+                </div>
+
+                {detalleSeleccionada.productos && detalleSeleccionada.productos.length > 0 ? (
+                  <div className="ac2-productos-grid">
+                    {detalleSeleccionada.productos.map(p => (
+                      <div key={p.id} className="ac2-producto-mini">
+                        {p.imagen_principal ? (
+                          <img src={p.imagen_principal} alt={p.nombre} />
+                        ) : (
+                          <div className="ac2-producto-mini-ph"><AiOutlineShopping size={18} /></div>
+                        )}
+                        <span>{p.nombre}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="ac2-productos-vacio">Esta colección no tiene productos todavía. Edítala para agregar algunos.</div>
+                )}
+              </>
+            ) : (
+              <div className="ac2-detalle-loading">Selecciona una colección para ver sus productos</div>
+            )}
+          </div>
         </div>
       )}
 
@@ -289,7 +385,6 @@ const AdminColeccionesScreen: React.FC = () => {
               )}
             </div>
 
-            {/* Productos seleccionados */}
             {productosSeleccionados.length > 0 && (
               <div className="ac-seleccionados">
                 {productosSeleccionados.map(p => (
@@ -302,7 +397,6 @@ const AdminColeccionesScreen: React.FC = () => {
               </div>
             )}
 
-            {/* Buscador de productos */}
             <input
               ref={busquedaRef}
               className="ac-search"
@@ -321,14 +415,14 @@ const AdminColeccionesScreen: React.FC = () => {
                   >
                     {p.imagen_principal
                       ? <img src={p.imagen_principal} alt={p.nombre} className="ac-prod-thumb" />
-                      : <div className="ac-prod-thumb ac-prod-thumb-ph">💍</div>
+                      : <div className="ac-prod-thumb ac-prod-thumb-ph"><AiOutlineShopping size={20} /></div>
                     }
                     <div className="ac-prod-info">
                       <div className="ac-prod-nombre">{p.nombre}</div>
                       <div className="ac-prod-codigo">{p.codigo} · ${p.precio_oferta ?? p.precio_venta}</div>
                     </div>
                     <div className={`ac-check ${estaSeleccionado ? 'ac-check-on' : ''}`}>
-                      {estaSeleccionado ? '✓' : '+'}
+                      {estaSeleccionado ? <AiOutlineCheckCircle size={16} /> : '+'}
                     </div>
                   </div>
                 );

@@ -3,10 +3,10 @@
 .simple-import-container {
   flex: 1;
   padding: 2rem;
-  background: linear-gradient(135deg, #050505 0%, #0a0a0f 100%);
+  background: linear-gradient(135deg, var(--color-bg) 0%, #0a0a0f 100%);
   min-height: 100vh;
   color: #ffffff;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
 }
 
 /* Header */
@@ -17,11 +17,11 @@
 }
 
 .simple-import-header h1 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, #ECB2C3 0%, #e49bb3 100%);
+  background: linear-gradient(135deg, var(--color-rose-gold) 0%, #e49bb3 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -38,7 +38,7 @@
 /* Mensajes */
 .message {
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 2px;
   margin-bottom: 1.5rem;
   font-weight: 500;
   animation: slideDown 0.3s ease-out;
@@ -71,7 +71,7 @@
 .import-form {
   background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, rgba(10, 10, 15, 0.7) 100%);
   border: 1px solid rgba(236, 178, 195, 0.2);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 2rem;
   backdrop-filter: blur(10px);
 }
@@ -83,7 +83,7 @@
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   font-weight: 500;
   font-size: 0.95rem;
 }
@@ -94,7 +94,7 @@
   padding: 0.8rem;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(236, 178, 195, 0.2);
-  border-radius: 6px;
+  border-radius: 2px;
   color: #ffffff;
   font-size: 0.95rem;
   transition: all 0.3s ease;
@@ -103,12 +103,12 @@
 .form-group select:focus,
 .form-group input[type="file"]:focus {
   outline: none;
-  border-color: #ECB2C3;
+  border-color: var(--color-rose-gold);
   background: rgba(0, 0, 0, 0.4);
 }
 
 .form-group select option {
-  background: #0f0f12;
+  background: var(--color-bg);
   color: #ffffff;
 }
 
@@ -130,7 +130,7 @@
   margin-bottom: 1.5rem;
   padding: 1rem;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
+  border-radius: 2px;
 }
 
 .columns-info h3 {
@@ -151,7 +151,7 @@
   padding: 0.3rem 0.8rem;
   border-radius: 4px;
   font-size: 0.85rem;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   font-family: monospace;
 }
 
@@ -165,7 +165,7 @@
 .btn-preview, .btn-import {
   padding: 0.8rem 2rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 2px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -176,7 +176,7 @@
 .btn-preview {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(236, 178, 195, 0.3);
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
 }
 
 .btn-preview:hover:not(:disabled) {
@@ -185,8 +185,8 @@
 }
 
 .btn-import {
-  background: linear-gradient(135deg, #ECB2C3 0%, #e49bb3 100%);
-  color: #0f0f12;
+  background: linear-gradient(135deg, var(--color-rose-gold) 0%, #e49bb3 100%);
+  color: var(--color-bg);
   box-shadow: 0 10px 20px rgba(236, 178, 195, 0.2);
 }
 
@@ -211,7 +211,7 @@
 
 .preview-section h3 {
   margin-bottom: 1rem;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   font-size: 1.2rem;
 }
 
@@ -220,14 +220,14 @@
   padding: 0.8rem;
   background: rgba(76, 175, 80, 0.1);
   border: 1px solid rgba(76, 175, 80, 0.3);
-  border-radius: 6px;
+  border-radius: 2px;
   color: #4CAF50;
   font-size: 0.95rem;
 }
 
 .table-responsive {
   overflow-x: auto;
-  border-radius: 8px;
+  border-radius: 2px;
   border: 1px solid rgba(236, 178, 195, 0.2);
   max-height: 400px;
   overflow-y: auto;
@@ -251,7 +251,7 @@
   padding: 1rem;
   text-align: left;
   font-weight: 600;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   border-bottom: 1px solid rgba(236, 178, 195, 0.2);
   font-size: 0.9rem;
 }
@@ -286,7 +286,7 @@
   height: 20px;
   border: 2px solid rgba(236, 178, 195, 0.3);
   border-radius: 50%;
-  border-top-color: #ECB2C3;
+  border-top-color: var(--color-rose-gold);
   animation: spin 1s ease-in-out infinite;
   margin-right: 0.5rem;
 }

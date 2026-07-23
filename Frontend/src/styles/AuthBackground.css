@@ -1,0 +1,60 @@
+/* Ruta: Frontend/src/styles/AuthBackground.css
+   Fondo compartido de pantallas de autenticación (Login, Registro, recuperación, MFA). */
+
+.auth-bg-stack {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+.auth-bg-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transform: scale(1.06);
+    transition: opacity 1.6s ease-in-out;
+}
+.auth-bg-img.is-active {
+    opacity: 1;
+    animation: auth-bg-kenburns 7s ease-in-out both;
+}
+@keyframes auth-bg-kenburns {
+    from { transform: scale(1.06); }
+    to   { transform: scale(1.14); }
+}
+
+/* Degradado oscuro + cuadrícula sutil sobre las fotos */
+.auth-bg-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse at 30% 40%, rgba(10,10,10,0.4) 0%, rgba(10,10,10,0.9) 72%),
+        linear-gradient(120deg, rgba(10,10,10,0.6) 0%, rgba(10,10,10,0.88) 100%),
+        linear-gradient(var(--color-glow) 1px, transparent 1px),
+        linear-gradient(90deg, var(--color-glow) 1px, transparent 1px);
+    background-size: auto, auto, 60px 60px, 60px 60px;
+}
+.auth-bg-overlay::after {
+    content: '';
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 60vw;
+    height: 60vw;
+    max-width: 700px;
+    max-height: 700px;
+    background: radial-gradient(circle, rgba(201,149,108,0.16) 0%, transparent 68%);
+    animation: auth-glow-float 10s ease-in-out infinite;
+}
+@keyframes auth-glow-float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%       { transform: translate(-3%, 4%) scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-bg-img.is-active, .auth-bg-overlay::after { animation: none; }
+}

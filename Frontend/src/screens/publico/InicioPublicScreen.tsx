@@ -4,7 +4,10 @@ import PublicFooter from "../../components/PublicFooter";
 import { Link } from "react-router-dom";
 // ¡IMPORTANTE! Asegúrate de importar carruselAPI, promocionesAPI y productsAPI
 import { contentAPI, carruselAPI, promocionesAPI, productsAPI, paginasAPI, seccionesAPI, contenidosAPI, coleccionesAPI } from "../../services/api";
+import { AiOutlineTag, AiOutlineClose, AiOutlineLeft, AiOutlineRight, AiOutlineCar, AiOutlineGift, AiOutlineFolderOpen } from "react-icons/ai";
 import "./InicioPublicScreen.css";
+
+const JDL_CLOUD = 'https://res.cloudinary.com/dltvkwwq4/image/upload';
 
 const InicioPublicScreen: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -212,7 +215,7 @@ const InicioPublicScreen: React.FC = () => {
       {/* ═══════════ BARRA TICKER PROMOCIONES ═══════════ */}
       {promociones.length > 0 && !tickerCerrado && (
         <div className="promo-ticker-fixed">
-          <span className="promo-ticker-badge">🏷️ OFERTA</span>
+          <span className="promo-ticker-badge"><AiOutlineTag size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />OFERTA</span>
           <div className="promo-ticker-scroll-wrap">
             <div className="promo-ticker-scroll-track">
               {[...promociones, ...promociones].map((p, i) => (
@@ -226,7 +229,7 @@ const InicioPublicScreen: React.FC = () => {
               ))}
             </div>
           </div>
-          <button className="promo-ticker-close" onClick={() => setTickerCerrado(true)} aria-label="Cerrar">✕</button>
+          <button className="promo-ticker-close" onClick={() => setTickerCerrado(true)} aria-label="Cerrar"><AiOutlineClose size={12} /></button>
         </div>
       )}
       {promociones.length > 0 && !tickerCerrado && <div className="promo-ticker-spacer" />}
@@ -258,8 +261,8 @@ const InicioPublicScreen: React.FC = () => {
             ))}
           </div>
 
-          <button className="carousel-btn carousel-btn-prev" onClick={prevSlide} aria-label="Anterior">❮</button>
-          <button className="carousel-btn carousel-btn-next" onClick={nextSlide} aria-label="Siguiente">❯</button>
+          <button className="carousel-btn carousel-btn-prev" onClick={prevSlide} aria-label="Anterior"><AiOutlineLeft /></button>
+          <button className="carousel-btn carousel-btn-next" onClick={nextSlide} aria-label="Siguiente"><AiOutlineRight /></button>
 
           <div className="carousel-dots">
             {slides.map((slide, index) => (
@@ -293,9 +296,9 @@ const InicioPublicScreen: React.FC = () => {
 
             <div className="hero-images">
               <div className="image-grid">
-                <div className="image-item img-1"><img src="https://imagenes.eleconomista.com.mx/files/webp_768_448/uploads/2023/09/10/66e49dd38c8bc.jpeg" alt="Joyería" loading="lazy" /></div>
-                <div className="image-item img-2"><img src="https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=600&q=80&fit=crop" alt="Anillos" loading="lazy" /></div>
-                <div className="image-item img-3"><img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80&fit=crop" alt="Collares" loading="lazy" /></div>
+                <div className="image-item img-1"><img src={`${JDL_CLOUD}/joyeria/imagenes/imagen_usar_4.jpg`} alt="Joyería Diana Laura" loading="lazy" /></div>
+                <div className="image-item img-2"><img src={`${JDL_CLOUD}/joyeria/imagenes/imagen_usar_9.jpg`} alt="Piezas exclusivas" loading="lazy" /></div>
+                <div className="image-item img-3"><img src={`${JDL_CLOUD}/joyeria/imagenes/imagen_usar_15.jpg`} alt="Colección Diana Laura" loading="lazy" /></div>
               </div>
             </div>
           </div>
@@ -305,7 +308,7 @@ const InicioPublicScreen: React.FC = () => {
       {/* ═══════════ NUEVO: PRODUCTOS DESTACADOS ═══════════ */}
       {/* Reutilizamos las clases de news-section para mantener el estilo exacto */}
       {productosDestacados.length > 0 && (
-        <section className="news-section" style={{ backgroundColor: 'var(--bg-card-h)' }}>
+        <section className="news-section" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
           <div className="container-lg">
             <div className="section-header text-center mb-5">
               <span className="section-label" style={{ margin: '0 auto' }}>Nuestro Catálogo</span>
@@ -351,7 +354,7 @@ const InicioPublicScreen: React.FC = () => {
                           <span style={{ color: 'var(--rose)', fontSize: '1rem', fontWeight: 'bold' }}>
                             ${Number(precioFinal).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                           </span>
-                          {prod.precio_promocion && <span style={{ marginLeft: 4, fontSize: '0.75rem' }}>🏷️</span>}
+                          {prod.precio_promocion && <AiOutlineTag style={{ marginLeft: 4, verticalAlign: 'middle' }} size={13} />}
                         </div>
                       ) : (
                         <p style={{ color: 'var(--rose)', fontSize: '1rem', fontWeight: 'bold', margin: '0 0 10px' }}>
@@ -406,8 +409,8 @@ const InicioPublicScreen: React.FC = () => {
                     <img src={col.imagen_url} alt={col.nombre}
                       style={{ width: '100%', height: 140, objectFit: 'cover', display: 'block' }} />
                   ) : (
-                    <div style={{ height: 140, background: 'var(--bg-card-h)', display: 'flex', alignItems: 'center',
-                      justifyContent: 'center', fontSize: '2.5rem' }}>🗂️</div>
+                    <div style={{ height: 140, background: 'var(--bg-card-hover)', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', color: 'var(--color-rose-gold)' }}><AiOutlineFolderOpen size={32} /></div>
                   )}
                   <div style={{ padding: '12px 16px' }}>
                     <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: 4 }}>{col.nombre}</div>
@@ -448,9 +451,7 @@ const InicioPublicScreen: React.FC = () => {
                     </div>
                   )}
                   <div className="feature-icon">
-                    <span style={{ fontSize: '1.8rem' }}>
-                      {promo.tipo === 'envio_gratis' ? '🚚' : promo.tipo === '2x1' ? '2️⃣' : '🏷️'}
-                    </span>
+                    {promo.tipo === 'envio_gratis' ? <AiOutlineCar size={22} /> : promo.tipo === '2x1' ? <AiOutlineGift size={22} /> : <AiOutlineTag size={22} />}
                   </div>
                   <h4 style={{ color: 'var(--rose-light)' }}>{promo.nombre}</h4>
                   <p style={{ fontSize: '0.88rem', opacity: 0.85 }}>{promoLabel(promo)}</p>

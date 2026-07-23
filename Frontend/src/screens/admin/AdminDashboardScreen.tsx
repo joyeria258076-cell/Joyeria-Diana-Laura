@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { solicitudesAPI } from '../../services/api';
+import {
+    AiOutlineDollarCircle, AiOutlineStar, AiOutlineBarChart, AiOutlineArrowUp,
+    AiOutlineFileText, AiOutlineKey, AiOutlineEdit, AiOutlineBell, AiOutlineInbox,
+    AiOutlineShoppingCart, AiOutlineTeam, AiOutlineLineChart, AiOutlineBulb,
+    AiOutlineUsergroupAdd, AiOutlineRise,
+} from 'react-icons/ai';
 import './AdminDashboardScreen.css';
 
 const AdminDashboardScreen: React.FC = () => {
@@ -27,10 +33,9 @@ const AdminDashboardScreen: React.FC = () => {
         <div className="dashboard-container">
             <h2 className="dashboard-title">Dashboard Informativo</h2>
 
-            {/* ── SOLICITUDES PENDIENTES WIDGET ── */}
             {!loadingS && pendientes.length > 0 && (
                 <div className="dash-alert-banner">
-                    <div className="dash-alert-icon">🔔</div>
+                    <div className="dash-alert-icon"><AiOutlineBell size={20} /></div>
                     <div className="dash-alert-body">
                         <span className="dash-alert-title">
                             Tienes <strong>{pendientes.length}</strong> solicitud{pendientes.length !== 1 ? 'es' : ''} pendiente{pendientes.length !== 1 ? 's' : ''}
@@ -47,19 +52,18 @@ const AdminDashboardScreen: React.FC = () => {
                 </div>
             )}
 
-            {/* ── TARJETAS DE ESTADÍSTICAS ── */}
             <div className="dashboard-cards">
                 <div className="dashboard-card">
-                    <h4><i className="fas fa-dollar-sign"></i> Resumen de Ventas</h4>
+                    <h4><AiOutlineDollarCircle size={15} /> Resumen de Ventas</h4>
                     <div className="stat-number">$12,450</div>
                     <div className="stat-label">Este mes</div>
                     <div className="stat-trend positive">
-                        <i className="fas fa-arrow-up"></i> 12% respecto al mes anterior
+                        <AiOutlineArrowUp size={13} /> 12% respecto al mes anterior
                     </div>
                 </div>
 
                 <div className="dashboard-card">
-                    <h4><i className="fas fa-star"></i> Productos Más Vendidos</h4>
+                    <h4><AiOutlineStar size={15} /> Productos Más Vendidos</h4>
                     <div className="top-products-list">
                         <div className="top-product-item">Anillo Estrella - 45 ventas</div>
                         <div className="top-product-item">Collar Elegancia - 38 ventas</div>
@@ -68,15 +72,14 @@ const AdminDashboardScreen: React.FC = () => {
                 </div>
 
                 <div className="dashboard-card">
-                    <h4><i className="fas fa-chart-bar"></i> Movimientos</h4>
+                    <h4><AiOutlineBarChart size={15} /> Movimientos</h4>
                     <div className="stat-number">127</div>
                     <div className="stat-label">Transacciones hoy</div>
                 </div>
 
-                {/* Card de solicitudes pendientes */}
                 <div className={`dashboard-card dash-card-solicitudes ${pendientes.length > 0 ? 'dash-card-solicitudes--alert' : ''}`}
-                    onClick={() => navigate('/admin-perfil')} style={{ cursor: 'pointer' }}>
-                    <h4>📋 Solicitudes de personal</h4>
+                    onClick={() => navigate('/admin-perfil')}>
+                    <h4><AiOutlineFileText size={15} /> Solicitudes de personal</h4>
                     {loadingS ? (
                         <div className="stat-label">Cargando...</div>
                     ) : pendientes.length === 0 ? (
@@ -91,12 +94,12 @@ const AdminDashboardScreen: React.FC = () => {
                             <div className="dash-sol-mini-list">
                                 {recuperaciones.length > 0 && (
                                     <span className="dash-sol-mini-badge dash-sol-mini-badge--codigo">
-                                        🔑 {recuperaciones.length} código{recuperaciones.length !== 1 ? 's' : ''}
+                                        <AiOutlineKey size={11} /> {recuperaciones.length} código{recuperaciones.length !== 1 ? 's' : ''}
                                     </span>
                                 )}
                                 {cambiosNombre.length > 0 && (
                                     <span className="dash-sol-mini-badge dash-sol-mini-badge--nombre">
-                                        ✏️ {cambiosNombre.length} nombre{cambiosNombre.length !== 1 ? 's' : ''}
+                                        <AiOutlineEdit size={11} /> {cambiosNombre.length} nombre{cambiosNombre.length !== 1 ? 's' : ''}
                                     </span>
                                 )}
                             </div>
@@ -106,37 +109,35 @@ const AdminDashboardScreen: React.FC = () => {
                 </div>
             </div>
 
-            {/* ── ACCIONES RÁPIDAS ── */}
             <div className="quick-actions-section">
                 <h4 className="section-subtitle">Acciones Rápidas</h4>
                 <div className="quick-actions-grid">
                     <button className="btn-action-outline" onClick={() => navigate("/admin-inventario")}>
-                        <i className="fas fa-plus"></i> Ver Inventario
+                        <AiOutlineInbox size={16} /> Ver Inventario
                     </button>
                     <button className="btn-action-outline" onClick={() => navigate("/pedidos-admin")}>
-                        <i className="fas fa-box"></i> Ver Pedidos
+                        <AiOutlineShoppingCart size={16} /> Ver Pedidos
                     </button>
                     <button className="btn-action-outline" onClick={() => navigate("/admin-trabajadores")}>
-                        <i className="fas fa-users"></i> Gestionar Personal
+                        <AiOutlineTeam size={16} /> Gestionar Personal
                     </button>
                     <button className="btn-action-outline" onClick={() => navigate("/admin-reportes")}>
-                        <i className="fas fa-chart-line"></i> Ver Reportes
+                        <AiOutlineLineChart size={16} /> Ver Reportes
                     </button>
                 </div>
             </div>
 
-            {/* ── IA / ML ── */}
             <div className="quick-actions-section">
-                <h4 className="section-subtitle">✨ Inteligencia Artificial</h4>
+                <h4 className="section-subtitle"><AiOutlineBulb size={18} /> Herramientas Inteligentes</h4>
                 <div className="quick-actions-grid">
                     <button className="btn-action-outline dash-ia-btn" onClick={() => navigate("/admin-nuevo-producto")}>
-                        💰 Precio sugerido por IA
+                        <AiOutlineDollarCircle size={16} /> Precio sugerido
                     </button>
                     <button className="btn-action-outline dash-ia-btn" onClick={() => navigate("/admin-segmentos")}>
-                        👥 Segmentos de Clientes
+                        <AiOutlineUsergroupAdd size={16} /> Segmentos de Clientes
                     </button>
                     <button className="btn-action-outline dash-ia-btn" onClick={() => navigate("/admin-prediccion")}>
-                        📈 Predicción de Ventas
+                        <AiOutlineRise size={16} /> Predicción de Ventas
                     </button>
                 </div>
             </div>

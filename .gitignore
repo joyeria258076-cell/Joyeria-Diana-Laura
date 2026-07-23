@@ -7,6 +7,9 @@ node_modules/
 .pnp.js
 .pnp.loader.mjs
 
+# Imágenes fuente (ya subidas a Cloudinary, no se versionan)
+/Imagenes
+
 # Testing
 /coverage
 

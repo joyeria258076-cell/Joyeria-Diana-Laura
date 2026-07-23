@@ -1,7 +1,7 @@
 // Ruta: src/screens/cliente/ProductoDetalleScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AiOutlineArrowLeft, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart } from 'react-icons/ai';
+import { AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart } from 'react-icons/ai';
 import { productsAPI, recomendacionAPI, resenasAPI } from '../../services/api';
 import { colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import { useCart } from '../../contexts/CartContext';
@@ -37,7 +37,7 @@ interface Resena {
     fecha_creacion: string;
 }
 
-const PLACEHOLDER = `data:image/svg+xml;utf8,<svg width="600" height="600" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="600" fill="%230d0d0d"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="24" fill="%23ecb2c3" font-family="Arial">Joya Diana Laura</text></svg>`;
+const PLACEHOLDER = `data:image/svg+xml;utf8,<svg width="600" height="600" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="600" fill="%23141414"/><g transform="translate(300,300)" stroke="%23594936" stroke-width="1.5" fill="none" opacity="0.7"><path d="M-22,-14 L22,-14 L32,-2 L0,34 L-32,-2 Z"/><path d="M-22,-14 L0,-2 L22,-14 M-32,-2 L32,-2 M0,-2 L0,34"/></g></svg>`;
 const ProductoDetalleScreen: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -220,7 +220,7 @@ const ProductoDetalleScreen: React.FC = () => {
     if (loading) {
         return (
             <div className="pd-loading">
-                <div className="pd-loading-gem">💎</div>
+                <div className="pd-loading-gem" />
                 <p>Cargando producto...</p>
             </div>
         );
@@ -229,14 +229,19 @@ const ProductoDetalleScreen: React.FC = () => {
     if (!producto) return null;
 
     // ── Componente de tarjeta reutilizable ───────────────────────────────────
-    const TarjetaProducto = ({ item }: { item: Producto }) => (
-        <div className="pd-rel-card" onClick={() => navigate(`/producto/${item.id}`)}>
+    const TarjetaProducto = ({ item, indice = 0 }: { item: Producto; indice?: number }) => (
+        <div
+            className="pd-rel-card reveal-stagger"
+            style={{ ['--stagger-i' as any]: indice }}
+            onClick={() => navigate(`/producto/${item.id}`)}
+        >
             <div className="pd-rel-imagen">
                 <img
                     src={item.imagen_principal || PLACEHOLDER}
                     alt={item.nombre}
                     onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
                 />
+                <div className="pd-rel-overlay"><span>Ver pieza →</span></div>
                 {item.es_nuevo && <span className="pd-rel-badge-new">Nuevo</span>}
                 {item.precio_oferta && <span className="pd-rel-badge-sale">Oferta</span>}
             </div>
@@ -261,39 +266,22 @@ const ProductoDetalleScreen: React.FC = () => {
     const SeccionProductos = ({ titulo, items }: { titulo: string; items: Producto[] }) => (
         <section className="pd-relacionados">
             <div className="pd-relacionados-header">
-                <div className="pd-rel-line" aria-hidden="true" />
-                <h2 className="pd-relacionados-titulo">{titulo}</h2>
-                <div className="pd-rel-line" aria-hidden="true" />
+                <span className="pd-rel-eyebrow">Más piezas para ti</span>
+                <div className="pd-relacionados-header-row">
+                    <h2 className="pd-relacionados-titulo">{titulo}</h2>
+                    <button className="pd-btn-ver-mas" onClick={() => navigate('/catalogo')}>
+                        Ver catálogo completo →
+                    </button>
+                </div>
             </div>
             <div className="pd-relacionados-grid">
-                {items.map(item => <TarjetaProducto key={item.id} item={item} />)}
-            </div>
-            <div className="pd-relacionados-footer">
-                <button className="pd-btn-ver-mas" onClick={() => navigate('/catalogo')}>
-                    Ver catálogo completo
-                </button>
+                {items.map((item, i) => <TarjetaProducto key={item.id} item={item} indice={i} />)}
             </div>
         </section>
     );
 
     return (
         <main className="pd-body">
-
-            {/* ── BREADCRUMB ── */}
-            <nav className="pd-breadcrumb">
-                <button onClick={() => navigate('/catalogo')} className="pd-back-btn">
-                    <AiOutlineArrowLeft size={16} />
-                    Catálogo
-                </button>
-                <span className="pd-bc-sep">/</span>
-                {producto.categoria_nombre && (
-                    <>
-                        <span className="pd-bc-cat">{producto.categoria_nombre}</span>
-                        <span className="pd-bc-sep">/</span>
-                    </>
-                )}
-                <span className="pd-bc-current">{producto.nombre}</span>
-            </nav>
 
             {/* ── SECCIÓN PRINCIPAL ── */}
             <section className="pd-main">
@@ -312,9 +300,7 @@ const ProductoDetalleScreen: React.FC = () => {
                         {producto.stock_actual === 0 && (
                             <div className="pd-agotado-overlay">Agotado</div>
                         )}
-                    </div>
-                    <div className="pd-gallery-accent" aria-hidden="true">
-                        <span>✦</span><span>✦</span><span>✦</span>
+                        <span className="pd-gallery-tag">Pieza Diana Laura</span>
                     </div>
                 </div>
 
@@ -342,7 +328,7 @@ const ProductoDetalleScreen: React.FC = () => {
                         </span>
                         {hayDescuento && (
                             <span className="pd-ahorro">
-                                {esPromocion ? '🏷️ Promoción — ' : ''}Ahorras ${(producto.precio_venta - precioFinal).toLocaleString('es-MX')} ({descuentoPct}% off)
+                                {esPromocion ? 'Promoción — ' : ''}Ahorras ${(producto.precio_venta - precioFinal).toLocaleString('es-MX')} ({descuentoPct}% off)
                             </span>
                         )}
                     </div>
@@ -360,7 +346,7 @@ const ProductoDetalleScreen: React.FC = () => {
 
                     {producto.stock_actual > 0 && producto.permite_personalizacion && (
                         <div className="pd-personalizacion-form">
-                            <p className="pd-personalizacion-titulo">✏️ Personaliza tu pieza</p>
+                            <p className="pd-personalizacion-titulo">Personaliza tu pieza</p>
                             {!!producto.precio_personalizacion && (
                                 <p className="pd-personalizacion-cargo">
                                     + ${Number(producto.precio_personalizacion).toLocaleString('es-MX')} por personalización
@@ -410,7 +396,7 @@ const ProductoDetalleScreen: React.FC = () => {
                                 disabled={agregando}
                             >
                                 <AiOutlineShoppingCart size={20} />
-                                {agregando ? 'Agregando...' : exitoso ? '¡Agregado! ✓' : 'Agregar al carrito'}
+                                {agregando ? 'Agregando...' : exitoso ? 'Agregado' : 'Agregar al carrito'}
                             </button>
                         </div>
                     )}
@@ -422,7 +408,6 @@ const ProductoDetalleScreen: React.FC = () => {
                     <div className="pd-specs-quick">
                         {producto.material_principal && (
                             <div className="pd-spec-item">
-                                <span className="pd-spec-icon">⚗️</span>
                                 <div>
                                     <p className="pd-spec-label">Material</p>
                                     <p className="pd-spec-valor">{producto.material_principal}</p>
@@ -431,7 +416,6 @@ const ProductoDetalleScreen: React.FC = () => {
                         )}
                         {producto.peso_gramos && (
                             <div className="pd-spec-item">
-                                <span className="pd-spec-icon">⚖️</span>
                                 <div>
                                     <p className="pd-spec-label">Peso</p>
                                     <p className="pd-spec-valor">{producto.peso_gramos}g</p>
@@ -440,7 +424,6 @@ const ProductoDetalleScreen: React.FC = () => {
                         )}
                         {producto.dias_fabricacion != null && producto.dias_fabricacion > 0 && (
                             <div className="pd-spec-item">
-                                <span className="pd-spec-icon">🕐</span>
                                 <div>
                                     <p className="pd-spec-label">Fabricación</p>
                                     <p className="pd-spec-valor">{producto.dias_fabricacion} días</p>
@@ -449,7 +432,6 @@ const ProductoDetalleScreen: React.FC = () => {
                         )}
                         {producto.permite_personalizacion && (
                             <div className="pd-spec-item">
-                                <span className="pd-spec-icon">✏️</span>
                                 <div>
                                     <p className="pd-spec-label">Personalización</p>
                                     <p className="pd-spec-valor">Disponible</p>
@@ -460,7 +442,7 @@ const ProductoDetalleScreen: React.FC = () => {
 
                     {!!producto.ubicaciones_entrega?.length && (
                         <div className="pd-ubicaciones-entrega">
-                            <p className="pd-ubicaciones-titulo">📍 Lugares de entrega</p>
+                            <p className="pd-ubicaciones-titulo">Lugares de entrega</p>
                             <div className="pd-ubicaciones-lista">
                                 {producto.ubicaciones_entrega.map(u => (
                                     <button
@@ -526,7 +508,6 @@ const ProductoDetalleScreen: React.FC = () => {
                         <div className="pd-tab-pane pd-fabricacion">
                             {producto.dias_fabricacion! > 0 && (
                                 <div className="pd-fab-card">
-                                    <span className="pd-fab-icon">🕐</span>
                                     <div>
                                         <h4>Tiempo de fabricación</h4>
                                         <p>Esta joya requiere <strong>{producto.dias_fabricacion} días hábiles</strong> de fabricación artesanal desde que se confirma tu pedido.</p>
@@ -535,7 +516,6 @@ const ProductoDetalleScreen: React.FC = () => {
                             )}
                             {producto.permite_personalizacion && (
                                 <div className="pd-fab-card">
-                                    <span className="pd-fab-icon">✏️</span>
                                     <div>
                                         <h4>Personalización disponible</h4>
                                         <p>Esta pieza puede personalizarse con grabado, talla o material a tu elección. Indica los detalles en el formulario de personalización antes de agregarla al carrito.</p>
@@ -550,7 +530,7 @@ const ProductoDetalleScreen: React.FC = () => {
             {/* ── OPINIONES Y RESEÑAS ── */}
             <section className="pd-resenas-section">
                 <div className="pd-resenas-header">
-                    <h2 className="pd-resenas-titulo">💬 Opiniones y reseñas</h2>
+                    <h2 className="pd-resenas-titulo">Opiniones y reseñas</h2>
                     {totalResenas > 0 ? (
                         <div className="pd-resenas-resumen">
                             <span className="pd-resenas-estrellas-grandes">
@@ -568,7 +548,7 @@ const ProductoDetalleScreen: React.FC = () => {
 
                 {puedeResenar && (
                     <div className="pd-resena-form">
-                        <p className="pd-resena-form-titulo">✏️ Escribe tu opinión</p>
+                        <p className="pd-resena-form-titulo">Escribe tu opinión</p>
                         <div className="pd-resena-estrellas-input">
                             {[1, 2, 3, 4, 5].map(n => (
                                 <button
@@ -589,7 +569,7 @@ const ProductoDetalleScreen: React.FC = () => {
                             maxLength={500}
                         />
                         {errorResena && <p className="pd-resena-error">{errorResena}</p>}
-                        {exitoResena && <p className="pd-resena-exito">✓ ¡Gracias por tu opinión!</p>}
+                        {exitoResena && <p className="pd-resena-exito">¡Gracias por tu opinión!</p>}
                         <button className="pd-resena-btn-enviar" onClick={handleEnviarResena} disabled={enviandoResena}>
                             {enviandoResena ? 'Enviando...' : 'Publicar reseña'}
                         </button>
@@ -598,7 +578,7 @@ const ProductoDetalleScreen: React.FC = () => {
 
                 {!puedeResenar && (
                     <p className="pd-resenas-aviso">
-                        ⓘ Solo los clientes que ya recibieron este producto pueden dejar una reseña.
+                        Solo los clientes que ya recibieron este producto pueden dejar una reseña.
                     </p>
                 )}
 
@@ -625,7 +605,7 @@ const ProductoDetalleScreen: React.FC = () => {
             {/* ── SIMILARES POR CONTENT-BASED FILTERING (similitud coseno) ── */}
             {similaresIA.length > 0 && (
                 <SeccionProductos
-                    titulo="✨ Productos similares que te pueden interesar"
+                    titulo="Productos similares que te pueden interesar"
                     items={similaresIA}
                 />
             )}

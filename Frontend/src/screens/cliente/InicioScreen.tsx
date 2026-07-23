@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { productsAPI, promocionesAPI, contentAPI } from "../../services/api";
+import { initScrollReveal } from "../../utils/scrollReveal";
 import "./InicioScreen.css";
 
 interface Producto {
@@ -18,9 +19,18 @@ interface Producto {
 interface Categoria { id: number; nombre: string; }
 interface Promo { nombre: string; tipo: string; valor_descuento: number; fecha_fin?: string; }
 
-const SVG_PH = `data:image/svg+xml;utf8,<svg width="600" height="600" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="600" fill="%230d0d0d"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="22" fill="%23ECB2C3" font-family="serif">Diana Laura</text></svg>`;
+const SVG_PH = `data:image/svg+xml;utf8,<svg width="600" height="600" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="600" fill="%23141414"/><g transform="translate(300,300)" stroke="%23594936" stroke-width="1.5" fill="none" opacity="0.7"><path d="M-22,-14 L22,-14 L32,-2 L0,34 L-32,-2 Z"/><path d="M-22,-14 L0,-2 L22,-14 M-32,-2 L32,-2 M0,-2 L0,34"/></g></svg>`;
 
-const JDL_IMG_1 = 'https://res.cloudinary.com/dltvkwwq4/image/upload/v1783360989/imagen_1_fmfuzd.jpg';
+const JDL_IMG_2 = 'https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/imagen_usar_2.jpg';
+const JDL_HERO_IMAGENES = [
+    'https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/imagen_usar_1.jpg',
+    'https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/imagen_usar_3.jpg',
+    'https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/imagen_usar_6.jpg',
+    'https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/imagen_usar_8.jpg',
+    'https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/imagen_usar_13.jpg',
+    'https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/imagen_usar_19.jpg',
+    'https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/imagen_usar_21.jpg',
+];
 
 const InicioScreen: React.FC = () => {
     const navigate = useNavigate();
@@ -29,6 +39,7 @@ const InicioScreen: React.FC = () => {
     const [promociones, setPromociones] = useState<Promo[]>([]);
     const [loading, setLoading]         = useState(true);
     const [novedades, setNovedades]     = useState<any[]>([]);
+    const [heroIdx, setHeroIdx]         = useState(0);
 
     const nombre = (() => {
         try {
@@ -53,7 +64,7 @@ const InicioScreen: React.FC = () => {
                     // getProductsByCategories devuelve [{categoria_nombre, productos:[...]}, ...]
                     const cats: any[] = Array.isArray(resProds.value?.data) ? resProds.value.data : [];
                     const todos: Producto[] = cats.flatMap((c: any) => Array.isArray(c.productos) ? c.productos : []);
-                    setProductos(todos.slice(0, 12));
+                    setProductos(todos.slice(0, 16));
                 }
                 if (resPromos.status === 'fulfilled') {
                     setPromociones(Array.isArray(resPromos.value?.data) ? resPromos.value.data : []);
@@ -68,6 +79,18 @@ const InicioScreen: React.FC = () => {
         load();
     }, []);
 
+    useEffect(() => {
+        const cleanup = initScrollReveal();
+        return cleanup;
+    }, [loading, productos, novedades]);
+
+    useEffect(() => {
+        const t = setInterval(() => {
+            setHeroIdx(prev => (prev + 1) % JDL_HERO_IMAGENES.length);
+        }, 7000);
+        return () => clearInterval(t);
+    }, []);
+
     const promoLabel = (p: Promo) =>
         p.tipo === 'porcentaje' ? `${p.valor_descuento}% OFF` : `-$${p.valor_descuento}`;
 
@@ -76,11 +99,13 @@ const InicioScreen: React.FC = () => {
 
     const hayDesc = (p: Producto) => precioFinal(p) < p.precio_venta;
 
-    /* productos con imagen al frente para el hero */
     const conImg    = productos.filter(p => p.imagen_principal);
-    const heroProd  = conImg[0] || productos[0];
-    const featProds = productos.filter(p => p.id !== heroProd?.id).slice(0, 3);
-    const gridProds = productos.slice(0, 8);
+    const featProds = productos.slice(0, 3);
+    const gridProds = productos.slice(3, 11);
+
+    /* imagen representativa por categoría, tomada de productos reales (sin inventar assets) */
+    const imagenDeCategoria = (nombreCat: string) =>
+        productos.find(p => p.categoria_nombre === nombreCat && p.imagen_principal)?.imagen_principal || SVG_PH;
 
     return (
         <div className="tl-page">
@@ -105,95 +130,63 @@ const InicioScreen: React.FC = () => {
                 </div>
             )}
 
-            {/* ── HERO FULL ── */}
+            {/* ── HERO CINEMATOGRÁFICO — centrado, un solo foco ── */}
             <section className="tl-hero">
-                {/* fondo: imagen JDL fija de Cloudinary */}
                 <div className="tl-hero-bg">
-                    <img src={JDL_IMG_1} alt="Diana Laura Joyería" />
+                    {JDL_HERO_IMAGENES.map((src, i) => (
+                        <img
+                            key={src}
+                            src={src}
+                            alt="Diana Laura Joyería"
+                            className={i === heroIdx ? 'is-active' : ''}
+                        />
+                    ))}
                     <div className="tl-hero-bg-overlay" />
                 </div>
 
-                {/* contenido sobre el fondo */}
                 <div className="tl-hero-content">
-                    <div className="tl-hero-pill">
-                        {nombre ? `Bienvenida, ${nombre}` : "Colección 2025"}
-                    </div>
-                    <h1 className="tl-hero-h1">
-                        Piezas que<br />
-                        <em>te definen</em>
-                    </h1>
-                    <p className="tl-hero-sub">
-                        Joyería artesanal con acabados de alta calidad.<br />
-                        Diseñada para que brilles.
-                    </p>
-                    <div className="tl-hero-actions">
-                        <button className="tl-btn-rosa" onClick={() => navigate("/catalogo")}>
-                            Explorar Colección
-                        </button>
-                        <button className="tl-btn-ghost" onClick={() => navigate("/favoritos")}>
-                            Mis Favoritos
-                        </button>
-                    </div>
-                </div>
-
-                {/* tarjeta de producto flotante */}
-                {heroProd && (
-                    <div className="tl-hero-card" onClick={() => navigate("/catalogo")}>
-                        <div className="tl-hero-card-img">
-                            <img
-                                src={heroProd.imagen_principal || SVG_PH}
-                                alt={heroProd.nombre}
-                                onError={e => { (e.target as HTMLImageElement).src = SVG_PH; }}
-                            />
-                        </div>
-                        <div className="tl-hero-card-info">
-                            {heroProd.categoria_nombre && (
-                                <span className="tl-hero-card-cat">{heroProd.categoria_nombre}</span>
-                            )}
-                            <span className="tl-hero-card-nombre">{heroProd.nombre}</span>
-                            <span className="tl-hero-card-precio">
-                                ${Number(precioFinal(heroProd)).toLocaleString('es-MX')}
-                            </span>
-                        </div>
-                        <div className="tl-hero-card-arrow">→</div>
-                    </div>
-                )}
-
-                {/* stats esquina */}
-                <div className="tl-hero-stats">
-                    {[["500+","Diseños"],["1K+","Clientas"],["100%","Artesanal"]].map(([n,l],i,arr) => (
-                        <React.Fragment key={i}>
-                            <div className="tl-hstat">
-                                <strong>{n}</strong>
-                                <span>{l}</span>
-                            </div>
-                            {i < arr.length-1 && <div className="tl-hstat-sep"/>}
-                        </React.Fragment>
-                    ))}
+                    <span className="tl-hero-eyebrow">
+                        {nombre ? `Bienvenid@, ${nombre}` : "Joyería Diana Laura"}
+                    </span>
+                    <h1 className="tl-hero-h1">Cada pieza<br /><em>cuenta una historia</em></h1>
+                    <p className="tl-hero-sub">Joyería artesanal con acabados de alta calidad, diseñada para que brilles.</p>
+                    <button className="tl-btn-rosa" onClick={() => navigate("/catalogo")}>
+                        Explorar Colección
+                    </button>
                 </div>
             </section>
 
-            {/* ── FRANJA CATEGORÍAS ── */}
+            {/* ── CATEGORÍAS EN MOSAICO (bento) ── */}
             {categorias.length > 0 && (
-                <nav className="tl-cats-bar">
-                    {categorias.slice(0, 7).map(c => (
-                        <button
-                            key={c.id}
-                            className="tl-cat-pill"
-                            onClick={() => navigate("/catalogo")}
-                        >
-                            {c.nombre}
-                        </button>
-                    ))}
-                    <button className="tl-cats-cta" onClick={() => navigate("/catalogo")}>
-                        Ver catálogo →
-                    </button>
-                </nav>
+                <section className="tl-cats-mosaic reveal-on-scroll">
+                    <div className="tl-eyebrow-row">
+                        <span className="tl-eyebrow-line-h" />
+                        <span className="tl-eyebrow-txt">Explora por categoría</span>
+                        <span className="tl-eyebrow-line-h" />
+                    </div>
+                    <div className="tl-mosaic-grid">
+                        {categorias.slice(0, 5).map((c, i) => (
+                            <button
+                                key={c.id}
+                                className={`tl-mosaic-tile tl-mosaic-tile--${i}`}
+                                onClick={() => navigate("/catalogo")}
+                            >
+                                <img
+                                    src={imagenDeCategoria(c.nombre)}
+                                    alt={c.nombre}
+                                    onError={e => { (e.target as HTMLImageElement).src = SVG_PH; }}
+                                />
+                                <div className="tl-mosaic-overlay" />
+                                <span className="tl-mosaic-nombre">{c.nombre}</span>
+                            </button>
+                        ))}
+                    </div>
+                </section>
             )}
 
             {/* ── DESTACADOS EDITORIALES (3 tarjetas horizontales grandes) ── */}
             {featProds.length > 0 && (
-                <section className="tl-editorial">
+                <section className="tl-editorial reveal-on-scroll">
                     <div className="tl-editorial-header">
                         <div className="tl-eyebrow-row">
                             <span className="tl-eyebrow-line-h" />
@@ -209,7 +202,8 @@ const InicioScreen: React.FC = () => {
                             return (
                                 <div
                                     key={p.id}
-                                    className={`tl-ed-card tl-ed-card--${i}`}
+                                    className={`tl-ed-card tl-ed-card--${i} reveal-stagger`}
+                                    style={{ ['--stagger-i' as any]: i }}
                                     onClick={() => navigate("/catalogo")}
                                 >
                                     <div className="tl-ed-img">
@@ -246,7 +240,25 @@ const InicioScreen: React.FC = () => {
                 </section>
             )}
 
-            {/* ── GRID PRODUCTOS ── */}
+            {/* ── STATS BAND ── */}
+            <div className="tl-stats-band reveal-on-scroll">
+                {[
+                    { n:"500+",  l:"Diseños exclusivos" },
+                    { n:"1,000+",l:"Clientas satisfechas" },
+                    { n:"100%",  l:"Hecho a mano" },
+                    { n:"5 ★",   l:"Calidad garantizada" },
+                ].map((s,i,arr) => (
+                    <React.Fragment key={i}>
+                        <div className="tl-stat">
+                            <strong>{s.n}</strong>
+                            <span>{s.l}</span>
+                        </div>
+                        {i < arr.length-1 && <div className="tl-stat-sep"/>}
+                    </React.Fragment>
+                ))}
+            </div>
+
+            {/* ── GRID PRODUCTOS EN MOSAICO (bento, alturas variables) ── */}
             <section className="tl-section">
                 <div className="tl-eyebrow-row">
                     <span className="tl-eyebrow-line-h" />
@@ -265,12 +277,17 @@ const InicioScreen: React.FC = () => {
                 ) : gridProds.length === 0 ? (
                     <div className="tl-empty">No hay productos disponibles</div>
                 ) : (
-                    <div className="tl-carrusel">
-                        {gridProds.map(p => {
+                    <div className="tl-bento-grid">
+                        {gridProds.map((p, i) => {
                             const precio = precioFinal(p);
                             const desc   = hayDesc(p);
                             return (
-                                <div key={p.id} className="tl-prod-card" onClick={() => navigate("/catalogo")}>
+                                <div
+                                    key={p.id}
+                                    className="tl-prod-card reveal-stagger"
+                                    style={{ ['--stagger-i' as any]: i }}
+                                    onClick={() => navigate("/catalogo")}
+                                >
                                     <div className="tl-prod-img-wrap">
                                         <img
                                             src={p.imagen_principal || SVG_PH}
@@ -316,36 +333,18 @@ const InicioScreen: React.FC = () => {
                 </div>
             </section>
 
-            {/* ── STATS BAND ── */}
-            <div className="tl-stats-band">
-                {[
-                    { n:"500+",  l:"Diseños exclusivos" },
-                    { n:"1,000+",l:"Clientas satisfechas" },
-                    { n:"100%",  l:"Hecho a mano" },
-                    { n:"5 ★",   l:"Calidad garantizada" },
-                ].map((s,i,arr) => (
-                    <React.Fragment key={i}>
-                        <div className="tl-stat">
-                            <strong>{s.n}</strong>
-                            <span>{s.l}</span>
-                        </div>
-                        {i < arr.length-1 && <div className="tl-stat-sep"/>}
-                    </React.Fragment>
-                ))}
-            </div>
-
             {/* ── BANNER EDITORIAL GRANDE ── */}
-            <section className="tl-banner-ed">
+            <section className="tl-banner-ed reveal-on-scroll">
                     <div className="tl-banner-ed-img">
                         <img
-                            src={conImg[1]?.imagen_principal || JDL_IMG_1}
+                            src={conImg[1]?.imagen_principal || JDL_IMG_2}
                             alt="Diana Laura Joyería"
-                            onError={e => { (e.target as HTMLImageElement).src = JDL_IMG_1; }}
+                            onError={e => { (e.target as HTMLImageElement).src = JDL_IMG_2; }}
                         />
                         <div className="tl-banner-ed-overlay" />
                     </div>
                     <div className="tl-banner-ed-content">
-                        <span className="tl-cta-eyebrow">◆ Diseño a tu medida ◆</span>
+                        <span className="tl-cta-eyebrow">Diseño a tu medida</span>
                         <h2 className="tl-banner-ed-h2">
                             Cada joya,<br /><em>una historia</em>
                         </h2>
@@ -359,9 +358,9 @@ const InicioScreen: React.FC = () => {
                     </div>
                 </section>
 
-            {/* ── NOVEDADES ── */}
+            {/* ── NOVEDADES — formato editorial en lista ── */}
             {novedades.length > 0 && (
-                <section className="tl-nov-section">
+                <section className="tl-nov-section reveal-on-scroll">
                     <div className="tl-eyebrow-row">
                         <span className="tl-eyebrow-line-h" />
                         <span className="tl-eyebrow-txt">Novedades</span>
@@ -373,15 +372,15 @@ const InicioScreen: React.FC = () => {
                             Ver todas →
                         </button>
                     </div>
-                    <div className="tl-nov-grid">
-                        {novedades.map((n: any) => (
-                            <article key={n.id} className="tl-nov-card" onClick={() => navigate("/noticias")}>
+                    <div className="tl-nov-lista">
+                        {novedades.map((n: any, i: number) => (
+                            <article key={n.id} className="tl-nov-fila" onClick={() => navigate("/noticias")}>
+                                <span className="tl-nov-index">{String(i + 1).padStart(2, '0')}</span>
                                 <div className="tl-nov-img">
                                     {n.imagen
                                         ? <img src={n.imagen} alt={n.titulo} onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
-                                        : <div className="tl-nov-img-ph">◆</div>
+                                        : <div className="tl-nov-img-ph" />
                                     }
-                                    <div className="tl-nov-img-overlay" />
                                 </div>
                                 <div className="tl-nov-body">
                                     <span className="tl-nov-fecha">
@@ -389,10 +388,10 @@ const InicioScreen: React.FC = () => {
                                     </span>
                                     <h3 className="tl-nov-titulo">{n.titulo}</h3>
                                     <p className="tl-nov-texto">
-                                        {n.contenido.length > 120 ? n.contenido.slice(0, 120) + '...' : n.contenido}
+                                        {n.contenido.length > 140 ? n.contenido.slice(0, 140) + '...' : n.contenido}
                                     </p>
-                                    <span className="tl-nov-link">Leer más →</span>
                                 </div>
+                                <span className="tl-nov-arrow">→</span>
                             </article>
                         ))}
                     </div>
@@ -400,9 +399,9 @@ const InicioScreen: React.FC = () => {
             )}
 
             {/* ── CTA FINAL ── */}
-            <section className="tl-cta-band">
+            <section className="tl-cta-band reveal-on-scroll">
                 <div className="tl-cta-inner">
-                    <span className="tl-cta-eyebrow">◆ Escríbenos ◆</span>
+                    <span className="tl-cta-eyebrow">Escríbenos</span>
                     <h2 className="tl-cta-h2">¿Buscas algo especial?</h2>
                     <p className="tl-cta-desc">
                         Cuéntanos qué tienes en mente y creamos juntas la joya perfecta para ti.

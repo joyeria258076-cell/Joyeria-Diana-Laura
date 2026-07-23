@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
 
 :root {
-  --gold-lux: #ECB2C3;
-  --dark-prime: #0f0f12;
-  --dark-surface: #0a0a0a;
+  --gold-lux: var(--color-rose-gold);
+  --dark-prime: var(--color-bg);
+  --dark-surface: var(--color-bg);
   --border-lux: rgba(236, 178, 195, 0.2);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -14,7 +14,7 @@
   padding: 3rem 4rem;
   background-color: var(--dark-prime);
   color: #fff;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
   position: relative;
 }
 
@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   gap: 15px;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 2.8rem;
   font-weight: 700;
   background: linear-gradient(135deg, #fff 0%, var(--gold-lux) 100%);
@@ -52,7 +52,7 @@
 .page-selector-container {
   background: linear-gradient(145deg, rgba(30, 30, 30, 0.5) 0%, rgba(10, 10, 10, 0.8) 100%);
   border: 1px solid rgba(236, 178, 195, 0.3);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 2rem;
   margin-bottom: 2rem;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
@@ -74,7 +74,7 @@
   padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(236, 178, 195, 0.3);
-  border-radius: 6px;
+  border-radius: 2px;
   font-size: 0.95rem;
   color: #fff;
   transition: var(--transition);
@@ -113,7 +113,7 @@
   border-left: 1px solid rgba(236, 178, 195, 0.15);
   border-right: 1px solid rgba(0, 0, 0, 0.5);
   border-bottom: 1px solid rgba(0, 0, 0, 0.8);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 2rem;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(20px);
@@ -121,7 +121,7 @@
 
 .section-form-container h3 {
   color: #fff;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1.6rem;
   margin-top: 0;
 }
@@ -145,7 +145,7 @@
   padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(236, 178, 195, 0.3);
-  border-radius: 6px;
+  border-radius: 2px;
   font-size: 0.95rem;
   font-family: inherit;
   color: #fff;
@@ -197,7 +197,7 @@
   height: 45px;
   border: 1px solid rgba(236, 178, 195, 0.3);
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 2px;
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -216,7 +216,7 @@
 .btn-danger {
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 2px;
   font-size: 0.95rem;
   cursor: pointer;
   transition: var(--transition);
@@ -229,7 +229,7 @@
 
 .btn-primary {
   background: linear-gradient(135deg, var(--gold-lux) 0%, #e49bb3 100%);
-  color: #0f0f12;
+  color: var(--color-bg);
   flex: 1;
 }
 
@@ -267,14 +267,14 @@
   border-left: 1px solid rgba(236, 178, 195, 0.15);
   border-right: 1px solid rgba(0, 0, 0, 0.5);
   border-bottom: 1px solid rgba(0, 0, 0, 0.8);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 2rem;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(20px);
 }
 
 .sections-list-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1.4rem;
   font-weight: 600;
   margin-bottom: 1.5rem;
@@ -284,7 +284,7 @@
 .section-item {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(236, 178, 195, 0.2);
-  border-radius: 8px;
+  border-radius: 2px;
   padding: 1.5rem;
   margin-bottom: 1rem;
   display: flex;
@@ -390,7 +390,7 @@
 .success-message,
 .info-message {
   padding: 1rem;
-  border-radius: 6px;
+  border-radius: 2px;
   margin-bottom: 1.5rem;
   font-size: 0.95rem;
   animation: slideDown 0.3s ease;

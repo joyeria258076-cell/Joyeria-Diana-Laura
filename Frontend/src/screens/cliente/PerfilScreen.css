@@ -2,7 +2,7 @@
 .pf-container {
   max-width: 1800px;
   padding: 2rem;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
   position: relative;
 }
 
@@ -13,7 +13,7 @@
   right: 1.5rem;
   z-index: 9999;
   padding: 0.85rem 1.5rem;
-  border-radius: 6px;
+  border-radius: 2px;
   font-size: 0.88rem;
   font-weight: 600;
   animation: pf-fadein 0.2s ease;
@@ -27,9 +27,9 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  background: #111;
-  border: 1px solid rgba(236,178,195,0.15);
-  border-radius: 12px;
+  background: var(--color-surface);
+  border: 1px solid rgba(201,149,108,0.15);
+  border-radius: 4px;
   padding: 1.75rem 2rem;
   margin-bottom: 1.75rem;
 }
@@ -38,38 +38,38 @@
   height: 64px;
   border-radius: 50%;
   background: #1a0d10;
-  border: 2px solid rgba(236,178,195,0.5);
-  box-shadow: 0 0 14px rgba(236,178,195,0.15);
+  border: 2px solid rgba(201,149,108,0.5);
+  box-shadow: 0 0 14px rgba(201,149,108,0.15);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.6rem;
-  font-weight: 800;
-  color: #ECB2C3;
+  font-weight: 500;
+  color: var(--color-rose-gold);
   flex-shrink: 0;
 }
 .pf-hero-info { display: flex; flex-direction: column; gap: 0.25rem; }
-.pf-hero-name { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 0; }
-.pf-hero-email { font-size: 0.82rem; color: rgba(217,217,217,0.5); margin: 0; }
+.pf-hero-name { font-family: var(--font-display); font-size: 1.6rem; font-weight: 400; letter-spacing: 0.02em; color: var(--color-text); margin: 0; }
+.pf-hero-email { font-size: 0.82rem; color: rgba(245,240,235,0.5); margin: 0; }
 .pf-hero-role {
   display: inline-block;
   margin-top: 0.3rem;
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: #ECB2C3;
-  background: rgba(236,178,195,0.08);
-  border: 1px solid rgba(236,178,195,0.2);
+  color: var(--color-rose-gold);
+  background: rgba(201,149,108,0.08);
+  border: 1px solid rgba(201,149,108,0.2);
   padding: 2px 10px;
-  border-radius: 20px;
+  border-radius: 2px;
   width: fit-content;
 }
 
 /* Tabs */
 .pf-tabs {
   display: flex;
-  border-bottom: 1px solid rgba(236,178,195,0.12);
+  border-bottom: 1px solid rgba(201,149,108,0.12);
   margin-bottom: 1.75rem;
 }
 .pf-tab {
@@ -79,30 +79,30 @@
   padding: 0.75rem 1.5rem;
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(217,217,217,0.45);
+  color: rgba(245,240,235,0.45);
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-  font-family: inherit;
+  transition: color 0.35s var(--ease-silk), border-color 0.35s var(--ease-silk);
+  font-family: var(--font-body);
   margin-bottom: -1px;
 }
-.pf-tab:hover { color: rgba(217,217,217,0.8); }
-.pf-tab--active { color: #ECB2C3; border-bottom-color: #ECB2C3; }
+.pf-tab:hover { color: rgba(245,240,235,0.8); }
+.pf-tab--active { color: var(--color-rose-gold); border-bottom-color: var(--color-rose-gold); }
 
 /* Section */
 .pf-section { display: flex; flex-direction: column; gap: 1.25rem; }
 .pf-section-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-.pf-section-title { font-size: 1.1rem; font-weight: 700; color: #fff; margin: 0; }
-.pf-section-sub { font-size: 0.82rem; color: rgba(217,217,217,0.45); margin: 0; }
-.pf-loading, .pf-empty { color: rgba(217,217,217,0.4); font-size: 0.88rem; padding: 1rem 0; }
-.pf-divider { border: none; border-top: 1px solid rgba(236,178,195,0.1); margin: 0.5rem 0; }
+.pf-section-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 400; letter-spacing: 0.02em; color: var(--color-text); margin: 0; }
+.pf-section-sub { font-size: 0.82rem; color: rgba(245,240,235,0.45); margin: 0; }
+.pf-loading, .pf-empty { color: rgba(245,240,235,0.4); font-size: 0.88rem; padding: 1rem 0; }
+.pf-divider { border: none; border-top: 1px solid rgba(201,149,108,0.1); margin: 0.5rem 0; }
 
 /* Form */
 .pf-form { display: flex; flex-direction: column; gap: 1.1rem; }
 .pf-field { display: flex; flex-direction: column; gap: 0.45rem; }
 .pf-field label {
   font-size: 0.75rem;
-  font-weight: 700;
-  color: rgba(217,217,217,0.6);
+  font-weight: 500;
+  color: rgba(245,240,235,0.6);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
@@ -110,35 +110,35 @@
   gap: 0.5rem;
 }
 .pf-field input {
-  background: #0d0d0d;
-  border: 1px solid rgba(236,178,195,0.15);
-  border-radius: 6px;
-  color: #fff;
+  background: var(--color-surface-2);
+  border: 1px solid rgba(201,149,108,0.15);
+  border-radius: 2px;
+  color: var(--color-text);
   padding: 0.75rem 1rem;
   font-size: 0.9rem;
-  font-family: inherit;
-  transition: border-color 0.2s;
+  font-family: var(--font-body);
+  transition: border-color 0.35s var(--ease-silk);
   width: 100%;
   box-sizing: border-box;
 }
-.pf-field input:focus { outline: none; border-color: rgba(236,178,195,0.5); }
-.pf-field--locked input { color: rgba(217,217,217,0.3); cursor: not-allowed; background: #0a0a0a; }
+.pf-field input:focus { outline: none; border-color: rgba(201,149,108,0.5); }
+.pf-field--locked input { color: rgba(245,240,235,0.3); cursor: not-allowed; background: var(--color-bg); }
 .pf-locked-badge {
   font-size: 0.62rem;
-  background: rgba(217,217,217,0.05);
-  color: rgba(217,217,217,0.3);
+  background: rgba(245,240,235,0.05);
+  color: rgba(245,240,235,0.3);
   border: 1px solid rgba(255,255,255,0.07);
   padding: 1px 7px;
-  border-radius: 20px;
+  border-radius: 2px;
   font-weight: 600;
   letter-spacing: 0.3px;
 }
 .pf-info-note {
   font-size: 0.8rem;
-  color: rgba(217,217,217,0.4);
-  background: rgba(236,178,195,0.03);
-  border: 1px solid rgba(236,178,195,0.1);
-  border-radius: 6px;
+  color: rgba(245,240,235,0.4);
+  background: rgba(201,149,108,0.03);
+  border: 1px solid rgba(201,149,108,0.1);
+  border-radius: 2px;
   padding: 0.85rem 1rem;
   line-height: 1.5;
 }
@@ -147,33 +147,33 @@
 .pf-pass-wrap { display: flex; gap: 0.5rem; }
 .pf-pass-wrap input { flex: 1; }
 .pf-pass-eye {
-  background: #0d0d0d;
-  border: 1px solid rgba(236,178,195,0.15);
-  border-radius: 6px;
-  color: rgba(217,217,217,0.5);
+  background: var(--color-surface-2);
+  border: 1px solid rgba(201,149,108,0.15);
+  border-radius: 2px;
+  color: rgba(245,240,235,0.5);
   padding: 0 0.85rem;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: border-color 0.2s;
+  transition: border-color 0.35s var(--ease-silk);
   flex-shrink: 0;
 }
-.pf-pass-eye:hover { border-color: rgba(236,178,195,0.4); }
+.pf-pass-eye:hover { border-color: rgba(201,149,108,0.4); }
 
 /* Buttons */
 .pf-btn-save {
   padding: 0.75rem 2rem;
-  background: #ECB2C3;
+  background: var(--color-rose-gold);
   color: #000;
   border: none;
-  border-radius: 6px;
-  font-weight: 700;
+  border-radius: 2px;
+  font-weight: 500;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.35s var(--ease-silk);
   align-self: flex-start;
-  font-family: inherit;
+  font-family: var(--font-body);
 }
-.pf-btn-save:hover:not(:disabled) { background: #d4899f; }
+.pf-btn-save:hover:not(:disabled) { background: var(--color-blush); }
 .pf-btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .pf-btn-danger {
@@ -181,12 +181,12 @@
   background: rgba(224,90,106,0.08);
   color: #e05a6a;
   border: 1px solid rgba(224,90,106,0.25);
-  border-radius: 6px;
-  font-weight: 700;
+  border-radius: 2px;
+  font-weight: 500;
   font-size: 0.82rem;
   cursor: pointer;
-  transition: background 0.2s;
-  font-family: inherit;
+  transition: background 0.35s var(--ease-silk);
+  font-family: var(--font-body);
 }
 .pf-btn-danger:hover:not(:disabled) { background: rgba(224,90,106,0.18); }
 .pf-btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -194,38 +194,41 @@
 .pf-btn-secondary {
   padding: 0.7rem 1.5rem;
   background: transparent;
-  color: rgba(217,217,217,0.6);
+  color: rgba(245,240,235,0.6);
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 6px;
+  border-radius: 2px;
   font-weight: 600;
   font-size: 0.82rem;
   cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
+  transition: all 0.35s var(--ease-silk);
+  font-family: var(--font-body);
 }
-.pf-btn-secondary:hover:not(:disabled) { border-color: rgba(255,255,255,0.25); color: #fff; }
+.pf-btn-secondary:hover:not(:disabled) { border-color: rgba(255,255,255,0.25); color: var(--color-text); }
 .pf-btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .pf-btn-refresh {
   background: none;
-  border: 1px solid rgba(236,178,195,0.2);
-  color: rgba(236,178,195,0.7);
-  border-radius: 6px;
+  border: 1px solid rgba(201,149,108,0.2);
+  color: rgba(201,149,108,0.7);
+  border-radius: 2px;
   padding: 0.5rem 1rem;
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.35s var(--ease-silk);
   flex-shrink: 0;
-  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-body);
 }
-.pf-btn-refresh:hover { border-color: #ECB2C3; color: #ECB2C3; }
+.pf-btn-refresh:hover { border-color: var(--color-rose-gold); color: var(--color-rose-gold); }
 
 /* MFA card */
 .pf-mfa-card {
-  background: #111;
-  border: 1px solid rgba(236,178,195,0.12);
-  border-radius: 8px;
+  background: var(--color-surface);
+  border: 1px solid rgba(201,149,108,0.12);
+  border-radius: 2px;
   padding: 1.25rem 1.5rem;
   display: flex;
   align-items: center;
@@ -236,84 +239,84 @@
 .pf-mfa-info { display: flex; flex-direction: column; gap: 0.4rem; }
 .pf-mfa-badge {
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 2px 10px;
-  border-radius: 20px;
+  border-radius: 2px;
   width: fit-content;
 }
 .pf-mfa-badge--on  { background: rgba(107,203,119,0.15); color: #6bcb77; }
 .pf-mfa-badge--off { background: rgba(150,150,150,0.1);  color: #888; }
-.pf-mfa-info p { font-size: 0.82rem; color: rgba(217,217,217,0.5); margin: 0; }
+.pf-mfa-info p { font-size: 0.82rem; color: rgba(245,240,235,0.5); margin: 0; }
 
 /* Sesiones */
 .pf-sesiones-list { display: flex; flex-direction: column; gap: 0.75rem; }
 .pf-sesion {
-  background: #111;
-  border: 1px solid rgba(236,178,195,0.1);
-  border-radius: 8px;
+  background: var(--color-surface);
+  border: 1px solid rgba(201,149,108,0.1);
+  border-radius: 2px;
   padding: 1rem 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: border-color 0.2s;
+  transition: border-color 0.35s var(--ease-silk);
 }
-.pf-sesion--actual { border-color: rgba(236,178,195,0.3); }
+.pf-sesion--actual { border-color: rgba(201,149,108,0.3); }
 .pf-sesion-icon { font-size: 1.4rem; flex-shrink: 0; }
 .pf-sesion-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.pf-sesion-device { font-size: 0.88rem; font-weight: 600; color: #fff; }
-.pf-sesion-meta   { font-size: 0.75rem; color: rgba(217,217,217,0.4); }
-.pf-sesion-ip     { font-size: 0.7rem;  color: rgba(217,217,217,0.25); }
+.pf-sesion-device { font-size: 0.88rem; font-weight: 600; color: var(--color-text); }
+.pf-sesion-meta   { font-size: 0.75rem; color: rgba(245,240,235,0.4); }
+.pf-sesion-ip     { font-size: 0.7rem;  color: rgba(245,240,235,0.25); }
 .pf-sesion-right  { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 .pf-sesion-actual-badge {
   font-size: 0.65rem;
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.4px;
   padding: 2px 10px;
-  border-radius: 20px;
-  background: rgba(236,178,195,0.08);
-  color: #ECB2C3;
-  border: 1px solid rgba(236,178,195,0.2);
+  border-radius: 2px;
+  background: rgba(201,149,108,0.08);
+  color: var(--color-rose-gold);
+  border: 1px solid rgba(201,149,108,0.2);
 }
 .pf-btn-cerrar-ses {
   padding: 0.35rem 0.9rem;
   background: rgba(224,90,106,0.08);
   color: #e05a6a;
   border: 1px solid rgba(224,90,106,0.2);
-  border-radius: 4px;
+  border-radius: 2px;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
-  font-family: inherit;
+  transition: background 0.35s var(--ease-silk);
+  font-family: var(--font-body);
 }
 .pf-btn-cerrar-ses:hover { background: rgba(224,90,106,0.18); }
 
 .pf-sesiones-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem; }
-.pf-sesiones-note { font-size: 0.75rem; color: rgba(217,217,217,0.3); margin: 0; }
+.pf-sesiones-note { font-size: 0.75rem; color: rgba(245,240,235,0.3); margin: 0; }
 
 /* Solicitud cambio nombre */
 .pf-btn-solicitar {
   padding: 0.7rem 1.5rem;
   background: rgba(201,168,76,0.1);
-  color: #c9a84c;
+  color: var(--color-champagne);
   border: 1px solid rgba(201,168,76,0.3);
-  border-radius: 6px;
-  font-weight: 700;
+  border-radius: 2px;
+  font-weight: 500;
   font-size: 0.82rem;
   cursor: pointer;
-  transition: background 0.2s;
-  font-family: inherit;
+  transition: background 0.35s var(--ease-silk);
+  font-family: var(--font-body);
   align-self: flex-start;
 }
 .pf-btn-solicitar:hover { background: rgba(201,168,76,0.2); }
 
 .pf-solicitud-form {
-  background: #0d0d0d;
+  background: var(--color-surface-2);
   border: 1px solid rgba(201,168,76,0.2);
-  border-radius: 8px;
+  border-radius: 2px;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
@@ -321,7 +324,7 @@
 }
 .pf-solicitud-info {
   font-size: 0.8rem;
-  color: rgba(217,217,217,0.45);
+  color: rgba(245,240,235,0.45);
   margin: 0;
   line-height: 1.5;
 }
@@ -334,9 +337,9 @@
 }
 /* Código de trabajador */
 .pf-codigo-trabajador {
-  background: #0d0d0d;
-  border: 1px solid rgba(236,178,195,0.15);
-  border-radius: 10px;
+  background: var(--color-surface-2);
+  border: 1px solid rgba(201,149,108,0.15);
+  border-radius: 4px;
   padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
@@ -349,36 +352,36 @@
 }
 .pf-codigo-label {
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(217,217,217,0.4);
+  color: rgba(245,240,235,0.4);
 }
 .pf-codigo-toggle {
   background: transparent;
-  border: 1px solid rgba(236,178,195,0.2);
-  border-radius: 20px;
-  color: #ECB2C3;
+  border: 1px solid rgba(201,149,108,0.2);
+  border-radius: 2px;
+  color: var(--color-rose-gold);
   font-size: 0.68rem;
   font-weight: 600;
   padding: 2px 12px;
   cursor: pointer;
-  font-family: inherit;
-  transition: background 0.15s;
+  font-family: var(--font-body);
+  transition: background 0.35s var(--ease-silk);
 }
-.pf-codigo-toggle:hover { background: rgba(236,178,195,0.08); }
+.pf-codigo-toggle:hover { background: rgba(201,149,108,0.08); }
 .pf-codigo-value {
   font-size: 1.6rem;
-  font-weight: 900;
+  font-weight: 500;
   letter-spacing: 0.3em;
-  color: #ECB2C3;
-  font-family: 'Courier New', monospace;
+  color: var(--color-rose-gold);
+  font-family: var(--font-display);
   text-align: center;
   padding: 0.5rem 0;
 }
 .pf-codigo-aviso {
   font-size: 0.75rem;
-  color: rgba(217,217,217,0.35);
+  color: rgba(245,240,235,0.35);
   line-height: 1.5;
   margin: 0;
 }
@@ -388,19 +391,19 @@
   width: 100%;
   padding: 0.6rem 1rem;
   background: transparent;
-  border: 1px dashed rgba(236,178,195,0.25);
-  border-radius: 8px;
-  color: rgba(236,178,195,0.5);
+  border: 1px dashed rgba(201,149,108,0.25);
+  border-radius: 2px;
+  color: rgba(201,149,108,0.5);
   font-size: 0.75rem;
   font-weight: 600;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.35s var(--ease-silk);
 }
 .pf-btn-recuperar-codigo:hover:not(:disabled) {
-  border-color: rgba(236,178,195,0.5);
-  color: #ECB2C3;
-  background: rgba(236,178,195,0.05);
+  border-color: rgba(201,149,108,0.5);
+  color: var(--color-rose-gold);
+  background: rgba(201,149,108,0.05);
 }
 .pf-btn-recuperar-codigo:disabled {
   opacity: 0.4;
@@ -417,10 +420,10 @@
 }
 .pf-solicitudes-titulo {
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(217,217,217,0.4);
+  color: rgba(245,240,235,0.4);
   margin: 0;
 }
 .pf-filtros-sol {
@@ -432,48 +435,48 @@
   padding: 3px 10px;
   background: transparent;
   border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 20px;
-  color: rgba(217,217,217,0.45);
+  border-radius: 2px;
+  color: rgba(245,240,235,0.45);
   font-size: 0.68rem;
   font-weight: 600;
   cursor: pointer;
-  font-family: inherit;
-  transition: all 0.15s;
+  font-family: var(--font-body);
+  transition: all 0.35s var(--ease-silk);
   display: flex;
   align-items: center;
   gap: 0.3rem;
 }
-.pf-filtro-btn:hover { border-color: rgba(236,178,195,0.3); color: rgba(217,217,217,0.7); }
-.pf-filtro-btn--active { background: rgba(236,178,195,0.1); border-color: rgba(236,178,195,0.4); color: #ECB2C3; }
+.pf-filtro-btn:hover { border-color: rgba(201,149,108,0.3); color: rgba(245,240,235,0.7); }
+.pf-filtro-btn--active { background: rgba(201,149,108,0.1); border-color: rgba(201,149,108,0.4); color: var(--color-rose-gold); }
 .pf-filtro-count {
   background: rgba(255,255,255,0.08);
-  border-radius: 20px;
+  border-radius: 2px;
   padding: 0 5px;
   font-size: 0.62rem;
 }
-.pf-empty-sol { font-size: 0.8rem; color: rgba(217,217,217,0.3); padding: 0.4rem 0; }
+.pf-empty-sol { font-size: 0.8rem; color: rgba(245,240,235,0.3); padding: 0.4rem 0; }
 .pf-solicitud-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: #111;
+  background: var(--color-surface);
   border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 6px;
+  border-radius: 2px;
   padding: 0.65rem 1rem;
 }
-.pf-solicitud-campo { font-size: 0.82rem; color: rgba(217,217,217,0.6); }
-.pf-solicitud-campo strong { color: #fff; }
+.pf-solicitud-campo { font-size: 0.82rem; color: rgba(245,240,235,0.6); }
+.pf-solicitud-campo strong { color: var(--color-text); }
 .pf-solicitud-estado {
   font-size: 0.65rem;
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.4px;
   padding: 2px 10px;
-  border-radius: 20px;
+  border-radius: 2px;
   flex-shrink: 0;
 }
-.pf-solicitud-estado--pendiente { background: rgba(201,168,76,0.12); color: #c9a84c; }
+.pf-solicitud-estado--pendiente { background: rgba(201,168,76,0.12); color: var(--color-champagne); }
 .pf-solicitud-estado--aprobada  { background: rgba(107,203,119,0.12); color: #6bcb77; }
 .pf-solicitud-estado--rechazada { background: rgba(224,90,106,0.1);   color: #e05a6a; }
 .pf-solicitud-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
@@ -481,12 +484,12 @@
   background: transparent;
   border: 1px solid rgba(224,90,106,0.2);
   color: rgba(224,90,106,0.5);
-  border-radius: 4px;
+  border-radius: 2px;
   padding: 2px 7px;
   font-size: 0.7rem;
   cursor: pointer;
-  transition: all 0.15s;
-  font-family: inherit;
+  transition: all 0.35s var(--ease-silk);
+  font-family: var(--font-body);
 }
 .pf-btn-del-sol:hover { background: rgba(224,90,106,0.12); color: #e05a6a; border-color: rgba(224,90,106,0.4); }
 

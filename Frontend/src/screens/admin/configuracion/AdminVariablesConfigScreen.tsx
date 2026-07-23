@@ -1,7 +1,7 @@
 // Frontend/src/screens/admin/configuracion/AdminVariablesConfigScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AiOutlineArrowLeft, AiOutlineSave, AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
+import { AiOutlineSave, AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { configAPI, apartadoAPI } from '../../../services/api';
 import './AdminVariablesConfigScreen.css';
 
@@ -291,10 +291,6 @@ const AdminVariablesConfigScreen: React.FC = () => {
     <div className="variables-container">
       {/* Header */}
       <div className="variables-header">
-        <button className="btn-back" onClick={() => navigate('/admin-dashboard')}>
-          <AiOutlineArrowLeft size={20} />
-          <span>Volver al Dashboard</span>
-        </button>
         <h1>⚙️ Variables de Configuración</h1>
         {Object.keys(editValues).length > 0 && (
           <button className="btn-save-all" onClick={handleSaveAll} disabled={saving}>

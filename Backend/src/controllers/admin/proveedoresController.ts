@@ -70,7 +70,8 @@ export const proveedoresController = {
         sitio_web,
         persona_contacto,
         notas,
-        activo
+        activo,
+        imagen_url
       } = req.body;
 
       const userId = req.user?.userId;
@@ -86,9 +87,9 @@ export const proveedoresController = {
 
       const result = await client.query(
         `INSERT INTO proveedores (
-          nombre, razon_social, rfc, direccion, telefono, email, 
-          sitio_web, persona_contacto, notas, activo, creado_por
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          nombre, razon_social, rfc, direccion, telefono, email,
+          sitio_web, persona_contacto, notas, activo, imagen_url, creado_por
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         RETURNING *`,
         [
           nombre,
@@ -101,6 +102,7 @@ export const proveedoresController = {
           persona_contacto || null,
           notas || null,
           activo !== undefined ? activo : true,
+          imagen_url || null,
           userId
         ]
       );
@@ -140,7 +142,8 @@ export const proveedoresController = {
         sitio_web,
         persona_contacto,
         notas,
-        activo
+        activo,
+        imagen_url
       } = req.body;
 
       const userId = req.user?.userId;
@@ -180,9 +183,10 @@ export const proveedoresController = {
           persona_contacto = $8,
           notas = $9,
           activo = $10,
-          actualizado_por = $11,
+          imagen_url = $11,
+          actualizado_por = $12,
           fecha_actualizacion = CURRENT_TIMESTAMP
-        WHERE id = $12
+        WHERE id = $13
         RETURNING *`,
         [
           nombre,
@@ -195,6 +199,7 @@ export const proveedoresController = {
           persona_contacto || null,
           notas || null,
           activo,
+          imagen_url || null,
           userId,
           id
         ]

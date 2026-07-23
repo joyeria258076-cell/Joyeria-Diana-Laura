@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { favoritosAPI } from '../../services/api';
+import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai';
 import './MisFavoritosScreen.css';
 
 interface ProductoFavorito {
@@ -18,7 +19,7 @@ interface ProductoFavorito {
     fecha_agregado: string;
 }
 
-const PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzFhMWEyZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQwIiBmaWxsPSIjZWNiMmMzIj7oo6s8L3RleHQ+PC9zdmc+';
+const PLACEHOLDER = `data:image/svg+xml;utf8,<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="%23141414"/><g transform="translate(150,150)" stroke="%23594936" stroke-width="1.5" fill="none" opacity="0.7"><path d="M-22,-14 L22,-14 L32,-2 L0,34 L-32,-2 Z"/><path d="M-22,-14 L0,-2 L22,-14 M-32,-2 L32,-2 M0,-2 L0,34"/></g></svg>`;
 
 const MisFavoritosScreen: React.FC = () => {
     const navigate = useNavigate();
@@ -54,7 +55,7 @@ const MisFavoritosScreen: React.FC = () => {
     return (
         <main className="mf-body">
             <div className="mf-header">
-                <h2 className="mf-titulo">❤️ Mis Favoritos</h2>
+                <h2 className="mf-titulo">Mis Favoritos</h2>
                 <span className="mf-contador">{favoritos.length} producto{favoritos.length !== 1 ? 's' : ''}</span>
             </div>
 
@@ -62,7 +63,7 @@ const MisFavoritosScreen: React.FC = () => {
                 <div className="mf-loading">Cargando tus favoritos...</div>
             ) : favoritos.length === 0 ? (
                 <div className="mf-vacio">
-                    <span className="mf-vacio-icono">🤍</span>
+                    <AiOutlineHeart size={44} className="mf-vacio-icon" />
                     <p>Aún no has marcado ningún producto como favorito.</p>
                     <button className="mf-btn-catalogo" onClick={() => navigate('/catalogo')}>Ver catálogo</button>
                 </div>
@@ -85,7 +86,7 @@ const MisFavoritosScreen: React.FC = () => {
                                         disabled={quitando === p.producto_id}
                                         aria-label="Quitar de favoritos"
                                         title="Quitar de favoritos"
-                                    >❤️</button>
+                                    ><AiFillHeart size={16} /></button>
                                 </div>
                                 <div className="mf-card-info">
                                     <p className="mf-card-categoria">{p.categoria_nombre}</p>
@@ -101,11 +102,11 @@ const MisFavoritosScreen: React.FC = () => {
                                         )}
                                     </div>
                                     {p.stock_actual === 0 ? (
-                                        <span className="mf-stock-agotado">❌ Agotado</span>
+                                        <span className="mf-stock-agotado">Agotado</span>
                                     ) : p.stock_actual <= 5 ? (
-                                        <span className="mf-stock-poco">⚠️ Quedan {p.stock_actual}</span>
+                                        <span className="mf-stock-poco">Quedan {p.stock_actual}</span>
                                     ) : (
-                                        <span className="mf-stock-ok">✅ Disponible</span>
+                                        <span className="mf-stock-ok">Disponible</span>
                                     )}
                                 </div>
                             </div>

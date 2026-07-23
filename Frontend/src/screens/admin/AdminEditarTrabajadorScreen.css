@@ -57,7 +57,7 @@
 }
 
 .admin-container h1 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-display);
     font-size: 2.2rem;
     background: linear-gradient(to right, #fff, var(--gold));
     -webkit-background-clip: text;
@@ -80,14 +80,14 @@
     gap: 1.8rem;
 }
 
-.form-group {
+.admin-edit-wrap .form-group {
     position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
 }
 
-.form-group label {
+.admin-edit-wrap .form-group label {
     font-size: 0.7rem;
     font-weight: 700;
     color: var(--gold);
@@ -97,26 +97,26 @@
 }
 
 /* Input y Select Estilizados */
-.form-group input, 
-.form-group select {
+.admin-edit-wrap .form-group input,
+.admin-edit-wrap .form-group select {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(236, 178, 195, 0.2);
-    border-radius: 12px;
+    border-radius: 4px;
     padding: 1rem 1.2rem;
     color: #fff;
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.95rem;
     transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-.form-group input:hover, 
-.form-group select:hover {
+.admin-edit-wrap .form-group input:hover,
+.admin-edit-wrap .form-group select:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(236, 178, 195, 0.4);
 }
 
-.form-group input:focus, 
-.form-group select:focus {
+.admin-edit-wrap .form-group input:focus,
+.admin-edit-wrap .form-group select:focus {
     outline: none;
     background: rgba(255, 255, 255, 0.08);
     border-color: var(--gold);
@@ -125,10 +125,10 @@
 }
 
 /* Alerta de Rol */
-.form-group small {
+.admin-edit-wrap .form-group small {
     background: rgba(255, 165, 0, 0.1);
     padding: 8px 12px;
-    border-radius: 8px;
+    border-radius: 2px;
     border-left: 3px solid orange;
     margin-top: 5px;
     font-size: 0.75rem;
@@ -147,7 +147,7 @@
     background: linear-gradient(135deg, #fff 0%, var(--gold) 100%);
     color: var(--dark);
     padding: 1.1rem;
-    border-radius: 12px;
+    border-radius: 4px;
     font-weight: 800;
     font-size: 0.9rem;
     text-transform: uppercase;
@@ -170,7 +170,7 @@
     border: 1px solid rgba(255,255,255,0.1);
     color: var(--text-muted);
     padding: 0.9rem;
-    border-radius: 12px;
+    border-radius: 4px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;

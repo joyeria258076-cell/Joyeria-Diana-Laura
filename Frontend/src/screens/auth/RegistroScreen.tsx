@@ -8,6 +8,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { securityQuestionAPI } from "../../services/securityQuestionAPI";
+import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineLock, AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/ai";
+import AuthBackground from "../../components/AuthBackground";
 import "./RegistroScreen.css";
 
 // FUNCIONES DE VALIDACIÓN PARA PREVENIR INYECCIONES
@@ -200,7 +202,7 @@ export default function RegistroScreen() {
                 data.customQuestion || '', 
                 data.securityAnswer
             );
-            alert("✅ Usuario registrado correctamente. Revisa tu email para verificar tu cuenta antes de iniciar sesión.");
+            alert("Usuario registrado correctamente. Revisa tu email para verificar tu cuenta antes de iniciar sesión.");
             navigate("/login");
         } catch (error: any) {
             setError('root', { type: 'manual', message: error.message });
@@ -218,6 +220,7 @@ export default function RegistroScreen() {
         <div className="register-page-wrapper">
             <PublicHeader />
             <div className="register-container">
+            <AuthBackground />
             <div className="register-card">
                 <div className="register-header">
                     <h2>Crear Cuenta</h2>
@@ -225,7 +228,7 @@ export default function RegistroScreen() {
                 </div>
                 
                 {errors.root && (
-                    <div className="error-message">
+                    <div className="auth-error-banner">
                         {errors.root.message}
                     </div>
                 )}
@@ -311,7 +314,7 @@ export default function RegistroScreen() {
                                             setShowPassword(!showPassword);
                                         }}
                                     >
-                                        {showPassword ? "🙈" : "👁️"}
+                                        {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
                                     </button>
                                 </div>
                                 {errors.password && <span className="register-error">{errors.password.message}</span>}
@@ -349,14 +352,14 @@ export default function RegistroScreen() {
                                             setShowConfirmPassword(!showConfirmPassword);
                                         }}
                                     >
-                                        {showConfirmPassword ? "🙈" : "👁️"}
+                                        {showConfirmPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
                                     </button>
                                 </div>
                                 {errors.confirmPassword && <span className="register-error">{errors.confirmPassword.message}</span>}
                             </div>
 
                             <button type="button" className="register-button" onClick={nextStep}>
-                                Siguiente Paso ➜
+                                Siguiente Paso <AiOutlineArrowRight size={16} />
                             </button>
                         </div>
                     )}
@@ -367,7 +370,7 @@ export default function RegistroScreen() {
                             <div className="step-indicator">Paso 2 de 2: Seguridad y finalización</div>
 
                             <div className="security-question-section">
-                                <h3>🔒 Pregunta Secreta</h3>
+                                <h3><AiOutlineLock size={18} /> Pregunta Secreta</h3>
                                 <p>Te ayudará a recuperar tu cuenta si olvidas tu contraseña</p>
 
                                 <div className="register-form-group">
@@ -383,7 +386,7 @@ export default function RegistroScreen() {
                                         <option value="2">{predefinedQuestions[2] || 'Cargando...'}</option>
                                         <option value="3">{predefinedQuestions[3] || 'Cargando...'}</option>
                                         <option value="4">{predefinedQuestions[4] || 'Cargando...'}</option>
-                                        <option value="custom">✏️ Definir pregunta personalizada</option>
+                                        <option value="custom">Definir pregunta personalizada</option>
                                     </select>
                                     {errors.questionType && <span className="register-error">{errors.questionType.message}</span>}
                                 </div>
@@ -428,7 +431,7 @@ export default function RegistroScreen() {
                                     {/* SE MUESTRA AL ENFOCAR O EN CASO DE ERROR */}
                                     {(focusedField === 'securityAnswer' || errors.securityAnswer) && (
                                         <div className="security-tips" style={{ animation: 'fadeInStep 0.3s ease' }}>
-                                            <p><strong>💡 Consejos para una respuesta segura:</strong></p>
+                                            <p><strong>Consejos para una respuesta segura:</strong></p>
                                             <ul>
                                                 <li>Usa respuestas que solo tú conozcas y evita información pública.</li>
                                             </ul>
@@ -439,20 +442,10 @@ export default function RegistroScreen() {
 
                             {/* CAJA DE TÉRMINOS Y CONDICIONES COMPACTA CON SCROLL */}
                             <div className="terms-container">
-                                <h4 style={{ color: '#ECB2C3', marginBottom: '10px' }}>Términos y Condiciones</h4>
-                                <div style={{ 
-                                    maxHeight: '90px', 
-                                    overflowY: 'auto', 
-                                    padding: '12px', 
-                                    background: 'rgba(0,0,0,0.3)', 
-                                    borderRadius: '8px',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    fontSize: '0.8rem',
-                                    color: '#D9D9D9',
-                                    marginBottom: '15px'
-                                }}>
-                                    <p style={{marginBottom: '5px'}}>Al registrarte en Joyería Diana Laura, aceptas:</p>
-                                    <ul style={{ paddingLeft: '20px', margin: 0 }}>
+                                <h4 className="terms-titulo">Términos y Condiciones</h4>
+                                <div className="terms-scroll">
+                                    <p>Al registrarte en Joyería Diana Laura, aceptas:</p>
+                                    <ul>
                                         <li>Nuestros términos de servicio y políticas de privacidad.</li>
                                         <li>El tratamiento de tus datos personales según la ley aplicable.</li>
                                         <li>Recibir comunicaciones relacionadas con tu cuenta.</li>
@@ -470,9 +463,9 @@ export default function RegistroScreen() {
 
                             <div className="step-actions">
                                 <button type="button" className="back-button" onClick={prevStep}>
-                                    ⬅ Volver
+                                    <AiOutlineArrowLeft size={16} /> Volver
                                 </button>
-                                <button type="submit" className="register-button" disabled={loading} style={{ marginTop: '0' }}>
+                                <button type="submit" className="register-button" disabled={loading}>
                                     {loading ? 'Registrando...' : 'Crear Cuenta'}
                                 </button>
                             </div>

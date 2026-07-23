@@ -1,10 +1,10 @@
 /* Frontend/src/screens/admin/basedatos/styles/AdminDatabaseScreen.css */
 
 :root {
-  --dark-prime: #0f0f12;
-  --dark-surface: #0f0f12;
+  --dark-prime: var(--color-bg);
+  --dark-surface: var(--color-bg);
   --dark-surface-light: rgba(30, 30, 35, 0.7);
-  --gold-lux: #ECB2C3;
+  --gold-lux: var(--color-rose-gold);
   --gold-lux-light: rgba(236, 178, 195, 0.3);
   --gold-lux-dark: #d49bb3;
   --border-lux: rgba(236, 178, 195, 0.2);
@@ -21,10 +21,10 @@
 .database-screen-container {
   flex: 1;
   padding: 2rem;
-  background: linear-gradient(135deg, #050505 0%, #0a0a0f 100%);
+  background: linear-gradient(135deg, var(--color-bg) 0%, #0a0a0f 100%);
   min-height: 100vh;
   color: var(--text-primary);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-body);
 }
 
 /* Header */
@@ -42,11 +42,11 @@
 }
 
 .page-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, #ECB2C3 0%, #e49bb3 100%);
+  background: linear-gradient(135deg, var(--color-rose-gold) 0%, #e49bb3 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -106,7 +106,7 @@
 .stat-card {
   background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, rgba(10, 10, 15, 0.7) 100%);
   border: 1px solid var(--border-lux);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 1.5rem;
   display: flex;
   align-items: center;
@@ -129,7 +129,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: 4px;
 }
 
 .stat-content {
@@ -156,7 +156,7 @@
 }
 
 .section-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1.8rem;
   font-weight: 700;
   margin: 0 0 1.5rem 0;
@@ -184,7 +184,7 @@
 .quick-action-card {
   background: var(--dark-surface-light);
   border: 1px solid var(--border-lux);
-  border-radius: 10px;
+  border-radius: 4px;
   padding: 1.2rem;
   display: flex;
   flex-direction: column;
@@ -228,7 +228,7 @@
 .module-card {
   background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, rgba(10, 10, 15, 0.7) 100%);
   border: 1px solid var(--border-lux);
-  border-radius: 14px;
+  border-radius: 4px;
   padding: 1.8rem;
   display: flex;
   gap: 1.5rem;
@@ -269,7 +269,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14px;
+  border-radius: 4px;
   flex-shrink: 0;
 }
 
@@ -302,7 +302,7 @@
   color: var(--text-tertiary);
   background: rgba(0, 0, 0, 0.3);
   padding: 0.3rem 0.8rem;
-  border-radius: 20px;
+  border-radius: 2px;
   border: 1px solid rgba(236, 178, 195, 0.1);
 }
 
@@ -324,7 +324,7 @@
 .recent-activity-section {
   background: linear-gradient(145deg, rgba(20, 20, 25, 0.5) 0%, rgba(8, 8, 12, 0.8) 100%);
   border: 1px solid var(--border-lux);
-  border-radius: 14px;
+  border-radius: 4px;
   padding: 1.8rem;
   margin-bottom: 2rem;
   backdrop-filter: blur(15px);
@@ -344,7 +344,7 @@
   font-size: 0.9rem;
   cursor: pointer;
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: 2px;
   transition: var(--transition);
 }
 
@@ -364,7 +364,7 @@
   gap: 1rem;
   padding: 1rem;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+  border-radius: 2px;
   transition: var(--transition);
 }
 
@@ -380,7 +380,7 @@
   align-items: center;
   justify-content: center;
   background: rgba(236, 178, 195, 0.1);
-  border-radius: 8px;
+  border-radius: 2px;
 }
 
 .activity-details {
@@ -404,7 +404,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   padding: 0.3rem 1rem;
-  border-radius: 20px;
+  border-radius: 2px;
   min-width: 100px;
   text-align: center;
 }
@@ -435,7 +435,7 @@
 .health-section {
   background: linear-gradient(145deg, rgba(20, 20, 25, 0.5) 0%, rgba(8, 8, 12, 0.8) 100%);
   border: 1px solid var(--border-lux);
-  border-radius: 14px;
+  border-radius: 4px;
   padding: 1.8rem;
   backdrop-filter: blur(15px);
 }
@@ -453,7 +453,7 @@
   align-items: center;
   padding: 0.8rem 1rem;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+  border-radius: 2px;
   border: 1px solid rgba(236, 178, 195, 0.05);
 }
 
@@ -465,7 +465,7 @@
 .health-value {
   font-weight: 600;
   padding: 0.3rem 1rem;
-  border-radius: 20px;
+  border-radius: 2px;
   font-size: 0.9rem;
 }
 

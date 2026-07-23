@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { authAPI } from '../../services/api';
+import { AiOutlineSafety, AiOutlineQrcode, AiOutlineNumber, AiOutlineCheckCircle, AiOutlineFileProtect } from 'react-icons/ai';
 import "./MFASetupScreen.css";
 
 interface MFASetupData {
@@ -40,7 +41,7 @@ export default function MFASetupScreen() {
     setError('');
 
     try {
-      console.log('🔐 Iniciando configuración MFA para usuario:', user.dbId);
+      console.log('Iniciando configuración MFA para usuario:', user.dbId);
       
       const response = await authAPI.setupMFA(user.dbId, user.email);
       
@@ -52,7 +53,7 @@ export default function MFASetupScreen() {
         setError(response.message || 'Error iniciando configuración MFA');
       }
     } catch (error: any) {
-      console.error('❌ Error configurando MFA:', error);
+      console.error('Error configurando MFA:', error);
       setError(error.message || 'Error configurando MFA');
     } finally {
       setLoading(false);
@@ -74,7 +75,7 @@ export default function MFASetupScreen() {
     setError('');
 
     try {
-      console.log('🔐 Verificando y activando MFA para usuario:', user.dbId);
+      console.log('Verificando y activando MFA para usuario:', user.dbId);
       
       const response = await authAPI.verifyAndEnableMFA(user.dbId, verificationCode);
       
@@ -86,7 +87,7 @@ export default function MFASetupScreen() {
         setError(response.message || 'Código de verificación inválido');
       }
     } catch (error: any) {
-      console.error('❌ Error activando MFA:', error);
+      console.error('Error activando MFA:', error);
       setError(error.message || 'Error activando MFA');
     } finally {
       setLoading(false);
@@ -107,7 +108,7 @@ export default function MFASetupScreen() {
       case 'intro':
         return (
           <div className="step-intro">
-            <h2>🔒 Configurar Autenticación en Dos Pasos</h2>
+            <h2><AiOutlineSafety size={22} style={{ verticalAlign: 'middle', marginRight: 8, color: 'var(--color-rose-gold)' }} />Configurar Autenticación en Dos Pasos</h2>
             <p>
               La autenticación en dos pasos añade una capa adicional de seguridad a tu cuenta. 
               Además de tu contraseña, necesitarás un código de verificación de tu aplicación móvil.
@@ -144,7 +145,7 @@ export default function MFASetupScreen() {
       case 'qr':
         return (
           <div className="step-qr">
-            <h2>📱 Escanear Código QR</h2>
+            <h2><AiOutlineQrcode size={22} style={{ verticalAlign: 'middle', marginRight: 8, color: 'var(--color-rose-gold)' }} />Escanear Código QR</h2>
             <p>Usa tu aplicación authenticator para escanear este código:</p>
             
             {mfaData?.qrCodeUrl && (
@@ -183,7 +184,7 @@ export default function MFASetupScreen() {
       case 'verify':
         return (
           <div className="step-verify">
-            <h2>🔢 Verificar Código</h2>
+            <h2><AiOutlineNumber size={22} style={{ verticalAlign: 'middle', marginRight: 8, color: 'var(--color-rose-gold)' }} />Verificar Código</h2>
             <p>Ingresa el código de 6 dígitos que muestra tu aplicación authenticator:</p>
             
             <form onSubmit={(e) => { e.preventDefault(); verifyAndEnableMFA(); }}>
@@ -229,12 +230,12 @@ export default function MFASetupScreen() {
       case 'complete':
         return (
           <div className="step-complete">
-            <h2>🎉 ¡MFA Activado Correctamente!</h2>
+            <h2><AiOutlineCheckCircle size={22} style={{ verticalAlign: 'middle', marginRight: 8, color: 'var(--color-rose-gold)' }} />MFA Activado Correctamente</h2>
             <p>Tu autenticación en dos pasos ha sido configurada exitosamente.</p>
-            
+
             {backupCodes.length > 0 && (
               <div className="backup-codes">
-                <h3>📋 Códigos de Respaldo</h3>
+                <h3><AiOutlineFileProtect size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} />Códigos de Respaldo</h3>
                 <p>
                   <strong>¡Guarda estos códigos en un lugar seguro!</strong><br/>
                   Son tu única forma de recuperar acceso si pierdes tu dispositivo.

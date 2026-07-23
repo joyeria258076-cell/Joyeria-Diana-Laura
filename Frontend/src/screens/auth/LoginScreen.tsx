@@ -8,6 +8,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import AuthBackground from "../../components/AuthBackground";
 import "./LoginScreen.css";
 
 // 🆕 FUNCIONES DE VALIDACIÓN PARA PREVENIR INYECCIONES
@@ -81,10 +83,10 @@ export default function LoginScreen() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { login, verifyEmail } = useAuth();
-    const { register, handleSubmit, formState: { errors }, setError, setValue } = useForm<FormData>({ 
+    const { register, handleSubmit, formState: { errors }, setError, setValue } = useForm<FormData>({
         resolver: zodResolver(schema)
     });
-    
+
     const [showPassword, setShowPassword] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
     const [loading, setLoading] = useState(false); // 🆕 Estado para loading del login
@@ -114,7 +116,7 @@ export default function LoginScreen() {
         // 🎯 MOSTRAR MENSAJE DE VERIFICACIÓN EXITOSA
         if (verified === 'true' && !sessionStorage.getItem('verificationShown')) {
             sessionStorage.setItem('verificationShown', 'true');
-            alert('✅ ¡Email verificado correctamente! Ahora puedes iniciar sesión.');
+            alert('¡Email verificado correctamente! Ahora puedes iniciar sesión.');
             window.history.replaceState({}, '', window.location.pathname);
         }
 
@@ -227,13 +229,13 @@ const onSubmit = async (data: FormData) => {
       let attemptsMessage = '';
       
       if (error.remainingAttempts === 0) {
-        attemptsMessage = '🔒 Cuenta bloqueada. Espera 5 minutos.';
+        attemptsMessage = 'Cuenta bloqueada. Espera 5 minutos.';
       } else if (error.remainingAttempts === 1) {
-        attemptsMessage = '🚨 ¡ÚLTIMO INTENTO!';
+        attemptsMessage = '¡Último intento!';
       } else if (error.remainingAttempts === 2) {
-        attemptsMessage = `⚠️ Te quedan ${error.remainingAttempts} intentos`;
+        attemptsMessage = `Te quedan ${error.remainingAttempts} intentos`;
       } else {
-        attemptsMessage = `✅ Tienes ${error.remainingAttempts} intentos disponibles`;
+        attemptsMessage = `Tienes ${error.remainingAttempts} intentos disponibles`;
       }
       
       setError('root', { 
@@ -245,32 +247,32 @@ const onSubmit = async (data: FormData) => {
     else if (error.message.includes("Esta cuenta no existe")) {
       setError('root', { 
         type: 'manual', 
-        message: "❌ Esta cuenta no existe. Por favor, regístrate primero." 
+        message: "Esta cuenta no existe. Por favor, regístrate primero." 
       });
     }
     else if (error.message.includes("contraseña incorrecta") || 
              error.message.includes("Email o contraseña incorrectos")) {
       setError('root', { 
         type: 'manual', 
-        message: "❌ Email o contraseña incorrectos. Si no tienes cuenta, regístrate primero." 
+        message: "Email o contraseña incorrectos. Si no tienes cuenta, regístrate primero." 
       });
     }
     else if (error.message.includes("verificado")) {
       setError('root', { 
         type: 'manual', 
-        message: "📧 " + error.message 
+        message: error.message 
       });
     }
     else if (error.message.includes("conexión")) {
       setError('root', { 
         type: 'manual', 
-        message: "🌐 Error de conexión. Verifica tu internet e intenta nuevamente." 
+        message: "Error de conexión. Verifica tu internet e intenta nuevamente." 
       });
     }
     else {
       setError('root', { 
         type: 'manual', 
-        message: "❌ " + (error.message || "Error al iniciar sesión. Por favor, intenta nuevamente.") 
+        message: (error.message || "Error al iniciar sesión. Por favor, intenta nuevamente.") 
       });
     }
   } finally {
@@ -281,13 +283,13 @@ const onSubmit = async (data: FormData) => {
     // 🎯 NUEVA FUNCIÓN: Mostrar mensajes de intentos igual que recuperación
     const getLoginAttemptsMessage = (remainingAttempts: number, maxAttempts: number = 3): string => {
     if (remainingAttempts === 0) {
-        return '🚨 ¡CUENTA BLOQUEADA! Espera 2 minutos.';
+        return '¡Cuenta bloqueada! Espera 2 minutos.';
     } else if (remainingAttempts === 1) {
-        return '🚨 ¡ÚLTIMO INTENTO disponible!';
+        return '¡Último intento disponible!';
     } else if (remainingAttempts === 2) {
-        return `⚠️ Te quedan ${remainingAttempts} intentos`;
+        return `Te quedan ${remainingAttempts} intentos`;
     } else {
-        return `✅ Tienes ${remainingAttempts} de ${maxAttempts} intentos disponibles`;
+        return `Tienes ${remainingAttempts} de ${maxAttempts} intentos disponibles`;
     }
     };
 
@@ -295,9 +297,12 @@ const onSubmit = async (data: FormData) => {
         <div className="login-page-wrapper">
             <PublicHeader />
             <div className="login-container">
+            <AuthBackground />
             <div className="login-image-section">
                 <div className="login-image-content">
-                    <h1>Joyería y Bisutería Diana Laura</h1>
+                    <span className="login-image-eyebrow">Bienvenida de vuelta</span>
+                    <h1>Joyería y Bisutería<br /><em>Diana Laura</em></h1>
+                    <span className="login-image-divider" aria-hidden="true" />
                     <p>Descubre nuestra exclusiva colección de joyas elaboradas especialmente para ti</p>
                 </div>
             </div>
@@ -311,18 +316,18 @@ const onSubmit = async (data: FormData) => {
                     
                     {isVerifying && (
                         <div className="verification-message">
-                            <p>🔄 Verificando tu email...</p>
+                            <p>Verificando tu email...</p>
                         </div>
                     )}
 
                     {loading && (
                         <div className="processing-message">
-                            ⏳ Procesando tu inicio de sesión...
+                            Procesando tu inicio de sesión...
                         </div>
                     )}
 
                     {!loading && errors.root?.message && (
-                        <div className="error-message">
+                        <div className="auth-error-banner">
                             {errors.root.message}
                         </div>
                     )}
@@ -359,7 +364,7 @@ const onSubmit = async (data: FormData) => {
                                     className="password-toggle"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
-                                    {showPassword ? "🙈" : "👁️"}
+                                    {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
                                 </button>
                             </div>
                             {errors.password && (

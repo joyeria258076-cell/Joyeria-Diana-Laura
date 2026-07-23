@@ -88,7 +88,7 @@ const CatalogoScreen: React.FC = () => {
 
     // --- PLACEHOLDER IMAGE ---
     //const placeholderImg = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzFhMWEyZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ4IiBmaWxsPSIjZWNiMmMzIj7oo6s8L3RleHQ+PC9zdmc+';
-    const placeholderImg = `data:image/svg+xml;utf8,<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="%231a1a2e"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="22" fill="%23ecb2c3" font-family="Arial">Joya</text></svg>`;
+    const placeholderImg = `data:image/svg+xml;utf8,<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="%23141414"/><g transform="translate(200,200)" stroke="%23594936" stroke-width="1.5" fill="none" opacity="0.7"><path d="M-22,-14 L22,-14 L32,-2 L0,34 L-32,-2 Z"/><path d="M-22,-14 L0,-2 L22,-14 M-32,-2 L32,-2 M0,-2 L0,34"/></g></svg>`;
     // 1. CARGAR DATOS INICIALES — sin límite, trae todos
     useEffect(() => {
         const loadInitialData = async () => {
@@ -312,10 +312,14 @@ const CatalogoScreen: React.FC = () => {
     };
 
     // --- CARD REUTILIZABLE ---
-    const ProductoCard = ({ producto }: { producto: Producto }) => {
+    const ProductoCard = ({ producto, indice = 0 }: { producto: Producto; indice?: number }) => {
         const esFav = favoritosIds.has(producto.id);
         return (
-        <div className="producto-card" onClick={() => verDetalles(producto)}>
+        <div
+            className="producto-card reveal-stagger"
+            style={{ ['--stagger-i' as any]: indice % 8 }}
+            onClick={() => verDetalles(producto)}
+        >
             <div className="producto-imagen">
                 {producto.imagen_principal ? (
                     <img
@@ -327,18 +331,19 @@ const CatalogoScreen: React.FC = () => {
                     <img src={placeholderImg} alt={producto.nombre} />
                 )}
                 {producto.es_nuevo && <span className="badge-nuevo">Nuevo</span>}
-                {(producto.precio_oferta || producto.precio_promocion) && <span className="badge-oferta">{producto.precio_promocion ? '🏷️ Promo' : 'Oferta'}</span>}
+                {(producto.precio_oferta || producto.precio_promocion) && <span className="badge-oferta">{producto.precio_promocion ? 'Promo' : 'Oferta'}</span>}
                 {producto.stock_actual === 0 && <span className="badge-agotado">Agotado</span>}
                 {producto.stock_actual > 0 && producto.stock_actual <= 5 && (
                     <span className="badge-poco-stock">¡Últimas {producto.stock_actual}!</span>
                 )}
+                <div className="producto-overlay"><span>Ver pieza →</span></div>
                 <button
                     className={`btn-favorito${esFav ? ' btn-favorito--activo' : ''}`}
                     onClick={(e) => handleToggleFavorito(e, producto.id)}
                     disabled={togglingFav === producto.id}
                     aria-label={esFav ? 'Quitar de favoritos' : 'Agregar a favoritos'}
                 >
-                    {esFav ? '❤️' : '🤍'}
+                    {esFav ? '♥' : '♡'}
                 </button>
             </div>
             <div className="producto-info">
@@ -358,11 +363,11 @@ const CatalogoScreen: React.FC = () => {
                 </div>
                 <div className="producto-stock">
                     {producto.stock_actual === 0 ? (
-                        <span className="stock-agotado">❌ Agotado</span>
+                        <span className="stock-agotado">Agotado</span>
                     ) : producto.stock_actual <= 5 ? (
-                        <span className="stock-poco">⚠️ Quedan {producto.stock_actual} unidades</span>
+                        <span className="stock-poco">Quedan {producto.stock_actual} unidades</span>
                     ) : (
-                        <span className="stock-ok">✅ {producto.stock_actual} disponibles</span>
+                        <span className="stock-ok">{producto.stock_actual} disponibles</span>
                     )}
                 </div>
             </div>
@@ -385,7 +390,7 @@ const CatalogoScreen: React.FC = () => {
         <>
         {promociones.length > 0 && !tickerCerrado && (
             <div className="promo-ticker-fixed">
-                <span className="promo-ticker-badge">🏷️ OFERTA</span>
+                <span className="promo-ticker-badge">Ofertas</span>
                 <div className="promo-ticker-scroll-wrap">
                     <div className="promo-ticker-scroll-track">
                         {[...promociones, ...promociones].map((p, i) => (
@@ -403,27 +408,17 @@ const CatalogoScreen: React.FC = () => {
             </div>
         )}
         <main className="catalogo-body" style={promociones.length > 0 && !tickerCerrado ? { paddingTop: '36px' } : {}}>
-            <h2 className="page-title">Catálogo de Productos</h2>
+            <div className="catalogo-encabezado">
+                <span className="catalogo-eyebrow">Colección completa</span>
+                <h2 className="page-title">Catálogo</h2>
+                <p className="catalogo-subtitulo">Cada pieza, seleccionada con la misma atención al detalle con la que la harías tú.</p>
+            </div>
 
-            {/* --- MIS FAVORITOS --- */}
-            {favoritos.length > 0 && !searchMode && (
-                <section className="favoritos-section">
-                    <div className="favoritos-header">
-                        <span className="favoritos-titulo">❤️ Mis Favoritos</span>
-                        <span className="favoritos-count">{favoritos.length} producto{favoritos.length !== 1 ? 's' : ''}</span>
-                    </div>
-                    <div className="productos-grid favoritos-grid">
-                        {favoritos.map(producto => (
-                            <ProductoCard key={`fav-${producto.id}`} producto={producto} />
-                        ))}
-                    </div>
-                </section>
-            )}
-
-            {/* --- FILTROS --- */}
-            <div className="filtros-container">
-                <div className="search-section">
-                    <div className="buscador">
+            <div className="catalogo-shell">
+                {/* --- PANEL DE FILTROS (lateral, fijo) --- */}
+                <aside className="catalogo-filtros-panel">
+                    <div className="filtro-buscador">
+                        <AiOutlineSearch size={16} className="filtro-buscador-icon" />
                         <input
                             type="text"
                             placeholder="Buscar producto..."
@@ -431,13 +426,8 @@ const CatalogoScreen: React.FC = () => {
                             onChange={(e) => setFiltros({ ...filtros, nombre: e.target.value })}
                             onKeyDown={(e) => e.key === 'Enter' && handleBuscar()}
                         />
-                        <button className="btn-buscar" onClick={handleBuscar}>
-                            <AiOutlineSearch size={20} />
-                        </button>
                     </div>
-                </div>
 
-                <div className="filtros-row">
                     <div className="form-group">
                         <label>Categoría</label>
                         <select
@@ -474,32 +464,50 @@ const CatalogoScreen: React.FC = () => {
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label>Precio Mín</label>
-                        <input
-                            type="number"
-                            placeholder="0"
-                            value={filtros.precio_min}
-                            onChange={(e) => setFiltros({ ...filtros, precio_min: Number(e.target.value) })}
-                        />
+                    <div className="filtro-precio-row">
+                        <div className="form-group">
+                            <label>Precio Mín</label>
+                            <input
+                                type="number"
+                                placeholder="0"
+                                value={filtros.precio_min}
+                                onChange={(e) => setFiltros({ ...filtros, precio_min: Number(e.target.value) })}
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label>Precio Máx</label>
+                            <input
+                                type="number"
+                                placeholder="100000"
+                                value={filtros.precio_max}
+                                onChange={(e) => setFiltros({ ...filtros, precio_max: Number(e.target.value) })}
+                            />
+                        </div>
                     </div>
 
-                    <div className="form-group">
-                        <label>Precio Máx</label>
-                        <input
-                            type="number"
-                            placeholder="100000"
-                            value={filtros.precio_max}
-                            onChange={(e) => setFiltros({ ...filtros, precio_max: Number(e.target.value) })}
-                        />
+                    <div className="filtros-actions">
+                        <button className="btn-primary" onClick={handleBuscar}>Buscar</button>
+                        <button className="btn-secondary" onClick={handleLimpiarFiltros}>Limpiar</button>
                     </div>
-                </div>
+                </aside>
 
-                <div className="filtros-actions">
-                    <button className="btn-primary" onClick={handleBuscar}>Buscar</button>
-                    <button className="btn-secondary" onClick={handleLimpiarFiltros}>Limpiar Filtros</button>
-                </div>
-            </div>
+                <div className="catalogo-contenido">
+
+            {/* --- MIS FAVORITOS --- */}
+            {favoritos.length > 0 && !searchMode && (
+                <section className="favoritos-section">
+                    <div className="favoritos-header">
+                        <span className="favoritos-titulo">Mis Favoritos</span>
+                        <span className="favoritos-count">{favoritos.length} producto{favoritos.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="productos-grid favoritos-grid">
+                        {favoritos.map((producto, i) => (
+                            <ProductoCard key={`fav-${producto.id}`} producto={producto} indice={i} />
+                        ))}
+                    </div>
+                </section>
+            )}
 
             {/* --- MODO CATEGORÍAS — primeros 10, botón ver más → paginación --- */}
             {!searchMode && (
@@ -521,8 +529,8 @@ const CatalogoScreen: React.FC = () => {
                                     </div>
 
                                     <div className="productos-grid">
-                                        {productosPreview.map((producto) => (
-                                            <ProductoCard key={producto.id} producto={producto} />
+                                        {productosPreview.map((producto, i) => (
+                                            <ProductoCard key={producto.id} producto={producto} indice={i} />
                                         ))}
                                     </div>
 
@@ -556,8 +564,8 @@ const CatalogoScreen: React.FC = () => {
                             {totalPaginas > 1 && ` — página ${paginaBusqueda + 1} de ${totalPaginas}`}
                         </h3>
                         <div className="productos-grid">
-                            {productosPaginaActual.map((producto) => (
-                                <ProductoCard key={producto.id} producto={producto} />
+                            {productosPaginaActual.map((producto, i) => (
+                                <ProductoCard key={producto.id} producto={producto} indice={i} />
                             ))}
                         </div>
                         {renderPaginacion()}
@@ -571,6 +579,9 @@ const CatalogoScreen: React.FC = () => {
                     </div>
                 )
             )}
+
+                </div>
+            </div>
 
             {/* --- MODAL --- */}
             {modalOpen && selectedProducto && (

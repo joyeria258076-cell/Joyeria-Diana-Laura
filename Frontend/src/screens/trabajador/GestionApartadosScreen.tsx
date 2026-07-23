@@ -1,6 +1,10 @@
 // Ruta: Frontend/src/screens/trabajador/GestionApartadosScreen.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { apartadoAPI } from '../../services/api';
+import {
+    AiOutlineCheckCircle, AiOutlineDollarCircle, AiOutlineStop, AiOutlineFlag,
+    AiOutlineShoppingCart, AiOutlineHistory, AiOutlinePaperClip,
+} from 'react-icons/ai';
 import './GestionApartadosScreen.css';
 
 interface Abono {
@@ -136,7 +140,7 @@ const ModalConfirmarPago: React.FC<ModalConfirmarPagoProps> = ({ apartado, onCer
         <div className="gapt-overlay" onClick={onCerrar}>
             <div className="gapt-modal gapt-modal--sm" onClick={e => e.stopPropagation()}>
                 <div className="gapt-modal-header">
-                    <h3>✅ Confirmar pago inicial — {apartado.folio}</h3>
+                    <h3><AiOutlineCheckCircle size={18} /> Confirmar pago inicial — {apartado.folio}</h3>
                     <button className="gapt-modal-close" onClick={onCerrar}>×</button>
                 </div>
                 <div className="gapt-modal-body">
@@ -284,7 +288,7 @@ const ModalAbono: React.FC<ModalAbonoProps> = ({ apartado, metodosPago, onCerrar
         <div className="gapt-overlay" onClick={onCerrar}>
             <div className="gapt-modal" onClick={e => e.stopPropagation()}>
                 <div className="gapt-modal-header">
-                    <h3>💰 Registrar abono — {apartado.folio}</h3>
+                    <h3><AiOutlineDollarCircle size={18} /> Registrar abono — {apartado.folio}</h3>
                     <button className="gapt-modal-close" onClick={onCerrar}>×</button>
                 </div>
                 <div className="gapt-modal-body">
@@ -422,7 +426,7 @@ const ModalConfirmarAbono: React.FC<ModalConfirmarAbonoProps> = ({ apartado, onC
         <div className="gapt-overlay" onClick={onCerrar}>
             <div className="gapt-modal gapt-modal--sm" onClick={e => e.stopPropagation()}>
                 <div className="gapt-modal-header">
-                    <h3>✅ Confirmar abono — {apartado.folio}</h3>
+                    <h3><AiOutlineCheckCircle size={18} /> Confirmar abono — {apartado.folio}</h3>
                     <button className="gapt-modal-close" onClick={onCerrar}>×</button>
                 </div>
                 <div className="gapt-modal-body">
@@ -539,7 +543,7 @@ const ModalCancelar: React.FC<ModalCancelarProps> = ({ apartado, onCerrar, onExi
         <div className="gapt-overlay" onClick={onCerrar}>
             <div className="gapt-modal gapt-modal--sm" onClick={e => e.stopPropagation()}>
                 <div className="gapt-modal-header">
-                    <h3>❌ Cancelar apartado — {apartado.folio}</h3>
+                    <h3><AiOutlineStop size={18} /> Cancelar apartado — {apartado.folio}</h3>
                     <button className="gapt-modal-close" onClick={onCerrar}>×</button>
                 </div>
                 <div className="gapt-modal-body">
@@ -644,7 +648,7 @@ const GestionApartadosScreen: React.FC = () => {
     return (
         <main className="gapt-body">
             <div className="gapt-top-bar">
-                <h1 className="gapt-titulo">📦 Gestión de Apartados</h1>
+                <h1 className="gapt-titulo"><AiOutlineFlag size={20} /> Gestión de Apartados</h1>
                 <button
                     className={`gapt-btn-archivo ${verArchivados ? 'activo' : ''}`}
                     onClick={() => { setVerArchivados(!verArchivados); setPagina(1); setFiltro('todos'); }}>
@@ -916,7 +920,7 @@ const GestionApartadosScreen: React.FC = () => {
                                         <div className="gapt-detalle">
                                             {a.productos && a.productos.length > 0 && (
                                                 <div className="gapt-seccion">
-                                                    <h4>🛍️ Productos</h4>
+                                                    <h4><AiOutlineShoppingCart size={14} /> Productos</h4>
                                                     {(a.productos as any[]).map((p: any, i: number) => (
                                                         <div key={i} className="gapt-producto-fila">
                                                             <span>{typeof p === 'string' ? p : p.nombre}</span>
@@ -928,7 +932,7 @@ const GestionApartadosScreen: React.FC = () => {
                                             )}
 
                                             <div className="gapt-seccion">
-                                                <h4>💰 Historial de abonos</h4>
+                                                <h4><AiOutlineHistory size={14} /> Historial de abonos</h4>
                                                 {a.abonos && a.abonos.length > 0 ? (
                                                     <div className="gapt-abonos-tabla">
                                                         <div className="gapt-abonos-header">
@@ -969,7 +973,7 @@ const GestionApartadosScreen: React.FC = () => {
 
                                             {a.comprobante_url && (
                                                 <div className="gapt-seccion">
-                                                    <h4>📎 Comprobante</h4>
+                                                    <h4><AiOutlinePaperClip size={14} /> Comprobante</h4>
                                                     <a href={a.comprobante_url} target="_blank" rel="noreferrer"
                                                         className="gapt-comprobante-link">
                                                         Ver comprobante →

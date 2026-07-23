@@ -1,118 +1,132 @@
-/* Ruta: Frontend/src/screens/cliente/MisFavoritosScreen.css */
+/* Ruta: Frontend/src/screens/cliente/MisFavoritosScreen.css
+   Identidad Joyería Diana Laura: negro cálido + rose gold/champagne/blush. */
 
 .mf-body {
     max-width: 1800px;
     margin: 0 auto;
     padding: 20px 16px 60px;
+    font-family: var(--font-body);
 }
 
 .mf-header {
     display: flex;
     align-items: baseline;
     gap: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 2rem;
 }
 
 .mf-titulo {
-    color: #fff;
-    font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
+    color: var(--color-text);
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 300;
+    letter-spacing: 0.02em;
     margin: 0;
 }
 
 .mf-contador {
-    color: #ecb2c3;
-    font-size: 0.85rem;
-    font-weight: 600;
+    color: var(--color-rose-gold);
+    font-size: 0.8rem;
+    font-weight: 500;
 }
 
 .mf-loading, .mf-vacio {
     text-align: center;
     padding: 60px 20px;
-    color: #8a7a82;
+    color: var(--color-text-muted);
 }
-.mf-vacio-icono { font-size: 2.8rem; display: block; margin-bottom: 14px; }
-.mf-vacio p { margin: 0 0 18px; font-size: 0.95rem; }
+.mf-vacio-icon { color: rgba(201,149,108,0.3); margin-bottom: 1rem; }
+.mf-vacio p { margin: 0 0 1.25rem; font-size: 0.95rem; }
 
 .mf-btn-catalogo {
-    background: linear-gradient(135deg, #ecb2c3, #d4607e);
-    color: #1a0a10;
+    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    color: var(--color-bg);
     border: none;
-    font-weight: 700;
-    font-size: 0.85rem;
-    padding: 0.75rem 1.8rem;
-    border-radius: 50px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.82rem;
+    padding: 12px 28px;
+    border-radius: 2px;
     cursor: pointer;
+    font-family: var(--font-body);
+    transition: all 0.35s var(--ease-silk);
 }
+.mf-btn-catalogo:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(201,149,108,0.3); }
 
 .mf-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
+    gap: 1.25rem;
 }
 
 .mf-card {
-    background: #16161d;
-    border: 1px solid rgba(236,178,195,0.12);
-    border-radius: 14px;
+    background: var(--color-surface);
+    border: 1px solid rgba(201,149,108,0.12);
+    border-radius: 4px;
     overflow: hidden;
     cursor: pointer;
-    transition: border-color 0.2s, transform 0.2s;
+    transition: all 0.35s var(--ease-silk);
 }
-.mf-card:hover { border-color: rgba(236,178,195,0.35); transform: translateY(-3px); }
+.mf-card:hover {
+    border-color: rgba(201,149,108,0.4);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(201,149,108,0.15);
+}
 
 .mf-card-imagen {
     position: relative;
     aspect-ratio: 1 / 1;
-    background: #1e1e28;
+    background: var(--color-surface-2);
 }
-.mf-card-imagen img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mf-card-imagen img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s var(--ease-silk); }
+.mf-card:hover .mf-card-imagen img { transform: scale(1.06); }
 
 .mf-badge-nuevo {
     position: absolute;
     top: 10px;
     left: 10px;
-    background: #ecb2c3;
-    color: #0f0f12;
-    font-size: 0.65rem;
-    font-weight: 700;
+    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-champagne));
+    color: var(--color-bg);
+    font-size: 0.62rem;
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     padding: 3px 9px;
-    border-radius: 4px;
+    border-radius: 2px;
 }
 
 .mf-btn-quitar {
     position: absolute;
     top: 8px;
     right: 8px;
-    background: rgba(15,15,18,0.7);
-    border: none;
+    background: rgba(10,10,10,0.7);
+    border: 1px solid var(--color-border);
     border-radius: 50%;
     width: 34px;
     height: 34px;
-    font-size: 1rem;
+    color: var(--color-blush);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
+    transition: all 0.35s var(--ease-silk);
 }
-.mf-btn-quitar:hover { background: rgba(224,90,106,0.4); }
+.mf-btn-quitar:hover { background: rgba(224,90,106,0.3); border-color: var(--color-blush); }
 .mf-btn-quitar:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.mf-card-info { padding: 14px; display: flex; flex-direction: column; gap: 4px; }
-.mf-card-categoria { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8a7a82; margin: 0; }
-.mf-card-nombre { font-size: 0.95rem; font-weight: 700; color: #f0e6ea; margin: 0 0 4px; font-family: 'Playfair Display', serif; line-height: 1.3; }
+.mf-card-info { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 4px; }
+.mf-card-categoria { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-rose-gold); margin: 0; }
+.mf-card-nombre { font-size: 1rem; font-weight: 400; color: var(--color-text); margin: 0 0 4px; font-family: var(--font-display); line-height: 1.3; }
 
 .mf-card-precios { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
-.mf-precio-tachado { font-size: 0.78rem; color: #8a7a82; text-decoration: line-through; }
-.mf-precio-final { font-size: 1rem; font-weight: 700; color: #ecb2c3; }
+.mf-precio-tachado { font-size: 0.78rem; color: var(--color-text-muted); text-decoration: line-through; }
+.mf-precio-final { font-size: 1.05rem; font-weight: 500; color: var(--color-rose-gold); }
 
-.mf-stock-agotado { font-size: 0.75rem; color: #e05a6a; }
-.mf-stock-poco { font-size: 0.75rem; color: #f5c842; }
-.mf-stock-ok { font-size: 0.75rem; color: #6bcb77; }
+.mf-stock-agotado { font-size: 0.75rem; color: var(--color-text-muted); }
+.mf-stock-poco { font-size: 0.75rem; color: var(--color-blush); }
+.mf-stock-ok { font-size: 0.75rem; color: var(--color-champagne); opacity: 0.85; }
 
 @media (max-width: 500px) {
-    .mf-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .mf-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; }
 }

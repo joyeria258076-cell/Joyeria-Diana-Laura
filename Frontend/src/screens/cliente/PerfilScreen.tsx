@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { authAPI, profileAPI, solicitudesAPI } from "../../services/api";
+import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineDesktop, AiOutlineReload } from "react-icons/ai";
 import "./PerfilScreen.css";
 
 interface SesionActiva {
@@ -490,7 +491,7 @@ export default function PerfilScreen() {
                     className="pf-pass-eye"
                     onClick={() => setShowPass(p => ({ ...p, [campo]: !p[campo] }))}
                   >
-                    {showPass[campo] ? '🙈' : '👁'}
+                    {showPass[campo] ? <AiOutlineEyeInvisible size={16} /> : <AiOutlineEye size={16} />}
                   </button>
                 </div>
               </div>
@@ -536,7 +537,7 @@ export default function PerfilScreen() {
               <p className="pf-section-sub">Dispositivos donde tienes sesión iniciada.</p>
             </div>
             <button className="pf-btn-refresh" onClick={cargarSesiones} disabled={cargandoSes}>
-              ↻ Actualizar
+              <AiOutlineReload size={14} /> Actualizar
             </button>
           </div>
 
@@ -548,7 +549,7 @@ export default function PerfilScreen() {
             <div className="pf-sesiones-list">
               {sesiones.map(s => (
                 <div key={s.id} className={`pf-sesion${s.is_current ? ' pf-sesion--actual' : ''}`}>
-                  <div className="pf-sesion-icon">💻</div>
+                  <div className="pf-sesion-icon"><AiOutlineDesktop size={20} /></div>
                   <div className="pf-sesion-info">
                     <span className="pf-sesion-device">{s.device_name}</span>
                     <span className="pf-sesion-meta">{s.location} · {formatFecha(s.last_activity)}</span>

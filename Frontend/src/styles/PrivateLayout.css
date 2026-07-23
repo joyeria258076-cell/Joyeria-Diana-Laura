@@ -1,14 +1,18 @@
-/* Frontend/src/styles/PrivateLayout.css */
+/* Frontend/src/styles/PrivateLayout.css
+   Marco de todas las pantallas privadas (cliente/trabajador/admin).
+   Identidad Joyería Diana Laura: negro cálido + rose gold/champagne. */
 
 :root {
     --sidebar-width: 260px;
     --header-height: 75px;
-    --rosa-joyeria: #ECB2C3;
-    --negro-fondo: #0f0f12;
-    --negro-panel: #0a0a0a;
+    --rosa-joyeria: var(--color-rose-gold);
+    --negro-fondo: var(--color-bg);
+    --negro-panel: var(--color-bg);
 }
 
-/* ── Contenedor maestro ── */
+/* ── Contenedor maestro ──
+   El header y el sidebar quedan opacos (sin ninguna imagen) — la imagen
+   de fondo vive solo en .content-area, donde vive también el footer. */
 .app-private-wrapper {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr;
@@ -19,22 +23,39 @@
     overflow: hidden;
 }
 
-/* ── Área de contenido ── */
+/* ── Área de contenido ──
+   Única imagen de fondo de la página, pintada en este elemento (nunca
+   en el header/sidebar). Las pantallas hijas quedan transparentes para
+   dejarla ver. */
 .content-area {
     grid-column: 2;
     grid-row: 2;
     padding: 40px;
     overflow-y: auto;
+    position: relative;
     background-color: var(--negro-fondo);
-    color: #ffffff;
+    background-image:
+        linear-gradient(rgba(10, 10, 10, 0.94), rgba(10, 10, 10, 0.94)),
+        url('https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/fondo_pagina.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    color: var(--color-text);
     /* Scroll suave en móvil */
     -webkit-overflow-scrolling: touch;
+    /* El footer se pega abajo aun cuando el contenido es corto (ej. estados vacíos) */
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
 }
 
 .page-container {
     width: 100%;
     max-width: 2000px;
     margin: 0 auto;
+    position: relative;
+    flex: 1 0 auto;
 }
 
 /* ══════════════════════════════
@@ -55,6 +76,8 @@
         grid-row: 2;
         padding: 20px 15px;
         overflow-y: auto;
+        /* background-attachment: fixed es problemático en Safari/iOS */
+        background-attachment: scroll;
     }
 
     .page-container {

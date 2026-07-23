@@ -1,18 +1,17 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { AiOutlineControl, AiOutlineBell, AiOutlineLock, AiOutlineGlobal } from 'react-icons/ai';
 import './ConfiguracionScreen.css';
 
 const ConfiguracionScreen: React.FC = () => {
     return (
         <div className="content-area-config">
             <div className="page-header">
-                <h2><i className="fas fa-sliders-h"></i> Configuración del Sistema</h2>
+                <h2><AiOutlineControl size={20} /> Configuración del Sistema</h2>
             </div>
-            
+
             <div className="settings-grid">
-                {/* SECCIÓN: Notificaciones */}
                 <section className="settings-section">
-                    <h4><i className="fas fa-bell"></i> Notificaciones</h4>
+                    <h4><AiOutlineBell size={16} /> Notificaciones</h4>
                     <div className="config-options">
                         <label className="config-switch">
                             <input type="checkbox" defaultChecked />
@@ -33,9 +32,8 @@ const ConfiguracionScreen: React.FC = () => {
                     <button className="btn-save-config">Guardar Preferencias</button>
                 </section>
 
-                {/* SECCIÓN: Seguridad */}
                 <section className="settings-section">
-                    <h4><i className="fas fa-lock"></i> Seguridad</h4>
+                    <h4><AiOutlineLock size={16} /> Seguridad</h4>
                     <div className="form-group-config">
                         <label>Autenticación de dos factores (MFA)</label>
                         <select className="select-config">
@@ -55,9 +53,8 @@ const ConfiguracionScreen: React.FC = () => {
                     <button className="btn-save-config">Actualizar Seguridad</button>
                 </section>
 
-                {/* SECCIÓN: Idioma y Región */}
                 <section className="settings-section">
-                    <h4><i className="fas fa-globe"></i> Regional</h4>
+                    <h4><AiOutlineGlobal size={16} /> Regional</h4>
                     <div className="form-group-config">
                         <label>Idioma del Panel</label>
                         <select className="select-config">

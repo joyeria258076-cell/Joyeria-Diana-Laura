@@ -1,12 +1,18 @@
 // Frontend/src/screens/admin/AdminProductoDetalleScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AiOutlineArrowLeft, AiOutlineEdit, AiOutlineDelete, AiOutlineShopping, AiOutlineStock } from 'react-icons/ai';
+import {
+  AiOutlineEdit, AiOutlineDelete, AiOutlineDollarCircle, AiOutlineTags, AiOutlineSetting,
+  AiOutlineColumnWidth, AiOutlineCalendar, AiOutlineInbox, AiOutlineCheckCircle, AiOutlineCloseCircle,
+  AiOutlineEnvironment, AiOutlineIdcard,
+} from 'react-icons/ai';
 import { productsAPI } from '../../services/api';
+import { colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import './AdminProductoDetalleScreen.css';
 
 interface Producto {
   id: number;
+  codigo?: string;
   nombre: string;
   descripcion: string;
   categoria_id: number;
@@ -17,16 +23,19 @@ interface Producto {
   temporada_nombre?: string;
   tipo_producto_id?: number;
   tipo_producto_nombre?: string;
+  genero?: string;
   material_principal: string;
   peso_gramos: number | null;
   precio_compra: number;
   precio_venta: number;
   precio_oferta: number | null;
+  precio_personalizacion?: number;
   margen_ganancia: number;
   stock_actual: number;
   stock_minimo: number;
   stock_maximo: number;
   ubicacion_fisica: string;
+  ubicaciones_entrega?: string[];
   tiene_medidas: boolean;
   medidas: any;
   permite_personalizacion: boolean;
@@ -45,7 +54,6 @@ const AdminProductoDetalleScreen: React.FC = () => {
   const [producto, setProducto] = useState<Producto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedImage, setSelectedImage] = useState<string>('');
 
   useEffect(() => {
     if (id) {
@@ -59,7 +67,6 @@ const AdminProductoDetalleScreen: React.FC = () => {
       const response = await productsAPI.getById(productoId);
       if (response.success) {
         setProducto(response.data);
-        setSelectedImage(response.data.imagen_principal || '');
       } else {
         setError('No se pudo cargar el producto');
       }
@@ -73,11 +80,7 @@ const AdminProductoDetalleScreen: React.FC = () => {
 
   const handleDelete = async () => {
     if (!producto) return;
-    
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar "${producto.nombre}"?`)) {
-      return;
-    }
-
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar "${producto.nombre}"?`)) return;
     try {
       await productsAPI.delete(producto.id);
       alert('Producto eliminado exitosamente');
@@ -87,31 +90,16 @@ const AdminProductoDetalleScreen: React.FC = () => {
     }
   };
 
-  const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
+  const formatPrice = (price: number): string =>
+    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price);
 
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('es-CO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const placeholderImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzBkMGQwZCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZWNiMmMzIiBmb250LWZhbWlseT0iQXJpYWwiPkpveWEgRGlhbmEgTGF1cmE8L3RleHQ+PC9zdmc+';
+  const formatDate = (dateString: string): string =>
+    new Date(dateString).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   if (loading) {
     return (
-      <div className="admin-detalle-loading">
-        <div className="spinner"></div>
+      <div className="pd3-loading">
+        <div className="pd3-spinner" />
         <p>Cargando producto...</p>
       </div>
     );
@@ -119,196 +107,163 @@ const AdminProductoDetalleScreen: React.FC = () => {
 
   if (error || !producto) {
     return (
-      <div className="admin-detalle-error">
+      <div className="pd3-error">
         <h2>Error</h2>
         <p>{error || 'Producto no encontrado'}</p>
-        <button className="btn-volver" onClick={() => navigate('/admin-inventario')}>
-          Volver al Inventario
-        </button>
       </div>
     );
   }
 
+  const nivelStock = producto.stock_actual <= producto.stock_minimo
+    ? 'bajo'
+    : producto.stock_actual <= producto.stock_minimo * 2
+      ? 'medio'
+      : 'ok';
+  const porcentajeStock = Math.min(100, Math.round((producto.stock_actual / (producto.stock_minimo * 2 || 1)) * 100));
+
   return (
-    <div className="admin-detalle-container">
-      {/* Header */}
-      <div className="admin-detalle-header">
-        <button className="btn-back" onClick={() => navigate('/admin-inventario')}>
-          <AiOutlineArrowLeft size={20} />
-          <span>Volver al Inventario</span>
-        </button>
-        <div className="header-actions">
-          <button 
-            className="btn-edit"
-            onClick={() => navigate(`/admin/editar-producto/${producto.id}`)}
-          >
-            <AiOutlineEdit size={18} />
-            Editar
+    <div className="pd3-container">
+      {/* Banner de producto */}
+      <div className="pd3-hero">
+        <div className="pd3-hero-media">
+          {producto.imagen_principal ? (
+            <img src={producto.imagen_principal} alt={producto.nombre} />
+          ) : (
+            <div className="pd3-hero-media-placeholder"><AiOutlineInbox size={32} /></div>
+          )}
+        </div>
+
+        <div className="pd3-hero-info">
+          <div className="pd3-hero-top">
+            <span className={`pd3-badge ${producto.activo ? 'on' : 'off'}`}>
+              {producto.activo ? <AiOutlineCheckCircle size={12} /> : <AiOutlineCloseCircle size={12} />}
+              {producto.activo ? 'Activo' : 'Inactivo'}
+            </span>
+            {producto.es_nuevo && <span className="pd3-badge new">Nuevo</span>}
+            {producto.es_destacado && <span className="pd3-badge featured">Destacado</span>}
+          </div>
+
+          <h1>{producto.nombre}</h1>
+          {producto.codigo && <div className="pd3-hero-codigo"><AiOutlineIdcard size={12} /> {producto.codigo}</div>}
+          <p className="pd3-hero-desc">{producto.descripcion || 'Sin descripción'}</p>
+
+          <div className="pd3-hero-precio">
+            {formatPrice(producto.precio_venta)}
+            {producto.precio_oferta && (
+              <span className="pd3-hero-precio-oferta">{formatPrice(producto.precio_oferta)} en oferta</span>
+            )}
+          </div>
+        </div>
+
+        <div className="pd3-hero-actions">
+          <button className="pd3-btn-edit" onClick={() => navigate(`/admin/editar-producto/${producto.id}`)}>
+            <AiOutlineEdit size={16} /> Editar
           </button>
-          <button 
-            className="btn-delete"
-            onClick={handleDelete}
-          >
-            <AiOutlineDelete size={18} />
-            Eliminar
+          <button className="pd3-btn-delete" onClick={handleDelete}>
+            <AiOutlineDelete size={16} />
           </button>
         </div>
       </div>
 
-      {/* Contenido principal */}
-      <div className="admin-detalle-content">
-        {/* Columna izquierda - Imagen */}
-        <div className="detalle-imagen-col">
-          <div className="imagen-principal-container">
-            <img 
-              src={selectedImage || placeholderImage} 
-              alt={producto.nombre}
-              className="imagen-principal"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = placeholderImage;
-              }}
-            />
-          </div>
-          
-          {/* Badges de estado */}
-          <div className="detalle-badges">
-            {producto.activo ? (
-              <span className="badge-active">✓ Activo</span>
-            ) : (
-              <span className="badge-inactive">✗ Inactivo</span>
-            )}
-            {producto.es_nuevo && <span className="badge-nuevo">Nuevo</span>}
-            {producto.es_destacado && <span className="badge-destacado">Destacado</span>}
-          </div>
-
-          {/* Información de stock */}
-          <div className="detalle-stock-card">
-            <h3>
-              <AiOutlineStock size={20} />
-              Stock
-            </h3>
-            <div className="stock-info-detalle">
-              <div className="stock-item">
-                <span className="stock-label">Actual:</span>
-                <span className={`stock-value ${producto.stock_actual <= producto.stock_minimo ? 'stock-bajo' : ''}`}>
-                  {producto.stock_actual} unidades
-                </span>
+      {/* Contenido: sidebar stock + paneles */}
+      <div className="pd3-layout">
+        <aside className="pd3-sidebar">
+          <div className="pd3-sidebar-sticky">
+            <div className="pd3-stock-card">
+              <span className="pd3-stock-titulo"><AiOutlineInbox size={14} /> Stock</span>
+              <div className="pd3-stock-num">{producto.stock_actual} <small>unidades</small></div>
+              <div className="pd3-stock-bar">
+                <div className={`pd3-stock-fill ${nivelStock}`} style={{ width: `${porcentajeStock}%` }} />
               </div>
-              <div className="stock-item">
-                <span className="stock-label">Mínimo:</span>
-                <span className="stock-value">{producto.stock_minimo}</span>
-              </div>
-              <div className="stock-item">
-                <span className="stock-label">Máximo:</span>
-                <span className="stock-value">{producto.stock_maximo}</span>
-              </div>
-              <div className="stock-item">
-                <span className="stock-label">Ubicación:</span>
-                <span className="stock-value">{producto.ubicacion_fisica || 'No especificada'}</span>
+              <div className="pd3-stock-rows">
+                <div className="pd3-stock-row"><span>Mínimo</span><strong>{producto.stock_minimo}</strong></div>
+                <div className="pd3-stock-row"><span>Máximo</span><strong>{producto.stock_maximo}</strong></div>
+                <div className="pd3-stock-row"><span>Ubicación</span><strong>{producto.ubicacion_fisica || 'No especificada'}</strong></div>
               </div>
             </div>
+
+            <div className="pd3-meta-card">
+              <span className="pd3-meta-label"><AiOutlineCalendar size={13} /> Creado</span>
+              <span className="pd3-meta-value">{formatDate(producto.fecha_creacion)}</span>
+            </div>
+            {producto.fecha_actualizacion && (
+              <div className="pd3-meta-card">
+                <span className="pd3-meta-label"><AiOutlineCalendar size={13} /> Actualizado</span>
+                <span className="pd3-meta-value">{formatDate(producto.fecha_actualizacion)}</span>
+              </div>
+            )}
           </div>
-        </div>
+        </aside>
 
-        {/* Columna derecha - Información */}
-        <div className="detalle-info-col">
-          <h1 className="detalle-titulo">{producto.nombre}</h1>
-          
-          {producto.descripcion && (
-            <p className="detalle-descripcion">{producto.descripcion}</p>
-          )}
-
-          {/* Precios */}
-          <div className="detalle-precios-card">
-            <h3>💰 Precios</h3>
-            <div className="precios-grid">
-              <div className="precio-item">
-                <span className="precio-label">Precio Compra:</span>
-                <span className="precio-valor">{formatPrice(producto.precio_compra)}</span>
+        <div className="pd3-main">
+          <div className="pd3-panel">
+            <h3><AiOutlineDollarCircle size={16} /> Precios</h3>
+            <div className="pd3-precios-grid">
+              <div className="pd3-precio-item">
+                <span>Precio Compra</span>
+                <strong>{formatPrice(producto.precio_compra)}</strong>
               </div>
-              <div className="precio-item">
-                <span className="precio-label">Margen:</span>
-                <span className="precio-valor">{producto.margen_ganancia}%</span>
+              <div className="pd3-precio-item">
+                <span>Margen</span>
+                <strong>{producto.margen_ganancia}%</strong>
               </div>
-              <div className="precio-item">
-                <span className="precio-label">Precio Venta:</span>
-                <span className="precio-valor precio-destacado">{formatPrice(producto.precio_venta)}</span>
+              <div className="pd3-precio-item destacado">
+                <span>Precio Venta</span>
+                <strong>{formatPrice(producto.precio_venta)}</strong>
               </div>
               {producto.precio_oferta && (
-                <div className="precio-item">
-                  <span className="precio-label">Precio Oferta:</span>
-                  <span className="precio-valor precio-oferta">{formatPrice(producto.precio_oferta)}</span>
+                <div className="pd3-precio-item oferta">
+                  <span>Precio Oferta</span>
+                  <strong>{formatPrice(producto.precio_oferta)}</strong>
+                </div>
+              )}
+              {producto.permite_personalizacion && !!producto.precio_personalizacion && (
+                <div className="pd3-precio-item">
+                  <span>Cargo Personalización</span>
+                  <strong>{formatPrice(producto.precio_personalizacion)}</strong>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Clasificación */}
-          <div className="detalle-info-grid">
-            <div className="info-card">
-              <h3>📋 Clasificación</h3>
-              <div className="info-grid">
-                <div className="info-row">
-                  <span className="info-label">Categoría:</span>
-                  <span className="info-value">{producto.categoria_nombre || 'No especificada'}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Tipo:</span>
-                  <span className="info-value">{producto.tipo_producto_nombre || 'No especificado'}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Proveedor:</span>
-                  <span className="info-value">{producto.proveedor_nombre || 'No especificado'}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Temporada:</span>
-                  <span className="info-value">{producto.temporada_nombre || 'No especificada'}</span>
-                </div>
-              </div>
+          <div className="pd3-panel-row">
+            <div className="pd3-panel">
+              <h3><AiOutlineTags size={16} /> Clasificación</h3>
+              <div className="pd3-info-row"><span>Categoría</span><strong>{producto.categoria_nombre || 'No especificada'}</strong></div>
+              <div className="pd3-info-row"><span>Tipo</span><strong>{producto.tipo_producto_nombre || 'No especificado'}</strong></div>
+              <div className="pd3-info-row"><span>Proveedor</span><strong>{producto.proveedor_nombre || 'No especificado'}</strong></div>
+              <div className="pd3-info-row"><span>Temporada</span><strong>{producto.temporada_nombre || 'No especificada'}</strong></div>
             </div>
 
-            <div className="info-card">
-              <h3>⚙️ Características</h3>
-              <div className="info-grid">
-                <div className="info-row">
-                  <span className="info-label">Material:</span>
-                  <span className="info-value">{producto.material_principal || 'No especificado'}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Peso:</span>
-                  <span className="info-value">{producto.peso_gramos ? `${producto.peso_gramos} g` : 'No especificado'}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Personalización:</span>
-                  <span className="info-value">{producto.permite_personalizacion ? '✓ Sí' : '✗ No'}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Días fabricación:</span>
-                  <span className="info-value">{producto.dias_fabricacion || 0}</span>
-                </div>
-              </div>
+            <div className="pd3-panel">
+              <h3><AiOutlineSetting size={16} /> Características</h3>
+              <div className="pd3-info-row"><span>Material</span><strong>{producto.material_principal || 'No especificado'}</strong></div>
+              <div className="pd3-info-row"><span>Peso</span><strong>{producto.peso_gramos ? `${producto.peso_gramos} g` : 'No especificado'}</strong></div>
+              <div className="pd3-info-row"><span>Género</span><strong>{producto.genero || 'Unisex'}</strong></div>
+              <div className="pd3-info-row"><span>Personalización</span><strong>{producto.permite_personalizacion ? 'Sí' : 'No'}</strong></div>
+              <div className="pd3-info-row"><span>Días fabricación</span><strong>{producto.dias_fabricacion || 0}</strong></div>
             </div>
           </div>
 
-          {/* Medidas */}
           {producto.tiene_medidas && producto.medidas && (
-            <div className="info-card">
-              <h3>📏 Medidas</h3>
-              <pre className="medidas-pre">
-                {typeof producto.medidas === 'string' 
-                  ? producto.medidas 
-                  : JSON.stringify(producto.medidas, null, 2)}
+            <div className="pd3-panel">
+              <h3><AiOutlineColumnWidth size={16} /> Medidas</h3>
+              <pre className="pd3-medidas-pre">
+                {typeof producto.medidas === 'string' ? producto.medidas : JSON.stringify(producto.medidas, null, 2)}
               </pre>
             </div>
           )}
 
-          {/* Fechas */}
-          <div className="detalle-fechas">
-            <p>📅 Creado: {formatDate(producto.fecha_creacion)}</p>
-            {producto.fecha_actualizacion && (
-              <p>📅 Actualizado: {formatDate(producto.fecha_actualizacion)}</p>
-            )}
-          </div>
+          {producto.ubicaciones_entrega && producto.ubicaciones_entrega.length > 0 && (
+            <div className="pd3-panel">
+              <h3><AiOutlineEnvironment size={16} /> Lugares de Entrega</h3>
+              <div className="pd3-chips">
+                {producto.ubicaciones_entrega.map(u => (
+                  <span key={u} className="pd3-chip" style={{ background: colorDeUbicacion(u) }}>{u}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

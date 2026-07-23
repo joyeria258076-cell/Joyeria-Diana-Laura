@@ -8,6 +8,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import PublicHeader from '../../components/PublicHeader';
 import PublicFooter from '../../components/PublicFooter';
 import { authAPI } from '../../services/api';
+import AuthBackground from '../../components/AuthBackground';
+import { AiOutlineMail, AiOutlineLock } from 'react-icons/ai';
 import './OlvideContraseniaScreen.css';
 
 // 🆕 FUNCIONES DE VALIDACIÓN PARA PREVENIR INYECCIONES
@@ -124,7 +126,7 @@ const OlvideContraseniaScreen: React.FC = () => {
         if (remainingAttempts === 0 && blockedUntil) {
             return {
                 type: 'blocked' as const,
-                message: `🚨 Demasiados intentos. Cuenta bloqueada por ${countdown} minutos.`,
+                message: `Demasiados intentos. Cuenta bloqueada por ${countdown} minutos.`,
                 className: 'attempts-warning blocked'
             };
         }
@@ -132,7 +134,7 @@ const OlvideContraseniaScreen: React.FC = () => {
         if (remainingAttempts === 1) {
             return {
                 type: 'warning' as const,
-                message: '🚨 ¡ÚLTIMO INTENTO disponible!',
+                message: '¡Último intento disponible!',
                 className: 'attempts-warning danger'
             };
         }
@@ -140,7 +142,7 @@ const OlvideContraseniaScreen: React.FC = () => {
         if (remainingAttempts === 2) {
             return {
                 type: 'info' as const,
-                message: `⚠️ Te quedan ${remainingAttempts} intentos`,
+                message: `Te quedan ${remainingAttempts} intentos`,
                 className: 'attempts-warning warning'
             };
         }
@@ -148,7 +150,7 @@ const OlvideContraseniaScreen: React.FC = () => {
         if (remainingAttempts === 3) {
             return {
                 type: 'info' as const, 
-                message: `✅ Tienes ${remainingAttempts} intentos disponibles`,
+                message: `Tienes ${remainingAttempts} intentos disponibles`,
                 className: 'attempts-warning info'
             };
         }
@@ -183,11 +185,11 @@ const OlvideContraseniaScreen: React.FC = () => {
                 // 🎯 USAR EL TIEMPO QUE VIENE DEL BACKEND (2 min nuestro o 15 min de Firebase)
                 blockedTime.setMinutes(blockedTime.getMinutes() + (response.remainingTime || 2));
                 setBlockedUntil(blockedTime);
-                setMessage(`❌ ${response.message}`);
+                setMessage(response.message);
                 setMessageType('error');
             } else if (response.success) {
                 // ✅ CORRECTO: NO resetear aquí - solo mostrar éxito
-                setMessage('✅ ¡Enlace de recuperación enviado! Revisa tu bandeja de entrada y carpeta de spam.');
+                setMessage('¡Enlace de recuperación enviado! Revisa tu bandeja de entrada y carpeta de spam.');
                 setMessageType('success');
                 setEmailSent(true);
                 
@@ -196,7 +198,7 @@ const OlvideContraseniaScreen: React.FC = () => {
                     setRemainingAttempts(response.remainingAttempts);
                 }
             } else {
-                setMessage(`❌ ${response.message}`);
+                setMessage(response.message);
                 setMessageType('error');
             }
             
@@ -204,7 +206,7 @@ const OlvideContraseniaScreen: React.FC = () => {
 
         } catch (error: any) {
             console.error('❌ Error en recuperación:', error);
-            setMessage(`❌ ${error.message}`);
+            setMessage(error.message);
             setMessageType('error');
         } finally {
             setLoading(false);
@@ -215,6 +217,7 @@ const OlvideContraseniaScreen: React.FC = () => {
         <div className="olvide-page-wrapper">
             <PublicHeader />
             <div className="olvide-contrasenia-container">
+                <AuthBackground />
                 <div className="olvide-contrasenia-card">
                     <div className="olvide-contrasenia-header">
                         <h2>Recuperar Contraseña</h2>
@@ -222,7 +225,7 @@ const OlvideContraseniaScreen: React.FC = () => {
                         
                         {/* Información sobre el sistema de seguridad */}
                         <div className="security-info">
-                            <p><strong>🔒 Sistema de seguridad:</strong> Máximo 3 intentos cada 2 minutos</p>
+                            <p><strong>Sistema de seguridad:</strong> Máximo 3 intentos cada 2 minutos</p>
                         </div>
                     </div>
 
@@ -255,14 +258,14 @@ const OlvideContraseniaScreen: React.FC = () => {
                                 disabled={isBlocked || loading} 
                                 className={`submit-button ${isBlocked ? 'blocked' : ''}`}
                             >
-                                {loading ? '🔍 Enviando...' : 
-                                isBlocked ? `⏳ Bloqueado (${countdown}m)` : 
-                                '📧 Enviar Enlace de Recuperación'}
+                                {loading ? 'Enviando...' :
+                                isBlocked ? `Bloqueado (${countdown}m)` :
+                                <><AiOutlineMail size={16} /> Enviar Enlace de Recuperación</>}
                             </button>
                         </form>
                     ) : (
                         <div className="success-section">
-                            <div className="success-icon">✅</div>
+                            <div className="success-icon" />
                             <h3>¡Solicitud Procesada Exitosamente!</h3>
                             <p>Si el email está registrado, recibirás instrucciones en tu correo electrónico.</p>
                         </div>
@@ -273,7 +276,7 @@ const OlvideContraseniaScreen: React.FC = () => {
                             <p>{message}</p>
                             {messageType === 'success' && (
                                 <div className="email-tips">
-                                    <h4>💡 Consejos para encontrar el email:</h4>
+                                    <h4>Consejos para encontrar el email:</h4>
                                     <ul>
                                         <li><strong>Revisa tu bandeja de entrada</strong> principal</li>
                                         <li><strong>Busca en la carpeta de spam</strong> o correo no deseado</li>
@@ -298,13 +301,13 @@ const OlvideContraseniaScreen: React.FC = () => {
                             className="security-question-button"
                             disabled={!emailValue || isBlocked}
                         >
-                            🔒 Usar Pregunta Secreta
+                            <AiOutlineLock size={14} /> Usar Pregunta Secreta
                         </button>
                     </div>
                     
                     <div className="back-to-login">
                         <button onClick={() => navigate('/login')} className="back-button">
-                            ← Volver al Login
+                            Volver al Login
                         </button>
                         
                         <button onClick={() => navigate('/registro')} className="register-button">

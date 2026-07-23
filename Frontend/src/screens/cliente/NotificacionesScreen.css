@@ -1,9 +1,10 @@
-/* Ruta: Frontend/src/screens/cliente/NotificacionesScreen.css */
+/* Ruta: Frontend/src/screens/cliente/NotificacionesScreen.css
+   Identidad Joyería Diana Laura: negro cálido + rose gold/champagne/blush. */
 
 .notif-page {
-    max-width: 1800px;
+    max-width: 900px;
     margin: 0 auto;
-    padding: 20px 16px 60px;
+    padding: 24px 16px 60px;
 }
 
 .notif-page-header {
@@ -12,18 +13,34 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.notif-page-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-rose-gold);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0 0 0.4rem;
 }
 
 .notif-page-titulo {
-    color: #fff;
-    font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
+    color: var(--color-text);
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.8rem;
     margin: 0 0 4px;
+    letter-spacing: 0.02em;
 }
 
 .notif-page-sub {
-    color: #ecb2c3;
+    color: var(--color-text-muted);
     font-size: 0.85rem;
     margin: 0;
 }
@@ -35,102 +52,112 @@
 
 .notif-btn-secundario,
 .notif-btn-peligro {
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 0.78rem;
-    font-weight: 600;
+    border-radius: 2px;
+    padding: 8px 16px;
+    font-size: 0.76rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
     cursor: pointer;
-    border: 1px solid rgba(236,178,195,0.3);
+    border: 1px solid var(--color-border);
     background: transparent;
-    color: #ecb2c3;
-    transition: background 0.2s;
+    color: var(--color-text-muted);
+    transition: all 0.3s var(--ease-silk);
+    font-family: var(--font-body);
 }
-.notif-btn-secundario:hover { background: rgba(236,178,195,0.1); }
+.notif-btn-secundario:hover { border-color: var(--color-rose-gold); color: var(--color-rose-gold); background: var(--color-glow); }
 .notif-btn-peligro { border-color: rgba(224,90,106,0.3); color: #e05a6a; }
-.notif-btn-peligro:hover { background: rgba(224,90,106,0.1); }
+.notif-btn-peligro:hover { background: rgba(224,90,106,0.08); }
 
 .notif-filtros {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 24px;
+    margin-bottom: 2rem;
 }
 
 .notif-filtro-btn {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.6);
-    padding: 8px 16px;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    padding: 7px 16px;
+    border-radius: 2px;
+    font-size: 0.78rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s var(--ease-silk);
+    font-family: var(--font-body);
 }
-.notif-filtro-btn:hover { border-color: rgba(236,178,195,0.4); color: #fff; }
+.notif-filtro-btn:hover { border-color: var(--color-rose-gold); color: var(--color-rose-gold); }
 .notif-filtro-btn.activo {
-    background: linear-gradient(135deg, #ecb2c3, #d4607e);
+    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
     border-color: transparent;
-    color: #1a0a10;
+    color: var(--color-bg);
 }
 
-.notif-grupo { margin-bottom: 22px; }
+.notif-grupo { margin-bottom: 2rem; position: relative; }
 .notif-grupo-titulo {
-    color: rgba(255,255,255,0.45);
-    font-size: 0.72rem;
+    color: var(--color-rose-gold);
+    font-size: 0.7rem;
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin: 0 0 10px;
+    letter-spacing: 0.12em;
+    margin: 0 0 1rem;
 }
 
-.notif-lista { display: flex; flex-direction: column; gap: 8px; }
+.notif-lista {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding-left: 1.25rem;
+    border-left: 1px solid var(--color-border);
+}
 
 .notif-item {
     position: relative;
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 14px 16px 14px 22px;
+    padding: 14px 16px 14px 0;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
+    transition: background 0.3s var(--ease-silk);
+    border-bottom: 1px solid var(--color-border);
 }
-.notif-item:hover { background: rgba(236,178,195,0.06); border-color: rgba(236,178,195,0.25); }
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--color-glow); }
 .notif-item.leida { opacity: 0.55; }
 
 .notif-dot {
     position: absolute;
-    left: 8px;
-    top: 18px;
+    left: -1.5625rem;
+    top: 20px;
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #ecb2c3;
-    box-shadow: 0 0 8px rgba(236,178,195,0.6);
+    background: var(--color-rose-gold);
+    box-shadow: 0 0 8px rgba(201,149,108,0.6);
 }
 
 .notif-item-content { flex: 1; min-width: 0; }
-.notif-item-folio { font-size: 0.72rem; font-weight: 700; color: #ecb2c3; margin: 0 0 4px; font-family: monospace; }
-.notif-item-msg { font-size: 0.88rem; color: #f0e6ea; margin: 0 0 5px; line-height: 1.4; }
-.notif-item-fecha { font-size: 0.72rem; color: #8a7a82; margin: 0; }
+.notif-item-folio { font-size: 0.7rem; font-weight: 500; color: var(--color-rose-gold); margin: 0 0 4px; letter-spacing: 0.04em; }
+.notif-item-msg { font-size: 0.88rem; color: var(--color-text); margin: 0 0 5px; line-height: 1.5; }
+.notif-item-fecha { font-size: 0.72rem; color: var(--color-text-muted); margin: 0; }
 
 .notif-item-borrar {
     background: transparent;
     border: none;
-    color: #8a7a82;
-    font-size: 1.2rem;
-    line-height: 1;
+    color: var(--color-text-muted);
     cursor: pointer;
     padding: 2px 6px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s var(--ease-silk);
 }
 .notif-item-borrar:hover { color: #e05a6a; }
 
 .notif-vacio {
     text-align: center;
-    padding: 60px 20px;
-    color: #8a7a82;
+    padding: 5rem 1rem;
+    color: var(--color-text-muted);
 }
-.notif-vacio-icono { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+.notif-vacio-icono { display: flex; justify-content: center; margin-bottom: 1rem; color: var(--color-rose-gold); opacity: 0.6; }

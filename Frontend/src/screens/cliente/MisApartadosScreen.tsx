@@ -2,6 +2,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { apartadoAPI, carritoAPI, productsAPI } from '../../services/api';
+import {
+    AiOutlineClockCircle, AiOutlineCheckCircle, AiOutlineCloseCircle, AiOutlineWarning,
+    AiOutlineLock, AiOutlineInbox, AiOutlineCreditCard, AiOutlineBank, AiOutlineDollarCircle,
+    AiOutlineUpload, AiOutlinePaperClip, AiOutlineGift, AiOutlineCalendar, AiOutlineThunderbolt,
+} from 'react-icons/ai';
 import './MisApartadosScreen.css';
 
 interface Abono {
@@ -53,19 +58,19 @@ interface MetodoPago {
     es_pasarela: boolean;
 }
 
-const ESTADO_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-    pendiente_pago: { label: 'Pendiente de pago', color: '#a78bfa', icon: '🕐' },
-    activo:         { label: 'Activo',             color: '#6bcb77', icon: '🟢' },
-    liquidado:      { label: 'Liquidado',           color: '#ecb2c3', icon: '✅' },
-    cancelado:      { label: 'Cancelado',           color: '#e74c3c', icon: '❌' },
-    vencido:        { label: 'Vencido',             color: '#f39c12', icon: '⚠️' },
+const ESTADO_CONFIG: Record<string, { label: string; color: string; Icon: React.ComponentType<{ size?: number }> }> = {
+    pendiente_pago: { label: 'Pendiente de pago', color: '#a78bfa', Icon: AiOutlineClockCircle },
+    activo:         { label: 'Activo',             color: '#6bcb77', Icon: AiOutlineInbox },
+    liquidado:      { label: 'Liquidado',           color: '#c9956c', Icon: AiOutlineCheckCircle },
+    cancelado:      { label: 'Cancelado',           color: '#e74c3c', Icon: AiOutlineCloseCircle },
+    vencido:        { label: 'Vencido',             color: '#f39c12', Icon: AiOutlineWarning },
 };
 
-const ICONOS_METODO: Record<string, string> = {
-    mercadopago:   '🛒',
-    paypal:        '🅿️',
-    transferencia: '🏦',
-    efectivo:      '💵',
+const ICONOS_METODO: Record<string, React.ComponentType<{ size?: number }>> = {
+    mercadopago:   AiOutlineCreditCard,
+    paypal:        AiOutlineCreditCard,
+    transferencia: AiOutlineBank,
+    efectivo:      AiOutlineDollarCircle,
 };
 
 const fmtFecha = (f: string) => {
@@ -146,14 +151,14 @@ const ModalPago: React.FC<ModalPagoProps> = ({ apartado, metodosPago, onCerrar, 
         <div className="mapt-overlay" onClick={onCerrar}>
             <div className="mapt-modal" onClick={e => e.stopPropagation()}>
                 <div className="mapt-modal-header">
-                    <h3>💳 Realizar pago inicial — {apartado.folio}</h3>
+                    <h3><AiOutlineCreditCard size={18} /> Realizar pago inicial — {apartado.folio}</h3>
                     <button className="mapt-modal-close" onClick={onCerrar}>×</button>
                 </div>
                 <div className="mapt-modal-body">
                     <div className="mapt-modal-resumen">
                         <div className="mapt-resumen-fila">
                             <span>Monto a pagar ahora</span>
-                            <strong style={{ color: '#6bcb77' }}>{fmtMoneda(apartado.monto_pagado)}</strong>
+                            <strong className="ok">{fmtMoneda(apartado.monto_pagado)}</strong>
                         </div>
                         <div className="mapt-resumen-fila">
                             <span>Total del apartado</span>
@@ -169,7 +174,7 @@ const ModalPago: React.FC<ModalPagoProps> = ({ apartado, metodosPago, onCerrar, 
                                     <input type="radio" name="metodo_pago_inicial"
                                         checked={metodoPagoId === m.id}
                                         onChange={() => setMetodoPagoId(m.id)} />
-                                    <span>{ICONOS_METODO[m.codigo] || '💰'}</span>
+                                    <span>{(() => { const MIcon = ICONOS_METODO[m.codigo] || AiOutlineDollarCircle; return <MIcon size={16} />; })()}</span>
                                     <span>{m.nombre}</span>
                                 </label>
                             ))}
@@ -179,21 +184,21 @@ const ModalPago: React.FC<ModalPagoProps> = ({ apartado, metodosPago, onCerrar, 
                     {/* Info por método */}
                     {metodoSeleccionado?.codigo === 'efectivo' && (
                         <div className="mapt-metodo-info">
-                            💵 Acércate a la tienda y realiza el pago en efectivo. El trabajador confirmará tu apartado al recibirlo.
+                            Acércate a la tienda y realiza el pago en efectivo. El trabajador confirmará tu apartado al recibirlo.
                         </div>
                     )}
                     {metodoSeleccionado?.codigo === 'transferencia' && (
                         <div className="mapt-form-group">
                             <div className="mapt-metodo-info">
-                                🏦 Realiza la transferencia y sube tu comprobante. El trabajador lo verificará.
+                                Realiza la transferencia y sube tu comprobante. El trabajador lo verificará.
                             </div>
-                            <label style={{ marginTop: '12px' }}>
+                            <label className="mapt-label-margin">
                                 Comprobante de transferencia <span className="mapt-req">*</span>
                             </label>
                             <div className="mapt-upload-area" onClick={() => fileRef.current?.click()}>
                                 {comprobante
-                                    ? <span>📎 {comprobante.name}</span>
-                                    : <span>📤 Toca para subir comprobante</span>
+                                    ? <><AiOutlinePaperClip size={16} /> {comprobante.name}</>
+                                    : <><AiOutlineUpload size={16} /> Toca para subir comprobante</>
                                 }
                                 <input ref={fileRef} type="file" accept="image/*"
                                     style={{ display: 'none' }}
@@ -203,21 +208,21 @@ const ModalPago: React.FC<ModalPagoProps> = ({ apartado, metodosPago, onCerrar, 
                     )}
                     {metodoSeleccionado?.codigo === 'mercadopago' && (
                         <div className="mapt-metodo-info">
-                            🛒 Serás redirigido a MercadoPago para completar el pago de <strong>{fmtMoneda(apartado.monto_pagado)}</strong>.
+                            Serás redirigido a MercadoPago para completar el pago de <strong>{fmtMoneda(apartado.monto_pagado)}</strong>.
                         </div>
                     )}
                     {metodoSeleccionado?.codigo === 'paypal' && (
                         <div className="mapt-metodo-info">
-                            🅿️ Serás redirigido a PayPal para completar el pago de <strong>{fmtMoneda(apartado.monto_pagado)}</strong>.
+                            Serás redirigido a PayPal para completar el pago de <strong>{fmtMoneda(apartado.monto_pagado)}</strong>.
                         </div>
                     )}
 
-                    {error && <div className="mapt-error-msg">⚠️ {error}</div>}
+                    {error && <div className="mapt-error-msg">{error}</div>}
                 </div>
                 <div className="mapt-modal-footer">
                     <button className="mapt-btn-sec" onClick={onCerrar}>Cancelar</button>
                     <button className="mapt-btn-primario" onClick={handlePagar} disabled={procesando}>
-                        {procesando ? '⏳ Procesando...' : '💳 Proceder al pago'}
+                        {procesando ? 'Procesando...' : 'Proceder al pago'}
                     </button>
                 </div>
             </div>
@@ -287,19 +292,19 @@ const ModalAbonoCliente: React.FC<ModalAbonoClienteProps> = ({ apartado, metodos
         <div className="mapt-overlay" onClick={onCerrar}>
             <div className="mapt-modal" onClick={e => e.stopPropagation()}>
                 <div className="mapt-modal-header">
-                    <h3>💰 Registrar abono — {apartado.folio}</h3>
+                    <h3><AiOutlineDollarCircle size={18} /> Registrar abono — {apartado.folio}</h3>
                     <button className="mapt-modal-close" onClick={onCerrar}>×</button>
                 </div>
                 <div className="mapt-modal-body">
                     <div className="mapt-modal-resumen">
                         <div className="mapt-resumen-fila">
                             <span>Saldo pendiente</span>
-                            <strong style={{ color: '#ecb2c3' }}>{fmtMoneda(apartado.saldo_pendiente)}</strong>
+                            <strong className="accent">{fmtMoneda(apartado.saldo_pendiente)}</strong>
                         </div>
                         {montoNum > 0 && (
                             <div className="mapt-resumen-fila">
                                 <span>Saldo tras este abono</span>
-                                <strong style={{ color: montoNum >= parseFloat(String(apartado.saldo_pendiente)) ? '#6bcb77' : '#e0e0e0' }}>
+                                <strong className={montoNum >= parseFloat(String(apartado.saldo_pendiente)) ? 'ok' : ''}>
                                     {fmtMoneda(Math.max(0, parseFloat(String(apartado.saldo_pendiente)) - montoNum))}
                                 </strong>
                             </div>
@@ -322,32 +327,32 @@ const ModalAbonoCliente: React.FC<ModalAbonoClienteProps> = ({ apartado, metodos
                                     <input type="radio" name="metodo_abono"
                                         checked={metodoPagoId === m.id}
                                         onChange={() => { setMetodoPagoId(m.id); setComprobante(null); }} />
-                                    <span>{ICONOS_METODO[m.codigo] || '💰'}</span>
+                                    <span>{(() => { const MIcon = ICONOS_METODO[m.codigo] || AiOutlineDollarCircle; return <MIcon size={16} />; })()}</span>
                                     <span>{m.nombre}</span>
                                 </label>
                             ))}
                         </div>
                     </div>
 
-                    <div className="mapt-metodo-info" style={{ marginBottom: 8, fontSize: '0.82em', opacity: 0.85 }}>
-                        💡 Puedes realizar tu abono con el método de tu preferencia: en línea, transferencia o en efectivo en tienda.
+                    <div className="mapt-metodo-info mapt-metodo-info--hint">
+                        Puedes realizar tu abono con el método de tu preferencia: en línea, transferencia o en efectivo en tienda.
                     </div>
 
                     {metodoSel?.codigo === 'efectivo' && (
                         <div className="mapt-metodo-info">
-                            💵 Acércate a la tienda y realiza tu abono en efectivo. El trabajador lo registrará y confirmará.
+                            Acércate a la tienda y realiza tu abono en efectivo. El trabajador lo registrará y confirmará.
                         </div>
                     )}
                     {metodoSel?.codigo === 'transferencia' && (
                         <div className="mapt-form-group">
                             <div className="mapt-metodo-info">
-                                🏦 Realiza la transferencia y sube tu comprobante. El trabajador lo verificará y confirmará tu abono.
+                                Realiza la transferencia y sube tu comprobante. El trabajador lo verificará y confirmará tu abono.
                             </div>
-                            <label style={{ marginTop: '12px' }}>
+                            <label className="mapt-label-margin">
                                 Comprobante <span className="mapt-req">*</span>
                             </label>
                             <div className="mapt-upload-area" onClick={() => fileRef.current?.click()}>
-                                {comprobante ? <span>📎 {comprobante.name}</span> : <span>📤 Toca para subir comprobante</span>}
+                                {comprobante ? <><AiOutlinePaperClip size={16} /> {comprobante.name}</> : <><AiOutlineUpload size={16} /> Toca para subir comprobante</>}
                                 <input ref={fileRef} type="file" accept="image/*"
                                     style={{ display: 'none' }}
                                     onChange={e => setComprobante(e.target.files?.[0] || null)} />
@@ -356,22 +361,22 @@ const ModalAbonoCliente: React.FC<ModalAbonoClienteProps> = ({ apartado, metodos
                     )}
                     {metodoSel?.codigo === 'mercadopago' && (
                         <div className="mapt-metodo-info">
-                            🛒 Serás redirigido a MercadoPago para pagar <strong>{montoNum > 0 ? fmtMoneda(montoNum) : '…'}</strong>. El pago se confirmará automáticamente.
+                            Serás redirigido a MercadoPago para pagar <strong>{montoNum > 0 ? fmtMoneda(montoNum) : '…'}</strong>. El pago se confirmará automáticamente.
                         </div>
                     )}
                     {metodoSel?.codigo === 'paypal' && (
                         <div className="mapt-metodo-info">
-                            🅿️ Serás redirigido a PayPal para pagar <strong>{montoNum > 0 ? fmtMoneda(montoNum) : '…'}</strong>. El pago se confirmará automáticamente.
+                            Serás redirigido a PayPal para pagar <strong>{montoNum > 0 ? fmtMoneda(montoNum) : '…'}</strong>. El pago se confirmará automáticamente.
                         </div>
                     )}
 
-                    {error && <div className="mapt-error-msg">⚠️ {error}</div>}
+                    {error && <div className="mapt-error-msg">{error}</div>}
                 </div>
                 <div className="mapt-modal-footer">
                     <button className="mapt-btn-sec" onClick={onCerrar}>Cancelar</button>
                     <button className="mapt-btn-primario" onClick={handleEnviar}
                         disabled={procesando || !metodoPagoId || !monto || parseFloat(monto) <= 0}>
-                        {procesando ? '⏳ Procesando...' : !metodoPagoId ? 'Selecciona un método de pago' : '💰 Enviar abono'}
+                        {procesando ? 'Procesando...' : !metodoPagoId ? 'Selecciona un método de pago' : 'Enviar abono'}
                     </button>
                 </div>
             </div>
@@ -409,18 +414,18 @@ const MisApartadosScreen: React.FC = () => {
             if (metodo === 'paypal' && token) {
                 capturarPayPal(parseInt(aptId), token);
             } else {
-                setMsgExito('✅ ¡Pago realizado! Tu apartado está siendo confirmado.');
+                setMsgExito('¡Pago realizado! Tu apartado está siendo confirmado.');
             }
         } else if (pago === 'exitoso' && abonoId) {
             const token = params.get('token');
             if (metodo === 'paypal' && token) {
                 capturarPayPalAbono(parseInt(abonoId), token);
             } else {
-                setMsgExito('✅ ¡Abono realizado! Se confirmará automáticamente.');
+                setMsgExito('¡Abono realizado! Se confirmará automáticamente.');
                 cargarDatos();
             }
         } else if (pago === 'fallido') {
-            setError('⚠️ El pago no fue completado. Intenta de nuevo.');
+            setError('El pago no fue completado. Intenta de nuevo.');
         }
     }, []);
 
@@ -428,7 +433,7 @@ const MisApartadosScreen: React.FC = () => {
         try {
             const res = await apartadoAPI.capturarPayPalAbono(abono_id, order_id);
             if (res.success) {
-                setMsgExito('✅ ¡Abono PayPal confirmado!');
+                setMsgExito('¡Abono PayPal confirmado!');
                 cargarDatos();
             }
         } catch { }
@@ -438,7 +443,7 @@ const MisApartadosScreen: React.FC = () => {
         try {
             const res = await apartadoAPI.capturarPayPal(apartado_id, order_id);
             if (res.success) {
-                setMsgExito('✅ ¡Pago PayPal confirmado! Tu apartado está activo.');
+                setMsgExito('¡Pago PayPal confirmado! Tu apartado está activo.');
                 cargarDatos();
             }
         } catch { }
@@ -467,20 +472,20 @@ const MisApartadosScreen: React.FC = () => {
     const porcentajePagado = (a: Apartado) =>
         Math.min(100, Math.round((Number(a.monto_pagado) / Number(a.monto_total)) * 100));
 
-    const estadoVisual = (a: Apartado): { icon: string; label: string; color: string } => {
-        if (a.estado === 'liquidado')       return { icon: '✅', label: 'Liquidado',   color: '#ecb2c3' };
-        if (a.estado === 'cancelado')       return { icon: '❌', label: 'Cancelado',   color: '#e74c3c' };
-        if (a.estado === 'vencido')         return { icon: '⚠️', label: 'Vencido',     color: '#f39c12' };
-        if (a.estado === 'pendiente_pago')  return { icon: '⏳', label: 'Pendiente',   color: '#a78bfa' };
+    const estadoVisual = (a: Apartado): { Icon: React.ComponentType<{ size?: number }>; label: string; color: string } => {
+        if (a.estado === 'liquidado')       return { Icon: AiOutlineCheckCircle, label: 'Liquidado',   color: '#c9956c' };
+        if (a.estado === 'cancelado')       return { Icon: AiOutlineCloseCircle, label: 'Cancelado',   color: '#e74c3c' };
+        if (a.estado === 'vencido')         return { Icon: AiOutlineWarning,     label: 'Vencido',     color: '#f39c12' };
+        if (a.estado === 'pendiente_pago')  return { Icon: AiOutlineClockCircle, label: 'Pendiente',   color: '#a78bfa' };
         const pct = porcentajePagado(a);
-        if (pct < 50)  return { icon: '🔒', label: 'Reservado',   color: '#60a5fa' };
-        if (pct < 100) return { icon: '📦', label: 'En proceso',  color: '#f59e0b' };
-        return { icon: '✅', label: 'Liquidado', color: '#ecb2c3' };
+        if (pct < 50)  return { Icon: AiOutlineLock,  label: 'Reservado',   color: '#60a5fa' };
+        if (pct < 100) return { Icon: AiOutlineInbox, label: 'En proceso',  color: '#f59e0b' };
+        return { Icon: AiOutlineCheckCircle, label: 'Liquidado', color: '#c9956c' };
     };
 
     const onPagoExito = () => {
         setModalPago(null);
-        setMsgExito('✅ Pago registrado. El trabajador lo confirmará pronto.');
+        setMsgExito('Pago registrado. El trabajador lo confirmará pronto.');
         cargarDatos();
     };
 
@@ -492,13 +497,7 @@ const MisApartadosScreen: React.FC = () => {
 
     return (
         <main className="mapt-body">
-            <nav className="mapt-breadcrumb">
-                <button className="mapt-back-btn" onClick={() => navigate('/inicio')}>← Inicio</button>
-                <span>/</span>
-                <span>Mis Apartados</span>
-            </nav>
-
-            <h1 className="mapt-titulo">🔖 Mis Apartados</h1>
+            <h1 className="mapt-titulo">Mis Apartados</h1>
 
             {msgExito && (
                 <div className="mapt-exito-banner">
@@ -506,25 +505,29 @@ const MisApartadosScreen: React.FC = () => {
                     <button onClick={() => setMsgExito('')}>×</button>
                 </div>
             )}
-            {error && <div className="mapt-error">⚠️ {error}</div>}
+            {error && <div className="mapt-error">{error}</div>}
 
             {/* Filtros */}
             <div className="mapt-filtros">
-                {['todos', 'pendiente_pago', 'activo', 'liquidado', 'cancelado', 'vencido'].map(f => (
-                    <button key={f}
-                        className={`mapt-filtro-btn ${filtro === f ? 'activo' : ''}`}
-                        onClick={() => setFiltro(f)}>
-                        {f === 'todos' ? 'Todos' : ESTADO_CONFIG[f]?.icon + ' ' + ESTADO_CONFIG[f]?.label}
-                        <span className="mapt-filtro-count">
-                            {f === 'todos' ? apartados.length : apartados.filter(a => a.estado === f).length}
-                        </span>
-                    </button>
-                ))}
+                {['todos', 'pendiente_pago', 'activo', 'liquidado', 'cancelado', 'vencido'].map(f => {
+                    const FiltroIcon = f !== 'todos' ? ESTADO_CONFIG[f]?.Icon : null;
+                    return (
+                        <button key={f}
+                            className={`mapt-filtro-btn ${filtro === f ? 'activo' : ''}`}
+                            onClick={() => setFiltro(f)}>
+                            {FiltroIcon && <FiltroIcon size={14} />}
+                            {f === 'todos' ? 'Todos' : ESTADO_CONFIG[f]?.label}
+                            <span className="mapt-filtro-count">
+                                {f === 'todos' ? apartados.length : apartados.filter(a => a.estado === f).length}
+                            </span>
+                        </button>
+                    );
+                })}
             </div>
 
             {apartadosFiltrados.length === 0 ? (
                 <div className="mapt-vacio">
-                    <p>🔖</p>
+                    <AiOutlineInbox size={40} className="mapt-vacio-icon" />
                     <h3>{filtro === 'todos' ? 'No tienes apartados aún' : `No tienes apartados ${ESTADO_CONFIG[filtro]?.label?.toLowerCase()}`}</h3>
                     {filtro === 'todos' && (
                         <button className="mapt-btn-primario" onClick={() => navigate('/catalogo')}>
@@ -546,7 +549,7 @@ const MisApartadosScreen: React.FC = () => {
                                     <div className="mapt-card-header-izq">
                                         <span className="mapt-folio">{a.folio}</span>
                                         <span className="mapt-estado-badge" style={{ color: cfg.color }}>
-                                            {cfg.icon} {cfg.label}
+                                            <cfg.Icon size={14} /> {cfg.label}
                                         </span>
                                     </div>
                                     <div className="mapt-card-header-der">
@@ -578,7 +581,7 @@ const MisApartadosScreen: React.FC = () => {
                                     <div className="mapt-resumen-rapido">
                                         <div className="mapt-dato">
                                             <span className="mapt-dato-label">Saldo pendiente</span>
-                                            <span className="mapt-dato-valor" style={{ color: '#ecb2c3' }}>
+                                            <span className="mapt-dato-valor mapt-dato-valor--destacado">
                                                 {fmtMoneda(a.saldo_pendiente)}
                                             </span>
                                         </div>
@@ -602,13 +605,13 @@ const MisApartadosScreen: React.FC = () => {
 
                                 {/* Mensaje liquidado */}
                                 {a.estado === 'liquidado' && (
-                                    <div className="mapt-accion-pago" style={{ background: '#0f2a1a', borderColor: '#6bcb77' }}>
-                                        <div className="mapt-pago-info" style={{ color: '#6bcb77', textAlign: 'center' }}>
-                                            🎉 <strong>¡Apartado liquidado!</strong><br />
+                                    <div className="mapt-accion-pago mapt-accion-pago--liquidado">
+                                        <div className="mapt-pago-info mapt-pago-info--liquidado">
+                                            <strong>¡Apartado liquidado!</strong><br />
                                             Completaste todos tus pagos exitosamente. ¡Muchas gracias por tu preferencia!
                                             {diasEntrega !== null && (
-                                                <><br /><span style={{ fontSize: '0.85em', opacity: 0.85 }}>
-                                                    🏪 Debes pasar a recoger tu pedido a la tienda en un plazo de <strong>{diasEntrega} días hábiles</strong>. Puedes rastrear el estado en <em>Mis Pedidos</em>.
+                                                <><br /><span className="mapt-nota-chica">
+                                                    Debes pasar a recoger tu pedido a la tienda en un plazo de <strong>{diasEntrega} días hábiles</strong>. Puedes rastrear el estado en <em>Mis Pedidos</em>.
                                                 </span></>
                                             )}
                                         </div>
@@ -619,20 +622,20 @@ const MisApartadosScreen: React.FC = () => {
                                 {a.estado === 'pendiente_pago' && (
                                     <div className="mapt-accion-pago">
                                         <div className="mapt-pago-info">
-                                            🕐 Aún no has realizado tu pago inicial de <strong>{fmtMoneda(a.monto_pagado)}</strong>.
+                                            Aún no has realizado tu pago inicial de <strong>{fmtMoneda(a.monto_pagado)}</strong>.
                                         </div>
                                         <button className="mapt-btn-pagar"
                                             onClick={() => setModalPago(a)}>
-                                            💳 Realizar pago inicial
+                                            Realizar pago inicial
                                         </button>
                                     </div>
                                 )}
 
                                 {/* Abono pendiente en espera */}
                                 {a.estado === 'activo' && a.abono_pendiente && (
-                                    <div className="mapt-accion-pago" style={{ background: '#1a2a1a', borderColor: '#6bcb77' }}>
-                                        <div className="mapt-pago-info" style={{ color: '#6bcb77' }}>
-                                            ⏳ Tienes un abono de <strong>{fmtMoneda(a.abono_pendiente.monto)}</strong> via {a.abono_pendiente.metodo_nombre} esperando confirmación del trabajador.
+                                    <div className="mapt-accion-pago mapt-accion-pago--abono-espera">
+                                        <div className="mapt-pago-info mapt-pago-info--abono-espera">
+                                            Tienes un abono de <strong>{fmtMoneda(a.abono_pendiente.monto)}</strong> via {a.abono_pendiente.metodo_nombre} esperando confirmación del trabajador.
                                         </div>
                                     </div>
                                 )}
@@ -657,22 +660,20 @@ const MisApartadosScreen: React.FC = () => {
                                     const diasRestantes = proxFechaLocal !== null
                                         ? Math.round((proxFechaLocal.getTime() - hoy.getTime()) / 86400000)
                                         : null;
-                                    console.log('[ApartadoBtn]', a.folio, { proxFecha, proxFechaLocal: proxFechaLocal?.toISOString(), hoy: hoy.toISOString(), esFutura, diasRestantes });
                                     return (
                                         <div className="mapt-accion-pago">
                                             {esFutura && proxFecha && (
-                                                <div className="mapt-pago-info" style={{ marginBottom: 8, color: '#aaa', fontSize: '0.85rem' }}>
-                                                    📅 Próximo abono vence el <strong>{fmtFecha(proxFecha)}</strong>
+                                                <div className="mapt-pago-info mapt-pago-info--neutro">
+                                                    <AiOutlineCalendar size={14} /> Próximo abono vence el <strong>{fmtFecha(proxFecha)}</strong>
                                                     {diasRestantes !== null && diasRestantes > 0 && ` (en ${diasRestantes} día${diasRestantes !== 1 ? 's' : ''})`}
                                                 </div>
                                             )}
-                                            <button className="mapt-btn-pagar"
-                                                style={esFutura ? { background: '#2a3a1a', borderColor: '#8bc34a', color: '#8bc34a' } : {}}
+                                            <button className={`mapt-btn-pagar ${esFutura ? 'mapt-btn-pagar--adelantar' : ''}`}
                                                 onClick={() => setModalAbono(a)}>
-                                                {esFutura ? '⚡ Adelantar pago' : '💰 Realizar abono'}
+                                                {esFutura ? <><AiOutlineThunderbolt size={16} /> Adelantar pago</> : 'Realizar abono'}
                                             </button>
                                             {esFutura && (
-                                                <small style={{ display: 'block', textAlign: 'center', color: '#777', marginTop: 4, fontSize: '0.75rem' }}>
+                                                <small className="mapt-adelantar-nota">
                                                     Tu fecha de vencimiento aún no llega — este pago es anticipado
                                                 </small>
                                             )}
@@ -683,7 +684,7 @@ const MisApartadosScreen: React.FC = () => {
                                 {/* Advertencia */}
                                 {a.estado === 'activo' && a.advertencia_enviada && (
                                     <div className="mapt-advertencia">
-                                        ⚠️ Se ha enviado una advertencia de vencimiento. Realiza un abono para mantener tu apartado.
+                                        Se ha enviado una advertencia de vencimiento. Realiza un abono para mantener tu apartado.
                                     </div>
                                 )}
 
@@ -692,7 +693,7 @@ const MisApartadosScreen: React.FC = () => {
                                     <div className="mapt-detalle">
                                         {a.productos && a.productos.length > 0 && (
                                             <div className="mapt-seccion">
-                                                <h4>🛍️ Productos apartados</h4>
+                                                <h4>Productos apartados</h4>
                                                 {a.productos.map((p, i) => (
                                                     <div key={i} className="mapt-producto-fila">
                                                         <span>{p.nombre}</span>
@@ -704,10 +705,10 @@ const MisApartadosScreen: React.FC = () => {
                                         )}
 
                                         <div className="mapt-seccion">
-                                            <h4>💰 Historial de abonos</h4>
+                                            <h4>Historial de abonos</h4>
                                             {a.abonos && a.abonos.length > 0 ? (
                                                 <div className="mapt-abonos-tabla">
-                                                    <div className="mapt-abonos-header" style={{ gridTemplateColumns: '80px 1fr 1fr 1fr 1fr' }}>
+                                                    <div className="mapt-abonos-header">
                                                         <span>Pago</span>
                                                         <span>Fecha</span>
                                                         <span>Monto</span>
@@ -715,12 +716,12 @@ const MisApartadosScreen: React.FC = () => {
                                                         <span>Próx. límite</span>
                                                     </div>
                                                     {a.abonos.map((ab, i) => (
-                                                        <div key={ab.id} className="mapt-abono-fila" style={{ gridTemplateColumns: '80px 1fr 1fr 1fr 1fr' }}>
-                                                            <span style={{ fontWeight: 600, color: '#ecb2c3' }}>Pago {i + 1}</span>
+                                                        <div key={ab.id} className="mapt-abono-fila">
+                                                            <span className="mapt-abono-num">Pago {i + 1}</span>
                                                             <span>{fmtFecha(ab.fecha_abono)}</span>
-                                                            <span style={{ color: '#6bcb77' }}>+{fmtMoneda(ab.monto)}</span>
+                                                            <span className="mapt-abono-monto">+{fmtMoneda(ab.monto)}</span>
                                                             <span>{fmtMoneda(ab.monto_despues)}</span>
-                                                            <span style={{ color: '#888', fontSize: '0.8rem' }}>{ab.fecha_limite_siguiente ? fmtFecha(ab.fecha_limite_siguiente) : '—'}</span>
+                                                            <span className="mapt-abono-limite">{ab.fecha_limite_siguiente ? fmtFecha(ab.fecha_limite_siguiente) : '—'}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -733,7 +734,7 @@ const MisApartadosScreen: React.FC = () => {
                                             const ultimo = a.abonos[a.abonos.length - 1];
                                             if (ultimo?.fecha_limite_siguiente) return (
                                                 <div className="mapt-proximo-abono">
-                                                    📅 Próximo abono recomendado antes del: <strong>{fmtFecha(ultimo.fecha_limite_siguiente)}</strong>
+                                                    <AiOutlineCalendar size={14} /> Próximo abono recomendado antes del: <strong>{fmtFecha(ultimo.fecha_limite_siguiente)}</strong>
                                                 </div>
                                             );
                                             return null;
@@ -763,7 +764,7 @@ const MisApartadosScreen: React.FC = () => {
                     onCerrar={() => setModalAbono(null)}
                     onExito={() => {
                         setModalAbono(null);
-                        setMsgExito('✅ Abono registrado. El trabajador lo confirmará pronto.');
+                        setMsgExito('Abono registrado. El trabajador lo confirmará pronto.');
                         cargarDatos();
                     }}
                 />

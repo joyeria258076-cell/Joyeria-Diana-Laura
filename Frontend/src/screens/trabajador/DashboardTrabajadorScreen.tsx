@@ -3,7 +3,31 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { carritoAPI } from "../../services/api";
+import {
+    AiOutlineShoppingCart, AiOutlineCheckCircle, AiOutlineClockCircle, AiOutlineExclamationCircle,
+    AiOutlineStar, AiOutlineUnorderedList, AiOutlineThunderbolt, AiOutlineUser, AiOutlineSetting,
+} from "react-icons/ai";
 import "./DashboardTrabajadorScreen.css";
+
+const ESTADO_COLOR: Record<string, string> = {
+    pendiente:  '#e8d5b7',
+    confirmado: '#6bcb77',
+    en_proceso: '#4d96ff',
+    listo:      '#c77dff',
+    enviado:    '#f4c2c2',
+    entregado:  '#c9956c',
+    cancelado:  '#e05a6a',
+};
+
+const ESTADO_LABEL: Record<string, string> = {
+    pendiente:  'Pendiente',
+    confirmado: 'Confirmado',
+    en_proceso: 'En proceso',
+    listo:      'Listo',
+    enviado:    'Enviado',
+    entregado:  'Entregado',
+    cancelado:  'Cancelado',
+};
 
 export default function DashboardTrabajadorScreen() {
     const { user } = useAuth();
@@ -26,18 +50,15 @@ export default function DashboardTrabajadorScreen() {
                 const todos = data.data || [];
                 const miId  = user?.dbId;
 
-                // Pedidos sin asignar y pendientes
                 const sinAsignar = todos.filter((p: any) =>
                     p.estado === 'pendiente' && !p.trabajador_id
                 ).length;
 
-                // Mis pedidos activos (asignados a mí, no terminados)
                 const misPend = todos.filter((p: any) =>
                     p.trabajador_id === miId &&
                     !['entregado','cancelado'].includes(p.estado)
                 ).length;
 
-                // Procesados por mí este mes
                 const ahora    = new Date();
                 const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
                 const procesados = todos.filter((p: any) =>
@@ -45,14 +66,12 @@ export default function DashboardTrabajadorScreen() {
                     new Date(p.fecha_creacion) >= inicioMes
                 ).length;
 
-                // Entregados por mí en total
                 const entregados = todos.filter((p: any) =>
                     p.trabajador_id === miId && p.estado === 'entregado'
                 ).length;
 
                 setStats({ pendientes: sinAsignar, misPendientes: misPend, procesados, entregados });
 
-                // Últimos 3 pedidos asignados a mí
                 const mios = todos
                     .filter((p: any) => p.trabajador_id === miId)
                     .slice(0, 3);
@@ -67,26 +86,6 @@ export default function DashboardTrabajadorScreen() {
         cargar();
     }, [user?.dbId]);
 
-    const ESTADO_COLOR: Record<string, string> = {
-        pendiente:  '#f5c842',
-        confirmado: '#6bcb77',
-        en_proceso: '#4d96ff',
-        listo:      '#c77dff',
-        enviado:    '#f5d8e8',
-        entregado:  '#ecb2c3',
-        cancelado:  '#e05a6a',
-    };
-
-    const ESTADO_LABEL: Record<string, string> = {
-        pendiente:  'Pendiente',
-        confirmado: 'Confirmado',
-        en_proceso: 'En proceso',
-        listo:      'Listo',
-        enviado:    'Enviado',
-        entregado:  'Entregado',
-        cancelado:  'Cancelado',
-    };
-
     const formatFecha = (f: string) =>
         new Date(f).toLocaleDateString('es-MX', {
             day: '2-digit', month: '2-digit', year: 'numeric',
@@ -96,7 +95,6 @@ export default function DashboardTrabajadorScreen() {
     return (
         <div className="dashboard-container">
 
-            {/* Header */}
             <div className="welcome-header">
                 <h2>
                     Bienvenido, <span className="accent-name">{user?.nombre?.split(' ')[0] || "Trabajador"}</span>
@@ -104,107 +102,79 @@ export default function DashboardTrabajadorScreen() {
                 <p>Aquí tienes el resumen de tu actividad y métricas clave.</p>
             </div>
 
-            {/* Tarjetas */}
             <div className="dashboard-cards">
                 <div className="dashboard-card">
-                    <h4><i className="fas fa-shopping-bag"></i> Pedidos Procesados</h4>
+                    <h4><AiOutlineShoppingCart size={16} /> Pedidos Procesados</h4>
                     <div className="stat-number">{loading ? '…' : stats.procesados}</div>
                     <div className="stat-label">Este mes (asignados a ti)</div>
-                    <div className="stat-change" style={{ color: '#ECB2C3' }}>
-                        <i className="fas fa-check-circle"></i> {loading ? '…' : stats.entregados} entregados en total
+                    <div className="stat-change">
+                        <AiOutlineCheckCircle size={14} /> {loading ? '…' : stats.entregados} entregados en total
                     </div>
                 </div>
 
                 <div className="dashboard-card">
-                    <h4><i className="fas fa-clock"></i> Mis Pedidos Activos</h4>
+                    <h4><AiOutlineClockCircle size={16} /> Mis Pedidos Activos</h4>
                     <div className="stat-number">{loading ? '…' : stats.misPendientes}</div>
                     <div className="stat-label">En proceso ahora</div>
-                    <div className="stat-change" style={{ color: stats.pendientes > 0 ? '#f5c842' : '#6bcb77' }}>
+                    <div className="stat-change">
                         {loading ? '…' : stats.pendientes > 0
-                            ? <><i className="fas fa-exclamation-circle"></i> {stats.pendientes} sin asignar disponibles</>
-                            : <><i className="fas fa-check"></i> Sin pedidos pendientes</>
+                            ? <><AiOutlineExclamationCircle size={14} /> {stats.pendientes} sin asignar disponibles</>
+                            : <><AiOutlineCheckCircle size={14} /> Sin pedidos pendientes</>
                         }
                     </div>
                 </div>
 
                 <div className="dashboard-card">
-                    <h4><i className="fas fa-star"></i> Mi Desempeño</h4>
+                    <h4><AiOutlineStar size={16} /> Mi Desempeño</h4>
                     <div className="stat-number">
                         {loading ? '…' : stats.entregados}
-                        <span style={{ fontSize: '1rem', color: '#D4B5C8' }}> entregados</span>
+                        <span style={{ fontSize: '1rem', color: 'var(--color-text-muted)' }}> entregados</span>
                     </div>
                     <div className="stat-label">Pedidos completados</div>
                     <div className="stat-change">
-                        <Link to="/trabajador/actividades" style={{ color: '#ECB2C3', textDecoration: 'none', fontWeight: 600 }}>
-                            Ver mis actividades →
-                        </Link>
+                        <Link to="/trabajador/actividades">Ver mis actividades →</Link>
                     </div>
                 </div>
             </div>
 
-            {/* Mis pedidos recientes */}
             {pedidosRecientes.length > 0 && (
                 <div className="quick-actions-box" style={{ marginBottom: '1.5rem' }}>
-                    <h4><i className="fas fa-list"></i> Mis últimos pedidos asignados</h4>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
-                        <thead>
-                            <tr style={{ borderBottom: '1px solid rgba(236,178,195,0.15)' }}>
-                                <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.75rem', color: '#8a7a82', textTransform: 'uppercase' }}>Folio</th>
-                                <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.75rem', color: '#8a7a82', textTransform: 'uppercase' }}>Cliente</th>
-                                <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.75rem', color: '#8a7a82', textTransform: 'uppercase' }}>Fecha</th>
-                                <th style={{ textAlign: 'left', padding: '0.5rem', fontSize: '0.75rem', color: '#8a7a82', textTransform: 'uppercase' }}>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {pedidosRecientes.map((p: any) => (
-                                <tr key={p.id} style={{ borderBottom: '1px solid rgba(236,178,195,0.06)' }}>
-                                    <td style={{ padding: '0.65rem 0.5rem', fontSize: '0.82rem', color: '#ecb2c3', fontFamily: 'monospace' }}>{p.folio}</td>
-                                    <td style={{ padding: '0.65rem 0.5rem', fontSize: '0.82rem', color: '#f0e6ea' }}>{p.cliente_nombre_completo}</td>
-                                    <td style={{ padding: '0.65rem 0.5rem', fontSize: '0.78rem', color: '#8a7a82' }}>{formatFecha(p.fecha_creacion)}</td>
-                                    <td style={{ padding: '0.65rem 0.5rem' }}>
-                                        <span style={{
-                                            background: ESTADO_COLOR[p.estado] || '#555',
-                                            color: '#0f0f12', borderRadius: '12px',
-                                            padding: '0.2rem 0.65rem', fontSize: '0.7rem', fontWeight: 700
-                                        }}>
-                                            {ESTADO_LABEL[p.estado] || p.estado}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    <div style={{ textAlign: 'right', marginTop: '0.75rem' }}>
-                        <Link to="/pedidos-admin" style={{ fontSize: '0.8rem', color: '#ecb2c3', textDecoration: 'none' }}>
-                            Ver todos →
-                        </Link>
+                    <h4><AiOutlineUnorderedList size={18} /> Mis últimos pedidos asignados</h4>
+                    <div className="dt-lista-recientes">
+                        {pedidosRecientes.map((p: any) => (
+                            <Link to="/pedidos-admin" key={p.id} className="dt-fila-reciente">
+                                <span className="dt-folio">{p.folio}</span>
+                                <span className="dt-cliente">{p.cliente_nombre_completo}</span>
+                                <span className="dt-fecha">{formatFecha(p.fecha_creacion)}</span>
+                                <span className="dt-estado-badge" style={{ background: `${ESTADO_COLOR[p.estado] || '#888'}22`, color: ESTADO_COLOR[p.estado] || '#888', border: `1px solid ${ESTADO_COLOR[p.estado] || '#888'}44` }}>
+                                    {ESTADO_LABEL[p.estado] || p.estado}
+                                </span>
+                            </Link>
+                        ))}
+                    </div>
+                    <div className="dt-ver-todos">
+                        <Link to="/pedidos-admin">Ver todos →</Link>
                     </div>
                 </div>
             )}
 
-            {/* Acciones rápidas */}
             <div className="quick-actions-box">
-                <h4><i className="fas fa-bolt"></i> Acciones Rápidas</h4>
+                <h4><AiOutlineThunderbolt size={18} /> Acciones Rápidas</h4>
                 <div className="quick-actions-grid">
                     <Link to="/trabajador/actividades" className="quick-action-btn">
-                        ✅ Mis Actividades
+                        <AiOutlineCheckCircle size={16} /> Mis Actividades
                     </Link>
                     <Link to="/pedidos-admin" className="quick-action-btn">
-                        📦 Gestionar Pedidos
+                        <AiOutlineShoppingCart size={16} /> Gestionar Pedidos
                         {stats.pendientes > 0 && (
-                            <span style={{
-                                background: '#f5c842', color: '#0f0f12',
-                                borderRadius: '50%', fontSize: '0.65rem',
-                                fontWeight: 800, padding: '0.1rem 0.45rem',
-                                marginLeft: '0.5rem'
-                            }}>{stats.pendientes}</span>
+                            <span className="dt-badge-pendientes">{stats.pendientes}</span>
                         )}
                     </Link>
                     <Link to="/trabajador/perfil" className="quick-action-btn">
-                        👤 Mi Perfil
+                        <AiOutlineUser size={16} /> Mi Perfil
                     </Link>
-                    <Link to="/trabajador/configuracion" className="quick-action-btn">
-                        ⚙️ Ajustes
+                    <Link to="/configuracion" className="quick-action-btn">
+                        <AiOutlineSetting size={16} /> Ajustes
                     </Link>
                 </div>
             </div>
