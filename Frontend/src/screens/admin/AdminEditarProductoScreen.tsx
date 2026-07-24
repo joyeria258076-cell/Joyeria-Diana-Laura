@@ -33,7 +33,6 @@ interface FormData {
   medidas: string;
   permite_personalizacion: boolean;
   precio_personalizacion: number;
-  dias_fabricacion: number;
   ubicaciones_entrega: string[];
   imagen_principal: string;
   imagen_public_id?: string;
@@ -70,7 +69,7 @@ const AdminEditarProductoScreen: React.FC = () => {
     nombre: '', descripcion: '', categoria_id: null, proveedor_id: null, temporada_id: null,
     tipo_producto_id: null, material_principal: '', peso_gramos: null, precio_compra: null,
     precio_oferta: null, stock_actual: 0, ubicacion_fisica: '', tiene_medidas: false, medidas: '',
-    permite_personalizacion: false, precio_personalizacion: 0, dias_fabricacion: 0,
+    permite_personalizacion: false, precio_personalizacion: 0,
     ubicaciones_entrega: [], imagen_principal: '', es_nuevo: false, es_destacado: false, activo: true
   });
 
@@ -115,7 +114,6 @@ const AdminEditarProductoScreen: React.FC = () => {
           medidas: typeof producto.medidas === 'string' ? producto.medidas : JSON.stringify(producto.medidas) || '',
           permite_personalizacion: producto.permite_personalizacion || false,
           precio_personalizacion: producto.precio_personalizacion || 0,
-          dias_fabricacion: producto.dias_fabricacion || 0,
           ubicaciones_entrega: Array.isArray(producto.ubicaciones_entrega) ? producto.ubicaciones_entrega : [],
           imagen_principal: producto.imagen_principal || '',
           es_nuevo: producto.es_nuevo || false,
@@ -458,11 +456,6 @@ const AdminEditarProductoScreen: React.FC = () => {
             <div className="ep3-card-num">6</div>
             <div className="ep3-card-body">
               <h3><AiOutlineStar size={16} /> Características</h3>
-
-              <div className="ep3-field">
-                <label htmlFor="dias_fabricacion">Días de Fabricación</label>
-                <input type="number" id="dias_fabricacion" name="dias_fabricacion" min="0" value={formData.dias_fabricacion} onChange={handleInputChange} />
-              </div>
 
               <div className="ep3-toggle-row" onClick={() => toggleField('tiene_medidas')}>
                 <span className={`ep3-toggle ${formData.tiene_medidas ? 'on' : ''}`}><span className="ep3-toggle-knob" /></span>

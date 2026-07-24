@@ -38,7 +38,6 @@ interface Producto {
     stock_actual: number;
     es_nuevo?: boolean;
     es_destacado?: boolean;
-    dias_fabricacion?: number;
     permite_personalizacion?: boolean;
     precio_personalizacion?: number;
     ubicaciones_entrega?: string[];
@@ -463,14 +462,6 @@ const ProductoDetallePublicScreen: React.FC = () => {
                                     </div>
                                 </div>
                             )}
-                            {producto.dias_fabricacion != null && producto.dias_fabricacion > 0 && (
-                                <div className="pdp-spec-item">
-                                    <div>
-                                        <p className="pdp-spec-label">Fabricación</p>
-                                        <p className="pdp-spec-valor">{producto.dias_fabricacion} días</p>
-                                    </div>
-                                </div>
-                            )}
                             {producto.permite_personalizacion && (
                                 <div className="pdp-spec-item">
                                     <div>
@@ -506,7 +497,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
                     <div className="pdp-tabs-nav">
                         <button className={`pdp-tab ${tabActiva === 'descripcion' ? 'active' : ''}`} onClick={() => setTabActiva('descripcion')}>Descripción</button>
                         <button className={`pdp-tab ${tabActiva === 'specs' ? 'active' : ''}`} onClick={() => setTabActiva('specs')}>Especificaciones</button>
-                        {(producto.dias_fabricacion! > 0 || producto.permite_personalizacion) && (
+                        {producto.permite_personalizacion && (
                             <button className={`pdp-tab ${tabActiva === 'fabricacion' ? 'active' : ''}`} onClick={() => setTabActiva('fabricacion')}>Fabricación</button>
                         )}
                     </div>
@@ -540,14 +531,6 @@ const ProductoDetallePublicScreen: React.FC = () => {
                         )}
                         {tabActiva === 'fabricacion' && (
                             <div className="pdp-tab-pane pdp-fabricacion">
-                                {producto.dias_fabricacion! > 0 && (
-                                    <div className="pdp-fab-card">
-                                        <div>
-                                            <h4>Tiempo de fabricación</h4>
-                                            <p>Esta joya requiere <strong>{producto.dias_fabricacion} días hábiles</strong> de fabricación artesanal desde que se confirma tu pedido.</p>
-                                        </div>
-                                    </div>
-                                )}
                                 {producto.permite_personalizacion && (
                                     <div className="pdp-fab-card">
                                         <div>

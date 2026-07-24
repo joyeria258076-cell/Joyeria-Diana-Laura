@@ -23,7 +23,6 @@ interface Producto {
     stock_actual: number;
     es_nuevo?: boolean;
     es_destacado?: boolean;
-    dias_fabricacion?: number;
     permite_personalizacion?: boolean;
     precio_personalizacion?: number;
     ubicaciones_entrega?: string[];
@@ -422,14 +421,6 @@ const ProductoDetalleScreen: React.FC = () => {
                                 </div>
                             </div>
                         )}
-                        {producto.dias_fabricacion != null && producto.dias_fabricacion > 0 && (
-                            <div className="pd-spec-item">
-                                <div>
-                                    <p className="pd-spec-label">Fabricación</p>
-                                    <p className="pd-spec-valor">{producto.dias_fabricacion} días</p>
-                                </div>
-                            </div>
-                        )}
                         {producto.permite_personalizacion && (
                             <div className="pd-spec-item">
                                 <div>
@@ -469,7 +460,7 @@ const ProductoDetalleScreen: React.FC = () => {
                     <button className={`pd-tab ${tabActiva === 'specs' ? 'active' : ''}`} onClick={() => setTabActiva('specs')}>
                         Especificaciones
                     </button>
-                    {(producto.dias_fabricacion! > 0 || producto.permite_personalizacion) && (
+                    {producto.permite_personalizacion && (
                         <button className={`pd-tab ${tabActiva === 'fabricacion' ? 'active' : ''}`} onClick={() => setTabActiva('fabricacion')}>
                             Fabricación
                         </button>
@@ -506,14 +497,6 @@ const ProductoDetalleScreen: React.FC = () => {
                     )}
                     {tabActiva === 'fabricacion' && (
                         <div className="pd-tab-pane pd-fabricacion">
-                            {producto.dias_fabricacion! > 0 && (
-                                <div className="pd-fab-card">
-                                    <div>
-                                        <h4>Tiempo de fabricación</h4>
-                                        <p>Esta joya requiere <strong>{producto.dias_fabricacion} días hábiles</strong> de fabricación artesanal desde que se confirma tu pedido.</p>
-                                    </div>
-                                </div>
-                            )}
                             {producto.permite_personalizacion && (
                                 <div className="pd-fab-card">
                                     <div>

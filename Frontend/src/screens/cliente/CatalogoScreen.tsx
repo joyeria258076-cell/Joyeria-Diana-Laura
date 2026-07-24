@@ -19,7 +19,6 @@ interface Producto {
     material_principal?: string;
     stock_actual: number;
     es_nuevo?: boolean;
-    dias_fabricacion?: number;
     permite_personalizacion?: boolean;
 }
 

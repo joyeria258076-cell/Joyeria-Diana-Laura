@@ -33,7 +33,6 @@ interface FormData {
   medidas: string;
   permite_personalizacion: boolean;
   precio_personalizacion: number;
-  dias_fabricacion: number;
   ubicaciones_entrega: string[];
   imagen_principal: string;
   imagen_public_id?: string;
@@ -70,7 +69,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
     nombre: '', descripcion: '', categoria_id: null, proveedor_id: null, temporada_id: null,
     tipo_producto_id: null, material_principal: '', peso_gramos: null, precio_compra: null,
     precio_oferta: null, stock_actual: 0, ubicacion_fisica: '', tiene_medidas: false, medidas: '',
-    permite_personalizacion: false, precio_personalizacion: 0, dias_fabricacion: 0,
+    permite_personalizacion: false, precio_personalizacion: 0,
     ubicaciones_entrega: [], imagen_principal: '', es_nuevo: false, es_destacado: false,
     activo: true, creado_por: null
   });
@@ -219,7 +218,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
             nombre: '', descripcion: '', categoria_id: null, proveedor_id: null, temporada_id: null,
             tipo_producto_id: null, material_principal: '', peso_gramos: null, precio_compra: null,
             precio_oferta: null, stock_actual: stockMinimoDefault, ubicacion_fisica: '', tiene_medidas: false,
-            medidas: '', permite_personalizacion: false, precio_personalizacion: 0, dias_fabricacion: 0,
+            medidas: '', permite_personalizacion: false, precio_personalizacion: 0,
             ubicaciones_entrega: [], imagen_principal: '', es_nuevo: false, es_destacado: false,
             activo: true, creado_por: null
           });
@@ -320,7 +319,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
             <div className="np3-card-body">
               <h3><AiOutlineBulb size={16} /> Datos para Sugerencia de Precio</h3>
               <p className="np3-nota">
-                Categoría, Material y Peso son obligatorios para calcular el precio sugerido. Días de fabricación y Personalización también ajustan la sugerencia si los completas.
+                Categoría, Material y Peso son obligatorios para calcular el precio sugerido. Personalización también ajusta la sugerencia si la activas.
               </p>
 
               <div className="np3-row">
@@ -346,13 +345,6 @@ const AdminNuevoProductoScreen: React.FC = () => {
                 <div className="np3-field">
                   <label htmlFor="peso_gramos">Peso (gramos) <span className="np3-req">*</span></label>
                   <input type="number" id="peso_gramos" name="peso_gramos" step="0.01" min="0" value={formData.peso_gramos || ''} onChange={handleInputChange} placeholder="Ej: 2.5" />
-                </div>
-              </div>
-
-              <div className="np3-row">
-                <div className="np3-field">
-                  <label htmlFor="dias_fabricacion">Días de Fabricación (opcional)</label>
-                  <input type="number" id="dias_fabricacion" name="dias_fabricacion" min="0" value={formData.dias_fabricacion} onChange={handleInputChange} placeholder="0" />
                 </div>
               </div>
 

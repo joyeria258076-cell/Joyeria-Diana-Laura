@@ -27,7 +27,6 @@ interface Producto {
   imagen_principal?: string;
   stock_actual: number;
   es_nuevo?: boolean;
-  dias_fabricacion?: number;
   permite_personalizacion?: boolean;
   tiene_medidas?: boolean;
 }
@@ -196,12 +195,6 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                 <div className="caracteristica-item">
                   <span className="label">Material:</span>
                   <span className="valor">{producto.material_principal}</span>
-                </div>
-              )}
-              {producto.dias_fabricacion && producto.dias_fabricacion > 0 && (
-                <div className="caracteristica-item">
-                  <span className="label">Tiempo de Fabricación:</span>
-                  <span className="valor">{producto.dias_fabricacion} días</span>
                 </div>
               )}
               {producto.permite_personalizacion && (

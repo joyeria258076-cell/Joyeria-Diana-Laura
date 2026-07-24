@@ -39,7 +39,6 @@ interface Producto {
   tiene_medidas: boolean;
   medidas: any;
   permite_personalizacion: boolean;
-  dias_fabricacion: number;
   imagen_principal: string;
   es_nuevo: boolean;
   es_destacado: boolean;
@@ -241,7 +240,6 @@ const AdminProductoDetalleScreen: React.FC = () => {
               <div className="pd3-info-row"><span>Peso</span><strong>{producto.peso_gramos ? `${producto.peso_gramos} g` : 'No especificado'}</strong></div>
               <div className="pd3-info-row"><span>Género</span><strong>{producto.genero || 'Unisex'}</strong></div>
               <div className="pd3-info-row"><span>Personalización</span><strong>{producto.permite_personalizacion ? 'Sí' : 'No'}</strong></div>
-              <div className="pd3-info-row"><span>Días fabricación</span><strong>{producto.dias_fabricacion || 0}</strong></div>
             </div>
           </div>
 
