@@ -249,14 +249,13 @@ const AdminNuevoProductoScreen: React.FC = () => {
         material_principal: formData.material_principal,
         categoria_nombre: categoriaNombre,
         peso_gramos: formData.peso_gramos!,
-        dias_fabricacion: formData.dias_fabricacion,
         permite_personalizacion: formData.permite_personalizacion,
       });
       setPrecioSugerido(resultado);
       setLoadingSugerido(false);
     }, 600);
     return () => clearTimeout(timer);
-  }, [formData.material_principal, formData.categoria_id, formData.peso_gramos, formData.dias_fabricacion, formData.permite_personalizacion, categorias]);
+  }, [formData.material_principal, formData.categoria_id, formData.peso_gramos, formData.permite_personalizacion, categorias]);
 
   const precioVentaCalculado = calcularPrecioVenta(formData.precio_compra);
   const categoriaNombre = categorias.find(c => c.id === formData.categoria_id)?.nombre;

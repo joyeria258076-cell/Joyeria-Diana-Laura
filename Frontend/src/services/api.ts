@@ -1518,7 +1518,6 @@ export const precioSugeridoAPI = {
     material_principal: string;
     categoria_nombre: string;
     peso_gramos: number;
-    dias_fabricacion: number;
     permite_personalizacion: boolean;
   }): Promise<{ precio_sugerido: number; rango_min: number; rango_max: number } | null> => {
     try {
@@ -1569,7 +1568,6 @@ export interface ClienteSegmentado {
   ticket_promedio: number;
   num_apartados: number;
   monto_apartado_promedio: number;
-  usa_apartados: boolean;
   segmento: string;
   pca_x: number;
   pca_y: number;
