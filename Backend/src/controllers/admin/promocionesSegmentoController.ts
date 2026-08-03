@@ -14,8 +14,24 @@ const SEGMENTO_META: Record<string, { color: string; colorClaro: string; icono: 
   'Cliente Apartador': { color: '#c65a7a', colorClaro: '#ecb2c3', icono: '💎', titulo: 'Tu apartado' },
 };
 
-function construirHtmlPromocion(nombrePila: string, mensaje: string, segmento: string): string {
+function construirBadgeDescuento(descuento: { tipo: string; valor: number } | null, meta: { color: string; colorClaro: string }): string {
+  if (!descuento) return '';
+  const texto = descuento.tipo === 'porcentaje'
+    ? `${descuento.valor}% de descuento`
+    : `$${descuento.valor} MXN de descuento`;
+  return `
+    <table role="presentation" width="100%" style="margin:0 0 24px;">
+      <tr><td style="text-align:center;">
+        <div style="display:inline-block; background:linear-gradient(135deg,${meta.color} 0%,${meta.colorClaro} 100%); color:#1a0a10; font-weight:800; font-size:15px; letter-spacing:0.5px; padding:12px 28px; border-radius:50px; font-family:'Segoe UI',Arial,sans-serif;">
+          🎁 ${texto} aplicado automáticamente en tu próxima compra
+        </div>
+      </td></tr>
+    </table>`;
+}
+
+function construirHtmlPromocion(nombrePila: string, mensaje: string, segmento: string, descuento: { tipo: string; valor: number } | null = null): string {
   const meta = SEGMENTO_META[segmento] || { color: '#d4607e', colorClaro: '#ecb2c3', icono: '💍', titulo: 'Oferta especial' };
+  const badgeDescuento = construirBadgeDescuento(descuento, meta);
 
   return `
   <div style="background:#050505; padding:40px 16px; font-family:Georgia,'Times New Roman',serif;">
@@ -50,6 +66,8 @@ function construirHtmlPromocion(nombrePila: string, mensaje: string, segmento: s
               </td>
             </tr>
           </table>
+
+          ${badgeDescuento}
         </td>
       </tr>
 
@@ -98,15 +116,36 @@ async function enviarEmailBrevo(destinatarioEmail: string, destinatarioNombre: s
   );
 }
 
+function generarCodigoCupon(segmento: string): string {
+  const prefijo = (segmento || 'SEG').normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^A-Za-z]/g, '').slice(0, 4).toUpperCase() || 'SEG';
+  const sufijo = Math.random().toString(36).replace(/[^a-z0-9]/g, '').slice(0, 5).toUpperCase();
+  return `${prefijo}-${sufijo}`;
+}
+
 export const enviarPromocionSegmento = async (req: AuthRequest, res: Response) => {
   try {
-    const { cliente_ids, segmento, asunto, mensaje } = req.body;
+    const {
+      cliente_ids, segmento, asunto, mensaje,
+      aplicar_descuento, tipo_descuento, valor_descuento, dias_vigencia,
+    } = req.body;
 
     if (!Array.isArray(cliente_ids) || cliente_ids.length === 0) {
       return res.status(400).json({ success: false, message: 'cliente_ids debe ser un arreglo no vacío' });
     }
     if (!asunto || !mensaje) {
       return res.status(400).json({ success: false, message: 'asunto y mensaje son obligatorios' });
+    }
+    if (aplicar_descuento) {
+      if (!['porcentaje', 'monto_fijo'].includes(tipo_descuento)) {
+        return res.status(400).json({ success: false, message: 'tipo_descuento debe ser "porcentaje" o "monto_fijo"' });
+      }
+      if (!valor_descuento || Number(valor_descuento) <= 0) {
+        return res.status(400).json({ success: false, message: 'valor_descuento debe ser mayor a 0' });
+      }
+      if (tipo_descuento === 'porcentaje' && Number(valor_descuento) > 90) {
+        return res.status(400).json({ success: false, message: 'El descuento en porcentaje no puede ser mayor a 90%' });
+      }
     }
 
     const result = await pool.query(
@@ -119,13 +158,54 @@ export const enviarPromocionSegmento = async (req: AuthRequest, res: Response) =
       return res.status(404).json({ success: false, message: 'No se encontraron clientes activos con esos IDs' });
     }
 
+    // Si se pidio descuento, se crea UNA promocion restringida a estos clientes
+    // (via cupones_clientes) — se aplica automaticamente en su carrito, sin
+    // necesidad de que capturen ningun codigo.
+    let descuentoInfo: { tipo: string; valor: number; codigo: string } | null = null;
+    if (aplicar_descuento) {
+      const userId = req.user?.userId || req.user?.id;
+      const vigenciaDias = Number(dias_vigencia) > 0 ? Number(dias_vigencia) : 15;
+      const codigoCupon = generarCodigoCupon(segmento);
+
+      const promo = await pool.query(
+        `INSERT INTO promociones (
+           nombre, descripcion, tipo, valor_descuento,
+           fecha_inicio, fecha_fin, codigo_cupon, activo, creado_por, actualizado_por
+         ) VALUES ($1,$2,$3,$4, NOW(), NOW() + ($5 || ' days')::interval, $6, true, $7, $7)
+         RETURNING id`,
+        [
+          `Campaña segmento: ${segmento || 'general'}`,
+          `Descuento automatico generado desde el panel de Segmentos para el segmento "${segmento}".`,
+          tipo_descuento,
+          Number(valor_descuento),
+          vigenciaDias,
+          codigoCupon,
+          userId || null,
+        ]
+      );
+      const promocionId = promo.rows[0].id;
+
+      for (const cliente of clientes) {
+        await pool.query(
+          `INSERT INTO cupones_clientes (promocion_id, cliente_id)
+           VALUES ($1, $2) ON CONFLICT (promocion_id, cliente_id) DO NOTHING`,
+          [promocionId, cliente.id]
+        );
+      }
+
+      descuentoInfo = { tipo: tipo_descuento, valor: Number(valor_descuento), codigo: codigoCupon };
+    }
+
     let enviados = 0;
     let fallidos = 0;
     const detalle: { cliente_id: number; email: string; estado: string; error?: string }[] = [];
 
     for (const cliente of clientes) {
       const nombrePila = (cliente.nombre || '').split(' ')[0];
-      const htmlPersonalizado = construirHtmlPromocion(nombrePila, mensaje, segmento || '');
+      const htmlPersonalizado = construirHtmlPromocion(
+        nombrePila, mensaje, segmento || '',
+        descuentoInfo ? { tipo: descuentoInfo.tipo, valor: descuentoInfo.valor } : null
+      );
 
       let estado = 'enviado';
       let errorMsg: string | undefined;
@@ -154,6 +234,7 @@ export const enviarPromocionSegmento = async (req: AuthRequest, res: Response) =
       enviados,
       fallidos,
       detalle,
+      descuento: descuentoInfo,
     });
 
   } catch (error: any) {

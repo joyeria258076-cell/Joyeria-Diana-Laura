@@ -39,6 +39,17 @@ export const CarritoModel = {
                           OR p.id = ANY(pr.aplica_productos)
                           OR (pr.aplica_categorias IS NULL OR p.categoria_id = ANY(pr.aplica_categorias))
                       )
+                      -- Restriccion por cliente/segmento: si la promocion tiene filas en
+                      -- cupones_clientes, solo aplica al cliente_id ligado a este usuario.
+                      -- Si no tiene ninguna fila, se comporta como promocion general (sin cambios).
+                      AND (
+                          NOT EXISTS (SELECT 1 FROM cupones_clientes cc WHERE cc.promocion_id = pr.id)
+                          OR EXISTS (
+                              SELECT 1 FROM cupones_clientes cc
+                              JOIN clientes cl ON cl.id = cc.cliente_id
+                              WHERE cc.promocion_id = pr.id AND cl.user_id = c.usuario_id
+                          )
+                      )
                     ORDER BY pr.valor_descuento DESC
                     LIMIT 1
                 ) AS precio_promocion

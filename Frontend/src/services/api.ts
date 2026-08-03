@@ -1602,7 +1602,14 @@ export const segmentacionAPI = {
     segmento: string;
     asunto: string;
     mensaje: string;
-  }): Promise<{ success: boolean; total?: number; enviados?: number; fallidos?: number; message?: string }> => {
+    aplicar_descuento?: boolean;
+    tipo_descuento?: 'porcentaje' | 'monto_fijo';
+    valor_descuento?: number;
+    dias_vigencia?: number;
+  }): Promise<{
+    success: boolean; total?: number; enviados?: number; fallidos?: number; message?: string;
+    descuento?: { tipo: string; valor: number; codigo: string } | null;
+  }> => {
     try {
       return await enhancedApi.post('/admin/promociones/enviar-segmento', params);
     } catch (err: any) {

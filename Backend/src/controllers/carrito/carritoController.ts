@@ -272,14 +272,24 @@ export const getCarrito = async (req: Request, res: Response) => {
         const items = await CarritoModel.getByUsuario(id);
 
         // Verificar si la promo activa tiene monto mínimo y si el carrito lo cumple
+        // (misma restriccion por cliente/segmento que en CarritoModel.getByUsuario, para
+        // no mostrar el aviso de "monto minimo" de una promocion que este usuario no puede usar)
         const totalBase = items.reduce((s, i) => s + Number.parseFloat(i.precio_venta) * i.cantidad, 0);
         const promoMin = await pool.query(`
-            SELECT monto_minimo_compra, nombre FROM promociones
+            SELECT monto_minimo_compra, nombre FROM promociones pr
             WHERE activo = true AND fecha_inicio <= NOW() AND fecha_fin >= NOW()
               AND tipo IN ('porcentaje', 'monto_fijo')
               AND monto_minimo_compra IS NOT NULL
+              AND (
+                  NOT EXISTS (SELECT 1 FROM cupones_clientes cc WHERE cc.promocion_id = pr.id)
+                  OR EXISTS (
+                      SELECT 1 FROM cupones_clientes cc
+                      JOIN clientes cl ON cl.id = cc.cliente_id
+                      WHERE cc.promocion_id = pr.id AND cl.user_id = $1
+                  )
+              )
             ORDER BY valor_descuento DESC LIMIT 1
-        `);
+        `, [id]);
         let promoNoAplica: { nombre: string; minimo: number } | null = null;
         if (promoMin.rows.length > 0) {
             const minimo = Number.parseFloat(promoMin.rows[0].monto_minimo_compra);
@@ -408,14 +418,22 @@ export const crearPedido = async (req: Request, res: Response) => {
         const prodsMap = new Map(prodsResult.rows.map(p => [p.id, p]));
 
         // ✅ Verificar monto_minimo_compra de promociones activas
+        // (misma restriccion por cliente/segmento que en CarritoModel.getByUsuario)
         const totalCarrito = items.reduce((s, i) => s + Number.parseFloat(i.precio_venta) * i.cantidad, 0);
         const promoActiva = await pool.query(`
-            SELECT monto_minimo_compra, nombre FROM promociones
+            SELECT monto_minimo_compra, nombre FROM promociones pr
             WHERE activo = true AND fecha_inicio <= NOW() AND fecha_fin >= NOW()
               AND tipo IN ('porcentaje', 'monto_fijo')
               AND monto_minimo_compra IS NOT NULL
+              AND (
+                  NOT EXISTS (SELECT 1 FROM cupones_clientes cc WHERE cc.promocion_id = pr.id)
+                  OR EXISTS (
+                      SELECT 1 FROM cupones_clientes cc
+                      WHERE cc.promocion_id = pr.id AND cc.cliente_id = $1
+                  )
+              )
             ORDER BY valor_descuento DESC LIMIT 1
-        `);
+        `, [cliente_id]);
         if (promoActiva.rows.length > 0) {
             const minimo = Number.parseFloat(promoActiva.rows[0].monto_minimo_compra);
             if (totalCarrito < minimo) {

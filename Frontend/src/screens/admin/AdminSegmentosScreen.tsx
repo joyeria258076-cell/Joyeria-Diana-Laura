@@ -51,11 +51,23 @@ const AdminSegmentosScreen: React.FC = () => {
   const [errorEnvio, setErrorEnvio] = useState('');
   const [asuntoPersonalizado, setAsuntoPersonalizado] = useState('');
   const [mensajePersonalizado, setMensajePersonalizado] = useState('');
+  const [aplicarDescuento, setAplicarDescuento] = useState(false);
+  const [tipoDescuento, setTipoDescuento] = useState<'porcentaje' | 'monto_fijo'>('porcentaje');
+  const [valorDescuento, setValorDescuento] = useState('');
+  const [diasVigencia, setDiasVigencia] = useState('15');
+  const [descuentoAplicado, setDescuentoAplicado] = useState<{ tipo: string; valor: number; codigo: string } | null>(null);
 
   const seleccionarSegmento = (seg: Segmento) => {
     setSegSeleccionado(prev => {
       const nuevo = prev === seg.nombre ? null : seg.nombre;
-      if (nuevo) { setAsuntoPersonalizado(asuntoSugerido(seg.nombre)); setMensajePersonalizado(seg.accion); }
+      if (nuevo) {
+        setAsuntoPersonalizado(asuntoSugerido(seg.nombre));
+        setMensajePersonalizado(seg.accion);
+        setAplicarDescuento(false);
+        setValorDescuento('');
+        setDiasVigencia('15');
+        setDescuentoAplicado(null);
+      }
       return nuevo;
     });
     setFiltroSeg(prev => prev === seg.nombre ? null : seg.nombre);
@@ -84,14 +96,26 @@ const AdminSegmentosScreen: React.FC = () => {
     const clienteIds = clientes.filter(c => c.segmento === segSeleccionado).map(c => c.id);
     if (clienteIds.length === 0) return;
 
+    if (aplicarDescuento && (!valorDescuento.trim() || Number(valorDescuento) <= 0)) {
+      setErrorEnvio('Indica un valor de descuento mayor a 0.');
+      return;
+    }
+
     setEnviando(true);
     setErrorEnvio('');
+    setDescuentoAplicado(null);
 
     const resultado = await segmentacionAPI.enviarPromocion({
       cliente_ids: clienteIds,
       segmento: segSeleccionado,
       asunto: asuntoPersonalizado.trim() || asuntoSugerido(segSeleccionado),
       mensaje: mensajePersonalizado.trim() || seg.accion,
+      ...(aplicarDescuento ? {
+        aplicar_descuento: true,
+        tipo_descuento: tipoDescuento,
+        valor_descuento: Number(valorDescuento),
+        dias_vigencia: Number(diasVigencia) || 15,
+      } : {}),
     });
 
     setEnviando(false);
@@ -100,8 +124,10 @@ const AdminSegmentosScreen: React.FC = () => {
 
     if (resultado.success && enviados > 0 && fallidos === 0) {
       setEnviado(true);
+      if (resultado.descuento) setDescuentoAplicado(resultado.descuento);
       setTimeout(() => setEnviado(false), 4000);
     } else if (resultado.success && enviados > 0 && fallidos > 0) {
+      if (resultado.descuento) setDescuentoAplicado(resultado.descuento);
       setErrorEnvio(`Se enviaron ${enviados} de ${enviados + fallidos} correos. ${fallidos} fallaron (revisa los emails de esos clientes).`);
     } else {
       setErrorEnvio(resultado.message || `No se pudo enviar ningún correo (0 de ${enviados + fallidos}). Verifica la configuración de Brevo en el servidor.`);
@@ -257,6 +283,51 @@ const AdminSegmentosScreen: React.FC = () => {
                 />
                 <span className="sg-contador">{mensajePersonalizado.length}/500</span>
 
+                <label className="sg-label sg-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={aplicarDescuento}
+                    onChange={e => setAplicarDescuento(e.target.checked)}
+                  />
+                  {' '}Activar descuento solo para este segmento
+                </label>
+
+                {aplicarDescuento && (
+                  <div className="sg-descuento-form">
+                    <div className="sg-descuento-fila">
+                      <select
+                        className="sg-input"
+                        value={tipoDescuento}
+                        onChange={e => setTipoDescuento(e.target.value as 'porcentaje' | 'monto_fijo')}
+                      >
+                        <option value="porcentaje">% de descuento</option>
+                        <option value="monto_fijo">$ MXN de descuento</option>
+                      </select>
+                      <input
+                        className="sg-input"
+                        type="number"
+                        min={1}
+                        max={tipoDescuento === 'porcentaje' ? 90 : undefined}
+                        value={valorDescuento}
+                        onChange={e => setValorDescuento(e.target.value)}
+                        placeholder={tipoDescuento === 'porcentaje' ? 'ej. 15' : 'ej. 100'}
+                      />
+                    </div>
+                    <label className="sg-label">Vigencia (días)</label>
+                    <input
+                      className="sg-input"
+                      type="number"
+                      min={1}
+                      value={diasVigencia}
+                      onChange={e => setDiasVigencia(e.target.value)}
+                    />
+                    <p className="sg-accion-sub">
+                      El descuento se aplicará automáticamente en el carrito de cada cliente de este
+                      segmento — no necesitan capturar ningún código.
+                    </p>
+                  </div>
+                )}
+
                 <button
                   className={`sg-btn-enviar${enviado ? ' sg-btn-enviar--ok' : ''}`}
                   onClick={handleEnviarPromocion}
@@ -264,6 +335,13 @@ const AdminSegmentosScreen: React.FC = () => {
                 >
                   {enviando ? 'Enviando...' : enviado ? (<><AiOutlineCheckCircle size={15} /> Promoción enviada</>) : 'Enviar promoción'}
                 </button>
+
+                {descuentoAplicado && (
+                  <p className="sg-accion-sub">
+                    🎁 Descuento activo: {descuentoAplicado.tipo === 'porcentaje' ? `${descuentoAplicado.valor}%` : `$${descuentoAplicado.valor} MXN`}
+                    {' '}(código de referencia: {descuentoAplicado.codigo})
+                  </p>
+                )}
                 {errorEnvio && <p className="sg-accion-error">{errorEnvio}</p>}
               </>
             ) : (
