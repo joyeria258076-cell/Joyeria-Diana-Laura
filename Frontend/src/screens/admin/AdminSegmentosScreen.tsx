@@ -12,6 +12,15 @@ const COLORES_SEGMENTO: Record<string, string> = {
 
 const colorDeSegmento = (nombre: string) => COLORES_SEGMENTO[nombre] || '#a06de0';
 
+/* Asunto sugerido por default, distinto segun el enfoque de cada segmento */
+const ASUNTO_POR_SEGMENTO: Record<string, string> = {
+  'Cliente Frecuente de Alto Gasto': 'Una pieza exclusiva pensada para ti',
+  'Cliente Ocasional': 'Te extrañamos — una oferta especial te espera',
+  'Cliente Apartador': 'Ya casi liquidas tu apartado — mira lo que sigue',
+};
+const ASUNTO_DEFAULT_GENERICO = 'Una oferta especial para ti, de parte de Joyería Diana Laura';
+const asuntoSugerido = (nombreSegmento: string) => ASUNTO_POR_SEGMENTO[nombreSegmento] || ASUNTO_DEFAULT_GENERICO;
+
 /* Normaliza pca_x/pca_y (rango real, puede ser negativo) a porcentaje 0-100 para el scatter */
 function normalizarPuntos(clientes: ClienteSegmentado[]) {
   if (clientes.length === 0) return [];
@@ -43,12 +52,10 @@ const AdminSegmentosScreen: React.FC = () => {
   const [asuntoPersonalizado, setAsuntoPersonalizado] = useState('');
   const [mensajePersonalizado, setMensajePersonalizado] = useState('');
 
-  const ASUNTO_DEFAULT = 'Una oferta especial para ti, de parte de Joyería Diana Laura';
-
   const seleccionarSegmento = (seg: Segmento) => {
     setSegSeleccionado(prev => {
       const nuevo = prev === seg.nombre ? null : seg.nombre;
-      if (nuevo) { setAsuntoPersonalizado(ASUNTO_DEFAULT); setMensajePersonalizado(seg.accion); }
+      if (nuevo) { setAsuntoPersonalizado(asuntoSugerido(seg.nombre)); setMensajePersonalizado(seg.accion); }
       return nuevo;
     });
     setFiltroSeg(prev => prev === seg.nombre ? null : seg.nombre);
@@ -83,7 +90,7 @@ const AdminSegmentosScreen: React.FC = () => {
     const resultado = await segmentacionAPI.enviarPromocion({
       cliente_ids: clienteIds,
       segmento: segSeleccionado,
-      asunto: asuntoPersonalizado.trim() || ASUNTO_DEFAULT,
+      asunto: asuntoPersonalizado.trim() || asuntoSugerido(segSeleccionado),
       mensaje: mensajePersonalizado.trim() || seg.accion,
     });
 
@@ -235,7 +242,7 @@ const AdminSegmentosScreen: React.FC = () => {
                   className="sg-input"
                   value={asuntoPersonalizado}
                   onChange={e => setAsuntoPersonalizado(e.target.value)}
-                  placeholder={ASUNTO_DEFAULT}
+                  placeholder={asuntoSugerido(segActivo.nombre)}
                   maxLength={150}
                 />
 
