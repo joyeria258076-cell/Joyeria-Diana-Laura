@@ -6,6 +6,7 @@ import AppRoutes from './navigation/AppRoutes';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { NotificacionesProvider } from './contexts/NotificacionesContext';
+import ThemeConfigLoader from './components/ThemeConfigLoader';
 import './styles/AccessibilityFonts.css';
 
 function App(): React.JSX.Element {
@@ -37,6 +38,7 @@ function App(): React.JSX.Element {
     <AuthProvider>
       <CartProvider>
       <NotificacionesProvider>
+        <ThemeConfigLoader />
         {/* Botones de control de accesibilidad */}
         <div className={`global-accessibility-buttons ${showControls ? 'expanded' : 'minimized'}`}>
           <button

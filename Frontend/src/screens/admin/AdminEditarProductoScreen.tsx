@@ -58,6 +58,9 @@ const AdminEditarProductoScreen: React.FC = () => {
   const [tiposProducto, setTiposProducto] = useState<TipoProducto[]>([]);
   const [galeria, setGaleria] = useState<{ id: number; url_imagen: string; orden: number }[]>([]);
   const [subiendoGaleria, setSubiendoGaleria] = useState(false);
+  const [mostrarNuevaTemporada, setMostrarNuevaTemporada] = useState(false);
+  const [nuevaTemporada, setNuevaTemporada] = useState({ nombre: '', fecha_inicio: '', fecha_fin: '' });
+  const [creandoTemporada, setCreandoTemporada] = useState(false);
   const [mostrarNuevoTipo, setMostrarNuevoTipo] = useState(false);
   const [nuevoTipoNombre, setNuevoTipoNombre] = useState('');
   const [creandoTipo, setCreandoTipo] = useState(false);
@@ -258,6 +261,26 @@ const AdminEditarProductoScreen: React.FC = () => {
       else setError(res.message || 'No se pudo eliminar la imagen');
     } catch (err: any) {
       setError(err?.message || 'No se pudo eliminar la imagen');
+    }
+  };
+
+  const handleCrearTemporada = async () => {
+    if (!nuevaTemporada.nombre.trim() || !nuevaTemporada.fecha_inicio || !nuevaTemporada.fecha_fin) return;
+    setCreandoTemporada(true);
+    try {
+      const res = await productsAPI.crearTemporada(nuevaTemporada.nombre.trim(), nuevaTemporada.fecha_inicio, nuevaTemporada.fecha_fin);
+      if (res.success) {
+        setTemporadas(prev => [...prev, res.data]);
+        setFormData(prev => ({ ...prev, temporada_id: res.data.id }));
+        setNuevaTemporada({ nombre: '', fecha_inicio: '', fecha_fin: '' });
+        setMostrarNuevaTemporada(false);
+      } else {
+        setError(res.message || 'No se pudo crear la temporada');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'No se pudo crear la temporada');
+    } finally {
+      setCreandoTemporada(false);
     }
   };
 
@@ -474,10 +497,37 @@ const AdminEditarProductoScreen: React.FC = () => {
                 </div>
                 <div className="ep3-field">
                   <label htmlFor="temporada_id">Temporada</label>
-                  <select id="temporada_id" name="temporada_id" value={formData.temporada_id || ''} onChange={handleInputChange}>
-                    <option value="">Seleccionar temporada</option>
-                    {temporadas.map(temp => <option key={temp.id} value={temp.id}>{temp.nombre}</option>)}
-                  </select>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <select id="temporada_id" name="temporada_id" value={formData.temporada_id || ''} onChange={handleInputChange} style={{ flex: 1 }}>
+                      <option value="">Seleccionar temporada</option>
+                      {temporadas.map(temp => <option key={temp.id} value={temp.id}>{temp.nombre}</option>)}
+                    </select>
+                    <button type="button" onClick={() => setMostrarNuevaTemporada(v => !v)} style={{ whiteSpace: 'nowrap', padding: '0 0.9rem', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.35)', borderRadius: 4, color: 'var(--color-rose-gold, #c9a84c)', fontSize: '0.8rem', cursor: 'pointer' }}>
+                      + Nueva
+                    </button>
+                  </div>
+                  {mostrarNuevaTemporada && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.6rem', padding: '0.7rem', background: 'rgba(0,0,0,0.15)', borderRadius: 6 }}>
+                      <input
+                        type="text"
+                        value={nuevaTemporada.nombre}
+                        onChange={e => setNuevaTemporada(prev => ({ ...prev, nombre: e.target.value }))}
+                        placeholder="Ej: Navidad 2026, Día de las Madres..."
+                        maxLength={80}
+                      />
+                      <div style={{ display: 'flex', gap: '0.6rem' }}>
+                        <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.7rem' }}>Inicio
+                          <input type="date" value={nuevaTemporada.fecha_inicio} onChange={e => setNuevaTemporada(prev => ({ ...prev, fecha_inicio: e.target.value }))} />
+                        </label>
+                        <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.7rem' }}>Fin
+                          <input type="date" value={nuevaTemporada.fecha_fin} onChange={e => setNuevaTemporada(prev => ({ ...prev, fecha_fin: e.target.value }))} />
+                        </label>
+                      </div>
+                      <button type="button" onClick={handleCrearTemporada} disabled={creandoTemporada || !nuevaTemporada.nombre.trim() || !nuevaTemporada.fecha_inicio || !nuevaTemporada.fecha_fin} style={{ alignSelf: 'flex-start' }}>
+                        {creandoTemporada ? 'Creando...' : 'Guardar temporada'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -57,6 +57,9 @@ const AdminNuevoProductoScreen: React.FC = () => {
   const [nuevoTipoNombre, setNuevoTipoNombre] = useState('');
   const [creandoTipo, setCreandoTipo] = useState(false);
   const [materialOtro, setMaterialOtro] = useState('');
+  const [mostrarNuevaTemporada, setMostrarNuevaTemporada] = useState(false);
+  const [nuevaTemporada, setNuevaTemporada] = useState({ nombre: '', fecha_inicio: '', fecha_fin: '' });
+  const [creandoTemporada, setCreandoTemporada] = useState(false);
 
   const [ivaConfig, setIvaConfig] = useState<number>(16);
   const [margenConfig, setMargenConfig] = useState<number>(40);
@@ -207,6 +210,26 @@ const AdminNuevoProductoScreen: React.FC = () => {
       setError(err?.message || 'No se pudo crear el tipo de producto');
     } finally {
       setCreandoTipo(false);
+    }
+  };
+
+  const handleCrearTemporada = async () => {
+    if (!nuevaTemporada.nombre.trim() || !nuevaTemporada.fecha_inicio || !nuevaTemporada.fecha_fin) return;
+    setCreandoTemporada(true);
+    try {
+      const res = await productsAPI.crearTemporada(nuevaTemporada.nombre.trim(), nuevaTemporada.fecha_inicio, nuevaTemporada.fecha_fin);
+      if (res.success) {
+        setTemporadas(prev => [...prev, res.data]);
+        setFormData(prev => ({ ...prev, temporada_id: res.data.id }));
+        setNuevaTemporada({ nombre: '', fecha_inicio: '', fecha_fin: '' });
+        setMostrarNuevaTemporada(false);
+      } else {
+        setError(res.message || 'No se pudo crear la temporada');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'No se pudo crear la temporada');
+    } finally {
+      setCreandoTemporada(false);
     }
   };
 
@@ -471,10 +494,33 @@ const AdminNuevoProductoScreen: React.FC = () => {
                 </div>
                 <div className="np3-field">
                   <label htmlFor="temporada_id">Temporada</label>
-                  <select id="temporada_id" name="temporada_id" value={formData.temporada_id || ''} onChange={handleInputChange}>
-                    <option value="">Seleccionar temporada</option>
-                    {temporadas.map(temp => <option key={temp.id} value={temp.id}>{temp.nombre}</option>)}
-                  </select>
+                  <div className="np3-tipo-row">
+                    <select id="temporada_id" name="temporada_id" value={formData.temporada_id || ''} onChange={handleInputChange}>
+                      <option value="">Seleccionar temporada</option>
+                      {temporadas.map(temp => <option key={temp.id} value={temp.id}>{temp.nombre}</option>)}
+                    </select>
+                    <button type="button" className="np3-btn-nuevo-tipo" onClick={() => setMostrarNuevaTemporada(v => !v)}>
+                      <AiOutlinePlus size={14} /> Nueva temporada
+                    </button>
+                  </div>
+                  {mostrarNuevaTemporada && (
+                    <div className="np3-nueva-temporada-form">
+                      <input
+                        type="text"
+                        value={nuevaTemporada.nombre}
+                        onChange={e => setNuevaTemporada(prev => ({ ...prev, nombre: e.target.value }))}
+                        placeholder="Ej: Navidad 2026, Día de las Madres..."
+                        maxLength={80}
+                      />
+                      <div className="np3-nueva-temporada-fechas">
+                        <label>Inicio<input type="date" value={nuevaTemporada.fecha_inicio} onChange={e => setNuevaTemporada(prev => ({ ...prev, fecha_inicio: e.target.value }))} /></label>
+                        <label>Fin<input type="date" value={nuevaTemporada.fecha_fin} onChange={e => setNuevaTemporada(prev => ({ ...prev, fecha_fin: e.target.value }))} /></label>
+                      </div>
+                      <button type="button" onClick={handleCrearTemporada} disabled={creandoTemporada || !nuevaTemporada.nombre.trim() || !nuevaTemporada.fecha_inicio || !nuevaTemporada.fecha_fin}>
+                        {creandoTemporada ? 'Creando...' : 'Guardar temporada'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

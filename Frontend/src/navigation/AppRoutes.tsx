@@ -91,6 +91,7 @@ import AdminProveedorDetalleScreen from "../screens/admin/proveedores/AdminProve
 import AdminPrediccionScreen from "../screens/admin/AdminPrediccionScreen";
 import AdminSegmentosScreen from "../screens/admin/AdminSegmentosScreen";
 import AdminLegalScreen from "../screens/admin/AdminLegalScreen";
+import AdminPersonalizacionVisualScreen from "../screens/admin/AdminPersonalizacionVisualScreen";
 import LegalScreen from "../screens/publico/LegalScreen";
 
 // PANTALLAS DE ERROR
@@ -265,6 +266,7 @@ export default function AppRoutes() {
             <Route path="/admin-perfil"                  element={<AdminPerfilScreen />} />
             <Route path="/admin-reportes"                element={<AdminReportesScreen />} />
             <Route path="/admin-legal"                   element={<AdminLegalScreen />} />
+            <Route path="/admin/personalizacion-visual"  element={<AdminPersonalizacionVisualScreen />} />
             <Route path="/admin/producto/:id"            element={<AdminProductoDetalleScreen />} />
             <Route path="/admin/editar-producto/:id"     element={<AdminEditarProductoScreen />} />
           </Route>

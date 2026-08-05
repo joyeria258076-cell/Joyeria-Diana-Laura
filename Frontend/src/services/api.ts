@@ -564,6 +564,10 @@ export const productsAPI = {
     return enhancedApi.get(`/products/temporadas/${id}`);
   },
 
+  crearTemporada: async (nombre: string, fecha_inicio: string, fecha_fin: string, descripcion?: string) => {
+    return enhancedApi.post('/products/temporadas', { nombre, fecha_inicio, fecha_fin, descripcion });
+  },
+
   // ========================================
   // 🏷️ TIPOS DE PRODUCTO
   // ========================================

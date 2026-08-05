@@ -241,6 +241,9 @@ const HeaderPrivado: React.FC = () => {
                                         <button className={`dropdown-item ${isActive("/admin-legal") ? "active" : ""}`} onClick={() => goTo("/admin-legal")}>
                                             <span className="dropdown-icon"><AiOutlineAudit size={14} /></span> Documentos Legales
                                         </button>
+                                        <button className={`dropdown-item ${isActive("/admin/personalizacion-visual") ? "active" : ""}`} onClick={() => goTo("/admin/personalizacion-visual")}>
+                                            <span className="dropdown-icon"><AiOutlineBgColors size={14} /></span> Personalización Visual
+                                        </button>
                                     </div>
                                 )}
                             </div>

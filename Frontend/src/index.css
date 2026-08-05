@@ -13,6 +13,12 @@
   --color-border: rgba(201, 149, 108, 0.18);
   --color-glow: rgba(201, 149, 108, 0.08);
 
+  /* --- Personalización visual global (admin) ---
+     El admin puede sobreescribir estas variables en tiempo de ejecución
+     (ver ThemeConfigLoader) subiendo un fondo y eligiendo una paleta desde
+     /admin/personalizacion-visual. Los valores de aquí son el default. */
+  --global-bg-url: url('https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/fondo_pagina.jpg');
+
   --font-display: 'Cormorant Garamond', serif;
   --font-body: 'Jost', sans-serif;
 

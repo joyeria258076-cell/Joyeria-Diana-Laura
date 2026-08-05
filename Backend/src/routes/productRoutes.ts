@@ -21,6 +21,7 @@ import {
     getTiposProducto,
     getTipoProductoById,
     crearTipoProducto,
+    crearTemporada,
     getImagenesProducto,
     eliminarImagenProducto,
     getConfiguracion,
@@ -61,6 +62,7 @@ router.get('/proveedores/:id', getProveedorById); // Ver un proveedor específic
 // --- RUTAS DE TEMPORADAS ---
 router.get('/temporadas', getTemporadas);        // Ver todas las temporadas
 router.get('/temporadas/:id', getTemporadaById); // Ver una temporada específica
+router.post('/temporadas', authenticateToken, requireAdmin, crearTemporada); // Dar de alta una temporada nueva
 
 // --- RUTAS DE TIPOS DE PRODUCTO ---
 router.get('/tipos-producto', getTiposProducto); // Ver todos los tipos de producto

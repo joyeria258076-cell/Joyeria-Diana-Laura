@@ -454,6 +454,23 @@ export const getTemporadaById = async (req: Request, res: Response) => {
     }
 };
 
+export const crearTemporada = async (req: Request, res: Response) => {
+    try {
+        const { nombre, fecha_inicio, fecha_fin, descripcion } = req.body;
+        if (!nombre || !nombre.trim()) {
+            return res.status(400).json({ success: false, message: 'El nombre es obligatorio' });
+        }
+        if (!fecha_inicio || !fecha_fin) {
+            return res.status(400).json({ success: false, message: 'La fecha de inicio y fin son obligatorias' });
+        }
+        const userId = (req as any).user?.userId || (req as any).user?.id || null;
+        const temporada = await TemporadaModel.create(nombre.trim(), fecha_inicio, fecha_fin, descripcion?.trim() || null, userId);
+        res.status(201).json({ success: true, data: temporada });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 // --- TIPOS DE PRODUCTO ---
 export const getTiposProducto = async (req: Request, res: Response) => {
     try {

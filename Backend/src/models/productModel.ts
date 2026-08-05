@@ -454,10 +454,20 @@ export const TemporadaModel = {
 
     getById: async (id: number) => {
         const result = await pool.query(
-            `SELECT id, nombre, descripcion, fecha_inicio, fecha_fin, imagen_url, activo, creado_por, fecha_creacion, fecha_actualizacion 
-             FROM temporadas 
+            `SELECT id, nombre, descripcion, fecha_inicio, fecha_fin, imagen_url, activo, creado_por, fecha_creacion, fecha_actualizacion
+             FROM temporadas
              WHERE id = $1`,
             [id]
+        );
+        return result.rows[0];
+    },
+
+    create: async (nombre: string, fecha_inicio: string, fecha_fin: string, descripcion: string | null, creado_por: number) => {
+        const result = await pool.query(
+            `INSERT INTO temporadas (nombre, descripcion, fecha_inicio, fecha_fin, activo, creado_por, fecha_creacion, fecha_actualizacion)
+             VALUES ($1, $2, $3, $4, true, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+             RETURNING id, nombre, descripcion, fecha_inicio, fecha_fin, imagen_url, activo, creado_por, fecha_creacion, fecha_actualizacion`,
+            [nombre, descripcion, fecha_inicio, fecha_fin, creado_por]
         );
         return result.rows[0];
     }

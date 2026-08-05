@@ -4,7 +4,7 @@
   background-color: #0a0a0a;
   background-image:
     linear-gradient(rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0.9)),
-    url('https://res.cloudinary.com/dltvkwwq4/image/upload/f_auto,q_auto/joyeria/imagenes/fondo_pagina.jpg');
+    var(--global-bg-url);
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
