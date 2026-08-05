@@ -40,7 +40,7 @@ const PublicFooter: React.FC = () => {
                 <Link to="/catalogo-publico">Catálogo</Link>
               </li>
               <li>
-                <Link to="/noticias">Noticias</Link>
+                <Link to="/noticias">Blog</Link>
               </li>
               <li>
                 <Link to="/contacto">Contacto</Link>

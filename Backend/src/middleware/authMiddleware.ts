@@ -378,3 +378,15 @@ export const requireTrabajador = (req: AuthRequest, res: Response, next: NextFun
     }
     next();
 };
+
+// Comentar en el blog es exclusivo de clientes (no admin/trabajador)
+export const requireCliente = (req: AuthRequest, res: Response, next: NextFunction) => {
+    const userRole = req.user?.rol;
+    if (!userRole) {
+        return res.status(401).json({ success: false, message: 'Usuario no autenticado o sin rol definido.' });
+    }
+    if (userRole !== 'cliente') {
+        return res.status(403).json({ success: false, message: 'Esta acción es exclusiva de clientes.' });
+    }
+    next();
+};

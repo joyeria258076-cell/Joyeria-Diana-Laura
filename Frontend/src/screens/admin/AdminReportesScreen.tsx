@@ -7,13 +7,14 @@ import {
 import {
   AiOutlineBarChart, AiOutlineShoppingCart, AiOutlineTrophy,
   AiOutlineTeam, AiOutlineRise, AiOutlineDatabase, AiOutlineWarning,
+  AiOutlineGlobal,
 } from 'react-icons/ai';
-import { reportesAPI } from '../../services/api';
+import { reportesAPI, visitaSitioAPI } from '../../services/api';
 import './AdminReportesScreen.css';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
 
-type Tab = 'ventas' | 'productos' | 'inventario' | 'trabajadores';
+type Tab = 'ventas' | 'productos' | 'inventario' | 'trabajadores' | 'trafico';
 
 const money = (n: number | string) =>
   `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -34,21 +35,24 @@ const AdminReportesScreen: React.FC = () => {
   const [productos, setProductos] = useState<any>(null);
   const [inventario, setInventario] = useState<any>(null);
   const [trabajadores, setTrabajadores] = useState<any>(null);
+  const [trafico, setTrafico] = useState<any>(null);
 
   const cargar = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const [v, p, inv, t] = await Promise.all([
+      const [v, p, inv, t, tr] = await Promise.all([
         reportesAPI.getVentas(dias),
         reportesAPI.getProductos(dias, 8),
         reportesAPI.getInventario(),
         reportesAPI.getTrabajadores(dias),
+        visitaSitioAPI.getResumen(),
       ]);
       setVentas(v);
       setProductos(p);
       setInventario(inv);
       setTrabajadores(t);
+      setTrafico((tr as any)?.data ?? tr);
     } catch (err: any) {
       setError(err.message || 'No se pudieron cargar los reportes');
     } finally {
@@ -138,6 +142,10 @@ const AdminReportesScreen: React.FC = () => {
           <button className={`rp-rail-item${tab === 'trabajadores' ? ' sel' : ''}`} onClick={() => setTab('trabajadores')}>
             <AiOutlineTeam size={18} />
             <span>Performance del equipo</span>
+          </button>
+          <button className={`rp-rail-item${tab === 'trafico' ? ' sel' : ''}`} onClick={() => setTab('trafico')}>
+            <AiOutlineGlobal size={18} />
+            <span>Tráfico del sitio</span>
           </button>
         </nav>
 
@@ -342,6 +350,44 @@ const AdminReportesScreen: React.FC = () => {
                 })}
                 {(!trabajadores.trabajadores || trabajadores.trabajadores.length === 0) && (
                   <p className="rp-empty">Sin actividad de trabajadores en este período.</p>
+                )}
+              </div>
+            </div>
+          )}
+          {!loading && tab === 'trafico' && trafico && (
+            <div className="rp-tabpage">
+              <div className="rp-stats-row">
+                <div className="rp-stat">
+                  <span className="rp-stat-label">Visitantes últimos 7 días</span>
+                  <span className="rp-stat-val">{trafico.visitantes_7_dias}</span>
+                </div>
+                <div className="rp-stat">
+                  <span className="rp-stat-label">Consultando ahora</span>
+                  <span className="rp-stat-val">{trafico.consultando_ahora}</span>
+                </div>
+              </div>
+
+              <div className="rp-chart-card">
+                <p className="rp-chart-title"><AiOutlineRise size={16} /> Visitantes por día</p>
+                {(trafico.serie || []).length > 0 ? (
+                  <div className="rp-leaderboard">
+                    {trafico.serie.map((d: any) => {
+                      const maxDia = Math.max(...trafico.serie.map((x: any) => Number(x.visitantes)));
+                      return (
+                        <div key={d.dia} className="rp-bar-row">
+                          <span className="rp-bar-label">
+                            {new Date(d.dia).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
+                          </span>
+                          <div className="rp-bar-track">
+                            <div className="rp-bar-fill" style={{ width: `${maxDia ? (d.visitantes / maxDia) * 100 : 0}%` }} />
+                          </div>
+                          <span className="rp-bar-val">{d.visitantes}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="rp-empty">Sin visitas registradas en los últimos 7 días.</p>
                 )}
               </div>
             </div>

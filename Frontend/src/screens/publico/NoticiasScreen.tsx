@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { contentAPI } from "../../services/api";
 import "./NoticiasScreen.css";
 
 const NoticiasScreen: React.FC = () => {
+  const navigate = useNavigate();
   const [noticias, setNoticias] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -67,10 +69,10 @@ const NoticiasScreen: React.FC = () => {
           <div className="noticias-hero-inner">
             <p className="noticias-hero-tag">
               <span className="tag-dot" />
-              Diario de Novedades
+              Blog Diana Laura
             </p>
             <h1 className="noticias-title">
-              Novedades <span>Diana Laura</span>
+              Blog <span>Diana Laura</span>
             </h1>
             <p className="noticias-subtitle">Colecciones, cuidados, tendencias y todo lo nuevo de nuestra joyería.</p>
             <div className="noticias-stats">
@@ -136,9 +138,9 @@ const NoticiasScreen: React.FC = () => {
                       <h2 className="noticia-titulo">{featured.titulo}</h2>
                       <div className="noticia-divider" />
                       <p className="noticia-descripcion">{featured.contenido}</p>
-                      <a href="#" className="noticia-link">
+                      <button className="noticia-link" onClick={() => navigate(`/noticias/${featured.id}`)}>
                         Leer artículo <span className="link-arrow">→</span>
-                      </a>
+                      </button>
                     </div>
                   </article>
                 )}
@@ -161,9 +163,9 @@ const NoticiasScreen: React.FC = () => {
                           <h3 className="noticia-titulo">{n.titulo}</h3>
                           <div className="noticia-divider" />
                           <p className="noticia-descripcion">{n.contenido}</p>
-                          <a href="#" className="noticia-link">
+                          <button className="noticia-link" onClick={() => navigate(`/noticias/${n.id}`)}>
                             Leer artículo <span className="link-arrow">→</span>
-                          </a>
+                          </button>
                         </div>
                       </article>
                     ))}
@@ -189,9 +191,9 @@ const NoticiasScreen: React.FC = () => {
                         <h3 className="noticia-titulo">{n.titulo}</h3>
                         <div className="noticia-divider" />
                         <p className="noticia-descripcion">{n.contenido}</p>
-                        <a href="#" className="noticia-link">
+                        <button className="noticia-link" onClick={() => navigate(`/noticias/${n.id}`)}>
                           Leer artículo <span className="link-arrow">→</span>
-                        </a>
+                        </button>
                       </div>
                     </article>
                   ))}

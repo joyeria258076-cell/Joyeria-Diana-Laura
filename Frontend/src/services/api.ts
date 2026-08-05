@@ -1555,6 +1555,33 @@ export const personalizacionAPI = {
 };
 
 // ==========================================
+// 💬 COMENTARIOS DE BLOG API
+// ==========================================
+export const comentarioNoticiaAPI = {
+  getByNoticia: async (noticiaId: number) => {
+    return enhancedApi.get(`/noticias/${noticiaId}/comentarios`);
+  },
+  crear: async (noticiaId: number, comentario: string) => {
+    return enhancedApi.post(`/noticias/${noticiaId}/comentarios`, { comentario });
+  },
+  eliminar: async (id: number) => {
+    return enhancedApi.delete(`/noticias/comentarios/${id}`);
+  },
+};
+
+// ==========================================
+// 📊 VISITAS DEL SITIO API
+// ==========================================
+export const visitaSitioAPI = {
+  registrar: async (visitor_id: string, ruta: string) => {
+    return enhancedApi.post('/visitas/registrar', { visitor_id, ruta });
+  },
+  getResumen: async () => {
+    return enhancedApi.get('/visitas/resumen');
+  },
+};
+
+// ==========================================
 // 📍 ZONAS DE ENTREGA API
 // ==========================================
 export const zonaEntregaAPI = {

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import VisitorTracker from "../components/VisitorTracker";
 
 // LAYOUTS
 import { PrivateLayout } from "../components/PrivateLayout";
@@ -10,6 +11,7 @@ import { PrivateLayout } from "../components/PrivateLayout";
 import InicioPublicScreen from "../screens/publico/InicioPublicScreen";
 import CatalogoPublicScreen from "../screens/publico/CatalogoPublicScreen";
 import NoticiasScreen from "../screens/publico/NoticiasScreen";
+import NoticiaDetalleScreen from "../screens/publico/NoticiaDetalleScreen";
 import ContactoPublicScreen from "../screens/publico/ContactoPublicScreen";
 import UbicacionPublicScreen from "../screens/publico/UbicacionPublicScreen";
 import AyudaPublicScreen from "../screens/publico/AyudaPublicScreen";
@@ -169,12 +171,14 @@ export default function AppRoutes() {
 
   return (
     <BrowserRouter>
+      <VisitorTracker />
       <Routes>
         {/* 1. RUTAS COMPLETAMENTE PÚBLICAS */}
         <Route path="/" element={<InicioPublicScreen />} />
         <Route path="/catalogo-publico" element={<CatalogoPublicScreen />} />
         <Route path="/producto-publico/:id" element={<ProductoDetallePublicScreen />} />
         <Route path="/noticias" element={<NoticiasScreen />} />
+        <Route path="/noticias/:id" element={<NoticiaDetalleScreen />} />
         <Route path="/contacto-publico" element={<ContactoPublicScreen />} />
         <Route path="/ubicacion-publica" element={<UbicacionPublicScreen />} />
         <Route path="/ayuda-publica" element={<AyudaPublicScreen />} />
