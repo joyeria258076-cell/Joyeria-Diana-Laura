@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { carritoAPI } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import Loader from '../../components/Loader';
 import {
     AiOutlineFileText, AiOutlineCheckCircle, AiOutlineCreditCard,
     AiOutlineTool, AiOutlineCar, AiOutlineGift,
@@ -60,11 +62,15 @@ interface EstadoConfig { value: string; label: string; color: string; bg: string
 const STORAGE_KEY_ESTADOS = 'diana_laura_estados_pedidos';
 const POLLING_INTERVAL    = 30000;
 
-const cargarEstadosAnteriores = (): Record<number, string> => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_ESTADOS) || '{}'); }
+// Ligado al id del usuario logueado, para que el "estado anterior detectado"
+// nunca se mezcle entre cuentas distintas que hayan iniciado sesion en el
+// mismo navegador (evita falsos "hubo cambios" cruzados entre clientes).
+const cargarEstadosAnteriores = (userId: string | number): Record<number, string> => {
+    try { return JSON.parse(localStorage.getItem(`${STORAGE_KEY_ESTADOS}_${userId}`) || '{}'); }
     catch { return {}; }
 };
-const guardarEstadosAnteriores = (e: Record<number, string>) => localStorage.setItem(STORAGE_KEY_ESTADOS, JSON.stringify(e));
+const guardarEstadosAnteriores = (userId: string | number, e: Record<number, string>) =>
+    localStorage.setItem(`${STORAGE_KEY_ESTADOS}_${userId}`, JSON.stringify(e));
 
 const COLORES_ESTADO: Record<string, { color: string; bg: string }> = {
     pendiente:      { color: '#0a0a0a', bg: '#f5c842' },
@@ -191,8 +197,14 @@ const ClientePedidosScreen: React.FC = () => {
     const [subiendo, setSubiendo]               = useState(false);
     const [msgComprobante, setMsgComprobante]   = useState<{ tipo: 'ok' | 'error'; mensaje: string } | null>(null);
     const fileInputRef                          = useRef<HTMLInputElement>(null);
-    const estadosAnteriores                     = useRef<Record<number, string>>(cargarEstadosAnteriores());
+    const { user } = useAuth();
+    const userId                                = user?.id ?? 'anonimo';
+    const estadosAnteriores                     = useRef<Record<number, string>>({});
     const pollingRef                            = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    useEffect(() => {
+        estadosAnteriores.current = cargarEstadosAnteriores(userId);
+    }, [userId]);
 
     useEffect(() => {
         const pago = searchParams.get('pago'); const pedidoId = searchParams.get('pedido'); const metodo = searchParams.get('metodo') || '';
@@ -232,13 +244,13 @@ const ClientePedidosScreen: React.FC = () => {
             const data = await carritoAPI.getEstadosPedidosCliente();
             if (!data.success) return;
             let huboCambios = false;
-            const estadosGuardados = cargarEstadosAnteriores();
+            const estadosGuardados = cargarEstadosAnteriores(userId);
             data.data.forEach((p: any) => {
                 const anterior = estadosGuardados[p.id];
                 if (anterior && anterior !== p.estado) huboCambios = true;
                 estadosAnteriores.current[p.id] = p.estado;
             });
-            guardarEstadosAnteriores(estadosAnteriores.current);
+            guardarEstadosAnteriores(userId, estadosAnteriores.current);
             if (huboCambios) cargarPedidos();
         } catch { }
     };
@@ -270,7 +282,7 @@ const ClientePedidosScreen: React.FC = () => {
             if (data.success) {
                 const nuevos: Pedido[] = data.data || [];
                 nuevos.forEach(p => { estadosAnteriores.current[p.id] = p.estado; });
-                guardarEstadosAnteriores(estadosAnteriores.current);
+                guardarEstadosAnteriores(userId, estadosAnteriores.current);
                 setPedidos(nuevos);
             }
         } catch (err) { console.error(err); }
@@ -484,7 +496,7 @@ const ClientePedidosScreen: React.FC = () => {
             )}
 
             {loading ? (
-                <div className="cp-loading"><div className="cp-spinner" /><p>Cargando pedidos...</p></div>
+                <Loader texto="Cargando pedidos..." />
             ) : pedidos.length === 0 ? (
                 <div className="cp-vacio">
                     <p>Aún no tienes pedidos.</p>
@@ -534,7 +546,7 @@ const ClientePedidosScreen: React.FC = () => {
                         </div>
                         <div className="cp-modal-body">
                             {cargandoDetalle ? (
-                                <div className="cp-loading"><div className="cp-spinner" /><p>Cargando detalle...</p></div>
+                                <Loader texto="Cargando detalle..." />
                             ) : (
                                 <>
                                     <StepperPedido estado={pedidoDetalle.estado} estado_pago={pedidoDetalle.estado_pago || 'pendiente'} />

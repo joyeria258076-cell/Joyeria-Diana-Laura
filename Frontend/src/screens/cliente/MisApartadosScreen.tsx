@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { apartadoAPI, carritoAPI, productsAPI } from '../../services/api';
+import Loader from '../../components/Loader';
 import {
     AiOutlineClockCircle, AiOutlineCheckCircle, AiOutlineCloseCircle, AiOutlineWarning,
     AiOutlineLock, AiOutlineInbox, AiOutlineCreditCard, AiOutlineBank, AiOutlineDollarCircle,
@@ -385,6 +386,8 @@ const ModalAbonoCliente: React.FC<ModalAbonoClienteProps> = ({ apartado, metodos
 };
 
 // ── Pantalla principal ────────────────────────────────────────
+const POLLING_INTERVAL_APARTADOS = 20000;
+
 const MisApartadosScreen: React.FC = () => {
     const navigate  = useNavigate();
     const location  = useLocation();
@@ -398,9 +401,30 @@ const MisApartadosScreen: React.FC = () => {
     const [modalAbono, setModalAbono]   = useState<Apartado | null>(null);
     const [msgExito, setMsgExito]       = useState('');
     const [diasEntrega, setDiasEntrega] = useState<number | null>(null);
+    const estadosRef = useRef<Record<number, string>>({});
+    const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // Poll ligero: solo refresca el estado sin mostrar el spinner de carga completo,
+    // para reflejar cambios hechos por el trabajador (ej. abono confirmado, apartado
+    // liquidado) sin que el cliente tenga que recargar la pagina manualmente.
+    const pollApartados = async () => {
+        try {
+            const res: any = await apartadoAPI.getMisApartados();
+            if (!res.success) return;
+            const nuevos: Apartado[] = res.data || [];
+            let hayCambios = false;
+            nuevos.forEach(a => {
+                if (estadosRef.current[a.id] !== a.estado) hayCambios = true;
+                estadosRef.current[a.id] = a.estado;
+            });
+            if (hayCambios) setApartados(nuevos);
+        } catch { /* silencioso — no bloquear la UI por un fallo de polling */ }
+    };
 
     useEffect(() => {
         cargarDatos();
+        pollingRef.current = setInterval(pollApartados, POLLING_INTERVAL_APARTADOS);
+        return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
         // Verificar si viene de redirección de pago
         const params = new URLSearchParams(location.search);
         const pago   = params.get('pago');
@@ -457,7 +481,10 @@ const MisApartadosScreen: React.FC = () => {
                 carritoAPI.getMetodosPago(),
                 productsAPI.getConfiguracionByClave('dias_entrega_default')
             ]);
-            if (aptRes.success) setApartados(aptRes.data);
+            if (aptRes.success) {
+                setApartados(aptRes.data);
+                (aptRes.data || []).forEach((a: Apartado) => { estadosRef.current[a.id] = a.estado; });
+            }
             if (mpRes.success)  setMetodosPago(mpRes.data?.metodos || []);
             if (cfgRes?.success && cfgRes?.data?.valor) setDiasEntrega(parseInt(cfgRes.data.valor));
         } catch {
@@ -491,7 +518,7 @@ const MisApartadosScreen: React.FC = () => {
 
     if (cargando) return (
         <main className="mapt-body">
-            <div className="mapt-loading"><div className="mapt-spinner" /><p>Cargando tus apartados...</p></div>
+            <Loader texto="Cargando tus apartados..." />
         </main>
     );
 

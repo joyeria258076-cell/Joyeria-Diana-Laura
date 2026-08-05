@@ -1,6 +1,7 @@
 // Ruta: Frontend/src/screens/cliente/CarritoScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Loader from '../../components/Loader';
 import {
     AiOutlineDelete, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart,
     AiOutlineShop, AiOutlineCar, AiOutlineCreditCard, AiOutlineBank, AiOutlineDollarCircle,
@@ -332,8 +333,23 @@ const CarritoScreen: React.FC = () => {
         }
     };
 
-    const pasarelas = metodosPago.filter(m => m.es_pasarela);
-    const otros     = metodosPago.filter(m => !m.es_pasarela);
+    // "efectivo" es exclusivo de recoger en tienda — pagarlo en tienda no tiene
+    // sentido si el pedido se va a enviar a domicilio, así que se excluye para
+    // evitar la combinación contradictoria (domicilio + pago en efectivo en tienda).
+    const metodosDisponibles = tipoEntrega === 'domicilio'
+        ? metodosPago.filter(m => m.codigo !== 'efectivo')
+        : metodosPago;
+    const pasarelas = metodosDisponibles.filter(m => m.es_pasarela);
+    const otros     = metodosDisponibles.filter(m => !m.es_pasarela);
+
+    // Si el cliente ya tenía "efectivo" seleccionado y cambia a domicilio,
+    // se limpia la selección para forzarlo a elegir un método válido.
+    useEffect(() => {
+        if (tipoEntrega === 'domicilio' && metodoPagoId) {
+            const actual = metodosPago.find(m => m.id === metodoPagoId);
+            if (actual?.codigo === 'efectivo') setMetodoPagoId(null);
+        }
+    }, [tipoEntrega, metodoPagoId, metodosPago]);
 
     // ── Pantalla éxito apartado ───────────────────────────────
     if (apartandoExitoso) {
@@ -409,7 +425,7 @@ const CarritoScreen: React.FC = () => {
             <div className="carrito-layout">
                 <section className="carrito-items">
                     {loading ? (
-                        <div className="carrito-loading"><div className="carrito-spinner" /><p>Cargando carrito...</p></div>
+                        <Loader texto="Cargando carrito..." />
                     ) : (
                         items.map(item => {
                             const precioBase   = Number.parseFloat(String(item.precio_promocion ?? item.precio_oferta ?? item.precio_venta));
@@ -605,7 +621,7 @@ const CarritoScreen: React.FC = () => {
                                             );
                                             if (m.codigo === 'efectivo') return (
                                                 <div className="carrito-metodo-info">
-                                                    Podrás pagar en efectivo al momento de la entrega o en nuestra tienda.
+                                                    Podrás pagar en efectivo al recoger tu pedido en nuestra tienda.
                                                 </div>
                                             );
                                             return null;

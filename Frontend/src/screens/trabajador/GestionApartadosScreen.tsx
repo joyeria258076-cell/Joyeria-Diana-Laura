@@ -1,6 +1,7 @@
 // Ruta: Frontend/src/screens/trabajador/GestionApartadosScreen.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { apartadoAPI } from '../../services/api';
+import Loader from '../../components/Loader';
 import {
     AiOutlineCheckCircle, AiOutlineDollarCircle, AiOutlineStop, AiOutlineFlag,
     AiOutlineShoppingCart, AiOutlineHistory, AiOutlinePaperClip, AiOutlineShopping,
@@ -618,6 +619,8 @@ const GestionApartadosScreen: React.FC = () => {
     const [modalConfirmar, setModalConfirmar]         = useState<Apartado | null>(null);
     const [modalConfirmarAbono, setModalConfirmarAbono] = useState<Apartado | null>(null);
     const [metodosPago, setMetodosPago]         = useState<{ id: number; nombre: string; codigo: string }[]>([]);
+    const estadosRef = useRef<Record<number, string>>({});
+    const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // Debounce búsqueda
     useEffect(() => {
@@ -626,6 +629,28 @@ const GestionApartadosScreen: React.FC = () => {
     }, [busquedaInput]);
 
     useEffect(() => { cargarDatos(); }, [filtro, busqueda, pagina, verArchivados]);
+
+    // Poll ligero: detecta cambios de estado (ej. abono confirmado por el cliente,
+    // pago capturado por la pasarela) sin mostrar el spinner de carga completo,
+    // para no interrumpir al trabajador mientras revisa la lista.
+    useEffect(() => {
+        const pollApartados = async () => {
+            try {
+                const estado = filtro === 'todos' ? undefined : filtro;
+                const res = await apartadoAPI.getTodos(estado, busqueda || undefined, pagina, verArchivados);
+                if (!res.success) return;
+                const nuevos: Apartado[] = res.data || [];
+                let hayCambios = false;
+                nuevos.forEach(a => {
+                    if (estadosRef.current[a.id] !== a.estado) hayCambios = true;
+                    estadosRef.current[a.id] = a.estado;
+                });
+                if (hayCambios) { setApartados(nuevos); setMeta(res.meta || { total: 0, pagina: 1, limite: 20, total_paginas: 1 }); }
+            } catch { /* silencioso — no bloquear la UI por un fallo de polling */ }
+        };
+        pollingRef.current = setInterval(pollApartados, 20000);
+        return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
+    }, [filtro, busqueda, pagina, verArchivados]);
 
     const cargarDatos = async () => {
         setCargando(true); setError('');
@@ -639,6 +664,7 @@ const GestionApartadosScreen: React.FC = () => {
             if (aptRes.success) {
                 setApartados(aptRes.data);
                 setMeta(aptRes.meta || { total: 0, pagina: 1, limite: 20, total_paginas: 1 });
+                (aptRes.data || []).forEach((a: Apartado) => { estadosRef.current[a.id] = a.estado; });
             }
             if (mpRes.success) setMetodosPago(mpRes.data?.metodos || []);
         } catch {
@@ -750,7 +776,7 @@ const GestionApartadosScreen: React.FC = () => {
             {error && <div className="gapt-error-banner"><AiOutlineWarning size={13} /> {error}</div>}
 
             {cargando ? (
-                <div className="gapt-loading"><div className="gapt-spinner" /><p>Cargando...</p></div>
+                <Loader texto="Cargando..." />
             ) : apartados.length === 0 ? (
                 <div className="gapt-vacio">
                     <p>{busqueda ? `Sin resultados para "${busqueda}"` : `No hay apartados ${verArchivados ? 'archivados' : filtro !== 'todos' ? ESTADO_CONFIG[filtro]?.label?.toLowerCase() + 's' : ''}`}</p>

@@ -168,26 +168,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isSettingUpRef.current = true;
     console.log('🎯 🎯 🎯 INICIANDO SISTEMA DE INACTIVIDAD 🎯 🎯 🎯');
 
+    // NOTA: antes existía un listener de 'popstate' que, al detectar navegación
+    // (flechas del navegador) hacia una ruta pública mientras `user` seguía
+    // activo, DESACTIVABA POR COMPLETO este sistema para el resto de la sesión
+    // (removía los listeners y nunca los volvía a agregar, porque este efecto
+    // solo se re-ejecuta si `user` cambia). Eso causaba que el cierre de sesión
+    // automático por inactividad simplemente dejara de funcionar el resto de la
+    // sesión tras cualquier navegación con atrás/adelante — se eliminó por ser
+    // un riesgo de seguridad mayor que la pequeña molestia que evitaba.
     const activityEvents = ['click', 'keydown', 'scroll', 'mousedown', 'touchstart', 'focus'];
 
-    const handlePopState = () => {
-      console.log('🔄 Evento de navegación detectado (flechas del navegador)');
-      const currentPath = window.location.pathname;
-      const publicRoutes = ['/login', '/registro', '/olvide', '/reiniciar'];
-      
-      if (publicRoutes.includes(currentPath) && user) {
-        console.log('🚨 Usuario navegó a ruta pública - DESACTIVANDO SISTEMA DE INACTIVIDAD');
-        if (inactivityTimerRef.current) { clearTimeout(inactivityTimerRef.current); inactivityTimerRef.current = null; }
-        if (activityUpdateTimeout) { clearTimeout(activityUpdateTimeout); activityUpdateTimeout = null; }
-        activityEvents.forEach(event => document.removeEventListener(event, handleUserActivity));
-        window.removeEventListener('popstate', handlePopState);
-        isSettingUpRef.current = false;
-        console.log('✅ SISTEMA DE INACTIVIDAD COMPLETAMENTE DESACTIVADO POR NAVEGACIÓN');
-      }
-    };
-
     activityEvents.forEach(event => document.addEventListener(event, handleUserActivity, { passive: true }));
-    window.addEventListener('popstate', handlePopState);
     resetInactivityTimer();
     setTimeout(() => updateBackendActivity(), 1000);
 
@@ -195,7 +186,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🧹 Limpiando sistema de inactividad');
       isSettingUpRef.current = false;
       activityEvents.forEach(event => document.removeEventListener(event, handleUserActivity));
-      window.removeEventListener('popstate', handlePopState);
       if (inactivityTimerRef.current) { clearTimeout(inactivityTimerRef.current); inactivityTimerRef.current = null; }
       if (activityUpdateTimeout) { clearTimeout(activityUpdateTimeout); activityUpdateTimeout = null; }
     };
@@ -540,7 +530,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     if (inactivityTimerRef.current) { clearTimeout(inactivityTimerRef.current); inactivityTimerRef.current = null; }
     if (activityUpdateTimeout) { clearTimeout(activityUpdateTimeout); activityUpdateTimeout = null; }
-    try { await authAPI.logout(); } catch (error) { console.log('⚠️ Error en logout del backend (no crítico):', error); }
+    // No se espera (await) la respuesta del backend: si esta lento o tarda en
+    // responder (ej. servidor recien despertando), el cierre de sesion visual
+    // del cliente no debe quedarse esperando ese tiempo. Se dispara en paralelo
+    // y se ignora el resultado, ya que invalidar la sesion en el servidor no es
+    // indispensable para que el cliente deje de mostrarse como logueado.
+    authAPI.logout().catch(error => console.log('⚠️ Error en logout del backend (no crítico):', error));
     await auth.signOut();
     setUser(null);
     setCurrentSessionToken(null);

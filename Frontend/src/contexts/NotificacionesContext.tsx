@@ -32,34 +32,51 @@ const MENSAJE_ESTADO: Record<string, string> = {
     cancelado:      '🚫 Tu pedido fue cancelado.',
 };
 
-const cargarNotifs = (): Notificacion[] => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIFS) || '[]'); }
+// Las claves se ligan al id del usuario logueado para que las notificaciones
+// y estados anteriores de una cuenta nunca se mezclen con los de otra cuenta
+// que haya iniciado sesion antes en el mismo navegador.
+const claveNotifs  = (userId: string | number) => `${STORAGE_KEY_NOTIFS}_${userId}`;
+const claveEstados = (userId: string | number) => `${STORAGE_KEY_ESTADOS}_${userId}`;
+
+const cargarNotifs = (userId: string | number): Notificacion[] => {
+    try { return JSON.parse(localStorage.getItem(claveNotifs(userId)) || '[]'); }
     catch { return []; }
 };
-const guardarNotifs = (n: Notificacion[]) => localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(n));
-const cargarEstadosAnteriores = (): Record<number, string> => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_ESTADOS) || '{}'); }
+const guardarNotifs = (userId: string | number, n: Notificacion[]) =>
+    localStorage.setItem(claveNotifs(userId), JSON.stringify(n));
+const cargarEstadosAnteriores = (userId: string | number): Record<number, string> => {
+    try { return JSON.parse(localStorage.getItem(claveEstados(userId)) || '{}'); }
     catch { return {}; }
 };
-const guardarEstadosAnteriores = (e: Record<number, string>) => localStorage.setItem(STORAGE_KEY_ESTADOS, JSON.stringify(e));
+const guardarEstadosAnteriores = (userId: string | number, e: Record<number, string>) =>
+    localStorage.setItem(claveEstados(userId), JSON.stringify(e));
 
 const NotificacionesContext = createContext<NotificacionesContextType | undefined>(undefined);
 
 export const NotificacionesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
-    const [notifs, setNotifs] = useState<Notificacion[]>(cargarNotifs);
-    const estadosAnteriores = useRef<Record<number, string>>(cargarEstadosAnteriores());
+    const userId = user?.id ?? 'anonimo';
+    const [notifs, setNotifs] = useState<Notificacion[]>([]);
+    const estadosAnteriores = useRef<Record<number, string>>({});
     const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const userRole = user?.rol?.toLowerCase().trim() || '';
     const noLeidas = notifs.filter(n => !n.leida).length;
+
+    // Al cambiar de usuario (login, logout o cambio de cuenta en el mismo navegador)
+    // se recargan las notificaciones y estados desde el almacenamiento propio de
+    // ESE usuario, en vez de arrastrar los del usuario anterior.
+    useEffect(() => {
+        setNotifs(cargarNotifs(userId));
+        estadosAnteriores.current = cargarEstadosAnteriores(userId);
+    }, [userId]);
 
     const pollEstados = async () => {
         try {
             const data = await carritoAPI.getEstadosPedidosCliente();
             if (!data.success) return;
             const nuevasNotifs: Notificacion[] = [];
-            const estadosGuardados = cargarEstadosAnteriores();
+            const estadosGuardados = cargarEstadosAnteriores(userId);
             data.data.forEach((p: any) => {
                 const anterior = estadosGuardados[p.id];
                 if (anterior && anterior !== p.estado && MENSAJE_ESTADO[p.estado]) {
@@ -67,11 +84,11 @@ export const NotificacionesProvider: React.FC<{ children: React.ReactNode }> = (
                 }
                 estadosAnteriores.current[p.id] = p.estado;
             });
-            guardarEstadosAnteriores(estadosAnteriores.current);
+            guardarEstadosAnteriores(userId, estadosAnteriores.current);
             if (nuevasNotifs.length > 0) {
                 setNotifs(prev => {
                     const todas = [...nuevasNotifs, ...prev].slice(0, 100);
-                    guardarNotifs(todas);
+                    guardarNotifs(userId, todas);
                     return todas;
                 });
             }
@@ -83,18 +100,18 @@ export const NotificacionesProvider: React.FC<{ children: React.ReactNode }> = (
         pollEstados();
         pollingRef.current = setInterval(pollEstados, POLLING_INTERVAL);
         return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
-    }, [userRole]);
+    }, [userRole, userId]);
 
     const marcarTodasLeidas = () => {
-        setNotifs(prev => { const u = prev.map(n => ({ ...n, leida: true })); guardarNotifs(u); return u; });
+        setNotifs(prev => { const u = prev.map(n => ({ ...n, leida: true })); guardarNotifs(userId, u); return u; });
     };
     const marcarLeida = (id: string) => {
-        setNotifs(prev => { const u = prev.map(n => n.id === id ? { ...n, leida: true } : n); guardarNotifs(u); return u; });
+        setNotifs(prev => { const u = prev.map(n => n.id === id ? { ...n, leida: true } : n); guardarNotifs(userId, u); return u; });
     };
     const borrarNotif = (id: string) => {
-        setNotifs(prev => { const u = prev.filter(n => n.id !== id); guardarNotifs(u); return u; });
+        setNotifs(prev => { const u = prev.filter(n => n.id !== id); guardarNotifs(userId, u); return u; });
     };
-    const limpiarTodo = () => { setNotifs([]); guardarNotifs([]); };
+    const limpiarTodo = () => { setNotifs([]); guardarNotifs(userId, []); };
 
     return (
         <NotificacionesContext.Provider value={{ notifs, noLeidas, marcarTodasLeidas, marcarLeida, borrarNotif, limpiarTodo }}>

@@ -1,6 +1,7 @@
 // Ruta: Frontend/src/screens/trabajador/GestionPedidosScreen.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { carritoAPI } from '../../services/api';
+import Loader from '../../components/Loader';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     AiOutlineEye, AiOutlineEdit, AiOutlineStop, AiOutlineSync, AiOutlineUser,
@@ -272,9 +273,15 @@ const GestionPedidosScreen: React.FC = () => {
         cargarPedidos();
         cargarDiasEntrega();
         cargarMinutosExpiracion();
+    }, []);
+
+    // El intervalo se reinicia cuando cambia el filtro, para que pollPedidos()
+    // siempre consulte con el filtro activo actual (evita reemplazar la lista
+    // filtrada por la lista completa cuando detecta un cambio de estado).
+    useEffect(() => {
         pollingRef.current = setInterval(() => pollPedidos(), POLLING_INTERVAL);
         return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
-    }, []);
+    }, [filtroEstado]);
 
     useEffect(() => { cargarPedidos(); setPaginaActual(1); }, [filtroEstado]);
     useEffect(() => { setPaginaActual(1); }, [busqueda]);
@@ -370,7 +377,7 @@ const GestionPedidosScreen: React.FC = () => {
 
     const pollPedidos = async () => {
         try {
-            const data = await carritoAPI.getAllPedidos(undefined);
+            const data = await carritoAPI.getAllPedidos(filtroEstado || undefined);
             if (!data.success) return;
             const nuevos: Pedido[] = data.data || [];
             let hayCambios = false;
@@ -800,7 +807,7 @@ const GestionPedidosScreen: React.FC = () => {
             </div>
 
             {loading ? (
-                <div className="gp-loading"><div className="gp-spinner" /><p>Cargando pedidos...</p></div>
+                <Loader texto="Cargando pedidos..." />
             ) : pedidosFiltrados.length === 0 ? (
                 <div className="gp-vacio">No hay pedidos{filtroEstado ? ` con estado "${filtroEstado}"` : ''}.</div>
             ) : (
@@ -854,7 +861,7 @@ const GestionPedidosScreen: React.FC = () => {
 
                         <div className="gp-modal-body">
                             {cargando ? (
-                                <div className="gp-loading"><div className="gp-spinner" /></div>
+                                <Loader />
                             ) : (
                                 <>
                                     {modalTipo === 'detalle' && (
