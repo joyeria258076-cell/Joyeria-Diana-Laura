@@ -254,8 +254,6 @@ const AdminSectionManagementScreen: React.FC = () => {
                   <input
                     type="text"
                     value={formData.color_fondo}
-                    onChange={handleInputChange}
-                    name="color_fondo_text"
                     placeholder="#ffffff"
                     onChange={(e) => setFormData(prev => ({
                       ...prev,
