@@ -61,6 +61,13 @@ const AdminContentManagerScreen: React.FC = () => {
             description: 'Dar de alta o quitar ubicaciones de entrega del negocio',
             path: '/admin-contenido/zonas-entrega',
             icon: '📍'
+        },
+        {
+            id: 'editor-visual',
+            title: '🎨 Editor Visual de Páginas',
+            description: 'Edita secciones y contenido con vista previa en vivo, arrastra para reordenar y usa paletas predefinidas',
+            path: '/admin-contenido/editor-visual',
+            icon: '🎨'
         }
     ];
 
