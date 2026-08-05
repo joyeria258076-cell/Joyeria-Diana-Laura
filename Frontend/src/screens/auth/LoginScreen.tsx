@@ -1,16 +1,19 @@
 // Ruta:Joyeria-Diana-Laura/Frontend/src/screens/LoginScreen.tsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useAuth } from "../../contexts/AuthContext";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import AuthBackground from "../../components/AuthBackground";
 import "./LoginScreen.css";
+
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string | undefined;
 
 // 🆕 FUNCIONES DE VALIDACIÓN PARA PREVENIR INYECCIONES
 const validateNoSQLInjection = (value: string) => {
@@ -90,6 +93,9 @@ export default function LoginScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
     const [loading, setLoading] = useState(false); // 🆕 Estado para loading del login
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+    const [captchaError, setCaptchaError] = useState('');
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     useEffect(() => {
         const oobCode = searchParams.get('oobCode');
@@ -148,12 +154,17 @@ export default function LoginScreen() {
     };
 
 const onSubmit = async (data: FormData) => {
+  if (RECAPTCHA_SITE_KEY && !captchaToken) {
+    setCaptchaError('Confirma que no eres un robot antes de continuar.');
+    return;
+  }
+  setCaptchaError('');
   try {
     setLoading(true);
     setError('root', { message: '' }); // Limpiar errores previos
-    
+
     console.log('🔐 Iniciando proceso de login...');
-    const response = await login(data.email, data.password);
+    const response = await login(data.email, data.password, captchaToken || undefined);
     
     console.log('✅ Login exitoso (sin MFA)');
     console.log('📊 Response completo:', JSON.stringify(response, null, 2));
@@ -277,6 +288,8 @@ const onSubmit = async (data: FormData) => {
     }
   } finally {
     setLoading(false);
+    recaptchaRef.current?.reset();
+    setCaptchaToken(null);
   }
 };
 
@@ -372,8 +385,22 @@ const onSubmit = async (data: FormData) => {
                             )}
                         </div>
 
-                        <button 
-                            type="submit" 
+                        {RECAPTCHA_SITE_KEY && (
+                            <div className="login-form-group">
+                                <ReCAPTCHA
+                                    ref={recaptchaRef}
+                                    sitekey={RECAPTCHA_SITE_KEY}
+                                    onChange={(token) => { setCaptchaToken(token); setCaptchaError(''); }}
+                                    onExpired={() => setCaptchaToken(null)}
+                                />
+                                {captchaError && (
+                                    <span className="login-error">{captchaError}</span>
+                                )}
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
                             className="login-button"
                             disabled={isVerifying || loading} // 🆕 Agregar loading al disable
                         >

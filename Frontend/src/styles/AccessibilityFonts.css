@@ -6,8 +6,8 @@
 /* Botones fijos que aparecen en TODAS las pantallas */
 .global-accessibility-buttons {
   position: fixed;
-  top: 15px;
-  right: 15px;
+  bottom: 20px;
+  right: 20px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -17,7 +17,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 9999;
   border: 2px solid #2563eb;
-  transition: all 0.3s ease;
+  transition: box-shadow 0.3s ease, background 0.3s ease;
 }
 
 .global-accessibility-buttons:hover {
@@ -102,7 +102,7 @@
   border-radius: 50%;
   background-color: #6b7280;
   color: white;
-  cursor: pointer;
+  cursor: grab;
   font-weight: bold;
   font-size: 16px;
   display: flex;
@@ -110,6 +110,12 @@
   justify-content: center;
   transition: all 0.2s ease;
   margin-right: 4px;
+  touch-action: none;
+  user-select: none;
+}
+
+.toggle-controls-btn:active {
+  cursor: grabbing;
 }
 
 .toggle-controls-btn:hover {
@@ -136,8 +142,8 @@
 /* Para pantallas móviles cuando está minimizado */
 @media (max-width: 768px) {
   .global-accessibility-buttons.minimized {
-    top: 8px;
-    right: 8px;
+    bottom: 12px;
+    right: 12px;
     padding: 6px;
   }
   
@@ -163,8 +169,8 @@
 /* Responsive para móviles */
 @media (max-width: 768px) {
   .global-accessibility-buttons {
-    top: 10px;
-    right: 10px;
+    bottom: 14px;
+    right: 14px;
     padding: 6px 10px;
     gap: 4px;
   }
@@ -184,8 +190,8 @@
 
 @media (max-width: 480px) {
   .global-accessibility-buttons {
-    top: 8px;
-    right: 8px;
+    bottom: 10px;
+    right: 10px;
     padding: 5px 8px;
   }
   

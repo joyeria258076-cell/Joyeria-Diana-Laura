@@ -53,8 +53,8 @@ interface ActiveSession {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<any>;
-  register: (email: string, password: string, nombre: string, questionType: string, customQuestion: string, securityAnswer: string) => Promise<void>;
+  login: (email: string, password: string, captchaToken?: string) => Promise<any>;
+  register: (email: string, password: string, nombre: string, questionType: string, customQuestion: string, securityAnswer: string, captchaToken?: string) => Promise<void>;
   logout: () => void;
   sendPasswordReset: (email: string) => Promise<{
     success: boolean;
@@ -394,7 +394,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, captchaToken?: string) => {
     try {
       console.log('🔐 Iniciando proceso de login...');
       const lockCheckResponse = await authAPI.checkAccountLock({ email });
@@ -424,7 +424,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
-      const backendResponse = await authAPI.login(email, password);
+      const backendResponse = await authAPI.login(email, password, undefined, captchaToken);
 
       if (backendResponse.mfaRequired || backendResponse.requiresMFA) {
         const mfaError = new Error('Se requiere código MFA');
@@ -489,7 +489,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (email: string, password: string, nombre: string, questionType: string, customQuestion: string, securityAnswer: string) => {
+  const register = async (email: string, password: string, nombre: string, questionType: string, customQuestion: string, securityAnswer: string, captchaToken?: string) => {
     try {
       console.log('🚀 Iniciando proceso de registro...');
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -509,7 +509,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('✅ Email de verificación enviado por Firebase');
 
       try {
-        await authAPI.syncUser(email, firebaseUser.uid, nombre);
+        await authAPI.syncUser(email, firebaseUser.uid, nombre, captchaToken);
         console.log('✅ Usuario sincronizado con PostgreSQL');
         const questionResponse = await securityQuestionAPI.setSecurityQuestion(email, questionType, customQuestion, securityAnswer);
         if (questionResponse.success) console.log('✅ Pregunta secreta configurada correctamente');

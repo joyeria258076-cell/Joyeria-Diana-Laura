@@ -302,10 +302,10 @@ export const authAPI = {
   },
 
   // 🎯 LOGIN CON BACKEND
-  login: async (email: string, password: string, deviceInfo?: string) => {
+  login: async (email: string, password: string, deviceInfo?: string, captchaToken?: string) => {
     return apiRequest('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password, deviceInfo }),
+      body: JSON.stringify({ email, password, deviceInfo, captchaToken }),
     });
   },
 
@@ -326,10 +326,10 @@ export const authAPI = {
   },
 
   // 🎯 SINCRONIZAR A POSTGRESQL
-  syncUser: async (email: string, firebaseUID: string, nombre?: string) => {
+  syncUser: async (email: string, firebaseUID: string, nombre?: string, captchaToken?: string) => {
     return apiRequest('/auth/sync-user', {
       method: 'POST',
-      body: JSON.stringify({ email, firebaseUID, nombre }),
+      body: JSON.stringify({ email, firebaseUID, nombre, captchaToken }),
     });
   },
 

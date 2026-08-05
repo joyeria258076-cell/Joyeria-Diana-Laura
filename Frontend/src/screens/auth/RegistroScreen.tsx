@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useAuth } from "../../contexts/AuthContext";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
@@ -11,6 +12,8 @@ import { securityQuestionAPI } from "../../services/securityQuestionAPI";
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineLock, AiOutlineArrowLeft, AiOutlineArrowRight, AiOutlineCamera } from "react-icons/ai";
 import AuthBackground from "../../components/AuthBackground";
 import "./RegistroScreen.css";
+
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string | undefined;
 
 // FUNCIONES DE VALIDACIÓN PARA PREVENIR INYECCIONES
 const validateNoSQLInjection = (value: string) => {
@@ -132,6 +135,9 @@ export default function RegistroScreen() {
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const [fotoPreview, setFotoPreview] = useState<string | null>(null);
     const fotoInputRef = useRef<HTMLInputElement>(null);
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+    const [captchaError, setCaptchaError] = useState('');
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -204,6 +210,11 @@ export default function RegistroScreen() {
     };
 
     const onSubmit = async (data: FormData) => {
+        if (RECAPTCHA_SITE_KEY && !captchaToken) {
+            setCaptchaError('Confirma que no eres un robot antes de continuar.');
+            return;
+        }
+        setCaptchaError('');
         setLoading(true);
         try {
             await register(
@@ -212,7 +223,8 @@ export default function RegistroScreen() {
                 data.nombre,
                 data.questionType,
                 data.customQuestion || '',
-                data.securityAnswer
+                data.securityAnswer,
+                captchaToken || undefined
             );
             if (fotoPreview) {
                 // No hay sesión todavía (falta verificar email) — se guarda y se sube
@@ -225,6 +237,8 @@ export default function RegistroScreen() {
             setError('root', { type: 'manual', message: error.message });
         } finally {
             setLoading(false);
+            recaptchaRef.current?.reset();
+            setCaptchaToken(null);
         }
     };
 
@@ -496,6 +510,20 @@ export default function RegistroScreen() {
                                 </label>
                                 {errors.acceptTerms && <span className="register-error">{errors.acceptTerms.message}</span>}
                             </div>
+
+                            {RECAPTCHA_SITE_KEY && (
+                                <div className="register-form-group">
+                                    <ReCAPTCHA
+                                        ref={recaptchaRef}
+                                        sitekey={RECAPTCHA_SITE_KEY}
+                                        onChange={(token) => { setCaptchaToken(token); setCaptchaError(''); }}
+                                        onExpired={() => setCaptchaToken(null)}
+                                    />
+                                    {captchaError && (
+                                        <span className="register-error">{captchaError}</span>
+                                    )}
+                                </div>
+                            )}
 
                             <div className="step-actions">
                                 <button type="button" className="back-button" onClick={prevStep}>

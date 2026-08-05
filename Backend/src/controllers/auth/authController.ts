@@ -8,6 +8,7 @@ import { JWTService } from '../../services/JWTService';
 import { JWTConfig } from '../../config/jwtConfig';
 import { CookieConfig } from '../../config/cookieConfig';
 import { validateEmailSecurity, validatePasswordSecurity } from '../../utils/inputValidation';
+import { verifyRecaptcha } from '../../utils/verifyRecaptcha';
 import jwt from 'jsonwebtoken';
 
 const emitirPreAuthToken = (userId: number, etapa: 'activacion' | 'codigo'): string =>
@@ -37,10 +38,20 @@ export const login = async (req: Request, res: Response) => {
   const userAgent = getUserAgent(req);
   
   try {
-    const { email, password } = req.body;
+    const { email, password, captchaToken } = req.body;
 
     if (!email) {
       return res.status(400).json({ success: false, message: 'Email es requerido' });
+    }
+
+    // Las llamadas internas de registro de intento fallido (tras un fallo ya
+    // verificado por Firebase) no traen captcha propio: solo se exige en el
+    // intento real de login.
+    if (password !== 'wrong_password_to_trigger_failure') {
+      const captchaValido = await verifyRecaptcha(captchaToken);
+      if (!captchaValido) {
+        return res.status(400).json({ success: false, message: 'Verificación de seguridad fallida. Intenta de nuevo.' });
+      }
     }
 
     const emailSecurityCheck = validateEmailSecurity(email);
@@ -212,10 +223,17 @@ export const login = async (req: Request, res: Response) => {
 // ==========================================
 export const syncUserToPostgreSQL = async (req: Request, res: Response) => {
   try {
-    const { email, password, nombre, firebaseUID } = req.body;
+    const { email, password, nombre, firebaseUID, captchaToken } = req.body;
     if (!email || !firebaseUID) return res.status(400).json({ success: false, message: 'Datos requeridos faltantes' });
 
     const exists = await userModel.emailExists(email);
+    if (!exists) {
+      const captchaValido = await verifyRecaptcha(captchaToken);
+      if (!captchaValido) {
+        return res.status(400).json({ success: false, message: 'Verificación de seguridad fallida. Intenta de nuevo.' });
+      }
+    }
+
     if (exists) return res.json({ success: true, message: 'Usuario ya sincronizado', data: { email } });
 
     const success = await userModel.createUser(email, password || 'temp_123', nombre || email.split('@')[0], firebaseUID);

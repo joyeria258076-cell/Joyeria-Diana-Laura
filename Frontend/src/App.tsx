@@ -1,6 +1,6 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/App.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import AppRoutes from './navigation/AppRoutes';
 import { AuthProvider } from './contexts/AuthContext';
@@ -8,6 +8,8 @@ import { CartProvider } from './contexts/CartContext';
 import { NotificacionesProvider } from './contexts/NotificacionesContext';
 import ThemeConfigLoader from './components/ThemeConfigLoader';
 import './styles/AccessibilityFonts.css';
+
+const WIDGET_POS_KEY = 'accessibilityWidgetPos';
 
 function App(): React.JSX.Element {
   const [fontSize, setFontSize] = useState(() => {
@@ -17,7 +19,17 @@ function App(): React.JSX.Element {
 
   const [showControls, setShowControls] = useState(() => {
     const saved = localStorage.getItem('showAccessibilityControls');
-    return saved ? saved === 'true' : true;
+    return saved ? saved === 'true' : false;
+  });
+
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(() => {
+    const saved = localStorage.getItem(WIDGET_POS_KEY);
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const widgetRef = useRef<HTMLDivElement>(null);
+  const dragState = useRef<{ dragging: boolean; offsetX: number; offsetY: number; moved: boolean }>({
+    dragging: false, offsetX: 0, offsetY: 0, moved: false,
   });
 
   useEffect(() => {
@@ -32,7 +44,62 @@ function App(): React.JSX.Element {
   const increaseFontSize = () => { if (fontSize < 24) setFontSize(prev => prev + 2); };
   const decreaseFontSize = () => { if (fontSize > 12) setFontSize(prev => prev - 2); };
   const resetFontSize    = () => setFontSize(16);
-  const toggleControls   = () => setShowControls(prev => !prev);
+  const toggleControls   = () => {
+    if (dragState.current.moved) { dragState.current.moved = false; return; }
+    setShowControls(prev => !prev);
+  };
+
+  const clampPosition = (x: number, y: number) => {
+    const el = widgetRef.current;
+    const w = el?.offsetWidth ?? 60;
+    const h = el?.offsetHeight ?? 60;
+    return {
+      x: Math.min(Math.max(x, 0), window.innerWidth - w),
+      y: Math.min(Math.max(y, 0), window.innerHeight - h),
+    };
+  };
+
+  const handleDragStart = (clientX: number, clientY: number) => {
+    const el = widgetRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    dragState.current = { dragging: true, offsetX: clientX - rect.left, offsetY: clientY - rect.top, moved: false };
+  };
+
+  const handleDragMove = (clientX: number, clientY: number) => {
+    if (!dragState.current.dragging) return;
+    dragState.current.moved = true;
+    const next = clampPosition(clientX - dragState.current.offsetX, clientY - dragState.current.offsetY);
+    setPosition(next);
+  };
+
+  const handleDragEnd = () => {
+    if (!dragState.current.dragging) return;
+    dragState.current.dragging = false;
+    setPosition(prev => {
+      if (prev) localStorage.setItem(WIDGET_POS_KEY, JSON.stringify(prev));
+      return prev;
+    });
+  };
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => handleDragMove(e.clientX, e.clientY);
+    const onMouseUp = () => handleDragEnd();
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
+    };
+    const onTouchEnd = () => handleDragEnd();
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('touchmove', onTouchMove);
+    window.addEventListener('touchend', onTouchEnd);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  }, []);
 
   return (
     <AuthProvider>
@@ -40,11 +107,17 @@ function App(): React.JSX.Element {
       <NotificacionesProvider>
         <ThemeConfigLoader />
         {/* Botones de control de accesibilidad */}
-        <div className={`global-accessibility-buttons ${showControls ? 'expanded' : 'minimized'}`}>
+        <div
+          ref={widgetRef}
+          className={`global-accessibility-buttons ${showControls ? 'expanded' : 'minimized'}`}
+          style={position ? { left: position.x, top: position.y, right: 'auto', bottom: 'auto' } : undefined}
+        >
           <button
             onClick={toggleControls}
+            onMouseDown={e => handleDragStart(e.clientX, e.clientY)}
+            onTouchStart={e => { if (e.touches[0]) handleDragStart(e.touches[0].clientX, e.touches[0].clientY); }}
             className="toggle-controls-btn"
-            title={showControls ? "Minimizar controles" : "Mostrar controles de accesibilidad"}
+            title={showControls ? "Minimizar controles (arrastra para mover)" : "Mostrar controles de accesibilidad (arrastra para mover)"}
             aria-label={showControls ? "Ocultar controles de accesibilidad" : "Mostrar controles de accesibilidad"}
           >
             {showControls ? "×" : "A"}
