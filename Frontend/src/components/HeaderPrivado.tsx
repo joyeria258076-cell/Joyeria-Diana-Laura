@@ -264,6 +264,9 @@ const HeaderPrivado: React.FC = () => {
                                         <button className={`dropdown-item ${isActive("/apartados-admin") ? "active" : ""}`} onClick={() => goTo("/apartados-admin")}>
                                             <span className="dropdown-icon"><AiOutlineFlag size={14} /></span> Apartados
                                         </button>
+                                        <button className={`dropdown-item ${isActive("/personalizaciones-admin") ? "active" : ""}`} onClick={() => goTo("/personalizaciones-admin")}>
+                                            <span className="dropdown-icon"><AiOutlineEdit size={14} /></span> Personalizaciones
+                                        </button>
                                         <button className={`dropdown-item ${isActive("/admin-trabajadores") ? "active" : ""}`} onClick={() => goTo("/admin-trabajadores")}>
                                             <span className="dropdown-icon"><AiOutlineTeam size={14} /></span> Personal
                                         </button>
@@ -289,6 +292,9 @@ const HeaderPrivado: React.FC = () => {
                             <button className={`nav-item ${isActive("/apartados-admin")}`} onClick={() => goTo("/apartados-admin")}>
                                 <span className="nav-icon"><AiOutlineFlag size={16} /></span> Gestión de Apartados
                             </button>
+                            <button className={`nav-item ${isActive("/personalizaciones-admin")}`} onClick={() => goTo("/personalizaciones-admin")}>
+                                <span className="nav-icon"><AiOutlineEdit size={16} /></span> Personalizaciones
+                            </button>
                             <div className="sidebar-divider"></div>
                             <button className={`nav-item ${isActive("/trabajador/actividades")}`} onClick={() => goTo("/trabajador/actividades")}>
                                 <span className="nav-icon"><AiOutlineCheckSquare size={16} /></span> Mis Actividades
@@ -307,6 +313,9 @@ const HeaderPrivado: React.FC = () => {
                             </button>
                             <button className={`nav-item ${isActive("/mis-apartados")}`} onClick={() => goTo("/mis-apartados")}>
                                 <span className="nav-icon"><AiOutlineFlag size={16} /></span> Mis Apartados
+                            </button>
+                            <button className={`nav-item ${isActive("/mis-personalizaciones")}`} onClick={() => goTo("/mis-personalizaciones")}>
+                                <span className="nav-icon"><AiOutlineEdit size={16} /></span> Mis Personalizaciones
                             </button>
                             <button className={`nav-item ${isActive("/favoritos")}`} onClick={() => goTo("/favoritos")}>
                                 <span className="nav-icon"><AiOutlineHeart size={16} /></span> Mis Favoritos

@@ -312,10 +312,10 @@ export const getCarrito = async (req: Request, res: Response) => {
 
 export const agregarAlCarrito = async (req: Request, res: Response) => {
     try {
-        const { id } = getUsuario(req);
+        const { id, email, nombre } = getUsuario(req);
         if (!id) return res.status(401).json({ success: false, message: 'No autenticado' });
 
-        const { producto_id, cantidad = 1, talla_medida, nota } = req.body;
+        const { producto_id, cantidad = 1, talla_medida, nota, solicitud_personalizacion_id } = req.body;
         if (!producto_id) return res.status(400).json({ success: false, message: 'producto_id requerido' });
 
         const prod = await pool.query(
@@ -325,6 +325,27 @@ export const agregarAlCarrito = async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, message: 'Producto no disponible' });
         if (prod.rows[0].stock_actual < cantidad)
             return res.status(400).json({ success: false, message: 'Stock insuficiente' });
+
+        // Producto personalizado ya aprobado por un trabajador: se agrega ligado
+        // a esa solicitud especifica (1 pieza, no se combina con otros items).
+        if (solicitud_personalizacion_id) {
+            const cliente_id = await VentaModel.getOrCreateCliente(id, email, nombre);
+            const sol = await pool.query(
+                `SELECT id, producto_id, estado, utilizada FROM solicitudes_personalizacion WHERE id = $1 AND cliente_id = $2`,
+                [solicitud_personalizacion_id, cliente_id]
+            );
+            if (!sol.rows.length)
+                return res.status(404).json({ success: false, message: 'Solicitud de personalización no encontrada' });
+            if (sol.rows[0].producto_id !== Number.parseInt(producto_id))
+                return res.status(400).json({ success: false, message: 'La solicitud no corresponde a este producto' });
+            if (sol.rows[0].estado !== 'aprobada')
+                return res.status(400).json({ success: false, message: 'Esta solicitud aún no ha sido aprobada' });
+            if (sol.rows[0].utilizada)
+                return res.status(400).json({ success: false, message: 'Esta solicitud ya fue utilizada en una compra' });
+
+            const item = await CarritoModel.agregarPersonalizado(id, producto_id, solicitud_personalizacion_id);
+            return res.json({ success: true, message: 'Agregado al carrito', data: item });
+        }
 
         const item = await CarritoModel.upsert(id, producto_id, cantidad, talla_medida, nota);
         res.json({ success: true, message: 'Agregado al carrito', data: item });
@@ -454,7 +475,10 @@ export const crearPedido = async (req: Request, res: Response) => {
         const itemsPedido = items.map(item => {
             const precioBase = Number.parseFloat(item.precio_promocion ?? item.precio_oferta ?? item.precio_venta);
             const precio_original = Number.parseFloat(item.precio_venta);
-            const esPersonalizado = item.permite_personalizacion && (item.talla_medida || item.nota);
+            // El cargo de personalizacion solo aplica si el item viene de una
+            // solicitud de personalizacion aprobada (flujo con verificacion del
+            // trabajador), no de un simple campo de nota/talla libre.
+            const esPersonalizado = !!item.solicitud_personalizacion_id;
             const cargo_personalizacion = esPersonalizado ? Number.parseFloat(item.precio_personalizacion || 0) : 0;
             const precio_unitario = precioBase + cargo_personalizacion;
             return {
@@ -465,9 +489,10 @@ export const crearPedido = async (req: Request, res: Response) => {
                 cantidad:        item.cantidad,
                 precio_unitario,
                 precio_original: precio_original !== precioBase ? precio_original : undefined,
-                talla_medida:    esPersonalizado ? item.talla_medida : undefined,
-                nota:            esPersonalizado ? item.nota : undefined,
-                cargo_personalizacion
+                talla_medida:    item.talla_medida || undefined,
+                nota:            item.nota || undefined,
+                cargo_personalizacion,
+                solicitud_personalizacion_id: item.solicitud_personalizacion_id || undefined,
             };
         });
 

@@ -1,0 +1,54 @@
+/* Ruta: Frontend/src/screens/cliente/MisPersonalizacionesScreen.css */
+
+.mp-page { max-width: 860px; margin: 0 auto; padding: 32px 20px 60px; }
+
+.mp-header { margin-bottom: 24px; }
+.mp-eyebrow { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--rose, #d4607e); margin: 0 0 6px; }
+.mp-header h1 { font-family: 'Playfair Display', serif; font-size: 1.8rem; margin: 0 0 8px; }
+.mp-sub { color: rgba(255,255,255,0.6); margin: 0; }
+
+.mp-msg-error {
+  background: rgba(224, 90, 106, 0.1); border: 1px solid rgba(224, 90, 106, 0.4);
+  color: #e05a6a; padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 0.88rem;
+}
+
+.mp-vacio {
+  text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.45);
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.mp-btn-primario {
+  background: linear-gradient(135deg, #d4607e 0%, #ecb2c3 100%); color: #1a0a10;
+  font-weight: 700; font-size: 12.5px; letter-spacing: 0.5px; padding: 12px 28px;
+  border: none; border-radius: 50px; cursor: pointer;
+}
+
+.mp-lista { display: flex; flex-direction: column; gap: 16px; }
+
+.mp-card {
+  display: flex; gap: 16px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 16px;
+}
+.mp-card-img { width: 84px; height: 84px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+.mp-card-info { flex: 1; min-width: 0; }
+.mp-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.mp-card-top h3 { font-family: 'Playfair Display', serif; font-size: 1.05rem; margin: 0; }
+
+.mp-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.3px;
+  padding: 4px 10px; border-radius: 50px; border: 1px solid;
+}
+
+.mp-detalle { color: rgba(255,255,255,0.65); font-size: 0.88rem; margin: 8px 0 0; line-height: 1.5; }
+.mp-ver-imagen { display: inline-block; margin-top: 6px; font-size: 0.8rem; color: var(--rose, #d4607e); }
+.mp-motivo { color: #e05a6a; font-size: 0.82rem; margin: 8px 0 0; }
+.mp-utilizada { color: rgba(255,255,255,0.4); font-size: 0.82rem; margin: 10px 0 0; font-style: italic; }
+
+.mp-btn-carrito {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: 12px;
+  background: linear-gradient(135deg, #4a8c7a 0%, #6bb89e 100%); color: #06120e;
+  font-weight: 700; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;
+  padding: 10px 22px; border: none; border-radius: 50px; cursor: pointer;
+}
+.mp-btn-carrito:disabled { opacity: 0.6; cursor: not-allowed; }

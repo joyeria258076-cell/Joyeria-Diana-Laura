@@ -100,6 +100,9 @@ import ServerErrorScreen from '../screens/general/ServerErrorScreen';
 import ClientePedidosScreen from "../screens/cliente/ClientePedidosScreen";
 import CarritoScreen from "../screens/cliente/CarritoScreen";
 import MisApartadosScreen from "../screens/cliente/MisApartadosScreen";
+import SolicitarPersonalizacionScreen from "../screens/cliente/SolicitarPersonalizacionScreen";
+import MisPersonalizacionesScreen from "../screens/cliente/MisPersonalizacionesScreen";
+import GestionPersonalizacionScreen from "../screens/trabajador/GestionPersonalizacionScreen";
 import NotificacionesScreen from "../screens/cliente/NotificacionesScreen";
 import MisFavoritosScreen from "../screens/cliente/MisFavoritosScreen";
 import ProductoDetalleScreen from "../screens/cliente/ProductoDetalleScreen";
@@ -204,9 +207,11 @@ export default function AppRoutes() {
           <Route path="/pedidos" element={<ClientePedidosScreen />} />
           <Route path="/carrito" element={<CarritoScreen />} />
           <Route path="/mis-apartados" element={<MisApartadosScreen />} />
+          <Route path="/mis-personalizaciones" element={<MisPersonalizacionesScreen />} />
           <Route path="/notificaciones" element={<NotificacionesScreen />} />
           <Route path="/favoritos" element={<MisFavoritosScreen />} />
           <Route path="/producto/:id" element={<ProductoDetalleScreen />} />
+          <Route path="/producto/:id/personalizar" element={<SolicitarPersonalizacionScreen />} />
 
           {/* 🔐 RUTAS EXCLUSIVAS ADMIN */}
           <Route element={<RoleRoute allowedRoles={['admin']} />}>
@@ -268,6 +273,7 @@ export default function AppRoutes() {
             <Route path="/dashboard-trabajador"       element={<DashboardTrabajadorScreen />} />
             <Route path="/pedidos-admin"              element={<GestionPedidosScreen />} />
             <Route path="/apartados-admin" element={<GestionApartadosScreen />} />
+            <Route path="/personalizaciones-admin" element={<GestionPersonalizacionScreen />} />
             <Route path="/trabajador/actividades"     element={<ActividadesTrabajadorScreen />} />
             <Route path="/trabajador/perfil"          element={<PerfilScreen />} />
           </Route>

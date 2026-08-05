@@ -406,7 +406,7 @@ const InicioScreen: React.FC = () => {
                     <p className="tl-cta-desc">
                         Cuéntanos qué tienes en mente y creamos juntas la joya perfecta para ti.
                     </p>
-                    <button className="tl-btn-rosa" onClick={() => navigate("/contacto")}>
+                    <button className="tl-btn-rosa" onClick={() => navigate("/mis-personalizaciones")}>
                         Solicitar diseño personalizado
                     </button>
                 </div>

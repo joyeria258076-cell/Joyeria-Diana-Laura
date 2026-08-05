@@ -14,6 +14,9 @@ export const CarritoModel = {
                 c.talla_medida,
                 c.nota,
                 c.fecha_agregado,
+                c.solicitud_personalizacion_id,
+                sp.detalle              AS personalizacion_detalle,
+                sp.imagen_referencia_url AS personalizacion_imagen,
                 p.nombre            AS producto_nombre,
                 p.imagen_principal  AS producto_imagen,
                 p.precio_venta,
@@ -56,10 +59,23 @@ export const CarritoModel = {
             FROM carrito c
             JOIN productos  p   ON c.producto_id  = p.id
             JOIN categorias cat ON p.categoria_id = cat.id
+            LEFT JOIN solicitudes_personalizacion sp ON sp.id = c.solicitud_personalizacion_id
             WHERE c.usuario_id = $1 AND p.activo = true
             ORDER BY c.fecha_agregado DESC
         `, [usuario_id]);
         return result.rows;
+    },
+
+    // Agrega un producto personalizado ya aprobado (1 unidad, ligado a su solicitud).
+    // A diferencia de upsert(), no se combina con otros items ni se incrementa
+    // cantidad: cada solicitud aprobada se compra como una pieza unica.
+    agregarPersonalizado: async (usuario_id: number, producto_id: number, solicitud_id: number) => {
+        const result = await pool.query(`
+            INSERT INTO carrito (usuario_id, producto_id, cantidad, solicitud_personalizacion_id)
+            VALUES ($1, $2, 1, $3)
+            RETURNING *
+        `, [usuario_id, producto_id, solicitud_id]);
+        return result.rows[0];
     },
 
     upsert: async (usuario_id: number, producto_id: number, cantidad: number, talla_medida?: string, nota?: string) => {
@@ -173,6 +189,7 @@ export const VentaModel = {
             talla_medida?:   string;
             nota?:           string;
             cargo_personalizacion?: number;
+            solicitud_personalizacion_id?: number;
         }[];
     }) => {
         const client = await pool.connect();
@@ -218,11 +235,12 @@ export const VentaModel = {
                 const descuento = item.precio_original && item.precio_original > item.precio_unitario
                     ? Number((item.precio_original - item.precio_unitario).toFixed(2))
                     : null;
-                const personalizacion = (item.talla_medida || item.nota)
+                const personalizacion = (item.talla_medida || item.nota || item.solicitud_personalizacion_id)
                     ? JSON.stringify({
                         talla_medida: item.talla_medida || null,
                         nota: item.nota || null,
-                        cargo_personalizacion: item.cargo_personalizacion || 0
+                        cargo_personalizacion: item.cargo_personalizacion || 0,
+                        solicitud_personalizacion_id: item.solicitud_personalizacion_id || null
                     })
                     : null;
 
@@ -231,16 +249,23 @@ export const VentaModel = {
                         venta_id, producto_id, producto_codigo,
                         producto_nombre, producto_imagen,
                         cantidad, precio_unitario, precio_original, descuento_unitario, subtotal,
-                        personalizacion
-                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+                        personalizacion, solicitud_personalizacion_id
+                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
                 `, [
                     venta.id, item.producto_id, item.producto_codigo,
                     item.producto_nombre, item.producto_imagen || null,
                     item.cantidad, item.precio_unitario,
                     item.precio_original || null, descuento,
                     item.cantidad * item.precio_unitario,
-                    personalizacion
+                    personalizacion, item.solicitud_personalizacion_id || null
                 ]);
+
+                if (item.solicitud_personalizacion_id) {
+                    await client.query(
+                        `UPDATE solicitudes_personalizacion SET utilizada = true WHERE id = $1`,
+                        [item.solicitud_personalizacion_id]
+                    );
+                }
             }
 
             await client.query(`DELETE FROM carrito WHERE usuario_id = $1`, [data.usuario_id]);

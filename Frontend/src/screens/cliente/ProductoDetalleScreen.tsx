@@ -1,7 +1,7 @@
 // Ruta: src/screens/cliente/ProductoDetalleScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart } from 'react-icons/ai';
+import { AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineEdit } from 'react-icons/ai';
 import { productsAPI, recomendacionAPI, resenasAPI } from '../../services/api';
 import { colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import { useCart } from '../../contexts/CartContext';
@@ -49,9 +49,6 @@ const ProductoDetalleScreen: React.FC = () => {
     const [cantidad, setCantidad] = useState(1);
     const [agregando, setAgregando] = useState(false);
     const [exitoso, setExitoso] = useState(false);
-    const [tallaMedida, setTallaMedida] = useState('');
-    const [notaPersonalizacion, setNotaPersonalizacion] = useState('');
-    const [errorPersonalizacion, setErrorPersonalizacion] = useState('');
     const [tabActiva, setTabActiva] = useState<'descripcion' | 'specs' | 'fabricacion'>('descripcion');
 
     const [resenas, setResenas] = useState<Resena[]>([]);
@@ -187,17 +184,10 @@ const ProductoDetalleScreen: React.FC = () => {
 
     const handleAgregar = async () => {
         if (!producto) return;
-        if (producto.permite_personalizacion && !tallaMedida.trim() && !notaPersonalizacion.trim()) {
-            setErrorPersonalizacion('Indica al menos la talla/medida o describe cómo quieres personalizar tu pieza.');
-            return;
-        }
-        setErrorPersonalizacion('');
         setAgregando(true);
         try {
-            await agregarAlCarrito(producto.id, cantidad, tallaMedida.trim() || undefined, notaPersonalizacion.trim() || undefined);
+            await agregarAlCarrito(producto.id, cantidad);
             setExitoso(true);
-            setTallaMedida('');
-            setNotaPersonalizacion('');
             setTimeout(() => setExitoso(false), 2500);
         } catch (err: any) {
             alert(err?.message || 'No se pudo agregar. Intenta de nuevo.');
@@ -345,37 +335,27 @@ const ProductoDetalleScreen: React.FC = () => {
 
                     {producto.stock_actual > 0 && producto.permite_personalizacion && (
                         <div className="pd-personalizacion-form">
-                            <p className="pd-personalizacion-titulo">Personaliza tu pieza</p>
+                            <p className="pd-personalizacion-titulo">Esta pieza requiere personalización</p>
                             {!!producto.precio_personalizacion && (
                                 <p className="pd-personalizacion-cargo">
                                     + ${Number(producto.precio_personalizacion).toLocaleString('es-MX')} por personalización
                                 </p>
                             )}
-                            <div className="pd-personalizacion-campo">
-                                <label>Talla / medida</label>
-                                <input
-                                    type="text"
-                                    value={tallaMedida}
-                                    onChange={e => { setTallaMedida(e.target.value); setErrorPersonalizacion(''); }}
-                                    placeholder="Ej. Talla de anillo 7, 45cm de cadena..."
-                                    maxLength={80}
-                                />
-                            </div>
-                            <div className="pd-personalizacion-campo">
-                                <label>Grabado / instrucciones (opcional)</label>
-                                <textarea
-                                    value={notaPersonalizacion}
-                                    onChange={e => { setNotaPersonalizacion(e.target.value); setErrorPersonalizacion(''); }}
-                                    placeholder="Ej. Grabado con el nombre 'Ana', en oro rosa..."
-                                    rows={3}
-                                    maxLength={300}
-                                />
-                            </div>
-                            {errorPersonalizacion && <p className="pd-personalizacion-error">{errorPersonalizacion}</p>}
+                            <p className="pd-personalizacion-desc">
+                                Cuéntanos el detalle (talla, grabado, colores, etc.) y sube una imagen de referencia si quieres.
+                                Un trabajador verificará tu solicitud antes de que puedas comprar esta pieza.
+                            </p>
+                            <button
+                                className="pd-btn-personalizar"
+                                onClick={() => navigate(`/producto/${producto.id}/personalizar`)}
+                            >
+                                <AiOutlineEdit size={18} />
+                                Personalizar esta pieza
+                            </button>
                         </div>
                     )}
 
-                    {producto.stock_actual > 0 && (
+                    {producto.stock_actual > 0 && !producto.permite_personalizacion && (
                         <div className="pd-compra-section">
                             <div className="pd-cantidad-wrap">
                                 <label className="pd-cantidad-label">Cantidad</label>

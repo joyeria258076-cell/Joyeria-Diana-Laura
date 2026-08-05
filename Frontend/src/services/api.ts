@@ -1109,6 +1109,9 @@ export const carritoAPI = {
   agregar: async (producto_id: number, cantidad: number, talla_medida?: string, nota?: string) => {
     return enhancedApi.post('/carrito', { producto_id, cantidad, talla_medida, nota });
   },
+  agregarPersonalizado: async (producto_id: number, solicitud_personalizacion_id: number) => {
+    return enhancedApi.post('/carrito', { producto_id, cantidad: 1, solicitud_personalizacion_id });
+  },
   actualizarCantidad: async (id: number, cantidad: number) => {
     return enhancedApi.put(`/carrito/${id}`, { cantidad });
   },
@@ -1489,6 +1492,47 @@ export const apartadoAPI = {
   },
   capturarPayPalAbono: async (abono_id: number, order_id: string) => {
     return enhancedApi.post('/apartados/pago/paypal/abono/capturar', { abono_id, order_id });
+  },
+};
+
+// ==========================================
+// 🎨 PERSONALIZACIÓN DE PRODUCTOS API
+// ==========================================
+export interface SolicitudPersonalizacion {
+  id: number;
+  cliente_id: number;
+  producto_id: number;
+  producto_nombre: string;
+  producto_imagen?: string;
+  precio_venta?: number;
+  precio_personalizacion?: number;
+  detalle: string;
+  imagen_referencia_url: string | null;
+  estado: 'pendiente' | 'aprobada' | 'rechazada';
+  motivo_rechazo: string | null;
+  utilizada: boolean;
+  fecha_creacion: string;
+  fecha_respuesta: string | null;
+  cliente_nombre?: string;
+  cliente_email?: string;
+}
+
+export const personalizacionAPI = {
+  crear: async (producto_id: number, detalle: string, imagen_referencia_url: string | null) => {
+    return enhancedApi.post('/personalizacion/solicitudes', { producto_id, detalle, imagen_referencia_url });
+  },
+  getMisSolicitudes: async (): Promise<{ success: boolean; data?: SolicitudPersonalizacion[]; message?: string }> => {
+    return enhancedApi.get('/personalizacion/mis-solicitudes');
+  },
+  getSolicitudes: async (estado?: string): Promise<{ success: boolean; data?: SolicitudPersonalizacion[]; message?: string }> => {
+    const q = estado ? `?estado=${estado}` : '';
+    return enhancedApi.get(`/personalizacion/solicitudes${q}`);
+  },
+  aprobar: async (id: number) => {
+    return enhancedApi.patch(`/personalizacion/solicitudes/${id}/aprobar`, {});
+  },
+  rechazar: async (id: number, motivo: string) => {
+    return enhancedApi.patch(`/personalizacion/solicitudes/${id}/rechazar`, { motivo });
   },
 };
 
