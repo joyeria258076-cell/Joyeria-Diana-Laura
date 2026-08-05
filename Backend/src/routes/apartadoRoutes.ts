@@ -11,7 +11,7 @@ import {
     solicitarAbono, confirmarAbonoPendiente,
     crearPreferenciaMP_AbonoSig, crearOrdenPayPal_AbonoSig, capturarPayPal_AbonoSig
 } from '../controllers/apartado/apartadoController';
-import { authenticateToken } from '../middleware/authMiddleware';
+import { authenticateToken, requireTrabajador } from '../middleware/authMiddleware';
 import { uploadSingleImage, handleUploadError } from '../middleware/uploadMiddleware';
 
 const router = Router();
@@ -34,13 +34,15 @@ router.get('/mis-apartados',   getMisApartados);
 // ── Compartidas ───────────────────────────────────────────────
 router.get('/:id',             getApartadoById);
 
-// ── Trabajador / Admin ────────────────────────────────────────
+// ── Monitoreo (trabajador y admin pueden CONSULTAR) ────────────
 router.get('/',                        getTodosApartados);
-router.post('/:id/confirmar-pago',     confirmarPagoInicial);
-router.post('/:id/abono',              registrarAbono);
-router.patch('/:id/cancelar',          cancelarApartado);
-router.patch('/:id/advertencia',       marcarAdvertencia);
-router.patch('/:id/archivar',          archivarApartado);
+
+// ── Acciones EXCLUSIVAS del trabajador (el admin solo monitorea) ──
+router.post('/:id/confirmar-pago',     requireTrabajador, confirmarPagoInicial);
+router.post('/:id/abono',              requireTrabajador, registrarAbono);
+router.patch('/:id/cancelar',          requireTrabajador, cancelarApartado);
+router.patch('/:id/advertencia',       requireTrabajador, marcarAdvertencia);
+router.patch('/:id/archivar',          requireTrabajador, archivarApartado);
 
 // ── Pagos (abono inicial) ─────────────────────────────────────
 router.post('/pago/mercadopago',            crearPreferenciaMP_Apartado);
@@ -50,7 +52,7 @@ router.post('/:id/comprobante',             uploadSingleImage, handleUploadError
 
 // ── Abonos siguientes (cliente solicita, trabajador confirma) ─
 router.post('/:id/solicitar-abono',         uploadSingleImage, handleUploadError, solicitarAbono);
-router.post('/:id/confirmar-abono',         confirmarAbonoPendiente);
+router.post('/:id/confirmar-abono',         requireTrabajador, confirmarAbonoPendiente);
 router.post('/pago/mercadopago/abono',      crearPreferenciaMP_AbonoSig);
 router.post('/pago/paypal/abono/crear',     crearOrdenPayPal_AbonoSig);
 router.post('/pago/paypal/abono/capturar',  capturarPayPal_AbonoSig);

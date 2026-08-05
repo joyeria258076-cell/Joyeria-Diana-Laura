@@ -1,0 +1,34 @@
+/* Ruta: Frontend/src/screens/admin/AdminMonitoreoOperacionScreen.css */
+
+.mop-page { max-width: 1080px; margin: 0 auto; padding: 28px 20px 60px; }
+.mop-header h1 { font-family: 'Playfair Display', serif; font-size: 1.7rem; margin: 0 0 6px; }
+.mop-sub { color: rgba(255,255,255,0.55); margin: 0 0 22px; max-width: 620px; }
+
+.mop-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+.mop-tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 20px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.15);
+  background: transparent; color: rgba(255,255,255,0.6); font-size: 0.85rem; cursor: pointer;
+}
+.mop-tab.activo { background: var(--rose, #d4607e); color: #1a0a10; border-color: transparent; font-weight: 700; }
+
+.mop-vacio { text-align: center; padding: 50px 20px; color: rgba(255,255,255,0.4); }
+
+.mop-tabla-wrap { overflow-x: auto; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+.mop-tabla { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.mop-tabla th {
+  text-align: left; padding: 12px 16px; background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.5); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.mop-tabla td { padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+
+.mop-badge {
+  display: inline-block; font-size: 0.72rem; font-weight: 700; text-transform: capitalize;
+  padding: 4px 10px; border-radius: 50px; border: 1px solid;
+}
+.mop-sin-asignar { color: rgba(255,255,255,0.35); font-style: italic; }
+
+.mop-nota {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 18px; font-size: 0.78rem; color: rgba(255,255,255,0.4);
+}

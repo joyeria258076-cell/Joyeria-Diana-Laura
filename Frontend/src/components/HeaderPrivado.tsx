@@ -12,7 +12,7 @@ import {
     AiOutlineInfoCircle, AiOutlineQuestionCircle, AiOutlineAim, AiOutlineAudit, AiOutlineShoppingCart,
     AiOutlineFlag, AiOutlineTeam, AiOutlineUser, AiOutlineBarChart,
     AiOutlineUsergroupAdd, AiOutlineCheckSquare, AiOutlineHome, AiOutlineShop, AiOutlineHeart,
-    AiOutlineBook, AiOutlineEnvironment, AiOutlineLogout, AiOutlineBell, AiOutlineDown,
+    AiOutlineBook, AiOutlineEnvironment, AiOutlineLogout, AiOutlineBell, AiOutlineDown, AiOutlineEye,
 } from "react-icons/ai";
 import "../styles/HeaderPrivado.css";
 
@@ -250,7 +250,7 @@ const HeaderPrivado: React.FC = () => {
                             <span className="nav-section-label">Operación</span>
                             <div className="nav-item-group">
                                 <button
-                                    className={`nav-item ${isActive("/pedidos-admin") || isActive("/apartados-admin") || isActive("/admin-trabajadores") || isActive("/admin-reportes") || isActive("/admin-segmentos") ? "active" : ""} dropdown-toggle`}
+                                    className={`nav-item ${isActive("/admin/monitoreo-operacion") || isActive("/admin-trabajadores") || isActive("/admin-reportes") || isActive("/admin-segmentos") ? "active" : ""} dropdown-toggle`}
                                     onClick={() => setIsOperacionMenuOpen(!isOperacionMenuOpen)}
                                 >
                                     <span className="nav-icon"><AiOutlineShoppingCart size={16} /></span> Operación de la tienda
@@ -258,14 +258,8 @@ const HeaderPrivado: React.FC = () => {
                                 </button>
                                 {isOperacionMenuOpen && (
                                     <div className="dropdown-menu">
-                                        <button className={`dropdown-item ${isActive("/pedidos-admin") ? "active" : ""}`} onClick={() => goTo("/pedidos-admin")}>
-                                            <span className="dropdown-icon"><AiOutlineShoppingCart size={14} /></span> Pedidos Tienda
-                                        </button>
-                                        <button className={`dropdown-item ${isActive("/apartados-admin") ? "active" : ""}`} onClick={() => goTo("/apartados-admin")}>
-                                            <span className="dropdown-icon"><AiOutlineFlag size={14} /></span> Apartados
-                                        </button>
-                                        <button className={`dropdown-item ${isActive("/personalizaciones-admin") ? "active" : ""}`} onClick={() => goTo("/personalizaciones-admin")}>
-                                            <span className="dropdown-icon"><AiOutlineEdit size={14} /></span> Personalizaciones
+                                        <button className={`dropdown-item ${isActive("/admin/monitoreo-operacion") ? "active" : ""}`} onClick={() => goTo("/admin/monitoreo-operacion")}>
+                                            <span className="dropdown-icon"><AiOutlineEye size={14} /></span> Monitoreo (Pedidos y Apartados)
                                         </button>
                                         <button className={`dropdown-item ${isActive("/admin-trabajadores") ? "active" : ""}`} onClick={() => goTo("/admin-trabajadores")}>
                                             <span className="dropdown-icon"><AiOutlineTeam size={14} /></span> Personal
@@ -374,8 +368,10 @@ const HeaderPrivado: React.FC = () => {
                     )}
                     <div
                         className="user-profile-info"
-                        onClick={() => navigate(userRole === 'admin' ? "/admin-perfil" : userRole === 'trabajador' ? "/trabajador/perfil" : "/perfil")}
-                        style={{ cursor: 'pointer' }}
+                        // "Mi perfil" solo aplica al cliente — admin y trabajador no lo tienen
+                        // disponible (no es parte de su flujo de trabajo).
+                        onClick={userRole === 'cliente' ? () => navigate("/perfil") : undefined}
+                        style={{ cursor: userRole === 'cliente' ? 'pointer' : 'default' }}
                     >
                         <div className="user-avatar" style={{ position: 'relative', overflow: 'hidden' }}>
                             {user?.fotoPerfilUrl ? (

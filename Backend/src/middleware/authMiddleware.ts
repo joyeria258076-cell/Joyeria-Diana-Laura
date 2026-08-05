@@ -364,3 +364,17 @@ export const requireStaff = (req: AuthRequest, res: Response, next: NextFunction
     }
     next();
 };
+
+// El admin puede CONSULTAR pedidos/apartados (monitoreo), pero no ejecutar
+// acciones sobre ellos (tomar pedido, cambiar estado, confirmar pago, etc.)
+// — eso es trabajo exclusivo del trabajador.
+export const requireTrabajador = (req: AuthRequest, res: Response, next: NextFunction) => {
+    const userRole = req.user?.rol;
+    if (!userRole) {
+        return res.status(401).json({ success: false, message: 'Usuario no autenticado o sin rol definido.' });
+    }
+    if (userRole !== 'trabajador') {
+        return res.status(403).json({ success: false, message: 'Esta acción es exclusiva del personal trabajador.' });
+    }
+    next();
+};

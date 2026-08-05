@@ -12,7 +12,7 @@ import {
     subirComprobante, getEstadosPedidosCliente, validarCodigoEntrega,
     confirmarEntregaCodigo
 } from '../controllers/carrito/carritoController';
-import { authenticateToken } from '../middleware/authMiddleware';
+import { authenticateToken, requireTrabajador } from '../middleware/authMiddleware';
 import { uploadSingleImage, handleUploadError } from '../middleware/uploadMiddleware';
 import { pool } from '../config/database';
 import { VentaModel } from '../models/carritoModel';
@@ -63,8 +63,9 @@ router.post('/pedidos',                   crearPedido);
 router.get('/pedidos/mis',                getMisPedidos);
 router.get('/pedidos/mis-estados',        getEstadosPedidosCliente);
 // ✅ rutas de código ANTES de /:id para evitar conflictos
-router.post('/pedidos/validar-codigo',    validarCodigoEntrega);
-router.post('/pedidos/confirmar-entrega', confirmarEntregaCodigo);
+router.post('/pedidos/validar-codigo',    requireTrabajador, validarCodigoEntrega);
+router.post('/pedidos/confirmar-entrega', requireTrabajador, confirmarEntregaCodigo);
+// Consulta/monitoreo: accesible a trabajador y admin (getAllPedidos ya filtra por rol internamente)
 router.get('/pedidos',                    getAllPedidos);
 router.get('/pedidos/:id',                getPedidoById);
 
@@ -73,14 +74,15 @@ router.post('/pago/mercadopago',      crearPreferenciaMercadoPago);
 router.post('/pago/paypal/crear',     crearOrdenPayPal);
 router.post('/pago/paypal/capturar',  capturarPagoPayPal);
 
-// ── Gestión de pedidos (trabajador/admin) ─────────────────────
-router.patch('/pedidos/:id/tomar',                      tomarPedido);
-router.patch('/pedidos/:id/detalles',                   editarDetallesVenta);
-router.patch('/pedidos/:id/items/:item_id/cantidad',    editarCantidadItem);
-router.delete('/pedidos/:id/items/:item_id',            eliminarItemVenta);
+// ── Gestión de pedidos — acciones EXCLUSIVAS del trabajador (el admin solo monitorea) ──
+router.patch('/pedidos/:id/tomar',                      requireTrabajador, tomarPedido);
+router.patch('/pedidos/:id/detalles',                   requireTrabajador, editarDetallesVenta);
+router.patch('/pedidos/:id/items/:item_id/cantidad',    requireTrabajador, editarCantidadItem);
+router.delete('/pedidos/:id/items/:item_id',            requireTrabajador, eliminarItemVenta);
 router.get('/pedidos/:id/cliente',                      getClienteVenta);
-router.patch('/pedidos/:id/estado',                     actualizarEstadoPedido);
-router.post('/pedidos/:id/confirmar-pago-efectivo',     confirmarPagoEfectivo);
+router.patch('/pedidos/:id/estado',                     requireTrabajador, actualizarEstadoPedido);
+router.post('/pedidos/:id/confirmar-pago-efectivo',     requireTrabajador, confirmarPagoEfectivo);
+// subirComprobante: el CLIENTE sube su propio comprobante, no se restringe a trabajador.
 router.post('/pedidos/:id/comprobante', uploadSingleImage, handleUploadError, subirComprobante);
 
 export default router;
