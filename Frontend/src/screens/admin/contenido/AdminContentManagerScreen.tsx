@@ -54,6 +54,13 @@ const AdminContentManagerScreen: React.FC = () => {
             description: 'Administrar FAQ del sitio',
             path: '/admin-contenido/faq',
             icon: '❓'
+        },
+        {
+            id: 'zonas-entrega',
+            title: '📍 Zonas de Entrega',
+            description: 'Dar de alta o quitar ubicaciones de entrega del negocio',
+            path: '/admin-contenido/zonas-entrega',
+            icon: '📍'
         }
     ];
 

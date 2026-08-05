@@ -1555,6 +1555,21 @@ export const personalizacionAPI = {
 };
 
 // ==========================================
+// 📍 ZONAS DE ENTREGA API
+// ==========================================
+export const zonaEntregaAPI = {
+  getAll: async (todas: boolean = false) => {
+    return enhancedApi.get(`/zonas-entrega${todas ? '?todas=true' : ''}`);
+  },
+  crear: async (nombre: string) => {
+    return enhancedApi.post('/zonas-entrega', { nombre });
+  },
+  eliminar: async (id: number) => {
+    return enhancedApi.delete(`/zonas-entrega/${id}`);
+  },
+};
+
+// ==========================================
 // ❤️ FAVORITOS API
 // ==========================================
 export const favoritosAPI = {

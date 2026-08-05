@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { contentAPI } from "../../services/api";
-import { AiOutlineQuestionCircle, AiOutlineDown, AiOutlineMessage } from "react-icons/ai";
+import { AiOutlineQuestionCircle, AiOutlineDown, AiOutlineMessage, AiOutlineWhatsApp } from "react-icons/ai";
 import "./AyudaScreen.css";
 
 interface FAQ {
@@ -15,6 +15,7 @@ const Ayuda: React.FC = () => {
   const [faqs, setFaqs]       = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen]       = useState<number | null>(null);
+  const [whatsapp, setWhatsapp] = useState<string | null>(null);
 
   useEffect(() => {
     const cargar = async () => {
@@ -28,8 +29,20 @@ const Ayuda: React.FC = () => {
         setLoading(false);
       }
     };
+    const cargarInfo = async () => {
+      try {
+        const res = await contentAPI.getInfoEmpresa();
+        const numero = res?.data?.whatsapp;
+        if (numero) setWhatsapp(numero.replace(/\D/g, ''));
+      } catch { /* silently fallback */ }
+    };
     cargar();
+    cargarInfo();
   }, []);
+
+  const mensajeBot = encodeURIComponent(
+    'Hola, soy un cliente de Joyería Diana Laura y necesito ayuda 💎'
+  );
 
   const toggle = (id: number) => setOpen(prev => (prev === id ? null : id));
 
@@ -72,7 +85,22 @@ const Ayuda: React.FC = () => {
           <div className="support-card-icon"><AiOutlineMessage size={22} /></div>
           <h3>¿Aún tienes dudas?</h3>
           <p>Nuestro equipo de soporte está disponible para ti.</p>
-          <button className="btn-contact">Chat en Vivo</button>
+          {whatsapp ? (
+            <a
+              className="btn-contact"
+              href={`https://wa.me/${whatsapp}?text=${mensajeBot}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <AiOutlineWhatsApp size={16} style={{ marginRight: '0.4rem' }} />
+              Chatear por WhatsApp
+            </a>
+          ) : (
+            <button className="btn-contact" disabled>
+              <AiOutlineWhatsApp size={16} style={{ marginRight: '0.4rem' }} />
+              Chatear por WhatsApp
+            </button>
+          )}
           <p className="email-link">soporte@dianalaura.com</p>
         </section>
       </div>

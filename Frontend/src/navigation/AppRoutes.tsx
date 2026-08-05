@@ -41,6 +41,7 @@ import AdminPageContentInitialScreen from "../screens/admin/contenido/AdminPageC
 import AdminPageContentNoticiasScreen from "../screens/admin/contenido/AdminPageContentNoticiasScreen";
 import AdminContentInfoScreen from "../screens/admin/contenido/AdminContentInfoScreen";
 import AdminContentFAQScreen from "../screens/admin/contenido/AdminContentFAQScreen";
+import AdminContentZonasEntregaScreen from "../screens/admin/contenido/AdminContentZonasEntregaScreen";
 import AdminContentMisionScreen from "../screens/admin/contenido/AdminContentMisionScreen";
 import AdminPageManagementScreen from "../screens/admin/contenido/AdminPageManagementScreen";
 import AdminSectionManagementScreen from "../screens/admin/contenido/AdminSectionManagementScreen";
@@ -252,6 +253,7 @@ export default function AppRoutes() {
             <Route path="/admin-contenido/pagina-noticias"    element={<AdminPageContentNoticiasScreen />} />
             <Route path="/admin-contenido/info"               element={<AdminContentInfoScreen />} />
             <Route path="/admin-contenido/faq"                element={<AdminContentFAQScreen />} />
+            <Route path="/admin-contenido/zonas-entrega"       element={<AdminContentZonasEntregaScreen />} />
             <Route path="/admin-contenido/mision"             element={<AdminContentMisionScreen />} />
 
             {/* Rutas de inventario */}

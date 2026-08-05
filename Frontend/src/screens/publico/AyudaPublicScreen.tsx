@@ -16,6 +16,7 @@ const Ayuda: React.FC = () => {
   const [faqs, setFaqs]       = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen]       = useState<number | null>(null);
+  const [whatsapp, setWhatsapp] = useState<string | null>(null);
 
   useEffect(() => {
     const cargar = async () => {
@@ -26,8 +27,20 @@ const Ayuda: React.FC = () => {
       } catch { /* silently fallback */ }
       finally { setLoading(false); }
     };
+    const cargarInfo = async () => {
+      try {
+        const res = await contentAPI.getInfoEmpresa();
+        const numero = res?.data?.whatsapp;
+        if (numero) setWhatsapp(numero.replace(/\D/g, ''));
+      } catch { /* silently fallback */ }
+    };
     cargar();
+    cargarInfo();
   }, []);
+
+  const mensajeBot = encodeURIComponent(
+    'Hola, soy un cliente de Joyería Diana Laura y necesito ayuda 💎'
+  );
 
   const toggle = (id: number) => setOpen(prev => (prev === id ? null : id));
 
@@ -82,14 +95,26 @@ const Ayuda: React.FC = () => {
             <h3>¿Aún tienes dudas?</h3>
             <p>Nuestro equipo especializado está disponible para ayudarte en todo momento.</p>
             <div className="support-divider" />
-            <button className="btn-contact">
-              <i className="fas fa-comments" style={{ marginRight: '0.6rem' }} />
-              Chat en Vivo
-            </button>
+            {whatsapp ? (
+              <a
+                className="btn-contact"
+                href={`https://wa.me/${whatsapp}?text=${mensajeBot}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i className="fab fa-whatsapp" style={{ marginRight: '0.6rem' }} />
+                Chatear por WhatsApp
+              </a>
+            ) : (
+              <button className="btn-contact" disabled>
+                <i className="fab fa-whatsapp" style={{ marginRight: '0.6rem' }} />
+                Chatear por WhatsApp
+              </button>
+            )}
             <p className="email-link">soporte@dianalaura.com</p>
             <p className="support-status">
               <span className="status-dot" />
-              En línea ahora
+              Respuesta automática al instante
             </p>
           </section>
 

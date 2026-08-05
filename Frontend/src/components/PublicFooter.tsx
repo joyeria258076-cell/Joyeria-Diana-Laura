@@ -1,9 +1,21 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { AiOutlinePhone, AiOutlineMail, AiOutlineEnvironment, AiOutlineInstagram, AiOutlineFacebook, AiOutlineTwitter } from "react-icons/ai";
+import { zonaEntregaAPI } from "../services/api";
 import "../styles/PublicFooter.css";
 
 const PublicFooter: React.FC = () => {
+  const [zonas, setZonas] = useState<string[]>([]);
+
+  useEffect(() => {
+    zonaEntregaAPI.getAll()
+      .then((res: any) => {
+        const arr = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+        setZonas(arr.map((z: any) => z.nombre));
+      })
+      .catch(() => { /* silently fallback */ });
+  }, []);
+
   return (
     <footer className="public-footer">
       <div className="container-lg">
@@ -54,6 +66,21 @@ const PublicFooter: React.FC = () => {
               </li>
             </ul>
           </div>
+
+          {/* Columna 3.5: Zonas de entrega */}
+          {zonas.length > 0 && (
+            <div className="footer-section">
+              <h5 className="footer-title">Zonas de Entrega</h5>
+              <ul className="footer-info">
+                {zonas.map(z => (
+                  <li key={z}>
+                    <AiOutlineEnvironment size={15} />
+                    <span>{z}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Columna 4: Redes sociales */}
           <div className="footer-section">
