@@ -1,6 +1,7 @@
 // Frontend/src/screens/admin/AdminInventarioScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Loader from '../../components/Loader';
 import {
   AiOutlinePlus, AiOutlineSearch, AiOutlineReload, AiOutlineEdit, AiOutlineDelete, AiOutlineInfo,
   AiOutlineInbox, AiOutlineWarning, AiOutlineCheckCircle, AiOutlineLeft, AiOutlineRight, AiOutlineStar,
@@ -181,10 +182,7 @@ const AdminInventarioScreen: React.FC = () => {
       </div>
 
       {loadingAll && listaActiva.length === 0 ? (
-        <div className="inv2-loading">
-          <div className="inv2-spinner" />
-          <p>Cargando inventario...</p>
-        </div>
+        <Loader texto="Cargando inventario..." />
       ) : productosPagina.length === 0 ? (
         <div className="inv2-empty">
           <AiOutlineInbox size={36} />

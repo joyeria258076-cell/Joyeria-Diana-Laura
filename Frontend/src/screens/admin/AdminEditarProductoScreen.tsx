@@ -1,6 +1,7 @@
 // Frontend/src/screens/admin/AdminEditarProductoScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Loader from '../../components/Loader';
 import {
   AiOutlineCheck, AiOutlineClose, AiOutlineUpload, AiOutlineDelete, AiOutlineEdit,
   AiOutlineFileText, AiOutlineLink, AiOutlineDollarCircle, AiOutlinePicture, AiOutlineInbox,
@@ -266,10 +267,7 @@ const AdminEditarProductoScreen: React.FC = () => {
 
   if (loadingData) {
     return (
-      <div className="ep3-loading">
-        <div className="ep3-spinner" />
-        <p>Cargando producto...</p>
-      </div>
+      <Loader texto="Cargando producto..." />
     );
   }
 

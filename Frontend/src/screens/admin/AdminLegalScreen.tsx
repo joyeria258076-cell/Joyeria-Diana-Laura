@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { contentAPI } from '../../services/api';
+import Loader from '../../components/Loader';
 import './AdminLegalScreen.css';
 
 type Doc = 'terminos' | 'privacidad';
@@ -108,7 +109,7 @@ export default function AdminLegalScreen() {
       {/* ── EDITOR ── */}
       <div className="alegal-card">
         {loading[tab] ? (
-          <div className="alegal-loading"><div className="alegal-spinner" /><p>Cargando documento…</p></div>
+          <Loader texto="Cargando documento…" />
         ) : preview ? (
           <div className="alegal-preview">
             <h2 className="alegal-preview-title">{current.titulo}</h2>

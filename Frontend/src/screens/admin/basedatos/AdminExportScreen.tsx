@@ -1,6 +1,7 @@
 // Frontend/src/screens/admin/basedatos/AdminExportScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { exportAPI } from '../../../services/api';
+import Loader from '../../../components/Loader';
 import FilterBuilder from './components/FilterBuilder';
 import './styles/AdminExportScreen.css';
 import {
@@ -158,10 +159,7 @@ const AdminExportScreen: React.FC = () => {
                   </div>
                 </>
               ) : (
-                <div className="loading-metadata">
-                  <div className="spinner-large"></div>
-                  <p>Cargando estructura...</p>
-                </div>
+                <Loader texto="Cargando estructura..." />
               )}
             </div>
           )}

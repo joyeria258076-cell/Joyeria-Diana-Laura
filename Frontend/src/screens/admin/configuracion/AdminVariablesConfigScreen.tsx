@@ -1,6 +1,7 @@
 // Frontend/src/screens/admin/configuracion/AdminVariablesConfigScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Loader from '../../../components/Loader';
 import {
   AiOutlineSave, AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineSetting,
   AiOutlineDollarCircle, AiOutlineShoppingCart, AiOutlineInbox, AiOutlineBarChart,
@@ -301,10 +302,7 @@ const AdminVariablesConfigScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="variables-loading">
-        <div className="spinner"></div>
-        <p>Cargando configuración...</p>
-      </div>
+      <Loader texto="Cargando configuración..." />
     );
   }
 

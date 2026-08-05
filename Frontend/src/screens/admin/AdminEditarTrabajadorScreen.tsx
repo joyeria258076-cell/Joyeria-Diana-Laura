@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { workersAPI } from '../../services/api';
+import Loader from '../../components/Loader';
 import { AiOutlineEdit } from 'react-icons/ai';
 import './AdminEditarTrabajadorScreen.css';
 
@@ -88,10 +89,7 @@ const AdminEditarTrabajadorScreen = () => {
     if (loading) {
         return (
             <div className="admin-edit-wrap">
-                <div className="at-state">
-                    <div className="at-spinner"><div className="at-ring"/><div className="at-ring at-ring--2"/></div>
-                    <p>Cargando información...</p>
-                </div>
+                <Loader texto="Cargando información..." />
             </div>
         );
     }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PublicHeader from '../../components/PublicHeader';
+import Loader from '../../components/Loader';
 import PublicFooter from '../../components/PublicFooter';
 import { contentAPI } from '../../services/api';
 import './LegalScreen.css';
@@ -200,10 +201,7 @@ const LegalScreen: React.FC = () => {
         {/* Contenido */}
         <div className="legal-content-wrap">
           {loading ? (
-            <div className="legal-loading">
-              <div className="legal-spinner" />
-              <p>Cargando documento...</p>
-            </div>
+            <Loader texto="Cargando documento..." />
           ) : sinContenido ? (
             <article className="legal-article legal-article--empty">
               <div className="legal-empty">

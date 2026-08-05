@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { workersAPI } from '../../services/api';
+import Loader from '../../components/Loader';
 import { useAuth } from '../../contexts/AuthContext';
 import './AdminTrabajadoresScreen.css';
 
@@ -166,10 +167,7 @@ const AdminTrabajadoresScreen: React.FC = () => {
         {/* ── CONTENIDO: grid de perfiles ── */}
         <div className="at-content">
           {loading ? (
-            <div className="at-state">
-              <div className="at-spinner"><div className="at-ring"/><div className="at-ring at-ring--2"/></div>
-              <p>Cargando personal…</p>
-            </div>
+            <Loader texto="Cargando personal…" />
           ) : filtrados.length === 0 ? (
             <div className="at-state">
               <div className="at-state-icon-wrap">

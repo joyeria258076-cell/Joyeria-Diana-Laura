@@ -1,6 +1,7 @@
 // Ruta: Frontend/src/screens/admin/basedatos/AdminBackupsScreen.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
+import Loader from '../../../components/Loader';
 import './styles/AdminBackupsScreen.css';
 import { backupsService, Backup, SchedulerConfig, SchedulerStatus } from '../../../services/backupsService';
 import {
@@ -427,9 +428,7 @@ const AdminBackupsScreen: React.FC = () => {
                         )}
 
                         {isLoadingScheduler ? (
-                            <div style={{ padding: '1rem', textAlign: 'center', color: '#ECB2C3' }}>
-                                <span className="spinner-small"></span> Cargando configuración...
-                            </div>
+                            <Loader tamano="sm" texto="Cargando configuración..." />
                         ) : (
                             <>
                                 {/* Interruptor maestro, destacado */}
@@ -524,9 +523,7 @@ const AdminBackupsScreen: React.FC = () => {
                     <div className="bk2-tabpage">
                     <h2 className="bk2-section-title">Bitácora de auditoría</h2>
                     {isLoading ? (
-                        <div style={{ padding: '3rem', textAlign: 'center', color: '#ECB2C3' }}>
-                            <span className="spinner-small"></span> Cargando registros...
-                        </div>
+                        <Loader texto="Cargando registros..." />
                     ) : backups.length > 0 ? (
                         <div className="bk3-log-grid">
                             {backups.map((backup) => (

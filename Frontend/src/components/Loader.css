@@ -1,0 +1,51 @@
+/* Ruta: Frontend/src/components/Loader.css */
+
+.dl-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 40px 20px;
+}
+
+.dl-loader-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 28px;
+}
+
+.dl-loader-sm .dl-loader-bars { height: 18px; gap: 4px; }
+.dl-loader-lg .dl-loader-bars { height: 38px; gap: 6px; }
+
+.dl-loader-bars span {
+  width: 4px;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--rose, #d4607e);
+  animation: dlBarPulse 1s ease-in-out infinite;
+}
+
+.dl-loader-sm .dl-loader-bars span { width: 3px; }
+.dl-loader-lg .dl-loader-bars span { width: 5px; }
+
+.dl-loader-bars span:nth-child(2) { animation-delay: .12s; }
+.dl-loader-bars span:nth-child(3) { animation-delay: .24s; }
+.dl-loader-bars span:nth-child(4) { animation-delay: .36s; }
+
+@keyframes dlBarPulse {
+  0%, 100% { transform: scaleY(.35); opacity: .4; }
+  50%      { transform: scaleY(1);   opacity: 1;  }
+}
+
+.dl-loader-texto {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  color: var(--text-muted, rgba(255,255,255,0.6));
+  margin: 0;
+  letter-spacing: .04em;
+  text-align: center;
+}
+
+.dl-loader-sm .dl-loader-texto { font-size: 0.85rem; }

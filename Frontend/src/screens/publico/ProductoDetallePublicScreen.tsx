@@ -8,6 +8,7 @@ import {
 import { productsAPI, recomendacionAPI, resenasAPI, favoritosAPI } from '../../services/api';
 import { colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import { useCart } from '../../contexts/CartContext';
+import Loader from '../../components/Loader';
 import PublicHeader from '../../components/PublicHeader';
 import PublicFooter from '../../components/PublicFooter';
 import './ProductoDetallePublicScreen.css';
@@ -241,10 +242,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
         return (
             <div className="pdp-wrapper">
                 <PublicHeader />
-                <div className="pdp-loading">
-                    <div className="pdp-loading-spinner" />
-                    <p>Cargando producto...</p>
-                </div>
+                <Loader texto="Cargando producto..." />
                 <PublicFooter />
             </div>
         );

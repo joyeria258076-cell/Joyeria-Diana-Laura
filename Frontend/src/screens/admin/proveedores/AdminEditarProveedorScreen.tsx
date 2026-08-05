@@ -1,6 +1,7 @@
 // Frontend/src/screens/admin/proveedores/AdminEditarProveedorScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Loader from '../../../components/Loader';
 import {
   AiOutlineSave, AiOutlineClose, AiOutlineEdit, AiOutlineFileText, AiOutlinePhone,
   AiOutlineEnvironment, AiOutlineMail, AiOutlineGlobal, AiOutlineUser, AiOutlineIdcard,
@@ -154,10 +155,7 @@ const AdminEditarProveedorScreen: React.FC = () => {
 
   if (loadingData) {
     return (
-      <div className="ep2-loading">
-        <div className="ep2-spinner" />
-        <p>Cargando proveedor...</p>
-      </div>
+      <Loader texto="Cargando proveedor..." />
     );
   }
 

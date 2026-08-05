@@ -1,6 +1,7 @@
 // Frontend/src/screens/admin/AdminProductoDetalleScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Loader from '../../components/Loader';
 import {
   AiOutlineEdit, AiOutlineDelete, AiOutlineDollarCircle, AiOutlineTags, AiOutlineSetting,
   AiOutlineColumnWidth, AiOutlineCalendar, AiOutlineInbox, AiOutlineCheckCircle, AiOutlineCloseCircle,
@@ -97,10 +98,7 @@ const AdminProductoDetalleScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="pd3-loading">
-        <div className="pd3-spinner" />
-        <p>Cargando producto...</p>
-      </div>
+      <Loader texto="Cargando producto..." />
     );
   }
 

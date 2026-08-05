@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Loader from '../../components/Loader';
 import {
   AiOutlineFolderOpen, AiOutlineShopping, AiOutlineEdit, AiOutlineDelete, AiOutlineCheckCircle,
   AiOutlineStop, AiOutlinePlus, AiOutlineFolder, AiOutlineCloudUpload,
@@ -255,7 +256,7 @@ const AdminColeccionesScreen: React.FC = () => {
       {error && <div className="ac2-error-global">{error}</div>}
 
       {loading ? (
-        <div className="ac2-loading"><div className="ac2-spinner" /><p>Cargando...</p></div>
+        <Loader texto="Cargando..." />
       ) : colecciones.length === 0 ? (
         <div className="ac2-empty">
           <div className="ac2-empty-icon"><AiOutlineFolderOpen size={34} /></div>

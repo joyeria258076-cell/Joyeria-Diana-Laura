@@ -1,6 +1,7 @@
 //Frontend/src/screens/admin/contenido/AdminPageContentInitialScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { paginasAPI, seccionesAPI, contenidosAPI } from '../../../services/api';
+import Loader from '../../../components/Loader';
 import './AdminPageContentInitialScreen.css';
 
 interface Contenido {
@@ -248,7 +249,7 @@ const AdminPageContentInitialScreen: React.FC = () => {
 
   // RENDERIZADO
   if (loading) {
-    return <div className="initial-page-content-container"><div className="loading-spinner">Cargando...</div></div>;
+    return <div className="initial-page-content-container"><Loader texto="Cargando..." /></div>;
   }
 
   return (

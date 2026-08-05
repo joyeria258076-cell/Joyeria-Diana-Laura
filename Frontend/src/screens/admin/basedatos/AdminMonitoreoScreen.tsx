@@ -1,6 +1,7 @@
 // src/screens/admin/basedatos/AdminMonitoreoScreen.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import { metricsAPI } from '../../../services/metricsAPI';
+import Loader from '../../../components/Loader';
 import './styles/AdminMonitoreoScreen.css';
 import {
   AiOutlineDesktop, AiOutlineReload, AiOutlineWarning, AiOutlineBarChart,
@@ -225,7 +226,7 @@ const AdminMonitoreoScreen: React.FC = () => {
       {error && <div className="estado-error"><AiOutlineWarning size={14} /> {error}</div>}
 
       {cargando && !resumen ? (
-        <div className="estado-carga"><span className="spinner"/> Cargando métricas…</div>
+        <Loader texto="Cargando métricas…" />
       ) : resumen && (
         <div className="mon-ticker">
           {[

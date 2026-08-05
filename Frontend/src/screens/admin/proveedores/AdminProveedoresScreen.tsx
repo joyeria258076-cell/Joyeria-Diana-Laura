@@ -1,6 +1,7 @@
 // Frontend/src/screens/admin/proveedores/AdminProveedoresScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Loader from '../../../components/Loader';
 import {
   AiOutlinePlus, AiOutlineSearch, AiOutlineReload, AiOutlineEdit, AiOutlineDelete, AiOutlineInfo,
   AiOutlineMail, AiOutlinePhone, AiOutlineShop, AiOutlineIdcard, AiOutlineCheckCircle, AiOutlineStop,
@@ -197,10 +198,7 @@ const AdminProveedoresScreen: React.FC = () => {
 
       {/* Cuadrícula de tarjetas */}
       {loading ? (
-        <div className="pv-loading">
-          <div className="pv-spinner" />
-          <p>Cargando proveedores...</p>
-        </div>
+        <Loader texto="Cargando proveedores..." />
       ) : proveedoresFiltrados.length === 0 ? (
         <div className="pv-empty">
           <AiOutlineShop size={36} />

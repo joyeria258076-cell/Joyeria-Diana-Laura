@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { promocionesAPI } from '../../services/api';
+import Loader from '../../components/Loader';
 import {
   AiOutlinePlus, AiOutlineEdit, AiOutlineDelete, AiOutlineTag, AiOutlineClose, AiOutlineCheck,
   AiOutlinePercentage, AiOutlineGift, AiOutlineCar, AiOutlineDollarCircle, AiOutlineFire,
@@ -236,10 +237,7 @@ const AdminPromocionesScreen: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="ap3-loading">
-          <div className="ap3-spinner" />
-          <p>Cargando promociones...</p>
-        </div>
+        <Loader texto="Cargando promociones..." />
       ) : promosFiltradas.length === 0 ? (
         <div className="ap3-empty">
           <AiOutlineTag size={36} />
