@@ -26,6 +26,7 @@ interface Producto {
     permite_personalizacion?: boolean;
     precio_personalizacion?: number;
     ubicaciones_entrega?: string[];
+    galeria?: { id: number; url_imagen: string; orden: number }[];
 }
 
 interface Resena {
@@ -47,6 +48,7 @@ const ProductoDetalleScreen: React.FC = () => {
     const [similaresIA, setSimilaresIA] = useState<Producto[]>([]);         // Content-Based Filtering (coseno)
     const [loading, setLoading] = useState(true);
     const [cantidad, setCantidad] = useState(1);
+    const [imagenActiva, setImagenActiva] = useState<string | null>(null);
     const [agregando, setAgregando] = useState(false);
     const [exitoso, setExitoso] = useState(false);
     const [tabActiva, setTabActiva] = useState<'descripcion' | 'specs' | 'fabricacion'>('descripcion');
@@ -113,6 +115,7 @@ const ProductoDetalleScreen: React.FC = () => {
                 const prod: Producto = resp?.data;
                 if (!prod) { navigate('/catalogo'); return; }
                 setProducto(prod);
+                setImagenActiva(null);
 
                 setCalificacionForm(0);
                 setComentarioForm('');
@@ -279,7 +282,7 @@ const ProductoDetalleScreen: React.FC = () => {
                 <div className="pd-gallery">
                     <div className="pd-image-frame">
                         <img
-                            src={producto.imagen_principal || PLACEHOLDER}
+                            src={imagenActiva || producto.imagen_principal || PLACEHOLDER}
                             alt={producto.nombre}
                             className="pd-image-main"
                             onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
@@ -291,6 +294,27 @@ const ProductoDetalleScreen: React.FC = () => {
                         )}
                         <span className="pd-gallery-tag">Pieza Diana Laura</span>
                     </div>
+                    {!!producto.galeria?.length && (
+                        <div className="pd-thumbs">
+                            <button
+                                type="button"
+                                className={`pd-thumb ${!imagenActiva ? 'active' : ''}`}
+                                onClick={() => setImagenActiva(null)}
+                            >
+                                <img src={producto.imagen_principal || PLACEHOLDER} alt="" />
+                            </button>
+                            {producto.galeria.map(img => (
+                                <button
+                                    key={img.id}
+                                    type="button"
+                                    className={`pd-thumb ${imagenActiva === img.url_imagen ? 'active' : ''}`}
+                                    onClick={() => setImagenActiva(img.url_imagen)}
+                                >
+                                    <img src={img.url_imagen} alt="" />
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* INFO */}

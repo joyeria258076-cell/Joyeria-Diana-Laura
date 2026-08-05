@@ -56,6 +56,12 @@ const AdminEditarProductoScreen: React.FC = () => {
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [temporadas, setTemporadas] = useState<Temporada[]>([]);
   const [tiposProducto, setTiposProducto] = useState<TipoProducto[]>([]);
+  const [galeria, setGaleria] = useState<{ id: number; url_imagen: string; orden: number }[]>([]);
+  const [subiendoGaleria, setSubiendoGaleria] = useState(false);
+  const [mostrarNuevoTipo, setMostrarNuevoTipo] = useState(false);
+  const [nuevoTipoNombre, setNuevoTipoNombre] = useState('');
+  const [creandoTipo, setCreandoTipo] = useState(false);
+  const [materialOtro, setMaterialOtro] = useState('');
 
   const [ivaConfig, setIvaConfig] = useState<number>(16);
   const [margenConfig, setMargenConfig] = useState<number>(40);
@@ -123,6 +129,7 @@ const AdminEditarProductoScreen: React.FC = () => {
         });
 
         if (producto.imagen_principal) setImagePreview(producto.imagen_principal);
+        setGaleria(Array.isArray(producto.galeria) ? producto.galeria : []);
 
         const [categoriasRes, proveedoresRes, temporadasRes, tiposRes, configRes] = await Promise.all([
           productsAPI.getCategories(),
@@ -224,6 +231,56 @@ const AdminEditarProductoScreen: React.FC = () => {
     setFormData(prev => ({ ...prev, imagen_principal: '', imagen_public_id: undefined }));
   };
 
+  const handleAgregarImagenGaleria = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !id) return;
+    setSubiendoGaleria(true);
+    try {
+      const res = await uploadAPI.uploadProductImage(file, id, false);
+      if (res.success) {
+        setGaleria(prev => [...prev, { id: res.data.dbId, url_imagen: res.data.url, orden: prev.length }]);
+      } else {
+        setError(res.message || 'No se pudo subir la imagen');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'No se pudo subir la imagen');
+    } finally {
+      setSubiendoGaleria(false);
+    }
+  };
+
+  const handleEliminarImagenGaleria = async (imagenId: number) => {
+    if (!window.confirm('¿Quitar esta imagen de la galería?')) return;
+    try {
+      const res = await productsAPI.eliminarImagenProducto(imagenId);
+      if (res.success) setGaleria(prev => prev.filter(img => img.id !== imagenId));
+      else setError(res.message || 'No se pudo eliminar la imagen');
+    } catch (err: any) {
+      setError(err?.message || 'No se pudo eliminar la imagen');
+    }
+  };
+
+  const handleCrearTipo = async () => {
+    if (!nuevoTipoNombre.trim()) return;
+    setCreandoTipo(true);
+    try {
+      const res = await productsAPI.crearTipoProducto(nuevoTipoNombre.trim());
+      if (res.success) {
+        setTiposProducto(prev => [...prev, res.data]);
+        setFormData(prev => ({ ...prev, tipo_producto_id: res.data.id }));
+        setNuevoTipoNombre('');
+        setMostrarNuevoTipo(false);
+      } else {
+        setError(res.message || 'No se pudo crear el tipo de producto');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'No se pudo crear el tipo de producto');
+    } finally {
+      setCreandoTipo(false);
+    }
+  };
+
   const validateForm = (): boolean => {
     if (!formData.nombre.trim()) { setError('El nombre del producto es requerido'); return false; }
     if (!formData.categoria_id) { setError('Debe seleccionar una categoría'); return false; }
@@ -321,6 +378,28 @@ const AdminEditarProductoScreen: React.FC = () => {
                   )}
                 </div>
               </div>
+
+              <div className="ep3-galeria">
+                <div className="ep3-galeria-header">
+                  <span>Fotos adicionales (opcional, estilo Mercado Libre)</span>
+                  <label className="ep3-galeria-add">
+                    <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleAgregarImagenGaleria} disabled={subiendoGaleria} hidden />
+                    <AiOutlineUpload size={13} /> {subiendoGaleria ? 'Subiendo...' : 'Añadir foto'}
+                  </label>
+                </div>
+                {galeria.length > 0 && (
+                  <div className="ep3-galeria-grid">
+                    {galeria.map(img => (
+                      <div key={img.id} className="ep3-galeria-item">
+                        <img src={img.url_imagen} alt="" />
+                        <button type="button" onClick={() => handleEliminarImagenGaleria(img.id)}>
+                          <AiOutlineDelete size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -350,10 +429,30 @@ const AdminEditarProductoScreen: React.FC = () => {
                 </div>
                 <div className="ep3-field">
                   <label htmlFor="tipo_producto_id">Tipo de Producto</label>
-                  <select id="tipo_producto_id" name="tipo_producto_id" value={formData.tipo_producto_id || ''} onChange={handleInputChange}>
-                    <option value="">Seleccionar tipo</option>
-                    {tiposProducto.map(tipo => <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>)}
-                  </select>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <select id="tipo_producto_id" name="tipo_producto_id" value={formData.tipo_producto_id || ''} onChange={handleInputChange} style={{ flex: 1 }}>
+                      <option value="">Seleccionar tipo</option>
+                      {tiposProducto.map(tipo => <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>)}
+                    </select>
+                    <button type="button" onClick={() => setMostrarNuevoTipo(v => !v)} style={{ whiteSpace: 'nowrap', padding: '0 0.9rem', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.35)', borderRadius: 4, color: 'var(--color-rose-gold, #c9a84c)', fontSize: '0.8rem', cursor: 'pointer' }}>
+                      + Nuevo tipo
+                    </button>
+                  </div>
+                  {mostrarNuevoTipo && (
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.6rem' }}>
+                      <input
+                        type="text"
+                        value={nuevoTipoNombre}
+                        onChange={e => setNuevoTipoNombre(e.target.value)}
+                        placeholder="Ej: Bisutería, Recuerdos, Accesorios..."
+                        maxLength={60}
+                        style={{ flex: 1 }}
+                      />
+                      <button type="button" onClick={handleCrearTipo} disabled={creandoTipo || !nuevoTipoNombre.trim()}>
+                        {creandoTipo ? 'Creando...' : 'Guardar'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -385,16 +484,38 @@ const AdminEditarProductoScreen: React.FC = () => {
               <div className="ep3-row">
                 <div className="ep3-field">
                   <label htmlFor="material_principal">Material Principal</label>
-                  <select id="material_principal" name="material_principal" value={formData.material_principal} onChange={handleInputChange}>
-                    <option value="">Seleccionar material</option>
-                    <option value="Oro">Oro</option>
+                  <select
+                    id="material_principal"
+                    name="material_principal"
+                    value={['Plata','Plata ley .925','Chapa de oro','Laminado de oro','Baño en rodio','Acero/cuentas plásticas (bisutería)'].includes(formData.material_principal) ? formData.material_principal : (formData.material_principal ? 'Otro' : '')}
+                    onChange={e => {
+                      if (e.target.value === 'Otro') {
+                        setFormData(prev => ({ ...prev, material_principal: materialOtro }));
+                      } else {
+                        setMaterialOtro('');
+                        handleInputChange(e);
+                      }
+                    }}
+                  >
+                    <option value="">No aplica / sin material específico</option>
                     <option value="Plata">Plata</option>
-                    <option value="Platino">Platino</option>
-                    <option value="Acero">Acero Quirúrgico</option>
-                    <option value="Bronce">Bronce</option>
-                    <option value="Cobre">Cobre</option>
-                    <option value="Otras">Otras</option>
+                    <option value="Plata ley .925">Plata ley .925</option>
+                    <option value="Chapa de oro">Chapa de oro</option>
+                    <option value="Laminado de oro">Laminado de oro</option>
+                    <option value="Baño en rodio">Baño en rodio</option>
+                    <option value="Acero/cuentas plásticas (bisutería)">Acero/cuentas plásticas (bisutería)</option>
+                    <option value="Otro">Otro (especificar)...</option>
                   </select>
+                  {(!['', 'Plata','Plata ley .925','Chapa de oro','Laminado de oro','Baño en rodio','Acero/cuentas plásticas (bisutería)'].includes(formData.material_principal) || materialOtro) && (
+                    <input
+                      type="text"
+                      value={materialOtro || formData.material_principal}
+                      onChange={e => { setMaterialOtro(e.target.value); setFormData(prev => ({ ...prev, material_principal: e.target.value })); }}
+                      placeholder="Ej: Resina, madera, tela, cuero..."
+                      maxLength={60}
+                      style={{ marginTop: '0.5rem', width: '100%' }}
+                    />
+                  )}
                 </div>
                 <div className="ep3-field">
                   <label htmlFor="peso_gramos">Peso (gramos)</label>

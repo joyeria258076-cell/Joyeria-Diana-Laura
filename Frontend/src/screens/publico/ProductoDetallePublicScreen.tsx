@@ -42,6 +42,7 @@ interface Producto {
     permite_personalizacion?: boolean;
     precio_personalizacion?: number;
     ubicaciones_entrega?: string[];
+    galeria?: { id: number; url_imagen: string; orden: number }[];
 }
 
 interface Resena {
@@ -64,6 +65,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
     const { agregarAlCarrito } = useCart();
 
     const [producto, setProducto] = useState<Producto | null>(null);
+    const [imagenActiva, setImagenActiva] = useState<string | null>(null);
     const [relacionados, setRelacionados] = useState<Producto[]>([]);
     const [tePodrianGustar, setTePodrianGustar] = useState<Producto[]>([]);
     const [similaresIA, setSimilaresIA] = useState<Producto[]>([]);
@@ -115,6 +117,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
                 const prod: Producto = resp?.data;
                 if (!prod) { navigate('/catalogo-publico'); return; }
                 setProducto(prod);
+                setImagenActiva(null);
                 cargarResenas(prod.id);
 
                 if (logueado) {
@@ -324,7 +327,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
                 <section className="pdp-main">
                     <div className="pdp-gallery">
                         <div className="pdp-image-frame">
-                            <img src={producto.imagen_principal || placeholderPara(producto.id)} alt={producto.nombre}
+                            <img src={imagenActiva || producto.imagen_principal || placeholderPara(producto.id)} alt={producto.nombre}
                                 className="pdp-image-main"
                                 onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER; }} />
                             {producto.es_nuevo && <span className="pdp-badge pdp-badge-new">Nuevo</span>}
@@ -332,6 +335,18 @@ const ProductoDetallePublicScreen: React.FC = () => {
                             {producto.stock_actual === 0 && <div className="pdp-agotado-overlay">Agotado</div>}
                             <span className="pdp-gallery-tag">Pieza Diana Laura</span>
                         </div>
+                        {!!producto.galeria?.length && (
+                            <div className="pdp-thumbs">
+                                <button type="button" className={`pdp-thumb ${!imagenActiva ? 'active' : ''}`} onClick={() => setImagenActiva(null)}>
+                                    <img src={producto.imagen_principal || placeholderPara(producto.id)} alt="" />
+                                </button>
+                                {producto.galeria.map(img => (
+                                    <button key={img.id} type="button" className={`pdp-thumb ${imagenActiva === img.url_imagen ? 'active' : ''}`} onClick={() => setImagenActiva(img.url_imagen)}>
+                                        <img src={img.url_imagen} alt="" />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="pdp-info">

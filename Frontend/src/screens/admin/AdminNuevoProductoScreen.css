@@ -282,6 +282,65 @@
   text-align: right;
 }
 
+.np3-help {
+  text-align: left !important;
+  margin-top: 0.35rem;
+  line-height: 1.4;
+}
+
+.np3-input-otro {
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.np3-tipo-row {
+  display: flex;
+  gap: 0.5rem;
+}
+.np3-tipo-row select { flex: 1; }
+
+.np3-btn-nuevo-tipo {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  padding: 0 0.9rem;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  border-radius: 4px;
+  color: var(--color-rose-gold);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.np3-btn-nuevo-tipo:hover { background: rgba(201, 168, 76, 0.18); }
+
+.np3-nuevo-tipo-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+.np3-nuevo-tipo-form input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.6rem 0.8rem;
+  color: var(--color-text);
+  font-size: 0.85rem;
+}
+.np3-nuevo-tipo-form button {
+  padding: 0 1rem;
+  background: var(--color-rose-gold);
+  color: #1a0a10;
+  border: none;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.np3-nuevo-tipo-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+
 .np3-readonly {
   background: rgba(201, 168, 76, 0.08);
   border: 1px solid rgba(201, 168, 76, 0.3);

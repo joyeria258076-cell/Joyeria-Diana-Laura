@@ -575,6 +575,20 @@ export const productsAPI = {
     return enhancedApi.get(`/products/tipos-producto/${id}`);
   },
 
+  crearTipoProducto: async (nombre: string, descripcion?: string) => {
+    return enhancedApi.post('/products/tipos-producto', { nombre, descripcion });
+  },
+
+  // ========================================
+  // 🖼️ GALERÍA DE IMÁGENES ADICIONALES
+  // ========================================
+  getImagenesProducto: async (productoId: number | string) => {
+    return enhancedApi.get(`/products/${productoId}/imagenes`);
+  },
+  eliminarImagenProducto: async (imagenId: number) => {
+    return enhancedApi.delete(`/products/imagenes/${imagenId}`);
+  },
+
   // ========================================
   // ⚙️ CONFIGURACIÓN
   // ========================================

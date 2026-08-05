@@ -562,6 +562,9 @@ const CarritoScreen: React.FC = () => {
                                 <div className="carrito-form-group">
                                     <label>Dirección de envío <span className="carrito-requerido">*</span></label>
                                     <SelectorDireccion onChange={setDireccion} />
+                                    <div className="carrito-metodo-info">
+                                        <strong>Aviso:</strong> el envío a domicilio se realiza a través de un servicio de transporte externo (mensajería/transportista tercero), no por personal de la tienda.
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="carrito-metodo-info">

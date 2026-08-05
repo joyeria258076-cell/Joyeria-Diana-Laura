@@ -166,6 +166,28 @@
 
 .pdp-image-frame:hover .pdp-image-main { transform: scale(1.05); }
 
+.pdp-thumbs {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+.pdp-thumb {
+  width: 62px;
+  height: 62px;
+  padding: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.03);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.2s ease;
+}
+.pdp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pdp-thumb.active,
+.pdp-thumb:hover { border-color: var(--rose, #d4607e); }
+
 .pdp-badge {
   position: absolute;
   top: 1rem;

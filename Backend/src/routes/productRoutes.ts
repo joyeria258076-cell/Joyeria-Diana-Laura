@@ -20,6 +20,9 @@ import {
     getTemporadaById,
     getTiposProducto,
     getTipoProductoById,
+    crearTipoProducto,
+    getImagenesProducto,
+    eliminarImagenProducto,
     getConfiguracion,
     getConfiguracionByClave,
     getConfiguracionByCategoria,
@@ -62,6 +65,7 @@ router.get('/temporadas/:id', getTemporadaById); // Ver una temporada específic
 // --- RUTAS DE TIPOS DE PRODUCTO ---
 router.get('/tipos-producto', getTiposProducto); // Ver todos los tipos de producto
 router.get('/tipos-producto/:id', getTipoProductoById); // Ver un tipo específico
+router.post('/tipos-producto', authenticateToken, requireAdmin, crearTipoProducto); // Dar de alta un tipo nuevo (ej. Bisutería, Recuerdos)
 
 // --- RUTAS DE CONFIGURACIÓN ---
 router.get('/configuracion', getConfiguracion); // Ver toda la configuración
@@ -71,6 +75,10 @@ router.get('/configuracion/categoria/:categoria', getConfiguracionByCategoria); 
 // --- RUTAS DE RESEÑAS ---
 router.get('/:id/resenas', optionalAuth, getResenasProducto);   // Ver reseñas de un producto (+ si el usuario ya reseñó / puede reseñar)
 router.post('/:id/resenas', authenticateToken, crearResena);    // Crear/actualizar mi reseña de un producto
+
+// Galería de imágenes adicionales (estilo Mercado Libre)
+router.get('/:id/imagenes', getImagenesProducto);
+router.delete('/imagenes/:imagenId', authenticateToken, requireAdmin, eliminarImagenProducto);
 
 router.get('/:id', getProductById);              // Ver producto específico (ÚLTIMA ruta genérica)
 

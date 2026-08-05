@@ -53,6 +53,10 @@ const AdminNuevoProductoScreen: React.FC = () => {
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [temporadas, setTemporadas] = useState<Temporada[]>([]);
   const [tiposProducto, setTiposProducto] = useState<TipoProducto[]>([]);
+  const [mostrarNuevoTipo, setMostrarNuevoTipo] = useState(false);
+  const [nuevoTipoNombre, setNuevoTipoNombre] = useState('');
+  const [creandoTipo, setCreandoTipo] = useState(false);
+  const [materialOtro, setMaterialOtro] = useState('');
 
   const [ivaConfig, setIvaConfig] = useState<number>(16);
   const [margenConfig, setMargenConfig] = useState<number>(40);
@@ -184,6 +188,26 @@ const AdminNuevoProductoScreen: React.FC = () => {
     setSelectedFile(null);
     setImagePreview(null);
     setFormData(prev => ({ ...prev, imagen_principal: '', imagen_public_id: undefined }));
+  };
+
+  const handleCrearTipo = async () => {
+    if (!nuevoTipoNombre.trim()) return;
+    setCreandoTipo(true);
+    try {
+      const res = await productsAPI.crearTipoProducto(nuevoTipoNombre.trim());
+      if (res.success) {
+        setTiposProducto(prev => [...prev, res.data]);
+        setFormData(prev => ({ ...prev, tipo_producto_id: res.data.id }));
+        setNuevoTipoNombre('');
+        setMostrarNuevoTipo(false);
+      } else {
+        setError(res.message || 'No se pudo crear el tipo de producto');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'No se pudo crear el tipo de producto');
+    } finally {
+      setCreandoTipo(false);
+    }
   };
 
   const validateForm = (): boolean => {
@@ -331,20 +355,44 @@ const AdminNuevoProductoScreen: React.FC = () => {
                   </select>
                 </div>
                 <div className="np3-field">
-                  <label htmlFor="material_principal">Material Principal <span className="np3-req">*</span></label>
-                  <select id="material_principal" name="material_principal" value={formData.material_principal} onChange={handleInputChange}>
-                    <option value="">Seleccionar material</option>
+                  <label htmlFor="material_principal">Material Principal</label>
+                  <select
+                    id="material_principal"
+                    name="material_principal"
+                    value={['Plata','Plata ley .925','Chapa de oro','Laminado de oro','Baño en rodio','Acero/cuentas plásticas (bisutería)'].includes(formData.material_principal) ? formData.material_principal : (formData.material_principal ? 'Otro' : '')}
+                    onChange={e => {
+                      if (e.target.value === 'Otro') {
+                        setFormData(prev => ({ ...prev, material_principal: materialOtro }));
+                      } else {
+                        setMaterialOtro('');
+                        handleInputChange(e);
+                      }
+                    }}
+                  >
+                    <option value="">No aplica / sin material específico</option>
                     <option value="Plata">Plata</option>
                     <option value="Plata ley .925">Plata ley .925</option>
                     <option value="Chapa de oro">Chapa de oro</option>
                     <option value="Laminado de oro">Laminado de oro</option>
                     <option value="Baño en rodio">Baño en rodio</option>
                     <option value="Acero/cuentas plásticas (bisutería)">Acero/cuentas plásticas (bisutería)</option>
+                    <option value="Otro">Otro (especificar)...</option>
                   </select>
+                  {(!['', 'Plata','Plata ley .925','Chapa de oro','Laminado de oro','Baño en rodio','Acero/cuentas plásticas (bisutería)'].includes(formData.material_principal) || materialOtro) && (
+                    <input
+                      type="text"
+                      className="np3-input-otro"
+                      value={materialOtro || formData.material_principal}
+                      onChange={e => { setMaterialOtro(e.target.value); setFormData(prev => ({ ...prev, material_principal: e.target.value })); }}
+                      placeholder="Ej: Resina, madera, tela, cuero..."
+                      maxLength={60}
+                    />
+                  )}
+                  <small className="np3-help">Deja "No aplica" para productos que no son joyería con material (bisutería, recuerdos, objetos).</small>
                 </div>
                 <div className="np3-field">
-                  <label htmlFor="peso_gramos">Peso (gramos) <span className="np3-req">*</span></label>
-                  <input type="number" id="peso_gramos" name="peso_gramos" step="0.01" min="0" value={formData.peso_gramos || ''} onChange={handleInputChange} placeholder="Ej: 2.5" />
+                  <label htmlFor="peso_gramos">Peso (gramos)</label>
+                  <input type="number" id="peso_gramos" name="peso_gramos" step="0.01" min="0" value={formData.peso_gramos || ''} onChange={handleInputChange} placeholder="Opcional" />
                 </div>
               </div>
 
@@ -380,10 +428,30 @@ const AdminNuevoProductoScreen: React.FC = () => {
 
               <div className="np3-field">
                 <label htmlFor="tipo_producto_id">Tipo de Producto</label>
-                <select id="tipo_producto_id" name="tipo_producto_id" value={formData.tipo_producto_id || ''} onChange={handleInputChange}>
-                  <option value="">Seleccionar tipo</option>
-                  {tiposProducto.map(tipo => <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>)}
-                </select>
+                <div className="np3-tipo-row">
+                  <select id="tipo_producto_id" name="tipo_producto_id" value={formData.tipo_producto_id || ''} onChange={handleInputChange}>
+                    <option value="">Seleccionar tipo</option>
+                    {tiposProducto.map(tipo => <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>)}
+                  </select>
+                  <button type="button" className="np3-btn-nuevo-tipo" onClick={() => setMostrarNuevoTipo(v => !v)}>
+                    <AiOutlinePlus size={14} /> Nuevo tipo
+                  </button>
+                </div>
+                {mostrarNuevoTipo && (
+                  <div className="np3-nuevo-tipo-form">
+                    <input
+                      type="text"
+                      value={nuevoTipoNombre}
+                      onChange={e => setNuevoTipoNombre(e.target.value)}
+                      placeholder="Ej: Bisutería, Recuerdos, Accesorios..."
+                      maxLength={60}
+                    />
+                    <button type="button" onClick={handleCrearTipo} disabled={creandoTipo || !nuevoTipoNombre.trim()}>
+                      {creandoTipo ? 'Creando...' : 'Guardar'}
+                    </button>
+                  </div>
+                )}
+                <small className="np3-help">¿No encuentras el tipo adecuado (bisutería, recuerdos, etc.)? Créalo aquí mismo.</small>
               </div>
             </div>
           </div>

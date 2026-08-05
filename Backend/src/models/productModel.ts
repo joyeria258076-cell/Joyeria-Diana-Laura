@@ -479,10 +479,20 @@ export const TipoProductoModel = {
 
     getById: async (id: number) => {
         const result = await pool.query(
-            `SELECT id, nombre, descripcion, activo, creado_por, fecha_creacion 
-             FROM tipos_producto 
+            `SELECT id, nombre, descripcion, activo, creado_por, fecha_creacion
+             FROM tipos_producto
              WHERE id = $1`,
             [id]
+        );
+        return result.rows[0];
+    },
+
+    create: async (nombre: string, descripcion: string | null, creado_por: number) => {
+        const result = await pool.query(
+            `INSERT INTO tipos_producto (nombre, descripcion, activo, creado_por, fecha_creacion)
+             VALUES ($1, $2, true, $3, CURRENT_TIMESTAMP)
+             RETURNING id, nombre, descripcion, activo, creado_por, fecha_creacion`,
+            [nombre, descripcion, creado_por]
         );
         return result.rows[0];
     }

@@ -205,7 +205,12 @@ export const getProductById = async (req: Request, res: Response) => {
                 c.nombre as categoria_nombre,
                 pr2.nombre as proveedor_nombre,
                 t.nombre as temporada_nombre,
-                ${PROMO_SUBQUERY}
+                ${PROMO_SUBQUERY},
+                (
+                    SELECT json_agg(json_build_object('id', ip.id, 'url_imagen', ip.url_imagen, 'orden', ip.orden) ORDER BY ip.orden ASC, ip.id ASC)
+                    FROM imagenes_producto ip
+                    WHERE ip.producto_id = p.id AND ip.activo = true
+                ) AS galeria
             FROM productos p
             LEFT JOIN categorias c ON p.categoria_id = c.id
             LEFT JOIN proveedores pr2 ON p.proveedor_id = pr2.id
@@ -218,6 +223,39 @@ export const getProductById = async (req: Request, res: Response) => {
         }
 
         res.status(200).json({ success: true, data: result.rows[0] });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Galeria de imagenes adicionales (estilo Mercado Libre) — la imagen principal
+// del producto (productos.imagen_principal) es independiente de esta galeria.
+export const getImagenesProducto = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            `SELECT id, url_imagen, orden FROM imagenes_producto
+             WHERE producto_id = $1 AND activo = true
+             ORDER BY orden ASC, id ASC`,
+            [Number.parseInt(id)]
+        );
+        res.status(200).json({ success: true, data: result.rows });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const eliminarImagenProducto = async (req: Request, res: Response) => {
+    try {
+        const { imagenId } = req.params;
+        const result = await pool.query(
+            `UPDATE imagenes_producto SET activo = false WHERE id = $1 RETURNING id`,
+            [Number.parseInt(imagenId)]
+        );
+        if (!result.rows.length) {
+            return res.status(404).json({ success: false, message: 'Imagen no encontrada' });
+        }
+        res.status(200).json({ success: true, message: 'Imagen eliminada' });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -430,12 +468,28 @@ export const getTipoProductoById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const tipo = await TipoProductoModel.getById(Number.parseInt(id));
-        
+
         if (!tipo) {
             return res.status(404).json({ success: false, message: 'Tipo de producto no encontrado' });
         }
-        
+
         res.status(200).json({ success: true, data: tipo });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Permite dar de alta tipos de producto nuevos (ej. "Bisutería", "Recuerdos")
+// para productos que no encajan en las categorías de joyería con material.
+export const crearTipoProducto = async (req: Request, res: Response) => {
+    try {
+        const { nombre, descripcion } = req.body;
+        if (!nombre || !nombre.trim()) {
+            return res.status(400).json({ success: false, message: 'El nombre es obligatorio' });
+        }
+        const userId = (req as any).user?.userId || (req as any).user?.id || null;
+        const tipo = await TipoProductoModel.create(nombre.trim(), descripcion?.trim() || null, userId);
+        res.status(201).json({ success: true, data: tipo });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }

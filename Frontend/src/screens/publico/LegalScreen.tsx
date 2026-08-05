@@ -29,7 +29,9 @@ Los presentes Términos y Condiciones regulan el uso de los servicios digitales 
 
 4. Entregas
 • Las entregas se realizan en puntos de encuentro dentro de Huejutla o mediante servicio a domicilio (con un costo adicional de $50 a $80 pesos, según zona).
+• El servicio de entrega a domicilio se presta a través de transportistas externos (mensajería, combis u otro medio de transporte de terceros), no por personal propio de la Empresa.
 • Para envíos fuera de la región de la Huasteca, se utilizarán servicios de mensajería; los costos correrán a cargo del Cliente.
+• La Empresa coordina la entrega, pero el traslado físico del pedido corre a cargo del transportista tercero contratado para ese servicio.
 
 5. Cambios y Devoluciones
 • Se aceptan cambios únicamente por defectos de fabricación o daño en la entrega.
