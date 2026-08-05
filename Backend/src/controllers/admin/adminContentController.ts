@@ -410,9 +410,14 @@ export const adminContentController = {
   getPromocionesActivas: async (req: Request, res: Response) => {
     try {
       const now = new Date().toISOString();
+      // Solo promociones generales (sin restriccion de cliente/segmento) se muestran
+      // publicamente. Las creadas desde el panel de Segmentos tienen filas en
+      // cupones_clientes y son privadas: se aplican solo en el carrito de esos
+      // clientes, no se anuncian en el banner publico.
       const result = await pool.query(`
-        SELECT * FROM promociones
+        SELECT * FROM promociones pr
         WHERE activo = true AND fecha_inicio <= $1 AND fecha_fin >= $1
+          AND NOT EXISTS (SELECT 1 FROM cupones_clientes cc WHERE cc.promocion_id = pr.id)
         ORDER BY valor_descuento DESC
       `, [now]);
       res.json({ success: true, data: result.rows });

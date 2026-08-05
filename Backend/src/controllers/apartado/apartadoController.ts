@@ -1011,7 +1011,10 @@ export const crearPreferenciaMP_Apartado = async (req: AuthRequest, res: Respons
             },
             statement_descriptor: 'Joyeria Diana Laura'
         };
-        if (!isLocal) body.notification_url = `${process.env.BACKEND_URL}/api/apartados/webhook/mercadopago`;
+        if (!isLocal) {
+            body.auto_return = 'approved';
+            body.notification_url = `${process.env.BACKEND_URL}/api/apartados/webhook/mercadopago`;
+        }
 
         const mpRes  = await fetch('https://api.mercadopago.com/checkout/preferences', {
             method: 'POST',
@@ -1389,7 +1392,10 @@ export const crearPreferenciaMP_AbonoSig = async (req: AuthRequest, res: Respons
             },
             statement_descriptor: 'Joyeria Diana Laura'
         };
-        if (!isLocal) body.notification_url = `${process.env.BACKEND_URL}/api/apartados/webhook/mercadopago`;
+        if (!isLocal) {
+            body.auto_return = 'approved';
+            body.notification_url = `${process.env.BACKEND_URL}/api/apartados/webhook/mercadopago`;
+        }
 
         const mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
             method: 'POST',

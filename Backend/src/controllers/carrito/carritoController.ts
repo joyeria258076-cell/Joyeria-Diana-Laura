@@ -124,7 +124,7 @@ function construirHtmlNotificacionEstado(venta: any, estado: string): string {
             </table>` : ''}
 
             <div style="text-align:center; margin:0 0 8px;">
-              <a href="https://joyeria-diana-laura.vercel.app/mis-pedidos" style="display:inline-block; background:linear-gradient(135deg,${meta.color} 0%,${meta.colorClaro} 100%); color:#1a0a10; text-decoration:none; font-weight:700; font-size:12.5px; letter-spacing:1.5px; padding:15px 40px; border-radius:50px; box-shadow:0 10px 26px ${meta.color}45; font-family:'Segoe UI',Arial,sans-serif; text-transform:uppercase;">Ver mi pedido</a>
+              <a href="https://joyeria-diana-laura.vercel.app/pedidos" style="display:inline-block; background:linear-gradient(135deg,${meta.color} 0%,${meta.colorClaro} 100%); color:#1a0a10; text-decoration:none; font-weight:700; font-size:12.5px; letter-spacing:1.5px; padding:15px 40px; border-radius:50px; box-shadow:0 10px 26px ${meta.color}45; font-family:'Segoe UI',Arial,sans-serif; text-transform:uppercase;">Ver mi pedido</a>
             </div>
           </td>
         </tr>
@@ -409,6 +409,15 @@ export const crearPedido = async (req: Request, res: Response) => {
         const metodoPago = await VentaModel.getMetodoPagoById(Number.parseInt(metodo_pago_id));
         if (!metodoPago)
             return res.status(400).json({ success: false, message: 'Método de pago inválido' });
+        // "efectivo" es exclusivo de recoger en tienda — no tiene sentido con envío a
+        // domicilio. Se valida tambien aqui (ademas del filtro en el frontend) por si
+        // se llama a este endpoint directamente.
+        if (tipo_entrega === 'domicilio' && metodoPago.codigo === 'efectivo') {
+            return res.status(400).json({
+                success: false,
+                message: 'El pago en efectivo solo está disponible al recoger en tienda, no con envío a domicilio.'
+            });
+        }
 
         const productIds = items.map(i => i.producto_id);
         const prodsResult = await pool.query(
@@ -729,7 +738,7 @@ export const crearPreferenciaMercadoPago = async (req: Request, res: Response) =
         };
 
         if (!isLocal) {
-            //body.auto_return = 'approved';
+            body.auto_return = 'approved';
             body.notification_url = `${process.env.BACKEND_URL}/api/carrito/webhook/mercadopago`;
         }
 
