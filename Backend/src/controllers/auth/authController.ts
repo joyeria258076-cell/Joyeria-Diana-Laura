@@ -48,6 +48,7 @@ export const login = async (req: Request, res: Response) => {
     // verificado por Firebase) no traen captcha propio: solo se exige en el
     // intento real de login.
     if (password !== 'wrong_password_to_trigger_failure') {
+      console.log('🧩 captchaToken recibido:', typeof captchaToken, captchaToken ? `len=${captchaToken.length} inicio=${captchaToken.slice(0, 12)}...` : captchaToken);
       const captchaValido = await verifyRecaptcha(captchaToken);
       if (!captchaValido) {
         return res.status(400).json({ success: false, message: 'Verificación de seguridad fallida. Intenta de nuevo.' });
