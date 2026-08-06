@@ -14,6 +14,9 @@ export const verifyRecaptcha = async (token: string | undefined): Promise<boolea
             null,
             { params: { secret, response: token } }
         );
+        if (data.success !== true) {
+            console.error('reCAPTCHA rechazado por Google:', data['error-codes']);
+        }
         return data.success === true;
     } catch (error) {
         console.error('Error al verificar reCAPTCHA:', error);
