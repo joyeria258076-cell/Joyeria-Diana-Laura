@@ -23,6 +23,24 @@
          cero (esto era buena parte del "resource load delay" del LCP). -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+
+    <!-- Precarga la imagen de la primera diapositiva de respaldo del Inicio
+         (la que se pinta de inmediato mientras cargan los datos reales del
+         carrusel — ver InicioPublicScreen.tsx). El audit de Lighthouse
+         mostró que, aun con fetchPriority="high" en el <img>, el navegador
+         tardaba ~2.9s en EMPEZAR a descargarla porque nunca aparece en el
+         HTML inicial (SPA sin SSR): la descubre hasta que React la
+         renderiza. Este preload la hace descubrible desde ya, así que la
+         descarga arranca en paralelo mientras el JS todavía se procesa.
+         Costo: en el resto de rutas (login, admin, etc.) el navegador
+         precarga esta imagen sin usarla — aceptable frente al ahorro real
+         de ~2.9s de LCP en la página de mayor tráfico del sitio. -->
+    <link
+      rel="preload"
+      as="image"
+      fetchpriority="high"
+      href="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1400&q=85&fit=crop"
+    />
     <!-- Carga la hoja de fuentes sin bloquear el primer render: se pide
          con prioridad baja (media="print") y se activa en cuanto llega
          (onload). El <noscript> es el respaldo si JS está deshabilitado.
