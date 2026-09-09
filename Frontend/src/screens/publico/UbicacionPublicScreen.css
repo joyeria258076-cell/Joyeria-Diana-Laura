@@ -1,6 +1,6 @@
 /* UbicacionPublicScreen.css — Dark Luxury: Black, Rose & White */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+/* Fuentes Playfair Display / DM Sans cargadas globalmente en index.html */
 
 :root {
   --rose:          var(--color-rose-gold);

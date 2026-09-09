@@ -1,5 +1,5 @@
 // Frontend/src/navigation/AppRoutes.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import VisitorTracker from "../components/VisitorTracker";
@@ -7,7 +7,7 @@ import VisitorTracker from "../components/VisitorTracker";
 // LAYOUTS
 import { PrivateLayout } from "../components/PrivateLayout";
 
-// PANTALLAS PÚBLICAS (Visitantes)
+// PANTALLAS PÚBLICAS (Visitantes) — carga inmediata, son la puerta de entrada del sitio
 import InicioPublicScreen from "../screens/publico/InicioPublicScreen";
 import CatalogoPublicScreen from "../screens/publico/CatalogoPublicScreen";
 import NoticiasScreen from "../screens/publico/NoticiasScreen";
@@ -16,8 +16,9 @@ import ContactoPublicScreen from "../screens/publico/ContactoPublicScreen";
 import UbicacionPublicScreen from "../screens/publico/UbicacionPublicScreen";
 import AyudaPublicScreen from "../screens/publico/AyudaPublicScreen";
 import ProductoDetallePublicScreen from "../screens/publico/ProductoDetallePublicScreen";
+import LegalScreen from "../screens/publico/LegalScreen";
 
-// PANTALLAS DE AUTENTICACIÓN
+// PANTALLAS DE AUTENTICACIÓN — también carga inmediata
 import LoginScreen from "../screens/auth/LoginScreen";
 import RegistroScreen from "../screens/auth/RegistroScreen";
 import OlvideContraseniaScreen from "../screens/auth/OlvideContraseniaScreen";
@@ -27,92 +28,103 @@ import MFAVerifyScreen from "../screens/auth/MFAVerifyScreen";
 import WorkerActivacionScreen from "../screens/auth/WorkerActivacionScreen";
 import WorkerCodigoScreen from "../screens/auth/WorkerCodigoScreen";
 
-// PANTALLAS PRIVADAS (Solo con Login)
-import InicioScreen from "../screens/cliente/InicioScreen";
-import PerfilScreen from "../screens/cliente/PerfilScreen";
-import CatalogoScreen from '../screens/cliente/CatalogoScreen';
-import MFASetupScreen from "../screens/auth/MFASetupScreen";
-import SobreNosotros from "../screens/cliente/SobreNosotros";
-import Ubicacion from "../screens/cliente/UbicacionScreen";
-import Ayuda from "../screens/cliente/AyudaScreen";
-import ContactoScreen from "../screens/cliente/ContactoScreen";
-import ConfiguracionScreen from '../screens/general/ConfiguracionScreen';
-import AdminDashboardScreen from "../screens/admin/AdminDashboardScreen";
-import AdminContentManagerScreen from "../screens/admin/contenido/AdminContentManagerScreen";
-import AdminPageContentInitialScreen from "../screens/admin/contenido/AdminPageContentInitialScreen";
-import AdminPageContentNoticiasScreen from "../screens/admin/contenido/AdminPageContentNoticiasScreen";
-import AdminContentInfoScreen from "../screens/admin/contenido/AdminContentInfoScreen";
-import AdminContentFAQScreen from "../screens/admin/contenido/AdminContentFAQScreen";
-import AdminContentZonasEntregaScreen from "../screens/admin/contenido/AdminContentZonasEntregaScreen";
-import AdminPageEditorScreen from "../screens/admin/contenido/AdminPageEditorScreen";
-import AdminContentMisionScreen from "../screens/admin/contenido/AdminContentMisionScreen";
-import AdminPageManagementScreen from "../screens/admin/contenido/AdminPageManagementScreen";
-import AdminSectionManagementScreen from "../screens/admin/contenido/AdminSectionManagementScreen";
-import GestionPedidosScreen from "../screens/trabajador/GestionPedidosScreen";
-import GestionApartadosScreen from "../screens/trabajador/GestionApartadosScreen";
-import AdminEditarTrabajadorScreen from "../screens/admin/AdminEditarTrabajadorScreen";
-
-// INVENTARIO Y PRODUCTOS
-import AdminInventarioScreen from '../screens/admin/AdminInventarioScreen';
-import AdminNuevoProductoScreen from '../screens/admin/AdminNuevoProductoScreen';
-import AdminProductoDetalleScreen from "../screens/admin/AdminProductoDetalleScreen";
-import AdminEditarProductoScreen from "../screens/admin/AdminEditarProductoScreen";
-
-// PERSONAL Y REPORTES
-import AdminTrabajadoresScreen from "../screens/admin/AdminTrabajadoresScreen";
-import AdminAltaTrabajadorForm from "../screens/admin/AdminAltaTrabajadorForm";
-import AdminPerfilScreen from "../screens/admin/AdminPerfilScreen";
-import AdminReportesScreen from "../screens/admin/AdminReportesScreen";
-import DashboardTrabajadorScreen from "../screens/trabajador/DashboardTrabajadorScreen";
-import ActividadesTrabajadorScreen from "../screens/trabajador/ActividadesTrabajadorScreen";
-
-// CATEGORÍAS
-import AdminCategoriasScreen from "../screens/admin/AdminCategoriasScreen";
-import AdminPromocionesScreen from "../screens/admin/AdminPromocionesScreen";
-import AdminColeccionesScreen from "../screens/admin/AdminColeccionesScreen";
-
-// 📁 PANTALLAS DE BASE DE DATOS
-import AdminDatabaseScreen from "../screens/admin/basedatos/AdminDatabaseScreen";
-import AdminBackupsScreen from "../screens/admin/basedatos/AdminBackupsScreen";
-import AdminImportExportScreen from "../screens/admin/basedatos/AdminImportExportScreen";
-import AdminAutomationScreen from "../screens/admin/basedatos/AdminAutomationScreen";
-import AdminSimpleImportScreen from "../screens/admin/basedatos/AdminSimpleImportScreen";
-import AdminExportScreen from "../screens/admin/basedatos/AdminExportScreen";
-import AdminBulkUpdateScreen from "../screens/admin/basedatos/AdminBulkUpdateScreen";
-
-// ✅ NUEVO: Pantalla de monitoreo
-import AdminMonitoreoScreen from "../screens/admin/basedatos/AdminMonitoreoScreen";
-
-// 📁 PANTALLAS DE CONFIGURACIÓN
-import AdminVariablesConfigScreen from "../screens/admin/configuracion/AdminVariablesConfigScreen";
-
-// 📁 PANTALLAS DE PROVEEDORES
-import AdminProveedoresScreen from "../screens/admin/proveedores/AdminProveedoresScreen";
-import AdminNuevoProveedorScreen from "../screens/admin/proveedores/AdminNuevoProveedorScreen";
-import AdminEditarProveedorScreen from "../screens/admin/proveedores/AdminEditarProveedorScreen";
-import AdminProveedorDetalleScreen from "../screens/admin/proveedores/AdminProveedorDetalleScreen";
-
-import AdminPrediccionScreen from "../screens/admin/AdminPrediccionScreen";
-import AdminSegmentosScreen from "../screens/admin/AdminSegmentosScreen";
-import AdminLegalScreen from "../screens/admin/AdminLegalScreen";
-import AdminPersonalizacionVisualScreen from "../screens/admin/AdminPersonalizacionVisualScreen";
-import LegalScreen from "../screens/publico/LegalScreen";
-
-// PANTALLAS DE ERROR
+// PANTALLAS DE ERROR — livianas, carga inmediata
 import NotFoundScreen from '../screens/general/NotFoundScreen';
 import ForbiddenScreen from '../screens/general/ForbiddenScreen';
 import ServerErrorScreen from '../screens/general/ServerErrorScreen';
-import ClientePedidosScreen from "../screens/cliente/ClientePedidosScreen";
-import CarritoScreen from "../screens/cliente/CarritoScreen";
-import MisApartadosScreen from "../screens/cliente/MisApartadosScreen";
-import SolicitarPersonalizacionScreen from "../screens/cliente/SolicitarPersonalizacionScreen";
-import MisPersonalizacionesScreen from "../screens/cliente/MisPersonalizacionesScreen";
-import GestionPersonalizacionScreen from "../screens/trabajador/GestionPersonalizacionScreen";
-import AdminMonitoreoOperacionScreen from "../screens/admin/AdminMonitoreoOperacionScreen";
-import NotificacionesScreen from "../screens/cliente/NotificacionesScreen";
-import MisFavoritosScreen from "../screens/cliente/MisFavoritosScreen";
-import ProductoDetalleScreen from "../screens/cliente/ProductoDetalleScreen";
 
+// ══════════════════════════════════════════════════════════════
+// PANTALLAS PRIVADAS (requieren sesión) — carga diferida (lazy):
+// un visitante anónimo (público o en /login) nunca descarga este
+// código, que es la mayor parte del bundle (paneles admin/trabajador).
+// ══════════════════════════════════════════════════════════════
+const InicioScreen = lazy(() => import("../screens/cliente/InicioScreen"));
+const PerfilScreen = lazy(() => import("../screens/cliente/PerfilScreen"));
+const CatalogoScreen = lazy(() => import('../screens/cliente/CatalogoScreen'));
+const MFASetupScreen = lazy(() => import("../screens/auth/MFASetupScreen"));
+const SobreNosotros = lazy(() => import("../screens/cliente/SobreNosotros"));
+const Ubicacion = lazy(() => import("../screens/cliente/UbicacionScreen"));
+const Ayuda = lazy(() => import("../screens/cliente/AyudaScreen"));
+const ContactoScreen = lazy(() => import("../screens/cliente/ContactoScreen"));
+const ConfiguracionScreen = lazy(() => import('../screens/general/ConfiguracionScreen'));
+const AdminDashboardScreen = lazy(() => import("../screens/admin/AdminDashboardScreen"));
+const AdminContentManagerScreen = lazy(() => import("../screens/admin/contenido/AdminContentManagerScreen"));
+const AdminPageContentInitialScreen = lazy(() => import("../screens/admin/contenido/AdminPageContentInitialScreen"));
+const AdminPageContentNoticiasScreen = lazy(() => import("../screens/admin/contenido/AdminPageContentNoticiasScreen"));
+const AdminContentInfoScreen = lazy(() => import("../screens/admin/contenido/AdminContentInfoScreen"));
+const AdminContentFAQScreen = lazy(() => import("../screens/admin/contenido/AdminContentFAQScreen"));
+const AdminContentZonasEntregaScreen = lazy(() => import("../screens/admin/contenido/AdminContentZonasEntregaScreen"));
+const AdminPageEditorScreen = lazy(() => import("../screens/admin/contenido/AdminPageEditorScreen"));
+const AdminContentMisionScreen = lazy(() => import("../screens/admin/contenido/AdminContentMisionScreen"));
+const AdminPageManagementScreen = lazy(() => import("../screens/admin/contenido/AdminPageManagementScreen"));
+const AdminSectionManagementScreen = lazy(() => import("../screens/admin/contenido/AdminSectionManagementScreen"));
+const GestionPedidosScreen = lazy(() => import("../screens/trabajador/GestionPedidosScreen"));
+const GestionApartadosScreen = lazy(() => import("../screens/trabajador/GestionApartadosScreen"));
+const AdminEditarTrabajadorScreen = lazy(() => import("../screens/admin/AdminEditarTrabajadorScreen"));
+
+// INVENTARIO Y PRODUCTOS
+const AdminInventarioScreen = lazy(() => import('../screens/admin/AdminInventarioScreen'));
+const AdminNuevoProductoScreen = lazy(() => import('../screens/admin/AdminNuevoProductoScreen'));
+const AdminProductoDetalleScreen = lazy(() => import("../screens/admin/AdminProductoDetalleScreen"));
+const AdminEditarProductoScreen = lazy(() => import("../screens/admin/AdminEditarProductoScreen"));
+
+// PERSONAL Y REPORTES
+const AdminTrabajadoresScreen = lazy(() => import("../screens/admin/AdminTrabajadoresScreen"));
+const AdminAltaTrabajadorForm = lazy(() => import("../screens/admin/AdminAltaTrabajadorForm"));
+const AdminPerfilScreen = lazy(() => import("../screens/admin/AdminPerfilScreen"));
+const AdminReportesScreen = lazy(() => import("../screens/admin/AdminReportesScreen"));
+const DashboardTrabajadorScreen = lazy(() => import("../screens/trabajador/DashboardTrabajadorScreen"));
+const ActividadesTrabajadorScreen = lazy(() => import("../screens/trabajador/ActividadesTrabajadorScreen"));
+
+// CATEGORÍAS
+const AdminCategoriasScreen = lazy(() => import("../screens/admin/AdminCategoriasScreen"));
+const AdminPromocionesScreen = lazy(() => import("../screens/admin/AdminPromocionesScreen"));
+const AdminColeccionesScreen = lazy(() => import("../screens/admin/AdminColeccionesScreen"));
+
+// 📁 PANTALLAS DE BASE DE DATOS
+const AdminDatabaseScreen = lazy(() => import("../screens/admin/basedatos/AdminDatabaseScreen"));
+const AdminBackupsScreen = lazy(() => import("../screens/admin/basedatos/AdminBackupsScreen"));
+const AdminImportExportScreen = lazy(() => import("../screens/admin/basedatos/AdminImportExportScreen"));
+const AdminAutomationScreen = lazy(() => import("../screens/admin/basedatos/AdminAutomationScreen"));
+const AdminSimpleImportScreen = lazy(() => import("../screens/admin/basedatos/AdminSimpleImportScreen"));
+const AdminExportScreen = lazy(() => import("../screens/admin/basedatos/AdminExportScreen"));
+const AdminBulkUpdateScreen = lazy(() => import("../screens/admin/basedatos/AdminBulkUpdateScreen"));
+const AdminMonitoreoScreen = lazy(() => import("../screens/admin/basedatos/AdminMonitoreoScreen"));
+
+// 📁 PANTALLAS DE CONFIGURACIÓN
+const AdminVariablesConfigScreen = lazy(() => import("../screens/admin/configuracion/AdminVariablesConfigScreen"));
+
+// 📁 PANTALLAS DE PROVEEDORES
+const AdminProveedoresScreen = lazy(() => import("../screens/admin/proveedores/AdminProveedoresScreen"));
+const AdminNuevoProveedorScreen = lazy(() => import("../screens/admin/proveedores/AdminNuevoProveedorScreen"));
+const AdminEditarProveedorScreen = lazy(() => import("../screens/admin/proveedores/AdminEditarProveedorScreen"));
+const AdminProveedorDetalleScreen = lazy(() => import("../screens/admin/proveedores/AdminProveedorDetalleScreen"));
+
+const AdminPrediccionScreen = lazy(() => import("../screens/admin/AdminPrediccionScreen"));
+const AdminSegmentosScreen = lazy(() => import("../screens/admin/AdminSegmentosScreen"));
+const AdminLegalScreen = lazy(() => import("../screens/admin/AdminLegalScreen"));
+const AdminPersonalizacionVisualScreen = lazy(() => import("../screens/admin/AdminPersonalizacionVisualScreen"));
+
+const ClientePedidosScreen = lazy(() => import("../screens/cliente/ClientePedidosScreen"));
+const CarritoScreen = lazy(() => import("../screens/cliente/CarritoScreen"));
+const MisApartadosScreen = lazy(() => import("../screens/cliente/MisApartadosScreen"));
+const SolicitarPersonalizacionScreen = lazy(() => import("../screens/cliente/SolicitarPersonalizacionScreen"));
+const MisPersonalizacionesScreen = lazy(() => import("../screens/cliente/MisPersonalizacionesScreen"));
+const GestionPersonalizacionScreen = lazy(() => import("../screens/trabajador/GestionPersonalizacionScreen"));
+const AdminMonitoreoOperacionScreen = lazy(() => import("../screens/admin/AdminMonitoreoOperacionScreen"));
+const NotificacionesScreen = lazy(() => import("../screens/cliente/NotificacionesScreen"));
+const MisFavoritosScreen = lazy(() => import("../screens/cliente/MisFavoritosScreen"));
+const ProductoDetalleScreen = lazy(() => import("../screens/cliente/ProductoDetalleScreen"));
+
+const PantallaCargando = () => (
+  <div style={{
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    height: '100vh', fontSize: '1.5rem', fontWeight: 'bold',
+    backgroundColor: '#0f0f12', color: '#ecb2c3'
+  }}>
+    ⏳ Cargando...
+  </div>
+);
 
 // --- COMPONENTES DE PROTECCIÓN ---
 
@@ -173,6 +185,7 @@ export default function AppRoutes() {
   return (
     <BrowserRouter>
       <VisitorTracker />
+      <Suspense fallback={<PantallaCargando />}>
       <Routes>
         {/* 1. RUTAS COMPLETAMENTE PÚBLICAS */}
         <Route path="/" element={<InicioPublicScreen />} />
@@ -301,6 +314,7 @@ export default function AppRoutes() {
         <Route path="/500" element={<ServerErrorScreen />} />
         <Route path="*"    element={<NotFoundScreen />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

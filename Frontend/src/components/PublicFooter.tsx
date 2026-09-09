@@ -22,7 +22,7 @@ const PublicFooter: React.FC = () => {
         <div className="footer-content">
           {/* Columna 1: Información de la marca */}
           <div className="footer-section">
-            <h5 className="footer-title">Diana Laura</h5>
+            <h3 className="footer-title">Diana Laura</h3>
             <p className="footer-description">
               Joyería y bisutería premium con diseños elegantes y contemporáneos.
               Cada pieza está creada para destacar tu estilo único.
@@ -31,7 +31,7 @@ const PublicFooter: React.FC = () => {
 
           {/* Columna 2: Enlaces rápidos */}
           <div className="footer-section">
-            <h5 className="footer-title">Enlaces Rápidos</h5>
+            <h3 className="footer-title">Enlaces Rápidos</h3>
             <ul className="footer-links">
               <li>
                 <Link to="/">Inicio</Link>
@@ -50,7 +50,7 @@ const PublicFooter: React.FC = () => {
 
           {/* Columna 3: Información de contacto */}
           <div className="footer-section">
-            <h5 className="footer-title">Contacto</h5>
+            <h3 className="footer-title">Contacto</h3>
             <ul className="footer-info">
               <li>
                 <AiOutlinePhone size={15} />
@@ -70,7 +70,7 @@ const PublicFooter: React.FC = () => {
           {/* Columna 3.5: Zonas de entrega */}
           {zonas.length > 0 && (
             <div className="footer-section">
-              <h5 className="footer-title">Zonas de Entrega</h5>
+              <h3 className="footer-title">Zonas de Entrega</h3>
               <ul className="footer-info">
                 {zonas.map(z => (
                   <li key={z}>
@@ -84,7 +84,7 @@ const PublicFooter: React.FC = () => {
 
           {/* Columna 4: Redes sociales */}
           <div className="footer-section">
-            <h5 className="footer-title">Síguenos</h5>
+            <h3 className="footer-title">Síguenos</h3>
             <div className="footer-socials">
               <a href="#" className="social-link" title="Instagram">
                 <AiOutlineInstagram size={16} />

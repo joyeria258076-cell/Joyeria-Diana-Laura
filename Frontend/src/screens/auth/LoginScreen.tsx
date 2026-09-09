@@ -372,10 +372,11 @@ const onSubmit = async (data: FormData) => {
                                     {...register("password")} 
                                     maxLength={16}
                                 />
-                                <button 
+                                <button
                                     type="button"
                                     className="password-toggle"
                                     onClick={() => setShowPassword(!showPassword)}
+                                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                                 >
                                     {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
                                 </button>

@@ -11,6 +11,14 @@ export default defineConfig({
     allowedHosts: ['.ngrok-free.dev']  // solo dominios de ngrok
   },
   build: {
-    outDir: 'dist'
+    outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          firebase: ['firebase/app', 'firebase/auth'],
+          charts: ['chart.js', 'react-chartjs-2'],
+        },
+      },
+    },
   }
 })

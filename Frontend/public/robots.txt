@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /admin-dashboard
+Disallow: /admin-*
+Disallow: /dashboard-trabajador
+Disallow: /inicio
+Disallow: /mi-perfil
+Disallow: /carrito
+Disallow: /pedidos
+Disallow: /apartados
+Disallow: /login
+Disallow: /registro
+
+Sitemap: https://joyeria-diana-laura.vercel.app/sitemap.xml
