@@ -16,6 +16,13 @@
          de forma bloqueante en 8 archivos CSS distintos) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Adelanta la conexión (DNS+TLS) a donde viven las imágenes del hero
+         y de producto, para que cuando React sepa qué URL mostrar la
+         descarga empiece de inmediato en vez de abrir la conexión desde
+         cero (esto era buena parte del "resource load delay" del LCP). -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600;700;800&display=swap"
