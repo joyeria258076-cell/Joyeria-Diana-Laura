@@ -23,10 +23,23 @@
          cero (esto era buena parte del "resource load delay" del LCP). -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <!-- Carga la hoja de fuentes sin bloquear el primer render: se pide
+         con prioridad baja (media="print") y se activa en cuanto llega
+         (onload). El <noscript> es el respaldo si JS está deshabilitado.
+         Antes esto era un <link rel="stylesheet"> normal, que retrasa el
+         pintado hasta que la hoja termina de descargar. -->
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+      />
+    </noscript>
   </head>
   <body>
     <noscript>Necesitas habilitar JavaScript para ejecutar esta aplicación.</noscript>
