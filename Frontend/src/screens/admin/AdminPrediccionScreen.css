@@ -67,10 +67,16 @@
   background: var(--color-bg) !important;
 }
 
+.tabla-datos-wrap {
+  overflow-x: auto;
+  margin-top: 15px;
+  -webkit-overflow-scrolling: touch;
+}
+
 .tabla-datos {
   width: 100%;
+  min-width: 480px;
   border-collapse: collapse;
-  margin-top: 15px;
 }
 
 .tabla-datos th,

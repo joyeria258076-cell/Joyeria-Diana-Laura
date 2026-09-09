@@ -479,22 +479,24 @@ export default function AdminPrediccionScreen() {
               }
             </div>
             <p className="hint">Haz clic en la gráfica o en "Analizar" para explorar esa categoría.</p>
-            <table className="tabla-datos">
-              <thead><tr><th>#</th><th>Categoría</th><th>Unidades</th><th></th></tr></thead>
-              <tbody>
-                {categorias.map((cat, idx) => (
-                  <tr
-                    key={cat.categoria_id}
-                    className={cat.categoria_id === categoriaSeleccionada ? 'fila-activa' : ''}
-                  >
-                    <td>{idx + 1}</td>
-                    <td>{cat.categoria} {idx === 0 && cat.total_unidades > 0 && '⭐'}</td>
-                    <td><strong>{cat.total_unidades}</strong></td>
-                    <td><button onClick={() => seleccionarCategoria(cat.categoria_id)}>Analizar</button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="tabla-datos-wrap">
+              <table className="tabla-datos">
+                <thead><tr><th>#</th><th>Categoría</th><th>Unidades</th><th></th></tr></thead>
+                <tbody>
+                  {categorias.map((cat, idx) => (
+                    <tr
+                      key={cat.categoria_id}
+                      className={cat.categoria_id === categoriaSeleccionada ? 'fila-activa' : ''}
+                    >
+                      <td>{idx + 1}</td>
+                      <td>{cat.categoria} {idx === 0 && cat.total_unidades > 0 && '⭐'}</td>
+                      <td><strong>{cat.total_unidades}</strong></td>
+                      <td><button onClick={() => seleccionarCategoria(cat.categoria_id)}>Analizar</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
 
           {/* PRODUCTOS */}
@@ -509,32 +511,34 @@ export default function AdminPrediccionScreen() {
                   onChange={e => { setBusquedaProducto(e.target.value); setPaginaProductos(1); }}
                 />
               </div>
-              <table className="tabla-datos">
-                <thead>
-                  <tr>
-                    <th>#</th><th>Producto</th><th>Unidades {anio}</th>
-                    <th>Participación</th><th>Stock actual</th><th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {productosPaginados.map((prod, idx) => {
-                    const esEstrella = prod.producto_id === productos[0]?.producto_id && prod.total_unidades > 0;
-                    return (
-                      <tr
-                        key={prod.producto_id}
-                        className={prod.producto_id === productoSeleccionado ? 'fila-activa' : ''}
-                      >
-                        <td>{(paginaProductos - 1) * productosPorPagina + idx + 1}</td>
-                        <td>{prod.producto} {esEstrella && '⭐'}</td>
-                        <td>{prod.total_unidades}</td>
-                        <td>{prod.participacion_pct}%</td>
-                        <td>{prod.stock_actual} uds</td>
-                        <td><button onClick={() => seleccionarProducto(prod.producto_id)}>Seleccionar</button></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div className="tabla-datos-wrap">
+                <table className="tabla-datos">
+                  <thead>
+                    <tr>
+                      <th>#</th><th>Producto</th><th>Unidades {anio}</th>
+                      <th>Participación</th><th>Stock actual</th><th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productosPaginados.map((prod, idx) => {
+                      const esEstrella = prod.producto_id === productos[0]?.producto_id && prod.total_unidades > 0;
+                      return (
+                        <tr
+                          key={prod.producto_id}
+                          className={prod.producto_id === productoSeleccionado ? 'fila-activa' : ''}
+                        >
+                          <td>{(paginaProductos - 1) * productosPorPagina + idx + 1}</td>
+                          <td>{prod.producto} {esEstrella && '⭐'}</td>
+                          <td>{prod.total_unidades}</td>
+                          <td>{prod.participacion_pct}%</td>
+                          <td>{prod.stock_actual} uds</td>
+                          <td><button onClick={() => seleccionarProducto(prod.producto_id)}>Seleccionar</button></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
               {totalPaginas > 1 && (
                 <div className="paginacion">
                   <button disabled={paginaProductos === 1} onClick={() => setPaginaProductos(p => p - 1)}>◀ Anterior</button>
@@ -596,29 +600,31 @@ export default function AdminPrediccionScreen() {
                 <div>Agotamiento estimado: <strong>{resumen.fecha_agotamiento ?? 'No se agota en el período'}</strong></div>
                 <div>Fecha límite de pedido: <strong>{resumen.fecha_limite_pedido ?? '—'}</strong></div>
               </div>
-              <table className="tabla-datos">
-                <thead>
-                  <tr>
-                    <th>Mes</th><th>Demanda proyectada</th>
-                    <th>Stock acumulado necesario</th><th>Stock restante</th><th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {proyeccion.map((p: any) => {
-                    const estado = p.stock_restante <= 0 ? 'rojo'
-                      : p.stock_restante < p.demanda_proyectada * 2 ? 'amarillo' : 'verde';
-                    return (
-                      <tr key={p.t}>
-                        <td>{p.mes}</td>
-                        <td><strong>{p.demanda_proyectada}</strong> uds</td>
-                        <td>{p.stock_acumulado_necesario} uds</td>
-                        <td className={estado}>{p.stock_restante} uds</td>
-                        <td>{estado === 'verde' ? '✓ OK' : estado === 'amarillo' ? '⚠ Riesgo' : '✗ Desabasto'}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div className="tabla-datos-wrap">
+                <table className="tabla-datos">
+                  <thead>
+                    <tr>
+                      <th>Mes</th><th>Demanda proyectada</th>
+                      <th>Stock acumulado necesario</th><th>Stock restante</th><th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {proyeccion.map((p: any) => {
+                      const estado = p.stock_restante <= 0 ? 'rojo'
+                        : p.stock_restante < p.demanda_proyectada * 2 ? 'amarillo' : 'verde';
+                      return (
+                        <tr key={p.t}>
+                          <td>{p.mes}</td>
+                          <td><strong>{p.demanda_proyectada}</strong> uds</td>
+                          <td>{p.stock_acumulado_necesario} uds</td>
+                          <td className={estado}>{p.stock_restante} uds</td>
+                          <td>{estado === 'verde' ? '✓ OK' : estado === 'amarillo' ? '⚠ Riesgo' : '✗ Desabasto'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
               <div className="nota-matematica">
                 ℹ️ Modelo: dQ/dt = k·Q → Q(t) = Q₀·e^(kt) |
                 k = {estadisticas?.k} mensual |
