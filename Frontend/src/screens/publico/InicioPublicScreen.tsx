@@ -12,45 +12,48 @@ import "./InicioPublicScreen.css";
 
 const JDL_CLOUD = 'https://res.cloudinary.com/dltvkwwq4/image/upload';
 
+// ── DATOS DE RESPALDO (Fallbacks) — a nivel de módulo para poder usarlos
+// como valor inicial del estado (contenido visible desde el primer render,
+// sin esperar la cadena de llamadas paginas→secciones→contenidos que antes
+// dejaba el hero en blanco varios segundos y disparaba el LCP). ──
+const defaultSlides = [
+  {
+    id: 's1',
+    tag: "Nueva Colección",
+    titulo: "Colección De Oro",
+    descripcion: "Piezas únicas forjadas en oro de 18 quilates para quienes buscan el brillo eterno.",
+    imagen: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1400&q=85&fit=crop",
+  },
+  {
+    id: 's2',
+    tag: "Tendencia 2026",
+    titulo: "Colección De Plata",
+    descripcion: "Elegancia contemporánea en plata esterlina con acabados artesanales.",
+    imagen: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1400&q=85&fit=crop",
+  }
+];
+
+const defaultNews = [
+  {
+    id: 'd1',
+    titulo: "Lanzamiento Colección Primavera",
+    contenido: "Descubre nuestra nueva línea inspirada en los tonos florales de la primavera. Diseños frescos y elegantes.",
+    imagen: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=600&q=80&fit=crop"
+  }
+];
+
 const InicioPublicScreen: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // ── ESTADOS DE CARGA Y DATOS DINÁMICOS ──
   const [initialLoading, setInitialLoading] = useState(true);
-  const [slides, setSlides] = useState<any[]>([]);
+  const [slides, setSlides] = useState<any[]>(defaultSlides);
   const [promociones, setPromociones] = useState<any[]>([]);
   const [productosDestacados, setProductosDestacados] = useState<any[]>([]);
   const [noticiasHome, setNoticiasHome] = useState<any[]>([]);
   const [colecciones, setColecciones] = useState<any[]>([]);
   const [tickerIdx, setTickerIdx] = useState(0);
   const [tickerCerrado, setTickerCerrado] = useState(false);
-
-  // ── DATOS DE RESPALDO (Fallbacks) ──
-  const defaultSlides = [
-    {
-      id: 's1',
-      tag: "Nueva Colección",
-      titulo: "Colección De Oro",
-      descripcion: "Piezas únicas forjadas en oro de 18 quilates para quienes buscan el brillo eterno.",
-      imagen: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1400&q=85&fit=crop",
-    },
-    {
-      id: 's2',
-      tag: "Tendencia 2026",
-      titulo: "Colección De Plata",
-      descripcion: "Elegancia contemporánea en plata esterlina con acabados artesanales.",
-      imagen: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1400&q=85&fit=crop",
-    }
-  ];
-
-  const defaultNews = [
-    {
-      id: 'd1',
-      titulo: "Lanzamiento Colección Primavera",
-      contenido: "Descubre nuestra nueva línea inspirada en los tonos florales de la primavera. Diseños frescos y elegantes.",
-      imagen: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=600&q=80&fit=crop"
-    }
-  ];
 
   // ── OBTENER DATOS DEL BACKEND ──
   useEffect(() => {
@@ -226,8 +229,14 @@ const InicioPublicScreen: React.FC = () => {
               <div
                 key={slide.id}
                 className={`carousel-slide ${index === currentSlide ? "active" : ""}`}
-                style={{ backgroundImage: `url(${slide.imagen || slide.image})` }}
               >
+                <img
+                  className="carousel-slide-img"
+                  src={slide.imagen || slide.image}
+                  alt=""
+                  fetchPriority={index === 0 ? "high" : "low"}
+                  loading={index === 0 ? "eager" : "lazy"}
+                />
                 <div className="carousel-overlay" />
                 <div className="carousel-content">
                   <span className="carousel-tag">{slide.tag || "Exclusivo"}</span>
