@@ -231,6 +231,7 @@ const InicioPublicScreen: React.FC = () => {
 
       <PublicHeader />
 
+      <main>
       {/* ═══════════ HERO / CARRUSEL PRINCIPAL ═══════════ */}
       <section className="hero-carousel-section">
         <div className="carousel-container">
@@ -446,7 +447,7 @@ const InicioPublicScreen: React.FC = () => {
                     </div>
                     <div className="product-card-body">
                       {prod.categoria_nombre && <span className="prod-categoria">{prod.categoria_nombre}</span>}
-                      <h5>{prod.nombre}</h5>
+                      <h3>{prod.nombre}</h3>
                       <div className="product-card-precio">
                         {conDesc && (
                           <span className="precio-tachado">${Number(prod.precio_venta).toLocaleString('es-MX')}</span>
@@ -485,7 +486,7 @@ const InicioPublicScreen: React.FC = () => {
                   <div className="feature-icon">
                     {promo.tipo === 'envio_gratis' ? <AiOutlineCar size={22} /> : promo.tipo === '2x1' ? <AiOutlineGift size={22} /> : <AiOutlineTag size={22} />}
                   </div>
-                  <h4>{promo.nombre}</h4>
+                  <h3>{promo.nombre}</h3>
                   <p>{promoLabel(promo)}</p>
                   {promo.monto_minimo_compra && (
                     <p className="promo-minimo">Compra mínima: ${promo.monto_minimo_compra}</p>
@@ -515,22 +516,22 @@ const InicioPublicScreen: React.FC = () => {
           <div className="features-grid">
             <div className="feature-card">
               <div className="feature-icon"><AiOutlineStar size={22} /></div>
-              <h4>Diseño Premium</h4>
+              <h3>Diseño Premium</h3>
               <p>Cada pieza es cuidadosamente diseñada con materiales de alta calidad y atención al detalle.</p>
             </div>
             <div className="feature-card">
               <div className="feature-icon"><AiOutlineHeart size={22} /></div>
-              <h4>Hecho con Amor</h4>
+              <h3>Hecho con Amor</h3>
               <p>Creado con pasión artesanal y dedicación en cada proceso de fabricación.</p>
             </div>
             <div className="feature-card">
               <div className="feature-icon"><AiOutlinePhone size={22} /></div>
-              <h4>Soporte 24/7</h4>
+              <h3>Soporte 24/7</h3>
               <p>Nuestro equipo está disponible para ayudarte en cualquier momento que lo necesites.</p>
             </div>
             <div className="feature-card">
               <div className="feature-icon"><AiOutlineCar size={22} /></div>
-              <h4>Envío Rápido</h4>
+              <h3>Envío Rápido</h3>
               <p>Entrega segura y rápida a cualquier lugar, con seguimiento en tiempo real.</p>
             </div>
           </div>
@@ -557,7 +558,7 @@ const InicioPublicScreen: React.FC = () => {
                   />
                 </div>
                 <div className="news-content">
-                  <h5 className="news-title">{noticia.titulo}</h5>
+                  <h3 className="news-title">{noticia.titulo}</h3>
                   <p className="news-description">
                     {noticia.contenido && noticia.contenido.length > 100
                       ? `${noticia.contenido.substring(0, 100)}...`
@@ -589,6 +590,7 @@ const InicioPublicScreen: React.FC = () => {
           </div>
         </div>
       </section>
+      </main>
 
       <PublicFooter />
     </div>

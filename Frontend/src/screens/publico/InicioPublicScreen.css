@@ -728,7 +728,7 @@
 .product-card:hover .product-card-overlay { opacity: 1; }
 
 .product-card-body { padding: 1.1rem 1.2rem; text-align: center; }
-.product-card-body h5 {
+.product-card-body h3 {
   font-family: var(--font-display);
   font-size: 1rem; font-weight: 700; color: var(--white); margin: 0 0 0.5rem;
 }
@@ -834,7 +834,7 @@
   font-weight: 700; font-size: 0.85rem; z-index: 2;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
-.promo-card h4 { color: var(--rose-light); }
+.promo-card h3 { color: var(--rose-light); }
 .promo-card p { font-size: 0.88rem; opacity: 0.85; }
 .promo-minimo { color: var(--rose); margin-top: 4px; font-size: 0.78rem !important; }
 .promo-codigo {
@@ -936,7 +936,7 @@
   animation: none;
 }
 
-.feature-card h4 {
+.feature-card h3 {
   font-family: var(--font-display);
   font-size: 1.15rem;
   font-weight: 700;
