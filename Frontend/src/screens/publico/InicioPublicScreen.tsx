@@ -12,6 +12,16 @@ import "./InicioPublicScreen.css";
 
 const JDL_CLOUD = 'https://res.cloudinary.com/dltvkwwq4/image/upload';
 
+// Las fotos de producto se suben tal cual (a veces en resolución muy alta)
+// y aquí se muestran en tarjetas pequeñas. Si la URL es de Cloudinary, le
+// insertamos una transformación al vuelo (formato/calidad automáticos +
+// ancho acotado) para no bajar la imagen completa innecesariamente.
+const optimizarImagen = (url: string | undefined, ancho: number): string | undefined => {
+  if (!url || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url;
+  if (/\/upload\/[^/]*w_\d/.test(url)) return url; // ya trae una transformación de ancho
+  return url.replace('/upload/', `/upload/f_auto,q_auto,w_${ancho}/`);
+};
+
 // ── DATOS DE RESPALDO (Fallbacks) — a nivel de módulo para poder usarlos
 // como valor inicial del estado (contenido visible desde el primer render,
 // sin esperar la cadena de llamadas paginas→secciones→contenidos que antes
@@ -225,30 +235,41 @@ const InicioPublicScreen: React.FC = () => {
       <section className="hero-carousel-section">
         <div className="carousel-container">
           <div className="carousel-wrapper">
-            {slides.map((slide, index) => (
-              <div
-                key={slide.id}
-                className={`carousel-slide ${index === currentSlide ? "active" : ""}`}
-              >
-                <img
-                  className="carousel-slide-img"
-                  src={slide.imagen || slide.image}
-                  alt=""
-                  fetchPriority={index === 0 ? "high" : "low"}
-                  loading={index === 0 ? "eager" : "lazy"}
-                />
-                <div className="carousel-overlay" />
-                <div className="carousel-content">
-                  <span className="carousel-tag">{slide.tag || "Exclusivo"}</span>
-                  <h1 className="carousel-title">{slide.titulo || slide.title}</h1>
-                  <p className="carousel-desc">{slide.descripcion || slide.description}</p>
-                  <div className="carousel-actions">
-                    <Link to={slide.enlace || "/catalogo-publico"} className="btn btn-primary">Explorar colección</Link>
-                    <Link to="/catalogo-publico" className="btn btn-secondary">Ver catálogo completo</Link>
+            {slides.map((slide, index) => {
+              // Solo se carga la imagen de la diapositiva activa (+ la
+              // siguiente, para que la transición no "parpadee"). Antes se
+              // renderizaban las <img> de TODAS las diapositivas a la vez
+              // (aunque solo una es visible), inflando el peso de la
+              // página en más de 1 MB innecesariamente.
+              const siguiente = (currentSlide + 1) % slides.length;
+              const debeCargar = index === currentSlide || index === siguiente;
+              return (
+                <div
+                  key={slide.id}
+                  className={`carousel-slide ${index === currentSlide ? "active" : ""}`}
+                >
+                  {debeCargar && (
+                    <img
+                      className="carousel-slide-img"
+                      src={slide.imagen || slide.image}
+                      alt=""
+                      fetchPriority={index === 0 ? "high" : "low"}
+                      loading={index === 0 ? "eager" : "lazy"}
+                    />
+                  )}
+                  <div className="carousel-overlay" />
+                  <div className="carousel-content">
+                    <span className="carousel-tag">{slide.tag || "Exclusivo"}</span>
+                    <h1 className="carousel-title">{slide.titulo || slide.title}</h1>
+                    <p className="carousel-desc">{slide.descripcion || slide.description}</p>
+                    <div className="carousel-actions">
+                      <Link to={slide.enlace || "/catalogo-publico"} className="btn btn-primary">Explorar colección</Link>
+                      <Link to="/catalogo-publico" className="btn btn-secondary">Ver catálogo completo</Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <button className="carousel-btn carousel-btn-prev" onClick={prevSlide} aria-label="Anterior"><AiOutlineLeft /></button>
@@ -334,7 +355,7 @@ const InicioPublicScreen: React.FC = () => {
                 <Link key={col.id} to="/catalogo-publico" className="showcase-card">
                   <div className="showcase-card-img">
                     {col.imagen_url ? (
-                      <img src={col.imagen_url} alt={col.nombre} loading="lazy" />
+                      <img src={optimizarImagen(col.imagen_url, 500)} alt={col.nombre} loading="lazy" />
                     ) : (
                       <div className="showcase-card-fallback"><AiOutlineFolderOpen size={32} /></div>
                     )}
@@ -370,7 +391,7 @@ const InicioPublicScreen: React.FC = () => {
                   <Link to={`/producto/${prod.id}`} className="editorial-card" key={prod.id}>
                     <div className="editorial-card-img">
                       <img
-                        src={prod.imagen_principal || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"}
+                        src={optimizarImagen(prod.imagen_principal, 500) || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"}
                         alt={prod.nombre}
                         loading="lazy"
                       />
@@ -414,7 +435,7 @@ const InicioPublicScreen: React.FC = () => {
                   <Link to={`/producto/${prod.id}`} className="product-card" key={prod.id}>
                     <div className="product-card-img">
                       <img
-                        src={prod.imagen_principal || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"}
+                        src={optimizarImagen(prod.imagen_principal, 500) || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"}
                         alt={prod.nombre}
                         loading="lazy"
                       />
@@ -530,7 +551,7 @@ const InicioPublicScreen: React.FC = () => {
               <div className="news-card" key={noticia.id}>
                 <div className="news-image">
                   <img
-                    src={noticia.imagen || "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=600&q=80"}
+                    src={optimizarImagen(noticia.imagen, 500) || "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=600&q=80"}
                     alt={noticia.titulo}
                     loading="lazy"
                   />
