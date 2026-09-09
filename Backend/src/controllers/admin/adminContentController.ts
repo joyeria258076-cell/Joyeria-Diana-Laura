@@ -852,6 +852,35 @@ export const adminContentController = {
     }
   },
 
+  // Endpoint combinado: antes el frontend hacia 3 llamadas encadenadas
+  // (paginas -> secciones -> contenidos) solo para armar el carrusel de
+  // Inicio, lo cual sumaba varios cientos de ms de ida y vuelta cada una
+  // y retrasaba el LCP. Aqui se resuelve en una sola consulta con JOIN.
+  getCarruselInicio: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const result = await pool.query(`
+        WITH seccion_carrusel AS (
+          SELECT s.id
+          FROM secciones s
+          JOIN paginas p ON s.pagina_id = p.id
+          WHERE p.slug = 'inicio'
+            AND (LOWER(s.nombre) LIKE '%carrusel%' OR LOWER(s.nombre) LIKE '%carousel%')
+          ORDER BY s.orden ASC
+          LIMIT 1
+        )
+        SELECT c.*
+        FROM contenidos c
+        JOIN seccion_carrusel sc ON c.seccion_id = sc.id
+        WHERE c.activo = true
+        ORDER BY c.orden ASC
+      `);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error en getCarruselInicio:', error);
+      res.status(500).json({ message: "Error al obtener el carrusel de inicio" });
+    }
+  },
+
   getContenidoById: async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;

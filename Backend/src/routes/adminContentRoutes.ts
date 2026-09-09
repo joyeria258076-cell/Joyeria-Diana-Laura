@@ -77,6 +77,7 @@ router.delete('/secciones/:id', adminContentController.deleteSeccion);
 // ==========================================
 // GESTIÓN DE CONTENIDOS (CMS DINÁMICO)
 // ==========================================
+router.get('/carrusel-inicio', adminContentController.getCarruselInicio); // resuelve paginas->secciones->contenidos en 1 sola consulta
 router.get('/contenidos/seccion/:seccionId', adminContentController.getContenidosBySeccion);
 router.get('/contenidos/:id', adminContentController.getContenidoById);
 router.post('/contenidos', adminContentController.createContenido);

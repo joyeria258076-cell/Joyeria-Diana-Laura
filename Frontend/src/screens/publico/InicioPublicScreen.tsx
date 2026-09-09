@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { Link } from "react-router-dom";
-import { contentAPI, carruselAPI, promocionesAPI, productsAPI, paginasAPI, seccionesAPI, contenidosAPI, coleccionesAPI } from "../../services/api";
+import { contentAPI, carruselAPI, promocionesAPI, productsAPI, coleccionesAPI } from "../../services/api";
 import {
   AiOutlineTag, AiOutlineClose, AiOutlineLeft, AiOutlineRight, AiOutlineCar, AiOutlineGift,
   AiOutlineFolderOpen, AiOutlineStar, AiOutlineHeart, AiOutlinePhone, AiOutlineSafetyCertificate,
@@ -69,47 +69,30 @@ const InicioPublicScreen: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 1. CARRUSEL - Traer datos de la BD (Página Inicio > Sección Carrusel > Contenidos)
+        // 1. CARRUSEL — antes eran 3 llamadas encadenadas (paginas ->
+        // secciones -> contenidos), cada una con su propio viaje de ida y
+        // vuelta al backend; ahora es una sola llamada a un endpoint que ya
+        // resuelve el JOIN del lado del servidor (menos tiempo hasta que
+        // la imagen real del hero puede empezar a cargar → mejor LCP).
         try {
-          const paginas = await paginasAPI.getAll();
-          const paginaInicio = Array.isArray(paginas)
-            ? paginas.find((p: any) => p.slug === 'inicio')
-            : paginas.data?.find((p: any) => p.slug === 'inicio');
+          const contenidos = await contentAPI.getCarruselInicio();
+          const contenidosArray = Array.isArray(contenidos) ? contenidos : contenidos.data || [];
 
-          if (paginaInicio) {
-            const secciones = await seccionesAPI.getByPagina(paginaInicio.id);
-            const seccionesArray = Array.isArray(secciones) ? secciones : secciones.data || [];
+          const slidesFromDB = contenidosArray
+            .filter((c: any) => c.activo !== false)
+            .sort((a: any, b: any) => (a.orden || 0) - (b.orden || 0))
+            .map((c: any) => ({
+              id: c.id.toString(),
+              titulo: c.titulo,
+              tag: c.descripcion ? c.descripcion.split('\n')[0].substring(0, 20) : "Exclusivo",
+              descripcion: c.descripcion || "Descubre nuestras colecciones exclusivas",
+              imagen: optimizarImagen(c.imagen_url, 1400),
+              image: optimizarImagen(c.imagen_url, 1400),
+              enlace: c.enlace_url,
+              enlace_nueva_ventana: c.enlace_nueva_ventana
+            }));
 
-            const seccionCarrusel = seccionesArray.find((s: any) =>
-              s.nombre?.toLowerCase().includes('carrusel') ||
-              s.nombre?.toLowerCase().includes('carousel')
-            );
-
-            if (seccionCarrusel) {
-              const contenidos = await contenidosAPI.getBySeccion(seccionCarrusel.id);
-              const contenidosArray = Array.isArray(contenidos) ? contenidos : contenidos.data || [];
-
-              const slidesFromDB = contenidosArray
-                .filter((c: any) => c.activo !== false)
-                .sort((a: any, b: any) => (a.orden || 0) - (b.orden || 0))
-                .map((c: any) => ({
-                  id: c.id.toString(),
-                  titulo: c.titulo,
-                  tag: c.descripcion ? c.descripcion.split('\n')[0].substring(0, 20) : "Exclusivo",
-                  descripcion: c.descripcion || "Descubre nuestras colecciones exclusivas",
-                  imagen: c.imagen_url,
-                  image: c.imagen_url,
-                  enlace: c.enlace_url,
-                  enlace_nueva_ventana: c.enlace_nueva_ventana
-                }));
-
-              setSlides(slidesFromDB.length > 0 ? slidesFromDB : defaultSlides);
-            } else {
-              setSlides(defaultSlides);
-            }
-          } else {
-            setSlides(defaultSlides);
-          }
+          setSlides(slidesFromDB.length > 0 ? slidesFromDB : defaultSlides);
         } catch (e) {
           console.error("Error obteniendo carrusel de BD:", e);
           setSlides(defaultSlides);

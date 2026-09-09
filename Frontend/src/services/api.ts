@@ -679,6 +679,12 @@ export const workersAPI = {
 // 📝 GESTOR DE CONTENIDO (PÁGINAS Y NOTICIAS)
 // ==========================================
 export const contentAPI = {
+  // Carrusel del Inicio resuelto en 1 sola llamada (páginas+secciones+
+  // contenidos ya resueltos con JOIN del lado del servidor)
+  getCarruselInicio: async () => {
+    return enhancedApi.get('/content/carrusel-inicio');
+  },
+
   // 1. Configuración global de la página (Banner, Título principal)
   getPageConfig: async (pageName: string) => {
     return enhancedApi.get(`/content/pages/${pageName}`);

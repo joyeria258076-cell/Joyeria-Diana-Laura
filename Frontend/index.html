@@ -23,6 +23,12 @@
          cero (esto era buena parte del "resource load delay" del LCP). -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <!-- Nota: Lighthouse también sugirió preconectar a www.googleapis.com y
+         apis.google.com (usados por el iframe de Firebase Auth), pero el
+         propio audit recomienda no pasar de ~4 preconnects a la vez —
+         demasiados compiten por el ancho de banda inicial y pueden
+         terminar perjudicando más de lo que ayudan. Se prioriza lo que
+         afecta directamente el LCP de esta página (fuentes + imágenes). -->
 
     <!-- Precarga la imagen de la primera diapositiva de respaldo del Inicio
          (la que se pinta de inmediato mientras cargan los datos reales del
