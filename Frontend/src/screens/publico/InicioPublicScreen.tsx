@@ -56,7 +56,11 @@ const InicioPublicScreen: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // ── ESTADOS DE CARGA Y DATOS DINÁMICOS ──
-  const [initialLoading, setInitialLoading] = useState(true);
+  // (sin gate de "pantalla completa de carga": cada sección se pinta con
+  // su valor por defecto/vacío y se actualiza sola en cuanto su propia
+  // llamada resuelve, en vez de bloquear toda la página hasta que las 5
+  // llamadas terminen — eso además causaba que <PublicFooter/> se montara
+  // dos veces, disparando su fetch de zonas de entrega por duplicado.)
   const [slides, setSlides] = useState<any[]>(defaultSlides);
   const [promociones, setPromociones] = useState<any[]>([]);
   const [productosDestacados, setProductosDestacados] = useState<any[]>([]);
@@ -66,80 +70,84 @@ const InicioPublicScreen: React.FC = () => {
   const [tickerCerrado, setTickerCerrado] = useState(false);
 
   // ── OBTENER DATOS DEL BACKEND ──
+  // Las 5 llamadas son independientes entre sí, así que se disparan todas
+  // en paralelo (antes eran 5 `await` en cadena, uno detrás del otro: el
+  // tiempo total era la SUMA de las 5, no el máximo). Cada una actualiza
+  // su propio estado apenas resuelve, sin esperar a las demás — el hero
+  // (con su contenido de respaldo) y el resto de la página ya no esperan
+  // a que termine la más lenta para poder pintarse.
   useEffect(() => {
-    const fetchData = async () => {
+    // 1. CARRUSEL — antes eran 3 llamadas encadenadas (paginas -> secciones
+    // -> contenidos); ahora es 1 sola a un endpoint que resuelve el JOIN
+    // del lado del servidor.
+    (async () => {
       try {
-        // 1. CARRUSEL — antes eran 3 llamadas encadenadas (paginas ->
-        // secciones -> contenidos), cada una con su propio viaje de ida y
-        // vuelta al backend; ahora es una sola llamada a un endpoint que ya
-        // resuelve el JOIN del lado del servidor (menos tiempo hasta que
-        // la imagen real del hero puede empezar a cargar → mejor LCP).
-        try {
-          const contenidos = await contentAPI.getCarruselInicio();
-          const contenidosArray = Array.isArray(contenidos) ? contenidos : contenidos.data || [];
+        const contenidos = await contentAPI.getCarruselInicio();
+        const contenidosArray = Array.isArray(contenidos) ? contenidos : contenidos.data || [];
 
-          const slidesFromDB = contenidosArray
-            .filter((c: any) => c.activo !== false)
-            .sort((a: any, b: any) => (a.orden || 0) - (b.orden || 0))
-            .map((c: any) => ({
-              id: c.id.toString(),
-              titulo: c.titulo,
-              tag: c.descripcion ? c.descripcion.split('\n')[0].substring(0, 20) : "Exclusivo",
-              descripcion: c.descripcion || "Descubre nuestras colecciones exclusivas",
-              imagen: optimizarImagen(c.imagen_url, 1400),
-              image: optimizarImagen(c.imagen_url, 1400),
-              enlace: c.enlace_url,
-              enlace_nueva_ventana: c.enlace_nueva_ventana
-            }));
+        const slidesFromDB = contenidosArray
+          .filter((c: any) => c.activo !== false)
+          .sort((a: any, b: any) => (a.orden || 0) - (b.orden || 0))
+          .map((c: any) => ({
+            id: c.id.toString(),
+            titulo: c.titulo,
+            tag: c.descripcion ? c.descripcion.split('\n')[0].substring(0, 20) : "Exclusivo",
+            descripcion: c.descripcion || "Descubre nuestras colecciones exclusivas",
+            imagen: optimizarImagen(c.imagen_url, 1400),
+            image: optimizarImagen(c.imagen_url, 1400),
+            enlace: c.enlace_url,
+            enlace_nueva_ventana: c.enlace_nueva_ventana
+          }));
 
-          setSlides(slidesFromDB.length > 0 ? slidesFromDB : defaultSlides);
-        } catch (e) {
-          console.error("Error obteniendo carrusel de BD:", e);
-          setSlides(defaultSlides);
-        }
-
-        // 2. Promociones activas
-        try {
-          const promoRes = await promocionesAPI.getActivas();
-          const lista = Array.isArray(promoRes) ? promoRes : (promoRes.data || []);
-          setPromociones(lista);
-        } catch (e) { console.log("Sin promociones"); }
-
-        // 3. Productos Destacados (Últimos 4)
-        try {
-          const prodRes = await productsAPI.getAll();
-          let prods = [];
-          if (Array.isArray(prodRes)) prods = prodRes;
-          else if (prodRes && Array.isArray(prodRes.data)) prods = prodRes.data;
-
-          if (prods.length > 0) setProductosDestacados(prods);
-        } catch (e) { console.log("Error cargando productos"); }
-
-        // 4. Colecciones
-        try {
-          const resCol = await coleccionesAPI.getPublicas();
-          const cols = Array.isArray(resCol) ? resCol : (resCol.data || []);
-          setColecciones(cols.filter((c: any) => c.productos?.length > 0));
-        } catch { /* sin colecciones */ }
-
-        // 5. Noticias
-        try {
-          const noticiasRes = await contentAPI.getNoticias();
-          if (noticiasRes && noticiasRes.length > 0) {
-            const activas = noticiasRes.filter((n: any) => n.activa);
-            setNoticiasHome(activas.slice(0, 3));
-          } else {
-            setNoticiasHome(defaultNews);
-          }
-        } catch (e) { setNoticiasHome(defaultNews); }
-
-      } catch (error) {
-        console.error("Error global conectando con la BD");
-      } finally {
-        setInitialLoading(false);
+        setSlides(slidesFromDB.length > 0 ? slidesFromDB : defaultSlides);
+      } catch (e) {
+        console.error("Error obteniendo carrusel de BD:", e);
+        setSlides(defaultSlides);
       }
-    };
-    fetchData();
+    })();
+
+    // 2. Promociones activas
+    (async () => {
+      try {
+        const promoRes = await promocionesAPI.getActivas();
+        const lista = Array.isArray(promoRes) ? promoRes : (promoRes.data || []);
+        setPromociones(lista);
+      } catch (e) { console.log("Sin promociones"); }
+    })();
+
+    // 3. Productos Destacados (Últimos 4)
+    (async () => {
+      try {
+        const prodRes = await productsAPI.getAll();
+        let prods = [];
+        if (Array.isArray(prodRes)) prods = prodRes;
+        else if (prodRes && Array.isArray(prodRes.data)) prods = prodRes.data;
+
+        if (prods.length > 0) setProductosDestacados(prods);
+      } catch (e) { console.log("Error cargando productos"); }
+    })();
+
+    // 4. Colecciones
+    (async () => {
+      try {
+        const resCol = await coleccionesAPI.getPublicas();
+        const cols = Array.isArray(resCol) ? resCol : (resCol.data || []);
+        setColecciones(cols.filter((c: any) => c.productos?.length > 0));
+      } catch { /* sin colecciones */ }
+    })();
+
+    // 5. Noticias
+    (async () => {
+      try {
+        const noticiasRes = await contentAPI.getNoticias();
+        if (noticiasRes && noticiasRes.length > 0) {
+          const activas = noticiasRes.filter((n: any) => n.activa);
+          setNoticiasHome(activas.slice(0, 3));
+        } else {
+          setNoticiasHome(defaultNews);
+        }
+      } catch (e) { setNoticiasHome(defaultNews); }
+    })();
   }, []);
 
   // ── INTERVALO DEL CARRUSEL ──
@@ -171,22 +179,6 @@ const InicioPublicScreen: React.FC = () => {
     if (p.tipo === 'cupon') return `Cupón ${p.codigo_cupon ? p.codigo_cupon + ' — ' : ''}${p.valor_descuento}% off`;
     return p.nombre;
   };
-
-  // ── PANTALLA DE CARGA ──
-  if (initialLoading) {
-    return (
-      <div className="inicio-public-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <PublicHeader />
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <div className="noticias-loading">
-            <div className="dl-loader-bars"><span /><span /><span /><span /></div>
-            <p className="loading-text" style={{ marginTop: '1rem' }}>Cargando...</p>
-          </div>
-        </div>
-        <PublicFooter />
-      </div>
-    );
-  }
 
   return (
     <div className="inicio-public-container">
