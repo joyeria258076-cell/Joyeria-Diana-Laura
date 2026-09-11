@@ -35,6 +35,9 @@
     },
     {
       "src": "/(.*)",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN"
+      },
       "dest": "/index.html"
     }
   ]
