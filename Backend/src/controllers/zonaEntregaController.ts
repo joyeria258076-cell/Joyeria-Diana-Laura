@@ -1,11 +1,14 @@
 import { Request, Response } from 'express';
 import { ZonaEntregaModel } from '../models/zonaEntregaModel';
+import { getOrSetCache, invalidateCache } from '../utils/simpleCache';
+
+const cacheKey = (soloActivas: boolean) => `zonas-entrega:${soloActivas ? 'activas' : 'todas'}`;
 
 export const zonaEntregaController = {
     getZonasEntrega: async (req: Request, res: Response): Promise<void> => {
         try {
             const soloActivas = req.query.todas !== 'true';
-            const zonas = await ZonaEntregaModel.getAll(soloActivas);
+            const zonas = await getOrSetCache(cacheKey(soloActivas), 30_000, () => ZonaEntregaModel.getAll(soloActivas));
             res.json({ success: true, data: zonas });
         } catch (error) {
             console.error('Error en getZonasEntrega:', error);
@@ -21,6 +24,8 @@ export const zonaEntregaController = {
                 return;
             }
             const zona = await ZonaEntregaModel.create(nombre.trim());
+            invalidateCache(cacheKey(true));
+            invalidateCache(cacheKey(false));
             res.status(201).json({ success: true, data: zona });
         } catch (error: any) {
             if (error.code === '23505') {
@@ -36,6 +41,8 @@ export const zonaEntregaController = {
         try {
             const { id } = req.params;
             await ZonaEntregaModel.remove(Number(id));
+            invalidateCache(cacheKey(true));
+            invalidateCache(cacheKey(false));
             res.json({ success: true, message: 'Zona de entrega eliminada' });
         } catch (error) {
             console.error('Error en eliminarZonaEntrega:', error);

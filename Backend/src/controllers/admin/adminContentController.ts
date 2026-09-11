@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { pool } from '../../config/database'; // Tu conexión real a Supabase
+import { getOrSetCache, invalidateCache } from '../../utils/simpleCache';
 
 const SQL_INJECTION_PATTERN = /('(\s)*(or|and)(\s)*')|(-{2})|(\bUNION\b.*\bSELECT\b)|(\bDROP\b.*\bTABLE\b)|(\bINSERT\b.*\bINTO\b)|(\bDELETE\b.*\bFROM\b)|(;(\s)*DROP)|(xp_)/i;
 const XSS_PATTERN = /<\s*script|javascript:|on\w+\s*=|<\s*iframe|<\s*object|<\s*embed/i;
@@ -113,13 +114,14 @@ export const adminContentController = {
   // ==========================================
   getNoticias: async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await pool.query('SELECT * FROM noticias ORDER BY fecha DESC');
-      
-      // Formatear la fecha para enviarla bonita al frontend
-      const noticias = result.rows.map(n => ({
-        ...n,
-        fecha: new Date(n.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
-      }));
+      const noticias = await getOrSetCache('noticias', 60_000, async () => {
+        const result = await pool.query('SELECT * FROM noticias ORDER BY fecha DESC');
+        // Formatear la fecha para enviarla bonita al frontend
+        return result.rows.map(n => ({
+          ...n,
+          fecha: new Date(n.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+        }));
+      });
 
       res.json(noticias);
     } catch (error) {
@@ -144,6 +146,7 @@ export const adminContentController = {
       const nuevaNoticia = result.rows[0];
       nuevaNoticia.fecha = new Date(nuevaNoticia.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 
+      invalidateCache('noticias');
       res.status(201).json(nuevaNoticia);
     } catch (error) {
       console.error('Error en createNoticia:', error);
@@ -157,6 +160,7 @@ export const adminContentController = {
       const { activa } = req.body;
 
       await pool.query('UPDATE noticias SET activa = $1 WHERE id = $2', [activa, id]);
+      invalidateCache('noticias');
       res.json({ message: "Estado actualizado exitosamente" });
     } catch (error) {
       console.error('Error en toggleNoticiaStatus:', error);
@@ -168,6 +172,7 @@ export const adminContentController = {
     try {
       const { id } = req.params;
       await pool.query('DELETE FROM noticias WHERE id = $1', [id]);
+      invalidateCache('noticias');
       res.json({ message: "Noticia eliminada correctamente" });
     } catch (error) {
       console.error('Error en deleteNoticia:', error);
@@ -487,6 +492,7 @@ export const adminContentController = {
         }
       }
       await client.query('COMMIT');
+      invalidateCache('colecciones-publicas');
       res.json({ success: true, data: result.rows[0] });
     } catch {
       await client.query('ROLLBACK');
@@ -516,6 +522,7 @@ export const adminContentController = {
         }
       }
       await client.query('COMMIT');
+      invalidateCache('colecciones-publicas');
       res.json({ success: true, message: 'Colección actualizada' });
     } catch {
       await client.query('ROLLBACK');
@@ -528,6 +535,7 @@ export const adminContentController = {
     const { activo } = req.body;
     try {
       await pool.query('UPDATE colecciones SET activo=$1, fecha_actualizacion=NOW() WHERE id=$2', [activo, id]);
+      invalidateCache('colecciones-publicas');
       res.json({ success: true });
     } catch {
       res.status(500).json({ success: false, message: 'Error al cambiar estado' });
@@ -538,6 +546,7 @@ export const adminContentController = {
     const { id } = req.params;
     try {
       await pool.query('DELETE FROM colecciones WHERE id = $1', [id]);
+      invalidateCache('colecciones-publicas');
       res.json({ success: true, message: 'Colección eliminada' });
     } catch {
       res.status(500).json({ success: false, message: 'Error al eliminar colección' });
@@ -547,20 +556,22 @@ export const adminContentController = {
   // Público: colecciones activas con sus productos
   getColeccionesPublicas: async (req: Request, res: Response) => {
     try {
-      const cols = await pool.query(
-        'SELECT id, nombre, descripcion, imagen_url, orden FROM colecciones WHERE activo = true ORDER BY orden ASC'
-      );
-      const result = await Promise.all(cols.rows.map(async (c) => {
-        const prods = await pool.query(`
-          SELECT p.id, p.nombre, p.imagen_principal, p.precio_venta, p.precio_oferta,
-                 p.stock_actual, p.es_destacado
-          FROM coleccion_productos cp
-          JOIN productos p ON p.id = cp.producto_id
-          WHERE cp.coleccion_id = $1 AND p.activo = true
-          ORDER BY cp.orden ASC
-        `, [c.id]);
-        return { ...c, productos: prods.rows };
-      }));
+      const result = await getOrSetCache('colecciones-publicas', 60_000, async () => {
+        const cols = await pool.query(
+          'SELECT id, nombre, descripcion, imagen_url, orden FROM colecciones WHERE activo = true ORDER BY orden ASC'
+        );
+        return Promise.all(cols.rows.map(async (c) => {
+          const prods = await pool.query(`
+            SELECT p.id, p.nombre, p.imagen_principal, p.precio_venta, p.precio_oferta,
+                   p.stock_actual, p.es_destacado
+            FROM coleccion_productos cp
+            JOIN productos p ON p.id = cp.producto_id
+            WHERE cp.coleccion_id = $1 AND p.activo = true
+            ORDER BY cp.orden ASC
+          `, [c.id]);
+          return { ...c, productos: prods.rows };
+        }));
+      });
       res.json({ success: true, data: result });
     } catch {
       res.status(500).json({ success: false, message: 'Error al obtener colecciones' });
@@ -858,23 +869,26 @@ export const adminContentController = {
   // y retrasaba el LCP. Aqui se resuelve en una sola consulta con JOIN.
   getCarruselInicio: async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await pool.query(`
-        WITH seccion_carrusel AS (
-          SELECT s.id
-          FROM secciones s
-          JOIN paginas p ON s.pagina_id = p.id
-          WHERE p.slug = 'inicio'
-            AND (LOWER(s.nombre) LIKE '%carrusel%' OR LOWER(s.nombre) LIKE '%carousel%')
-          ORDER BY s.orden ASC
-          LIMIT 1
-        )
-        SELECT c.*
-        FROM contenidos c
-        JOIN seccion_carrusel sc ON c.seccion_id = sc.id
-        WHERE c.activo = true
-        ORDER BY c.orden ASC
-      `);
-      res.json(result.rows);
+      const rows = await getOrSetCache('carrusel-inicio', 30_000, async () => {
+        const result = await pool.query(`
+          WITH seccion_carrusel AS (
+            SELECT s.id
+            FROM secciones s
+            JOIN paginas p ON s.pagina_id = p.id
+            WHERE p.slug = 'inicio'
+              AND (LOWER(s.nombre) LIKE '%carrusel%' OR LOWER(s.nombre) LIKE '%carousel%')
+            ORDER BY s.orden ASC
+            LIMIT 1
+          )
+          SELECT c.*
+          FROM contenidos c
+          JOIN seccion_carrusel sc ON c.seccion_id = sc.id
+          WHERE c.activo = true
+          ORDER BY c.orden ASC
+        `);
+        return result.rows;
+      });
+      res.json(rows);
     } catch (error) {
       console.error('Error en getCarruselInicio:', error);
       res.status(500).json({ message: "Error al obtener el carrusel de inicio" });
@@ -918,6 +932,7 @@ export const adminContentController = {
         [seccion_id, titulo, descripcion || '', imagen_url || '', enlace_url || '', enlace_nueva_ventana ?? false, orden || 0, userId]
       );
 
+      invalidateCache('carrusel-inicio');
       res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error('Error en createContenido:', error);
@@ -947,6 +962,7 @@ export const adminContentController = {
         return;
       }
 
+      invalidateCache('carrusel-inicio');
       res.json(result.rows[0]);
     } catch (error) {
       console.error('Error en updateContenido:', error);
@@ -968,6 +984,7 @@ export const adminContentController = {
         return;
       }
 
+      invalidateCache('carrusel-inicio');
       res.json({ message: "Contenido eliminado correctamente" });
     } catch (error) {
       console.error('Error en deleteContenido:', error);
