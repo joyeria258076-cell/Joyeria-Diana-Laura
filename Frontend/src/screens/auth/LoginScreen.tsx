@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useAuth } from "../../contexts/AuthContext";
-import PublicHeader from "../../components/PublicHeader";
+import AuthHeader from "../../components/AuthHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import AuthBackground from "../../components/AuthBackground";
@@ -308,7 +308,7 @@ const onSubmit = async (data: FormData) => {
 
     return (
         <div className="login-page-wrapper">
-            <PublicHeader />
+            <AuthHeader />
             <div className="login-container">
             <AuthBackground />
             <div className="login-image-section">

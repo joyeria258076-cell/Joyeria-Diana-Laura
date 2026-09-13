@@ -1,0 +1,110 @@
+/* Ruta: Frontend/src/components/AuthHeader.css
+   Encabezado reducido de las pantallas de autenticación. Transparente a
+   propósito: se apoya sobre la fotografía de fondo que ya trae la pantalla,
+   en vez de meter otra barra negra encima. */
+
+.auth-header {
+  position: relative;
+  z-index: 10;
+  background: transparent;
+  padding-block: clamp(1.1rem, 2.5vw, 1.75rem);
+  padding-inline: clamp(1.25rem, 4vw, 3rem);
+}
+
+.auth-header-inner {
+  max-width: 1800px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* ── Marca ── */
+.auth-header-marca {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+
+.auth-header-marca:hover {
+  opacity: 0.82;
+}
+
+.auth-header-marca:focus-visible {
+  outline: 2px solid var(--color-rose-gold);
+  outline-offset: 5px;
+  border-radius: 3px;
+}
+
+.auth-header-iniciales {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--color-text);
+}
+
+.auth-header-nombre {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: var(--color-blush);
+}
+
+/* ── Enlace de salida ── */
+.auth-header-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  /* Zona táctil accesible sin agrandar el texto */
+  min-height: 44px;
+  padding-inline: 0.35rem;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.3s ease, gap 0.3s ease;
+}
+
+.auth-header-volver:hover,
+.auth-header-volver:focus-visible {
+  color: var(--color-champagne);
+  gap: 0.65rem;
+}
+
+.auth-header-volver:focus-visible {
+  outline: 2px solid var(--color-rose-gold);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+@media (max-width: 576px) {
+  /* En teléfono solo queda la marca: el enlace de volver duplica al botón
+     de atrás del navegador y roba ancho. */
+  .auth-header-volver span {
+    display: none;
+  }
+
+  .auth-header-nombre {
+    font-size: 1.1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-header-marca,
+  .auth-header-volver {
+    transition: none;
+  }
+
+  .auth-header-volver:hover,
+  .auth-header-volver:focus-visible {
+    gap: 0.45rem;
+  }
+}

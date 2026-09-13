@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useAuth } from "../../contexts/AuthContext";
-import PublicHeader from "../../components/PublicHeader";
+import AuthHeader from "../../components/AuthHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { securityQuestionAPI } from "../../services/securityQuestionAPI";
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineLock, AiOutlineArrowLeft, AiOutlineArrowRight, AiOutlineCamera } from "react-icons/ai";
@@ -249,7 +249,7 @@ export default function RegistroScreen() {
 
     return (
         <div className="register-page-wrapper">
-            <PublicHeader />
+            <AuthHeader />
             <div className="register-container">
             <AuthBackground />
             <div className="register-card">

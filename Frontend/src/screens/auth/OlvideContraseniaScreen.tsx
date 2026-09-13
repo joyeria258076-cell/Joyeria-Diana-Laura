@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import PublicHeader from '../../components/PublicHeader';
+import AuthHeader from '../../components/AuthHeader';
 import PublicFooter from '../../components/PublicFooter';
 import { authAPI } from '../../services/api';
 import AuthBackground from '../../components/AuthBackground';
@@ -215,7 +215,7 @@ const OlvideContraseniaScreen: React.FC = () => {
 
     return (
         <div className="olvide-page-wrapper">
-            <PublicHeader />
+            <AuthHeader />
             <div className="olvide-contrasenia-container">
                 <AuthBackground />
                 <div className="olvide-contrasenia-card">

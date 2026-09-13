@@ -1,7 +1,7 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/screens/ReiniciarContraseniaScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import PublicHeader from '../../components/PublicHeader';
+import AuthHeader from '../../components/AuthHeader';
 import PublicFooter from '../../components/PublicFooter';
 import { authAPI } from '../../services/api';
 import { getAuth, verifyPasswordResetCode, confirmPasswordReset } from 'firebase/auth';
@@ -232,7 +232,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   if (verifying) {
     return (
       <div className="reiniciar-page-wrapper">
-        <PublicHeader />
+        <AuthHeader />
         <div className="reset-password-container">
           <AuthBackground />
           <div className="reset-password-card">
@@ -249,7 +249,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   if (!validCode) {
     return (
       <div className="reiniciar-page-wrapper">
-        <PublicHeader />
+        <AuthHeader />
         <div className="reset-password-container">
           <AuthBackground />
           <div className="reset-password-card">
@@ -279,7 +279,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   return (
     <div className="reiniciar-page-wrapper">
-      <PublicHeader />
+      <AuthHeader />
       <div className="reset-password-container">
           <AuthBackground />
         <div className="reset-password-card">

@@ -569,3 +569,227 @@
     transform: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   TARJETA CLARA — mismo lenguaje que el panel de categorías del Inicio
+
+   La tarjeta era gris translúcida sobre la fotografía oscura: se fundía con
+   el fondo y el formulario costaba de leer. Ahora es una tarjeta crema que
+   flota sobre la foto, como una ficha de joyería sobre terciopelo. El fondo
+   de la pantalla sigue siendo la fotografía oscura; el contraste entre el
+   panel izquierdo (oscuro) y la tarjeta (clara) es deliberado.
+
+   Paleta, derivada de la marca:
+     crema      #fdfaf6 → #f6ece1   (del champagne #e8d5b7)
+     texto      #3a2a20 / #6b5647   (café, más cálido que el negro)
+     oro oscuro #8a5a2b             (el oro rosa no contrasta sobre crema)
+     blush      #f4c2c2             (el acento femenino, en los detalles)
+═══════════════════════════════════════════════════════════════════ */
+
+.login-page-wrapper .login-card {
+  background: linear-gradient(165deg, #fdfaf6 0%, #f6ece1 100%);
+  border: 1px solid rgba(201, 149, 108, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  /* El desenfoque era para la caja translúcida; ya no hace falta */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  overflow: hidden;
+}
+
+/* Filete superior en degradado: el detalle de joyería de la tarjeta */
+.login-page-wrapper .login-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  padding: 0;
+  border-radius: 0;
+  background: linear-gradient(
+    90deg,
+    var(--color-rose-gold) 0%,
+    var(--color-blush) 50%,
+    var(--color-rose-gold) 100%
+  );
+  -webkit-mask: none;
+  mask: none;
+  mask-composite: initial;
+  -webkit-mask-composite: initial;
+}
+
+/* ── Encabezado de la tarjeta ── */
+.login-page-wrapper .login-header h2 {
+  color: #3a2a20;
+  -webkit-text-fill-color: #3a2a20;
+}
+
+.login-page-wrapper .login-header h2 em {
+  color: #8a5a2b;
+}
+
+.login-page-wrapper .login-header p {
+  color: #6b5647;
+}
+
+/* Filete corto bajo el título, como el del panel izquierdo */
+.login-page-wrapper .login-header::after {
+  content: '';
+  display: block;
+  width: 52px;
+  height: 1px;
+  margin: 1.1rem auto 0;
+  background: linear-gradient(90deg, transparent, var(--color-rose-gold), transparent);
+}
+
+/* ── Campos ── */
+.login-page-wrapper .login-form-group label {
+  color: #8a5a2b;
+}
+
+.login-page-wrapper .login-input {
+  color: #3a2a20;
+  border-bottom-color: rgba(201, 149, 108, 0.4);
+}
+
+.login-page-wrapper .login-input::placeholder {
+  color: #a8968a;
+  opacity: 1;
+}
+
+.login-page-wrapper .login-input:focus {
+  border-bottom-color: #8a5a2b;
+  box-shadow: 0 1px 0 0 #8a5a2b, 0 8px 16px -10px rgba(138, 90, 43, 0.45);
+}
+
+/* El autocompletado de Chrome imponía un fondo oscuro heredado del diseño
+   anterior; sobre la tarjeta clara debe ser claro. */
+.login-page-wrapper .login-input:-webkit-autofill,
+.login-page-wrapper .login-input:-webkit-autofill:hover,
+.login-page-wrapper .login-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #3a2a20;
+  -webkit-box-shadow: 0 0 0 1000px #fdfaf6 inset;
+  box-shadow: 0 0 0 1000px #fdfaf6 inset;
+  caret-color: #3a2a20;
+}
+
+/* El ojo de mostrar contraseña */
+.login-page-wrapper .password-toggle {
+  color: #8a5a2b;
+}
+
+.login-page-wrapper .password-toggle:hover {
+  color: #3a2a20;
+}
+
+/* Errores: en rosa oscuro, legible sobre el crema (el blush claro no
+   contrasta lo suficiente para texto). */
+.login-page-wrapper .login-input.error {
+  border-bottom-color: #b4576b;
+}
+
+.login-page-wrapper .login-error {
+  color: #a8455a;
+}
+
+.login-page-wrapper .auth-error-banner {
+  background: #fdeef1;
+  border: 1px solid rgba(180, 87, 107, 0.35);
+  border-radius: 8px;
+  color: #8f3a4c;
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.login-page-wrapper .processing-message,
+.login-page-wrapper .verification-message {
+  background: rgba(201, 149, 108, 0.12);
+  border: 1px solid rgba(201, 149, 108, 0.3);
+  border-radius: 8px;
+  color: #6b5647;
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+}
+
+.login-page-wrapper .verification-message p {
+  margin: 0;
+  color: inherit;
+}
+
+/* ── Botón principal ── */
+.login-page-wrapper .login-button {
+  color: #2b1a11;
+  box-shadow: 0 8px 22px rgba(138, 90, 43, 0.28);
+}
+
+.login-page-wrapper .login-button:hover:not(:disabled) {
+  box-shadow: 0 14px 32px rgba(138, 90, 43, 0.36);
+}
+
+.login-page-wrapper .login-button:focus-visible {
+  outline: 2px solid #8a5a2b;
+  outline-offset: 3px;
+}
+
+/* ── Enlaces del pie ── */
+.login-page-wrapper .login-links {
+  border-top-color: rgba(201, 149, 108, 0.28);
+}
+
+.login-page-wrapper .login-link {
+  color: #6b5647;
+}
+
+.login-page-wrapper .login-link:hover,
+.login-page-wrapper .login-link:focus-visible {
+  color: #8a5a2b;
+}
+
+.login-page-wrapper .login-link:focus-visible {
+  outline-color: #8a5a2b;
+}
+
+/* "Crear cuenta" es la acción secundaria importante: se marca con el
+   acento blush para que se distinga del enlace de contraseña olvidada. */
+.login-page-wrapper .login-links .login-link:first-child {
+  font-weight: 600;
+  color: #8a5a2b;
+  position: relative;
+}
+
+.login-page-wrapper .login-links .login-link:first-child::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.15rem;
+  height: 1px;
+  background: var(--color-blush);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--ease-silk);
+}
+
+.login-page-wrapper .login-links .login-link:first-child:hover::after,
+.login-page-wrapper .login-links .login-link:first-child:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* ── Panel izquierdo: un poco más de presencia femenina ── */
+.login-page-wrapper .login-image-eyebrow {
+  color: var(--color-blush);
+}
+
+.login-page-wrapper .login-image-content h1 em {
+  color: var(--color-blush);
+}
+
+.login-page-wrapper .login-image-divider {
+  background: linear-gradient(90deg, transparent, var(--color-blush), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page-wrapper .login-links .login-link:first-child::after {
+    transition: none;
+  }
+}
