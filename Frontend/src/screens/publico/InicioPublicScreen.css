@@ -1382,3 +1382,266 @@
   background: linear-gradient(90deg, transparent, var(--rose), transparent);
   opacity: 0.45;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   PANELES CLAROS — la parte de abajo, en el mismo lenguaje que el panel
+   de categorías.
+
+   Antes cada sección era un bloque oscuro sobre el fondo oscuro: no se
+   distinguía dónde terminaba una y empezaba otra, y todo se leía como una
+   masa amontonada. Ahora cada banda es una tarjeta crema sobre el negro,
+   como en las tiendas. El fondo de la página SIGUE SIENDO NEGRO: lo que
+   cambia son las tarjetas encima.
+
+   Paleta de las tarjetas (derivada de la marca, no inventada):
+     crema      #fdfaf6 → #f6ece1   (del champagne #e8d5b7)
+     texto      #3a2a20 / #6b5647   (café, no negro: más cálido)
+     oro oscuro #8a5a2b             (el oro rosa no contrasta sobre crema)
+     acento     #c9956c             (oro rosa de la marca, para filetes)
+═══════════════════════════════════════════════════════════════════ */
+
+.inicio-public-container {
+  --panel-crema-1: #fdfaf6;
+  --panel-crema-2: #f6ece1;
+  --panel-borde: rgba(201, 149, 108, 0.28);
+  --panel-texto: #3a2a20;
+  --panel-texto-suave: #6b5647;
+  /* El oro rosa da 2.4:1 sobre el crema (ilegible). Este tono sí cumple. */
+  --panel-oro: #8a5a2b;
+  --tarjeta-blanca: #ffffff;
+}
+
+/* ── La sección aporta el margen exterior; el contenedor es la tarjeta ── */
+.inicio-public-container .showcase-section,
+.inicio-public-container .features-section,
+.inicio-public-container .news-section,
+.inicio-public-container .valores-section,
+.inicio-public-container .cta-section {
+  padding-block: clamp(1rem, 2vw, 1.75rem);
+  padding-inline: clamp(1rem, 3vw, 2rem);
+  border-top: none;
+}
+
+.inicio-public-container .showcase-section > .container-lg,
+.inicio-public-container .features-section > .container-lg,
+.inicio-public-container .news-section > .container-lg,
+.inicio-public-container .valores-section > .container-lg,
+.inicio-public-container .cta-section > .container-lg {
+  background: linear-gradient(165deg, var(--panel-crema-1) 0%, var(--panel-crema-2) 100%);
+  border: 1px solid var(--panel-borde);
+  border-radius: 10px;
+  padding: clamp(2rem, 4vw, 3.25rem) clamp(1.25rem, 3vw, 2.5rem);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+
+/* El separador dorado ya no hace falta: las tarjetas separan solas */
+.inicio-public-container .showcase-section + .showcase-section::before {
+  display: none;
+}
+
+/* ── Encabezados dentro de los paneles ── */
+.inicio-public-container .showcase-section .section-title,
+.inicio-public-container .features-section .section-title,
+.inicio-public-container .news-section .section-title,
+.inicio-public-container .valores-section .section-title,
+.inicio-public-container .cta-section h2 {
+  color: var(--panel-texto);
+}
+
+.inicio-public-container .showcase-section .section-title span,
+.inicio-public-container .features-section .section-title span,
+.inicio-public-container .news-section .section-title span,
+.inicio-public-container .valores-section .section-title span,
+.inicio-public-container .cta-section h2 span {
+  color: var(--panel-oro);
+  font-style: italic;
+}
+
+.inicio-public-container .showcase-section .section-subtitle,
+.inicio-public-container .features-section .section-subtitle,
+.inicio-public-container .news-section .section-subtitle,
+.inicio-public-container .valores-section .section-subtitle,
+.inicio-public-container .cta-section p {
+  color: var(--panel-texto-suave);
+}
+
+.inicio-public-container .showcase-section .eyebrow-txt,
+.inicio-public-container .features-section .eyebrow-txt,
+.inicio-public-container .news-section .eyebrow-txt,
+.inicio-public-container .valores-section .eyebrow-txt,
+.inicio-public-container .cta-label {
+  color: var(--panel-oro);
+}
+
+.inicio-public-container .showcase-section .eyebrow-line,
+.inicio-public-container .features-section .eyebrow-line,
+.inicio-public-container .news-section .eyebrow-line,
+.inicio-public-container .valores-section .eyebrow-line {
+  background: var(--panel-oro);
+  opacity: 0.45;
+}
+
+/* ── Tarjetas de contenido: blancas sobre el crema ── */
+.inicio-public-container .product-card,
+.inicio-public-container .editorial-card,
+.inicio-public-container .showcase-card,
+.inicio-public-container .news-card,
+.inicio-public-container .feature-card,
+.inicio-public-container .valor-card {
+  background: var(--tarjeta-blanca);
+  border: 1px solid rgba(201, 149, 108, 0.22);
+  box-shadow: 0 4px 16px rgba(58, 42, 32, 0.08);
+}
+
+.inicio-public-container .product-card:hover,
+.inicio-public-container .editorial-card:hover,
+.inicio-public-container .showcase-card:hover,
+.inicio-public-container .news-card:hover,
+.inicio-public-container .feature-card:hover,
+.inicio-public-container .valor-card:hover {
+  border-color: var(--panel-oro);
+  box-shadow: 0 14px 36px rgba(58, 42, 32, 0.16);
+}
+
+/* Textos dentro de las tarjetas */
+.inicio-public-container .product-card-body h3,
+.inicio-public-container .editorial-card-body h3,
+.inicio-public-container .showcase-card-body h3,
+.inicio-public-container .news-title,
+.inicio-public-container .feature-card h3,
+.inicio-public-container .valor-card h3 {
+  color: var(--panel-texto);
+}
+
+.inicio-public-container .showcase-card-body p,
+.inicio-public-container .news-description,
+.inicio-public-container .feature-card p,
+.inicio-public-container .valor-card p,
+.inicio-public-container .promo-minimo,
+.inicio-public-container .promo-vigencia {
+  color: var(--panel-texto-suave);
+}
+
+.inicio-public-container .precio-final,
+.inicio-public-container .product-card-link,
+.inicio-public-container .showcase-card-count,
+.inicio-public-container .news-link,
+.inicio-public-container .ver-todos-link,
+.inicio-public-container .prod-categoria {
+  color: var(--panel-oro);
+}
+
+.inicio-public-container .precio-tachado {
+  color: #9c8878;
+}
+
+/* El fondo de las fotos mientras cargan, en crema y no en negro */
+.inicio-public-container .product-card-img,
+.inicio-public-container .editorial-card-img,
+.inicio-public-container .showcase-card-img,
+.inicio-public-container .news-image {
+  background: #f0e6dc;
+}
+
+/* Las fotos ya no necesitan oscurecerse: el entorno es claro */
+.inicio-public-container .product-card-img img,
+.inicio-public-container .editorial-card-img img,
+.inicio-public-container .showcase-card-img img,
+.inicio-public-container .news-image img {
+  filter: none;
+}
+
+/* Medallón de los valores y de las características */
+.inicio-public-container .valor-icono,
+.inicio-public-container .feature-icon {
+  background: rgba(201, 149, 108, 0.14);
+  border-color: rgba(201, 149, 108, 0.35);
+  color: var(--panel-oro);
+}
+
+.inicio-public-container .valor-card:hover .valor-icono {
+  background: var(--panel-oro);
+  border-color: var(--panel-oro);
+  color: var(--tarjeta-blanca);
+}
+
+/* Divisor de las noticias */
+.inicio-public-container .news-divider {
+  background: rgba(201, 149, 108, 0.3);
+}
+
+/* ── Distintivos sobre la foto ── */
+.inicio-public-container .prod-badge--nuevo {
+  background: linear-gradient(135deg, var(--color-blush) 0%, #f8dcdc 100%);
+  color: #5c3339;
+}
+
+.inicio-public-container .prod-badge--oferta {
+  background: linear-gradient(135deg, #c9956c 0%, #e0b389 100%);
+  color: #3a2a20;
+}
+
+.inicio-public-container .prod-badge--agotado {
+  background: rgba(58, 42, 32, 0.82);
+  color: #f6ece1;
+}
+
+/* ── Botones dentro de los paneles claros ── */
+/* El secundario era texto claro sobre transparente: invisible sobre crema */
+.inicio-public-container .showcase-section .btn-secondary,
+.inicio-public-container .features-section .btn-secondary,
+.inicio-public-container .news-section .btn-secondary,
+.inicio-public-container .cta-section .btn-secondary {
+  color: var(--panel-oro) !important;
+  border-color: var(--panel-oro) !important;
+}
+
+.inicio-public-container .showcase-section .btn-secondary:hover,
+.inicio-public-container .features-section .btn-secondary:hover,
+.inicio-public-container .news-section .btn-secondary:hover,
+.inicio-public-container .cta-section .btn-secondary:hover {
+  background: rgba(201, 149, 108, 0.12) !important;
+  color: var(--panel-texto) !important;
+}
+
+/* ── Tarjeta de promoción ── */
+.inicio-public-container .promo-codigo {
+  background: rgba(201, 149, 108, 0.14);
+  border: 1px dashed var(--panel-oro);
+  color: var(--panel-oro);
+}
+
+.inicio-public-container .promo-ribbon {
+  background: linear-gradient(135deg, #c9956c 0%, #e0b389 100%);
+  color: #3a2a20;
+}
+
+/* ── Llamado final: el único panel con acento, para cerrar ── */
+.inicio-public-container .cta-section > .container-lg {
+  background: linear-gradient(150deg, #f6ece1 0%, #efdcc8 100%);
+  text-align: center;
+}
+
+/* Las secciones traían su propio fondo oscuro (rgba(10,10,10,0.3/0.4)), que
+   ahora quedaría como una franja oscura alrededor de la tarjeta crema. Se
+   vuelven transparentes para que se vea el negro de la página. */
+.inicio-public-container .showcase-section,
+.inicio-public-container .showcase-section--alt,
+.inicio-public-container .features-section,
+.inicio-public-container .news-section,
+.inicio-public-container .valores-section,
+.inicio-public-container .cta-section {
+  background: transparent;
+}
+
+/* Velo decorativo del llamado final: se dibujaba sobre un fondo oscuro y
+   encima del panel claro solo lo ensucia. */
+.inicio-public-container .cta-section::before {
+  display: none;
+}
+
+/* El título de "Productos Recientes" llevaba el margen negativo en línea
+   dentro del TSX; dentro del panel ya no hace falta compensar nada. */
+.inicio-public-container .showcase-section .section-header-row + .section-title {
+  margin-top: 0 !important;
+}
