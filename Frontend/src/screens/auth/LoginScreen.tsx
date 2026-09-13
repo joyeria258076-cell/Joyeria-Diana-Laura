@@ -339,8 +339,11 @@ const onSubmit = async (data: FormData) => {
                         </div>
                     )}
 
+                    {/* role="alert" hace que el lector de pantalla anuncie el
+                        fallo de inicio de sesión en cuanto aparece, en vez de
+                        dejarlo pasar en silencio. */}
                     {!loading && errors.root?.message && (
-                        <div className="auth-error-banner">
+                        <div className="auth-error-banner" role="alert">
                             {errors.root.message}
                         </div>
                     )}
@@ -348,41 +351,52 @@ const onSubmit = async (data: FormData) => {
                     <form onSubmit={handleSubmit(onSubmit)} className="login-form">
                         <div className="login-form-group">
                             <label htmlFor="email">Correo electrónico</label>
-                            <input 
+                            <input
                                 id="email"
-                                type="email" 
-                                placeholder="tu@email.com" 
+                                type="email"
+                                placeholder="tu@email.com"
                                 className={`login-input ${errors.email ? 'error' : ''}`}
-                                {...register("email")} 
+                                {...register("email")}
                                 maxLength={60}
+                                /* Deja que el navegador ofrezca el correo guardado */
+                                autoComplete="email"
+                                autoFocus
+                                /* Enlaza el mensaje de error con el campo para
+                                   que el lector de pantalla lo anuncie */
+                                aria-invalid={!!errors.email}
+                                aria-describedby={errors.email ? "email-error" : undefined}
                             />
                             {errors.email && (
-                                <span className="login-error">{errors.email.message}</span>
+                                <span className="login-error" id="email-error" role="alert">{errors.email.message}</span>
                             )}
                         </div>
 
                         <div className="login-form-group">
                             <label htmlFor="password">Contraseña</label>
                             <div className="password-input-container">
-                                <input 
+                                <input
                                     id="password"
                                     type={showPassword ? "text" : "password"}
                                     placeholder="Tu contraseña (8-16 caracteres)"
                                     className={`login-input password-input ${errors.password ? 'error' : ''}`}
-                                    {...register("password")} 
+                                    {...register("password")}
                                     maxLength={16}
+                                    autoComplete="current-password"
+                                    aria-invalid={!!errors.password}
+                                    aria-describedby={errors.password ? "password-error" : undefined}
                                 />
                                 <button
                                     type="button"
                                     className="password-toggle"
                                     onClick={() => setShowPassword(!showPassword)}
                                     aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                    aria-pressed={showPassword}
                                 >
                                     {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
                                 </button>
                             </div>
                             {errors.password && (
-                                <span className="login-error">{errors.password.message}</span>
+                                <span className="login-error" id="password-error" role="alert">{errors.password.message}</span>
                             )}
                         </div>
 

@@ -1,4 +1,8 @@
-/* Reutilizamos la base de tu Login para total consistencia */
+/* Reutilizamos la base del Login para mantener la consistencia visual.
+   IMPORTANTE: cada selector va acotado a .not-found-page. Sin ese prefijo
+   las reglas eran globales y se filtraban a la pantalla de inicio de sesión
+   real — el título "Iniciar sesión" salía a 5rem y en degradado rosa porque
+   heredaba el estilo del número 404. */
 
 .not-found-page {
     justify-content: center;
@@ -6,7 +10,7 @@
 }
 
 /* Título 404 con el degradado Playfair de tu Joyería */
-.login-header h2 {
+.not-found-page .login-header h2 {
     font-family: 'Playfair Display', serif;
     font-size: 5rem; /* Tamaño grande para el 404 */
     background: linear-gradient(135deg, #FFFFFF 0%, #ECB2C3 100%);
@@ -17,7 +21,7 @@
 }
 
 /* El botón igual a la imagen 1 (Entrar) */
-.login-button {
+.not-found-page .login-button {
     background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 50%, #000000 100%);
     color: #ECB2C3;
     border: 1px solid rgba(236, 178, 195, 0.3);
@@ -39,7 +43,7 @@
 }
 
 /* Efecto de brillo que recorre el botón al hacer hover */
-.login-button::before {
+.not-found-page .login-button::before {
     content: '';
     position: absolute;
     top: 0;
@@ -50,19 +54,19 @@
     transition: left 0.6s;
 }
 
-.login-button:hover {
+.not-found-page .login-button:hover {
     transform: translateY(-3px);
     border-color: #ECB2C3;
     color: #FFFFFF;
     box-shadow: 0 12px 30px rgba(236, 178, 195, 0.2);
 }
 
-.login-button:hover::before {
+.not-found-page .login-button:hover::before {
     left: 100%;
 }
 
 /* Estilo para el enlace inferior */
-.login-link {
+.not-found-page .login-link {
     cursor: pointer;
     font-size: 0.9rem;
     color: #ECB2C3;
@@ -70,13 +74,13 @@
     transition: all 0.3s ease;
 }
 
-.login-link:hover {
+.not-found-page .login-link:hover {
     color: #FFFFFF;
     text-shadow: 0 0 10px rgba(236, 178, 195, 0.5);
 }
 
 /* Animación de entrada de la tarjeta */
-.login-card {
+.not-found-page .login-card {
     animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 

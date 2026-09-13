@@ -391,3 +391,181 @@
 @media (prefers-reduced-motion: reduce) {
     .login-image-content, .login-card, .login-card::before { animation: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   AJUSTES DE LA PANTALLA DE INICIO DE SESIÓN
+
+   Nota sobre el título gigante: NO era culpa de esta hoja. NotFoundScreen.css
+   reutilizaba `.login-header h2` y `.login-button` sin acotarlos a su propia
+   pantalla, así que en cuanto se cargaba esa hoja el título de aquí heredaba
+   el tamaño del número 404 (5rem, en degradado rosa). Ya quedó acotado allá.
+   Aquí se refuerza el valor propio para que no vuelva a pasar.
+═══════════════════════════════════════════════════════════════════ */
+
+.login-page-wrapper .login-header h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 2.6vw, 2.4rem);
+  font-weight: 300;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  /* Anula el degradado recortado que se colaba desde la pantalla 404 */
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--color-text);
+  margin-bottom: 0.65rem;
+}
+
+/* Un toque de la marca: la segunda palabra en cursiva dorada */
+.login-page-wrapper .login-header h2 em {
+  font-style: italic;
+  color: var(--color-rose-gold);
+}
+
+/* ── La tarjeta, con más aire y algo más ancha ── */
+.login-page-wrapper .login-card {
+  max-width: 460px;
+  padding: clamp(2.25rem, 4vw, 3.25rem) clamp(1.75rem, 3vw, 2.75rem);
+}
+
+.login-page-wrapper .login-header {
+  margin-bottom: 2rem;
+}
+
+/* ── Campos: etiqueta pequeña en versalita, como una ficha de joyería ── */
+.login-page-wrapper .login-form-group label {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-rose-gold);
+  margin-bottom: 0.4rem;
+}
+
+.login-page-wrapper .login-input {
+  /* Un poco más de alto: 10px dejaba el campo muy apretado para el dedo */
+  padding: 0.75rem 0.25rem;
+}
+
+/* ── Botón principal ── */
+.login-page-wrapper .login-button {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.95rem 1.5rem;
+  background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-champagne) 100%);
+  color: #2b1a11;
+  border: none;
+  border-radius: 100px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.35s var(--ease-silk), box-shadow 0.35s var(--ease-silk),
+              filter 0.3s ease;
+  box-shadow: 0 8px 24px rgba(201, 149, 108, 0.28);
+}
+
+.login-page-wrapper .login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(201, 149, 108, 0.38);
+  filter: brightness(1.04);
+}
+
+.login-page-wrapper .login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-page-wrapper .login-button:focus-visible {
+  outline: 2px solid var(--color-champagne);
+  outline-offset: 3px;
+}
+
+/* ── Enlaces del pie de la tarjeta ── */
+.login-page-wrapper .login-links {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(201, 149, 108, 0.18);
+}
+
+.login-page-wrapper .login-link {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  /* Zona táctil cómoda sin agrandar el texto */
+  padding: 0.35rem 0;
+}
+
+.login-page-wrapper .login-link:hover,
+.login-page-wrapper .login-link:focus-visible {
+  color: var(--color-champagne);
+}
+
+.login-page-wrapper .login-link:focus-visible {
+  outline: 2px solid var(--color-rose-gold);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ── Responsive ──
+   Antes solo había un corte en 768px: entre 769 y 1024 las dos columnas
+   se apretaban y el formulario quedaba estrujado contra el borde. */
+@media (max-width: 1024px) {
+  .login-page-wrapper .login-image-section {
+    flex: 1;
+    padding: 2rem 1.5rem;
+  }
+
+  .login-page-wrapper .login-form-section {
+    padding: 2rem 1.5rem;
+  }
+
+  .login-page-wrapper .login-image-content h1 {
+    font-size: clamp(1.7rem, 3vw, 2.2rem);
+  }
+}
+
+@media (max-width: 768px) {
+  /* En teléfono el panel de la izquierda pasa a ser una cabecera breve:
+     el formulario es lo que importa y debe quedar a la vista. */
+  .login-page-wrapper .login-image-section {
+    min-height: auto;
+    padding: 2.5rem 1.5rem 1rem;
+  }
+
+  .login-page-wrapper .login-image-content p {
+    display: none;
+  }
+
+  .login-page-wrapper .login-image-divider {
+    margin: 1rem auto;
+  }
+
+  .login-page-wrapper .login-form-section {
+    padding: 1rem 1.25rem 2.5rem;
+  }
+
+  .login-page-wrapper .login-links {
+    justify-content: center;
+    gap: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page-wrapper .login-button {
+    transition: none;
+  }
+
+  .login-page-wrapper .login-button:hover:not(:disabled) {
+    transform: none;
+  }
+}
