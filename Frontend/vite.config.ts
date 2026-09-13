@@ -1,10 +1,51 @@
 // Ruta: Frontend/vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      // Desactivado en `npm run dev` a propósito: el Service Worker solo
+      // se genera en el build de producción, para no interferir mientras
+      // se programa/prueba localmente.
+      devOptions: { enabled: false },
+      registerType: 'autoUpdate', // se actualiza solo en cada deploy, nunca queda "atascado" en una versión vieja
+      includeAssets: ['DL.ico', 'favicon.ico'],
+      manifest: {
+        name: 'Joyería Diana Laura',
+        short_name: 'Diana Laura',
+        description: 'Joyería y bisutería premium — catálogo, pedidos y apartados en línea.',
+        theme_color: '#0a0a0a',
+        background_color: '#0a0a0a',
+        display: 'standalone',
+        start_url: '/',
+        scope: '/',
+        icons: [
+          { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        // Precachea únicamente los archivos estáticos del build (JS, CSS,
+        // imágenes, íconos) — ya vienen con hash de Vite, así que cada
+        // deploy invalida solo lo que cambió.
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Nunca cachear llamadas a la API: precios, stock, carrito, login
+        // y pedidos siempre se piden frescos al servidor, sin excepción.
+        navigateFallbackDenylist: [/^\/api\//],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+          },
+        ],
+      },
+    }),
+  ],
   server: {
     port: 3000,
     open: true,
