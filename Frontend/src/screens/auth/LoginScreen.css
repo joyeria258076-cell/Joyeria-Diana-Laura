@@ -571,45 +571,53 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   TARJETA CLARA — mismo lenguaje que el panel de categorías del Inicio
+   LA TARJETA — vidrio ahumado con orfebrería
 
-   La tarjeta era gris translúcida sobre la fotografía oscura: se fundía con
-   el fondo y el formulario costaba de leer. Ahora es una tarjeta crema que
-   flota sobre la foto, como una ficha de joyería sobre terciopelo. El fondo
-   de la pantalla sigue siendo la fotografía oscura; el contraste entre el
-   panel izquierdo (oscuro) y la tarjeta (clara) es deliberado.
+   Intento anterior: tarjeta crema. Funcionaba en el Inicio, donde era un
+   panel entre varios, pero aquí era el único bloque claro de la pantalla y
+   se comía al panel de la marca y a la fotografía.
 
-   Paleta, derivada de la marca:
-     crema      #fdfaf6 → #f6ece1   (del champagne #e8d5b7)
-     texto      #3a2a20 / #6b5647   (café, más cálido que el negro)
-     oro oscuro #8a5a2b             (el oro rosa no contrasta sobre crema)
-     blush      #f4c2c2             (el acento femenino, en los detalles)
+   Ahora la tarjeta es vidrio ahumado: se apoya en la foto en lugar de
+   taparla, y todo el peso visual lo llevan el oro y el blush del detalle.
+   Sigue sin ser simple —conserva el marco doble, el monograma y el
+   ornamento de rombos— pero ya no acapara la pantalla.
 ═══════════════════════════════════════════════════════════════════ */
 
 .login-page-wrapper .login-card {
-  background: linear-gradient(165deg, #fdfaf6 0%, #f6ece1 100%);
-  border: 1px solid rgba(201, 149, 108, 0.3);
+  background:
+    linear-gradient(
+      165deg,
+      rgba(32, 26, 22, 0.78) 0%,
+      rgba(14, 12, 11, 0.86) 100%
+    );
+  backdrop-filter: blur(22px) saturate(1.1);
+  -webkit-backdrop-filter: blur(22px) saturate(1.1);
+  border: 1px solid rgba(201, 149, 108, 0.32);
   border-radius: 12px;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
-  /* El desenfoque era para la caja translúcida; ya no hace falta */
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  /* Sombra suave, no un bloque flotante pesado */
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  max-width: 448px;
+  padding: clamp(2.5rem, 4vw, 3.25rem) clamp(1.85rem, 3.2vw, 2.75rem);
   overflow: hidden;
 }
 
-/* Filete superior en degradado: el detalle de joyería de la tarjeta */
+/* Filete superior en degradado: el guiño de joyería */
 .login-page-wrapper .login-card::before {
   content: '';
   position: absolute;
   inset: 0 0 auto 0;
-  height: 3px;
+  height: 2px;
   padding: 0;
   border-radius: 0;
   background: linear-gradient(
     90deg,
-    var(--color-rose-gold) 0%,
+    transparent 0%,
+    var(--color-rose-gold) 25%,
     var(--color-blush) 50%,
-    var(--color-rose-gold) 100%
+    var(--color-rose-gold) 75%,
+    transparent 100%
   );
   -webkit-mask: none;
   mask: none;
@@ -617,85 +625,139 @@
   -webkit-mask-composite: initial;
 }
 
-/* ── Encabezado de la tarjeta ── */
-.login-page-wrapper .login-header h2 {
-  color: #3a2a20;
-  -webkit-text-fill-color: #3a2a20;
+/* Marco interior de doble línea — el detalle del certificado */
+.login-page-wrapper .login-card::after {
+  content: '';
+  position: absolute;
+  inset: 13px;
+  border: 1px solid rgba(201, 149, 108, 0.18);
+  border-radius: 7px;
+  pointer-events: none;
 }
 
-.login-page-wrapper .login-header h2 em {
-  color: #8a5a2b;
+/* ── Monograma en sello circular ── */
+.login-page-wrapper .login-header::before {
+  content: 'DL';
+  display: block;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 1.15rem;
+  border: 1px solid rgba(201, 149, 108, 0.5);
+  border-radius: 50%;
+  line-height: 52px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  /* Compensa el espaciado sobrante tras la última letra */
+  text-indent: 0.16em;
+  color: var(--color-champagne);
+  background: rgba(201, 149, 108, 0.1);
+}
+
+/* ── Título ── */
+.login-page-wrapper .login-header h2 {
+  color: var(--color-text);
+  -webkit-text-fill-color: var(--color-text);
+  background: none;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 2.6vw, 2.35rem);
+  font-weight: 300;
+  /* 1.15 recortaba la tilde de "sesión" contra el borde superior */
+  line-height: 1.32;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
 }
 
 .login-page-wrapper .login-header p {
-  color: #6b5647;
+  color: rgba(245, 240, 235, 0.6);
 }
 
-/* Filete corto bajo el título, como el del panel izquierdo */
+/* Ornamento de tres rombos: el del centro lleno, los laterales menores */
 .login-page-wrapper .login-header::after {
   content: '';
   display: block;
-  width: 52px;
-  height: 1px;
-  margin: 1.1rem auto 0;
-  background: linear-gradient(90deg, transparent, var(--color-rose-gold), transparent);
+  width: 6px;
+  height: 6px;
+  margin: 1.3rem auto 0;
+  background: var(--color-rose-gold);
+  transform: rotate(45deg);
+  box-shadow:
+    -16px 0 0 -1.5px var(--color-blush),
+     16px 0 0 -1.5px var(--color-blush);
+}
+
+.login-page-wrapper .login-header {
+  margin-bottom: 2rem;
 }
 
 /* ── Campos ── */
 .login-page-wrapper .login-form-group label {
-  color: #8a5a2b;
+  color: var(--color-rose-gold);
 }
 
 .login-page-wrapper .login-input {
-  color: #3a2a20;
+  /* Caja tenue: sobre el vidrio, la línea sola se perdía */
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(201, 149, 108, 0.2);
+  border-bottom-width: 2px;
   border-bottom-color: rgba(201, 149, 108, 0.4);
+  border-radius: 6px 6px 2px 2px;
+  padding: 0.8rem 0.9rem;
+  color: var(--color-text);
 }
 
 .login-page-wrapper .login-input::placeholder {
-  color: #a8968a;
+  color: rgba(245, 240, 235, 0.34);
   opacity: 1;
 }
 
 .login-page-wrapper .login-input:focus {
-  border-bottom-color: #8a5a2b;
-  box-shadow: 0 1px 0 0 #8a5a2b, 0 8px 16px -10px rgba(138, 90, 43, 0.45);
+  background: rgba(255, 255, 255, 0.075);
+  border-color: rgba(201, 149, 108, 0.4);
+  border-bottom-color: var(--color-rose-gold);
+  box-shadow: 0 8px 22px -14px rgba(201, 149, 108, 0.8);
 }
 
-/* El autocompletado de Chrome imponía un fondo oscuro heredado del diseño
-   anterior; sobre la tarjeta clara debe ser claro. */
-.login-page-wrapper .login-input:-webkit-autofill,
-.login-page-wrapper .login-input:-webkit-autofill:hover,
-.login-page-wrapper .login-input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #3a2a20;
-  -webkit-box-shadow: 0 0 0 1000px #fdfaf6 inset;
-  box-shadow: 0 0 0 1000px #fdfaf6 inset;
-  caret-color: #3a2a20;
+.login-page-wrapper .login-input.error {
+  border-color: rgba(244, 194, 194, 0.4);
+  border-bottom-color: var(--color-blush);
 }
 
-/* El ojo de mostrar contraseña */
+.login-page-wrapper .login-input.password-input {
+  padding-right: 2.75rem;
+}
+
 .login-page-wrapper .password-toggle {
-  color: #8a5a2b;
+  right: 0.6rem;
+  color: var(--color-rose-gold);
 }
 
 .login-page-wrapper .password-toggle:hover {
-  color: #3a2a20;
+  color: var(--color-champagne);
 }
 
-/* Errores: en rosa oscuro, legible sobre el crema (el blush claro no
-   contrasta lo suficiente para texto). */
-.login-page-wrapper .login-input.error {
-  border-bottom-color: #b4576b;
+/* El autocompletado de Chrome impone su propio fondo: se fuerza al tono
+   de la tarjeta para que el campo no salte a blanco. */
+.login-page-wrapper .login-input:-webkit-autofill,
+.login-page-wrapper .login-input:-webkit-autofill:hover,
+.login-page-wrapper .login-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text);
+  -webkit-box-shadow: 0 0 0 1000px #241d19 inset;
+  box-shadow: 0 0 0 1000px #241d19 inset;
+  caret-color: var(--color-text);
 }
 
+/* ── Avisos ── */
 .login-page-wrapper .login-error {
-  color: #a8455a;
+  color: var(--color-blush);
 }
 
 .login-page-wrapper .auth-error-banner {
-  background: #fdeef1;
-  border: 1px solid rgba(180, 87, 107, 0.35);
+  background: rgba(180, 87, 107, 0.16);
+  border: 1px solid rgba(244, 194, 194, 0.35);
   border-radius: 8px;
-  color: #8f3a4c;
+  color: #f6cdd4;
   padding: 0.85rem 1rem;
   font-size: 0.85rem;
   line-height: 1.5;
@@ -706,7 +768,7 @@
   background: rgba(201, 149, 108, 0.12);
   border: 1px solid rgba(201, 149, 108, 0.3);
   border-radius: 8px;
-  color: #6b5647;
+  color: var(--color-champagne);
   padding: 0.85rem 1rem;
   font-size: 0.85rem;
 }
@@ -716,45 +778,76 @@
   color: inherit;
 }
 
-/* ── Botón principal ── */
+/* ── Botón ── */
 .login-page-wrapper .login-button {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 1rem 1.5rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(135deg, #c9956c 0%, #e3bd93 50%, #c9956c 100%);
+  border: 1px solid rgba(232, 213, 183, 0.35);
+  border-radius: 100px;
   color: #2b1a11;
-  box-shadow: 0 8px 22px rgba(138, 90, 43, 0.28);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 10px 26px -12px rgba(201, 149, 108, 0.9);
+  transition: transform 0.35s var(--ease-silk), box-shadow 0.35s var(--ease-silk),
+              filter 0.3s ease;
 }
 
 .login-page-wrapper .login-button:hover:not(:disabled) {
-  box-shadow: 0 14px 32px rgba(138, 90, 43, 0.36);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px -12px rgba(201, 149, 108, 1);
+  filter: brightness(1.05);
+}
+
+.login-page-wrapper .login-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .login-page-wrapper .login-button:focus-visible {
-  outline: 2px solid #8a5a2b;
+  outline: 2px solid var(--color-champagne);
   outline-offset: 3px;
 }
 
 /* ── Enlaces del pie ── */
 .login-page-wrapper .login-links {
-  border-top-color: rgba(201, 149, 108, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.75rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(201, 149, 108, 0.2);
 }
 
 .login-page-wrapper .login-link {
-  color: #6b5647;
+  font-size: 0.82rem;
+  color: rgba(245, 240, 235, 0.62);
+  text-decoration: none;
+  padding: 0.35rem 0;
+  transition: color 0.3s ease;
 }
 
 .login-page-wrapper .login-link:hover,
 .login-page-wrapper .login-link:focus-visible {
-  color: #8a5a2b;
+  color: var(--color-champagne);
 }
 
-.login-page-wrapper .login-link:focus-visible {
-  outline-color: #8a5a2b;
-}
-
-/* "Crear cuenta" es la acción secundaria importante: se marca con el
-   acento blush para que se distinga del enlace de contraseña olvidada. */
+/* "Crear cuenta" es la acción secundaria importante: se marca en blush
+   para distinguirla del enlace de contraseña olvidada. */
 .login-page-wrapper .login-links .login-link:first-child {
-  font-weight: 600;
-  color: #8a5a2b;
   position: relative;
+  font-weight: 600;
+  color: var(--color-blush);
 }
 
 .login-page-wrapper .login-links .login-link:first-child::after {
@@ -775,7 +868,8 @@
   transform: scaleX(1);
 }
 
-/* ── Panel izquierdo: un poco más de presencia femenina ── */
+/* ── El panel de la marca recupera protagonismo ──
+   Con la tarjeta crema quedaba apagado; ahora comparte peso con ella. */
 .login-page-wrapper .login-image-eyebrow {
   color: var(--color-blush);
 }
@@ -788,138 +882,14 @@
   background: linear-gradient(90deg, transparent, var(--color-blush), transparent);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .login-page-wrapper .login-links .login-link:first-child::after {
-    transition: none;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   LA TARJETA, CON OFICIO DE JOYERÍA
-
-   Quedaba como un rectángulo crema plano, sin nada que la sostuviera.
-   Se le da el tratamiento de un certificado de autenticidad de joyería:
-   marco doble, esquinas marcadas, monograma y ornamento de rombos.
-═══════════════════════════════════════════════════════════════════ */
-
-.login-page-wrapper .login-card {
-  /* Más aire: el contenido nadaba dentro de la tarjeta */
-  padding: clamp(2.75rem, 4vw, 3.5rem) clamp(2rem, 3.5vw, 3rem);
-  max-width: 480px;
-}
-
-/* ── Marco interior: la doble línea del certificado ── */
-.login-page-wrapper .login-card::after {
-  content: '';
-  position: absolute;
-  inset: 14px;
-  border: 1px solid rgba(201, 149, 108, 0.3);
-  border-radius: 6px;
-  pointer-events: none;
-}
-
-/* ── Monograma sobre el título ── */
-.login-page-wrapper .login-header::before {
-  content: 'DL';
-  display: block;
-  width: 54px;
-  height: 54px;
-  margin: 0 auto 1.25rem;
-  /* Círculo de sello, como el punzón de una pieza */
-  border: 1px solid rgba(201, 149, 108, 0.45);
-  border-radius: 50%;
-  line-height: 52px;
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  /* El texto queda algo a la derecha por el espaciado de la última letra */
-  text-indent: 0.16em;
-  color: #8a5a2b;
-  background: rgba(255, 255, 255, 0.55);
-}
-
-/* ── Título ── */
-.login-page-wrapper .login-header h2 {
-  /* 1.15 recortaba los acentos de las mayúsculas y de la ó de "sesión" */
-  line-height: 1.32;
-  letter-spacing: 0.04em;
-  margin-bottom: 0.5rem;
-}
-
-/* ── Ornamento de rombos bajo el subtítulo ── */
-/* Tres rombos alineados: el del centro lleno, los de los lados más
-   pequeños. Reemplaza al filete recto, que no decía nada. */
-.login-page-wrapper .login-header::after {
-  content: '';
-  display: block;
-  width: 6px;
-  height: 6px;
-  margin: 1.35rem auto 0;
-  background: var(--color-rose-gold);
-  transform: rotate(45deg);
-  box-shadow:
-    -16px 0 0 -1.5px var(--color-rose-gold),
-     16px 0 0 -1.5px var(--color-rose-gold);
-}
-
-/* ── Campos: caja suave en vez de solo la línea inferior ── */
-/* La línea sola se veía endeble sobre el crema; un fondo blanco muy tenue
-   con línea dorada abajo da la sensación de ficha rellenable. */
-.login-page-wrapper .login-input {
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(201, 149, 108, 0.22);
-  border-bottom-width: 2px;
-  border-bottom-color: rgba(201, 149, 108, 0.45);
-  border-radius: 6px 6px 2px 2px;
-  padding: 0.8rem 0.9rem;
-}
-
-.login-page-wrapper .login-input:focus {
-  background: #fff;
-  border-color: rgba(138, 90, 43, 0.35);
-  border-bottom-color: #8a5a2b;
-  box-shadow: 0 6px 18px -10px rgba(138, 90, 43, 0.5);
-}
-
-.login-page-wrapper .login-input.error {
-  border-color: rgba(180, 87, 107, 0.35);
-  border-bottom-color: #b4576b;
-}
-
-/* El ojo se recoloca dentro de la nueva caja */
-.login-page-wrapper .password-toggle {
-  right: 0.75rem;
-}
-
-.login-page-wrapper .login-input.password-input {
-  padding-right: 2.75rem;
-}
-
-/* Autocompletado, ahora con el fondo de la caja */
-.login-page-wrapper .login-input:-webkit-autofill,
-.login-page-wrapper .login-input:-webkit-autofill:hover,
-.login-page-wrapper .login-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
-  box-shadow: 0 0 0 1000px #ffffff inset;
-}
-
-/* ── Botón: menos plano ── */
-.login-page-wrapper .login-button {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 55%),
-    linear-gradient(135deg, #c9956c 0%, #e3bd93 50%, #c9956c 100%);
-  border: 1px solid rgba(138, 90, 43, 0.35);
-  letter-spacing: 0.2em;
-  padding: 1.05rem 1.5rem;
+.login-page-wrapper .login-image-content p {
+  color: rgba(245, 240, 235, 0.8);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
    ENLACE "VOLVER A LA TIENDA"
-
-   Iba en gris apagado (#9e9087) sobre una fotografía con zonas claras y
-   oscuras: en la práctica no se alcanzaba a leer. Pasa a ser una píldora
-   con fondo propio, para que no dependa de lo que tenga la foto detrás.
+   Iba en gris apagado sobre una fotografía con zonas claras y oscuras:
+   en la práctica no se alcanzaba a leer. Pasa a píldora con fondo propio.
 ═══════════════════════════════════════════════════════════════════ */
 .auth-header-volver {
   padding: 0.6rem 1.15rem;
@@ -928,7 +898,6 @@
   background: rgba(10, 10, 10, 0.55);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  /* Champagne en vez del gris apagado: 9.8:1 sobre el fondo de la píldora */
   color: var(--color-champagne);
   font-weight: 500;
 }
@@ -940,17 +909,26 @@
   color: #2b1a11;
 }
 
-/* La marca también se apoya sobre la foto: una sombra suave la despega */
 .auth-header-iniciales,
 .auth-header-nombre {
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
 }
 
 @media (max-width: 576px) {
-  /* Sin texto, la píldora queda redonda alrededor de la flecha */
   .auth-header-volver {
     padding: 0.6rem;
     width: 44px;
     justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page-wrapper .login-button,
+  .login-page-wrapper .login-links .login-link:first-child::after {
+    transition: none;
+  }
+
+  .login-page-wrapper .login-button:hover:not(:disabled) {
+    transform: none;
   }
 }
