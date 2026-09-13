@@ -1645,3 +1645,51 @@
 .inicio-public-container .showcase-section .section-header-row + .section-title {
   margin-top: 0 !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   TARJETAS SUELTAS — que no se estiren a todo lo ancho
+
+   Las cuadrículas usan auto-fit con 1fr: cuando solo hay UN elemento
+   (ahora mismo hay una sola noticia activa), la única columna se lleva
+   todo el ancho del panel y, con la proporción 16:10, la foto acaba
+   midiendo cerca de mil píxeles de alto. Se acota el ancho de cada
+   tarjeta y se centran las que sobren, para que una noticia sola se vea
+   igual de bien que tres.
+═══════════════════════════════════════════════════════════════════ */
+.inicio-public-container .news-grid > *,
+.inicio-public-container .features-grid > * {
+  max-width: 440px;
+  margin-inline: auto;
+  width: 100%;
+}
+
+/* Tope de alto por si la foto viene muy vertical */
+.inicio-public-container .news-image {
+  max-height: 280px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CENTRADO DE LOS ENCABEZADOS
+
+   AyudaPublicScreen.css define un `.section-header` global (display:flex,
+   flex-direction:column) que se filtra a esta pantalla y descuadra el
+   alineado — el título salía centrado y el subtítulo pegado a la
+   izquierda. Se fija aquí de forma explícita para no depender del orden
+   en que se carguen las hojas.
+═══════════════════════════════════════════════════════════════════ */
+.inicio-public-container .section-header.text-center {
+  display: block;
+  text-align: center;
+}
+
+.inicio-public-container .section-header.text-center .section-title,
+.inicio-public-container .section-header.text-center .section-subtitle {
+  text-align: center;
+}
+
+/* El subtítulo, acotado y centrado: una línea de texto de punta a punta
+   del panel es incómoda de leer. */
+.inicio-public-container .section-header.text-center .section-subtitle {
+  max-width: 46rem;
+  margin-inline: auto;
+}
