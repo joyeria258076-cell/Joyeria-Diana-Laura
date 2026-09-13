@@ -36,7 +36,12 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         // Nunca cachear llamadas a la API: precios, stock, carrito, login
         // y pedidos siempre se piden frescos al servidor, sin excepción.
-        navigateFallbackDenylist: [/^\/api\//],
+        // También se excluye cualquier URL con extensión de archivo
+        // (manifest.webmanifest, pwa-512.png, robots.txt, etc.) para que
+        // abrirlas directo en el navegador sirva el archivo real y no la
+        // pantalla de "404" de la app (el "app shell" solo debe aplicar a
+        // rutas de navegación de React, no a archivos estáticos).
+        navigateFallbackDenylist: [/^\/api\//, /\.[a-zA-Z0-9]+$/],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
