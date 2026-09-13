@@ -11,6 +11,7 @@ import AuthHeader from "../../components/AuthHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import AuthBackground from "../../components/AuthBackground";
+import "../../styles/AuthTheme.css";
 import "./LoginScreen.css";
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string | undefined;

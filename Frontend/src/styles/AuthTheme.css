@@ -1,0 +1,445 @@
+/* Ruta: Frontend/src/styles/AuthTheme.css
+   ═══════════════════════════════════════════════════════════════════
+   TEMA COMPARTIDO DE LAS PANTALLAS DE AUTENTICACIÓN
+
+   Login y Registro tienen estructuras gemelas con dos familias de clases
+   paralelas (.login-* y .register-*). Antes cada hoja llevaba su propia
+   copia de los colores y del tratamiento de la tarjeta, así que cualquier
+   ajuste había que hacerlo dos veces y acababan divergiendo.
+
+   Esta hoja define el aspecto UNA vez para ambas. Cada pantalla conserva
+   su CSS propio para lo que solo ella tiene (los pasos del registro, el
+   panel lateral del login).
+
+   ── GAMA ──
+   La marca solo define tres acentos (oro rosa, champagne y blush), así que
+   cualquier composición acaba pareciendo de dos colores. Aquí se derivan
+   tonos intermedios del MISMO rosa, oscureciéndolo y desaturándolo, para
+   tener escala completa sin meter un color ajeno a la marca.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.login-page-wrapper,
+.register-page-wrapper {
+  --rosa-perla: #e3a9b4;   /* blush un punto más profundo */
+  --rosa-palo: #cf8a9c;    /* el tono medio, el que da el carácter */
+  --rosa-vino: #a85f74;    /* acentos oscuros y bordes */
+  --vino: #5e3340;         /* profundidad, fondos y sombras */
+}
+
+/* ═══════════════════════════════════════════
+   LA TARJETA
+   Vidrio ahumado entintado de vino: se apoya sobre la fotografía en vez
+   de taparla. Una tarjeta clara aquí acaparaba toda la pantalla.
+═══════════════════════════════════════════ */
+.login-page-wrapper .login-card,
+.register-page-wrapper .register-card {
+  position: relative;
+  background:
+    /* Halo rosado arriba a la derecha */
+    radial-gradient(120% 90% at 85% -10%, rgba(207, 138, 156, 0.16) 0%, transparent 55%),
+    /* Halo dorado abajo a la izquierda, en la esquina opuesta */
+    radial-gradient(100% 80% at 0% 110%, rgba(201, 149, 108, 0.14) 0%, transparent 55%),
+    linear-gradient(165deg, rgba(46, 30, 35, 0.84) 0%, rgba(20, 14, 16, 0.9) 100%);
+  backdrop-filter: blur(22px) saturate(1.1);
+  -webkit-backdrop-filter: blur(22px) saturate(1.1);
+  border: 1px solid rgba(227, 169, 180, 0.3);
+  border-radius: 12px;
+  box-shadow:
+    0 26px 64px rgba(0, 0, 0, 0.5),
+    0 0 44px -20px rgba(207, 138, 156, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+/* Filete superior: recorre los cuatro tonos de la gama */
+.login-page-wrapper .login-card::before,
+.register-page-wrapper .register-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-rose-gold) 20%,
+    var(--color-champagne) 38%,
+    var(--color-blush) 55%,
+    var(--rosa-palo) 75%,
+    transparent 100%
+  );
+  -webkit-mask: none;
+  mask: none;
+  mask-composite: initial;
+  -webkit-mask-composite: initial;
+}
+
+/* Marco interior de doble línea — el detalle del certificado de joyería */
+.login-page-wrapper .login-card::after,
+.register-page-wrapper .register-card::after {
+  content: '';
+  position: absolute;
+  inset: 13px;
+  border: 1px solid rgba(227, 169, 180, 0.2);
+  border-radius: 7px;
+  pointer-events: none;
+  /* Por encima del fondo pero por debajo del contenido */
+  z-index: 0;
+}
+
+/* El contenido va por encima del marco */
+.register-page-wrapper .register-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ═══════════════════════════════════════════
+   ENCABEZADO DE LA TARJETA
+═══════════════════════════════════════════ */
+
+/* Monograma en sello circular: aro rosa, letras champagne */
+.login-page-wrapper .login-header::before,
+.register-page-wrapper .register-header::before {
+  content: 'DL';
+  display: block;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 1.15rem;
+  border: 1px solid rgba(227, 169, 180, 0.5);
+  border-radius: 50%;
+  line-height: 52px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  /* Compensa el espaciado sobrante después de la última letra */
+  text-indent: 0.16em;
+  color: var(--color-champagne);
+  background: linear-gradient(145deg, rgba(207, 138, 156, 0.2) 0%, rgba(201, 149, 108, 0.12) 100%);
+  box-shadow: 0 0 0 4px rgba(207, 138, 156, 0.07);
+}
+
+.login-page-wrapper .login-header h2,
+.register-page-wrapper .register-header h2 {
+  color: var(--color-text);
+  -webkit-text-fill-color: var(--color-text);
+  background: none;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 2.6vw, 2.35rem);
+  font-weight: 300;
+  /* 1.15 recortaba la tilde de "sesión" contra el borde superior */
+  line-height: 1.32;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+
+.login-page-wrapper .login-header p,
+.register-page-wrapper .register-header p {
+  color: rgba(245, 240, 235, 0.66);
+}
+
+/* Ornamento de cinco rombos: dorado al centro, rosas hacia fuera */
+.login-page-wrapper .login-header::after,
+.register-page-wrapper .register-header::after {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin: 1.3rem auto 0;
+  background: var(--color-rose-gold);
+  transform: rotate(45deg);
+  box-shadow:
+    -16px 0 0 -1.5px var(--color-blush),
+     16px 0 0 -1.5px var(--color-blush),
+    -30px 0 0 -2.5px rgba(207, 138, 156, 0.6),
+     30px 0 0 -2.5px rgba(207, 138, 156, 0.6);
+}
+
+/* ═══════════════════════════════════════════
+   CAMPOS
+   Caja entintada de vino con línea inferior rosa: sobre el vidrio, la
+   línea sola se perdía.
+═══════════════════════════════════════════ */
+.login-page-wrapper .login-form-group label,
+.register-page-wrapper .register-form-group label {
+  color: var(--rosa-perla);
+}
+
+.login-page-wrapper .login-input,
+.register-page-wrapper .register-input,
+.register-page-wrapper .register-form-group select {
+  background: rgba(94, 51, 64, 0.16);
+  border: 1px solid rgba(227, 169, 180, 0.18);
+  border-bottom-width: 2px;
+  border-bottom-color: rgba(207, 138, 156, 0.4);
+  border-radius: 6px 6px 2px 2px;
+  padding: 0.8rem 0.9rem;
+  color: var(--color-text);
+}
+
+.login-page-wrapper .login-input::placeholder,
+.register-page-wrapper .register-input::placeholder {
+  color: rgba(227, 169, 180, 0.4);
+  opacity: 1;
+}
+
+.login-page-wrapper .login-input:focus,
+.register-page-wrapper .register-input:focus,
+.register-page-wrapper .register-form-group select:focus {
+  outline: none;
+  background: rgba(94, 51, 64, 0.26);
+  border-color: rgba(227, 169, 180, 0.4);
+  border-bottom-color: var(--color-blush);
+  box-shadow: 0 8px 22px -14px rgba(207, 138, 156, 0.9);
+}
+
+.login-page-wrapper .login-input.error,
+.register-page-wrapper .register-input.error {
+  border-color: rgba(244, 194, 194, 0.4);
+  border-bottom-color: var(--color-blush);
+}
+
+/* Sitio para el ojo de mostrar contraseña */
+.login-page-wrapper .login-input.password-input,
+.register-page-wrapper .password-input-container .register-input {
+  padding-right: 2.75rem;
+}
+
+.login-page-wrapper .password-toggle,
+.register-page-wrapper .password-toggle {
+  right: 0.6rem;
+  color: var(--rosa-perla);
+}
+
+.login-page-wrapper .password-toggle:hover,
+.register-page-wrapper .password-toggle:hover {
+  color: var(--color-blush);
+}
+
+/* El autocompletado de Chrome impone su propio fondo: se fuerza al tono
+   de la tarjeta para que el campo no salte a blanco ni a gris. */
+.login-page-wrapper .login-input:-webkit-autofill,
+.login-page-wrapper .login-input:-webkit-autofill:hover,
+.login-page-wrapper .login-input:-webkit-autofill:focus,
+.register-page-wrapper .register-input:-webkit-autofill,
+.register-page-wrapper .register-input:-webkit-autofill:hover,
+.register-page-wrapper .register-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text);
+  -webkit-box-shadow: 0 0 0 1000px #2b1d22 inset;
+  box-shadow: 0 0 0 1000px #2b1d22 inset;
+  caret-color: var(--color-text);
+}
+
+/* ═══════════════════════════════════════════
+   BOTÓN PRINCIPAL
+   El degradado recorre la gama entera: arranca en blush y termina en
+   champagne pasando por el oro rosa. Es la pieza donde mejor se ve que
+   la paleta tiene rango.
+═══════════════════════════════════════════ */
+.login-page-wrapper .login-button,
+.register-page-wrapper .register-button {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 58%),
+    linear-gradient(
+      112deg,
+      var(--color-blush) 0%,
+      #eabfae 34%,
+      var(--color-rose-gold) 68%,
+      var(--color-champagne) 100%
+    );
+  border: 1px solid rgba(244, 194, 194, 0.45);
+  border-radius: 100px;
+  color: #46232f;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow:
+    0 10px 26px -14px rgba(207, 138, 156, 0.85),
+    inset 0 -1px 0 rgba(94, 51, 64, 0.18);
+  transition: transform 0.35s var(--ease-silk), box-shadow 0.35s var(--ease-silk),
+              filter 0.3s ease;
+}
+
+.login-page-wrapper .login-button:hover:not(:disabled),
+.register-page-wrapper .register-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow:
+    0 16px 34px -14px rgba(207, 138, 156, 1),
+    inset 0 -1px 0 rgba(94, 51, 64, 0.18);
+}
+
+.login-page-wrapper .login-button:disabled,
+.register-page-wrapper .register-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-page-wrapper .login-button:focus-visible,
+.register-page-wrapper .register-button:focus-visible {
+  outline: 2px solid var(--color-champagne);
+  outline-offset: 3px;
+}
+
+/* El botón de "Atrás" del registro es secundario: contorno, no relleno */
+.register-page-wrapper .back-button {
+  background: transparent;
+  border: 1px solid rgba(227, 169, 180, 0.4);
+  border-radius: 100px;
+  color: var(--rosa-perla);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0.9rem 1.6rem;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.register-page-wrapper .back-button:hover {
+  background: rgba(207, 138, 156, 0.14);
+  border-color: var(--color-blush);
+  color: var(--color-blush);
+}
+
+.register-page-wrapper .back-button:focus-visible {
+  outline: 2px solid var(--color-blush);
+  outline-offset: 3px;
+}
+
+/* ═══════════════════════════════════════════
+   AVISOS
+═══════════════════════════════════════════ */
+.login-page-wrapper .login-error,
+.register-page-wrapper .register-error {
+  color: var(--color-blush);
+}
+
+.login-page-wrapper .auth-error-banner,
+.register-page-wrapper .auth-error-banner {
+  background: rgba(168, 95, 116, 0.2);
+  border: 1px solid rgba(227, 169, 180, 0.4);
+  border-radius: 8px;
+  color: #f7ccd4;
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.login-page-wrapper .processing-message,
+.login-page-wrapper .verification-message {
+  background: rgba(207, 138, 156, 0.12);
+  border: 1px solid rgba(227, 169, 180, 0.28);
+  border-radius: 8px;
+  color: var(--rosa-perla);
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+}
+
+.login-page-wrapper .verification-message p {
+  margin: 0;
+  color: inherit;
+}
+
+/* ═══════════════════════════════════════════
+   ENLACES DEL PIE
+═══════════════════════════════════════════ */
+.login-page-wrapper .login-links,
+.register-page-wrapper .register-links {
+  border-top: 1px solid rgba(227, 169, 180, 0.22);
+  margin-top: 1.75rem;
+  padding-top: 1.4rem;
+}
+
+.login-page-wrapper .login-link,
+.register-page-wrapper .register-link {
+  color: rgba(245, 240, 235, 0.6);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.login-page-wrapper .login-link:hover,
+.login-page-wrapper .login-link:focus-visible,
+.register-page-wrapper .register-link:hover,
+.register-page-wrapper .register-link:focus-visible {
+  color: var(--rosa-perla);
+}
+
+/* El enlace que lleva a la otra pantalla de la pareja va en blush pleno:
+   es la acción secundaria que conviene que se note. */
+.login-page-wrapper .login-links .login-link:first-child,
+.register-page-wrapper .register-links .register-link:first-child {
+  position: relative;
+  font-weight: 600;
+  color: var(--color-blush);
+}
+
+.login-page-wrapper .login-links .login-link:first-child::after,
+.register-page-wrapper .register-links .register-link:first-child::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.15rem;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-blush), var(--color-rose-gold));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--ease-silk);
+}
+
+.login-page-wrapper .login-links .login-link:first-child:hover::after,
+.login-page-wrapper .login-links .login-link:first-child:focus-visible::after,
+.register-page-wrapper .register-links .register-link:first-child:hover::after,
+.register-page-wrapper .register-links .register-link:first-child:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* ═══════════════════════════════════════════
+   INDICADOR DE PASOS (solo registro)
+═══════════════════════════════════════════ */
+.register-page-wrapper .step-indicator {
+  color: var(--rosa-perla);
+  border-bottom: 1px solid rgba(227, 169, 180, 0.22);
+}
+
+/* ═══════════════════════════════════════════
+   ENCABEZADO DE LA PANTALLA
+═══════════════════════════════════════════ */
+.auth-header-nombre {
+  color: var(--color-blush);
+}
+
+.auth-header-volver {
+  border-color: rgba(227, 169, 180, 0.4);
+  color: var(--rosa-perla);
+}
+
+.auth-header-volver:hover,
+.auth-header-volver:focus-visible {
+  background: linear-gradient(120deg, var(--color-blush), var(--color-rose-gold));
+  border-color: var(--color-blush);
+  color: #46232f;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page-wrapper .login-button,
+  .register-page-wrapper .register-button,
+  .register-page-wrapper .back-button,
+  .login-page-wrapper .login-links .login-link:first-child::after,
+  .register-page-wrapper .register-links .register-link:first-child::after {
+    transition: none;
+  }
+
+  .login-page-wrapper .login-button:hover:not(:disabled),
+  .register-page-wrapper .register-button:hover:not(:disabled) {
+    transform: none;
+  }
+}
