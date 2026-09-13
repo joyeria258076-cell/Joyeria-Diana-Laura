@@ -934,89 +934,205 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   TONO MÁS SOBRIO — misma paleta, menos intensidad
+   GAMA ROSA COMPLETA — femenino y con rango
 
-   El oro rosa (#c9956c) es el más saturado de los tres acentos de la
-   marca: tira a cobre y, al llevar el botón, las etiquetas y los filetes
-   a la vez, acababa dominando la tarjeta.
+   El problema de fondo: la marca solo define tres acentos (oro rosa,
+   champagne y blush), así que cualquier composición acaba pareciendo de
+   dos colores. Aquí se derivan tonos intermedios del MISMO rosa de la
+   marca, oscureciéndolo y desaturándolo, para tener una escala completa
+   sin meter un color ajeno:
 
-   Se reparte distinto, sin colores nuevos:
-     champagne  #e8d5b7  pasa a ser el acento principal (mismo aire, más
-                         apagado) — botón, etiquetas, monograma
-     oro rosa   #c9956c  queda solo para líneas finas y bordes
-     blush      #f4c2c2  se reserva a un único lugar: "Crear cuenta",
-                         que es donde el toque rosa aporta y no distrae
+     #f4c2c2  blush          el rosa de la marca (tal cual)
+     #e3a9b4  rosa perla     blush un punto más profundo
+     #cf8a9c  rosa palo      el tono medio, el que da el carácter
+     #a85f74  rosa vino      para acentos oscuros y bordes
+     #5e3340  vino           profundidad, fondos y sombras
+
+   Junto al oro rosa y el champagne que ya estaban, son siete tonos que
+   conviven porque todos salen de la misma familia cálida.
 ═══════════════════════════════════════════════════════════════════ */
 
-/* ── Botón: champagne apagado en vez del degradado cobre ── */
-.login-page-wrapper .login-button {
-  background: linear-gradient(135deg, #d8c3a4 0%, #e8d5b7 52%, #d8c3a4 100%);
-  border: 1px solid rgba(201, 149, 108, 0.4);
-  /* El halo dorado alrededor del botón era buena parte del "llamativo" */
-  box-shadow: 0 8px 20px -14px rgba(0, 0, 0, 0.9);
-  color: #34261c;
+.login-page-wrapper {
+  --rosa-perla: #e3a9b4;
+  --rosa-palo: #cf8a9c;
+  --rosa-vino: #a85f74;
+  --vino: #5e3340;
 }
 
-.login-page-wrapper .login-button:hover:not(:disabled) {
-  box-shadow: 0 14px 26px -16px rgba(0, 0, 0, 0.95);
-  filter: brightness(1.03);
-}
-
-/* ── Etiquetas de los campos ── */
-/* En champagne con algo de transparencia: se leen igual, pesan menos */
-.login-page-wrapper .login-form-group label {
-  color: rgba(232, 213, 183, 0.72);
-}
-
-/* ── Monograma ── */
-.login-page-wrapper .login-header::before {
-  border-color: rgba(232, 213, 183, 0.3);
-  background: rgba(232, 213, 183, 0.06);
-  color: rgba(232, 213, 183, 0.85);
-}
-
-/* ── Ornamento de rombos: los tres en champagne, sin el rosa ── */
-.login-page-wrapper .login-header::after {
-  background: rgba(232, 213, 183, 0.75);
+/* ── La tarjeta toma un fondo entintado de vino, no gris neutro ──
+   Es lo que hace que el conjunto se sienta cálido y femenino en vez de
+   un panel oscuro cualquiera. */
+.login-page-wrapper .login-card {
+  background:
+    /* Halo rosado en la esquina superior */
+    radial-gradient(120% 90% at 85% -10%, rgba(207, 138, 156, 0.16) 0%, transparent 55%),
+    /* Halo dorado en la inferior opuesta */
+    radial-gradient(100% 80% at 0% 110%, rgba(201, 149, 108, 0.14) 0%, transparent 55%),
+    linear-gradient(165deg, rgba(46, 30, 35, 0.84) 0%, rgba(20, 14, 16, 0.9) 100%);
+  border-color: rgba(227, 169, 180, 0.3);
   box-shadow:
-    -16px 0 0 -1.5px rgba(232, 213, 183, 0.45),
-     16px 0 0 -1.5px rgba(232, 213, 183, 0.45);
+    0 26px 64px rgba(0, 0, 0, 0.5),
+    0 0 44px -20px rgba(207, 138, 156, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
-/* ── Filete superior de la tarjeta: más discreto ── */
+/* Filete superior: recorre los cuatro tonos */
 .login-page-wrapper .login-card::before {
-  height: 1px;
+  height: 2px;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(201, 149, 108, 0.55) 30%,
-    rgba(232, 213, 183, 0.8) 50%,
-    rgba(201, 149, 108, 0.55) 70%,
+    var(--color-rose-gold) 20%,
+    var(--color-champagne) 38%,
+    var(--color-blush) 55%,
+    var(--rosa-palo) 75%,
     transparent 100%
   );
 }
 
-/* ── Campos: el borde inferior deja de ser una raya dorada marcada ── */
+/* Marco interior en rosa tenue */
+.login-page-wrapper .login-card::after {
+  border-color: rgba(227, 169, 180, 0.2);
+}
+
+/* ── Monograma: aro rosa, letras champagne ── */
+.login-page-wrapper .login-header::before {
+  border: 1px solid rgba(227, 169, 180, 0.5);
+  background:
+    linear-gradient(145deg, rgba(207, 138, 156, 0.2) 0%, rgba(201, 149, 108, 0.12) 100%);
+  color: var(--color-champagne);
+  box-shadow: 0 0 0 4px rgba(207, 138, 156, 0.07);
+}
+
+/* ── Título: el nombre en rosa perla ── */
+.login-page-wrapper .login-header h2 {
+  color: var(--color-text);
+  -webkit-text-fill-color: var(--color-text);
+}
+
+.login-page-wrapper .login-header p {
+  color: rgba(245, 240, 235, 0.66);
+}
+
+/* ── Ornamento: rombo central dorado, laterales rosas ── */
+.login-page-wrapper .login-header::after {
+  background: var(--color-rose-gold);
+  box-shadow:
+    -16px 0 0 -1.5px var(--color-blush),
+     16px 0 0 -1.5px var(--color-blush),
+    -30px 0 0 -2.5px rgba(207, 138, 156, 0.6),
+     30px 0 0 -2.5px rgba(207, 138, 156, 0.6);
+}
+
+/* ── Etiquetas en rosa perla: el rosa entra ya desde el formulario ── */
+.login-page-wrapper .login-form-group label {
+  color: var(--rosa-perla);
+}
+
+/* ── Campos: base entintada de vino, foco en rosa ── */
 .login-page-wrapper .login-input {
-  border-bottom-color: rgba(201, 149, 108, 0.3);
+  background: rgba(94, 51, 64, 0.16);
+  border: 1px solid rgba(227, 169, 180, 0.18);
+  border-bottom-width: 2px;
+  border-bottom-color: rgba(207, 138, 156, 0.4);
+}
+
+.login-page-wrapper .login-input::placeholder {
+  color: rgba(227, 169, 180, 0.4);
 }
 
 .login-page-wrapper .login-input:focus {
-  border-bottom-color: rgba(232, 213, 183, 0.75);
-  box-shadow: 0 8px 20px -16px rgba(0, 0, 0, 0.9);
+  background: rgba(94, 51, 64, 0.26);
+  border-color: rgba(227, 169, 180, 0.4);
+  border-bottom-color: var(--color-blush);
+  box-shadow: 0 8px 22px -14px rgba(207, 138, 156, 0.9);
+}
+
+.login-page-wrapper .login-input:-webkit-autofill,
+.login-page-wrapper .login-input:-webkit-autofill:hover,
+.login-page-wrapper .login-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #2b1d22 inset;
+  box-shadow: 0 0 0 1000px #2b1d22 inset;
 }
 
 .login-page-wrapper .password-toggle {
-  color: rgba(232, 213, 183, 0.6);
+  color: var(--rosa-perla);
 }
 
 .login-page-wrapper .password-toggle:hover {
-  color: var(--color-champagne);
+  color: var(--color-blush);
 }
 
-/* ── Panel de la marca: el antetítulo y la cursiva vuelven al champagne ── */
+/* ── Botón: el degradado va de rosa a oro ──
+   Es la pieza donde mejor se ve que la paleta tiene rango: arranca en
+   blush y termina en champagne pasando por el oro rosa. */
+.login-page-wrapper .login-button {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 58%),
+    linear-gradient(
+      112deg,
+      var(--color-blush) 0%,
+      #eabfae 34%,
+      var(--color-rose-gold) 68%,
+      var(--color-champagne) 100%
+    );
+  border: 1px solid rgba(244, 194, 194, 0.45);
+  color: #46232f;
+  box-shadow:
+    0 10px 26px -14px rgba(207, 138, 156, 0.85),
+    inset 0 -1px 0 rgba(94, 51, 64, 0.18);
+}
+
+.login-page-wrapper .login-button:hover:not(:disabled) {
+  box-shadow:
+    0 16px 34px -14px rgba(207, 138, 156, 1),
+    inset 0 -1px 0 rgba(94, 51, 64, 0.18);
+}
+
+/* ── Avisos ── */
+.login-page-wrapper .login-error {
+  color: var(--color-blush);
+}
+
+.login-page-wrapper .auth-error-banner {
+  background: rgba(168, 95, 116, 0.2);
+  border: 1px solid rgba(227, 169, 180, 0.4);
+  color: #f7ccd4;
+}
+
+.login-page-wrapper .processing-message,
+.login-page-wrapper .verification-message {
+  background: rgba(207, 138, 156, 0.12);
+  border: 1px solid rgba(227, 169, 180, 0.28);
+  color: var(--rosa-perla);
+}
+
+/* ── Enlaces del pie ── */
+.login-page-wrapper .login-links {
+  border-top-color: rgba(227, 169, 180, 0.22);
+}
+
+.login-page-wrapper .login-link {
+  color: rgba(245, 240, 235, 0.6);
+}
+
+.login-page-wrapper .login-link:hover,
+.login-page-wrapper .login-link:focus-visible {
+  color: var(--rosa-perla);
+}
+
+/* "Crear cuenta" en blush pleno, con subrayado que crece */
+.login-page-wrapper .login-links .login-link:first-child {
+  color: var(--color-blush);
+}
+
+.login-page-wrapper .login-links .login-link:first-child::after {
+  background: linear-gradient(90deg, var(--color-blush), var(--color-rose-gold));
+}
+
+/* ── Panel de la marca: rosa arriba, oro en la firma ── */
 .login-page-wrapper .login-image-eyebrow {
-  color: rgba(232, 213, 183, 0.8);
+  color: var(--color-blush);
 }
 
 .login-page-wrapper .login-image-content h1 em {
@@ -1027,34 +1143,29 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(232, 213, 183, 0.7),
+    var(--color-blush) 35%,
+    var(--color-rose-gold) 65%,
     transparent
   );
 }
 
-/* ── El blush se queda en un solo sitio ──
-   "Crear cuenta": es la acción secundaria que conviene que se note, y con
-   un único punto rosa en toda la tarjeta el detalle femenino se lee como
-   intención y no como ruido. */
-.login-page-wrapper .login-links .login-link:first-child {
-  color: rgba(244, 194, 194, 0.9);
+.login-page-wrapper .login-image-content p {
+  color: rgba(245, 240, 235, 0.78);
 }
 
-/* Los mensajes de error sí conservan el rosa: ahí el color comunica */
+/* ── Encabezado ── */
+.auth-header-nombre {
+  color: var(--color-blush);
+}
 
-/* ── Enlace de volver: acorde con el resto ── */
 .auth-header-volver {
-  border-color: rgba(232, 213, 183, 0.32);
-  color: rgba(232, 213, 183, 0.9);
+  border-color: rgba(227, 169, 180, 0.4);
+  color: var(--rosa-perla);
 }
 
 .auth-header-volver:hover,
 .auth-header-volver:focus-visible {
-  background: rgba(232, 213, 183, 0.9);
-  border-color: var(--color-champagne);
-  color: #34261c;
-}
-
-.auth-header-nombre {
-  color: rgba(232, 213, 183, 0.9);
+  background: linear-gradient(120deg, var(--color-blush), var(--color-rose-gold));
+  border-color: var(--color-blush);
+  color: #46232f;
 }
