@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AiOutlineSearch, AiOutlinePhone, AiOutlineMessage, AiOutlineInfoCircle } from "react-icons/ai";
 import "../styles/PublicHeader.css";
 
 const PublicHeader: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
+
+  // El buscador lleva al catálogo con el término en la URL, para que la
+  // búsqueda se pueda compartir y funcione con el botón de atrás.
+  const handleBuscar = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = busqueda.trim();
+    navigate(q ? `/catalogo-publico?buscar=${encodeURIComponent(q)}` : "/catalogo-publico");
+  };
 
   const isActive = (path: string): boolean => {
     if (path === "/") return location.pathname === "/";
@@ -34,6 +45,27 @@ const PublicHeader: React.FC = () => {
 
   return (
     <header className="public-header">
+      {/* ── BARRA UTILITARIA ──
+          Franja delgada por encima del logo con los datos de contacto, como
+          en las tiendas grandes. Se oculta en móvil para no robarle alto a
+          la pantalla. */}
+      <div className="header-utilidad">
+        <div className="container-lg header-utilidad-inner">
+          <span className="header-utilidad-lema">Tu joyería artesanal en Huejutla</span>
+          <div className="header-utilidad-enlaces">
+            <a href="tel:+527715551234" className="header-utilidad-link">
+              <AiOutlinePhone size={13} aria-hidden="true" /> 771 555 1234
+            </a>
+            <Link to="/ayuda-publica" className="header-utilidad-link">
+              <AiOutlineMessage size={13} aria-hidden="true" /> Ayuda
+            </Link>
+            <Link to="/contacto-publico" className="header-utilidad-link">
+              <AiOutlineInfoCircle size={13} aria-hidden="true" /> Quiénes somos
+            </Link>
+          </div>
+        </div>
+      </div>
+
       <div className="container-lg">
         <div className="header-content">
 
@@ -44,6 +76,26 @@ const PublicHeader: React.FC = () => {
               <span className="brand-name">Diana Laura</span>
             </Link>
           </div>
+
+          {/* ── BUSCADOR ──
+              Caja ancha entre el logo y el acceso, como en las tiendas. */}
+          <form className="header-buscador" role="search" onSubmit={handleBuscar}>
+            <label htmlFor="buscador-publico" className="sr-only">
+              Buscar piezas en el catálogo
+            </label>
+            <input
+              id="buscador-publico"
+              type="search"
+              className="header-buscador-input"
+              placeholder="Buscar anillos, collares, pulseras…"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              autoComplete="off"
+            />
+            <button type="submit" className="header-buscador-btn" aria-label="Buscar">
+              <AiOutlineSearch size={18} />
+            </button>
+          </form>
 
           {/* Navegación — desktop */}
           <nav className="header-nav">

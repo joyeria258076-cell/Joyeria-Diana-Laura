@@ -1,6 +1,6 @@
 // Frontend/src/screens/publico/CatalogoPublicScreen.tsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AiOutlineSearch, AiOutlineTag } from "react-icons/ai";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
@@ -58,6 +58,7 @@ const PAGE_SIZE = 10;
 
 const CatalogoPublicScreen: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const logueado = estaLogueado();
 
   // --- ESTADOS DE DATOS ---
@@ -194,6 +195,48 @@ const CatalogoPublicScreen: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // --- FILTRO DESDE LA URL (?categoria=<id> y ?buscar=<texto>) ---
+  // Lo usan el buscador del encabezado y los mosaicos del panel de
+  // categorías: al llegar desde ahí el catálogo abre ya filtrado, y el
+  // filtro queda en la URL (se puede compartir y funciona el botón atrás).
+  useEffect(() => {
+    const catParam = searchParams.get('categoria');
+    const textoParam = searchParams.get('buscar');
+    if (!catParam && !textoParam) return;
+
+    const categoria_id = catParam ? Number(catParam) : undefined;
+    const nombre = textoParam?.trim() || undefined;
+    const catValida = categoria_id !== undefined && Number.isFinite(categoria_id) && categoria_id > 0;
+    if (!catValida && !nombre) return;
+
+    setFiltros(prev => ({
+      ...prev,
+      categoria_id: catValida ? (categoria_id as number) : '',
+      nombre: nombre || '',
+    }));
+
+    let cancelado = false;
+    (async () => {
+      try {
+        setLoading(true);
+        setSearchMode(true);
+        setPaginaBusqueda(0);
+        const response = await productsAPI.searchAndFilter({
+          ...(catValida ? { categoria_id } : {}),
+          ...(nombre ? { nombre } : {}),
+        });
+        if (!cancelado) setResultadosBusqueda(Array.isArray(response?.data) ? response.data : []);
+      } catch (error) {
+        console.error('Error aplicando el filtro de la URL:', error);
+        if (!cancelado) setResultadosBusqueda([]);
+      } finally {
+        if (!cancelado) setLoading(false);
+      }
+    })();
+
+    return () => { cancelado = true; };
+  }, [searchParams]);
 
   const handleLimpiarFiltros = () => {
     setFiltros({

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
+import PanelCategorias from "../../components/PanelCategorias";
 import { Link } from "react-router-dom";
 import { contentAPI, carruselAPI, promocionesAPI, productsAPI, coleccionesAPI } from "../../services/api";
 import {
   AiOutlineTag, AiOutlineClose, AiOutlineLeft, AiOutlineRight, AiOutlineCar, AiOutlineGift,
-  AiOutlineFolderOpen, AiOutlineStar, AiOutlineHeart, AiOutlinePhone, AiOutlineSafetyCertificate,
-  AiOutlineBulb, AiOutlineSmile, AiOutlineTool,
+  AiOutlineFolderOpen, AiOutlineHeart, AiOutlinePhone, AiOutlineSafetyCertificate,
 } from "react-icons/ai";
 import "./InicioPublicScreen.css";
 
@@ -264,86 +264,40 @@ const InicioPublicScreen: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════ BARRA DE CONFIANZA ═══════════ */}
-      <section className="trust-strip">
-        <div className="container-lg trust-grid">
-          <div className="trust-item">
-            <AiOutlineHeart size={20} />
-            <div>
-              <strong>Hecho con amor</strong>
-              <span>Piezas artesanales, una a una</span>
-            </div>
-          </div>
-          <div className="trust-item">
-            <AiOutlineSafetyCertificate size={20} />
-            <div>
-              <strong>Calidad garantizada</strong>
-              <span>Materiales premium certificados</span>
-            </div>
-          </div>
-          <div className="trust-item">
-            <AiOutlineCar size={20} />
-            <div>
-              <strong>Envíos a todo Huejutla</strong>
-              <span>Seguimiento en tiempo real</span>
-            </div>
-          </div>
-          <div className="trust-item">
-            <AiOutlinePhone size={20} />
-            <div>
-              <strong>Atención personalizada</strong>
-              <span>Estamos aquí para ayudarte</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ═══════════ PANEL DE CATEGORÍAS ═══════════ */}
+      <PanelCategorias />
 
-      {/* ═══════════ STATS BAND ═══════════ */}
-      <div className="stats-band">
-        {[
-          { icon: AiOutlineBulb, n: "", l: "Muchos diseños exclusivos" },
-          { icon: AiOutlineSmile, n: "", l: "Muchos clientes satisfechos" },
-          { icon: AiOutlineTool, n: "100%", l: "Hecho a mano" },
-          { icon: AiOutlineStar, n: "5 ★", l: "Calidad garantizada" },
-        ].map((s, i, arr) => (
-          <React.Fragment key={i}>
-            <div className="stats-band-item">
-              <s.icon size={20} className="stats-band-icon" />
-              {s.n && <strong>{s.n}</strong>}
-              <span>{s.l}</span>
-            </div>
-            {i < arr.length - 1 && <div className="stats-band-sep" />}
-          </React.Fragment>
-        ))}
-      </div>
-
-      {/* ═══════════ COLECCIONES ═══════════ */}
-      {colecciones.length > 0 && (
-        <section className="showcase-section">
+      {/* ═══════════ PROMOCIONES ═══════════ */}
+      {promociones.length > 0 && (
+        <section className="features-section">
           <div className="container-lg">
             <div className="section-header text-center mb-5">
-              <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Selecciones especiales</span><span className="eyebrow-line" /></div>
-              <h2 className="section-title">Nuestras <span>Colecciones</span></h2>
-              <p className="section-subtitle">Piezas curadas para cada estilo y ocasión</p>
+              <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Ofertas especiales</span><span className="eyebrow-line" /></div>
+              <h2 className="section-title">Promociones <span>Activas</span></h2>
             </div>
-            <div className="showcase-grid">
-              {colecciones.map((col: any) => (
-                <Link key={col.id} to="/catalogo-publico" className="showcase-card">
-                  <div className="showcase-card-img">
-                    {col.imagen_url ? (
-                      <img src={optimizarImagen(col.imagen_url, 500)} alt={col.nombre} loading="lazy" />
-                    ) : (
-                      <div className="showcase-card-fallback"><AiOutlineFolderOpen size={32} /></div>
-                    )}
+            <div className="features-grid">
+              {promociones.map(promo => (
+                <div className="feature-card promo-card" key={promo.id}>
+                  {(promo.tipo === 'porcentaje' || promo.tipo === 'monto_fijo' || promo.tipo === 'cupon') && (
+                    <div className="promo-ribbon">
+                      {promo.tipo === 'monto_fijo' ? `-$${promo.valor_descuento}` : `-${promo.valor_descuento}%`}
+                    </div>
+                  )}
+                  <div className="feature-icon">
+                    {promo.tipo === 'envio_gratis' ? <AiOutlineCar size={22} /> : promo.tipo === '2x1' ? <AiOutlineGift size={22} /> : <AiOutlineTag size={22} />}
                   </div>
-                  <div className="showcase-card-body">
-                    <h3>{col.nombre}</h3>
-                    {col.descripcion && <p>{col.descripcion}</p>}
-                    <span className="showcase-card-count">
-                      {col.productos.length} pieza{col.productos.length !== 1 ? 's' : ''} →
-                    </span>
-                  </div>
-                </Link>
+                  <h3>{promo.nombre}</h3>
+                  <p>{promoLabel(promo)}</p>
+                  {promo.monto_minimo_compra && (
+                    <p className="promo-minimo">Compra mínima: ${promo.monto_minimo_compra}</p>
+                  )}
+                  {promo.codigo_cupon && (
+                    <div className="promo-codigo">{promo.codigo_cupon}</div>
+                  )}
+                  <p className="promo-vigencia">
+                    Hasta {new Date(promo.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}
+                  </p>
+                </div>
               ))}
             </div>
           </div>
@@ -388,6 +342,39 @@ const InicioPublicScreen: React.FC = () => {
                   </Link>
                 );
               })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════ COLECCIONES ═══════════ */}
+      {colecciones.length > 0 && (
+        <section className="showcase-section">
+          <div className="container-lg">
+            <div className="section-header text-center mb-5">
+              <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Selecciones especiales</span><span className="eyebrow-line" /></div>
+              <h2 className="section-title">Nuestras <span>Colecciones</span></h2>
+              <p className="section-subtitle">Piezas curadas para cada estilo y ocasión</p>
+            </div>
+            <div className="showcase-grid">
+              {colecciones.map((col: any) => (
+                <Link key={col.id} to="/catalogo-publico" className="showcase-card">
+                  <div className="showcase-card-img">
+                    {col.imagen_url ? (
+                      <img src={optimizarImagen(col.imagen_url, 500)} alt={col.nombre} loading="lazy" />
+                    ) : (
+                      <div className="showcase-card-fallback"><AiOutlineFolderOpen size={32} /></div>
+                    )}
+                  </div>
+                  <div className="showcase-card-body">
+                    <h3>{col.nombre}</h3>
+                    {col.descripcion && <p>{col.descripcion}</p>}
+                    <span className="showcase-card-count">
+                      {col.productos.length} pieza{col.productos.length !== 1 ? 's' : ''} →
+                    </span>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
@@ -442,77 +429,6 @@ const InicioPublicScreen: React.FC = () => {
         </section>
       )}
 
-      {/* ═══════════ PROMOCIONES ═══════════ */}
-      {promociones.length > 0 && (
-        <section className="features-section">
-          <div className="container-lg">
-            <div className="section-header text-center mb-5">
-              <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Ofertas especiales</span><span className="eyebrow-line" /></div>
-              <h2 className="section-title">Promociones <span>Activas</span></h2>
-            </div>
-            <div className="features-grid">
-              {promociones.map(promo => (
-                <div className="feature-card promo-card" key={promo.id}>
-                  {(promo.tipo === 'porcentaje' || promo.tipo === 'monto_fijo' || promo.tipo === 'cupon') && (
-                    <div className="promo-ribbon">
-                      {promo.tipo === 'monto_fijo' ? `-$${promo.valor_descuento}` : `-${promo.valor_descuento}%`}
-                    </div>
-                  )}
-                  <div className="feature-icon">
-                    {promo.tipo === 'envio_gratis' ? <AiOutlineCar size={22} /> : promo.tipo === '2x1' ? <AiOutlineGift size={22} /> : <AiOutlineTag size={22} />}
-                  </div>
-                  <h3>{promo.nombre}</h3>
-                  <p>{promoLabel(promo)}</p>
-                  {promo.monto_minimo_compra && (
-                    <p className="promo-minimo">Compra mínima: ${promo.monto_minimo_compra}</p>
-                  )}
-                  {promo.codigo_cupon && (
-                    <div className="promo-codigo">{promo.codigo_cupon}</div>
-                  )}
-                  <p className="promo-vigencia">
-                    Hasta {new Date(promo.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ═══════════ POR QUÉ ELEGIRNOS ═══════════ */}
-      <section className="features-section" style={{ borderTop: '1px solid var(--rose-soft)' }}>
-        <div className="container-lg">
-          <div className="section-header text-center mb-5">
-            <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Por qué elegirnos</span><span className="eyebrow-line" /></div>
-            <h2 className="section-title">Lo que nos hace <span>especiales</span></h2>
-            <p className="section-subtitle">Cada detalle importa, cada pieza cuenta una historia</p>
-          </div>
-
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon"><AiOutlineStar size={22} /></div>
-              <h3>Diseño Premium</h3>
-              <p>Cada pieza es cuidadosamente diseñada con materiales de alta calidad y atención al detalle.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon"><AiOutlineHeart size={22} /></div>
-              <h3>Hecho con Amor</h3>
-              <p>Creado con pasión artesanal y dedicación en cada proceso de fabricación.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon"><AiOutlinePhone size={22} /></div>
-              <h3>Soporte 24/7</h3>
-              <p>Nuestro equipo está disponible para ayudarte en cualquier momento que lo necesites.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon"><AiOutlineCar size={22} /></div>
-              <h3>Envío Rápido</h3>
-              <p>Entrega segura y rápida a cualquier lugar, con seguimiento en tiempo real.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ═══════════ NOTICIAS DINÁMICAS ═══════════ */}
       <section className="news-section">
         <div className="container-lg">
@@ -550,6 +466,45 @@ const InicioPublicScreen: React.FC = () => {
 
           <div className="text-center mt-5">
             <Link to="/noticias" className="btn btn-primary">Ver todas las noticias</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ POR QUÉ ELEGIRNOS ═══════════ */}
+      {/* Una sola sección de valores. Antes eran tres filas de iconos —barra
+          de confianza, banda de estadísticas y "por qué elegirnos"— que
+          repetían el mismo mensaje y se cruzaban antes de que el visitante
+          viera una sola pieza a la venta. Va al cierre: es el argumento de
+          confianza, justo antes del llamado a la acción. */}
+      <section className="valores-section">
+        <div className="container-lg">
+          <div className="section-header text-center mb-5">
+            <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Por qué elegirnos</span><span className="eyebrow-line" /></div>
+            <h2 className="section-title">Lo que nos hace <span>especiales</span></h2>
+            <p className="section-subtitle">Cada detalle importa, cada pieza cuenta una historia</p>
+          </div>
+
+          <div className="valores-grid">
+            <div className="valor-card">
+              <div className="valor-icono"><AiOutlineHeart size={24} /></div>
+              <h3>Hecho a mano con amor</h3>
+              <p>Cada pieza se arma una a una, con dedicación artesanal en todo el proceso.</p>
+            </div>
+            <div className="valor-card">
+              <div className="valor-icono"><AiOutlineSafetyCertificate size={24} /></div>
+              <h3>Calidad garantizada</h3>
+              <p>Materiales premium certificados y un acabado que se nota al primer vistazo.</p>
+            </div>
+            <div className="valor-card">
+              <div className="valor-icono"><AiOutlineCar size={24} /></div>
+              <h3>Envíos a todo Huejutla</h3>
+              <p>Entrega segura con seguimiento en tiempo real hasta tu puerta.</p>
+            </div>
+            <div className="valor-card">
+              <div className="valor-icono"><AiOutlinePhone size={24} /></div>
+              <h3>Atención personalizada</h3>
+              <p>Te acompañamos a elegir la pieza indicada, antes y después de tu compra.</p>
+            </div>
           </div>
         </div>
       </section>
