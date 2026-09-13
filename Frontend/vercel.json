@@ -34,6 +34,22 @@
       "dest": "/$0"
     },
     {
+      "src": ".*\\.webmanifest$",
+      "dest": "/$0"
+    },
+    {
+      "src": ".*\\.png$",
+      "dest": "/$0"
+    },
+    {
+      "src": ".*\\.ico$",
+      "dest": "/$0"
+    },
+    {
+      "src": ".*\\.svg$",
+      "dest": "/$0"
+    },
+    {
       "src": "/(.*)",
       "headers": {
         "X-Frame-Options": "SAMEORIGIN"
