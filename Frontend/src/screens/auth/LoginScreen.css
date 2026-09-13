@@ -793,3 +793,164 @@
     transition: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   LA TARJETA, CON OFICIO DE JOYERÍA
+
+   Quedaba como un rectángulo crema plano, sin nada que la sostuviera.
+   Se le da el tratamiento de un certificado de autenticidad de joyería:
+   marco doble, esquinas marcadas, monograma y ornamento de rombos.
+═══════════════════════════════════════════════════════════════════ */
+
+.login-page-wrapper .login-card {
+  /* Más aire: el contenido nadaba dentro de la tarjeta */
+  padding: clamp(2.75rem, 4vw, 3.5rem) clamp(2rem, 3.5vw, 3rem);
+  max-width: 480px;
+}
+
+/* ── Marco interior: la doble línea del certificado ── */
+.login-page-wrapper .login-card::after {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border: 1px solid rgba(201, 149, 108, 0.3);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+/* ── Monograma sobre el título ── */
+.login-page-wrapper .login-header::before {
+  content: 'DL';
+  display: block;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 1.25rem;
+  /* Círculo de sello, como el punzón de una pieza */
+  border: 1px solid rgba(201, 149, 108, 0.45);
+  border-radius: 50%;
+  line-height: 52px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  /* El texto queda algo a la derecha por el espaciado de la última letra */
+  text-indent: 0.16em;
+  color: #8a5a2b;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+/* ── Título ── */
+.login-page-wrapper .login-header h2 {
+  /* 1.15 recortaba los acentos de las mayúsculas y de la ó de "sesión" */
+  line-height: 1.32;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Ornamento de rombos bajo el subtítulo ── */
+/* Tres rombos alineados: el del centro lleno, los de los lados más
+   pequeños. Reemplaza al filete recto, que no decía nada. */
+.login-page-wrapper .login-header::after {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin: 1.35rem auto 0;
+  background: var(--color-rose-gold);
+  transform: rotate(45deg);
+  box-shadow:
+    -16px 0 0 -1.5px var(--color-rose-gold),
+     16px 0 0 -1.5px var(--color-rose-gold);
+}
+
+/* ── Campos: caja suave en vez de solo la línea inferior ── */
+/* La línea sola se veía endeble sobre el crema; un fondo blanco muy tenue
+   con línea dorada abajo da la sensación de ficha rellenable. */
+.login-page-wrapper .login-input {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(201, 149, 108, 0.22);
+  border-bottom-width: 2px;
+  border-bottom-color: rgba(201, 149, 108, 0.45);
+  border-radius: 6px 6px 2px 2px;
+  padding: 0.8rem 0.9rem;
+}
+
+.login-page-wrapper .login-input:focus {
+  background: #fff;
+  border-color: rgba(138, 90, 43, 0.35);
+  border-bottom-color: #8a5a2b;
+  box-shadow: 0 6px 18px -10px rgba(138, 90, 43, 0.5);
+}
+
+.login-page-wrapper .login-input.error {
+  border-color: rgba(180, 87, 107, 0.35);
+  border-bottom-color: #b4576b;
+}
+
+/* El ojo se recoloca dentro de la nueva caja */
+.login-page-wrapper .password-toggle {
+  right: 0.75rem;
+}
+
+.login-page-wrapper .login-input.password-input {
+  padding-right: 2.75rem;
+}
+
+/* Autocompletado, ahora con el fondo de la caja */
+.login-page-wrapper .login-input:-webkit-autofill,
+.login-page-wrapper .login-input:-webkit-autofill:hover,
+.login-page-wrapper .login-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  box-shadow: 0 0 0 1000px #ffffff inset;
+}
+
+/* ── Botón: menos plano ── */
+.login-page-wrapper .login-button {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(135deg, #c9956c 0%, #e3bd93 50%, #c9956c 100%);
+  border: 1px solid rgba(138, 90, 43, 0.35);
+  letter-spacing: 0.2em;
+  padding: 1.05rem 1.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ENLACE "VOLVER A LA TIENDA"
+
+   Iba en gris apagado (#9e9087) sobre una fotografía con zonas claras y
+   oscuras: en la práctica no se alcanzaba a leer. Pasa a ser una píldora
+   con fondo propio, para que no dependa de lo que tenga la foto detrás.
+═══════════════════════════════════════════════════════════════════ */
+.auth-header-volver {
+  padding: 0.6rem 1.15rem;
+  border: 1px solid rgba(232, 213, 183, 0.45);
+  border-radius: 100px;
+  background: rgba(10, 10, 10, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  /* Champagne en vez del gris apagado: 9.8:1 sobre el fondo de la píldora */
+  color: var(--color-champagne);
+  font-weight: 500;
+}
+
+.auth-header-volver:hover,
+.auth-header-volver:focus-visible {
+  background: rgba(201, 149, 108, 0.9);
+  border-color: var(--color-rose-gold);
+  color: #2b1a11;
+}
+
+/* La marca también se apoya sobre la foto: una sombra suave la despega */
+.auth-header-iniciales,
+.auth-header-nombre {
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+}
+
+@media (max-width: 576px) {
+  /* Sin texto, la píldora queda redonda alrededor de la flecha */
+  .auth-header-volver {
+    padding: 0.6rem;
+    width: 44px;
+    justify-content: center;
+  }
+}
