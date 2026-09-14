@@ -115,23 +115,18 @@ const BarraCategorias: React.FC = () => {
           <AiOutlineRight size={13} />
         </button>
 
-        {/* Destacados al extremo derecho, como el "Arma tu PC / Gamer" de la
-            referencia: dos accesos con icono que resaltan del resto. */}
+        {/* Dos accesos destacados al extremo derecho. En una sola línea: la
+            versión de dos renglones sobresalía del alto de la barra y se
+            leía como un bloque pegado encima. */}
         <div className="bc-destacados">
           <Link to="/catalogo-publico" className="bc-destacado">
-            <AiOutlineGift size={19} aria-hidden="true" />
-            <span className="bc-destacado-txt">
-              <strong>Personalizadas</strong>
-              <small>Tu joya a tu gusto</small>
-            </span>
+            <AiOutlineGift size={15} aria-hidden="true" />
+            <span>Personalizadas</span>
           </Link>
 
           <Link to="/noticias" className="bc-destacado bc-destacado--alt">
-            <AiOutlineStar size={19} aria-hidden="true" />
-            <span className="bc-destacado-txt">
-              <strong>Novedades</strong>
-              <small>Lo más reciente</small>
-            </span>
+            <AiOutlineStar size={15} aria-hidden="true" />
+            <span>Novedades</span>
           </Link>
         </div>
       </div>
