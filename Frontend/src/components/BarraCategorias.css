@@ -1,0 +1,231 @@
+/* Ruta: Frontend/src/components/BarraCategorias.css
+   Barra de categorías del encabezado público — tercera fila, al estilo de
+   las tiendas grandes.
+
+   Va un tono por encima del negro de la página para que se lea como una
+   franja propia y no como una continuación del encabezado. Los colores
+   salen de los tokens de la marca: no hay ninguno nuevo. */
+
+.bc-barra {
+  position: relative;
+  /* Un escalón más claro que el negro del encabezado: así se distingue
+     como banda aparte sin meter otro color. */
+  background: linear-gradient(180deg, #1a1a1a 0%, #141414 100%);
+  border-top: 1px solid rgba(201, 149, 108, 0.16);
+  border-bottom: 1px solid rgba(201, 149, 108, 0.22);
+  font-family: var(--font-body, 'Jost', sans-serif);
+}
+
+/* Filo dorado tenue en la base: el remate de joyería */
+.bc-barra::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-rose-gold), transparent);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.bc-inner {
+  max-width: 1800px;
+  margin: 0 auto;
+  padding-inline: clamp(0.5rem, 2vw, 1.25rem);
+  display: flex;
+  align-items: stretch;
+  gap: 0.25rem;
+}
+
+/* ── Pista desplazable ── */
+.bc-pista {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 0.1rem;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;
+  scroll-snap-type: x proximity;
+}
+
+.bc-pista::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Enlaces de categoría ── */
+.bc-link {
+  position: relative;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  display: inline-flex;
+  align-items: center;
+  /* 44px de alto: zona táctil accesible */
+  min-height: 44px;
+  padding: 0.6rem 1.05rem;
+  color: rgba(245, 240, 235, 0.88);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.055em;
+  /* Los nombres vienen despareja en la base ("esclavas" en minúscula) */
+  text-transform: capitalize;
+  white-space: nowrap;
+  transition: color 0.3s ease, background 0.3s ease;
+}
+
+/* Subrayado dorado que crece desde el centro */
+.bc-link::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  right: 50%;
+  bottom: 7px;
+  height: 1.5px;
+  background: var(--color-rose-gold);
+  transition: left 0.35s ease, right 0.35s ease;
+}
+
+.bc-link:hover,
+.bc-link:focus-visible {
+  color: var(--color-champagne);
+  background: rgba(201, 149, 108, 0.08);
+}
+
+.bc-link:hover::after,
+.bc-link:focus-visible::after {
+  left: 1.05rem;
+  right: 1.05rem;
+}
+
+.bc-link:focus-visible {
+  outline: 2px solid var(--color-rose-gold);
+  outline-offset: -3px;
+}
+
+/* ── Flechas de desplazamiento ── */
+.bc-flecha {
+  flex: 0 0 auto;
+  width: 28px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--color-rose-gold);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.bc-flecha.is-visible {
+  display: inline-flex;
+}
+
+.bc-flecha:hover {
+  color: var(--color-champagne);
+}
+
+.bc-flecha:focus-visible {
+  outline: 2px solid var(--color-rose-gold);
+  outline-offset: -3px;
+}
+
+/* ── Destacados del extremo derecho ── */
+.bc-destacados {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid rgba(201, 149, 108, 0.2);
+}
+
+.bc-destacado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--color-champagne);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.bc-destacado:hover,
+.bc-destacado:focus-visible {
+  background: rgba(201, 149, 108, 0.14);
+  color: var(--color-blush);
+}
+
+.bc-destacado:focus-visible {
+  outline: 2px solid var(--color-rose-gold);
+  outline-offset: -3px;
+}
+
+/* El segundo destacado en blush, para que los dos no se confundan */
+.bc-destacado--alt {
+  color: var(--color-blush);
+}
+
+.bc-destacado--alt:hover,
+.bc-destacado--alt:focus-visible {
+  color: var(--color-champagne);
+}
+
+.bc-destacado-txt {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.bc-destacado-txt strong {
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.bc-destacado-txt small {
+  font-size: 0.62rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: rgba(245, 240, 235, 0.5);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  /* Los destacados son lo primero que sobra cuando falta ancho: su
+     contenido está también en el menú y en el pie. */
+  .bc-destacados {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .bc-link {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.76rem;
+  }
+
+  .bc-link:hover::after,
+  .bc-link:focus-visible::after {
+    left: 0.8rem;
+    right: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bc-pista {
+    scroll-behavior: auto;
+  }
+
+  .bc-link,
+  .bc-link::after,
+  .bc-flecha,
+  .bc-destacado {
+    transition: none;
+  }
+}

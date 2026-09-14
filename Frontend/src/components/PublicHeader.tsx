@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AiOutlinePhone, AiOutlineMessage, AiOutlineInfoCircle } from "react-icons/ai";
+import BarraCategorias from "./BarraCategorias";
 import "../styles/PublicHeader.css";
 
 const PublicHeader: React.FC = () => {
@@ -96,6 +97,11 @@ const PublicHeader: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* ── TERCERA FILA: CATEGORÍAS DE PRODUCTO ──
+          La fila de arriba lleva las páginas del sitio; esta lleva lo que
+          la clienta viene a comprar, como en las tiendas grandes. */}
+      <BarraCategorias />
 
       {/* Overlay móvil */}
       {menuOpen && (
