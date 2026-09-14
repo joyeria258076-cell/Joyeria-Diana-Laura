@@ -218,3 +218,46 @@
     transition: none;
   }
 }
+/* ═══════════════════════════════════════════════════════════════════
+   MÁS PRESENCIA EN LA BARRA DE CATEGORÍAS
+   Estaba bien de estructura pero plana. Se le añade profundidad y un
+   separador entre categorías, sin cambiar los colores.
+═══════════════════════════════════════════════════════════════════ */
+
+.bc-barra {
+  /* Reflejo superior: la franja deja de ser un bloque liso */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Rombo separador entre categorías — el motivo de la marca, en pequeño */
+.bc-link + .bc-link::before {
+  content: '';
+  position: absolute;
+  left: -0.05rem;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  margin-top: -1.5px;
+  background: rgba(201, 149, 108, 0.45);
+  transform: rotate(45deg);
+}
+
+/* El subrayado pasa de línea recta a degradado, a juego con el resto */
+.bc-link::after {
+  background: linear-gradient(90deg, var(--color-rose-gold), var(--color-blush));
+}
+
+/* Los destacados ganan un fondo tenue permanente: así se leen como
+   botones y no como dos enlaces más de la fila. */
+.bc-destacado {
+  background: rgba(201, 149, 108, 0.08);
+  border: 1px solid rgba(201, 149, 108, 0.2);
+}
+
+.bc-destacado:hover,
+.bc-destacado:focus-visible {
+  background: rgba(201, 149, 108, 0.2);
+  border-color: rgba(201, 149, 108, 0.5);
+}

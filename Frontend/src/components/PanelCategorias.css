@@ -223,3 +223,80 @@
     transform: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   MÁS DISEÑO EN EL PANEL
+   Estaba correcto pero anónimo: una caja crema con fichas dentro. Se le
+   añade la orfebrería de la marca —filete superior en degradado, marco
+   interior de doble línea y rombo de remate— el mismo lenguaje de la
+   tarjeta de inicio de sesión, para que todo el sitio se reconozca.
+═══════════════════════════════════════════════════════════════════ */
+
+.pc-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Filete superior que recorre los tonos de la marca */
+.pc-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-rose-gold) 22%,
+    var(--color-blush) 50%,
+    var(--color-rose-gold) 78%,
+    transparent 100%
+  );
+}
+
+/* Marco interior de doble línea — el detalle de ficha de joyería */
+.pc-panel::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(201, 149, 108, 0.16);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+/* El contenido va por encima del marco */
+.pc-header,
+.pc-grid {
+  position: relative;
+  z-index: 1;
+}
+
+/* Rombo de remate antes del título, el mismo motivo del login */
+.pc-titulo::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 0.6rem;
+  vertical-align: middle;
+  background: var(--color-rose-gold);
+  transform: rotate(45deg);
+}
+
+/* Las fichas ganan un realce superior: dejan de verse como rectángulos
+   planos recortados sobre el crema. */
+.pc-item {
+  box-shadow:
+    0 1px 3px rgba(74, 53, 41, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Aro doble alrededor de la foto: un hilo de oro separado del borde */
+.pc-item-marco {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85), 0 0 0 4px rgba(201, 149, 108, 0.18);
+}
+
+.pc-item:hover .pc-item-marco,
+.pc-item:focus-visible .pc-item-marco {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.95), 0 0 0 4px rgba(201, 149, 108, 0.55);
+}
+

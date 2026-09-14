@@ -1934,3 +1934,140 @@
 .inicio-public-container .cta-content p {
   font-size: 0.9rem;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   TIPOGRAFÍA Y TARJETAS — una sola voz
+
+   El sitio carga CINCO familias (Cormorant Garamond, Jost, Playfair
+   Display, DM Sans y Montserrat) y cada pantalla usaba la suya, así que
+   las tarjetas no hablaban el mismo idioma. Aquí se fija la regla para
+   toda la portada, y de paso queda a prueba de las hojas de otras
+   pantallas que se filtran globalmente:
+
+     nombres, títulos y precios  →  --font-display  (Cormorant Garamond)
+     todo lo demás               →  --font-body     (Jost)
+═══════════════════════════════════════════════════════════════════ */
+
+.inicio-public-container,
+.inicio-public-container p,
+.inicio-public-container span,
+.inicio-public-container a,
+.inicio-public-container small,
+.inicio-public-container strong,
+.inicio-public-container button,
+.inicio-public-container li {
+  font-family: var(--font-body);
+}
+
+.inicio-public-container h1,
+.inicio-public-container h2,
+.inicio-public-container h3,
+.inicio-public-container .section-title,
+.inicio-public-container .carousel-title,
+.inicio-public-container .precio-final,
+.inicio-public-container .precio-tachado {
+  font-family: var(--font-display);
+}
+
+/* Los antetítulos, etiquetas y enlaces van en la de texto aunque estén
+   dentro de un encabezado. */
+.inicio-public-container .eyebrow-txt,
+.inicio-public-container .prod-categoria,
+.inicio-public-container .prod-badge,
+.inicio-public-container .ver-todos-link,
+.inicio-public-container .product-card-link,
+.inicio-public-container .showcase-card-count,
+.inicio-public-container .news-link,
+.inicio-public-container .cta-label {
+  font-family: var(--font-body);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TARJETAS DEL MISMO ALTO
+
+   Las tarjetas de una misma fila terminaban a alturas distintas porque
+   cada una crecía con su contenido: un nombre de dos líneas empujaba el
+   precio más abajo que el de al lado. Ahora cada tarjeta es una columna
+   que ocupa todo el alto de su celda, con el cuerpo estirándose para que
+   el precio y el enlace queden siempre a la misma altura.
+═══════════════════════════════════════════════════════════════════ */
+
+.inicio-public-container .product-grid,
+.inicio-public-container .editorial-grid,
+.inicio-public-container .showcase-grid,
+.inicio-public-container .news-grid,
+.inicio-public-container .features-grid,
+.inicio-public-container .valores-grid {
+  align-items: stretch;
+}
+
+.inicio-public-container .product-card,
+.inicio-public-container .editorial-card,
+.inicio-public-container .showcase-card,
+.inicio-public-container .news-card,
+.inicio-public-container .feature-card,
+.inicio-public-container .valor-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* La foto no se encoge; el cuerpo se lleva el espacio sobrante */
+.inicio-public-container .product-card-img,
+.inicio-public-container .editorial-card-img,
+.inicio-public-container .showcase-card-img,
+.inicio-public-container .news-image {
+  flex: 0 0 auto;
+}
+
+.inicio-public-container .product-card-body,
+.inicio-public-container .editorial-card-body,
+.inicio-public-container .showcase-card-body,
+.inicio-public-container .news-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* El precio y el enlace se anclan al pie de la tarjeta */
+.inicio-public-container .product-card-precio,
+.inicio-public-container .editorial-card .product-card-precio {
+  margin-top: auto;
+}
+
+.inicio-public-container .news-link,
+.inicio-public-container .showcase-card-count {
+  margin-top: auto;
+}
+
+/* Los nombres ocupan siempre dos líneas de alto, aunque solo usen una:
+   así ninguna tarjeta empuja a la de al lado. */
+.inicio-public-container .product-card-body h3,
+.inicio-public-container .showcase-card-body h3,
+.inicio-public-container .news-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MÁS PRESENCIA EN LOS ENCABEZADOS DE SECCIÓN
+   Eran un antetítulo y un título sueltos. Se les añade un rombo de
+   remate, el mismo motivo que usa la tarjeta de inicio de sesión, para
+   que la portada y las pantallas de cuenta se reconozcan como la misma
+   marca.
+═══════════════════════════════════════════════════════════════════ */
+.inicio-public-container .section-header.text-center .section-title::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 5px;
+  margin: 0.85rem auto 0;
+  background: var(--color-rose-gold);
+  transform: rotate(45deg);
+  box-shadow:
+    -14px 0 0 -1.2px var(--color-blush),
+     14px 0 0 -1.2px var(--color-blush);
+}
