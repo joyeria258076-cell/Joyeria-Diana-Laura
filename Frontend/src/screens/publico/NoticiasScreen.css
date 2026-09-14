@@ -80,7 +80,7 @@
   font-family: 'DM Sans', sans-serif;
 }
 
-.container-lg {
+.noticias-container .container-lg {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 2rem;
@@ -588,5 +588,5 @@
   .noticias-section{ padding:3rem 0 4.5rem; }
   .noticias-side-col { flex-direction:column; }
   .noticias-bottom-grid { grid-template-columns:1fr; }
-  .container-lg    { padding:0 1.25rem; }
+  .noticias-container .container-lg    { padding:0 1.25rem; }
 }

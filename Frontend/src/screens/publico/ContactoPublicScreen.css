@@ -30,7 +30,7 @@
   pointer-events: none;
 }
 
-.container-lg {
+.contacto-container .container-lg {
   max-width: 1800px;
   margin: 0 auto;
   padding: 0 1rem;
