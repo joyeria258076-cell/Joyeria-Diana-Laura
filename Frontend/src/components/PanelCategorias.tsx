@@ -64,9 +64,17 @@ const PanelCategorias: React.FC = () => {
     <section className="pc-section" aria-labelledby="pc-titulo">
       <div className="container-lg">
         <div className="pc-panel">
-          <h2 className="pc-titulo" id="pc-titulo">
-            Explora por categoría
-          </h2>
+          {/* Encabezado en una fila —título, filete y enlace— en vez de un
+              título centrado y solitario que ocupaba alto sin aportar. */}
+          <div className="pc-header">
+            <h2 className="pc-titulo" id="pc-titulo">
+              Explora por categoría
+            </h2>
+            <span className="pc-filete" aria-hidden="true" />
+            <Link to="/catalogo-publico" className="pc-ver-todo">
+              Ver todo <span aria-hidden="true">→</span>
+            </Link>
+          </div>
 
           <ul className="pc-grid">
             {categorias.map((cat) => (

@@ -299,83 +299,7 @@
   border-radius: 2px;
 }
 
-/* ── Buscador ── */
-.header-buscador {
-  flex: 1 1 380px;
-  max-width: 560px;
-  display: flex;
-  align-items: stretch;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(236, 178, 195, 0.28);
-  border-radius: 100px;
-  overflow: hidden;
-  transition: border-color 0.3s ease, background 0.3s ease;
-}
-
-.header-buscador:focus-within {
-  border-color: #ECB2C3;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.header-buscador-input {
-  flex: 1;
-  min-width: 0;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #f5f0eb;
-  font-family: inherit;
-  font-size: 0.88rem;
-  padding: 0.72rem 1.15rem;
-}
-
-.header-buscador-input::placeholder {
-  color: rgba(245, 240, 235, 0.42);
-}
-
-/* La "x" nativa del input type=search desentona con el diseño */
-.header-buscador-input::-webkit-search-cancel-button {
-  -webkit-appearance: none;
-}
-
-.header-buscador-btn {
-  flex: 0 0 auto;
-  /* 44px de zona táctil accesible */
-  min-width: 46px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #ECB2C3 0%, #f5c5d8 100%);
-  border: none;
-  color: #2b1a1f;
-  cursor: pointer;
-  transition: filter 0.3s ease;
-}
-
-.header-buscador-btn:hover {
-  filter: brightness(1.08);
-}
-
-.header-buscador-btn:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: -4px;
-}
-
 /* ── Responsive ── */
-@media (max-width: 1100px) {
-  /* La navegación y el buscador no caben juntos: el buscador pasa a una
-     segunda fila, a todo lo ancho. */
-  .header-content {
-    flex-wrap: wrap;
-  }
-
-  .header-buscador {
-    order: 3;
-    flex-basis: 100%;
-    max-width: none;
-  }
-}
-
 @media (max-width: 768px) {
   /* En teléfono la franja de contacto se oculta: roba alto útil y sus
      enlaces ya están en el menú y el pie de página. */
@@ -385,9 +309,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .header-utilidad-link,
-  .header-buscador,
-  .header-buscador-btn {
+  .header-utilidad-link {
     transition: none;
   }
 }
