@@ -300,3 +300,72 @@
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.95), 0 0 0 4px rgba(201, 149, 108, 0.55);
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   MÁS DISEÑO — el panel dejaba de ser plano pero seguía anónimo
+   Tres añadidos visibles, todos con los colores que ya hay:
+     1. Textura diagonal muy tenue sobre el crema, para que la superficie
+        no sea una mancha lisa.
+     2. Escuadras doradas en las cuatro esquinas, como el marco de una
+        vitrina.
+     3. Mosaicos con degradado y aro más grande.
+═══════════════════════════════════════════════════════════════════ */
+
+.pc-panel {
+  background-image:
+    /* Escuadras de las cuatro esquinas */
+    linear-gradient(to right, rgba(201, 149, 108, 0.55) 0 22px, transparent 22px),
+    linear-gradient(to bottom, rgba(201, 149, 108, 0.55) 0 22px, transparent 22px),
+    linear-gradient(to left, rgba(201, 149, 108, 0.55) 0 22px, transparent 22px),
+    linear-gradient(to bottom, rgba(201, 149, 108, 0.55) 0 22px, transparent 22px),
+    linear-gradient(to right, rgba(201, 149, 108, 0.55) 0 22px, transparent 22px),
+    linear-gradient(to top, rgba(201, 149, 108, 0.55) 0 22px, transparent 22px),
+    linear-gradient(to left, rgba(201, 149, 108, 0.55) 0 22px, transparent 22px),
+    linear-gradient(to top, rgba(201, 149, 108, 0.55) 0 22px, transparent 22px),
+    /* Textura diagonal: hilos finísimos, apenas perceptibles de cerca */
+    repeating-linear-gradient(
+      135deg,
+      rgba(201, 149, 108, 0.05) 0 1px,
+      transparent 1px 9px
+    ),
+    linear-gradient(168deg, #fdfaf6 0%, #f4e9dd 100%);
+  background-repeat: no-repeat;
+  background-size:
+    /* esquina superior izquierda: horizontal y vertical */
+    22px 1px, 1px 22px,
+    /* superior derecha */
+    22px 1px, 1px 22px,
+    /* inferior izquierda */
+    22px 1px, 1px 22px,
+    /* inferior derecha */
+    22px 1px, 1px 22px,
+    auto, auto;
+  background-position:
+    14px 14px, 14px 14px,
+    calc(100% - 14px) 14px, calc(100% - 14px) 14px,
+    14px calc(100% - 14px), 14px calc(100% - 14px),
+    calc(100% - 14px) calc(100% - 14px), calc(100% - 14px) calc(100% - 14px),
+    0 0, 0 0;
+}
+
+/* Mosaicos con degradado propio: dejan de ser rectángulos blancos planos */
+.pc-item {
+  background: linear-gradient(170deg, #ffffff 0%, #fbf4ec 100%);
+}
+
+.pc-item:hover,
+.pc-item:focus-visible {
+  background: linear-gradient(170deg, #ffffff 0%, #fdf8f2 100%);
+}
+
+/* Aro un punto más grande, para que la pieza se aprecie */
+.pc-item-marco {
+  max-width: 84px;
+}
+
+/* El nombre con un filete dorado encima: remate de ficha */
+.pc-item-nombre {
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(201, 149, 108, 0.18);
+  width: 100%;
+}

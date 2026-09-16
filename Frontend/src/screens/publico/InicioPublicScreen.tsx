@@ -162,8 +162,12 @@ const InicioPublicScreen: React.FC = () => {
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
-  const productosDestacadosEd   = productosDestacados.slice(0, 3);
-  const productosDestacadosGrid = productosDestacados.slice(3, 11);
+  // Cinco y diez: asi las dos bandas llenan filas completas de cinco
+  // tarjetas del MISMO tamano. Con tres destacadas y ocho recientes las
+  // tarjetas de cada seccion salian de anchos distintos y las filas
+  // quedaban a medias.
+  const productosDestacadosEd   = productosDestacados.slice(0, 5);
+  const productosDestacadosGrid = productosDestacados.slice(5, 15);
 
   useEffect(() => {
     if (promociones.length <= 1) return;
