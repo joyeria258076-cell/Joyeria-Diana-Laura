@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { AiOutlineCalendar } from "react-icons/ai";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { contentAPI, comentarioNoticiaAPI } from "../../services/api";
@@ -124,7 +125,7 @@ const NoticiaDetalleScreen: React.FC = () => {
           <span className="noticia-category nd-category">{noticia.categoria || "Novedades"}</span>
           <h1 className="nd-titulo">{noticia.titulo}</h1>
           <p className="nd-fecha">
-            <i className="fas fa-calendar-alt" /> {formatearFecha(noticia.fecha)}
+            <AiOutlineCalendar size={13} aria-hidden="true" /> {formatearFecha(noticia.fecha)}
           </p>
 
           <div className="nd-imagen">

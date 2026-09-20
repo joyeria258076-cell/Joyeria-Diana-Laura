@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { AiOutlineCalendar } from "react-icons/ai";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { contentAPI } from "../../services/api";
@@ -136,7 +137,7 @@ const NoticiasScreen: React.FC = () => {
                     </div>
                     <div className="noticia-content">
                       <p className="noticia-fecha">
-                        <i className="fas fa-calendar-alt" />
+                        <AiOutlineCalendar size={13} aria-hidden="true" />
                         {formatearFecha(featured.fecha)}
                       </p>
                       <h2 className="noticia-titulo">{featured.titulo}</h2>
@@ -161,7 +162,7 @@ const NoticiasScreen: React.FC = () => {
                         </div>
                         <div className="noticia-content">
                           <p className="noticia-fecha">
-                            <i className="fas fa-calendar-alt" />
+                            <AiOutlineCalendar size={13} aria-hidden="true" />
                             {formatearFecha(n.fecha)}
                           </p>
                           <h3 className="noticia-titulo">{n.titulo}</h3>
@@ -189,7 +190,7 @@ const NoticiasScreen: React.FC = () => {
                       </div>
                       <div className="noticia-content">
                         <p className="noticia-fecha">
-                          <i className="fas fa-calendar-alt" />
+                          <AiOutlineCalendar size={13} aria-hidden="true" />
                           {formatearFecha(n.fecha)}
                         </p>
                         <h3 className="noticia-titulo">{n.titulo}</h3>

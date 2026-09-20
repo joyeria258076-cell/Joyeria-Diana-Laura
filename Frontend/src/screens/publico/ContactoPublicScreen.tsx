@@ -1,4 +1,8 @@
 import React, { useState } from "react";
+import {
+  AiOutlinePhone, AiOutlineMail, AiOutlineEnvironment, AiOutlineClockCircle,
+  AiOutlineInstagram, AiFillFacebook, AiOutlineTwitter, AiFillPushpin,
+} from "react-icons/ai";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import "./ContactoPublicScreen.css";
@@ -109,7 +113,7 @@ const ContactoScreen: React.FC = () => {
 
               <div className="info-item">
                 <div className="info-icon">
-                  <i className="fas fa-phone"></i>
+                  <AiOutlinePhone size={18} aria-hidden="true" />
                 </div>
                 <div className="info-content">
                   <h4>Teléfono</h4>
@@ -119,7 +123,7 @@ const ContactoScreen: React.FC = () => {
 
               <div className="info-item">
                 <div className="info-icon">
-                  <i className="fas fa-envelope"></i>
+                  <AiOutlineMail size={18} aria-hidden="true" />
                 </div>
                 <div className="info-content">
                   <h4>Correo Electrónico</h4>
@@ -129,7 +133,7 @@ const ContactoScreen: React.FC = () => {
 
               <div className="info-item">
                 <div className="info-icon">
-                  <i className="fas fa-map-marker-alt"></i>
+                  <AiOutlineEnvironment size={18} aria-hidden="true" />
                 </div>
                 <div className="info-content">
                   <h4>Ubicación</h4>
@@ -139,7 +143,7 @@ const ContactoScreen: React.FC = () => {
 
               <div className="info-item">
                 <div className="info-icon">
-                  <i className="fas fa-clock"></i>
+                  <AiOutlineClockCircle size={18} aria-hidden="true" />
                 </div>
                 <div className="info-content">
                   <h4>Horario de Atención</h4>
@@ -157,16 +161,16 @@ const ContactoScreen: React.FC = () => {
                 <h4>Síguenos en Redes Sociales</h4>
                 <div className="socials">
                   <a href="#" className="social-link" title="Instagram">
-                    <i className="fab fa-instagram"></i>
+                    <AiOutlineInstagram size={18} aria-hidden="true" />
                   </a>
                   <a href="#" className="social-link" title="Facebook">
-                    <i className="fab fa-facebook"></i>
+                    <AiFillFacebook size={18} aria-hidden="true" />
                   </a>
                   <a href="#" className="social-link" title="Twitter">
-                    <i className="fab fa-twitter"></i>
+                    <AiOutlineTwitter size={18} aria-hidden="true" />
                   </a>
                   <a href="#" className="social-link" title="Pinterest">
-                    <i className="fab fa-pinterest"></i>
+                    <AiFillPushpin size={18} aria-hidden="true" />
                   </a>
                 </div>
               </div>

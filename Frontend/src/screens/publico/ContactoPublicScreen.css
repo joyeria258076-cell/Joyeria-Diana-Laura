@@ -378,3 +378,295 @@
     font-size: 1.3rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   CONTACTO — al mismo lenguaje que el resto del sitio
+
+   Medido sobre la página renderizada:
+   · Los iconos de teléfono, correo, ubicación, horario y las cuatro
+     redes salían como círculos VACÍOS: eran de Font Awesome, que nunca
+     se carga en el proyecto. Ya migrados a react-icons en el TSX.
+   · El encabezado ocupaba 300px de alto para dos líneas.
+   · Paneles oscuros sobre fondo oscuro, mientras Inicio, Catálogo y Blog
+     ya usan paneles crema.
+   · La columna derecha terminaba 220px antes que la izquierda, dejando
+     un vacío grande dentro del panel.
+
+   Paleta: la misma del resto del sitio.
+═══════════════════════════════════════════════════════════════════ */
+
+.contacto-container {
+  --con-crema-1: #fdfaf6;
+  --con-crema-2: #f4e9dd;
+  --con-borde: rgba(201, 149, 108, 0.28);
+  --con-texto: #3a2a20;
+  --con-texto-suave: #6b5647;
+  --con-oro: #8a5a2b;
+}
+
+/* ── Tipografía: la hoja usaba cinco Montserrat y tres Playfair ── */
+.contacto-container,
+.contacto-container p,
+.contacto-container span,
+.contacto-container a,
+.contacto-container label,
+.contacto-container input,
+.contacto-container textarea,
+.contacto-container button {
+  font-family: var(--font-body);
+}
+
+.contacto-container h1,
+.contacto-container h2,
+.contacto-container h3,
+.contacto-container .contacto-title,
+.contacto-container .form-title,
+.contacto-container .info-title {
+  font-family: var(--font-display);
+}
+
+/* ── Encabezado compacto ── */
+.contacto-container .contacto-hero {
+  padding-block: clamp(2rem, 4vw, 3rem);
+}
+
+.contacto-container .contacto-title {
+  font-size: clamp(1.9rem, 3.4vw, 2.7rem);
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+  /* Venía en rosa chillón con degradado recortado */
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+.contacto-container .contacto-subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+/* ── Los dos paneles, en crema ── */
+.contacto-container .contacto-section {
+  padding-block: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.contacto-container .contacto-grid {
+  display: grid;
+  /* El formulario pide más sitio que los datos de contacto */
+  grid-template-columns: 1.15fr 1fr;
+  gap: clamp(1rem, 2vw, 1.75rem);
+  align-items: start;
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+.contacto-container .contacto-form-wrapper,
+.contacto-container .contacto-info-wrapper {
+  background: linear-gradient(168deg, var(--con-crema-1) 0%, var(--con-crema-2) 100%);
+  border: 1px solid var(--con-borde);
+  border-radius: 10px;
+  padding: clamp(1.35rem, 2.4vw, 2rem);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.contacto-container .form-title,
+.contacto-container .info-title {
+  color: var(--con-texto);
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  font-weight: 400;
+  margin-top: 0;
+}
+
+/* ── Formulario ── */
+.contacto-container .form-group label {
+  color: var(--con-oro);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.contacto-container .form-group input,
+.contacto-container .form-group textarea {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(201, 149, 108, 0.24);
+  border-radius: 6px;
+  color: var(--con-texto);
+  /* Los campos iban muy altos y vacíos: 56px cada uno */
+  padding: 0.65rem 0.8rem;
+  font-size: 0.9rem;
+  /* Un <textarea> no baja de su tamaño de columnas sin esto */
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.contacto-container .form-group textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.contacto-container .form-group input::placeholder,
+.contacto-container .form-group textarea::placeholder {
+  color: #a8968a;
+}
+
+.contacto-container .form-group input:focus,
+.contacto-container .form-group textarea:focus {
+  outline: none;
+  background: #fff;
+  border-color: var(--con-oro);
+  box-shadow: 0 6px 18px -12px rgba(138, 90, 43, 0.6);
+}
+
+/* Botón en el degradado de la marca, no en el rosa con halo de antes */
+.contacto-container .contacto-form button[type="submit"],
+.contacto-container .contacto-form .btn-primary {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.9rem 1.5rem;
+  background: linear-gradient(135deg, #c9956c 0%, #e3bd93 50%, #c9956c 100%);
+  border: 1px solid rgba(138, 90, 43, 0.35);
+  border-radius: 100px;
+  color: #34261c;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -14px rgba(0, 0, 0, 0.9);
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.contacto-container .contacto-form button[type="submit"]:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+/* ── Datos de contacto ── */
+.contacto-container .info-item {
+  border-bottom: 1px solid rgba(201, 149, 108, 0.18);
+  padding-bottom: 0.9rem;
+}
+
+.contacto-container .info-item:last-of-type {
+  border-bottom: none;
+}
+
+.contacto-container .info-icon {
+  background: rgba(201, 149, 108, 0.14);
+  border: 1px solid rgba(201, 149, 108, 0.32);
+  color: var(--con-oro);
+  /* Los círculos medían 56px para un icono de 18: sobraba la mitad */
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contacto-container .info-content h4,
+.contacto-container .info-content h3,
+.contacto-container .info-content strong {
+  color: var(--con-oro);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.contacto-container .info-content p,
+.contacto-container .info-content span {
+  color: var(--con-texto-suave);
+  font-size: 0.9rem;
+}
+
+/* ── Redes ── */
+.contacto-container .socials-section {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(201, 149, 108, 0.25);
+}
+
+.contacto-container .socials-section h4,
+.contacto-container .socials-section h3 {
+  color: var(--con-oro);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.contacto-container .social-link {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201, 149, 108, 0.12);
+  border: 1px solid rgba(201, 149, 108, 0.3);
+  border-radius: 50%;
+  color: var(--con-oro);
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.contacto-container .social-link:hover,
+.contacto-container .social-link:focus-visible {
+  background: var(--con-oro);
+  border-color: var(--con-oro);
+  color: var(--con-crema-1);
+}
+
+.contacto-container .social-link:focus-visible {
+  outline: 2px solid var(--con-oro);
+  outline-offset: 3px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVIDAD
+═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  /* A una columna: con el formulario y los datos lado a lado por debajo
+     de este ancho, los campos quedan demasiado estrechos para escribir. */
+  .contacto-container .contacto-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .contacto-container .contacto-form-wrapper,
+  .contacto-container .contacto-info-wrapper {
+    padding: 1.1rem 0.95rem;
+  }
+
+  .contacto-container .info-icon {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contacto-container .contacto-form button[type="submit"],
+  .contacto-container .social-link {
+    transition: none;
+  }
+
+  .contacto-container .contacto-form button[type="submit"]:hover {
+    transform: none;
+  }
+}
+
+/* El último dato no lleva filete, pero sí conserva su respiro: sin esto
+   quedaba un hueco raro antes del bloque de redes. */
+.contacto-container .info-item:last-of-type {
+  padding-bottom: 0.25rem;
+}
+
+/* El rombo decorativo de cada etiqueta iba en rosa claro (#f5c5d8), que
+   sobre el crema da 1.6:1 y prácticamente no se ve. Pasa al oro de la
+   pantalla, a juego con el texto de la etiqueta. */
+.contacto-container .form-group label::before {
+  color: var(--con-oro);
+  opacity: 0.75;
+}
