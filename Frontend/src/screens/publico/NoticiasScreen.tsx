@@ -78,18 +78,22 @@ const NoticiasScreen: React.FC = () => {
             <div className="noticias-stats">
               <div className="noticias-stat">
                 <strong>{loading ? "—" : noticias.length}</strong>
-                <span>Artículos</span>
+                {/* Singular cuando hay uno solo: decía "1 Artículos" */}
+                <span>{noticias.length === 1 ? "Artículo" : "Artículos"}</span>
               </div>
               <div className="noticias-stat">
                 {/* <-- Año dinámico */}
                 <strong>{loading ? "—" : new Date().getFullYear()}</strong>
                 <span>Temporada</span>
               </div>
-              <div className="noticias-stat">
-                {/* <-- Colecciones (categorías) dinámicas */}
-                <strong>{loading ? "—" : coleccionesUnicas}</strong>
-                <span>Colecciones</span>
-              </div>
+              {/* La cuenta de colecciones solo se muestra si hay alguna:
+                  un "0 Colecciones" en grande resta en vez de sumar. */}
+              {(loading || coleccionesUnicas > 0) && (
+                <div className="noticias-stat">
+                  <strong>{loading ? "—" : coleccionesUnicas}</strong>
+                  <span>{coleccionesUnicas === 1 ? "Colección" : "Colecciones"}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
