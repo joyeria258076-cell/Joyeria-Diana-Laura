@@ -95,7 +95,11 @@ const CatalogoPublicScreen: React.FC = () => {
   const [favoritosIds, setFavoritosIds] = useState<Set<number>>(new Set());
   const [togglingFav, setTogglingFav] = useState<number | null>(null);
 
-  const placeholderImg = `data:image/svg+xml;utf8,<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="%23141414"/><g transform="translate(200,200)" stroke="%23594936" stroke-width="1.5" fill="none" opacity="0.7"><path d="M-22,-14 L22,-14 L32,-2 L0,34 L-32,-2 Z"/><path d="M-22,-14 L0,-2 L22,-14 M-32,-2 L32,-2 M0,-2 L0,34"/></g></svg>`;
+  // Marcador para las piezas sin foto. Iba en negro (#141414), heredado de
+  // cuando las tarjetas eran oscuras; sobre las tarjetas blancas de ahora
+  // resaltaba como un hueco negro entre las demás. Pasa a crema con el
+  // trazo en oro rosa, a juego con el resto del panel.
+  const placeholderImg = `data:image/svg+xml;utf8,<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="%23f4ece3"/><g transform="translate(200,200)" stroke="%23c9956c" stroke-width="2" fill="none" opacity="0.6"><path d="M-30,-19 L30,-19 L44,-3 L0,46 L-44,-3 Z"/><path d="M-30,-19 L0,-3 L30,-19 M-44,-3 L44,-3 M0,-3 L0,46"/></g></svg>`;
 
   // --- CARGAR DATOS INICIALES ---
   useEffect(() => {

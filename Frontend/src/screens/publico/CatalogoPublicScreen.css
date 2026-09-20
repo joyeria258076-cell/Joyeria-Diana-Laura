@@ -640,3 +640,312 @@
 @media (prefers-reduced-motion: reduce) {
     .catalogo-public-container .reveal-stagger { animation: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   CATÁLOGO — al mismo lenguaje que el Inicio
+
+   Tres problemas medidos sobre la página renderizada:
+
+   1. Los campos de precio se salían del panel de filtros. Son celdas de
+      rejilla `1fr 1fr`, y una celda no baja de su tamaño de contenido a
+      menos que se le ponga min-width: 0. Los <input type="number"> traen
+      un ancho propio holgado, así que desbordaban el recuadro.
+
+   2. El catálogo iba a 1800px de ancho mientras el resto del sitio quedó
+      en 1180px: al pasar de Inicio a Catálogo todo saltaba.
+
+   3. El catálogo seguía en tarjetas oscuras sobre fondo oscuro, mientras
+      el Inicio ya usa paneles crema. Parecían dos sitios distintos.
+
+   Paleta: la misma del Inicio, derivada de la marca.
+     crema      #fdfaf6 → #f4e9dd
+     texto      #3a2a20 / #6b5647
+     oro oscuro #8a5a2b   (el oro rosa da 2.4:1 sobre crema, ilegible)
+═══════════════════════════════════════════════════════════════════ */
+
+.catalogo-public-container {
+  --cat-crema-1: #fdfaf6;
+  --cat-crema-2: #f4e9dd;
+  --cat-borde: rgba(201, 149, 108, 0.28);
+  --cat-texto: #3a2a20;
+  --cat-texto-suave: #6b5647;
+  --cat-oro: #8a5a2b;
+}
+
+/* ── 1. El desbordamiento de los campos de precio ── */
+.catalogo-public-container .filtro-precio-row .form-group,
+.catalogo-public-container .form-group input,
+.catalogo-public-container .form-group select {
+  min-width: 0;
+}
+
+/* ── 2. Mismo ancho que el resto del sitio ── */
+.catalogo-public-container .catalogo-shell,
+.catalogo-public-container .catalogo-encabezado {
+  max-width: 1280px;
+}
+
+.catalogo-public-container .catalogo-body {
+  padding: 1.5rem 1.25rem 3rem;
+}
+
+/* El encabezado ocupaba casi media pantalla de alto para tres líneas */
+.catalogo-public-container .catalogo-encabezado {
+  padding-block: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.catalogo-public-container .page-title {
+  font-size: clamp(1.9rem, 3.4vw, 2.8rem);
+  line-height: 1.2;
+}
+
+.catalogo-public-container .catalogo-subtitulo {
+  font-size: 0.92rem;
+  max-width: 38rem;
+  margin-inline: auto;
+}
+
+/* ── 3. Panel de filtros en crema ── */
+.catalogo-public-container .catalogo-filtros-panel {
+  background: linear-gradient(168deg, var(--cat-crema-1) 0%, var(--cat-crema-2) 100%);
+  border: 1px solid var(--cat-borde);
+  border-radius: 10px;
+  padding: 1.35rem 1.25rem;
+  gap: 1.1rem;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.catalogo-public-container .filtro-buscador {
+  border-bottom-color: rgba(201, 149, 108, 0.35);
+}
+
+.catalogo-public-container .filtro-buscador-icon {
+  color: var(--cat-oro);
+}
+
+.catalogo-public-container .filtro-buscador input {
+  color: var(--cat-texto);
+}
+
+.catalogo-public-container .filtro-buscador input::placeholder {
+  color: #a8968a;
+}
+
+.catalogo-public-container .form-group label {
+  color: var(--cat-oro);
+}
+
+.catalogo-public-container .form-group input,
+.catalogo-public-container .form-group select {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(201, 149, 108, 0.24);
+  border-radius: 6px;
+  color: var(--cat-texto);
+  padding: 0.55rem 0.7rem;
+}
+
+.catalogo-public-container .form-group input:focus,
+.catalogo-public-container .form-group select:focus {
+  background: #fff;
+  border-color: var(--cat-oro);
+}
+
+.catalogo-public-container .form-group select option {
+  background: #fff;
+  color: var(--cat-texto);
+}
+
+.catalogo-public-container .filtros-actions .btn-secondary {
+  color: var(--cat-oro) !important;
+  border-color: var(--cat-oro) !important;
+  background: transparent !important;
+}
+
+.catalogo-public-container .filtros-actions .btn-secondary:hover {
+  background: rgba(201, 149, 108, 0.12) !important;
+}
+
+/* ── Cada categoría, en su propio panel crema ── */
+.catalogo-public-container .categoria-section {
+  background: linear-gradient(168deg, var(--cat-crema-1) 0%, var(--cat-crema-2) 100%);
+  border: 1px solid var(--cat-borde);
+  border-radius: 10px;
+  padding: clamp(1.25rem, 2.2vw, 1.85rem);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.38);
+  margin-bottom: 1.5rem;
+}
+
+.catalogo-public-container .categoria-title {
+  color: var(--cat-texto);
+}
+
+.catalogo-public-container .categoria-count {
+  background: rgba(201, 149, 108, 0.14);
+  border: 1px solid rgba(201, 149, 108, 0.3);
+  color: var(--cat-oro);
+}
+
+.catalogo-public-container .categoria-header-row {
+  border-bottom: 1px solid rgba(201, 149, 108, 0.25);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Tarjetas de producto, blancas sobre el crema ── */
+.catalogo-public-container .productos-grid {
+  /* Cinco por fila, igual que en el Inicio */
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 1rem;
+}
+
+.catalogo-public-container .producto-card {
+  background: #fff;
+  border: 1px solid rgba(201, 149, 108, 0.22);
+  border-radius: 8px;
+  box-shadow: 0 3px 12px rgba(58, 42, 32, 0.07);
+}
+
+.catalogo-public-container .producto-card:hover {
+  border-color: var(--cat-oro);
+  box-shadow: 0 14px 30px rgba(58, 42, 32, 0.16);
+}
+
+/* Cuadrada, como en el Inicio: el alto fijo de 220px achataba la foto
+   al angostarse la tarjeta. */
+.catalogo-public-container .producto-imagen {
+  height: auto;
+  aspect-ratio: 1;
+  background: #f4ece3;
+}
+
+.catalogo-public-container .producto-info {
+  padding: 0.8rem 0.85rem 0.95rem;
+  gap: 0.3rem;
+}
+
+.catalogo-public-container .producto-info h4 {
+  color: var(--cat-texto);
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.3;
+  /* Dos líneas fijas: así los precios de una fila quedan alineados */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em;
+}
+
+.catalogo-public-container .producto-info .tipo {
+  color: var(--cat-oro);
+  font-size: 0.64rem;
+}
+
+.catalogo-public-container .precio-section {
+  border-top-color: rgba(201, 149, 108, 0.25);
+  padding-top: 0.6rem;
+}
+
+.catalogo-public-container .precio {
+  color: var(--cat-oro);
+  font-size: 0.95rem;
+}
+
+.catalogo-public-container .precio.original {
+  color: #9c8878;
+}
+
+.catalogo-public-container .precio.oferta {
+  color: #a8455a;
+}
+
+.catalogo-public-container .producto-stock {
+  font-size: 0.7rem;
+}
+
+.catalogo-public-container .stock-ok { color: var(--cat-texto-suave); opacity: 1; }
+.catalogo-public-container .stock-poco { color: #a8455a; }
+.catalogo-public-container .stock-agotado { color: #9c8878; }
+
+/* ── Distintivos y corazón ── */
+.catalogo-public-container .badge-nuevo {
+  background: linear-gradient(135deg, var(--color-blush) 0%, #f8dcdc 100%);
+  color: #5c3339;
+}
+
+.catalogo-public-container .badge-oferta {
+  background: linear-gradient(135deg, #c9956c 0%, #e0b389 100%);
+  color: #3a2a20;
+}
+
+.catalogo-public-container .badge-agotado,
+.catalogo-public-container .badge-poco-stock {
+  background: rgba(58, 42, 32, 0.82);
+  color: #f6ece1;
+}
+
+.catalogo-public-container .btn-favorito {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(201, 149, 108, 0.35);
+  color: var(--cat-oro);
+}
+
+.catalogo-public-container .btn-favorito:hover {
+  background: #fff;
+  border-color: var(--cat-oro);
+}
+
+.catalogo-public-container .btn-favorito--activo {
+  background: var(--color-blush);
+  border-color: var(--color-blush);
+  color: #5c3339;
+}
+
+/* ── Botón de "Ver todos" de cada categoría ── */
+.catalogo-public-container .categoria-ver-mas,
+.catalogo-public-container .btn-ver-mas {
+  color: var(--cat-oro);
+  border-color: rgba(201, 149, 108, 0.45);
+}
+
+.catalogo-public-container .categoria-ver-mas:hover,
+.catalogo-public-container .btn-ver-mas:hover {
+  background: rgba(201, 149, 108, 0.12);
+  border-color: var(--cat-oro);
+}
+
+/* ── Sección de favoritos ── */
+.catalogo-public-container .favoritos-section {
+  background: linear-gradient(168deg, var(--cat-crema-1) 0%, var(--cat-crema-2) 100%);
+  border: 1px solid var(--cat-borde);
+  border-radius: 10px;
+  padding: clamp(1.25rem, 2.2vw, 1.85rem);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.38);
+}
+
+.catalogo-public-container .favoritos-titulo {
+  color: var(--cat-texto);
+}
+
+.catalogo-public-container .favoritos-count {
+  background: rgba(201, 149, 108, 0.14);
+  border: 1px solid rgba(201, 149, 108, 0.3);
+  color: var(--cat-oro);
+}
+
+/* ── El panel de filtros sigue a la vista al bajar ── */
+.catalogo-public-container .catalogo-filtros-panel {
+  position: sticky;
+  top: 1rem;
+  /* Si los filtros crecen más que la ventana, se recorren solos en vez
+     de quedar con el botón de Buscar fuera de alcance. */
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+@media (max-width: 1024px) {
+  .catalogo-public-container .catalogo-filtros-panel {
+    max-height: none;
+    overflow-y: visible;
+  }
+}
