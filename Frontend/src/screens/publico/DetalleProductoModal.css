@@ -223,7 +223,7 @@
   font-size: 2rem;
   color: var(--gold-lux);
   font-weight: 700;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-body);
 }
 
 .badge-promo-modal {
@@ -595,7 +595,7 @@
   align-items: center !important;
   gap: 0.5rem !important;
   letter-spacing: 0.02em !important;
-  font-family: 'Playfair Display', serif !important;
+  font-family: var(--font-display) !important;
   background: linear-gradient(90deg, #c9a84c 0%, #f5d982 40%, #ecb2c3 75%, #c9a84c 100%) !important;
   background-size: 200% auto !important;
   -webkit-background-clip: text !important;

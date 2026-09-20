@@ -1,7 +1,7 @@
 // Frontend/src/screens/publico/CatalogoPublicScreen.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { AiOutlineSearch, AiOutlineTag } from "react-icons/ai";
+import { AiOutlineSearch, AiOutlineTag, AiOutlineClose } from "react-icons/ai";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import DetalleProductoModal from "./DetalleProductoModal";
@@ -95,6 +95,63 @@ const CatalogoPublicScreen: React.FC = () => {
   const [favoritosIds, setFavoritosIds] = useState<Set<number>>(new Set());
   const [togglingFav, setTogglingFav] = useState<number | null>(null);
 
+  // --- ORDEN ---
+  // Se ordena del lado del cliente sobre lo que ya llegó: no hace falta
+  // pedirle nada nuevo al servidor para reordenar lo que está en pantalla.
+  type Orden = 'relevancia' | 'precio-asc' | 'precio-desc' | 'nombre';
+  const [orden, setOrden] = useState<Orden>('relevancia');
+
+  // --- FILTROS EN MÓVIL ---
+  // En pantallas chicas el panel de filtros se apilaba encima del catálogo
+  // y había que recorrer toda su altura antes de ver una sola pieza. Ahora
+  // arranca plegado y se abre con un botón.
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
+
+  const precioDe = (p: Producto) =>
+    Number(p.precio_promocion ?? p.precio_oferta ?? p.precio_venta ?? 0);
+
+  const ordenar = (lista: Producto[]): Producto[] => {
+    if (orden === 'relevancia') return lista;
+    const copia = [...lista];
+    if (orden === 'precio-asc') return copia.sort((a, b) => precioDe(a) - precioDe(b));
+    if (orden === 'precio-desc') return copia.sort((a, b) => precioDe(b) - precioDe(a));
+    return copia.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+  };
+
+  // --- FILTROS ACTIVOS ---
+  // Se muestran como fichas quitables sobre los resultados: antes se
+  // aplicaba un filtro y no quedaba ni rastro en pantalla de cuál era.
+  const nombreCategoria = (id: number | string) =>
+    categorias.find(c => String(c.id) === String(id))?.nombre;
+  const nombreTipo = (id: number | string) =>
+    tiposProducto.find(t => String(t.id) === String(id))?.nombre;
+
+  const filtrosActivos: { clave: keyof FiltrosSearch; etiqueta: string }[] = [];
+  if (filtros.nombre) filtrosActivos.push({ clave: 'nombre', etiqueta: `"${filtros.nombre}"` });
+  if (filtros.categoria_id) filtrosActivos.push({ clave: 'categoria_id', etiqueta: nombreCategoria(filtros.categoria_id) || 'Categoría' });
+  if (filtros.tipo_producto_id) filtrosActivos.push({ clave: 'tipo_producto_id', etiqueta: nombreTipo(filtros.tipo_producto_id) || 'Tipo' });
+  if (filtros.material_principal) filtrosActivos.push({ clave: 'material_principal', etiqueta: filtros.material_principal });
+  if (Number(filtros.precio_min) > 0 || Number(filtros.precio_max) < 100000) {
+    filtrosActivos.push({
+      clave: 'precio_min',
+      etiqueta: `$${Number(filtros.precio_min).toLocaleString('es-MX')} – $${Number(filtros.precio_max).toLocaleString('es-MX')}`,
+    });
+  }
+
+  const quitarFiltro = (clave: keyof FiltrosSearch) => {
+    const limpios: FiltrosSearch = { ...filtros };
+    if (clave === 'precio_min') {
+      limpios.precio_min = 0;
+      limpios.precio_max = 100000;
+    } else if (clave === 'nombre' || clave === 'material_principal') {
+      limpios[clave] = '';
+    } else {
+      (limpios as any)[clave] = '';
+    }
+    setFiltros(limpios);
+    buscarCon(limpios);
+  };
+
   // Marcador para las piezas sin foto. Iba en negro (#141414), heredado de
   // cuando las tarjetas eran oscuras; sobre las tarjetas blancas de ahora
   // resaltaba como un hueco negro entre las demás. Pasa a crema con el
@@ -160,19 +217,33 @@ const CatalogoPublicScreen: React.FC = () => {
   }, [logueado]);
 
   // --- BÚSQUEDA ---
-  const handleBuscar = async () => {
+  // Recibe los filtros por parámetro para poder llamarse también desde las
+  // fichas de filtro activo, que necesitan buscar con el estado recién
+  // modificado sin esperar al siguiente render.
+  const buscarCon = async (f: FiltrosSearch) => {
+    // Si no queda ningún filtro puesto, se vuelve al catálogo por categorías
+    const vacio =
+      !f.nombre && !f.categoria_id && !f.tipo_producto_id && !f.material_principal &&
+      Number(f.precio_min) === 0 && Number(f.precio_max) === 100000;
+    if (vacio) {
+      setSearchMode(false);
+      setResultadosBusqueda([]);
+      setPaginaBusqueda(0);
+      return;
+    }
+
     try {
       setLoading(true);
       setSearchMode(true);
       setPaginaBusqueda(0);
 
       const response = await productsAPI.searchAndFilter({
-        nombre: filtros.nombre,
-        categoria_id: filtros.categoria_id as number,
-        tipo_producto_id: filtros.tipo_producto_id as number,
-        material_principal: filtros.material_principal,
-        precio_min: filtros.precio_min,
-        precio_max: filtros.precio_max,
+        nombre: f.nombre,
+        categoria_id: f.categoria_id as number,
+        tipo_producto_id: f.tipo_producto_id as number,
+        material_principal: f.material_principal,
+        precio_min: f.precio_min,
+        precio_max: f.precio_max,
       });
       setResultadosBusqueda(Array.isArray(response?.data) ? response.data : []);
     } catch (error) {
@@ -181,6 +252,11 @@ const CatalogoPublicScreen: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBuscar = () => {
+    setFiltrosAbiertos(false); // en móvil, devuelve la vista a los resultados
+    buscarCon(filtros);
   };
 
   // --- VER MÁS DE UNA CATEGORÍA → entra a modo búsqueda con paginación ---
@@ -305,7 +381,7 @@ const CatalogoPublicScreen: React.FC = () => {
 
   // --- CÁLCULOS DE PAGINACIÓN ---
   const totalPaginas = Math.ceil(resultadosBusqueda.length / PAGE_SIZE);
-  const productosPaginaActual = resultadosBusqueda.slice(
+  const productosPaginaActual = ordenar(resultadosBusqueda).slice(
     paginaBusqueda * PAGE_SIZE,
     (paginaBusqueda + 1) * PAGE_SIZE
   );
@@ -473,7 +549,26 @@ const CatalogoPublicScreen: React.FC = () => {
         </div>
 
         <div className="catalogo-shell">
-          <aside className="catalogo-filtros-panel">
+          {/* Botón que abre los filtros en móvil. En escritorio el panel
+              está siempre a la vista y este botón no se muestra. */}
+          <button
+            type="button"
+            className="filtros-toggle"
+            onClick={() => setFiltrosAbiertos(a => !a)}
+            aria-expanded={filtrosAbiertos}
+            aria-controls="panel-filtros"
+          >
+            <AiOutlineSearch size={16} aria-hidden="true" />
+            <span>Filtrar y buscar</span>
+            {filtrosActivos.length > 0 && (
+              <span className="filtros-toggle-contador">{filtrosActivos.length}</span>
+            )}
+          </button>
+
+          <aside
+            id="panel-filtros"
+            className={`catalogo-filtros-panel${filtrosAbiertos ? ' is-abierto' : ''}`}
+          >
             <div className="filtro-buscador">
               <AiOutlineSearch size={16} className="filtro-buscador-icon" />
               <input
@@ -551,6 +646,54 @@ const CatalogoPublicScreen: React.FC = () => {
 
           <div className="catalogo-contenido">
 
+            {/* Barra de estado: qué filtros están puestos y cómo se ordena.
+                Antes se aplicaba un filtro y no quedaba rastro en pantalla
+                de cuál era, ni había forma de reordenar. */}
+            <div className="catalogo-barra-estado">
+              <div className="filtros-chips">
+                {filtrosActivos.length > 0 ? (
+                  <>
+                    <span className="filtros-chips-titulo">Filtros:</span>
+                    {filtrosActivos.map(f => (
+                      <button
+                        key={f.clave}
+                        type="button"
+                        className="filtro-chip"
+                        onClick={() => quitarFiltro(f.clave)}
+                        aria-label={`Quitar filtro ${f.etiqueta}`}
+                      >
+                        <span>{f.etiqueta}</span>
+                        <AiOutlineClose size={11} aria-hidden="true" />
+                      </button>
+                    ))}
+                    <button type="button" className="filtro-chip filtro-chip--limpiar" onClick={handleLimpiarFiltros}>
+                      Limpiar todo
+                    </button>
+                  </>
+                ) : (
+                  <span className="filtros-chips-titulo">
+                    {searchMode
+                      ? `${resultadosBusqueda.length} resultado${resultadosBusqueda.length !== 1 ? 's' : ''}`
+                      : 'Todo el catálogo'}
+                  </span>
+                )}
+              </div>
+
+              <div className="orden-control">
+                <label htmlFor="orden-catalogo">Ordenar</label>
+                <select
+                  id="orden-catalogo"
+                  value={orden}
+                  onChange={(e) => setOrden(e.target.value as Orden)}
+                >
+                  <option value="relevancia">Destacados</option>
+                  <option value="precio-asc">Precio: menor a mayor</option>
+                  <option value="precio-desc">Precio: mayor a menor</option>
+                  <option value="nombre">Nombre (A–Z)</option>
+                </select>
+              </div>
+            </div>
+
             {favoritos.length > 0 && !searchMode && (
               <section className="favoritos-section">
                 <div className="favoritos-header">
@@ -569,7 +712,7 @@ const CatalogoPublicScreen: React.FC = () => {
               Object.entries(productosPorCategoria).length > 0 ? (
                 <div className="categorias-sections">
                   {Object.entries(productosPorCategoria).map(([nombreCategoria, productos]) => {
-                    const productosPreview = productos.slice(0, PAGE_SIZE);
+                    const productosPreview = ordenar(productos).slice(0, PAGE_SIZE);
                     const hayMas = productos.length > PAGE_SIZE;
                     const categoria_id = productos[0]?.categoria_id || 0;
 

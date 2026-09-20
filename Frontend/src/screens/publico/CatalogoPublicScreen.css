@@ -949,3 +949,311 @@
     overflow-y: visible;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   TIPOGRAFÍA — una sola voz, a prueba de fugas
+
+   La hoja del catálogo ya usaba los tokens, pero las de otras pantallas
+   se cargan globalmente y le pisan reglas genéricas. Aquí se fija la
+   regla para todo el catálogo:
+     nombres, títulos y precios  →  --font-display  (Cormorant Garamond)
+     todo lo demás               →  --font-body     (Jost)
+═══════════════════════════════════════════════════════════════════ */
+.catalogo-public-container,
+.catalogo-public-container p,
+.catalogo-public-container span,
+.catalogo-public-container a,
+.catalogo-public-container small,
+.catalogo-public-container label,
+.catalogo-public-container button,
+.catalogo-public-container input,
+.catalogo-public-container select,
+.catalogo-public-container li {
+  font-family: var(--font-body);
+}
+
+.catalogo-public-container h1,
+.catalogo-public-container h2,
+.catalogo-public-container h3,
+.catalogo-public-container h4,
+.catalogo-public-container .page-title,
+.catalogo-public-container .categoria-title,
+.catalogo-public-container .favoritos-titulo,
+.catalogo-public-container .precio {
+  font-family: var(--font-display);
+}
+
+/* Las etiquetas y antetítulos van en la de texto aunque estén dentro de
+   un encabezado. */
+.catalogo-public-container .catalogo-eyebrow,
+.catalogo-public-container .producto-info .tipo,
+.catalogo-public-container .producto-stock,
+.catalogo-public-container .categoria-count,
+.catalogo-public-container .favoritos-count {
+  font-family: var(--font-body);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BARRA DE ESTADO — filtros activos y orden
+
+   Antes se aplicaba un filtro y no quedaba rastro en pantalla de cuál
+   era, ni había forma de reordenar lo que se estaba viendo.
+═══════════════════════════════════════════════════════════════════ */
+.catalogo-public-container .catalogo-barra-estado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.9rem;
+  background: rgba(253, 250, 246, 0.07);
+  border: 1px solid rgba(201, 149, 108, 0.22);
+  border-radius: 8px;
+}
+
+.catalogo-public-container .filtros-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.catalogo-public-container .filtros-chips-titulo {
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.catalogo-public-container .filtro-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  /* 32px de alto: cómodo de tocar sin agrandar la barra */
+  min-height: 32px;
+  padding: 0 0.7rem;
+  background: rgba(201, 149, 108, 0.16);
+  border: 1px solid rgba(201, 149, 108, 0.4);
+  border-radius: 100px;
+  color: var(--color-champagne);
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.catalogo-public-container .filtro-chip:hover,
+.catalogo-public-container .filtro-chip:focus-visible {
+  background: rgba(201, 149, 108, 0.3);
+  border-color: var(--color-rose-gold);
+  color: var(--color-text);
+}
+
+.catalogo-public-container .filtro-chip:focus-visible {
+  outline: 2px solid var(--color-rose-gold);
+  outline-offset: 2px;
+}
+
+.catalogo-public-container .filtro-chip--limpiar {
+  background: transparent;
+  border-style: dashed;
+  color: var(--color-blush);
+}
+
+/* ── Selector de orden ── */
+.catalogo-public-container .orden-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.catalogo-public-container .orden-control label {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-rose-gold);
+}
+
+.catalogo-public-container .orden-control select {
+  background: rgba(20, 20, 20, 0.6);
+  border: 1px solid rgba(201, 149, 108, 0.35);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 0.78rem;
+  padding: 0.4rem 0.6rem;
+  min-height: 34px;
+  cursor: pointer;
+}
+
+.catalogo-public-container .orden-control select:focus-visible {
+  outline: 2px solid var(--color-rose-gold);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FILTROS EN MÓVIL
+
+   El panel se apilaba encima del catálogo, así que en un teléfono había
+   que recorrer toda su altura —buscador, tres selectores, dos campos de
+   precio y dos botones— antes de ver una sola pieza. Ahora arranca
+   plegado detrás de un botón.
+═══════════════════════════════════════════════════════════════════ */
+.catalogo-public-container .filtros-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 46px;
+  margin-bottom: 0.85rem;
+  padding: 0 1rem;
+  background: linear-gradient(168deg, #fdfaf6 0%, #f4e9dd 100%);
+  border: 1px solid rgba(201, 149, 108, 0.32);
+  border-radius: 8px;
+  color: #3a2a20;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.catalogo-public-container .filtros-toggle-contador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: #8a5a2b;
+  color: #fdfaf6;
+  border-radius: 100px;
+  font-size: 0.68rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVIDAD — de cinco columnas a una, en orden
+═══════════════════════════════════════════════════════════════════ */
+
+/* Tabletas anchas: el panel lateral se estrecha antes de desaparecer */
+@media (max-width: 1100px) {
+  .catalogo-public-container .catalogo-shell {
+    grid-template-columns: 220px 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* Tableta y teléfono: el panel pasa a plegable */
+@media (max-width: 1024px) {
+  .catalogo-public-container .catalogo-shell {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .catalogo-public-container .filtros-toggle {
+    display: flex;
+  }
+
+  .catalogo-public-container .catalogo-filtros-panel {
+    display: none;
+    margin-bottom: 1rem;
+  }
+
+  .catalogo-public-container .catalogo-filtros-panel.is-abierto {
+    display: flex;
+  }
+
+  .catalogo-public-container .productos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .catalogo-public-container .catalogo-body {
+    padding: 1rem 0.9rem 2.5rem;
+  }
+
+  .catalogo-public-container .categoria-section,
+  .catalogo-public-container .favoritos-section {
+    padding: 1rem 0.85rem;
+  }
+
+  .catalogo-public-container .catalogo-barra-estado {
+    /* El orden baja a su propia línea y se estira: en una fila con las
+       fichas quedaba estrujado contra el borde. */
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .catalogo-public-container .orden-control select {
+    flex: 1;
+  }
+
+  .catalogo-public-container .productos-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .catalogo-public-container .producto-info {
+    padding: 0.65rem 0.6rem 0.8rem;
+  }
+
+  .catalogo-public-container .producto-info h4 {
+    font-size: 0.82rem;
+  }
+
+  .catalogo-public-container .precio {
+    font-size: 0.88rem;
+  }
+}
+
+@media (max-width: 420px) {
+  /* Una sola columna: a dos, la foto queda tan chica que no se aprecia
+     la pieza, que es justo lo que se viene a ver. */
+  .catalogo-public-container .productos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogo-public-container .filtro-precio-row {
+    gap: 0.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalogo-public-container .filtro-chip {
+    transition: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DESBORDE HORIZONTAL EN MÓVIL
+
+   Medido con capturas a 390px: la página entera salía ~500px de ancho y
+   se cortaba por la derecha. La causa es el ancho intrínseco de los
+   elementos de formulario: un <select> no baja del tamaño de su opción
+   más larga ("Precio: menor a mayor") a menos que se le ponga
+   min-width: 0, y al ser celda de una rejilla/flex arrastraba consigo a
+   todos sus contenedores.
+═══════════════════════════════════════════════════════════════════ */
+.catalogo-public-container .orden-control,
+.catalogo-public-container .orden-control select,
+.catalogo-public-container .catalogo-barra-estado,
+.catalogo-public-container .catalogo-shell > *,
+.catalogo-public-container .filtros-toggle {
+  min-width: 0;
+}
+
+/* El texto de las opciones se recorta con elipsis en vez de empujar */
+.catalogo-public-container .orden-control select {
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+
+/* Red de seguridad: ninguna pieza suelta puede sacar la página de cuadro.
+   No sustituye a los arreglos de arriba —que atacan la causa—, pero evita
+   que un contenido nuevo vuelva a romper el ancho sin avisar. */
+.catalogo-public-container {
+  overflow-x: clip;
+}

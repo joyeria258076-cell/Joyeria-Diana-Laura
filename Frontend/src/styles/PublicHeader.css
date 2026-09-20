@@ -214,7 +214,11 @@
 /* ══════════════════════════════
    RESPONSIVE
 ══════════════════════════════ */
-@media (max-width: 768px) {
+/* El menú de escritorio son siete enlaces más el logo y el botón de
+   Acceso: a 820px ya no caben y "Legal" y "Acceso" quedaban cortados
+   fuera de pantalla. El cambio a menú de hamburguesa sube de 768 a
+   1024px, que es donde de verdad deja de caber. */
+@media (max-width: 1024px) {
   .header-nav        { display: none; }
   .header-auth       { display: none; }
   .public-hamburger-btn { display: flex; }
