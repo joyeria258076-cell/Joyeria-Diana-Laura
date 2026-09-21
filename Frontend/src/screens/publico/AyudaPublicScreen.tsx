@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ChatBotAyuda from "../../components/ChatBotAyuda";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { contentAPI } from "../../services/api";
@@ -17,6 +18,7 @@ const Ayuda: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [open, setOpen]       = useState<number | null>(null);
   const [whatsapp, setWhatsapp] = useState<string | null>(null);
+  const [info, setInfo] = useState<{ horario?: string | null; direccion?: string | null } | null>(null);
 
   useEffect(() => {
     const cargar = async () => {
@@ -31,6 +33,7 @@ const Ayuda: React.FC = () => {
       try {
         const res = await contentAPI.getInfoEmpresa();
         const numero = res?.data?.whatsapp;
+        if (res?.data) setInfo({ horario: res.data.horario, direccion: res.data.direccion });
         if (numero) setWhatsapp(numero.replace(/\D/g, ''));
       } catch { /* silently fallback */ }
     };
@@ -95,6 +98,7 @@ const Ayuda: React.FC = () => {
             <h3>¿Aún tienes dudas?</h3>
             <p>Nuestro equipo especializado está disponible para ayudarte en todo momento.</p>
             <div className="support-divider" />
+            <ChatBotAyuda faqs={faqs} whatsapp={whatsapp} info={info} />
             {whatsapp ? (
               <a
                 className="btn-contact"
@@ -108,7 +112,7 @@ const Ayuda: React.FC = () => {
             ) : (
               <button className="btn-contact" disabled>
                 <i className="fab fa-whatsapp" style={{ marginRight: '0.6rem' }} />
-                Chatear por WhatsApp
+                WhatsApp no disponible por ahora
               </button>
             )}
             <p className="email-link">soporte@dianalaura.com</p>

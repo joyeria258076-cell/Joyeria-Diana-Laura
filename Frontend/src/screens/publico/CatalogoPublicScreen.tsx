@@ -345,6 +345,7 @@ const CatalogoPublicScreen: React.FC = () => {
           {producto.stock_actual > 0 && producto.stock_actual <= 5 && (
             <span className="badge-poco-stock">¡Últimas {producto.stock_actual}!</span>
           )}
+          {producto.permite_personalizacion && <span className="badge-personalizable" title="Este producto se puede personalizar">✦ Personalizable</span>}
           <div className="producto-overlay"><span>Ver pieza →</span></div>
           <button
             className={`btn-favorito${esFav ? ' btn-favorito--activo' : ''}`}

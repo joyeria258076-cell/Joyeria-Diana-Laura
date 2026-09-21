@@ -622,3 +622,19 @@
 @media (prefers-reduced-motion: reduce) {
     .reveal-stagger { animation: none; }
 }
+
+.badge-personalizable {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(10,10,10,.85);
+    border: 1px solid var(--color-champagne);
+    color: var(--color-champagne);
+    font-family: var(--font-body);
+    font-size: .62rem;
+    font-weight: 500;
+    letter-spacing: .05em;
+    padding: 3px 9px;
+    border-radius: 2px;
+    z-index: 1;
+}

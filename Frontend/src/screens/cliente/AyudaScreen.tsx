@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ChatBotAyuda from "../../components/ChatBotAyuda";
 import { contentAPI } from "../../services/api";
 import { AiOutlineQuestionCircle, AiOutlineDown, AiOutlineMessage, AiOutlineWhatsApp } from "react-icons/ai";
 import "./AyudaScreen.css";
@@ -16,6 +17,7 @@ const Ayuda: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [open, setOpen]       = useState<number | null>(null);
   const [whatsapp, setWhatsapp] = useState<string | null>(null);
+  const [info, setInfo] = useState<{ horario?: string | null; direccion?: string | null } | null>(null);
 
   useEffect(() => {
     const cargar = async () => {
@@ -33,6 +35,7 @@ const Ayuda: React.FC = () => {
       try {
         const res = await contentAPI.getInfoEmpresa();
         const numero = res?.data?.whatsapp;
+        if (res?.data) setInfo({ horario: res.data.horario, direccion: res.data.direccion });
         if (numero) setWhatsapp(numero.replace(/\D/g, ''));
       } catch { /* silently fallback */ }
     };
@@ -85,6 +88,7 @@ const Ayuda: React.FC = () => {
           <div className="support-card-icon"><AiOutlineMessage size={22} /></div>
           <h3>¿Aún tienes dudas?</h3>
           <p>Nuestro equipo de soporte está disponible para ti.</p>
+          <ChatBotAyuda faqs={faqs} whatsapp={whatsapp} info={info} />
           {whatsapp ? (
             <a
               className="btn-contact"
@@ -98,7 +102,7 @@ const Ayuda: React.FC = () => {
           ) : (
             <button className="btn-contact" disabled>
               <AiOutlineWhatsApp size={16} style={{ marginRight: '0.4rem' }} />
-              Chatear por WhatsApp
+              WhatsApp no disponible por ahora
             </button>
           )}
           <p className="email-link">soporte@dianalaura.com</p>

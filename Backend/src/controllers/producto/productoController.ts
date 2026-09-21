@@ -572,7 +572,7 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
                 p.id, p.nombre, p.descripcion, p.categoria_id, p.categoria_nombre,
                 p.tipo_producto_id, p.material_principal,
                 p.precio_venta, p.precio_oferta, p.imagen_principal,
-                p.stock_actual, p.es_nuevo, p.es_destacado,
+                p.stock_actual, p.es_nuevo, p.es_destacado, p.permite_personalizacion,
                 ${PROMO_SUBQUERY}
             FROM productos p
             WHERE p.activo = true
@@ -652,7 +652,7 @@ export const getProductsByCategory = async (req: Request, res: Response) => {
             `SELECT
                 p.id, p.nombre, p.descripcion, p.categoria_id, p.categoria_nombre,
                 p.tipo_producto_id, p.material_principal, p.precio_venta, p.precio_oferta,
-                p.imagen_principal, p.stock_actual, p.es_nuevo,
+                p.imagen_principal, p.stock_actual, p.es_nuevo, p.permite_personalizacion,
                 ${PROMO_SUBQUERY}
             FROM productos p
             WHERE p.categoria_id = $1 AND p.activo = true
@@ -694,7 +694,7 @@ export const getProductsByCategories = async (req: Request, res: Response) => {
                const productosQuery = limit
                 ? `SELECT p.id, p.nombre, p.descripcion, p.categoria_id, p.categoria_nombre,
                     p.material_principal, p.precio_venta, p.precio_oferta,
-                    p.imagen_principal, p.stock_actual, p.es_nuevo,
+                    p.imagen_principal, p.stock_actual, p.es_nuevo, p.permite_personalizacion,
                     ${PROMO_SUBQUERY}
                 FROM productos p
                 WHERE p.categoria_id = $1 AND p.activo = true
@@ -702,7 +702,7 @@ export const getProductsByCategories = async (req: Request, res: Response) => {
                 LIMIT $2`
                 : `SELECT p.id, p.nombre, p.descripcion, p.categoria_id, p.categoria_nombre,
                     p.material_principal, p.precio_venta, p.precio_oferta,
-                    p.imagen_principal, p.stock_actual, p.es_nuevo,
+                    p.imagen_principal, p.stock_actual, p.es_nuevo, p.permite_personalizacion,
                     ${PROMO_SUBQUERY}
                 FROM productos p
                 WHERE p.categoria_id = $1 AND p.activo = true
