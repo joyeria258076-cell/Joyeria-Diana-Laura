@@ -313,7 +313,7 @@ export default function PerfilScreen() {
         <div className="pf-hero-avatar-wrap" onClick={() => !subiendoFoto && fotoInputRef.current?.click()} title="Cambiar foto de perfil">
           {fotoUrl ? <img src={fotoUrl} alt="Foto de perfil" className="pf-hero-avatar-img" /> : <div className="pf-hero-avatar">{inicial}</div>}
           <div className="pf-hero-avatar-overlay">{subiendoFoto ? '...' : 'Cambiar'}</div>
-          <input ref={fotoInputRef} type="file" accept="image/*" hidden onChange={handleSubirFoto} />
+          <input ref={fotoInputRef} type="file" accept="image/*" capture="user" hidden onChange={handleSubirFoto} />
         </div>
         <div className="pf-hero-info">
           <h1 className="pf-hero-name">{user?.nombre}</h1>

@@ -7,6 +7,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { NotificacionesProvider } from './contexts/NotificacionesContext';
 import ThemeConfigLoader from './components/ThemeConfigLoader';
+import OfflineBanner from './components/OfflineBanner';
 import './styles/AccessibilityFonts.css';
 
 const WIDGET_POS_KEY = 'accessibilityWidgetPos';
@@ -106,6 +107,7 @@ function App(): React.JSX.Element {
       <CartProvider>
       <NotificacionesProvider>
         <ThemeConfigLoader />
+        <OfflineBanner />
         {/* Botones de control de accesibilidad */}
         <div
           ref={widgetRef}

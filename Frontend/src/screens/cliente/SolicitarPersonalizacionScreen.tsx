@@ -163,6 +163,7 @@ const SolicitarPersonalizacionScreen: React.FC = () => {
                         ref={fileInputRef}
                         type="file"
                         accept="image/*"
+                        capture="environment"
                         onChange={handleImagenChange}
                         style={{ display: 'none' }}
                     />
