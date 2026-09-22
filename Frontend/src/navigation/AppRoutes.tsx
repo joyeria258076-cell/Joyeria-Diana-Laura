@@ -18,15 +18,22 @@ import AyudaPublicScreen from "../screens/publico/AyudaPublicScreen";
 import ProductoDetallePublicScreen from "../screens/publico/ProductoDetallePublicScreen";
 import LegalScreen from "../screens/publico/LegalScreen";
 
-// PANTALLAS DE AUTENTICACIÓN — también carga inmediata
-import LoginScreen from "../screens/auth/LoginScreen";
-import RegistroScreen from "../screens/auth/RegistroScreen";
-import OlvideContraseniaScreen from "../screens/auth/OlvideContraseniaScreen";
-import ReiniciarContraseniaScreen from "../screens/auth/ReiniciarContraseniaScreen";
-import RecuperarConPreguntaScreen from '../screens/auth/RecuperarConPreguntaScreen';
-import MFAVerifyScreen from "../screens/auth/MFAVerifyScreen";
-import WorkerActivacionScreen from "../screens/auth/WorkerActivacionScreen";
-import WorkerCodigoScreen from "../screens/auth/WorkerCodigoScreen";
+// PANTALLAS DE AUTENTICACIÓN — carga diferida (lazy): nadie las necesita
+// mientras navega el home público, pero antes se importaban de forma
+// eager y arrastraban al bundle inicial (y a su CSS, que bloquea el
+// primer render) librerías pesadas de esas pantallas — react-hook-form,
+// zod y react-google-recaptcha — aunque el visitante nunca haya abierto
+// /login. El único costo es un parpadeo de "Cargando..." (mismo
+// <Suspense> que ya envuelve todas las rutas) la primera vez que alguien
+// entra a estas pantallas.
+const LoginScreen = lazy(() => import("../screens/auth/LoginScreen"));
+const RegistroScreen = lazy(() => import("../screens/auth/RegistroScreen"));
+const OlvideContraseniaScreen = lazy(() => import("../screens/auth/OlvideContraseniaScreen"));
+const ReiniciarContraseniaScreen = lazy(() => import("../screens/auth/ReiniciarContraseniaScreen"));
+const RecuperarConPreguntaScreen = lazy(() => import('../screens/auth/RecuperarConPreguntaScreen'));
+const MFAVerifyScreen = lazy(() => import("../screens/auth/MFAVerifyScreen"));
+const WorkerActivacionScreen = lazy(() => import("../screens/auth/WorkerActivacionScreen"));
+const WorkerCodigoScreen = lazy(() => import("../screens/auth/WorkerCodigoScreen"));
 
 // PANTALLAS DE ERROR — livianas, carga inmediata
 import NotFoundScreen from '../screens/general/NotFoundScreen';
