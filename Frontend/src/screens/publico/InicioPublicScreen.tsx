@@ -22,6 +22,28 @@ const optimizarImagen = (url: string | undefined, ancho: number): string | undef
   return url.replace('/upload/', `/upload/f_auto,q_auto,w_${ancho}/`);
 };
 
+// El hero del carrusel se pinta a ancho completo (100vw) tanto en celular
+// como en pantallas grandes, pero antes siempre se pedía la misma imagen de
+// 1400px de ancho sin importar el dispositivo — en un celular (~412px CSS,
+// el que usa Lighthouse) eso son cientos de KB de más que ni se alcanzan a
+// ver. Con srcset + sizes="100vw", el navegador elige el ancho real que
+// necesita según su pantalla, en vez de bajar siempre la versión grande.
+const ANCHOS_HERO = [480, 768, 1080, 1400, 1920];
+
+const construirSrcSetHero = (urlBase: string | undefined): string | undefined => {
+  if (!urlBase) return undefined;
+  if (urlBase.includes('res.cloudinary.com') && urlBase.includes('/upload/')) {
+    return ANCHOS_HERO
+      .map(a => `${urlBase.replace('/upload/', `/upload/f_auto,q_auto,w_${a}/`)} ${a}w`)
+      .join(', ');
+  }
+  if (urlBase.includes('images.unsplash.com')) {
+    const base = urlBase.split('?')[0];
+    return ANCHOS_HERO.map(a => `${base}?w=${a}&q=80&fit=crop&auto=format ${a}w`).join(', ');
+  }
+  return undefined;
+};
+
 // ── DATOS DE RESPALDO (Fallbacks) — a nivel de módulo para poder usarlos
 // como valor inicial del estado (contenido visible desde el primer render,
 // sin esperar la cadena de llamadas paginas→secciones→contenidos que antes
@@ -32,14 +54,16 @@ const defaultSlides = [
     tag: "Nueva Colección",
     titulo: "Colección De Oro",
     descripcion: "Piezas únicas forjadas en oro de 18 quilates para quienes buscan el brillo eterno.",
-    imagen: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1400&q=85&fit=crop",
+    imagen: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1080&q=80&fit=crop",
+    imagenBase: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338",
   },
   {
     id: 's2',
     tag: "Tendencia 2026",
     titulo: "Colección De Plata",
     descripcion: "Elegancia contemporánea en plata esterlina con acabados artesanales.",
-    imagen: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1400&q=85&fit=crop",
+    imagen: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1080&q=80&fit=crop",
+    imagenBase: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a",
   }
 ];
 
@@ -93,8 +117,9 @@ const InicioPublicScreen: React.FC = () => {
             titulo: c.titulo,
             tag: c.descripcion ? c.descripcion.split('\n')[0].substring(0, 20) : "Exclusivo",
             descripcion: c.descripcion || "Descubre nuestras colecciones exclusivas",
-            imagen: optimizarImagen(c.imagen_url, 1400),
-            image: optimizarImagen(c.imagen_url, 1400),
+            imagen: optimizarImagen(c.imagen_url, 1080),
+            image: optimizarImagen(c.imagen_url, 1080),
+            imagenBase: c.imagen_url,
             enlace: c.enlace_url,
             enlace_nueva_ventana: c.enlace_nueva_ventana
           }));
@@ -228,6 +253,8 @@ const InicioPublicScreen: React.FC = () => {
                     <img
                       className="carousel-slide-img"
                       src={slide.imagen || slide.image}
+                      srcSet={construirSrcSetHero(slide.imagenBase || slide.imagen || slide.image)}
+                      sizes="100vw"
                       alt=""
                       fetchPriority={index === 0 ? "high" : "low"}
                       loading={index === 0 ? "eager" : "lazy"}
