@@ -32,29 +32,35 @@ class EnhancedApiService {
     this.baseURL = baseURL;
   }
 
-  private async request(endpoint: string, options: RequestInit = {}) {
+  private async request(endpoint: string, options: RequestInit = {}, skipAuth = false) {
     // 🆕 OBTENER TOKEN JWT Y SESSION TOKEN
+    // Los endpoints públicos (skipAuth) nunca deben llevar Authorization/X-Session-Token:
+    // ese header en una petición cross-origin obliga al navegador a mandar un preflight
+    // (OPTIONS) extra antes de la petición real, lo que alarga la cadena de red que
+    // Lighthouse usa para simular el LCP — aunque el contenido no depende de la sesión.
     let jwtToken = null;
     let sessionToken = null;
-    
-    try {
-      // 1. Intentar obtener JWT del user
-      const userData = localStorage.getItem('diana_laura_user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        jwtToken = user.token || null;
+
+    if (!skipAuth) {
+      try {
+        // 1. Intentar obtener JWT del user
+        const userData = localStorage.getItem('diana_laura_user');
+        if (userData) {
+          const user = JSON.parse(userData);
+          jwtToken = user.token || null;
+        }
+
+        // 2. SIEMPRE obtener sessionToken directamente
+        sessionToken = localStorage.getItem('diana_laura_session_token');
+
+        console.log('🔐 Tokens disponibles:', {
+          jwt: jwtToken ? jwtToken.substring(0, 15) + '...' : 'NO',
+          session: sessionToken ? sessionToken.substring(0, 15) + '...' : 'NO'
+        });
+
+      } catch (error) {
+        console.error('❌ Error obteniendo tokens:', error);
       }
-      
-      // 2. SIEMPRE obtener sessionToken directamente
-      sessionToken = localStorage.getItem('diana_laura_session_token');
-      
-      console.log('🔐 Tokens disponibles:', {
-        jwt: jwtToken ? jwtToken.substring(0, 15) + '...' : 'NO',
-        session: sessionToken ? sessionToken.substring(0, 15) + '...' : 'NO'
-      });
-      
-    } catch (error) {
-      console.error('❌ Error obteniendo tokens:', error);
     }
 
     // 🆕 CONSTRUIR HEADERS CON AMBOS TOKENS
@@ -105,17 +111,17 @@ class EnhancedApiService {
     }
   }
 
-  async post(endpoint: string, data: any) {
+  async post(endpoint: string, data: any, skipAuth = false) {
     return this.request(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, skipAuth);
   }
 
-  async get(endpoint: string) {
+  async get(endpoint: string, skipAuth = false) {
     return this.request(endpoint, {
       method: 'GET',
-    });
+    }, skipAuth);
   }
 
   async delete(endpoint: string) {
@@ -458,7 +464,7 @@ export const resenasAPI = {
 export const productsAPI = {
   // 📦 Obtener catálogo completo
   getAll: async () => {
-    return enhancedApi.get('/products');
+    return enhancedApi.get('/products', true);
   },
 
   // 🆕 Obtener productos recientes
@@ -597,15 +603,15 @@ export const productsAPI = {
   // ⚙️ CONFIGURACIÓN
   // ========================================
   getConfiguracion: async () => {
-    return enhancedApi.get('/products/configuracion');
+    return enhancedApi.get('/products/configuracion', true);
   },
 
   getConfiguracionByClave: async (clave: string) => {
-    return enhancedApi.get(`/products/configuracion/clave/${clave}`);
+    return enhancedApi.get(`/products/configuracion/clave/${clave}`, true);
   },
 
   getConfiguracionByCategoria: async (categoria: string) => {
-    return enhancedApi.get(`/products/configuracion/categoria/${categoria}`);
+    return enhancedApi.get(`/products/configuracion/categoria/${categoria}`, true);
   },
 
   // ========================================
@@ -682,7 +688,7 @@ export const contentAPI = {
   // Carrusel del Inicio resuelto en 1 sola llamada (páginas+secciones+
   // contenidos ya resueltos con JOIN del lado del servidor)
   getCarruselInicio: async () => {
-    return enhancedApi.get('/content/carrusel-inicio');
+    return enhancedApi.get('/content/carrusel-inicio', true);
   },
 
   // 1. Configuración global de la página (Banner, Título principal)
@@ -695,7 +701,7 @@ export const contentAPI = {
 
   // 1.5 Información empresarial ("Sobre Nosotros")
   getInfoEmpresa: async () => {
-    return enhancedApi.get('/content/info-empresa');
+    return enhancedApi.get('/content/info-empresa', true);
   },
   updateInfoEmpresa: async (data: Record<string, any>) => {
     return enhancedApi.put('/content/info-empresa', data);
@@ -703,7 +709,7 @@ export const contentAPI = {
 
   // 2. Gestión de artículos individuales (Noticias)
   getNoticias: async () => {
-    return enhancedApi.get('/content/noticias');
+    return enhancedApi.get('/content/noticias', true);
   },
   createNoticia: async (data: any) => {
     return enhancedApi.post('/content/noticias', data);
@@ -717,7 +723,7 @@ export const contentAPI = {
 
   // 3. FAQs (Preguntas Frecuentes)
   getFaqs: async () => {
-    return enhancedApi.get('/content/faqs');
+    return enhancedApi.get('/content/faqs', true);
   },
   createFaq: async (data: { pregunta: string; respuesta: string; orden?: number }) => {
     return enhancedApi.post('/content/faqs', data);
@@ -745,7 +751,7 @@ export const carruselAPI = {
 
 export const promocionesAPI = {
   getAll: async () => enhancedApi.get('/content/promociones'),
-  getActivas: async () => enhancedApi.get('/content/promociones/activas'),
+  getActivas: async () => enhancedApi.get('/content/promociones/activas', true),
   create: async (data: any) => enhancedApi.post('/content/promociones', data),
   update: async (id: string | number, data: any) => enhancedApi.put(`/content/promociones/${id}`, data),
   toggleStatus: async (id: string | number, activo: boolean) => enhancedApi.patch(`/content/promociones/${id}/status`, { activo }),
@@ -758,7 +764,7 @@ export const promocionesAPI = {
 export const coleccionesAPI = {
   getAll: async () => enhancedApi.get('/content/colecciones'),
   getById: async (id: string | number) => enhancedApi.get(`/content/colecciones/${id}`),
-  getPublicas: async () => enhancedApi.get('/content/colecciones/publicas'),
+  getPublicas: async () => enhancedApi.get('/content/colecciones/publicas', true),
   create: async (data: any) => enhancedApi.post('/content/colecciones', data),
   update: async (id: string | number, data: any) => enhancedApi.put(`/content/colecciones/${id}`, data),
   toggleStatus: async (id: string | number, activo: boolean) => enhancedApi.patch(`/content/colecciones/${id}/status`, { activo }),
@@ -1580,7 +1586,7 @@ export const comentarioNoticiaAPI = {
 // ==========================================
 export const visitaSitioAPI = {
   registrar: async (visitor_id: string, ruta: string) => {
-    return enhancedApi.post('/visitas/registrar', { visitor_id, ruta });
+    return enhancedApi.post('/visitas/registrar', { visitor_id, ruta }, true);
   },
   getResumen: async () => {
     return enhancedApi.get('/visitas/resumen');
@@ -1592,7 +1598,7 @@ export const visitaSitioAPI = {
 // ==========================================
 export const zonaEntregaAPI = {
   getAll: async (todas: boolean = false) => {
-    return enhancedApi.get(`/zonas-entrega${todas ? '?todas=true' : ''}`);
+    return enhancedApi.get(`/zonas-entrega${todas ? '?todas=true' : ''}`, true);
   },
   crear: async (nombre: string) => {
     return enhancedApi.post('/zonas-entrega', { nombre });
