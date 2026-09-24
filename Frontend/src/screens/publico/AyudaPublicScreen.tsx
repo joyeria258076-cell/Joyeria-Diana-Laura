@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { AiOutlineCustomerService, AiOutlineWhatsApp } from "react-icons/ai";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { contentAPI } from "../../services/api";
@@ -90,7 +91,7 @@ const Ayuda: React.FC = () => {
 
           <section className="support-card">
             <div className="support-avatar">
-              <i className="fas fa-headset" />
+              <AiOutlineCustomerService size={30} aria-hidden="true" />
             </div>
             <h3>¿Aún tienes dudas?</h3>
             <p>Nuestro equipo especializado está disponible para ayudarte en todo momento.</p>
@@ -102,12 +103,12 @@ const Ayuda: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <i className="fab fa-whatsapp" style={{ marginRight: '0.6rem' }} />
+                <AiOutlineWhatsApp size={17} aria-hidden="true" />
                 Chatear por WhatsApp
               </a>
             ) : (
               <button className="btn-contact" disabled>
-                <i className="fab fa-whatsapp" style={{ marginRight: '0.6rem' }} />
+                <AiOutlineWhatsApp size={17} aria-hidden="true" />
                 Chatear por WhatsApp
               </button>
             )}

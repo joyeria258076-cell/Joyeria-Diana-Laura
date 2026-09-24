@@ -512,3 +512,337 @@ details[open] summary {
   .faq-answer { padding: 1rem 1.25rem 1.25rem; }
   .support-card { padding: 2rem 1.5rem; }
 }
+/* ═══════════════════════════════════════════════════════════════════
+   AYUDA — al mismo lenguaje que el resto del sitio
+
+   Medido sobre la página renderizada:
+   · Los tres iconos —el auricular del círculo grande y los dos de
+     WhatsApp— salían VACÍOS: eran de Font Awesome, que no se carga en el
+     proyecto. Ya migrados en el TSX.
+   · El encabezado ocupaba 500px de alto para tres líneas, pegadas a la
+     izquierda con media pantalla vacía al lado.
+   · La línea de estado se descuadraba: el punto verde quedaba suelto a
+     la izquierda, fuera de la caja, y el texto partido en dos renglones
+     centrados sin relación con él.
+   · Con una sola pregunta, la columna de FAQ dejaba 540px de vacío
+     mientras la tarjeta lateral seguía alta.
+   · Paneles oscuros mientras el resto del sitio ya usa crema.
+═══════════════════════════════════════════════════════════════════ */
+
+.ayuda-publica-wrapper,
+.ayuda-public-container {
+  --ayu-crema-1: #fdfaf6;
+  --ayu-crema-2: #f4e9dd;
+  --ayu-borde: rgba(201, 149, 108, 0.28);
+  --ayu-texto: #3a2a20;
+  --ayu-texto-suave: #6b5647;
+  --ayu-oro: #8a5a2b;
+}
+
+/* ── Tipografía: la hoja usaba cuatro DM Sans y tres Playfair ── */
+.ayuda-publica-wrapper,
+.ayuda-publica-wrapper p,
+.ayuda-publica-wrapper span,
+.ayuda-publica-wrapper a,
+.ayuda-publica-wrapper button {
+  font-family: var(--font-body);
+}
+
+.ayuda-publica-wrapper h1,
+.ayuda-publica-wrapper h2,
+.ayuda-publica-wrapper h3 {
+  font-family: var(--font-display);
+}
+
+/* ── Encabezado compacto y centrado ── */
+.ayuda-publica-wrapper .ayuda-hero-section,
+.ayuda-publica-wrapper .ayuda-hero {
+  padding-block: clamp(2rem, 4vw, 3rem);
+}
+
+.ayuda-publica-wrapper .ayuda-hero-inner,
+.ayuda-publica-wrapper .section-header {
+  text-align: center;
+  max-width: 44rem;
+  margin-inline: auto;
+}
+
+.ayuda-publica-wrapper .section-header h1 {
+  font-size: clamp(1.9rem, 3.4vw, 2.7rem);
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+.ayuda-publica-wrapper .section-header p {
+  font-size: 0.95rem;
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+/* ── Disposición ── */
+.ayuda-publica-wrapper .page-container,
+.ayuda-publica-wrapper .faq-grid {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+.ayuda-publica-wrapper .faq-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  /* start, no stretch: con una sola pregunta la columna de FAQ ya no se
+     estira para igualar a la tarjeta lateral. */
+  align-items: start;
+  padding-inline: clamp(0.9rem, 2vw, 1.5rem);
+  padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+/* ── Preguntas frecuentes ── */
+.ayuda-publica-wrapper .faq-section {
+  background: linear-gradient(168deg, var(--ayu-crema-1) 0%, var(--ayu-crema-2) 100%);
+  border: 1px solid var(--ayu-borde);
+  border-radius: 10px;
+  padding: clamp(1.1rem, 2vw, 1.75rem);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.38);
+}
+
+.ayuda-publica-wrapper .faq-section h2,
+.ayuda-publica-wrapper .faq-title {
+  color: var(--ayu-texto);
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  font-weight: 400;
+  margin-top: 0;
+}
+
+.ayuda-publica-wrapper .faq-item {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(201, 149, 108, 0.24);
+  border-radius: 8px;
+  margin-bottom: 0.6rem;
+}
+
+.ayuda-publica-wrapper .faq-question,
+.ayuda-publica-wrapper .faq-item button {
+  color: var(--ayu-texto);
+  font-size: 0.92rem;
+  /* Zona táctil cómoda de punta a punta de la fila */
+  min-height: 52px;
+}
+
+.ayuda-publica-wrapper .faq-answer,
+.ayuda-publica-wrapper .faq-item p {
+  color: var(--ayu-texto-suave);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.ayuda-publica-wrapper .faq-toggle,
+.ayuda-publica-wrapper .faq-icon {
+  background: rgba(201, 149, 108, 0.16);
+  border: 1px solid rgba(201, 149, 108, 0.35);
+  color: var(--ayu-oro);
+}
+
+/* ── Tarjeta de soporte ── */
+.ayuda-publica-wrapper .support-card {
+  background: linear-gradient(168deg, var(--ayu-crema-1) 0%, var(--ayu-crema-2) 100%);
+  border: 1px solid var(--ayu-borde);
+  border-radius: 10px;
+  padding: clamp(1.25rem, 2.2vw, 1.85rem);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.38);
+  text-align: center;
+}
+
+.ayuda-publica-wrapper .support-avatar {
+  /* Medía 96px para un icono que ni se veía */
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201, 149, 108, 0.16);
+  border: 1px solid rgba(201, 149, 108, 0.35);
+  border-radius: 50%;
+  color: var(--ayu-oro);
+}
+
+.ayuda-publica-wrapper .support-card h3 {
+  color: var(--ayu-texto);
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin: 0 0 0.4rem;
+}
+
+.ayuda-publica-wrapper .support-card p {
+  color: var(--ayu-texto-suave);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.ayuda-publica-wrapper .support-divider {
+  background: rgba(201, 149, 108, 0.3);
+  margin: 1.1rem auto;
+}
+
+/* Botón de WhatsApp en el degradado de la marca */
+.ayuda-publica-wrapper .btn-contact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 1.25rem;
+  background: linear-gradient(135deg, #c9956c 0%, #e3bd93 50%, #c9956c 100%);
+  border: 1px solid rgba(138, 90, 43, 0.35);
+  border-radius: 100px;
+  color: #34261c;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.ayuda-publica-wrapper .btn-contact:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+.ayuda-publica-wrapper .btn-contact:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ayuda-publica-wrapper .email-link {
+  color: var(--ayu-oro);
+  font-size: 0.85rem;
+  margin-top: 0.9rem;
+}
+
+/* La línea de estado: el punto verde quedaba suelto fuera de la caja y
+   el texto partido aparte. Ahora van en una sola fila centrada. */
+.ayuda-publica-wrapper .support-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+  color: var(--ayu-texto-suave);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ayuda-publica-wrapper .status-dot {
+  position: static;
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4e9a6a;
+}
+
+/* ── Responsividad ── */
+@media (max-width: 900px) {
+  /* A una columna: la tarjeta de soporte baja al final, después de las
+     preguntas, que es lo que se viene a leer. */
+  .ayuda-publica-wrapper .faq-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .ayuda-publica-wrapper .faq-section,
+  .ayuda-publica-wrapper .support-card {
+    padding: 1rem 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ayuda-publica-wrapper .btn-contact {
+    transition: none;
+  }
+
+  .ayuda-publica-wrapper .btn-contact:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Las preguntas usan .ayuda-faq-item / .ayuda-faq-summary, no .faq-item:
+   seguían en oscuro dentro del panel crema, como un bloque negro suelto. */
+.ayuda-publica-wrapper .ayuda-faq-item {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(201, 149, 108, 0.24);
+  border-radius: 8px;
+  margin-bottom: 0.6rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(58, 42, 32, 0.06);
+}
+
+.ayuda-publica-wrapper .ayuda-faq-item--open {
+  background: #fff;
+  border-color: rgba(201, 149, 108, 0.5);
+}
+
+.ayuda-publica-wrapper .ayuda-faq-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  /* Zona táctil cómoda de punta a punta de la fila */
+  min-height: 52px;
+  padding: 0.75rem 0.9rem;
+  background: transparent;
+  border: none;
+  color: #3a2a20;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ayuda-publica-wrapper .ayuda-faq-summary:hover {
+  background: rgba(201, 149, 108, 0.07);
+}
+
+.ayuda-publica-wrapper .ayuda-faq-summary:focus-visible {
+  outline: 2px solid #8a5a2b;
+  outline-offset: -3px;
+}
+
+.ayuda-publica-wrapper .summary-icon {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201, 149, 108, 0.16);
+  border: 1px solid rgba(201, 149, 108, 0.35);
+  border-radius: 50%;
+  color: #8a5a2b;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.ayuda-publica-wrapper .faq-answer {
+  margin: 0;
+  padding: 0 0.9rem 0.9rem;
+  color: #6b5647;
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.ayuda-publica-wrapper .ayuda-faq-loading,
+.ayuda-publica-wrapper .ayuda-faq-empty {
+  color: #6b5647;
+  font-size: 0.88rem;
+}
