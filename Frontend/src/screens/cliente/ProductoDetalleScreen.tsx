@@ -306,7 +306,7 @@ const ProductoDetalleScreen: React.FC = () => {
                         {producto.stock_actual === 0 && (
                             <div className="pd-agotado-overlay">Agotado</div>
                         )}
-                        <span className="pd-gallery-tag">Pieza Diana Laura</span>
+                        <span className="pd-gallery-tag">{producto.permite_personalizacion ? '✦ Pieza personalizable' : 'Pieza Diana Laura'}</span>
                     </div>
                     {!!producto.galeria?.length && (
                         <div className="pd-thumbs">
@@ -339,6 +339,9 @@ const ProductoDetalleScreen: React.FC = () => {
                         )}
                         {producto.tipo_producto_nombre && (
                             <span className="pd-tipo">{producto.tipo_producto_nombre}</span>
+                        )}
+                        {producto.permite_personalizacion && (
+                            <span className="pd-tipo" title="Esta pieza se hace a tu medida">✦ Personalizable</span>
                         )}
                     </div>
 
@@ -480,7 +483,7 @@ const ProductoDetalleScreen: React.FC = () => {
                     </button>
                     {producto.permite_personalizacion && (
                         <button className={`pd-tab ${tabActiva === 'fabricacion' ? 'active' : ''}`} onClick={() => setTabActiva('fabricacion')}>
-                            Fabricación
+                            Personalización
                         </button>
                     )}
                 </div>

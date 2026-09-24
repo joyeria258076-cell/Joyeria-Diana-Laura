@@ -355,7 +355,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
                             {producto.es_nuevo && <span className="pdp-badge pdp-badge-new">Nuevo</span>}
                             {hayDescuento && <span className="pdp-badge pdp-badge-sale">-{descuentoPct}%</span>}
                             {producto.stock_actual === 0 && <div className="pdp-agotado-overlay">Agotado</div>}
-                            <span className="pdp-gallery-tag">Pieza Diana Laura</span>
+                            <span className="pdp-gallery-tag">{producto.permite_personalizacion ? '✦ Pieza personalizable' : 'Pieza Diana Laura'}</span>
                         </div>
                         {!!producto.galeria?.length && (
                             <div className="pdp-thumbs">
@@ -374,6 +374,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
                     <div className="pdp-info">
                         <div className="pdp-meta-row">
                             {producto.categoria_nombre && <span className="pdp-categoria">{producto.categoria_nombre}</span>}
+                            {producto.permite_personalizacion && <span className="pdp-categoria" title="Esta pieza se hace a tu medida">✦ Personalizable</span>}
                             {producto.tipo_producto_nombre && <span className="pdp-tipo">{producto.tipo_producto_nombre}</span>}
                         </div>
 
@@ -533,7 +534,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
                         <button className={`pdp-tab ${tabActiva === 'descripcion' ? 'active' : ''}`} onClick={() => setTabActiva('descripcion')}>Descripción</button>
                         <button className={`pdp-tab ${tabActiva === 'specs' ? 'active' : ''}`} onClick={() => setTabActiva('specs')}>Especificaciones</button>
                         {producto.permite_personalizacion && (
-                            <button className={`pdp-tab ${tabActiva === 'fabricacion' ? 'active' : ''}`} onClick={() => setTabActiva('fabricacion')}>Fabricación</button>
+                            <button className={`pdp-tab ${tabActiva === 'fabricacion' ? 'active' : ''}`} onClick={() => setTabActiva('fabricacion')}>Personalización</button>
                         )}
                     </div>
                     <div className="pdp-tab-content">

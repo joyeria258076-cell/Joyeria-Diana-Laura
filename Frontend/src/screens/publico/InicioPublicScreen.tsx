@@ -399,6 +399,7 @@ const InicioPublicScreen: React.FC = () => {
                         loading="lazy"
                       />
                       {prod.es_nuevo && <span className="prod-badge prod-badge--nuevo">Nuevo</span>}
+                      {(prod as any).permite_personalizacion && <span className="prod-badge prod-badge--nuevo">✦ Personalizable</span>}
                       {conDesc && <span className="prod-badge prod-badge--oferta">Oferta</span>}
                     </div>
                     <div className="editorial-card-body">
@@ -443,6 +444,7 @@ const InicioPublicScreen: React.FC = () => {
                         loading="lazy"
                       />
                       {prod.es_nuevo && <span className="prod-badge prod-badge--nuevo">Nuevo</span>}
+                      {(prod as any).permite_personalizacion && <span className="prod-badge prod-badge--nuevo">✦ Personalizable</span>}
                       {conDesc && <span className="prod-badge prod-badge--oferta">Oferta</span>}
                       {prod.stock_actual === 0 && <span className="prod-badge prod-badge--agotado">Agotado</span>}
                       <div className="product-card-overlay"><span>Ver pieza →</span></div>

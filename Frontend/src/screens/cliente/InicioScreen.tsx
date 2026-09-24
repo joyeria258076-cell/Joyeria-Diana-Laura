@@ -214,6 +214,7 @@ const InicioScreen: React.FC = () => {
                                         />
                                         <div className="tl-ed-img-overlay" />
                                         {p.es_nuevo && <span className="tl-badge tl-badge--new">Nuevo</span>}
+                                        {(p as any).permite_personalizacion && <span className="tl-badge tl-badge--new">✦ Personalizable</span>}
                                         {desc && <span className="tl-badge tl-badge--oferta">Oferta</span>}
                                     </div>
                                     <div className="tl-ed-body">
@@ -295,6 +296,7 @@ const InicioScreen: React.FC = () => {
                                             onError={e => { (e.target as HTMLImageElement).src = SVG_PH; }}
                                         />
                                         {p.es_nuevo && <span className="tl-badge tl-badge--new">Nuevo</span>}
+                                        {(p as any).permite_personalizacion && <span className="tl-badge tl-badge--new">✦ Personalizable</span>}
                                         {p.precio_promocion && <span className="tl-badge tl-badge--promo">Promo</span>}
                                         {p.precio_oferta && !p.precio_promocion && (
                                             <span className="tl-badge tl-badge--oferta">Oferta</span>
