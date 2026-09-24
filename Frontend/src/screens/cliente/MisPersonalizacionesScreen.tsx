@@ -6,12 +6,13 @@ import {
 } from 'react-icons/ai';
 import { personalizacionAPI, carritoAPI, SolicitudPersonalizacion } from '../../services/api';
 import Loader from '../../components/Loader';
+import '../../styles/SitioSecciones.css';
 import './MisPersonalizacionesScreen.css';
 
-const ESTADO_META: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-    pendiente:  { label: 'En verificación', color: '#f5c842', icon: <AiOutlineClockCircle size={14} /> },
-    aprobada:   { label: 'Aprobada', color: '#4a8c7a', icon: <AiOutlineCheckCircle size={14} /> },
-    rechazada:  { label: 'Rechazada', color: '#e05a6a', icon: <AiOutlineCloseCircle size={14} /> },
+const ESTADO_META: Record<string, { label: string; icon: React.ReactNode }> = {
+    pendiente:  { label: 'En verificación', icon: <AiOutlineClockCircle size={13} /> },
+    aprobada:   { label: 'Aprobada', icon: <AiOutlineCheckCircle size={13} /> },
+    rechazada:  { label: 'Rechazada', icon: <AiOutlineCloseCircle size={13} /> },
 };
 
 const MisPersonalizacionesScreen: React.FC = () => {
@@ -54,11 +55,14 @@ const MisPersonalizacionesScreen: React.FC = () => {
 
     return (
         <main className="mp-page">
-            <div className="mp-header">
-                <p className="mp-eyebrow">Personalización</p>
-                <h1>Mis solicitudes de personalización</h1>
-                <p className="mp-sub">Aquí ves el estado de cada pieza que has pedido personalizar.</p>
-            </div>
+            <header className="sx-head">
+                <div className="sx-eyebrow">Personalización</div>
+                <h1 className="sx-title">Mis piezas <span>personalizadas</span></h1>
+                <p className="sx-subtitle">
+                    Aquí ves el estado de cada pieza que pediste personalizar. Primero la verificamos
+                    y te avisamos cuando esté lista para comprarse.
+                </p>
+            </header>
 
             {msg && <div className="mp-msg-error">{msg}</div>}
 
@@ -66,25 +70,25 @@ const MisPersonalizacionesScreen: React.FC = () => {
                 <div className="mp-vacio">
                     <AiOutlineInbox size={40} />
                     <p>Aún no has solicitado ninguna personalización.</p>
-                    <button className="mp-btn-primario" onClick={() => navigate('/catalogo')}>
+                    <button className="sx-btn" onClick={() => navigate('/catalogo')}>
                         Explorar catálogo
                     </button>
                 </div>
             ) : (
                 <div className="mp-lista">
                     {solicitudes.map(s => {
-                        const meta = ESTADO_META[s.estado];
+                        const meta = ESTADO_META[s.estado] || { label: s.estado, icon: null };
                         return (
                             <div key={s.id} className="mp-card">
                                 <img
-                                    src={s.producto_imagen || 'https://placehold.co/120x120?text=Sin+imagen'}
+                                    src={s.producto_imagen || 'https://placehold.co/200x200/141414/c9956c?text=DL'}
                                     alt={s.producto_nombre}
                                     className="mp-card-img"
                                 />
                                 <div className="mp-card-info">
                                     <div className="mp-card-top">
                                         <h3>{s.producto_nombre}</h3>
-                                        <span className="mp-badge" style={{ background: `${meta.color}22`, color: meta.color, borderColor: `${meta.color}55` }}>
+                                        <span className={`mp-badge mp-badge--${s.estado}`}>
                                             {meta.icon} {meta.label}
                                         </span>
                                     </div>
@@ -99,7 +103,7 @@ const MisPersonalizacionesScreen: React.FC = () => {
                                     )}
                                     {s.estado === 'aprobada' && !s.utilizada && (
                                         <button
-                                            className="mp-btn-carrito"
+                                            className="sx-btn"
                                             onClick={() => handleAgregarCarrito(s)}
                                             disabled={agregandoId === s.id}
                                         >
