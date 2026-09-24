@@ -1,0 +1,137 @@
+/* CatalogoApp.css — Catálogo con el estilo de la app móvil (P6).
+   Se carga después de CatalogoScreen.css. */
+
+/* Encabezado alineado a la izquierda como en la app */
+body .catalogo-encabezado { text-align: left; max-width: 1280px; margin: 0 auto 20px; }
+body .catalogo-eyebrow { font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 2px; color: var(--color-primary); }
+body .catalogo-encabezado .page-title {
+  font-family: var(--font-body) !important; font-weight: 700 !important;
+  font-size: clamp(34px, 4vw, 48px) !important; letter-spacing: -1.5px !important; margin: 6px 0 8px;
+}
+body .catalogo-encabezado .page-title span { font-family: var(--font-accent); font-style: italic; font-weight: 600; color: var(--color-primary); letter-spacing: -0.5px; }
+body .catalogo-subtitulo { color: var(--color-text-muted); font-size: 15px; margin: 0; }
+
+/* Burbujas de categoría con foto */
+.cat-burbujas {
+  max-width: 1280px; margin: 0 auto 28px;
+  display: flex; gap: 16px; overflow-x: auto; padding: 4px 4px 8px; scrollbar-width: none;
+}
+.cat-burbujas::-webkit-scrollbar { display: none; }
+.cat-burbuja {
+  flex-shrink: 0; width: 84px; border: 0; background: none; cursor: pointer; padding: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  font-family: var(--font-body); color: var(--color-text-muted);
+}
+.cat-burbuja-img {
+  width: 76px; height: 76px; border-radius: var(--radius-lg); overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-surface-2); color: var(--color-primary);
+  box-shadow: var(--shadow-soft);
+  outline: 2px solid transparent; outline-offset: 3px;
+  transition: outline-color var(--t-fast) ease, transform var(--t-fast) ease;
+}
+.cat-burbuja-img img { width: 100%; height: 100%; object-fit: cover; }
+.cat-burbuja-img--todo { background: var(--gradient-primary); color: var(--color-on-primary); }
+.cat-burbuja:hover .cat-burbuja-img { transform: translateY(-2px); }
+.cat-burbuja.activa .cat-burbuja-img { outline-color: var(--color-primary); }
+.cat-burbuja-nombre { font-size: 12.5px; font-weight: 500; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cat-burbuja.activa .cat-burbuja-nombre { color: var(--color-text); font-weight: 600; }
+
+/* Panel de filtros: tarjeta de vidrio */
+body .catalogo-filtros-panel {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--shadow-soft);
+  padding: 22px !important;
+}
+body .catalogo-filtros-panel label,
+body .catalogo-filtros-panel .filtro-label { font-family: var(--font-body); font-size: 12px; font-weight: 600; letter-spacing: 0.3px; text-transform: none; color: var(--color-text); }
+body .catalogo-filtros-panel :is(input, select) {
+  height: 48px; min-height: 48px;
+  border: 1px solid var(--color-border) !important; border-radius: var(--radius-sm) !important;
+  background: var(--color-surface) !important; padding: 0 14px !important; font-size: 14px;
+}
+body .catalogo-filtros-panel .filtro-buscador { position: relative; }
+body .catalogo-filtros-panel .filtro-buscador input { padding-left: 40px !important; border-radius: var(--radius-pill) !important; }
+body .catalogo-filtros-panel .filtro-buscador-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); z-index: 1; }
+body .filtros-actions { display: flex; flex-direction: column; gap: 10px; }
+body .filtros-actions :is(.btn-primary, .btn-secondary) { width: 100%; min-height: 50px; }
+
+/* Títulos de cada categoría */
+body .categoria-title, body .resultados-title {
+  font-family: var(--font-body) !important; font-weight: 700 !important; font-size: 22px !important;
+  letter-spacing: -0.6px !important; text-transform: none !important; color: var(--color-text) !important;
+}
+body .categoria-count {
+  padding: 4px 12px; border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary);
+  font-size: 12px; font-weight: 600;
+}
+
+/* Rejilla y tarjetas */
+body .productos-grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)) !important; gap: 20px !important; }
+body .producto-card { padding: 8px; }
+body .producto-card::before { display: none !important; }
+body .producto-imagen { border-radius: var(--radius-lg) !important; overflow: hidden; aspect-ratio: 1 / 1.05; }
+body .producto-imagen img { width: 100%; height: 100%; object-fit: cover; }
+body .producto-overlay { display: none !important; }
+body .producto-info { padding: 12px 8px 8px !important; }
+body .producto-info h4 {
+  font-family: var(--font-body) !important; font-size: 15px !important; font-weight: 600 !important;
+  letter-spacing: -0.2px !important; line-height: 1.3; margin: 0 0 2px !important; color: var(--color-text) !important;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+body .producto-info .tipo { font-size: 12px !important; color: var(--color-text-muted) !important; margin: 0 0 8px !important; text-transform: none !important; letter-spacing: 0 !important; }
+body .precio-section { display: flex; align-items: baseline; gap: 8px; }
+body .precio-section .precio { font-size: 18px !important; }
+body .precio-section .precio.original { font-size: 13px !important; font-weight: 500 !important; color: var(--color-text-muted) !important; text-decoration: line-through; }
+body .producto-stock { margin-top: 4px; font-size: 12px; }
+
+/* Favorito de vidrio (circular) */
+body .btn-favorito {
+  width: 38px !important; height: 38px !important; top: 10px !important; right: 10px !important;
+  display: inline-flex !important; align-items: center; justify-content: center;
+}
+body .btn-favorito--activo { background: #fff !important; color: var(--color-primary-strong) !important; }
+
+/* Etiquetas sobre la foto */
+body :is(.badge-nuevo, .badge-oferta, .badge-agotado, .badge-poco-stock, .badge-personalizable) {
+  border-radius: var(--radius-pill) !important; font-family: var(--font-body) !important;
+  font-size: 11px !important; font-weight: 600 !important; letter-spacing: 0.2px !important; text-transform: none !important;
+  padding: 4px 10px !important;
+}
+body .badge-personalizable { background: #fff !important; color: var(--color-primary-strong) !important; border: 0 !important; }
+body .badge-nuevo { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; }
+body .badge-agotado { background: rgba(20, 12, 18, 0.72) !important; color: #fff !important; backdrop-filter: blur(6px); }
+
+/* "Ver todos" y paginación */
+body .btn-ver-mas {
+  border-radius: var(--radius-pill) !important; border: 1.5px solid var(--color-primary) !important;
+  background: transparent !important; color: var(--color-primary) !important;
+  font-family: var(--font-body) !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important;
+  padding: 12px 22px !important;
+}
+body .paginacion-btn { min-width: 40px; height: 40px; }
+
+@media (max-width: 640px) {
+  body .productos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px !important; }
+  body .producto-info h4 { font-size: 14px !important; }
+  .cat-burbuja { width: 72px; }
+  .cat-burbuja-img { width: 64px; height: 64px; }
+}
+
+/* Ajustes del panel de filtros: nada se sale de la tarjeta */
+body .catalogo-encabezado, body .catalogo-encabezado * { text-align: left !important; }
+body .catalogo-encabezado { display: block !important; }
+body .catalogo-filtros-panel { box-sizing: border-box; overflow: hidden; }
+body .catalogo-filtros-panel :is(input, select) { width: 100% !important; max-width: 100%; box-sizing: border-box !important; }
+body .filtro-precio-row { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px; }
+body .filtro-precio-row > * { min-width: 0; }
+body .filtros-actions .btn-primary, body .filtros-actions .btn-secondary {
+  border-radius: var(--radius-lg) !important; text-transform: none !important; letter-spacing: 0 !important;
+  font-size: 15px !important; font-weight: 600 !important; min-height: 50px !important;
+}
+body .filtros-actions .btn-primary { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important; }
+body .filtros-actions .btn-secondary { background: transparent !important; color: var(--color-primary) !important; border: 1.5px solid var(--color-primary) !important; }
