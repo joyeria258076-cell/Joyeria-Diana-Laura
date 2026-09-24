@@ -1,12 +1,12 @@
 .dlchat {
     width: 100%;
     margin: 1.2rem 0 1rem;
-    border: 1px solid rgba(236, 178, 195, 0.25);
+    border: 1px solid rgba(201, 149, 108, 0.25);
     border-radius: 12px;
     background: rgba(10, 10, 10, 0.55);
     overflow: hidden;
     text-align: left;
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-body);
 }
 
 .dlchat-header {
@@ -14,9 +14,9 @@
     align-items: center;
     gap: 0.7rem;
     padding: 0.7rem 1rem;
-    background: linear-gradient(90deg, rgba(74, 26, 42, 0.9), rgba(40, 16, 26, 0.9));
-    border-bottom: 1px solid rgba(236, 178, 195, 0.2);
-    color: #f5c5d8;
+    background: var(--color-surface-2);
+    border-bottom: 1px solid rgba(201, 149, 108, 0.2);
+    color: var(--color-champagne);
     font-size: 0.85rem;
 }
 
@@ -29,8 +29,8 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ECB2C3, #d4a574);
-    color: #1a0a10;
+    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-champagne));
+    color: #0a0a0a;
     font-weight: 700;
     font-size: 0.75rem;
     flex-shrink: 0;
@@ -41,7 +41,7 @@
     align-items: center;
     gap: 0.35rem;
     font-size: 0.7rem;
-    color: #b8a0aa;
+    color: var(--color-text-muted);
 }
 
 .dlchat-status i {
@@ -74,14 +74,14 @@
 .dlchat-msg--bot {
     align-self: flex-start;
     background: rgba(255, 255, 255, 0.08);
-    color: #efe6ea;
+    color: var(--color-text);
     border-bottom-left-radius: 3px;
 }
 
 .dlchat-msg--user {
     align-self: flex-end;
-    background: linear-gradient(135deg, #ECB2C3, #d4a574);
-    color: #1a0a10;
+    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-champagne));
+    color: #0a0a0a;
     border-bottom-right-radius: 3px;
 }
 
@@ -111,7 +111,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #b8a0aa;
+    background: var(--color-text-muted);
     animation: dlchat-bounce 1s infinite ease-in-out;
 }
 .dlchat-typing span:nth-child(2) { animation-delay: 0.15s; }
@@ -127,13 +127,13 @@
     flex-wrap: wrap;
     gap: 0.4rem;
     padding: 0.5rem 0.9rem;
-    border-top: 1px solid rgba(236, 178, 195, 0.12);
+    border-top: 1px solid rgba(201, 149, 108, 0.12);
 }
 
 .dlchat-chips button {
     background: transparent;
-    border: 1px solid rgba(236, 178, 195, 0.4);
-    color: #ECB2C3;
+    border: 1px solid rgba(201, 149, 108, 0.4);
+    color: var(--color-rose-gold);
     border-radius: 999px;
     padding: 0.28rem 0.7rem;
     font-size: 0.72rem;
@@ -142,8 +142,8 @@
 }
 
 .dlchat-chips button:hover:not(:disabled) {
-    background: #ECB2C3;
-    color: #1a0a10;
+    background: var(--color-rose-gold);
+    color: #0a0a0a;
 }
 
 .dlchat-chips button:disabled { opacity: 0.5; cursor: default; }
@@ -158,7 +158,7 @@
     flex: 1;
     min-width: 0;
     background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(236, 178, 195, 0.25);
+    border: 1px solid rgba(201, 149, 108, 0.25);
     border-radius: 999px;
     padding: 0.5rem 0.9rem;
     color: #f5f0eb;
@@ -166,15 +166,15 @@
     outline: none;
 }
 
-.dlchat-form input:focus { border-color: #ECB2C3; }
+.dlchat-form input:focus { border-color: var(--color-rose-gold); }
 
 .dlchat-form button {
     width: 38px;
     height: 38px;
     border-radius: 50%;
     border: none;
-    background: linear-gradient(135deg, #ECB2C3, #d4a574);
-    color: #1a0a10;
+    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-champagne));
+    color: #0a0a0a;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -183,3 +183,31 @@
 }
 
 .dlchat-form button:disabled { opacity: 0.45; cursor: default; }
+
+/* ── Tarjetas de producto y acciones dentro del chat ── */
+.dlchat-prods { display: flex; flex-direction: column; gap: 0.45rem; margin-top: 0.6rem; }
+.dlchat-prod {
+    display: flex; align-items: center; gap: 0.6rem; width: 100%;
+    padding: 0.4rem; border-radius: 8px; cursor: pointer; text-align: left;
+    background: rgba(10, 10, 10, 0.5); border: 1px solid var(--color-border);
+    color: var(--color-text); font-family: var(--font-body);
+    transition: border-color 0.25s ease, background 0.25s ease;
+}
+.dlchat-prod:hover { border-color: var(--color-rose-gold); background: var(--color-glow); }
+.dlchat-prod img, .dlchat-prod-ph {
+    width: 44px; height: 44px; border-radius: 6px; object-fit: cover; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--color-surface-2); color: var(--color-rose-gold); font-family: var(--font-display);
+}
+.dlchat-prod-info { display: flex; flex-direction: column; min-width: 0; font-size: 0.76rem; }
+.dlchat-prod-info strong { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dlchat-prod-info b { color: var(--color-champagne); font-weight: 500; }
+.dlchat-prod-info s { color: var(--color-text-muted); }
+.dlchat-prod-info em { color: var(--color-text-muted); font-style: normal; }
+.dlchat-acciones { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.55rem; }
+.dlchat-acciones button {
+    background: transparent; border: 1px solid var(--color-border); border-radius: 999px;
+    color: var(--color-champagne); font-family: var(--font-body); font-size: 0.72rem;
+    padding: 0.3rem 0.7rem; cursor: pointer; transition: all 0.25s ease;
+}
+.dlchat-acciones button:hover:not(:disabled) { border-color: var(--color-rose-gold); background: var(--color-glow); }

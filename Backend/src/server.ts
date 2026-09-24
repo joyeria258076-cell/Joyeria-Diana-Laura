@@ -48,6 +48,7 @@ import solicitudesRoutes from './routes/solicitudesRoutes';
 import zonaEntregaRoutes from './routes/zonaEntregaRoutes';
 import comentarioNoticiaRoutes from './routes/comentarioNoticiaRoutes';
 import visitaSitioRoutes from './routes/visitaSitioRoutes';
+import asistenteRoutes from './routes/asistenteRoutes';
 import pool from './config/database';
 
 // IAST Agent
@@ -255,6 +256,7 @@ app.use('/api/solicitudes', solicitudesRoutes);
 app.use('/api/zonas-entrega', zonaEntregaRoutes);
 app.use('/api/noticias', comentarioNoticiaRoutes);
 app.use('/api/visitas', visitaSitioRoutes);
+app.use('/api/asistente', asistenteRoutes);
 
 // 🩺 ENDPOINTS DE SALUD
 app.get('/api/health', (req, res) => {

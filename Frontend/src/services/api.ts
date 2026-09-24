@@ -1770,3 +1770,8 @@ export const api = {
 };
 
 export default api;
+// Asistente del centro de ayuda (responde con datos reales; con sesión incluye pedidos del cliente)
+export const asistenteAPI = {
+  preguntar: (mensaje: string, contexto: Record<string, any>) =>
+    enhancedApi.post('/asistente', { mensaje, contexto }),
+};

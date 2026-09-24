@@ -1,0 +1,283 @@
+/* SitioSecciones.css
+   Piezas visuales compartidas con el Inicio público (eyebrow línea-texto-línea,
+   título Cormorant con palabra acentuada en rose gold, tarjetas oscuras con
+   borde fino y botón degradado). Prefijo "sx-" para no chocar con otras hojas.
+   Se usa en Contacto, Ayuda, Blog, Ubicación, etc. para que todo se vea igual. */
+
+/* ── Fondo de página (pantallas públicas) ── */
+.sx-page {
+  background-color: var(--color-bg);
+  background-image:
+    linear-gradient(rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0.9)),
+    var(--global-bg-url);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: var(--color-text);
+  min-height: 100vh;
+  font-family: var(--font-body);
+}
+
+.sx-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem 5rem;
+  box-sizing: border-box;
+}
+
+/* Dentro del layout privado ya hay padding y fondo */
+.sx-container--privado { padding: 1.5rem 0 3rem; }
+
+/* ── Encabezado de sección ── */
+.sx-head {
+  text-align: center;
+  margin-bottom: 3rem;
+  animation: sxFadeUp 0.7s var(--ease-silk) both;
+}
+
+.sx-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--color-rose-gold);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+.sx-eyebrow::before,
+.sx-eyebrow::after {
+  content: '';
+  flex: 0 0 48px;
+  height: 1px;
+  background: var(--color-rose-gold);
+  opacity: 0.5;
+}
+
+.sx-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 4.5vw, 3.2rem);
+  font-weight: 300;
+  color: var(--color-text);
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  margin: 0 0 0.9rem;
+}
+.sx-title span { color: var(--color-rose-gold); }
+
+.sx-subtitle {
+  font-size: 1rem;
+  font-weight: 300;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+/* ── Tarjetas ── */
+.sx-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.sx-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 2rem 1.75rem;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.4s var(--ease-silk), border-color 0.4s var(--ease-silk),
+              background 0.4s var(--ease-silk), box-shadow 0.4s var(--ease-silk);
+  animation: sxFadeUp 0.7s var(--ease-silk) both;
+}
+.sx-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(201, 149, 108, 0.6);
+  background: var(--color-surface-2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(201, 149, 108, 0.15);
+}
+.sx-card--static:hover { transform: none; }
+.sx-card--center { text-align: center; }
+
+.sx-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--color-glow);
+  border: 1px solid var(--color-border);
+  color: var(--color-rose-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  transition: all 0.4s var(--ease-silk);
+}
+.sx-card--center .sx-icon { margin-left: auto; margin-right: auto; }
+.sx-card:hover .sx-icon { background: var(--color-rose-gold); color: #0a0a0a; }
+
+.sx-card-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: var(--color-text);
+  letter-spacing: 0.03em;
+  margin: 0 0 0.5rem;
+}
+
+.sx-card-text {
+  font-size: 0.93rem;
+  font-weight: 300;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+  margin: 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.sx-card-text a { color: var(--color-champagne); text-decoration: none; }
+.sx-card-text a:hover { color: var(--color-rose-gold); }
+
+/* ── Botones ── */
+.sx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 14px 34px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-champagne) 100%);
+  color: #0a0a0a;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 6px 24px rgba(201, 149, 108, 0.3);
+  transition: all 0.35s var(--ease-silk);
+}
+.sx-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(201, 149, 108, 0.45); }
+
+.sx-btn--ghost {
+  background: transparent;
+  color: var(--color-champagne);
+  border: 1px solid var(--color-border);
+  box-shadow: none;
+}
+.sx-btn--ghost:hover { border-color: var(--color-rose-gold); background: var(--color-glow); box-shadow: none; }
+
+/* ── Bloque destacado (CTA) ── */
+.sx-feature {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2.5rem;
+  align-items: center;
+  padding: 2.75rem;
+  margin-bottom: 2rem;
+  border-radius: 16px;
+  border: 1px solid var(--color-border);
+  background:
+    radial-gradient(circle at 85% 20%, rgba(201, 149, 108, 0.12), transparent 55%),
+    var(--color-surface);
+  animation: sxFadeUp 0.7s var(--ease-silk) both;
+}
+.sx-feature-actions { display: flex; flex-direction: column; gap: 0.85rem; align-items: stretch; }
+
+/* ── Redes ── */
+.sx-socials { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+.sx-social {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  color: var(--color-rose-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.35s var(--ease-silk);
+}
+.sx-social:hover { background: var(--color-rose-gold); color: #0a0a0a; transform: translateY(-3px); }
+
+.sx-muted { color: var(--color-text-muted); font-size: 0.85rem; }
+
+@keyframes sxFadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sx-head, .sx-card, .sx-feature { animation: none; }
+}
+
+@media (max-width: 768px) {
+  .sx-container { padding: 3rem 1rem 3.5rem; }
+  .sx-feature { grid-template-columns: 1fr; padding: 1.75rem 1.25rem; gap: 1.5rem; }
+  .sx-eyebrow::before, .sx-eyebrow::after { flex-basis: 28px; }
+}
+
+/* ── Acordeón (preguntas frecuentes) ── */
+.sx-layout-aside {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+.sx-section-title {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 400;
+  color: var(--color-text);
+  margin: 0 0 1.25rem;
+  letter-spacing: 0.02em;
+}
+.sx-accordion { display: flex; flex-direction: column; gap: 0.75rem; }
+.sx-acc-item {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  transition: border-color 0.3s var(--ease-silk), background 0.3s var(--ease-silk);
+}
+.sx-acc-item--open { border-color: rgba(201, 149, 108, 0.55); background: var(--color-surface-2); }
+.sx-acc-btn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 0.97rem;
+  font-weight: 400;
+}
+.sx-acc-btn:hover { color: var(--color-champagne); }
+.sx-acc-icon {
+  color: var(--color-rose-gold);
+  flex-shrink: 0;
+  transition: transform 0.3s var(--ease-silk);
+}
+.sx-acc-item--open .sx-acc-icon { transform: rotate(180deg); }
+.sx-acc-body {
+  padding: 0 1.25rem 1.2rem;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  white-space: pre-line;
+  animation: sxFadeUp 0.35s var(--ease-silk) both;
+}
+.sx-sticky { position: sticky; top: calc(var(--header-height, 72px) + 1.5rem); }
+
+@media (max-width: 900px) {
+  .sx-layout-aside { grid-template-columns: 1fr; }
+  .sx-sticky { position: static; }
+}

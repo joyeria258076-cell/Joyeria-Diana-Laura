@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { AiOutlineSend, AiOutlineWhatsApp } from 'react-icons/ai';
+import { useNavigate } from 'react-router-dom';
+import { asistenteAPI } from '../services/api';
 import '../styles/ChatBotAyuda.css';
 
 interface FAQItem { pregunta: string; respuesta: string; }
@@ -11,23 +13,35 @@ interface Props {
   faqs: FAQItem[];
   whatsapp: string | null;
   info: InfoEmpresa | null;
+  /** true cuando el cliente ya inició sesión: no se le pide "inicia sesión". */
+  logeado?: boolean;
 }
+
+interface ProductoCard { id: number; nombre: string; precio: number; precio_oferta: number | null; stock: number; imagen: string | null; personalizable: boolean; }
+interface Contexto { tema?: string; productoIds?: number[]; }
 
 interface Mensaje {
   from: 'bot' | 'user';
   text: string;
   whatsapp?: boolean;
+  productos?: ProductoCard[];
+  acciones?: { label: string; ruta: string }[];
+  sugerencias?: string[];
 }
+
+const money = (n: number) => `$${Number(n).toLocaleString('es-MX', { maximumFractionDigits: 2 })}`;
 
 const normalizar = (s: string) =>
   s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
-const CHIPS = ['Horarios', 'Ubicación', 'Envíos', 'Formas de pago', 'Apartados', 'Personalización', 'Mi pedido', 'Hablar con una persona'];
+const CHIPS = ['¿Cómo va mi pedido?', 'Anillos de menos de $500', 'Promociones vigentes', 'Zonas de entrega', 'Formas de pago', 'Personalización', 'Horarios', 'Hablar con una persona'];
 
-const ChatBotAyuda: React.FC<Props> = ({ faqs, whatsapp, info }) => {
+const ChatBotAyuda: React.FC<Props> = ({ faqs, whatsapp, info, logeado = false }) => {
   const [mensajes, setMensajes] = useState<Mensaje[]>([
-    { from: 'bot', text: '¡Hola! Soy el asistente virtual de Joyería Diana Laura 💎 ¿En qué te puedo ayudar? Elige una opción o escribe tu pregunta.' },
+    { from: 'bot', text: '¡Hola! Soy el asistente virtual de Joyería Diana Laura 💎 Puedo buscar piezas por tipo o precio, decirte promociones, zonas de entrega' + (logeado ? ' y cómo van tus pedidos, apartados o personalizaciones.' : '. Si inicias sesión, también te digo cómo van tus pedidos.') + ' Escribe tu pregunta.' },
   ]);
+  const navigate = useNavigate();
+  const contextoRef = useRef<Contexto>({});
   const [texto, setTexto] = useState('');
   const [escribiendo, setEscribiendo] = useState(false);
   const finRef = useRef<HTMLDivElement>(null);
@@ -40,7 +54,8 @@ const ChatBotAyuda: React.FC<Props> = ({ faqs, whatsapp, info }) => {
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
-  const responder = (consulta: string): Mensaje => {
+  // Respaldo sin conexión: respuestas locales si el servidor no contesta
+  const responderLocal = (consulta: string): Mensaje => {
     const q = normalizar(consulta);
     const tiene = (...palabras: string[]) => palabras.some(p => q.includes(p));
 
@@ -62,13 +77,17 @@ const ChatBotAyuda: React.FC<Props> = ({ faqs, whatsapp, info }) => {
       return { from: 'bot', text: 'Al finalizar tu compra eliges primero si quieres entrega a domicilio o recoger en sucursal, y después verás los métodos de pago disponibles. El pago en efectivo solo aplica al recoger en tienda.' };
     }
     if (tiene('apart')) {
-      return { from: 'bot', text: 'Puedes apartar una pieza y seguir su estado en "Mis apartados" (necesitas iniciar sesión). Ahí también subes tu comprobante de pago.' };
+      return { from: 'bot', text: logeado
+        ? 'Desde la ficha de un producto eliges "Apartar". Después sigues su estado y subes tu comprobante en "Mis apartados", en el menú lateral.'
+        : 'Puedes apartar una pieza y seguir su estado en "Mis apartados" (necesitas iniciar sesión). Ahí también subes tu comprobante de pago.' };
     }
     if (tiene('personaliz', 'grabado', 'diseno', 'a medida', 'medida')) {
-      return { from: 'bot', text: 'Los productos con la etiqueta "✦ Personalizable" se pueden personalizar. Desde su ficha eliges "Solicitar personalización", nos das los detalles y una imagen de referencia, y verificamos tu solicitud. Te avisamos por notificación cuando esté lista para comprarse; el costo de personalización se suma al precio.' };
+      return { from: 'bot', text: 'Los productos con la etiqueta "✦ Personalizable" se pueden personalizar. Desde su ficha eliges "Solicitar personalización", nos das los detalles y una imagen de referencia, y verificamos tu solicitud. Te avisamos por notificación cuando esté lista para comprarse; el costo de personalización se suma al precio.' + (logeado ? ' Tus solicitudes las ves en "Mis personalizaciones".' : ' Necesitas iniciar sesión para solicitarla.') };
     }
     if (tiene('pedido', 'compra', 'rastre', 'estado', 'seguimiento', 'donde esta')) {
-      return { from: 'bot', text: 'Inicia sesión y entra a "Mis pedidos": ahí ves el estado de cada compra y quién la atiende. También te avisamos con una notificación (la campanita) cada vez que cambia.' };
+      return { from: 'bot', text: logeado
+        ? 'Entra a "Mis pedidos" en el menú lateral: ahí ves el estado de cada compra y quién la atiende. Cada cambio también te llega como notificación en la campanita.'
+        : 'Inicia sesión y entra a "Mis pedidos": ahí ves el estado de cada compra y quién la atiende. También te avisamos con una notificación (la campanita) cada vez que cambia.' };
     }
 
     // Coincidencia con las preguntas frecuentes que administra el negocio
@@ -95,10 +114,24 @@ const ChatBotAyuda: React.FC<Props> = ({ faqs, whatsapp, info }) => {
     setMensajes(prev => [...prev, { from: 'user', text: limpio }]);
     setTexto('');
     setEscribiendo(true);
-    timerRef.current = setTimeout(() => {
-      setMensajes(prev => [...prev, responder(limpio)]);
-      setEscribiendo(false);
-    }, 600);
+    const inicio = Date.now();
+    asistenteAPI.preguntar(limpio, contextoRef.current)
+      .then((res: any) => {
+        const d = res?.data;
+        if (!res?.success || !d?.texto) throw new Error('sin respuesta');
+        if (d.contexto) contextoRef.current = d.contexto;
+        return { from: 'bot', text: d.texto, whatsapp: !!d.whatsapp && !!whatsapp, productos: d.productos,
+                 acciones: d.acciones, sugerencias: d.sugerencias } as Mensaje;
+      })
+      .catch(() => responderLocal(limpio))
+      .then(m => {
+        // pequeña pausa mínima para que se note el "escribiendo..."
+        const espera = Math.max(0, 450 - (Date.now() - inicio));
+        timerRef.current = setTimeout(() => {
+          setMensajes(prev => [...prev, m]);
+          setEscribiendo(false);
+        }, espera);
+      });
   };
 
   const ultimaPregunta = [...mensajes].reverse().find(m => m.from === 'user')?.text;
@@ -124,6 +157,37 @@ const ChatBotAyuda: React.FC<Props> = ({ faqs, whatsapp, info }) => {
         {mensajes.map((m, i) => (
           <div key={i} className={`dlchat-msg dlchat-msg--${m.from}`}>
             <p>{m.text}</p>
+            {!!m.productos?.length && (
+              <div className="dlchat-prods">
+                {m.productos.map(p => (
+                  <button key={p.id} type="button" className="dlchat-prod" onClick={() => navigate(logeado ? `/producto/${p.id}` : `/producto-publico/${p.id}`)}>
+                    {p.imagen ? <img src={p.imagen} alt="" loading="lazy" /> : <span className="dlchat-prod-ph">DL</span>}
+                    <span className="dlchat-prod-info">
+                      <strong>{p.nombre}</strong>
+                      <span>
+                        {p.precio_oferta ? <><b>{money(p.precio_oferta)}</b> <s>{money(p.precio)}</s></> : <b>{money(p.precio)}</b>}
+                        {p.stock <= 0 && <em> · agotado</em>}
+                        {p.personalizable && <em> · ✦ personalizable</em>}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {!!m.acciones?.length && (
+              <div className="dlchat-acciones">
+                {m.acciones.map(a => (
+                  <button key={a.ruta} type="button" onClick={() => navigate(a.ruta)}>{a.label} →</button>
+                ))}
+              </div>
+            )}
+            {!!m.sugerencias?.length && i === mensajes.length - 1 && (
+              <div className="dlchat-acciones">
+                {m.sugerencias.map(sg => (
+                  <button key={sg} type="button" className="dlchat-sug" onClick={() => enviar(sg)} disabled={escribiendo}>{sg}</button>
+                ))}
+              </div>
+            )}
             {m.whatsapp && (
               <a className="dlchat-wa" href={waHref} target="_blank" rel="noopener noreferrer">
                 <AiOutlineWhatsApp size={16} /> Continuar en WhatsApp
