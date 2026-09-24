@@ -508,3 +508,42 @@
 @media (max-width: 700px) {
     .cp-header { flex-wrap: wrap; gap: 1rem; }
 }
+
+/* ════════════════════════════════════════════════════════════
+   Refinamiento visual (identidad del sitio)
+   ════════════════════════════════════════════════════════════ */
+.cp-body { max-width: 1080px; padding: 1.5rem 0 3rem; }
+
+/* Contadores: todos en una fila, compactos */
+.cp-stats { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.75rem; }
+.cp-stat-card { padding: 1rem 0.9rem; text-align: left; }
+.cp-stat-label { font-size: 0.62rem !important; margin-bottom: 0.25rem; }
+.cp-stat-valor { font-size: 1.9rem; line-height: 1; }
+
+/* Búsqueda y agrupar */
+.cp-filtros { margin-bottom: 0.5rem; flex-wrap: wrap; }
+.cp-busqueda { max-width: 360px; padding: 0.65rem 0.9rem; }
+
+/* Separadores de grupo: línea con texto, sin barra sólida */
+.cp-grupo-label {
+  background: transparent !important; border-left: 0 !important; padding: 0 !important;
+  margin: 1.75rem 0 0.75rem !important; gap: 1rem;
+}
+.cp-grupo-label::after { content: ''; flex: 1; height: 1px; background: var(--color-border); order: 1; }
+.cp-grupo-label > :last-child { order: 2; }
+
+/* Tarjetas */
+.cp-cards-lista { gap: 0.85rem; }
+.cp-card { border-radius: 14px !important; padding: 1.25rem 1.5rem; }
+.cp-card:hover { transform: none; }
+.cp-card-principal { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: 1.25rem; }
+.cp-card-folio { font-family: var(--font-display); font-size: 1.3rem; font-weight: 500; color: var(--color-text); }
+.cp-total { font-size: 1.4rem; }
+.cp-btn-ver { border-radius: 8px !important; padding: 8px 16px; }
+
+/* Etiquetas suaves */
+.cp-tag { border-radius: 999px !important; padding: 3px 10px !important; letter-spacing: 0.06em; }
+
+@media (max-width: 900px) {
+  .cp-card-principal { grid-template-columns: 1fr 1fr; }
+}

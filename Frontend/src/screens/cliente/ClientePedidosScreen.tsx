@@ -334,7 +334,8 @@ const ClientePedidosScreen: React.FC = () => {
 
     const getBadge = (estado: string) => {
         const cfg = estados.find(e => e.value === estado) || { label: labelEstado(estado), ...COLOR_DEFAULT };
-        return <span className="cp-badge" style={{ backgroundColor: cfg.bg, color: cfg.color }}>{cfg.label}</span>;
+        // Píldora suave: fondo tenue del color del estado, texto y borde del mismo color
+        return <span className="cp-badge" style={{ backgroundColor: `${cfg.bg}26`, color: cfg.bg, border: `1px solid ${cfg.bg}66` }}>{cfg.label}</span>;
     };
 
     const contar = (estado: string) => pedidos.filter(p => p.estado === estado).length;
