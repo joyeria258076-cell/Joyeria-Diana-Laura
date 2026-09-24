@@ -6,6 +6,7 @@ import { productsAPI, recomendacionAPI, resenasAPI } from '../../services/api';
 import { colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import { useCart } from '../../contexts/CartContext';
 import './ProductoDetalleScreen.css';
+import './DetalleApp.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/ProductosRelacionados.css';
 
