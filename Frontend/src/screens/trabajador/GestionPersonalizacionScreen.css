@@ -76,7 +76,7 @@
 /* Refinamiento visual */
 .gper-page { max-width: 1080px; margin: 0 auto; }
 .gper-card { border-radius: 14px !important; padding: 1.25rem !important; }
-.gper-card-top h3 { font-family: var(--font-display) !important; font-size: 1.35rem !important; font-weight: 500; }
+.gper-card-top h3 { font-family: var(--font-display) !important; font-size: 1.188rem !important; font-weight: 600; }
 .gper-producto-img, .gper-imagen-thumb { border-radius: 10px; border: 1px solid var(--color-border); }
 .gper-filtro-btn { border-radius: 999px !important; }
 .gper-motivo { border-left: 3px solid #e05a6a; background: var(--color-surface-2); border-radius: 8px; padding: 0.6rem 0.85rem; }

@@ -37,9 +37,9 @@
   align-items: center;
   gap: 0.7rem;
   font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 300;
-  letter-spacing: 0.02em;
+  font-size: 1.76rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   margin: 0;
   color: var(--color-text);
 }
@@ -531,7 +531,7 @@
 
 .bk3-receipt-accent {
   height: 4px;
-  background: linear-gradient(90deg, var(--color-rose-gold), var(--color-champagne), var(--color-rose-gold));
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
 }
 
 .bk3-receipt-brand {
@@ -704,8 +704,8 @@
 
 .bk2-action-title {
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 500;
+  font-size: 0.968rem;
+  font-weight: 600;
   color: var(--color-text);
 }
 
@@ -718,7 +718,7 @@
 
 .bk2-btn-primary {
   align-self: flex-start;
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-champagne) 100%);
+  background: var(--gradient-primary);
   color: var(--color-bg);
   border: none;
   padding: 0.6rem 1.2rem;
@@ -756,8 +756,8 @@
 
 .bk2-section-title {
   font-family: var(--font-display);
-  font-size: 1.4rem;
-  font-weight: 400;
+  font-size: 1.232rem;
+  font-weight: 600;
   color: var(--color-text);
   margin: 0 0 1rem;
 }
@@ -865,7 +865,7 @@
 
 .page-title {
   font-family: var(--font-display);
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
   background: linear-gradient(135deg, var(--color-text) 0%, var(--color-rose-gold) 100%);
@@ -899,7 +899,7 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, #e49bb3 100%);
+  background: var(--gradient-primary);
   color: var(--color-bg);
   box-shadow: 0 10px 20px color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
 }
@@ -1168,7 +1168,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 
 .section-title {
   font-family: var(--font-display);
-  font-size: 1.8rem;
+  font-size: 1.584rem;
   font-weight: 700;
   margin: 0 0 1.5rem 0;
   color: var(--color-text);
@@ -1404,7 +1404,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 
 .modal-header h2 {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.32rem;
   margin: 0;
   color: var(--color-rose-gold);
 }
@@ -1549,7 +1549,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 .btn-cancel { background: color-mix(in srgb, var(--color-text) 10%, transparent); color: color-mix(in srgb, var(--color-text) 80%, transparent); }
 .btn-cancel:hover { background: color-mix(in srgb, var(--color-text) 15%, transparent); }
 
-.btn-save { background: linear-gradient(135deg, var(--color-rose-gold) 0%, #e49bb3 100%); color: var(--color-bg); }
+.btn-save { background: var(--gradient-primary); color: var(--color-bg); }
 .btn-save:hover { transform: translateY(-2px); box-shadow: 0 10px 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent); }
 
 .btn-restore-confirm { background: #4CAF50; color: var(--color-text); }
@@ -1666,7 +1666,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 }
 
 .btn-save-small {
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, #e49bb3 100%);
+  background: var(--gradient-primary);
   color: var(--color-bg);
   border: none;
   padding: 0.55rem 1.1rem;

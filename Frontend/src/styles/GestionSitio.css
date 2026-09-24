@@ -49,7 +49,7 @@
 .gp-card-mia::before { opacity: 1; }
 
 /* Números de folio y totales con la tipografía display */
-.cp-card-folio, .mapt-folio, .gapt-folio { font-family: var(--font-display); letter-spacing: 0.03em; }
+.cp-card-folio, .mapt-folio, .gapt-folio { font-family: var(--font-display); letter-spacing: -0.01em; }
 
 /* ── Etiquetas de estado (conservan su color, cambia la forma) ── */
 .gp-badge, .gapt-badge, .cp-badge, .mapt-estado-badge, .gper-estado {
@@ -64,7 +64,7 @@
 
 /* ── Botones principales ── */
 .gp-btn-tomar, .gapt-btn-pri, .gper-btn-aprobar, .cp-btn-nuevo, .mapt-btn-primario, .mapt-btn-pagar {
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-champagne) 100%) !important;
+  background: var(--gradient-primary) !important;
   color: #0a0a0a !important;
   border: none !important;
   border-radius: 8px !important;
@@ -123,7 +123,7 @@
 }
 .gp-stat:hover, .cp-stat-card:hover { border-color: var(--color-rose-gold) !important; transform: translateY(-2px); }
 .gp-stat-activo { border-color: var(--color-rose-gold) !important; background: var(--color-glow) !important; }
-.gp-stat-val, .cp-stat-val { font-family: var(--font-display) !important; font-weight: 400 !important; color: var(--color-rose-gold) !important; }
+.gp-stat-val, .cp-stat-val { font-family: var(--font-display) !important; font-weight: 600 !important; color: var(--color-rose-gold) !important; }
 .gp-stat-label, .cp-stat-label { letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.66rem !important; color: var(--color-text-muted) !important; }
 
 /* ── Modales ── */
@@ -135,8 +135,8 @@
 }
 .cp-modal-header h2, .cp-modal-header h3, .mapt-modal h2, .mapt-modal h3, .gper-modal h2, .gper-modal h3, .gp-modal h2, .gp-modal h3, .gapt-modal h2, .gapt-modal h3 {
   font-family: var(--font-display) !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.02em;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em;
 }
 .cp-modal-overlay, .mapt-modal-overlay, .gper-modal-overlay, .gp-modal-overlay, .gapt-modal-overlay {
   background: color-mix(in srgb, var(--color-bg) 70%, transparent) !important;

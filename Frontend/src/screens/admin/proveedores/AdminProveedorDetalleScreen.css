@@ -78,10 +78,10 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
-  font-size: 1.8rem;
+  font-size: 1.584rem;
   font-weight: 700;
   color: var(--color-bg);
-  background: linear-gradient(135deg, var(--color-champagne), var(--color-rose-gold));
+  background: var(--gradient-primary);
   flex-shrink: 0;
   position: relative;
   z-index: 1;
@@ -111,9 +111,9 @@
 
 .pd2-hero-top h1 {
   font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 300;
-  letter-spacing: 0.02em;
+  font-size: 1.76rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   margin: 0;
   color: var(--color-text);
 }
@@ -206,7 +206,7 @@
 }
 
 .pd2-btn-edit {
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-champagne) 100%);
+  background: var(--gradient-primary);
   border-color: var(--color-rose-gold);
   color: var(--color-bg);
 }

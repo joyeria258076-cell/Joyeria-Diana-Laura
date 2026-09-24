@@ -23,9 +23,9 @@
   align-items: center;
   gap: 0.7rem;
   font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 300;
-  letter-spacing: 0.02em;
+  font-size: 1.76rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   margin: 0;
   color: var(--color-text);
 }
@@ -41,7 +41,7 @@
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-champagne) 100%);
+  background: var(--gradient-primary);
   color: var(--color-bg);
   border: none;
   padding: 0.75rem 1.4rem;
@@ -83,7 +83,7 @@
 
 .ap3-container .ap3-stat-num {
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: 1.408rem;
   font-weight: 700;
   color: var(--color-text);
 }
@@ -186,7 +186,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--color-champagne), var(--color-rose-gold));
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: 1;
@@ -253,7 +253,7 @@
 
 .ap3-container .ap3-card-valor {
   font-family: var(--font-display);
-  font-size: 2.4rem;
+  font-size: 2.112rem;
   font-weight: 700;
   line-height: 1;
   background: linear-gradient(135deg, var(--color-text) 0%, var(--color-rose-gold) 100%);
@@ -285,7 +285,7 @@
 
 .ap3-container .ap3-card-body h3 {
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 0.924rem;
   font-weight: 600;
   color: var(--color-text);
   margin: 0;
@@ -486,7 +486,7 @@
 
 .ap3-preview-valor {
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: 1.408rem;
   font-weight: 700;
   color: var(--color-text);
   line-height: 1;
@@ -561,7 +561,7 @@
 
 .ap3-modal-header h2 {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.144rem;
   font-weight: 600;
   color: var(--color-text);
   margin: 0;
@@ -733,7 +733,7 @@
 }
 
 .ap3-btn-save {
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-champagne) 100%);
+  background: var(--gradient-primary);
   color: var(--color-bg);
   border-color: var(--color-rose-gold);
 }

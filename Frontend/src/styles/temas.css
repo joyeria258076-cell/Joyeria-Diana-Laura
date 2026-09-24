@@ -43,6 +43,7 @@
 /* ── 1. Negro · Rosa (predeterminado) ─────────────────────────────── */
 :root,
 [data-theme="negro_rosa"] {
+  --color-highlight:     #F4C9DA;
   --color-bg:            #0D080C;
   --color-surface:       #191116;
   --color-surface-2:     #261C22;
@@ -66,6 +67,7 @@
 
 /* ── 2. Blanco · Rosa ─────────────────────────────────────────────── */
 [data-theme="blanco_rosa"] {
+  --color-highlight:     #B85C83;
   --color-bg:            #FFF6FA;
   --color-surface:       #FFFFFF;
   --color-surface-2:     #FCE8F1;
@@ -89,6 +91,7 @@
 
 /* ── 3. Negro · Dorado (estilo anterior de la web) ────────────────── */
 [data-theme="negro_dorado"] {
+  --color-highlight:     #E8D5B7;
   --color-bg:            #0A0A0A;
   --color-surface:       #141414;
   --color-surface-2:     #1E1E1E;
@@ -118,8 +121,8 @@
 
   /* Compatibilidad: variables que ya usan las ~90 hojas del sitio */
   --color-rose-gold: var(--color-primary);
-  --color-champagne: var(--color-accent);
-  --color-blush:     var(--color-error);
+  --color-champagne: var(--color-highlight);   /* precios / resaltados: tono del primario */
+  --color-blush:     var(--color-highlight);   /* rosa suave (antes se usaba como segundo tono de degradados) */
 }
 
 /* Etiquetas de estado al 15% (uso: <span class="dl-estado dl-estado--exito">) */

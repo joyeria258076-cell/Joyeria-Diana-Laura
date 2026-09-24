@@ -137,12 +137,12 @@
 /* ─── SHARED: SECTION TITLE ─────────────────────── */
 .section-title {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 300;
+  font-size: clamp(1.76rem, 4vw, 2.64rem);
+  font-weight: 600;
   color: var(--white);
   line-height: 1.15;
   margin: 0 0 0.75rem;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
 }
 
 .section-title span { color: var(--rose); }
@@ -194,7 +194,7 @@
 .inicio-public-container .btn:hover::before { transform: translateX(100%); }
 
 .inicio-public-container .btn-primary {
-  background: linear-gradient(135deg, var(--rose) 0%, var(--rose-vivid) 100%) !important;
+  background: var(--gradient-primary) !important;
   color: var(--bg-black) !important;
   box-shadow: 0 6px 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent) !important;
 }
@@ -414,12 +414,12 @@
 
 .carousel-title {
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 4.5vw, 3.6rem);
-  font-weight: 300;
+  font-size: clamp(1.936rem, 4.5vw, 3.168rem);
+  font-weight: 600;
   color: var(--white);
   line-height: 1.1;
   margin: 0 0 0.75rem;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
 }
 
 .carousel-desc {
@@ -581,7 +581,7 @@
 
 .stats-band-item strong {
   font-family: var(--font-display);
-  font-size: 1.9rem;
+  font-size: 1.672rem;
   font-weight: 700;
   color: var(--rose-light);
 }
@@ -636,7 +636,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--rose-light), var(--rose-vivid), var(--rose-light));
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.5s var(--ease-expo);
@@ -665,7 +665,7 @@
 .showcase-card-body { padding: 1.1rem 1.3rem; }
 .showcase-card-body h3 {
   font-family: var(--font-display);
-  font-size: 1.05rem; font-weight: 700; color: var(--white);
+  font-size: 0.924rem; font-weight: 700; color: var(--white);
   margin: 0 0 0.35rem;
 }
 .showcase-card-body p {
@@ -702,7 +702,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--rose-light), var(--rose-vivid), var(--rose-light));
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.5s var(--ease-expo);
@@ -742,7 +742,7 @@
 .product-card-body { padding: 1.1rem 1.2rem; text-align: center; }
 .product-card-body h3 {
   font-family: var(--font-display);
-  font-size: 1rem; font-weight: 700; color: var(--white); margin: 0 0 0.5rem;
+  font-size: 0.88rem; font-weight: 700; color: var(--white); margin: 0 0 0.5rem;
 }
 .product-card-precio {
   display: flex; align-items: center; justify-content: center; gap: 0.4rem;
@@ -831,7 +831,7 @@
 .editorial-card-body { padding: 1.4rem 1.5rem; }
 .editorial-card-body h3 {
   font-family: var(--font-display);
-  font-size: 1.25rem; font-weight: 700; color: var(--white);
+  font-size: 1.1rem; font-weight: 700; color: var(--white);
   margin: 0 0 0.6rem;
 }
 .editorial-card .product-card-precio { justify-content: flex-start; margin-bottom: 0.7rem; }
@@ -950,7 +950,7 @@
 
 .feature-card h3 {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.012rem;
   font-weight: 700;
   color: var(--white);
   margin: 0 0 0.625rem;
@@ -1013,7 +1013,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--rose-light), var(--rose-vivid), var(--rose-light));
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.5s var(--ease-expo);
@@ -1084,7 +1084,7 @@
 
 .news-title {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.012rem;
   font-weight: 700;
   color: var(--white);
   margin: 0;
@@ -1190,12 +1190,12 @@
 
 .cta-content h2 {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 300;
+  font-size: clamp(1.76rem, 4vw, 2.64rem);
+  font-weight: 600;
   color: var(--white);
   line-height: 1.15;
   margin: 0 0 1rem;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
 }
 
 .cta-content h2 span { color: var(--rose); }

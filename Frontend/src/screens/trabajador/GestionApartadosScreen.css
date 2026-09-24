@@ -11,9 +11,9 @@
 
 .gapt-titulo {
     font-family: var(--font-display);
-    font-size: 1.8rem;
-    font-weight: 400;
-    letter-spacing: 0.02em;
+    font-size: 1.584rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--color-text);
     margin-bottom: 24px;
     display: flex;
@@ -42,7 +42,7 @@
     gap: 4px;
 }
 .gapt-stat-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--color-rose-gold) 35%, transparent); }
-.gapt-stat-num  { font-family: var(--font-display); font-size: 1.7rem; font-weight: 400; color: var(--color-rose-gold); }
+.gapt-stat-num  { font-family: var(--font-display); font-size: 1.496rem; font-weight: 600; color: var(--color-rose-gold); }
 .gapt-stat-label { font-size: 0.8rem; color: #888; }
 
 /* Filtros */
@@ -131,7 +131,7 @@
 }
 .gapt-card-header:hover { background: color-mix(in srgb, var(--color-text) 2%, transparent); }
 .gapt-card-header-izq { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.gapt-folio { font-weight: 500; font-family: var(--font-display); font-size: 1rem; color: var(--color-rose-gold); }
+.gapt-folio { font-weight: 600; font-family: var(--font-display); font-size: 0.88rem; color: var(--color-rose-gold); }
 .gapt-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; font-weight: 600; }
 .gapt-badge-urgente {
     display: inline-flex; align-items: center; gap: 4px;
@@ -532,7 +532,7 @@
 .gapt-card { border-radius: 14px !important; overflow: hidden; }
 .gapt-folio { font-size: 1.3rem; font-weight: 500; color: var(--color-text); }
 .gapt-progreso-bar { height: 8px; border-radius: 999px; background: var(--color-surface-2); }
-.gapt-progreso-fill { border-radius: 999px; background: linear-gradient(90deg, var(--color-rose-gold), var(--color-champagne)) !important; }
+.gapt-progreso-fill { border-radius: 999px; background: linear-gradient(90deg, var(--color-primary), var(--color-accent)) !important; }
 .gapt-card--cancelado .gapt-progreso-fill, .gapt-card--vencido .gapt-progreso-fill { filter: grayscale(0.8); opacity: 0.6; }
 .gapt-datos-rapidos { gap: 0.75rem; padding: 0 1.4rem 1.2rem; border: 0 !important; }
 .gapt-dato {

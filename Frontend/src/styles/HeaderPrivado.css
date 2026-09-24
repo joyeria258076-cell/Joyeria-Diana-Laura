@@ -39,9 +39,9 @@
 .logo-text {
     color: var(--color-text);
     font-family: var(--font-display);
-    font-size: 1.6rem;
-    font-weight: 400;
-    letter-spacing: 0.04em;
+    font-size: 1.408rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
 }
 
 .logo-subtext {
@@ -315,8 +315,8 @@
     justify-content: center;
     color: var(--rosa-joyeria);
     font-family: var(--font-display);
-    font-weight: 500;
-    font-size: 1rem;
+    font-weight: 600;
+    font-size: 0.88rem;
     flex-shrink: 0;
     border: 1px solid color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
 }
@@ -366,7 +366,7 @@
     position: absolute;
     top: -4px;
     right: -4px;
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    background: var(--gradient-primary);
     color: var(--color-bg);
     font-size: 0.6rem;
     font-weight: 500;

@@ -136,9 +136,9 @@
 }
 .tl-hero-h1 {
     font-family: var(--font-display);
-    font-size: clamp(2.8rem, 7vw, 4.8rem);
-    font-weight: 300;
-    letter-spacing: 0.02em;
+    font-size: clamp(2.464rem, 7vw, 4.224rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
     line-height: 1.15;
     color: var(--color-text);
     margin: 0;
@@ -249,10 +249,10 @@
     left: 1.1rem;
     bottom: 0.9rem;
     font-family: var(--font-display);
-    font-size: 1.15rem;
-    font-weight: 400;
+    font-size: 1.012rem;
+    font-weight: 600;
     color: var(--color-text);
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
 }
 /* primera tile más grande — punto focal del mosaico */
 .tl-mosaic-tile--0 { grid-column: span 2; grid-row: span 2; }
@@ -337,10 +337,10 @@
 }
 .tl-ed-nombre {
     font-family: var(--font-display);
-    font-size: 1.15rem;
+    font-size: 1.012rem;
     color: var(--color-text);
     margin: 0;
-    font-weight: 400;
+    font-weight: 600;
     line-height: 1.3;
 }
 .tl-ed-precio-row {
@@ -399,9 +399,9 @@
 }
 .tl-section-h2 {
     font-family: var(--font-display);
-    font-size: clamp(1.8rem, 3vw, 2.4rem);
-    font-weight: 400;
-    letter-spacing: 0.02em;
+    font-size: clamp(1.584rem, 3vw, 2.112rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--color-text);
     margin: 0;
 }
@@ -479,10 +479,10 @@
 }
 .tl-prod-nombre {
     font-family: var(--font-display);
-    font-size: 1rem;
+    font-size: 0.88rem;
     color: var(--color-text);
     margin: 0;
-    font-weight: 400;
+    font-weight: 600;
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 1;
@@ -529,9 +529,9 @@
 }
 .tl-stat strong {
     font-family: var(--font-display);
-    font-size: 2.4rem;
+    font-size: 2.112rem;
     color: var(--rosa);
-    font-weight: 400;
+    font-weight: 600;
     line-height: 1;
 }
 .tl-stat span {
@@ -575,9 +575,9 @@
 }
 .tl-banner-ed-h2 {
     font-family: var(--font-display);
-    font-size: clamp(2.2rem, 4vw, 3.5rem);
-    font-weight: 300;
-    letter-spacing: 0.02em;
+    font-size: clamp(1.936rem, 4vw, 3.08rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--color-text);
     margin: 0;
     line-height: 1.12;
@@ -630,9 +630,9 @@
 }
 .tl-cta-h2 {
     font-family: var(--font-display);
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 300;
-    letter-spacing: 0.02em;
+    font-size: clamp(1.76rem, 4vw, 2.64rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--color-text);
     margin: 0;
 }
@@ -669,9 +669,9 @@
 .tl-nov-fila:hover { background: var(--color-glow); }
 .tl-nov-index {
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: 1.056rem;
     color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
-    font-weight: 400;
+    font-weight: 600;
 }
 .tl-nov-img {
     position: relative;
@@ -704,9 +704,9 @@
 }
 .tl-nov-titulo {
     font-family: var(--font-display);
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     color: var(--color-text);
-    font-weight: 400;
+    font-weight: 600;
     margin: 0;
     line-height: 1.3;
 }

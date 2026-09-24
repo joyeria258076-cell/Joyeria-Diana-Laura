@@ -24,14 +24,14 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--color-rose-gold), var(--color-blush), var(--color-rose-gold));
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
 }
 
 .mfa-setup-card h2 {
     font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 400;
-    letter-spacing: 0.02em;
+    font-size: 1.32rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--color-text);
     margin: 0 0 0.75rem;
 }
@@ -64,7 +64,7 @@
 .action-buttons { display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap; }
 
 .primary-button {
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    background: var(--gradient-primary);
     color: var(--color-bg);
     border: none;
     padding: 12px 26px;
@@ -122,8 +122,8 @@
     padding: 0.5rem 0.9rem;
     border-radius: 2px;
     font-family: var(--font-display);
-    font-size: 1rem;
-    letter-spacing: 0.1em;
+    font-size: 0.88rem;
+    letter-spacing: -0.01em;
     margin-top: 0.5rem;
 }
 
@@ -137,8 +137,8 @@
     border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
     color: var(--color-text);
     font-family: var(--font-display);
-    font-size: 1.6rem;
-    letter-spacing: 0.4em;
+    font-size: 1.408rem;
+    letter-spacing: -0.01em;
     text-align: center;
     padding: 0.75rem 0;
     transition: border-color 0.35s var(--ease-silk);
@@ -187,7 +187,7 @@
     color: var(--color-rose-gold);
     font-family: var(--font-display);
     font-size: 0.9rem;
-    letter-spacing: 0.05em;
+    letter-spacing: -0.01em;
     padding: 0.5rem;
     text-align: center;
 }

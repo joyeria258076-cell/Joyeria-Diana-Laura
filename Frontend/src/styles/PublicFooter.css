@@ -112,7 +112,7 @@
 }
 
 .social-link:hover {
-  background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+  background: var(--gradient-primary);
   color: var(--color-bg);
   transform: translateY(-3px);
 }

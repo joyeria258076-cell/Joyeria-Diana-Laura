@@ -26,9 +26,9 @@
 
 /* ── Header ── */
 .cp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-.cp-titulo { font-family: var(--font-display); font-size: 2rem; font-weight: 300; letter-spacing: 0.02em; color: var(--color-text); margin: 0; }
+.cp-titulo { font-family: var(--font-display); font-size: 1.76rem; font-weight: 600; letter-spacing: -0.01em; color: var(--color-text); margin: 0; }
 .cp-btn-nuevo {
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    background: var(--gradient-primary);
     color: var(--color-bg); border: none; border-radius: 2px;
     padding: 12px 24px; font-size: 0.82rem; font-weight: 500;
     letter-spacing: 0.06em; text-transform: uppercase;
@@ -43,7 +43,7 @@
 .cp-stat-card:hover { border-color: color-mix(in srgb, var(--color-rose-gold) 35%, transparent); }
 .cp-stat-icon { display: none; }
 .cp-stat-label { font-size: 0.7rem; color: var(--color-text-muted); margin: 0 0 0.3rem; text-transform: uppercase; letter-spacing: 0.1em; }
-.cp-stat-valor { font-family: var(--font-display); font-size: 2rem; font-weight: 400; color: var(--color-rose-gold); margin: 0; }
+.cp-stat-valor { font-family: var(--font-display); font-size: 1.76rem; font-weight: 600; color: var(--color-rose-gold); margin: 0; }
 
 /* ── Lista de pedidos (cards) ── */
 .cp-lista-wrap { display: flex; flex-direction: column; }
@@ -94,7 +94,7 @@
 .cp-card-label { font-size: 0.66rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
 
 .cp-card-total-col { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
-.cp-total { font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; color: var(--color-rose-gold); }
+.cp-total { font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; color: var(--color-rose-gold); }
 .cp-badge { display: inline-block; padding: 0.28rem 0.8rem; border-radius: 2px; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.04em; }
 .cp-btn-ver {
     background: transparent; border: 1px solid color-mix(in srgb, var(--color-rose-gold) 35%, transparent); color: var(--color-rose-gold);
@@ -119,7 +119,7 @@
 .cp-modal-overlay { position: fixed; inset: 0; background: color-mix(in srgb, var(--color-bg) 80%, transparent); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
 .cp-modal { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 4px; width: 90%; max-width: 560px; max-height: 88vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
 .cp-modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.5rem; border-bottom: 1px solid var(--color-border); }
-.cp-modal-header h3 { font-family: var(--font-display); font-size: 1.35rem; font-weight: 400; color: var(--color-text); margin: 0; }
+.cp-modal-header h3 { font-family: var(--font-display); font-size: 1.188rem; font-weight: 600; color: var(--color-text); margin: 0; }
 .cp-modal-fecha { font-size: 0.78rem; color: var(--color-text-muted); margin: 0.2rem 0 0; }
 .cp-modal-close { background: transparent; border: none; color: var(--color-text-muted); font-size: 1.5rem; cursor: pointer; transition: color 0.35s var(--ease-silk); line-height: 1; }
 .cp-modal-close:hover { color: var(--color-rose-gold); }
@@ -134,7 +134,7 @@
 .cp-modal-item img { width: 56px; height: 56px; object-fit: cover; border-radius: 2px; }
 .cp-modal-item-nombre { font-size: 0.875rem; font-weight: 500; color: var(--color-text); margin: 0; }
 .cp-modal-item-sub { font-size: 0.75rem; color: var(--color-text-muted); margin: 0.2rem 0 0; }
-.cp-modal-item-subtotal { font-family: var(--font-display); font-size: 1rem; font-weight: 400; color: var(--color-rose-gold); white-space: nowrap; }
+.cp-modal-item-subtotal { font-family: var(--font-display); font-size: 0.88rem; font-weight: 600; color: var(--color-rose-gold); white-space: nowrap; }
 .cp-descuento-unitario { color: var(--color-champagne); font-weight: 500; }
 .cp-modal-totales { background: var(--color-surface-2); border-radius: 2px; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
 .cp-modal-total-fila { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--color-text-muted); }
@@ -166,7 +166,7 @@
     gap: 0.75rem;
 }
 .cp-pago-icon { display: none; }
-.cp-pago-titulo h4 { font-family: var(--font-display); font-size: 1.05rem; font-weight: 400; color: var(--color-text); margin: 0 0 0.2rem; }
+.cp-pago-titulo h4 { font-family: var(--font-display); font-size: 0.924rem; font-weight: 600; color: var(--color-text); margin: 0 0 0.2rem; }
 .cp-pago-titulo p  { font-size: 0.8rem; color: var(--color-text-muted); margin: 0; }
 
 .cp-pago-error {
@@ -325,7 +325,7 @@
     color: var(--color-bg);
 }
 .cp-step.activo .cp-step-icono {
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    background: var(--gradient-primary);
     border-color: transparent;
     color: var(--color-bg);
 }
@@ -435,7 +435,7 @@
 /* ── Comprobante transferencia ── */
 .cp-comprobante-upload { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
 .cp-btn-subir-comprobante {
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    background: var(--gradient-primary);
     color: var(--color-bg); border: none; border-radius: 2px; padding: 11px 18px;
     font-size: 0.82rem; font-weight: 500; letter-spacing: 0.04em; cursor: pointer; transition: all 0.35s var(--ease-silk);
     font-family: var(--font-body);
@@ -477,7 +477,7 @@
 .cp-codigo-entrega h4 { color: #6bcb77; font-size: 0.85rem; margin-bottom: 6px; }
 .cp-codigo-entrega-desc { font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 12px; }
 .cp-codigo-valor {
-    font-size: 2rem; font-weight: 500; letter-spacing: 0.2em;
+    font-size: 1.76rem; font-weight: 600; letter-spacing: -0.01em;
     color: #6bcb77; font-family: var(--font-display);
     background: rgba(107,203,119,0.1); padding: 10px 20px;
     border-radius: 2px; display: inline-block;
@@ -537,7 +537,7 @@
 .cp-card { border-radius: 14px !important; padding: 1.25rem 1.5rem; }
 .cp-card:hover { transform: none; }
 .cp-card-principal { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: 1.25rem; }
-.cp-card-folio { font-family: var(--font-display); font-size: 1.3rem; font-weight: 500; color: var(--color-text); }
+.cp-card-folio { font-family: var(--font-display); font-size: 1.144rem; font-weight: 600; color: var(--color-text); }
 .cp-total { font-size: 1.4rem; }
 .cp-btn-ver { border-radius: 8px !important; padding: 8px 16px; }
 

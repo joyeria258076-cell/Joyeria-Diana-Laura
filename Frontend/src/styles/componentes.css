@@ -1,0 +1,197 @@
+/* ═══════════════════════════════════════════════════════════════════
+   componentes.css — Componentes base (paso 2), mismo lenguaje que la app
+   móvil: botones, inputs, tarjetas, chips, etiquetas y tipografía.
+
+   Los selectores van precedidos de `body` para ganar a reglas sueltas de
+   una sola clase que algunas pantallas definen de forma global
+   (p. ej. .btn-primary), sin necesidad de !important.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Tipografía ───────────────────────────────────────────────────── */
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
+/* Títulos: Poppins 700, apretados */
+body :is(h1, h2),
+body .sx-title,
+body .section-title {
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+body h3 { font-weight: 600; letter-spacing: -0.4px; }
+
+/* Palabra de acento (una por título): Playfair Display cursiva */
+body .sx-title span,
+body .section-title span,
+body :is(h1, h2) > span:not([class]) {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+/* Etiqueta en mayúsculas sobre los títulos */
+body .sx-eyebrow,
+body .eyebrow,
+body .eyebrow-row {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+/* ── Botón principal ──────────────────────────────────────────────── */
+body .sx-btn:not(.sx-btn--ghost),
+body .btn-primary,
+body .dl-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 56px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  box-shadow: var(--shadow-primary);
+  cursor: pointer;
+  transition: transform var(--t-fast) ease, box-shadow var(--t-base) ease, filter var(--t-fast) ease;
+}
+body .sx-btn:not(.sx-btn--ghost):hover:not(:disabled),
+body .btn-primary:hover:not(:disabled),
+body .dl-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: saturate(1.05);
+  box-shadow: 0 14px 32px color-mix(in srgb, var(--color-primary-strong) 38%, transparent);
+}
+body .sx-btn:not(.sx-btn--ghost):disabled,
+body .btn-primary:disabled { opacity: 0.5; transform: none; box-shadow: none; cursor: not-allowed; }
+
+/* ── Botón secundario ─────────────────────────────────────────────── */
+body .sx-btn--ghost,
+body .btn-secondary,
+body .dl-btn--sec {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 52px;
+  padding: 0 24px;
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  box-shadow: none;
+  cursor: pointer;
+  transition: background var(--t-fast) ease, transform var(--t-fast) ease;
+}
+body .sx-btn--ghost:hover:not(:disabled),
+body .btn-secondary:hover:not(:disabled),
+body .dl-btn--sec:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  transform: translateY(-2px);
+}
+
+/* ── Inputs ───────────────────────────────────────────────────────── */
+body :is(input:is([type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="number"], [type="url"], [type="date"], :not([type])), select, textarea) {
+  min-height: 52px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  transition: border-color var(--t-fast) ease, box-shadow var(--t-fast) ease, background-color var(--t-fast) ease;
+}
+body textarea { min-height: 96px; padding-top: 14px; }
+body :is(input, select, textarea)::placeholder { color: var(--color-text-muted); opacity: 0.85; }
+body :is(input:is([type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="number"], [type="url"], [type="date"], :not([type])), select, textarea):focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+}
+/* Campos sin padding propio: margen interno cómodo */
+body :is(input, select, textarea):not([class]) { padding-left: 16px; padding-right: 16px; }
+body input:is([type="checkbox"], [type="radio"]) { accent-color: var(--color-primary); }
+
+/* ── Tarjetas (producto y genéricas) ──────────────────────────────── */
+body :is(.producto-card, .rel-card, .prod-card, .tl-prod-card, .sx-card, .mp-card, .gp-card, .gapt-card, .cp-card, .mapt-card, .gper-card) {
+  border-radius: var(--radius-xl) !important;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  transition: transform var(--t-base) var(--ease-silk), box-shadow var(--t-base) ease, border-color var(--t-base) ease;
+}
+body :is(.producto-card, .rel-card, .prod-card, .tl-prod-card):hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+/* Nombre y precio del producto */
+body :is(.producto-nombre, .rel-nombre, .prod-nombre, .tl-prod-nombre, .pd-nombre, .pdp-nombre) {
+  font-family: var(--font-body) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.2px !important;
+}
+body :is(.precio, .precio-final, .rel-final, .prod-precio, .tl-prod-precio, .pd-precio-final, .pdp-precio-final) {
+  font-family: var(--font-body) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.3px !important;
+  color: var(--color-primary) !important;
+}
+
+/* Botón de favorito de vidrio sobre la foto */
+body :is(.btn-favorito, .fav-btn, .tl-fav, .rel-fav) {
+  background: color-mix(in srgb, var(--color-surface) 55%, transparent) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 50% !important;
+  color: var(--color-primary) !important;
+}
+
+/* ── Chips / filtros en píldora ───────────────────────────────────── */
+body :is(.dl-chip, .apci-chip, .aep-tab, .gper-filtro-btn, .mapt-filtro-btn, .gapt-filtro-btn, .mop-tab, .paginacion-btn, .apci-chip) {
+  border-radius: var(--radius-pill) !important;
+  font-family: var(--font-body);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+body :is(.dl-chip.activo, .dl-chip[aria-pressed="true"], .apci-chip.activa, .aep-tab.activa, .gper-filtro-btn.activo, .mapt-filtro-btn.activo, .gapt-filtro-btn.activo, .mop-tab.activo, .paginacion-btn--activo) {
+  background: var(--gradient-primary) !important;
+  border-color: transparent !important;
+  color: var(--color-on-primary) !important;
+  box-shadow: var(--shadow-primary);
+}
+
+/* ── Etiquetas / badges ───────────────────────────────────────────── */
+body :is(.badge-nuevo, .rel-badge, .prod-badge, .tl-badge, .badge-personalizable, .categoria-badge) {
+  border-radius: var(--radius-pill) !important;
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* ── Paneles con vidrio ───────────────────────────────────────────── */
+body .dl-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body * { transition-duration: 0ms !important; }
+}

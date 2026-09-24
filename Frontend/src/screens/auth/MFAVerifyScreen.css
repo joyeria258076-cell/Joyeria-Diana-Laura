@@ -33,7 +33,7 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--color-rose-gold), var(--color-blush), var(--color-rose-gold));
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
 }
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(24px); }
@@ -46,10 +46,10 @@
     align-items: center;
     justify-content: center;
     color: var(--color-text);
-    font-size: clamp(1.6rem, 3vw, 2rem);
-    font-weight: 300;
+    font-size: clamp(1.408rem, 3vw, 1.76rem);
+    font-weight: 600;
     font-family: var(--font-display);
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
     margin: 0 0 0.75rem;
 }
 .mfa-header p {
@@ -82,11 +82,11 @@
     background: transparent;
     border: none;
     border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
-    font-size: 1.5rem;
+    font-size: 1.32rem;
     color: var(--color-text);
     font-family: var(--font-display);
     text-align: center;
-    letter-spacing: 0.4em;
+    letter-spacing: -0.01em;
     transition: border-color 0.35s var(--ease-silk);
 }
 .mfa-code-input::placeholder { color: var(--color-text-muted); opacity: 0.5; letter-spacing: 0.4em; }
@@ -94,7 +94,7 @@
 
 .verify-button {
     width: 100%;
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    background: var(--gradient-primary);
     color: var(--color-bg);
     border: none;
     padding: 14px 24px;

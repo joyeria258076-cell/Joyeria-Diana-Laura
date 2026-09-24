@@ -137,9 +137,9 @@
 
 .pd3-hero-info h1 {
   font-family: var(--font-display);
-  font-size: 1.7rem;
-  font-weight: 300;
-  letter-spacing: 0.02em;
+  font-size: 1.496rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   margin: 0;
   color: var(--color-text);
   line-height: 1.3;
@@ -174,7 +174,7 @@
   gap: 0.7rem;
   margin-top: 0.7rem;
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: 1.408rem;
   font-weight: 700;
   color: var(--color-rose-gold);
 }
@@ -216,7 +216,7 @@
 }
 
 .pd3-btn-edit {
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-champagne) 100%);
+  background: var(--gradient-primary);
   border-color: var(--color-rose-gold);
   color: var(--color-bg);
 }
@@ -279,7 +279,7 @@
 
 .pd3-stock-num {
   font-family: var(--font-display);
-  font-size: 1.9rem;
+  font-size: 1.672rem;
   font-weight: 700;
   color: var(--color-text);
   margin: 0.4rem 0 0.7rem;
@@ -428,7 +428,7 @@
 
 .pd3-precio-item strong {
   font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-size: 1.056rem;
   font-weight: 700;
   color: var(--color-text);
 }

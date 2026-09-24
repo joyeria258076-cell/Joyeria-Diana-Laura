@@ -18,7 +18,7 @@
 
 .page-title {
   font-family: var(--font-display);
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
   background: linear-gradient(135deg, var(--color-text) 0%, var(--color-rose-gold) 100%);
@@ -88,7 +88,7 @@
 
 .config-card h3 {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.144rem;
   color: var(--color-rose-gold);
   margin: 0 0 1.2rem 0;
 }
@@ -266,7 +266,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-rose-gold), #e49bb3);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
   transition: width 0.3s ease;
 }
 
@@ -299,7 +299,7 @@
 }
 
 .btn-export, .btn-import {
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, #e49bb3 100%);
+  background: var(--gradient-primary);
   color: var(--color-bg);
   box-shadow: 0 10px 20px color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
 }
@@ -345,7 +345,7 @@
 
 .history-section h3 {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.144rem;
   color: var(--color-rose-gold);
   margin: 0 0 1.2rem 0;
 }

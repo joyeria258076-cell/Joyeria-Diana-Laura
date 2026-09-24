@@ -20,7 +20,7 @@
 .rp-titulo {
   display: flex; align-items: center; gap: 0.7rem;
   font-family: var(--font-display);
-  font-size: 2rem; font-weight: 300; letter-spacing: 0.02em;
+  font-size: 1.76rem; font-weight: 600; letter-spacing: -0.01em;
   color: var(--color-text); margin: 0;
 }
 .rp-titulo svg { color: var(--color-rose-gold); }
@@ -90,7 +90,7 @@
   border-radius: 12px; padding: 1rem 1.1rem;
 }
 .rp-stat-label { font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-.rp-stat-val { font-family: var(--font-display); font-size: 1.5rem; color: var(--color-rose-gold); }
+.rp-stat-val { font-family: var(--font-display); font-size: 1.32rem; color: var(--color-rose-gold); }
 .rp-stat--warn .rp-stat-val { color: #d98a8a; }
 
 /* ── Chart card ── */
@@ -166,14 +166,14 @@
 .rp-team-avatar {
   width: 40px; height: 40px; border-radius: 50%;
   background: var(--color-surface); border: 1.5px solid var(--color-rose-gold);
-  color: var(--color-rose-gold); font-family: var(--font-display); font-size: 1.05rem;
+  color: var(--color-rose-gold); font-family: var(--font-display); font-size: 0.924rem;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .rp-team-nombre { font-size: 0.88rem; color: var(--color-text); margin: 0; font-weight: 600; }
 .rp-team-rol { font-size: 0.72rem; color: var(--color-text-muted); margin: 0; text-transform: capitalize; }
 .rp-team-metrics { display: flex; justify-content: space-between; }
 .rp-team-metrics div { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; }
-.rp-team-metrics span { font-family: var(--font-display); font-size: 1.2rem; color: var(--color-text); }
+.rp-team-metrics span { font-family: var(--font-display); font-size: 1.056rem; color: var(--color-text); }
 .rp-team-metrics small { font-size: 0.65rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .rp-team-monto { font-size: 0.72rem; color: var(--color-text-muted); margin: 0; }
 

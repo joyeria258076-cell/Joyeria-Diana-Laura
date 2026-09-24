@@ -156,9 +156,9 @@
     align-items: center;
     justify-content: center;
     font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 400;
-    letter-spacing: 0.1em;
+    font-size: 1.32rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--pd-muted);
     text-transform: uppercase;
 }
@@ -219,11 +219,11 @@
 /* Nombre */
 .pd-nombre {
     font-family: var(--font-display);
-    font-size: clamp(2.2rem, 3.6vw, 3.2rem);
-    font-weight: 300;
+    font-size: clamp(1.936rem, 3.6vw, 2.816rem);
+    font-weight: 600;
     line-height: 1.15;
     color: var(--pd-text);
-    letter-spacing: 0.01em;
+    letter-spacing: -0.01em;
     margin: 0;
 }
 
@@ -244,10 +244,10 @@
 
 .pd-precio-final {
     font-family: var(--font-display);
-    font-size: 2.8rem;
-    font-weight: 400;
+    font-size: 2.464rem;
+    font-weight: 600;
     color: var(--pd-accent);
-    letter-spacing: 0.01em;
+    letter-spacing: -0.01em;
 }
 
 .pd-ahorro {
@@ -337,9 +337,9 @@
 
 .pd-personalizacion-titulo {
     margin: 0;
-    font-family: var(--font-display);
+    font-family: var(--font-accent);
     font-style: italic;
-    font-size: 1.1rem;
+    font-size: 0.968rem;
     color: var(--pd-gold);
 }
 
@@ -566,8 +566,8 @@
 
 .pd-spec-valor {
     font-family: var(--font-display);
-    font-size: 1.05rem;
-    font-weight: 400;
+    font-size: 0.924rem;
+    font-weight: 600;
     color: var(--pd-accent);
     margin: 0;
 }
@@ -731,11 +731,11 @@
 
 .pd-relacionados-titulo {
     font-family: var(--font-display);
-    font-size: clamp(1.5rem, 2.4vw, 2rem);
-    font-weight: 400;
+    font-size: clamp(1.32rem, 2.4vw, 1.76rem);
+    font-weight: 600;
     color: var(--pd-text);
     margin: 0;
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
 }
 
 /* Grid relacionados */
@@ -834,8 +834,8 @@
 
 .pd-rel-nombre {
     font-family: var(--font-display);
-    font-size: 1.1rem;
-    font-weight: 400;
+    font-size: 0.968rem;
+    font-weight: 600;
     color: var(--pd-text);
     margin: 0 0 0.6rem;
     line-height: 1.3;
@@ -917,9 +917,9 @@
 .pd-resenas-header { margin-bottom: 1.5rem; }
 
 .pd-resenas-titulo {
-    font-size: 1.5rem;
+    font-size: 1.32rem;
     font-family: var(--font-display);
-    font-weight: 400;
+    font-weight: 600;
     color: var(--pd-text);
     margin: 0 0 0.6rem;
 }
@@ -946,10 +946,10 @@
 
 .pd-resena-form-titulo {
     margin: 0;
-    font-family: var(--font-display);
+    font-family: var(--font-accent);
     font-style: italic;
     color: var(--pd-gold);
-    font-size: 1.05rem;
+    font-size: 0.924rem;
 }
 
 .pd-resena-estrellas-input { display: flex; gap: 0.3rem; }

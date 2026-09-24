@@ -29,7 +29,7 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-champagne));
+    background: var(--gradient-primary);
     color: #0a0a0a;
     font-weight: 700;
     font-size: 0.75rem;
@@ -80,7 +80,7 @@
 
 .dlchat-msg--user {
     align-self: flex-end;
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-champagne));
+    background: var(--gradient-primary);
     color: #0a0a0a;
     border-bottom-right-radius: 3px;
 }
@@ -173,7 +173,7 @@
     height: 38px;
     border-radius: 50%;
     border: none;
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-champagne));
+    background: var(--gradient-primary);
     color: #0a0a0a;
     cursor: pointer;
     display: inline-flex;

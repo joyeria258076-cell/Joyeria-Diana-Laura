@@ -64,7 +64,7 @@
 }
 .pf-hero-avatar-wrap:hover .pf-hero-avatar-overlay { opacity: 1; }
 .pf-hero-info { display: flex; flex-direction: column; gap: 0.25rem; }
-.pf-hero-name { font-family: var(--font-display); font-size: 1.6rem; font-weight: 400; letter-spacing: 0.02em; color: var(--color-text); margin: 0; }
+.pf-hero-name { font-family: var(--font-display); font-size: 1.408rem; font-weight: 600; letter-spacing: -0.01em; color: var(--color-text); margin: 0; }
 .pf-hero-email { font-size: 0.82rem; color: color-mix(in srgb, var(--color-text) 50%, transparent); margin: 0; }
 .pf-hero-role {
   display: inline-block;
@@ -106,7 +106,7 @@
 /* Section */
 .pf-section { display: flex; flex-direction: column; gap: 1.25rem; }
 .pf-section-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-.pf-section-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 400; letter-spacing: 0.02em; color: var(--color-text); margin: 0; }
+.pf-section-title { font-family: var(--font-display); font-size: 1.144rem; font-weight: 600; letter-spacing: -0.01em; color: var(--color-text); margin: 0; }
 .pf-section-sub { font-size: 0.82rem; color: color-mix(in srgb, var(--color-text) 45%, transparent); margin: 0; }
 .pf-loading, .pf-empty { color: color-mix(in srgb, var(--color-text) 40%, transparent); font-size: 0.88rem; padding: 1rem 0; }
 .pf-divider { border: none; border-top: 1px solid color-mix(in srgb, var(--color-rose-gold) 10%, transparent); margin: 0.5rem 0; }
@@ -386,9 +386,9 @@
 }
 .pf-codigo-toggle:hover { background: color-mix(in srgb, var(--color-rose-gold) 8%, transparent); }
 .pf-codigo-value {
-  font-size: 1.6rem;
-  font-weight: 500;
-  letter-spacing: 0.3em;
+  font-size: 1.408rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--color-rose-gold);
   font-family: var(--font-display);
   text-align: center;

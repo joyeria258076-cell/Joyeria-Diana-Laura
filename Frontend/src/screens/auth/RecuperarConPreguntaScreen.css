@@ -32,7 +32,7 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--color-rose-gold), var(--color-blush), var(--color-rose-gold));
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
 }
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(24px); }
@@ -42,11 +42,11 @@
 .recuperar-pregunta-header { text-align: center; margin-bottom: 1.75rem; }
 .recuperar-pregunta-header h2 {
     color: var(--color-text);
-    font-size: clamp(1.5rem, 3vw, 1.9rem);
+    font-size: clamp(1.32rem, 3vw, 1.672rem);
     margin-bottom: 0.6rem;
-    font-weight: 300;
+    font-weight: 600;
     font-family: var(--font-display);
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
 }
 .recuperar-pregunta-header p { color: var(--color-text-muted); font-size: 0.88rem; margin: 0; }
 .recuperar-pregunta-header strong { color: var(--color-rose-gold); font-weight: 500; }
@@ -126,7 +126,7 @@
 .password-toggle:hover { color: var(--color-champagne); }
 
 .verify-button, .submit-button {
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    background: var(--gradient-primary);
     color: var(--color-bg);
     border: none;
     padding: 14px 24px;
@@ -159,8 +159,8 @@
 .success-verification h3 {
     color: var(--color-text);
     margin-bottom: 0.4rem;
-    font-size: 1.15rem;
-    font-weight: 400;
+    font-size: 1.012rem;
+    font-weight: 600;
     font-family: var(--font-display);
 }
 .success-verification p { color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem; }

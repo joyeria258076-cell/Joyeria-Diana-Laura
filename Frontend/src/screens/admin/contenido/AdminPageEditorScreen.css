@@ -63,7 +63,7 @@
 
 .pve-btn-add {
   margin-left: auto;
-  background: linear-gradient(135deg, #e8789a, #c0436a);
+  background: var(--gradient-primary);
   color: var(--color-text);
   border: none;
   border-radius: 100px;
@@ -349,7 +349,7 @@
 }
 
 .pve-btn-save {
-  background: linear-gradient(135deg, #e8789a, #c0436a);
+  background: var(--gradient-primary);
   color: var(--color-text);
   border: none;
   border-radius: 100px;

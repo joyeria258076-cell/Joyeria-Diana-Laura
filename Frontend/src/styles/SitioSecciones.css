@@ -59,11 +59,11 @@
 
 .sx-title {
   font-family: var(--font-display);
-  font-size: clamp(2.1rem, 4.5vw, 3.2rem);
-  font-weight: 300;
+  font-size: clamp(1.848rem, 4.5vw, 2.816rem);
+  font-weight: 600;
   color: var(--color-text);
   line-height: 1.15;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
   margin: 0 0 0.9rem;
 }
 .sx-title span { color: var(--color-rose-gold); }
@@ -122,10 +122,10 @@
 
 .sx-card-title {
   font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 500;
+  font-size: 1.188rem;
+  font-weight: 600;
   color: var(--color-text);
-  letter-spacing: 0.03em;
+  letter-spacing: -0.01em;
   margin: 0 0 0.5rem;
 }
 
@@ -151,7 +151,7 @@
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-champagne) 100%);
+  background: var(--gradient-primary);
   color: #0a0a0a;
   font-family: var(--font-body);
   font-size: 0.82rem;
@@ -230,11 +230,11 @@
 }
 .sx-section-title {
   font-family: var(--font-display);
-  font-size: 1.7rem;
-  font-weight: 400;
+  font-size: 1.496rem;
+  font-weight: 600;
   color: var(--color-text);
   margin: 0 0 1.25rem;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
 }
 .sx-accordion { display: flex; flex-direction: column; gap: 0.75rem; }
 .sx-acc-item {

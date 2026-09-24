@@ -8,7 +8,7 @@
 /* El código de error con el estilo de lujo (Playfair + Degradado) */
 .error-code {
     font-family: var(--font-display);
-    font-size: 6rem;
+    font-size: 5.28rem;
     font-weight: 700;
     background: linear-gradient(135deg, var(--color-text) 0%, var(--color-rose-gold) 100%);
     -webkit-background-clip: text;

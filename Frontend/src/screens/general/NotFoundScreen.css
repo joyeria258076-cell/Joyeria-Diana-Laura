@@ -8,7 +8,7 @@
 /* Título 404 con el degradado Playfair de tu Joyería */
 .not-found-page .login-header h2 {
     font-family: var(--font-display);
-    font-size: 5rem; /* Tamaño grande para el 404 */
+    font-size: 4.4rem; /* Tamaño grande para el 404 */
     background: linear-gradient(135deg, var(--color-text) 0%, var(--color-rose-gold) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;

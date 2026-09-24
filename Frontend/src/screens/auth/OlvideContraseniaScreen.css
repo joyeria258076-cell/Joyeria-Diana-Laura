@@ -40,7 +40,7 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--color-rose-gold), var(--color-blush), var(--color-rose-gold));
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
 }
 
 @keyframes fadeInUp {
@@ -52,11 +52,11 @@
 
 .olvide-contrasenia-header h2 {
     color: var(--color-text);
-    font-size: clamp(1.8rem, 3vw, 2.2rem);
+    font-size: clamp(1.584rem, 3vw, 1.936rem);
     margin-bottom: 0.6rem;
-    font-weight: 300;
+    font-weight: 600;
     font-family: var(--font-display);
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
 }
 
 .olvide-contrasenia-header p {
@@ -139,7 +139,7 @@
 
 /* Botón principal */
 .submit-button {
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    background: var(--gradient-primary);
     color: var(--color-bg);
     border: none;
     padding: 14px 24px;
@@ -180,8 +180,8 @@
 }
 .success-section h3 {
     font-family: var(--font-display);
-    font-weight: 400;
-    font-size: 1.3rem;
+    font-weight: 600;
+    font-size: 1.144rem;
     color: var(--color-text);
     margin: 0 0 0.5rem;
 }

@@ -5,7 +5,7 @@
 /* ── Encabezado ── */
 .monitoreo-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
 .monitoreo-titulo { display:flex; align-items:center; gap:0.7rem; margin-bottom:4px; }
-.monitoreo-titulo h1 { display:flex; align-items:center; gap:0.7rem; font-family:var(--font-display); font-size:2rem; font-weight:300; letter-spacing:0.02em; color:var(--color-text); margin:0; }
+.monitoreo-titulo h1 { display:flex; align-items:center; gap:0.7rem; font-family:var(--font-display); font-size:1.76rem; font-weight:600; letter-spacing:-0.01em; color:var(--color-text); margin:0; }
 .monitoreo-titulo h1 svg { color:var(--color-rose-gold); width:22px; height:22px; flex-shrink:0; }
 .monitoreo-header p  { font-size:0.85rem; color:var(--color-text-muted); margin:0; }
 
@@ -39,7 +39,7 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-rose-gold), var(--color-champagne));
+  background: var(--gradient-primary);
   color: var(--color-bg);
   flex-shrink: 0;
   transition: transform 0.5s ease;
@@ -157,7 +157,7 @@
 .mon-segment:hover { color: var(--color-text); }
 .mon-segment:hover svg { transform: scale(1.15); }
 .mon-segment.activo {
-  background: linear-gradient(135deg, var(--color-rose-gold), var(--color-champagne));
+  background: var(--gradient-primary);
   color: var(--color-bg);
   box-shadow: 0 4px 12px rgba(201, 168, 76, 0.25);
   animation: monSegPop 0.3s var(--ease-silk, ease);
@@ -232,7 +232,7 @@
   overflow: hidden;
 }
 
-.mon-bar-fill { height: 100%; background: linear-gradient(90deg, var(--color-rose-gold), #f5c8d5); border-radius: 3px; }
+.mon-bar-fill { height: 100%; background: linear-gradient(90deg, var(--color-primary), var(--color-accent)); border-radius: 3px; }
 
 .mon-bar-value { width: 34px; text-align: right; color: var(--color-text); font-weight: 600; flex-shrink: 0; }
 
@@ -515,7 +515,7 @@ tbody tr:hover td { background: color-mix(in srgb, var(--color-text) 3%, transpa
 }
 .barra-fill { 
   height: 100%; 
-  background: linear-gradient(90deg, var(--color-rose-gold), #c084fc); 
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent)); 
   transition: width 0.5s ease-out; 
 }
 

@@ -23,9 +23,9 @@
   align-items: center;
   gap: 0.7rem;
   font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 300;
-  letter-spacing: 0.02em;
+  font-size: 1.76rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   margin: 0;
   color: var(--color-text);
 }
@@ -41,7 +41,7 @@
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-champagne) 100%);
+  background: var(--gradient-primary);
   color: var(--color-bg);
   border: none;
   padding: 0.75rem 1.4rem;
@@ -82,7 +82,7 @@
 
 .pv-container .pv-stat-num {
   font-family: var(--font-display);
-  font-size: 1.7rem;
+  font-size: 1.496rem;
   font-weight: 700;
   color: var(--color-text);
 }
@@ -278,7 +278,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--color-champagne), var(--color-rose-gold));
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -312,10 +312,10 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 0.924rem;
   font-weight: 700;
   color: var(--color-bg);
-  background: linear-gradient(135deg, var(--color-champagne), var(--color-rose-gold));
+  background: var(--gradient-primary);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -367,7 +367,7 @@
 
 .pv-container .pv-card-nombre {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.012rem;
   font-weight: 600;
   color: var(--color-text);
   margin: 0;

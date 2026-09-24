@@ -41,7 +41,7 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--color-rose-gold), var(--color-blush), var(--color-rose-gold));
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
 }
 
 /* ─── HEADER ────────────────────────────── */
@@ -49,11 +49,11 @@
 
 .register-header h2 {
     color: var(--color-text);
-    font-size: clamp(1.8rem, 3vw, 2.2rem);
+    font-size: clamp(1.584rem, 3vw, 1.936rem);
     margin-bottom: 0.5rem;
-    font-weight: 300;
+    font-weight: 600;
     font-family: var(--font-display);
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
 }
 
 .register-header p {
@@ -138,7 +138,7 @@
 
 /* ─── BOTÓN PRINCIPAL ───────────────────── */
 .register-button {
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    background: var(--gradient-primary);
     color: var(--color-bg);
     border: none;
     padding: 0 2rem;
@@ -354,7 +354,7 @@
 }
 
 .terms-checkbox input[type="checkbox"]:checked + .checkmark {
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    background: var(--gradient-primary);
     border-color: transparent;
 }
 .terms-checkbox input[type="checkbox"]:checked + .checkmark::after { opacity: 1; }
@@ -392,9 +392,9 @@
 .security-question-section h3 {
     color: var(--color-text);
     font-family: var(--font-display);
-    font-weight: 400;
+    font-weight: 600;
     margin-bottom: 4px;
-    font-size: 1.2rem;
+    font-size: 1.056rem;
 }
 
 .security-question-section > p {

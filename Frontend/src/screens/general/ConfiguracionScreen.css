@@ -12,9 +12,9 @@
     gap: 10px;
     color: var(--color-text);
     font-family: var(--font-display);
-    font-weight: 400;
-    font-size: 1.7rem;
-    letter-spacing: 0.02em;
+    font-weight: 600;
+    font-size: 1.496rem;
+    letter-spacing: -0.01em;
     margin: 0 0 1.5rem;
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--color-border);
@@ -120,7 +120,7 @@
 .select-config:focus { border-color: var(--color-rose-gold); }
 
 .btn-save-config {
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    background: var(--gradient-primary);
     color: var(--color-bg);
     border: none;
     padding: 10px 22px;

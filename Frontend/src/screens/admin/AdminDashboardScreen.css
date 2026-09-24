@@ -16,7 +16,7 @@
 .dc-titulo {
     display: flex; align-items: center; gap: 0.7rem;
     font-family: var(--font-display);
-    font-size: 2.1rem; font-weight: 300; letter-spacing: 0.02em;
+    font-size: 1.848rem; font-weight: 600; letter-spacing: -0.01em;
     color: var(--color-text); margin: 0;
 }
 .dc-titulo svg { color: var(--color-rose-gold); }
@@ -60,7 +60,7 @@
     text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
 }
 .dc-hero-val {
-    font-family: var(--font-display); font-size: 3rem; line-height: 1;
+    font-family: var(--font-display); font-size: 2.64rem; line-height: 1;
     background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-champagne, #e8c9a0) 100%);
     -webkit-background-clip: text; background-clip: text; color: transparent;
 }
@@ -81,7 +81,7 @@
     font-size: 0.72rem; color: var(--color-text-muted);
     text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
 }
-.dc-mini-val { font-family: var(--font-display); font-size: 1.9rem; color: var(--color-text); }
+.dc-mini-val { font-family: var(--font-display); font-size: 1.672rem; color: var(--color-text); }
 .dc-tile--warn::before { background: linear-gradient(90deg, #d98a8a, #e0a5a5); }
 .dc-tile--warn .dc-mini-val { color: #d98a8a; }
 .dc-tile--warn .dc-mini-label { color: #d98a8a; }
@@ -91,7 +91,7 @@
 .dc-tile-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; padding-bottom: 0.9rem; border-bottom: 1px solid var(--color-border); }
 .dc-tile-head h3 {
     display: flex; align-items: center; gap: 0.5rem;
-    font-family: var(--font-display); font-size: 1.1rem; font-weight: 500; color: var(--color-text); margin: 0;
+    font-family: var(--font-display); font-size: 0.968rem; font-weight: 600; color: var(--color-text); margin: 0;
 }
 .dc-tile-head h3 svg { color: var(--color-rose-gold); }
 .dc-tile-link {
@@ -135,7 +135,7 @@
     color: var(--color-rose-gold); background: rgba(180,140,110,0.14);
     border-radius: 50%; padding: 5px; width: 26px; height: 26px; box-sizing: border-box;
 }
-.dc-alert-num { display: block; font-family: var(--font-display); font-size: 2.1rem; color: var(--color-rose-gold); }
+.dc-alert-num { display: block; font-family: var(--font-display); font-size: 1.848rem; color: var(--color-rose-gold); }
 .dc-alert-sub { font-size: 0.78rem; color: var(--color-text-muted); margin: 0.25rem 0 0; }
 .dc-alert-ok {
     display: flex; align-items: center; gap: 0.5rem;

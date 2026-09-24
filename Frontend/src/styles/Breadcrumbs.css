@@ -24,7 +24,7 @@
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #f5c5d8, var(--color-rose-gold));
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
     transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 

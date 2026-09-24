@@ -85,7 +85,7 @@
   border: 1px solid var(--color-border);
   backdrop-filter: blur(4px);
 }
-.rel-badge--oro { background: linear-gradient(135deg, var(--color-rose-gold), var(--color-champagne)); color: #0a0a0a; border: none; }
+.rel-badge--oro { background: var(--gradient-primary); color: #0a0a0a; border: none; }
 
 .rel-info { padding: 1.1rem 1.25rem 1.3rem; }
 .rel-categoria {
@@ -98,8 +98,8 @@
 }
 .rel-nombre {
   font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 500;
+  font-size: 1.056rem;
+  font-weight: 600;
   color: var(--color-text);
   margin: 0 0 0.6rem;
   line-height: 1.25;

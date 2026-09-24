@@ -17,13 +17,13 @@
 .actividades-titulo {
   color: var(--color-text);
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   margin: 0 0 2rem;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.8rem;
-  letter-spacing: 0.02em;
+  font-size: 1.584rem;
+  letter-spacing: -0.01em;
 }
 .actividades-titulo svg { color: var(--color-rose-gold); }
 
@@ -45,12 +45,12 @@
 .activity-card h3 {
   color: var(--color-rose-gold);
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   margin: 0 0 1.25rem;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.3rem;
+  font-size: 1.144rem;
 }
 
 .activity-badge {
@@ -129,7 +129,7 @@
 }
 
 .btn-primary-worker {
-  background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+  background: var(--gradient-primary);
   color: var(--color-bg) !important;
   padding: 12px 24px;
   border-radius: 2px;
@@ -176,9 +176,9 @@
 .inactive-section-title {
   color: var(--color-text-muted);
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   margin: 3rem 0 1.25rem;
-  font-size: 1.3rem;
+  font-size: 1.144rem;
   display: flex;
   align-items: center;
   gap: 8px;

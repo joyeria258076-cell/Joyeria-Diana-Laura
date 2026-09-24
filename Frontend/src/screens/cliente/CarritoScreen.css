@@ -15,8 +15,8 @@
 
 /* ── Encabezado con progreso de pasos ── */
 .carrito-encabezado { margin-bottom: 2.75rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.5rem; }
-.carrito-titulo { font-family: var(--font-display); font-size: 2.2rem; font-weight: 300; letter-spacing: 0.02em; color: var(--color-text); margin: 0; display: flex; align-items: center; gap: 0.75rem; }
-.carrito-count-badge { background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush)); color: var(--color-bg); font-family: var(--font-body); font-size: 0.8rem; font-weight: 500; padding: 0.2rem 0.6rem; border-radius: 2px; }
+.carrito-titulo { font-family: var(--font-display); font-size: 1.936rem; font-weight: 600; letter-spacing: -0.01em; color: var(--color-text); margin: 0; display: flex; align-items: center; gap: 0.75rem; }
+.carrito-count-badge { background: var(--gradient-primary); color: var(--color-bg); font-family: var(--font-body); font-size: 0.8rem; font-weight: 500; padding: 0.2rem 0.6rem; border-radius: 2px; }
 
 /* Stepper visual (1 · 2 · 3) */
 .carrito-stepper { display: flex; align-items: center; list-style: none; margin: 0; padding: 0; }
@@ -39,7 +39,7 @@
     white-space: nowrap;
 }
 .carrito-stepper-paso.is-activo .carrito-stepper-num {
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush));
+    background: var(--gradient-primary);
     border-color: transparent;
     color: var(--color-bg);
 }
@@ -72,10 +72,10 @@
 .carrito-item:hover .carrito-item-imagen img { transform: scale(1.06); }
 .carrito-item-info { display: flex; flex-direction: column; gap: 0.3rem; }
 .carrito-item-categoria { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-muted); font-weight: 500; margin: 0; }
-.carrito-item-nombre { font-family: var(--font-display); font-size: 1.1rem; font-weight: 400; color: var(--color-text); margin: 0; line-height: 1.3; }
+.carrito-item-nombre { font-family: var(--font-display); font-size: 0.968rem; font-weight: 600; color: var(--color-text); margin: 0; line-height: 1.3; }
 .carrito-item-detalle { font-size: 0.8rem; color: var(--color-text-muted); margin: 0; }
 .carrito-item-nota { color: color-mix(in srgb, var(--color-rose-gold) 75%, transparent); font-style: italic; }
-.carrito-badge-personalizado { display: inline-block; margin-left: 0.5rem; font-size: 0.6rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-bg); background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush)); padding: 0.15rem 0.5rem; border-radius: 2px; vertical-align: middle; font-family: var(--font-body); }
+.carrito-badge-personalizado { display: inline-block; margin-left: 0.5rem; font-size: 0.6rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-bg); background: var(--gradient-primary); padding: 0.15rem 0.5rem; border-radius: 2px; vertical-align: middle; font-family: var(--font-body); }
 .carrito-item-cargo { font-size: 0.78rem; color: var(--color-champagne); font-weight: 500; margin: 0; }
 .carrito-item-precios { display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem; }
 .carrito-precio-tachado { font-size: 0.8rem; color: var(--color-text-muted); text-decoration: line-through; }
@@ -112,7 +112,7 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--color-rose-gold), var(--color-champagne), var(--color-rose-gold));
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
 }
 .carrito-resumen-titulo {
     font-family: var(--font-body);
@@ -127,11 +127,11 @@
 .carrito-envio-texto { color: color-mix(in srgb, var(--color-rose-gold) 70%, transparent); font-style: italic; font-size: 0.8rem; }
 .carrito-resumen-divider { border: none; border-top: 1px solid var(--color-border); margin: 1rem 0; }
 .carrito-resumen-total { align-items: baseline; }
-.carrito-resumen-total span:first-child { font-family: var(--font-display); font-size: 1.1rem; color: var(--color-text); }
-.carrito-resumen-total span:last-child { font-family: var(--font-display); color: var(--color-rose-gold); font-size: 1.7rem; font-weight: 400; }
+.carrito-resumen-total span:first-child { font-family: var(--font-display); font-size: 0.968rem; color: var(--color-text); }
+.carrito-resumen-total span:last-child { font-family: var(--font-display); color: var(--color-rose-gold); font-size: 1.496rem; font-weight: 600; }
 
 /* ── Botones ── */
-.carrito-btn-primario { width: 100%; padding: 14px 32px; background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush)); color: var(--color-bg); border: none; border-radius: 2px; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.35s var(--ease-silk); margin-top: 1rem; font-family: var(--font-body); }
+.carrito-btn-primario { width: 100%; padding: 14px 32px; background: var(--gradient-primary); color: var(--color-bg); border: none; border-radius: 2px; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.35s var(--ease-silk); margin-top: 1rem; font-family: var(--font-body); }
 .carrito-btn-primario:hover:not(:disabled) { box-shadow: 0 0 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent); transform: translateY(-2px); }
 .carrito-btn-primario:disabled { opacity: 0.5; cursor: not-allowed; }
 .carrito-btn-secundario { padding: 12px 26px; background: transparent; color: var(--color-text-muted); border: 1px solid var(--color-border); border-radius: 2px; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.06em; cursor: pointer; transition: all 0.35s var(--ease-silk); font-family: var(--font-body); }
@@ -142,13 +142,13 @@
 /* ── Vacío / Éxito / Loading ── */
 .carrito-vacio { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 1rem; text-align: center; }
 .carrito-vacio-icon { color: color-mix(in srgb, var(--color-rose-gold) 25%, transparent); }
-.carrito-vacio h2 { font-family: var(--font-display); font-size: 1.7rem; font-weight: 400; color: var(--color-text); margin: 0; }
+.carrito-vacio h2 { font-family: var(--font-display); font-size: 1.496rem; font-weight: 600; color: var(--color-text); margin: 0; }
 .carrito-vacio p { color: var(--color-text-muted); margin: 0; }
 .carrito-vacio .carrito-btn-primario { width: auto; padding: 12px 28px; }
 .carrito-exito { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 1rem; text-align: center; max-width: 480px; margin: 0 auto; }
 .carrito-exito-icon { width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--color-rose-gold); display: flex; align-items: center; justify-content: center; }
 .carrito-exito-icon::before { content: ''; width: 22px; height: 12px; border-left: 2px solid var(--color-rose-gold); border-bottom: 2px solid var(--color-rose-gold); transform: rotate(-45deg) translateY(-2px); }
-.carrito-exito h2 { font-family: var(--font-display); font-size: 1.9rem; font-weight: 400; color: var(--color-text); margin: 0; }
+.carrito-exito h2 { font-family: var(--font-display); font-size: 1.672rem; font-weight: 600; color: var(--color-text); margin: 0; }
 .carrito-exito p { color: var(--color-text-muted); margin: 0; line-height: 1.6; }
 .carrito-exito-sub { font-size: 0.875rem; }
 .carrito-exito-acciones { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 0.5rem; }
@@ -163,7 +163,7 @@
 .carrito-modal { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 4px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
 .carrito-modal-grande { max-width: 580px; }
 .carrito-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--color-border); }
-.carrito-modal-header h2 { font-family: var(--font-display); font-size: 1.35rem; font-weight: 400; color: var(--color-text); margin: 0; }
+.carrito-modal-header h2 { font-family: var(--font-display); font-size: 1.188rem; font-weight: 600; color: var(--color-text); margin: 0; }
 .carrito-modal-close { background: transparent; border: none; color: var(--color-text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1; transition: color 0.35s var(--ease-silk); }
 .carrito-modal-close:hover { color: var(--color-rose-gold); }
 .carrito-modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
@@ -260,7 +260,7 @@
 .carrito-guia-paso { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--color-text-muted); }
 .carrito-guia-num {
     width: 22px; height: 22px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--color-rose-gold), var(--color-blush)); color: var(--color-bg); font-weight: 500;
+    background: var(--gradient-primary); color: var(--color-bg); font-weight: 500;
     font-size: 0.72rem; display: flex; align-items: center; justify-content: center;
 }
 .carrito-guia-sep { color: var(--color-text-muted); font-size: 0.9rem; }
@@ -346,11 +346,11 @@
 
 .carrito-recs-titulo {
     font-family: var(--font-display) !important;
-    font-size: 1.4rem !important;
-    font-weight: 400 !important;
+    font-size: 1.232rem !important;
+    font-weight: 600 !important;
     margin: 0 0 1.5rem !important;
     color: var(--color-text) !important;
-    letter-spacing: 0.02em !important;
+    letter-spacing: -0.01em !important;
 }
 
 .carrito-recs-lista {
@@ -406,9 +406,9 @@
 .carrito-recs-card-nombre {
     font-family: var(--font-display) !important;
     font-size: 0.95rem !important;
-    font-weight: 400 !important;
+    font-weight: 600 !important;
     color: var(--color-text) !important;
-    letter-spacing: 0.01em !important;
+    letter-spacing: -0.01em !important;
     line-height: 1.3 !important;
     display: -webkit-box !important;
     -webkit-line-clamp: 2 !important;
