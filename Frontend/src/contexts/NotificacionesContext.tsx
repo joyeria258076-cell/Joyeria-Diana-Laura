@@ -30,6 +30,7 @@ const MENSAJE_ESTADO: Record<string, string> = {
     enviado:        '🚚 Tu pedido fue enviado. ¡Pronto llegará!',
     entregado:      '📦 Tu pedido fue entregado. ¡Gracias por tu compra!',
     cancelado:      '🚫 Tu pedido fue cancelado.',
+    expirado:       '⏳ Tu pedido expiró por falta de movimiento.',
 };
 
 // Las claves se ligan al id del usuario logueado para que las notificaciones
