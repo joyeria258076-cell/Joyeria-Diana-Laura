@@ -114,3 +114,16 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Foco: sin el recuadro negro del navegador al hacer clic; con teclado se
+   muestra un contorno fino con el color de la paleta (accesibilidad). */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible) { outline: none; }
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--color-rose-gold);
+  outline-offset: 2px;
+}
+.sidebar-privado button:focus-visible { outline-offset: -2px; }
