@@ -288,3 +288,341 @@
   .legal-tab { border-radius: 10px; border-bottom: 1px solid; width: 100%; }
   .legal-content-wrap { padding: 1.5rem 1rem 3rem; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   LEGAL — al mismo lenguaje que el resto del sitio
+
+   Medido sobre la página renderizada:
+   · El encabezado ocupaba 380px de alto y el título se partía feo en dos
+     renglones ("Términos y Condiciones de / Uso").
+   · El texto largo iba en gris claro sobre panel oscuro. Es la pantalla
+     donde más rato se lee seguido de todo el sitio, y el modo oscuro
+     cansa justo en ese caso: pasa a panel crema, el mismo criterio que
+     el catálogo y el blog.
+   · Las líneas llegaban a 100 caracteres. Para leer cómodo, 70-75 es el
+     tope: más largo y la vista pierde el renglón al volver.
+   · La columna lateral terminaba pronto y dejaba un vacío enorme; ahora
+     acompaña el scroll.
+═══════════════════════════════════════════════════════════════════ */
+
+.legal-page {
+  --leg-crema-1: #efe7db;
+  --leg-crema-2: #e2d6c4;
+  --leg-papel: #f9f5ee;
+  --leg-borde: rgba(201, 149, 108, 0.28);
+  --leg-texto: #3a2a20;
+  --leg-texto-suave: #55463a;
+  --leg-oro: #8a5a2b;
+}
+
+/* ── Tipografía: la hoja usaba tres Montserrat y una Playfair ── */
+.legal-page,
+.legal-page p,
+.legal-page span,
+.legal-page a,
+.legal-page li,
+.legal-page button {
+  font-family: var(--font-body);
+}
+
+.legal-page h1,
+.legal-page h2,
+.legal-page h3,
+.legal-page .legal-hero-title,
+.legal-page .legal-seccion-titulo,
+.legal-page .legal-intro-titulo {
+  font-family: var(--font-display);
+}
+
+.legal-page .legal-hero-eyebrow,
+.legal-page .legal-hero-fecha,
+.legal-page .legal-tabs button,
+.legal-page .legal-aside-link {
+  font-family: var(--font-body);
+}
+
+/* ── Encabezado compacto ── */
+.legal-page .legal-hero {
+  padding: clamp(1.75rem, 3.5vw, 2.75rem) 1.25rem 0;
+}
+
+.legal-page .legal-hero-inner {
+  max-width: 46rem;
+}
+
+.legal-page .legal-hero-title {
+  /* 3.2rem partía "Términos y Condiciones de / Uso" en dos renglones */
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: 0.015em;
+  /* Evita que el título rompa dejando una palabra suelta abajo */
+  text-wrap: balance;
+}
+
+.legal-page .legal-hero-sub {
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+}
+
+/* ── Disposición ── */
+.legal-page .legal-content-wrap {
+  max-width: 1180px;
+  padding: clamp(1.25rem, 2.5vw, 2rem) clamp(0.9rem, 2vw, 1.5rem) clamp(2rem, 4vw, 3rem);
+  gap: clamp(1rem, 2vw, 1.5rem);
+  align-items: start;
+}
+
+/* ── El documento, en papel ── */
+.legal-page .legal-main {
+  background: linear-gradient(168deg, var(--leg-crema-1) 0%, var(--leg-crema-2) 100%);
+  border: 1px solid var(--leg-borde);
+  border-radius: 10px;
+  padding: clamp(1.35rem, 2.6vw, 2.25rem);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.38);
+}
+
+.legal-page .legal-article {
+  background: var(--leg-papel);
+  border: 1px solid rgba(201, 149, 108, 0.2);
+  border-radius: 8px;
+  padding: clamp(1.1rem, 2.2vw, 1.85rem);
+}
+
+.legal-page .legal-intro-titulo {
+  color: var(--leg-oro);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+}
+
+.legal-page .legal-seccion-titulo {
+  color: var(--leg-texto);
+  font-size: 1.05rem;
+  font-weight: 500;
+  border-left: 3px solid var(--leg-oro);
+  padding-left: 0.65rem;
+  margin-top: 1.75rem;
+}
+
+.legal-page .legal-parrafo,
+.legal-page .legal-lista li {
+  color: var(--leg-texto-suave);
+  font-size: 0.92rem;
+  /* Interlineado holgado: es texto largo y denso */
+  line-height: 1.75;
+  /* Medida de lectura: las líneas llegaban a 100 caracteres */
+  max-width: 68ch;
+}
+
+.legal-page .legal-lista li::marker {
+  color: var(--leg-oro);
+}
+
+.legal-page .legal-article a {
+  color: var(--leg-oro);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── Pestañas ── */
+.legal-page .legal-tabs button {
+  min-height: 44px;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+/* ── Columna lateral ── */
+.legal-page .legal-aside {
+  /* Acompaña el scroll: el documento es larguísimo y la columna
+     terminaba en la primera pantalla, dejando un vacío enorme. */
+  position: sticky;
+  top: 1rem;
+  display: grid;
+  gap: clamp(0.75rem, 1.5vw, 1rem);
+  align-content: start;
+}
+
+.legal-page .legal-aside-card {
+  background: linear-gradient(168deg, var(--leg-crema-1) 0%, var(--leg-crema-2) 100%);
+  border: 1px solid var(--leg-borde);
+  border-radius: 10px;
+  padding: clamp(1rem, 1.8vw, 1.35rem);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32);
+}
+
+.legal-page .legal-aside-card h3,
+.legal-page .legal-aside-card strong {
+  color: var(--leg-texto);
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 400;
+}
+
+.legal-page .legal-aside-card p {
+  color: var(--leg-texto-suave);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.legal-page .legal-aside-icon {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201, 149, 108, 0.16);
+  border: 1px solid rgba(201, 149, 108, 0.35);
+  border-radius: 10px;
+  color: var(--leg-oro);
+  margin-bottom: 0.6rem;
+}
+
+.legal-page .legal-aside-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  /* Zona táctil accesible */
+  min-height: 44px;
+  padding: 0 0.85rem;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(201, 149, 108, 0.28);
+  border-radius: 8px;
+  color: var(--leg-oro);
+  font-size: 0.82rem;
+  text-decoration: none;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.legal-page .legal-aside-link:hover,
+.legal-page .legal-aside-link:focus-visible {
+  background: rgba(201, 149, 108, 0.16);
+  border-color: var(--leg-oro);
+  color: var(--leg-texto);
+}
+
+.legal-page .legal-aside-links {
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* ── Estado vacío ── */
+.legal-page .legal-empty-title { color: var(--leg-texto); }
+.legal-page .legal-empty-sub   { color: var(--leg-texto-suave); }
+.legal-page .legal-empty-icon  { color: var(--leg-oro); }
+
+/* ── Responsividad ── */
+@media (max-width: 900px) {
+  /* A una columna: la lateral baja al final, después del documento. */
+  .legal-page .legal-content-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .legal-page .legal-aside {
+    position: static;
+  }
+}
+
+@media (max-width: 560px) {
+  .legal-page .legal-main,
+  .legal-page .legal-article,
+  .legal-page .legal-aside-card {
+    padding: 1rem 0.9rem;
+  }
+
+  .legal-page .legal-tabs {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legal-page .legal-aside-link {
+    transition: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CORRECCIÓN
+
+   .legal-main envuelve TAMBIÉN el encabezado, no solo el documento, así
+   que el panel crema le cayó encima y el título —que es texto con
+   degradado recortado de blanco a oro, pensado para fondo oscuro—
+   desapareció. El panel se mueve a .legal-article, que es el documento
+   de verdad, y el encabezado recupera su fondo.
+
+   Las tarjetas laterales usan <h4>, no <h3>: sus títulos seguían en el
+   color del diseño oscuro y no se leían sobre el crema.
+═══════════════════════════════════════════════════════════════════ */
+.legal-page .legal-main {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+/* El documento sí lleva el panel */
+.legal-page .legal-article {
+  background: linear-gradient(168deg, var(--leg-crema-1) 0%, var(--leg-crema-2) 100%);
+  border: 1px solid var(--leg-borde);
+  border-radius: 10px;
+  padding: clamp(1.35rem, 2.6vw, 2.25rem);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.38);
+}
+
+/* El título del encabezado vuelve a su degradado sobre el fondo oscuro */
+.legal-page .legal-hero-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+}
+
+/* Títulos de las tarjetas laterales: son h4 */
+.legal-page .legal-aside-card h4 {
+  color: var(--leg-texto);
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 400;
+  margin: 0 0 0.4rem;
+}
+
+/* Los botones de navegación entre documentos */
+.legal-page .legal-aside-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 0.5rem;
+  padding: 0 0.85rem;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(201, 149, 108, 0.28);
+  border-radius: 8px;
+  color: var(--leg-oro);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.legal-page .legal-aside-nav:hover {
+  background: rgba(201, 149, 108, 0.16);
+  border-color: var(--leg-oro);
+  color: var(--leg-texto);
+}
+
+.legal-page .legal-aside-nav.active {
+  background: linear-gradient(135deg, #c9956c 0%, #e3bd93 100%);
+  border-color: rgba(138, 90, 43, 0.4);
+  color: #34261c;
+  font-weight: 600;
+}
+
+.legal-page .legal-aside-icon {
+  font-size: 1.05rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legal-page .legal-aside-nav {
+    transition: none;
+  }
+}
