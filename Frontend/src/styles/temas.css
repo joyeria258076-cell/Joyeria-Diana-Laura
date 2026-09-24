@@ -1,0 +1,159 @@
+/* ═══════════════════════════════════════════════════════════════════
+   temas.css — Sistema de temas de Joyería Diana Laura (mismo lenguaje
+   que la app móvil). Cada tema es un bloque [data-theme="…"] en <html>.
+
+   · Variables nuevas del sistema de diseño: --color-primary, --gradient-primary,
+     --radius-*, --shadow-*, --color-success…
+   · Además se asignan las variables que ya usa todo el sitio
+     (--color-bg, --color-rose-gold, --color-champagne, …) para que las
+     pantallas existentes tomen el tema sin tocarlas.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Tipografía */
+  --font-body: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-accent: 'Playfair Display', Georgia, serif;   /* solo la palabra de acento, en cursiva */
+
+  /* Estados (iguales en todos los temas) */
+  --color-success: #2EBD85;
+  --color-warning: #F6A723;
+  --color-error:   #EF4B5B;
+  --color-info:    #4C9BF5;
+
+  /* Radios y espaciado (múltiplos de 4) */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px;
+
+  /* Movimiento */
+  --t-fast: 200ms;
+  --t-base: 260ms;
+  --ease-silk: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* Vidrio */
+  --glass-blur: 18px;
+}
+
+/* ── 1. Negro · Rosa (predeterminado) ─────────────────────────────── */
+:root,
+[data-theme="negro_rosa"] {
+  --color-bg:            #0D080C;
+  --color-surface:       #191116;
+  --color-surface-2:     #261C22;
+  --color-primary:       #E9AFC7;
+  --color-primary-strong:#CF819F;
+  --color-accent:        #A792C2;
+  --color-text:          #FFF4FA;
+  --color-text-muted:    #C7A7BB;
+  --color-border:        rgba(255, 190, 220, 0.10);
+  --color-glow:          rgba(233, 175, 199, 0.10);
+  --color-on-primary:    #2A0F22;           /* texto sobre botones con degradado */
+  --glass-bg:            rgba(25, 17, 22, 0.62);
+  --glass-border:        rgba(255, 190, 220, 0.12);
+  --blob-1:              #CF819F;
+  --blob-2:              #A792C2;
+  --shadow-soft:  0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35);
+  --shadow-lift:  0 2px 6px rgba(0,0,0,.35), 0 18px 44px rgba(0,0,0,.45);
+  --shadow-primary: 0 10px 28px rgba(207, 129, 159, 0.32);
+  color-scheme: dark;
+}
+
+/* ── 2. Blanco · Rosa ─────────────────────────────────────────────── */
+[data-theme="blanco_rosa"] {
+  --color-bg:            #FFF6FA;
+  --color-surface:       #FFFFFF;
+  --color-surface-2:     #FCE8F1;
+  --color-primary:       #C9668F;
+  --color-primary-strong:#B85C83;
+  --color-accent:        #9486B8;
+  --color-text:          #2A0F22;
+  --color-text-muted:    #8D647C;
+  --color-border:        rgba(201, 102, 143, 0.16);
+  --color-glow:          rgba(201, 102, 143, 0.08);
+  --color-on-primary:    #FFFFFF;
+  --glass-bg:            rgba(255, 255, 255, 0.72);
+  --glass-border:        rgba(201, 102, 143, 0.14);
+  --blob-1:              #F2B6CE;
+  --blob-2:              #C9BFE6;
+  --shadow-soft:  0 1px 2px rgba(122, 44, 82, .06), 0 8px 24px rgba(122, 44, 82, .08);
+  --shadow-lift:  0 2px 6px rgba(122, 44, 82, .08), 0 18px 44px rgba(122, 44, 82, .14);
+  --shadow-primary: 0 10px 28px rgba(184, 92, 131, 0.28);
+  color-scheme: light;
+}
+
+/* ── 3. Negro · Dorado (estilo anterior de la web) ────────────────── */
+[data-theme="negro_dorado"] {
+  --color-bg:            #0A0A0A;
+  --color-surface:       #141414;
+  --color-surface-2:     #1E1E1E;
+  --color-primary:       #C9956C;
+  --color-primary-strong:#B07E57;
+  --color-accent:        #E8D5B7;
+  --color-text:          #F5F0EB;
+  --color-text-muted:    #9E9087;
+  --color-border:        rgba(201, 149, 108, 0.18);
+  --color-glow:          rgba(201, 149, 108, 0.08);
+  --color-on-primary:    #1A120B;
+  --glass-bg:            rgba(20, 20, 20, 0.62);
+  --glass-border:        rgba(201, 149, 108, 0.16);
+  --blob-1:              #B07E57;
+  --blob-2:              #E8D5B7;
+  --shadow-soft:  0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35);
+  --shadow-lift:  0 2px 6px rgba(0,0,0,.35), 0 18px 44px rgba(0,0,0,.45);
+  --shadow-primary: 0 10px 28px rgba(176, 126, 87, 0.30);
+  color-scheme: dark;
+}
+
+/* ── Derivados comunes (se calculan a partir del tema activo) ─────── */
+:root,
+[data-theme] {
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-strong) 55%, var(--color-accent) 100%);
+  --focus-ring: 0 0 0 5px color-mix(in srgb, var(--color-primary) 22%, transparent);
+
+  /* Compatibilidad: variables que ya usan las ~90 hojas del sitio */
+  --color-rose-gold: var(--color-primary);
+  --color-champagne: var(--color-accent);
+  --color-blush:     var(--color-error);
+}
+
+/* Etiquetas de estado al 15% (uso: <span class="dl-estado dl-estado--exito">) */
+.dl-estado { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: var(--radius-pill); font-family: var(--font-body); font-size: 12px; font-weight: 600; }
+.dl-estado--exito   { color: var(--color-success); background: color-mix(in srgb, var(--color-success) 15%, transparent); }
+.dl-estado--aviso   { color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 15%, transparent); }
+.dl-estado--error   { color: var(--color-error);   background: color-mix(in srgb, var(--color-error) 15%, transparent); }
+.dl-estado--info    { color: var(--color-info);    background: color-mix(in srgb, var(--color-info) 15%, transparent); }
+.dl-estado--primario{ color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 15%, transparent); }
+
+/* Transición suave al cambiar de tema */
+html.dl-cambiando-tema *,
+html.dl-cambiando-tema *::before,
+html.dl-cambiando-tema *::after {
+  transition: background-color var(--t-base) ease, color var(--t-base) ease, border-color var(--t-base) ease !important;
+}
+
+/* ── Selector de tema ─────────────────────────────────────────────── */
+.dl-temas { display: inline-flex; gap: 4px; padding: 4px; border-radius: var(--radius-pill); background: var(--color-surface-2); border: 1px solid var(--color-border); }
+.dl-tema-opcion {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border: 0; border-radius: var(--radius-pill); cursor: pointer;
+  background: transparent; color: var(--color-text-muted);
+  font-family: var(--font-body); font-size: 13px; font-weight: 500;
+  transition: background var(--t-fast) ease, color var(--t-fast) ease;
+}
+.dl-tema-opcion:hover { color: var(--color-text); }
+.dl-tema-opcion[aria-checked="true"] { background: var(--color-text); color: var(--color-bg); font-weight: 600; }
+.dl-tema-muestra { display: inline-flex; }
+.dl-tema-muestra i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--color-surface); margin-left: -4px; }
+.dl-tema-muestra i:first-child { margin-left: 0; }
+
+/* Versión compacta (solo muestras de color) para el menú del usuario */
+.dl-temas--compacto { padding: 3px; gap: 2px; }
+.dl-temas--compacto .dl-tema-opcion { padding: 6px; }
+.dl-temas--compacto .dl-tema-nombre { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.dl-temas--compacto .dl-tema-opcion[aria-checked="true"] { background: var(--color-glow); box-shadow: inset 0 0 0 1.5px var(--color-primary); }

@@ -2,25 +2,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AiOutlineCloudUpload, AiOutlineCheckCircle, AiOutlinePicture } from 'react-icons/ai';
 import { productsAPI, carritoAPI, uploadAPI } from '../../services/api';
-import { PALETAS, aplicarTema } from '../../components/ThemeConfigLoader';
+import { PALETAS, NOMBRES_TEMA, aplicarTema, restaurarTema, normalizarTema } from '../../components/ThemeConfigLoader';
 import Loader from '../../components/Loader';
 import '../../styles/SitioSecciones.css';
 import './AdminPersonalizacionVisualScreen.css';
 
-const NOMBRES_PALETA: Record<string, string> = {
-    clasico: 'Clásico (negro y rose gold)',
-    blanco_rosa: 'Blanco y rosa',
-    naranja_blanco: 'Naranja y blanco',
-};
+const NOMBRES_PALETA: Record<string, string> = NOMBRES_TEMA;
 
 const AdminPersonalizacionVisualScreen: React.FC = () => {
     const [cargando, setCargando] = useState(true);
     const [fondoUrl, setFondoUrl] = useState('');
     const [fondoPreview, setFondoPreview] = useState('');
     const [fondoFile, setFondoFile] = useState<File | null>(null);
-    const [paletaSeleccionada, setPaletaSeleccionada] = useState('clasico');
+    const [paletaSeleccionada, setPaletaSeleccionada] = useState('negro_rosa');
     // Lo último guardado: si el admin sale sin guardar, se restaura esto
-    const guardadoRef = useRef<{ fondo: string | null; paleta: string }>({ fondo: null, paleta: 'clasico' });
+    const guardadoRef = useRef<{ fondo: string | null; paleta: string }>({ fondo: null, paleta: 'negro_rosa' });
     const [arrastrando, setArrastrando] = useState(false);
     const [subiendo, setSubiendo] = useState(false);
     const [guardando, setGuardando] = useState(false);
@@ -38,10 +34,10 @@ const AdminPersonalizacionVisualScreen: React.FC = () => {
                     setFondoUrl(fondoRes.data.valor);
                     setFondoPreview(fondoRes.data.valor);
                 }
-                if (paletaRes?.success && paletaRes.data?.valor) setPaletaSeleccionada(paletaRes.data.valor);
+                if (paletaRes?.success && paletaRes.data?.valor) setPaletaSeleccionada(normalizarTema(paletaRes.data.valor) || 'negro_rosa');
                 guardadoRef.current = {
                     fondo: fondoRes?.data?.valor || null,
-                    paleta: paletaRes?.data?.valor || 'clasico',
+                    paleta: normalizarTema(paletaRes?.data?.valor) || 'negro_rosa',
                 };
             } finally {
                 setCargando(false);
@@ -50,7 +46,7 @@ const AdminPersonalizacionVisualScreen: React.FC = () => {
     }, []);
 
     // Al salir de la pantalla sin guardar se vuelve a la paleta guardada
-    useEffect(() => () => aplicarTema(guardadoRef.current.fondo, guardadoRef.current.paleta), []);
+    useEffect(() => () => { aplicarTema(guardadoRef.current.fondo); restaurarTema(); }, []);
 
     // Vista previa en vivo: al elegir una paleta se aplica de inmediato a todo el sistema
     const elegirPaleta = (clave: string) => {
@@ -154,11 +150,11 @@ const AdminPersonalizacionVisualScreen: React.FC = () => {
             </section>
 
             <section className="sx-card sx-card--static apv-card">
-                <h2 className="apv-card-title">Paleta de colores</h2>
-                <p className="apv-card-sub">Haz clic en una opción para verla aplicada en este momento.</p>
+                <h2 className="apv-card-title">Tema predeterminado</h2>
+                <p className="apv-card-sub">Es el tema con el que ven el sitio quienes no han elegido uno. Cada usuario puede cambiarlo desde su menú o su perfil. Haz clic para verlo aplicado ahora.</p>
                 <div className="apv-paletas">
                     {Object.keys(PALETAS).map(clave => {
-                        const c = PALETAS[clave];
+                        const c = PALETAS[clave as keyof typeof PALETAS];
                         const activa = paletaSeleccionada === clave;
                         return (
                             <button

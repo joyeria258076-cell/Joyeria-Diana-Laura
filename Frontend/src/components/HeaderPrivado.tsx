@@ -14,6 +14,7 @@ import {
     AiOutlineUsergroupAdd, AiOutlineCheckSquare, AiOutlineHome, AiOutlineShop, AiOutlineHeart,
     AiOutlineBook, AiOutlineEnvironment, AiOutlineLogout, AiOutlineBell, AiOutlineDown, AiOutlineEye,
 } from "react-icons/ai";
+import SelectorTema from "./SelectorTema";
 import "../styles/HeaderPrivado.css";
 
 const HeaderPrivado: React.FC = () => {
@@ -358,6 +359,7 @@ const HeaderPrivado: React.FC = () => {
                     Bienvenido, <strong>{user?.nombre || 'Usuario'}</strong>
                 </div>
                 <div className="header-acciones-derecha">
+                    <SelectorTema compacto />
                     {userRole === 'cliente' && (
                         <button
                             className="header-notif-btn"

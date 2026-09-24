@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import SelectorTema from "./SelectorTema";
 import "../styles/PublicHeader.css";
 
 const PublicHeader: React.FC = () => {
@@ -56,6 +57,7 @@ const PublicHeader: React.FC = () => {
 
           {/* Botón de acceso — desktop */}
           <div className="header-auth hide-mobile">
+            <SelectorTema compacto />
             <Link to="/login" className="btn-acceso">Acceso</Link>
           </div>
 
@@ -90,6 +92,7 @@ const PublicHeader: React.FC = () => {
             {l.label}
           </Link>
         ))}
+        <div className="pub-nav-mobile-tema"><SelectorTema /></div>
         <Link to="/login" className="pub-nav-mobile-acceso" onClick={() => setMenuOpen(false)}>
           Acceso
         </Link>

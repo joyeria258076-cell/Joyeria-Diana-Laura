@@ -1,63 +1,112 @@
 // Ruta: Frontend/src/components/ThemeConfigLoader.tsx
-// Al montarse (una sola vez, en la raíz de la app), consulta la
-// personalización visual guardada por el admin (fondo + paleta de colores)
-// y la aplica sobreescribiendo las variables CSS globales de :root.
-// No renderiza nada — es un efecto puro de configuración de tema.
-import { useEffect } from 'react';
+// Temas del sitio (mismo lenguaje que la app móvil). Los colores viven en
+// styles/temas.css como bloques [data-theme="…"]; aquí solo se decide cuál
+// aplicar y se pone el atributo en <html>.
+//
+// Orden de prioridad del tema:
+//   1. ?tema=<clave> en la URL (vista previa en una pestaña)
+//   2. elección del usuario (localStorage, selector del perfil / menú)
+//   3. tema predeterminado del sitio que elige el admin (configuracion.sitio_paleta)
+//   4. Negro · Rosa
+import { useEffect, useSyncExternalStore } from 'react';
 import { productsAPI } from '../services/api';
 
-export const PALETAS: Record<string, Record<string, string>> = {
-  clasico: {
-    '--color-bg': '#0a0a0a',
-    '--color-surface': '#141414',
-    '--color-surface-2': '#1e1e1e',
-    '--color-rose-gold': '#c9956c',
-    '--color-champagne': '#e8d5b7',
-    '--color-blush': '#f4c2c2',
-    '--color-text': '#f5f0eb',
-    '--color-text-muted': '#9e9087',
-    '--color-border': 'rgba(201, 149, 108, 0.18)',
-    '--color-glow': 'rgba(201, 149, 108, 0.08)',
+export type ClaveTema = 'negro_rosa' | 'blanco_rosa' | 'negro_dorado';
+
+// Valores de cada tema (se usan para las muestras y miniaturas; la fuente
+// de verdad de los estilos es temas.css).
+export const PALETAS: Record<ClaveTema, Record<string, string>> = {
+  negro_rosa: {
+    '--color-bg': '#0D080C', '--color-surface': '#191116', '--color-surface-2': '#261C22',
+    '--color-rose-gold': '#E9AFC7', '--color-champagne': '#A792C2', '--color-primary-strong': '#CF819F',
+    '--color-text': '#FFF4FA', '--color-text-muted': '#C7A7BB', '--color-border': 'rgba(255,190,220,.10)',
   },
-  // En paletas claras "champagne" se usa también como color de texto/acento,
-  // así que debe ser un tono medio legible sobre blanco (no un pastel).
   blanco_rosa: {
-    '--color-bg': '#fefbfc',
-    '--color-surface': '#ffffff',
-    '--color-surface-2': '#faf4f6',
-    '--color-rose-gold': '#c07b8d',
-    '--color-champagne': '#94586a',
-    '--color-blush': '#a94f66',
-    '--color-text': '#2b2226',
-    '--color-text-muted': '#76666c',
-    '--color-border': 'rgba(192, 123, 141, 0.2)',
-    '--color-glow': 'rgba(192, 123, 141, 0.07)',
+    '--color-bg': '#FFF6FA', '--color-surface': '#FFFFFF', '--color-surface-2': '#FCE8F1',
+    '--color-rose-gold': '#C9668F', '--color-champagne': '#9486B8', '--color-primary-strong': '#B85C83',
+    '--color-text': '#2A0F22', '--color-text-muted': '#8D647C', '--color-border': 'rgba(201,102,143,.16)',
   },
-  naranja_blanco: {
-    '--color-bg': '#fffcf8',
-    '--color-surface': '#ffffff',
-    '--color-surface-2': '#fbf5ee',
-    '--color-rose-gold': '#cc8d55',
-    '--color-champagne': '#8f6038',
-    '--color-blush': '#a9573c',
-    '--color-text': '#2b241d',
-    '--color-text-muted': '#766a5e',
-    '--color-border': 'rgba(204, 141, 85, 0.22)',
-    '--color-glow': 'rgba(204, 141, 85, 0.07)',
+  negro_dorado: {
+    '--color-bg': '#0A0A0A', '--color-surface': '#141414', '--color-surface-2': '#1E1E1E',
+    '--color-rose-gold': '#C9956C', '--color-champagne': '#E8D5B7', '--color-primary-strong': '#B07E57',
+    '--color-text': '#F5F0EB', '--color-text-muted': '#9E9087', '--color-border': 'rgba(201,149,108,.18)',
   },
 };
 
-export function aplicarTema(fondoUrl?: string | null, paletaClave?: string | null) {
+export const NOMBRES_TEMA: Record<ClaveTema, string> = {
+  negro_rosa: 'Negro · Rosa',
+  blanco_rosa: 'Blanco · Rosa',
+  negro_dorado: 'Negro · Dorado',
+};
+
+export const TEMAS = Object.keys(PALETAS) as ClaveTema[];
+const TEMA_POR_DEFECTO: ClaveTema = 'negro_rosa';
+const CLAVE_LS = 'dl_tema';
+
+// Claves antiguas guardadas por el admin antes de este sistema
+const ALIAS: Record<string, ClaveTema> = { clasico: 'negro_dorado', naranja_blanco: 'blanco_rosa' };
+
+export const normalizarTema = (v?: string | null): ClaveTema | null => {
+  if (!v) return null;
+  if ((TEMAS as string[]).includes(v)) return v as ClaveTema;
+  return ALIAS[v] || null;
+};
+
+// ── Estado compartido ──
+let temaSitio: ClaveTema | null = null;      // el del admin
+let temaActual: ClaveTema = TEMA_POR_DEFECTO;
+const oyentes = new Set<() => void>();
+
+const leerPreferencia = (): ClaveTema | null => {
+  try { return normalizarTema(localStorage.getItem(CLAVE_LS)); } catch { return null; }
+};
+
+const ponerEnHtml = (clave: ClaveTema) => {
   const root = document.documentElement;
-  if (fondoUrl) {
-    root.style.setProperty('--global-bg-url', `url('${fondoUrl}')`);
-  }
-  const paleta = paletaClave ? PALETAS[paletaClave] : null;
-  if (paleta) {
-    Object.entries(paleta).forEach(([variable, valor]) => root.style.setProperty(variable, valor));
-    root.dataset.tema = paletaClave === 'clasico' ? 'oscuro' : 'claro';
-  }
+  root.classList.add('dl-cambiando-tema');
+  root.dataset.theme = clave;
+  root.dataset.tema = clave === 'blanco_rosa' ? 'claro' : 'oscuro';
+  window.setTimeout(() => root.classList.remove('dl-cambiando-tema'), 320);
+  temaActual = clave;
+  oyentes.forEach(fn => fn());
+};
+
+/** Tema que corresponde ahora según la prioridad (URL › usuario › sitio › defecto). */
+const resolverTema = (): ClaveTema => {
+  let url: ClaveTema | null = null;
+  try { url = normalizarTema(new URLSearchParams(window.location.search).get('tema')); } catch { /* */ }
+  return url || leerPreferencia() || temaSitio || TEMA_POR_DEFECTO;
+};
+
+/** Aplica el fondo global y, si se indica, fuerza un tema (vista previa del admin). */
+export function aplicarTema(fondoUrl?: string | null, clave?: string | null) {
+  if (fondoUrl) document.documentElement.style.setProperty('--global-bg-url', `url('${fondoUrl}')`);
+  const t = normalizarTema(clave);
+  if (t) ponerEnHtml(t);
 }
+
+/** Vuelve al tema que corresponde (p. ej. al salir de la vista previa del admin). */
+export const restaurarTema = () => ponerEnHtml(resolverTema());
+
+/** Guarda la elección del usuario y la aplica. `null` = usar el del sitio. */
+export const elegirTema = (clave: ClaveTema | null) => {
+  try {
+    if (clave) localStorage.setItem(CLAVE_LS, clave);
+    else localStorage.removeItem(CLAVE_LS);
+  } catch { /* modo privado: se aplica solo en esta sesión */ }
+  ponerEnHtml(clave || temaSitio || TEMA_POR_DEFECTO);
+};
+
+/** Hook para leer el tema activo desde cualquier componente. */
+export const useTema = () =>
+  useSyncExternalStore(
+    fn => { oyentes.add(fn); return () => { oyentes.delete(fn); }; },
+    () => temaActual,
+  );
+
+// Aplica de inmediato la preferencia guardada (antes de la respuesta del
+// servidor) para que no haya parpadeo de colores al cargar.
+if (typeof document !== 'undefined') ponerEnHtml(resolverTema());
 
 const ThemeConfigLoader: React.FC = () => {
   useEffect(() => {
@@ -67,14 +116,11 @@ const ThemeConfigLoader: React.FC = () => {
           productsAPI.getConfiguracionByClave('sitio_fondo_url').catch(() => null),
           productsAPI.getConfiguracionByClave('sitio_paleta').catch(() => null),
         ]);
-        // ?tema=blanco_rosa en la URL permite previsualizar una paleta solo en esa pestaña
-        const temaUrl = new URLSearchParams(window.location.search).get('tema');
-        aplicarTema(
-          fondoRes?.success ? fondoRes.data?.valor : null,
-          temaUrl && PALETAS[temaUrl] ? temaUrl : (paletaRes?.success ? paletaRes.data?.valor : null)
-        );
+        if (fondoRes?.success && fondoRes.data?.valor) aplicarTema(fondoRes.data.valor);
+        temaSitio = normalizarTema(paletaRes?.success ? paletaRes.data?.valor : null);
+        ponerEnHtml(resolverTema());
       } catch {
-        // Silencioso: si falla, se queda con los valores por default de index.css.
+        // Silencioso: se queda con la preferencia del usuario o el tema por defecto.
       }
     })();
   }, []);

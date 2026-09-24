@@ -3,6 +3,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { authAPI, profileAPI, solicitudesAPI, uploadAPI } from "../../services/api";
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineDesktop, AiOutlineReload } from "react-icons/ai";
+import SelectorTema from "../../components/SelectorTema";
 import "./PerfilScreen.css";
 
 interface SesionActiva {
@@ -497,6 +498,13 @@ export default function PerfilScreen() {
           )}
         </div>
       )}
+
+      {/* ── APARIENCIA (tema de colores, se guarda en este navegador) ── */}
+      <div className="pf-section">
+        <h2 className="pf-section-title">Apariencia</h2>
+        <p className="pf-section-sub">Elige cómo quieres ver la tienda. Se guarda en este dispositivo.</p>
+        <SelectorTema />
+      </div>
 
       {/* ── TAB: SEGURIDAD ── */}
       {tab === 'seguridad' && (

@@ -251,3 +251,7 @@
   .brand-initials { font-size: 1.15rem; }
   .brand-name     { font-size: 1.05rem; }
 }
+
+.header-auth { gap: 0.75rem; }
+.pub-nav-mobile-tema { padding: 0.6rem 1.5rem 0.2rem; }
+.pub-nav-mobile-tema .dl-temas { width: 100%; justify-content: space-between; }
