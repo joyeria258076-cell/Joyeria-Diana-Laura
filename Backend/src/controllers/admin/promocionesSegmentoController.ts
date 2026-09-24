@@ -8,93 +8,154 @@ const BREVO_ENDPOINT = 'https://api.brevo.com/v3/smtp/email';
 const REMITENTE_EMAIL = process.env.BREVO_SENDER_EMAIL || '';
 const REMITENTE_NOMBRE = process.env.BREVO_SENDER_NOMBRE || 'Joyeria Diana Laura';
 
-const SEGMENTO_META: Record<string, { color: string; colorClaro: string; icono: string; titulo: string }> = {
-  'Cliente Frecuente de Alto Gasto': { color: '#d4607e', colorClaro: '#f4c2d1', icono: '👑', titulo: 'Cliente VIP' },
-  'Cliente Ocasional': { color: '#ecb2c3', colorClaro: '#f9dde4', icono: '✨', titulo: 'Te extrañamos' },
-  'Cliente Apartador': { color: '#c65a7a', colorClaro: '#ecb2c3', icono: '💎', titulo: 'Tu apartado' },
+const SITIO = 'https://joyeria-diana-laura.vercel.app';
+
+// Paleta del sitio (clásica): negro cálido + rose gold / champagne
+const C = {
+  fondo: '#0a0a0a', superficie: '#141414', superficie2: '#1e1e1e',
+  oro: '#c9956c', champagne: '#e8d5b7', texto: '#f5f0eb', tenue: '#9e9087',
+  borde: 'rgba(201,149,108,0.25)',
+};
+const SERIF = "'Cormorant Garamond',Georgia,'Times New Roman',serif";
+const SANS = "'Jost','Segoe UI',Arial,sans-serif";
+
+// Texto de apertura según el segmento de K-Means
+const SEGMENTO_META: Record<string, { icono: string; titulo: string; intro: string }> = {
+  'Cliente Frecuente de Alto Gasto': {
+    icono: '👑', titulo: 'Cliente VIP',
+    intro: 'Eres de nuestras clientas más especiales y queremos agradecerte con algo pensado solo para ti.',
+  },
+  'Cliente Ocasional': {
+    icono: '✨', titulo: 'Te extrañamos',
+    intro: 'Hace tiempo que no nos visitas y tenemos piezas nuevas que creemos que te van a encantar.',
+  },
+  'Cliente Apartador': {
+    icono: '💎', titulo: 'Para tu próxima pieza',
+    intro: 'Sabemos que te gusta planear tus compras; aquí tienes una ayuda para tu próxima pieza.',
+  },
 };
 
-function construirBadgeDescuento(descuento: { tipo: string; valor: number } | null, meta: { color: string; colorClaro: string }): string {
-  if (!descuento) return '';
-  const texto = descuento.tipo === 'porcentaje'
-    ? `${descuento.valor}% de descuento`
-    : `$${descuento.valor} MXN de descuento`;
+interface ProductoCorreo { id: number; nombre: string; precio_venta: number; precio_oferta: number | null; imagen_principal: string; }
+interface DescuentoCorreo { tipo: string; valor: number; codigo: string; vence: Date }
+
+const escapar = (t: string) => String(t || '')
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const dinero = (n: number) => `$${Number(n).toLocaleString('es-MX', { maximumFractionDigits: 2 })}`;
+const precioConDescuento = (precio: number, d: DescuentoCorreo | null) => {
+  if (!d) return null;
+  const final = d.tipo === 'porcentaje' ? precio * (1 - d.valor / 100) : precio - d.valor;
+  return final > 0 && final < precio ? final : null;
+};
+
+function bloqueCupon(d: DescuentoCorreo | null): string {
+  if (!d) return '';
+  const texto = d.tipo === 'porcentaje' ? `${d.valor}% de descuento` : `${dinero(d.valor)} de descuento`;
+  const vence = d.vence.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
   return `
-    <table role="presentation" width="100%" style="margin:0 0 24px;">
-      <tr><td style="text-align:center;">
-        <div style="display:inline-block; background:linear-gradient(135deg,${meta.color} 0%,${meta.colorClaro} 100%); color:#1a0a10; font-weight:800; font-size:15px; letter-spacing:0.5px; padding:12px 28px; border-radius:50px; font-family:'Segoe UI',Arial,sans-serif;">
-          🎁 ${texto} aplicado automáticamente en tu próxima compra
-        </div>
+  <tr><td style="padding:0 36px 28px;">
+    <table role="presentation" width="100%" style="border:1px dashed ${C.oro}; border-radius:14px; background:${C.superficie2};">
+      <tr><td style="padding:22px; text-align:center;">
+        <p style="margin:0 0 6px; font-family:${SANS}; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:${C.oro};">Tu regalo</p>
+        <p style="margin:0 0 12px; font-family:${SERIF}; font-size:30px; color:${C.texto};">${texto}</p>
+        <p style="margin:0 0 14px; font-family:${SANS}; font-size:13px; color:${C.tenue};">Se aplica solo en tu carrito, no necesitas escribir nada.</p>
+        <span style="display:inline-block; font-family:'Courier New',monospace; font-size:15px; letter-spacing:2px; color:${C.champagne}; border:1px solid ${C.borde}; border-radius:8px; padding:8px 16px;">${escapar(d.codigo)}</span>
+        <p style="margin:14px 0 0; font-family:${SANS}; font-size:12px; color:${C.tenue};">Válido hasta el ${vence}</p>
       </td></tr>
-    </table>`;
+    </table>
+  </td></tr>`;
 }
 
-function construirHtmlPromocion(nombrePila: string, mensaje: string, segmento: string, descuento: { tipo: string; valor: number } | null = null): string {
-  const meta = SEGMENTO_META[segmento] || { color: '#d4607e', colorClaro: '#ecb2c3', icono: '💍', titulo: 'Oferta especial' };
-  const badgeDescuento = construirBadgeDescuento(descuento, meta);
+function bloqueProductos(productos: ProductoCorreo[], d: DescuentoCorreo | null): string {
+  if (!productos.length) return '';
+  const celdas = productos.map(p => {
+    const base = Number(p.precio_oferta || p.precio_venta);
+    const conDesc = precioConDescuento(base, d);
+    const precio = conDesc
+      ? `<span style="color:${C.tenue}; text-decoration:line-through; font-size:12px;">${dinero(base)}</span><br><span style="color:${C.champagne}; font-size:15px;">${dinero(conDesc)}</span>`
+      : `<span style="color:${C.champagne}; font-size:15px;">${dinero(base)}</span>`;
+    return `
+      <td width="${Math.floor(100 / productos.length)}%" style="padding:0 6px; vertical-align:top;">
+        <a href="${SITIO}/producto/${p.id}" style="text-decoration:none; display:block; background:${C.superficie}; border:1px solid ${C.borde}; border-radius:12px; overflow:hidden;">
+          <img src="${escapar(p.imagen_principal)}" alt="${escapar(p.nombre)}" width="100%" style="display:block; width:100%; height:150px; object-fit:cover; border:0;">
+          <div style="padding:12px 10px 14px; text-align:center;">
+            <p style="margin:0 0 6px; font-family:${SERIF}; font-size:16px; line-height:1.25; color:${C.texto};">${escapar(p.nombre)}</p>
+            <p style="margin:0; font-family:${SANS}; line-height:1.4;">${precio}</p>
+          </div>
+        </a>
+      </td>`;
+  }).join('');
+  return `
+  <tr><td style="padding:0 30px 30px;">
+    <p style="margin:0 0 14px; text-align:center; font-family:${SANS}; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:${C.oro};">Elegidas para ti</p>
+    <table role="presentation" width="100%"><tr>${celdas}</tr></table>
+  </td></tr>`;
+}
+
+export function construirHtmlPromocion(
+  nombrePila: string, mensaje: string, segmento: string,
+  descuento: DescuentoCorreo | null, productos: ProductoCorreo[], whatsapp: string | null,
+): string {
+  const meta = SEGMENTO_META[segmento] || { icono: '💍', titulo: 'Especial para ti', intro: 'Preparamos algo especial para ti.' };
+  const mensajeHtml = escapar(mensaje).replace(/\n/g, '<br>');
+  const wa = whatsapp ? whatsapp.replace(/\D/g, '') : '';
 
   return `
-  <div style="background:#050505; padding:40px 16px; font-family:Georgia,'Times New Roman',serif;">
-    <table role="presentation" width="100%" style="max-width:540px; margin:0 auto; background:linear-gradient(160deg,#141014 0%,#0a0708 60%,#050405 100%); border-radius:20px; overflow:hidden; border:1px solid ${meta.color}35; box-shadow:0 20px 50px rgba(0,0,0,0.6);">
+  <div style="background:${C.fondo}; padding:36px 12px;">
+    <table role="presentation" width="100%" style="max-width:580px; margin:0 auto; background:${C.fondo}; border:1px solid ${C.borde}; border-radius:18px; overflow:hidden;">
+      <tr><td style="height:3px; background:linear-gradient(90deg,${C.oro},${C.champagne},${C.oro});"></td></tr>
 
-      <tr>
-        <td style="height:5px; background:linear-gradient(90deg,#c9a84c,${meta.color},${meta.colorClaro},${meta.color},#c9a84c);"></td>
-      </tr>
+      <tr><td style="padding:40px 36px 10px; text-align:center;">
+        <p style="margin:0 0 4px; font-family:${SERIF}; font-size:30px; color:${C.texto}; letter-spacing:1px;"><span style="color:${C.oro};">DL</span> Diana Laura</p>
+        <p style="margin:0 0 24px; font-family:${SANS}; font-size:10px; letter-spacing:4px; text-transform:uppercase; color:${C.tenue};">Joyería y bisutería</p>
+        <span style="display:inline-block; font-family:${SANS}; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:${C.champagne}; border:1px solid ${C.borde}; border-radius:50px; padding:8px 18px;">${meta.icono}&nbsp; ${meta.titulo}</span>
+      </td></tr>
 
-      <!-- Banner superior -->
-      <tr>
-        <td style="padding:44px 32px 26px; text-align:center; background:radial-gradient(circle at 50% 0%, ${meta.color}1a 0%, transparent 65%);">
-          <p style="margin:0 0 8px; font-size:11px; letter-spacing:5px; text-transform:uppercase; color:${meta.colorClaro}; font-weight:400; font-family:Georgia,serif;">Joyería</p>
-          <h1 style="margin:0 0 20px; font-family:'Playfair Display',Georgia,serif; font-weight:700; font-style:italic; font-size:34px; color:#ffffff; letter-spacing:0.5px;">Diana Laura</h1>
-          <div style="display:inline-block; background:${meta.color}1f; border:1px solid ${meta.color}70; border-radius:50px; padding:9px 22px;">
-            <span style="font-size:14px; vertical-align:middle;">${meta.icono}</span>
-            <span style="font-size:11px; letter-spacing:2px; text-transform:uppercase; color:${meta.colorClaro}; font-weight:600; vertical-align:middle; margin-left:8px; font-family:'Segoe UI',Arial,sans-serif;">${meta.titulo}</span>
-          </div>
-        </td>
-      </tr>
+      <tr><td style="padding:26px 36px 8px;">
+        <p style="margin:0 0 10px; font-family:${SERIF}; font-size:28px; color:${C.texto};">Hola, <span style="color:${C.oro};">${escapar(nombrePila) || 'cliente'}</span></p>
+        <p style="margin:0 0 18px; font-family:${SANS}; font-size:15px; line-height:1.7; color:${C.tenue};">${meta.intro}</p>
+        <p style="margin:0 0 28px; font-family:${SANS}; font-size:15px; line-height:1.75; color:${C.texto};">${mensajeHtml}</p>
+      </td></tr>
 
-      <!-- Cuerpo -->
-      <tr>
-        <td style="padding:8px 36px 8px;">
-          <p style="margin:0 0 6px; font-size:22px; color:#ffffff; font-family:'Playfair Display',Georgia,serif; font-style:italic;">Hola, ${nombrePila}</p>
-          <p style="margin:0 0 24px; font-size:12px; letter-spacing:1px; color:rgba(255,255,255,0.4); font-family:'Segoe UI',Arial,sans-serif; text-transform:uppercase;">Tenemos algo especial para ti</p>
+      ${bloqueCupon(descuento)}
+      ${bloqueProductos(productos, descuento)}
 
-          <table role="presentation" width="100%" style="background:linear-gradient(135deg,${meta.color}14 0%, rgba(255,255,255,0.015) 100%); border:1px solid ${meta.color}45; border-radius:14px; margin:0 0 28px;">
-            <tr>
-              <td style="padding:26px 26px;">
-                <p style="margin:0; font-size:16px; line-height:1.7; color:#f0dede; font-family:'Segoe UI',Arial,sans-serif;">${mensaje}</p>
-              </td>
-            </tr>
-          </table>
+      <tr><td style="padding:0 36px 36px; text-align:center;">
+        <a href="${SITIO}/catalogo" style="display:inline-block; background:linear-gradient(135deg,${C.oro},${C.champagne}); color:#0a0a0a; text-decoration:none; font-family:${SANS}; font-size:12px; font-weight:600; letter-spacing:2px; text-transform:uppercase; padding:15px 40px; border-radius:8px;">Ver catálogo</a>
+        ${wa ? `<p style="margin:16px 0 0; font-family:${SANS}; font-size:13px;"><a href="https://wa.me/${wa}" style="color:${C.champagne};">¿Dudas? Escríbenos por WhatsApp</a></p>` : ''}
+      </td></tr>
 
-          ${badgeDescuento}
-        </td>
-      </tr>
-
-      <!-- CTA -->
-      <tr>
-        <td style="padding:0 36px 40px; text-align:center;">
-          <a href="https://joyeria-diana-laura.vercel.app/catalogo" style="display:inline-block; background:linear-gradient(135deg,${meta.color} 0%,${meta.colorClaro} 100%); color:#1a0a10; text-decoration:none; font-weight:700; font-size:13px; letter-spacing:1.5px; padding:16px 42px; border-radius:50px; box-shadow:0 8px 24px ${meta.color}45; font-family:'Segoe UI',Arial,sans-serif; text-transform:uppercase;">Ver Catálogo</a>
-          <p style="margin:18px 0 0; font-size:12px; color:rgba(255,255,255,0.3); font-family:'Segoe UI',Arial,sans-serif;">o contáctanos directamente por WhatsApp</p>
-        </td>
-      </tr>
-
-      <!-- Divisor decorativo -->
-      <tr>
-        <td style="padding:0 36px;">
-          <div style="height:1px; background:linear-gradient(90deg,transparent,${meta.color}45,transparent);"></div>
-        </td>
-      </tr>
-
-      <!-- Footer -->
-      <tr>
-        <td style="padding:24px 36px 34px; text-align:center;">
-          <p style="margin:0 0 5px; font-size:15px; color:${meta.colorClaro}; font-weight:700; font-style:italic; font-family:'Playfair Display',Georgia,serif;">Joyería Diana Laura</p>
-          <p style="margin:0; font-size:11px; letter-spacing:0.5px; color:rgba(255,255,255,0.3); font-family:'Segoe UI',Arial,sans-serif;">Elegancia que brilla contigo</p>
-        </td>
-      </tr>
+      <tr><td style="padding:22px 36px 30px; border-top:1px solid ${C.borde}; text-align:center;">
+        <p style="margin:0 0 4px; font-family:${SERIF}; font-size:17px; color:${C.champagne};">Joyería Diana Laura</p>
+        <p style="margin:0; font-family:${SANS}; font-size:11px; color:${C.tenue};">Recibes este correo porque eres cliente de Joyería Diana Laura.</p>
+      </td></tr>
     </table>
   </div>`;
+}
+
+// 3 piezas para cada cliente: de su categoría más comprada; si no tiene
+// historial, las destacadas/recientes. Solo con existencia e imagen.
+async function productosParaCliente(clienteId: number): Promise<ProductoCorreo[]> {
+  const r = await pool.query(
+    `WITH fav AS (
+       SELECT p.categoria_id, COUNT(*) n
+       FROM ventas v JOIN detalle_ventas dv ON dv.venta_id = v.id
+       JOIN productos p ON p.id = dv.producto_id
+       WHERE v.cliente_id = $1 GROUP BY p.categoria_id ORDER BY n DESC LIMIT 1
+     ),
+     comprados AS (
+       SELECT dv.producto_id FROM ventas v JOIN detalle_ventas dv ON dv.venta_id = v.id WHERE v.cliente_id = $1
+     )
+     SELECT p.id, p.nombre, p.precio_venta, p.precio_oferta, p.imagen_principal
+     FROM productos p
+     WHERE p.activo = true AND p.stock_actual > 0
+       AND p.imagen_principal IS NOT NULL AND p.imagen_principal <> ''
+       AND p.id NOT IN (SELECT producto_id FROM comprados WHERE producto_id IS NOT NULL)
+     ORDER BY (p.categoria_id = (SELECT categoria_id FROM fav)) DESC NULLS LAST,
+              p.es_destacado DESC, p.es_nuevo DESC, p.fecha_creacion DESC
+     LIMIT 3`,
+    [clienteId]
+  );
+  return r.rows;
 }
 
 async function enviarEmailBrevo(destinatarioEmail: string, destinatarioNombre: string, asunto: string, html: string) {
@@ -161,7 +222,7 @@ export const enviarPromocionSegmento = async (req: AuthRequest, res: Response) =
     // Si se pidio descuento, se crea UNA promocion restringida a estos clientes
     // (via cupones_clientes) — se aplica automaticamente en su carrito, sin
     // necesidad de que capturen ningun codigo.
-    let descuentoInfo: { tipo: string; valor: number; codigo: string } | null = null;
+    let descuentoInfo: DescuentoCorreo | null = null;
     if (aplicar_descuento) {
       const userId = req.user?.userId || req.user?.id;
       const vigenciaDias = Number(dias_vigencia) > 0 ? Number(dias_vigencia) : 15;
@@ -193,8 +254,11 @@ export const enviarPromocionSegmento = async (req: AuthRequest, res: Response) =
         );
       }
 
-      descuentoInfo = { tipo: tipo_descuento, valor: Number(valor_descuento), codigo: codigoCupon };
+      descuentoInfo = { tipo: tipo_descuento, valor: Number(valor_descuento), codigo: codigoCupon, vence: new Date(Date.now() + vigenciaDias * 86400000) };
     }
+
+    const infoWa = await pool.query('SELECT whatsapp FROM informacion_empresa WHERE id = 1').catch(() => ({ rows: [] as any[] }));
+    const whatsapp: string | null = infoWa.rows[0]?.whatsapp || null;
 
     let enviados = 0;
     let fallidos = 0;
@@ -202,9 +266,9 @@ export const enviarPromocionSegmento = async (req: AuthRequest, res: Response) =
 
     for (const cliente of clientes) {
       const nombrePila = (cliente.nombre || '').split(' ')[0];
+      const productos = await productosParaCliente(cliente.id).catch(() => []);
       const htmlPersonalizado = construirHtmlPromocion(
-        nombrePila, mensaje, segmento || '',
-        descuentoInfo ? { tipo: descuentoInfo.tipo, valor: descuentoInfo.valor } : null
+        nombrePila, mensaje, segmento || '', descuentoInfo, productos, whatsapp
       );
 
       let estado = 'enviado';
