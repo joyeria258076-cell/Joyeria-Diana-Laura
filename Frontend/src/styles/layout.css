@@ -212,3 +212,8 @@ body .btn-acceso, body .pub-nav-mobile-acceso {
   background: rgba(255, 255, 255, 0.86) !important;
   box-shadow: 0 2px 6px rgba(122, 44, 82, 0.06), 0 24px 60px rgba(184, 92, 131, 0.14) !important;
 }
+
+/* En celular con sesión, los controles de accesibilidad suben para no tapar la barra inferior */
+@media (max-width: 768px) {
+  body:has(.dl-bottom-nav) .global-accessibility-buttons { bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important; }
+}

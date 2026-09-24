@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { productsAPI, promocionesAPI, contentAPI } from "../../services/api";
 import { initScrollReveal } from "../../utils/scrollReveal";
+import { AiOutlineSearch, AiOutlineControl, AiOutlineThunderbolt, AiOutlineStar, AiOutlineArrowRight, AiOutlineAppstore } from "react-icons/ai";
 import "./InicioScreen.css";
+import "./InicioApp.css";
 
 interface Producto {
     id: number;
@@ -40,6 +42,7 @@ const InicioScreen: React.FC = () => {
     const [loading, setLoading]         = useState(true);
     const [novedades, setNovedades]     = useState<any[]>([]);
     const [heroIdx, setHeroIdx]         = useState(0);
+    const [busqueda, setBusqueda]       = useState('');
 
     const nombre = (() => {
         try {
@@ -91,6 +94,9 @@ const InicioScreen: React.FC = () => {
         return () => clearInterval(t);
     }, []);
 
+    const hora = new Date().getHours();
+    const saludoHora = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
+
     const promoLabel = (p: Promo) =>
         p.tipo === 'porcentaje' ? `${p.valor_descuento}% OFF` : `-$${p.valor_descuento}`;
 
@@ -130,30 +136,65 @@ const InicioScreen: React.FC = () => {
                 </div>
             )}
 
-            {/* ── HERO CINEMATOGRÁFICO — centrado, un solo foco ── */}
-            <section className="tl-hero">
-                <div className="tl-hero-bg">
-                    {JDL_HERO_IMAGENES.map((src, i) => (
-                        <img
-                            key={src}
-                            src={src}
-                            alt="Diana Laura Joyería"
-                            className={i === heroIdx ? 'is-active' : ''}
-                        />
-                    ))}
-                    <div className="tl-hero-bg-overlay" />
+            {/* ── ENCABEZADO TIPO APP: saludo, título, buscador, banner y chips ── */}
+            <section className="ap-top">
+                <div className="ap-saludo">
+                    <span className="ap-avatar" aria-hidden="true">{(nombre || 'D').charAt(0).toUpperCase()}</span>
+                    <div>
+                        <span className="ap-saludo-hora">{saludoHora}</span>
+                        <strong className="ap-saludo-nombre">{nombre ? String(nombre).split(' ')[0] : 'Bienvenida'}</strong>
+                    </div>
                 </div>
 
-                <div className="tl-hero-content">
-                    <span className="tl-hero-eyebrow">
-                        {nombre ? `Bienvenid@, ${nombre}` : "Joyería Diana Laura"}
-                    </span>
-                    <h1 className="tl-hero-h1">Cada pieza<br /><em>cuenta una historia</em></h1>
-                    <p className="tl-hero-sub">Joyería artesanal con acabados de alta calidad, diseñada para que brilles.</p>
-                    <button className="tl-btn-rosa" onClick={() => navigate("/catalogo")}>
-                        Explorar Colección
+                <h1 className="ap-titulo">Encuentra tu <span>brillo</span> perfecto</h1>
+
+                <form className="ap-buscador" role="search" onSubmit={e => { e.preventDefault(); navigate(`/catalogo${busqueda.trim() ? `?q=${encodeURIComponent(busqueda.trim())}` : ''}`); }}>
+                    <label className="ap-buscador-campo">
+                        <AiOutlineSearch size={18} aria-hidden="true" />
+                        <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar joyas…" aria-label="Buscar joyas" />
+                    </label>
+                    <button type="button" className="ap-filtros-btn" onClick={() => navigate('/catalogo')} aria-label="Filtros del catálogo" title="Filtros">
+                        <AiOutlineControl size={20} />
                     </button>
+                </form>
+
+                <div className="ap-banner" onClick={() => navigate('/catalogo')} role="link" tabIndex={0}
+                    onKeyDown={e => { if (e.key === 'Enter') navigate('/catalogo'); }}>
+                    <img src={JDL_HERO_IMAGENES[heroIdx]} alt="" className="ap-banner-img" />
+                    <div className="ap-banner-velo" />
+                    <div className="ap-banner-texto">
+                        {promociones[0] ? (
+                            <>
+                                <span className="ap-banner-tag"><AiOutlineThunderbolt size={12} /> {promociones[0].fecha_fin ? `Hasta el ${new Date(promociones[0].fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}` : 'Promoción'}</span>
+                                <h2>{promociones[0].nombre}</h2>
+                                <p>{promoLabel(promociones[0])}</p>
+                            </>
+                        ) : (
+                            <>
+                                <span className="ap-banner-tag"><AiOutlineStar size={12} /> Colección</span>
+                                <h2>Cada pieza cuenta una historia</h2>
+                                <p>Joyería artesanal para que brilles</p>
+                            </>
+                        )}
+                    </div>
+                    <span className="ap-banner-flecha" aria-hidden="true"><AiOutlineArrowRight size={18} /></span>
+                    <div className="ap-banner-puntos" aria-hidden="true">
+                        {JDL_HERO_IMAGENES.slice(0, 4).map((_, i) => <i key={i} className={i === heroIdx % 4 ? 'activo' : ''} />)}
+                    </div>
                 </div>
+
+                {categorias.length > 0 && (
+                    <div className="ap-chips" role="list">
+                        <button className="ap-chip activo" onClick={() => navigate('/catalogo')} role="listitem">
+                            <AiOutlineAppstore size={14} /> Todo
+                        </button>
+                        {categorias.slice(0, 8).map(c => (
+                            <button key={c.id} className="ap-chip" onClick={() => navigate(`/catalogo?categoria=${c.id}`)} role="listitem">
+                                {c.nombre}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </section>
 
             {/* ── CATEGORÍAS EN MOSAICO (bento) ── */}
@@ -169,7 +210,7 @@ const InicioScreen: React.FC = () => {
                             <button
                                 key={c.id}
                                 className={`tl-mosaic-tile tl-mosaic-tile--${i}`}
-                                onClick={() => navigate("/catalogo")}
+                                onClick={() => navigate(`/catalogo?categoria=${c.id}`)}
                             >
                                 <img
                                     src={imagenDeCategoria(c.nombre)}
@@ -263,7 +304,7 @@ const InicioScreen: React.FC = () => {
             <section className="tl-section">
                 <div className="tl-eyebrow-row">
                     <span className="tl-eyebrow-line-h" />
-                    <span className="tl-eyebrow-txt">Selección</span>
+                    <span className="tl-eyebrow-txt">Para ti</span>
                     <span className="tl-eyebrow-line-h" />
                 </div>
                 <div className="tl-section-head-row">

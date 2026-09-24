@@ -1,5 +1,6 @@
 // Ruta: src/screens/cliente/CatalogoScreen.tsx
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AiOutlineSearch } from 'react-icons/ai';
 import './CatalogoScreen.css';
 import { productsAPI, promocionesAPI, favoritosAPI } from '../../services/api';
@@ -145,6 +146,32 @@ const CatalogoScreen: React.FC = () => {
     }, []);
 
     // --- BÚSQUEDA ---
+    // Búsqueda o categoría recibidas por la URL (buscador y chips del Inicio)
+    const [searchParams] = useSearchParams();
+    useEffect(() => {
+        const q = searchParams.get('q')?.trim() || '';
+        const cat = Number(searchParams.get('categoria')) || '';
+        if (!q && !cat) return;
+        setFiltros(prev => ({ ...prev, nombre: q, categoria_id: cat }));
+        (async () => {
+            try {
+                setLoading(true);
+                setSearchMode(true);
+                setPaginaBusqueda(0);
+                const response = await productsAPI.searchAndFilter({
+                    nombre: q || undefined,
+                    categoria_id: (cat || undefined) as number,
+                });
+                setResultadosBusqueda(Array.isArray(response?.data) ? response.data : []);
+            } catch {
+                setResultadosBusqueda([]);
+            } finally {
+                setLoading(false);
+            }
+        })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
+
     const handleBuscar = async () => {
         try {
             setLoading(true);

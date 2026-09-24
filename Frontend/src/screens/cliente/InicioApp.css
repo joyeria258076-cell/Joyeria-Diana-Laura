@@ -1,0 +1,109 @@
+/* InicioApp.css — Encabezado del Inicio con el estilo de la app móvil (P5):
+   saludo con avatar, título con acento, buscador + filtros, banner de
+   promoción y chips de categorías. */
+
+.ap-top { max-width: 1100px; margin: 0 auto 40px; display: flex; flex-direction: column; gap: 20px; }
+
+/* Saludo */
+.ap-saludo { display: flex; align-items: center; gap: 12px; }
+.ap-avatar {
+  width: 48px; height: 48px; border-radius: 16px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--gradient-primary); color: var(--color-on-primary);
+  font-family: var(--font-body); font-weight: 700; font-size: 18px;
+  box-shadow: var(--shadow-primary);
+}
+.ap-saludo-hora { display: block; font-size: 13px; color: var(--color-text-muted); }
+.ap-saludo-nombre { display: block; font-size: 17px; font-weight: 600; color: var(--color-text); letter-spacing: -0.2px; }
+
+/* Título */
+.ap-titulo {
+  margin: 4px 0 0; max-width: 620px;
+  font-family: var(--font-body); font-weight: 700;
+  font-size: clamp(34px, 4.6vw, 52px); line-height: 1.05; letter-spacing: -1.5px;
+  color: var(--color-text);
+}
+.ap-titulo span { font-family: var(--font-accent); font-style: italic; font-weight: 600; color: var(--color-primary); letter-spacing: -0.5px; }
+
+/* Buscador */
+.ap-buscador { display: flex; gap: 12px; max-width: 620px; }
+.ap-buscador-campo {
+  flex: 1; display: flex; align-items: center; gap: 12px;
+  height: 56px; padding: 0 18px;
+  border-radius: var(--radius-md); border: 1px solid var(--color-border);
+  background: var(--color-surface); color: var(--color-text-muted);
+  box-shadow: var(--shadow-soft);
+  transition: border-color var(--t-fast) ease, box-shadow var(--t-fast) ease;
+}
+.ap-buscador-campo:focus-within { border-color: var(--color-primary); box-shadow: var(--focus-ring); color: var(--color-primary); }
+body .ap-buscador-campo input {
+  flex: 1; min-width: 0; min-height: 0; height: 100%;
+  border: 0 !important; background: transparent !important; box-shadow: none !important; padding: 0 !important;
+  color: var(--color-text); font-size: 15px;
+}
+.ap-filtros-btn {
+  width: 56px; height: 56px; flex-shrink: 0; border: 0; cursor: pointer;
+  border-radius: var(--radius-md);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--gradient-primary); color: var(--color-on-primary);
+  box-shadow: var(--shadow-primary);
+  transition: transform var(--t-fast) ease;
+}
+.ap-filtros-btn:hover { transform: translateY(-2px); }
+
+/* Banner de promoción */
+.ap-banner {
+  position: relative; overflow: hidden; cursor: pointer;
+  height: clamp(200px, 26vw, 280px);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lift);
+}
+.ap-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease-silk); }
+.ap-banner:hover .ap-banner-img { transform: scale(1.04); }
+.ap-banner-velo {
+  position: absolute; inset: 0;
+  background: linear-gradient(100deg, rgba(40, 10, 30, 0.85) 0%, rgba(90, 30, 70, 0.55) 45%, transparent 80%);
+}
+.ap-banner-texto { position: absolute; left: 28px; bottom: 30px; right: 90px; color: #fff; }
+.ap-banner-tag {
+  display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  font-size: 12px; font-weight: 600;
+}
+.ap-banner-texto h2 { margin: 0 0 6px; font-family: var(--font-body); font-weight: 700; font-size: clamp(24px, 3vw, 34px); line-height: 1.1; letter-spacing: -0.8px; color: #fff; }
+.ap-banner-texto p { margin: 0; font-size: 15px; font-weight: 500; opacity: 0.9; }
+.ap-banner-flecha {
+  position: absolute; right: 22px; bottom: 26px;
+  width: 48px; height: 48px; border-radius: 16px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; color: #2A0F22; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+.ap-banner-puntos { position: absolute; left: 28px; bottom: 14px; display: flex; gap: 6px; }
+.ap-banner-puntos i { width: 6px; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.5); transition: width var(--t-base) ease; }
+.ap-banner-puntos i.activo { width: 20px; background: #fff; }
+
+/* Chips de categorías */
+.ap-chips { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: none; }
+.ap-chips::-webkit-scrollbar { display: none; }
+.ap-chip {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
+  height: 44px; padding: 0 18px; border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border); background: var(--color-surface);
+  color: var(--color-text); font-family: var(--font-body); font-size: 14px; font-weight: 500;
+  cursor: pointer; box-shadow: var(--shadow-soft);
+  transition: background var(--t-fast) ease, border-color var(--t-fast) ease, transform var(--t-fast) ease;
+}
+.ap-chip:hover { border-color: var(--color-primary); transform: translateY(-1px); }
+.ap-chip.activo { background: var(--gradient-primary); color: var(--color-on-primary); border-color: transparent; box-shadow: var(--shadow-primary); }
+
+@media (max-width: 640px) {
+  .ap-top { gap: 16px; margin-bottom: 28px; }
+  .ap-banner-texto { left: 20px; right: 76px; bottom: 26px; }
+  .ap-banner-puntos { left: 20px; }
+}
+
+/* La página usa margen negativo (para secciones a sangre); el encabezado
+   recupera su espacio interior para no quedar cortado bajo la barra. */
+.tl-page .ap-top { padding: 48px 40px 0; box-sizing: border-box; max-width: calc(1100px + 80px); }
+@media (max-width: 768px) { .tl-page .ap-top { padding: 36px 16px 0; } }
