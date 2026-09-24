@@ -79,11 +79,19 @@ export const NotificacionesProvider: React.FC<{ children: React.ReactNode }> = (
             const nuevasNotifs: Notificacion[] = [];
             const estadosGuardados = cargarEstadosAnteriores(userId);
             data.data.forEach((p: any) => {
+                // Se guarda "estado|trabajador" para avisar también cuando alguien toma el pedido
+                const actual = `${p.estado}|${p.trabajador_nombre || ''}`;
                 const anterior = estadosGuardados[p.id];
-                if (anterior && anterior !== p.estado && MENSAJE_ESTADO[p.estado]) {
-                    nuevasNotifs.push({ id: `${p.id}-${p.estado}-${Date.now()}`, folio: p.folio, mensaje: MENSAJE_ESTADO[p.estado], fecha: new Date().toISOString(), leida: false });
+                if (anterior && anterior !== actual) {
+                    const [estadoAnt, trabAnt] = anterior.split('|');
+                    const ahora = new Date().toISOString();
+                    if (estadoAnt !== p.estado && MENSAJE_ESTADO[p.estado]) {
+                        nuevasNotifs.push({ id: `${p.id}-${p.estado}-${Date.now()}`, folio: p.folio, mensaje: MENSAJE_ESTADO[p.estado], fecha: ahora, leida: false });
+                    } else if (anterior.includes('|') && !trabAnt && p.trabajador_nombre) {
+                        nuevasNotifs.push({ id: `${p.id}-tomado-${Date.now()}`, folio: p.folio, mensaje: `🤝 ${p.trabajador_nombre} ya está atendiendo tu pedido.`, fecha: ahora, leida: false });
+                    }
                 }
-                estadosAnteriores.current[p.id] = p.estado;
+                estadosAnteriores.current[p.id] = actual;
             });
             guardarEstadosAnteriores(userId, estadosAnteriores.current);
             if (nuevasNotifs.length > 0) {

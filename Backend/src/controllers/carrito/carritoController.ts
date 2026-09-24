@@ -41,14 +41,21 @@ const ESTADO_NOTIFICACION_META: Record<string, { color: string; colorClaro: stri
     enviado:        { color: '#c9a84c', colorClaro: '#e6d9a8', icono: '🚚', mensaje: 'Tu pedido va en camino.' },
     entregado:      { color: '#4c9a5b', colorClaro: '#b8e6c2', icono: '🎁', mensaje: '¡Tu pedido fue entregado! Gracias por tu compra.' },
     cancelado:      { color: '#8a2b2b', colorClaro: '#e6a8a8', icono: '✖️', mensaje: 'Tu pedido fue cancelado.' },
+    expirado:       { color: '#6b625c', colorClaro: '#cfc6bf', icono: '⏳', mensaje: 'Tu pedido expiró porque no tuvo movimiento. Si aún lo quieres, puedes volver a hacerlo desde el catálogo.' },
+    // Eventos que no son un cambio de estado
+    recibido:       { color: '#c9956c', colorClaro: '#e8d5b7', icono: '🛍️', mensaje: 'Recibimos tu pedido. Un trabajador lo revisará y te avisaremos en cuanto lo tome.' },
+    tomado:         { color: '#c9956c', colorClaro: '#e8d5b7', icono: '🤝', mensaje: 'Un miembro de nuestro equipo ya está atendiendo tu pedido.' },
 };
+
+// Eventos que se muestran en el tracker como si fueran el estado "pendiente"
+const EVENTO_A_ESTADO: Record<string, string> = { recibido: 'pendiente', tomado: 'pendiente' };
 
 const ORDEN_ESTADOS_TRACKER = ['pendiente', 'confirmado', 'en_preparacion', 'enviado', 'entregado'];
 const ICONO_TRACKER: Record<string, string> = { pendiente: '⏳', confirmado: '✅', en_preparacion: '📦', enviado: '🚚', entregado: '🎁' };
 
 function construirTrackerEstado(estado: string, meta: { color: string; colorClaro: string }): string {
-    if (estado === 'cancelado') return '';
-    const indexActual = ORDEN_ESTADOS_TRACKER.indexOf(estado);
+    if (estado === 'cancelado' || estado === 'expirado') return '';
+    const indexActual = ORDEN_ESTADOS_TRACKER.indexOf(EVENTO_A_ESTADO[estado] || estado);
 
     const pasos = ORDEN_ESTADOS_TRACKER.map((paso, i) => {
         const activo = i <= indexActual;
@@ -143,7 +150,7 @@ function construirHtmlNotificacionEstado(venta: any, estado: string): string {
     </div>`;
 }
 
-const enviarNotificacionEstadoPedido = async (venta: any, estado: string): Promise<void> => {
+const enviarNotificacionEstadoPedido = async (venta: any, estado: string, asunto?: string): Promise<void> => {
     const destinatarioEmail = venta.cliente_email || venta.cliente_email_reg;
     if (!destinatarioEmail) return;
 
@@ -153,7 +160,7 @@ const enviarNotificacionEstadoPedido = async (venta: any, estado: string): Promi
             {
                 sender: { name: REMITENTE_NOMBRE, email: REMITENTE_EMAIL },
                 to: [{ email: destinatarioEmail, name: venta.cliente_nombre_completo || venta.cliente_nombre_reg || '' }],
-                subject: `Tu pedido ${venta.folio} está: ${labelEstado(estado)}`,
+                subject: asunto || `Tu pedido ${venta.folio} está: ${labelEstado(estado)}`,
                 htmlContent: construirHtmlNotificacionEstado(venta, estado),
             },
             {
@@ -552,6 +559,13 @@ export const crearPedido = async (req: Request, res: Response) => {
             await pool.query(`
                 UPDATE ventas SET direccion_entrega_id = $1 WHERE id = $2
             `, [dirResult.rows[0].id, venta.id]);
+        }
+
+        // Correo de "pedido recibido" (los apartados tienen su propio correo)
+        if (notas_cliente !== '(Apartado)') {
+            VentaModel.getById(venta.id)
+                .then(v => v && enviarNotificacionEstadoPedido(v, 'recibido', `Recibimos tu pedido ${v.folio}`))
+                .catch(() => { /* no crítico */ });
         }
 
         res.status(201).json({
@@ -1089,6 +1103,11 @@ export const tomarPedido = async (req: Request, res: Response) => {
                 success: false, 
                 message: 'Otro trabajador tomó este pedido justo ahora. Recarga la lista.' 
             });
+
+        VentaModel.getById(Number.parseInt(id))
+            .then(v => v && enviarNotificacionEstadoPedido(v, 'tomado',
+                `Tu pedido ${v.folio} ya está siendo atendido${v.trabajador_nombre ? ` por ${v.trabajador_nombre}` : ''}`))
+            .catch(() => { /* no crítico */ });
 
         res.json({ success: true, message: '✅ Pedido tomado correctamente. Ya puedes actualizarlo.', data: result.rows[0] });
     } catch (error: any) {
@@ -1655,6 +1674,7 @@ export const getEstadosPedidosCliente = async (req: Request, res: Response) => {
                 v.folio,
                 v.estado,
                 v.fecha_actualizacion,
+                u.nombre AS trabajador_nombre,
                 COALESCE(
                     (SELECT tp.estado FROM transacciones_pago tp
                      WHERE tp.venta_id = v.id
@@ -1662,8 +1682,11 @@ export const getEstadosPedidosCliente = async (req: Request, res: Response) => {
                     'pendiente'
                 ) AS estado_pago
             FROM ventas v
+            LEFT JOIN usuarios u ON u.id = v.trabajador_id
             WHERE v.creado_por = $1
-            AND v.estado NOT IN ('cancelado', 'entregado')
+            -- Los terminados se siguen enviando 30 días para poder avisar del cambio final
+            AND (v.estado NOT IN ('cancelado', 'entregado', 'expirado')
+                 OR COALESCE(v.fecha_actualizacion, v.fecha_creacion) > NOW() - INTERVAL '30 days')
             ORDER BY v.fecha_creacion DESC
         `, [usuario.id]);
 
