@@ -487,7 +487,7 @@ export default function RegistroScreen() {
                                             <button type="button" className="registro-foto-quitar" onClick={() => setFotoPreview(null)}>Quitar</button>
                                         )}
                                     </div>
-                                    <input ref={fotoInputRef} type="file" accept="image/*" hidden onChange={handleFotoChange} />
+                                    <input ref={fotoInputRef} type="file" accept="image/*" capture="user" hidden onChange={handleFotoChange} />
                                 </div>
                             </div>
 
