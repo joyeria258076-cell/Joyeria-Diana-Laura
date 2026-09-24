@@ -368,13 +368,13 @@ const InicioScreen: React.FC = () => {
                     </div>
                     <div className="tl-section-head-row">
                         <h2 className="tl-section-h2">Lo último de Diana Laura</h2>
-                        <button className="tl-btn-ghost-sm" onClick={() => navigate("/noticias")}>
+                        <button className="tl-btn-ghost-sm" onClick={() => navigate("/blog")}>
                             Ver todas →
                         </button>
                     </div>
                     <div className="tl-nov-lista">
                         {novedades.map((n: any, i: number) => (
-                            <article key={n.id} className="tl-nov-fila" onClick={() => navigate("/noticias")}>
+                            <article key={n.id} className="tl-nov-fila" onClick={() => navigate(`/blog/${n.id}`)}>
                                 <span className="tl-nov-index">{String(i + 1).padStart(2, '0')}</span>
                                 <div className="tl-nov-img">
                                     {n.imagen

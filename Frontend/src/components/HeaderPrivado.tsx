@@ -327,6 +327,9 @@ const HeaderPrivado: React.FC = () => {
                                 )}
                             </button>
                             <div className="sidebar-divider"></div>
+                            <button className={`nav-item ${isActive("/blog")}`} onClick={() => goTo("/blog")}>
+                                <span className="nav-icon"><AiOutlineRead size={16} /></span> Blog
+                            </button>
                             <button className={`nav-item ${isActive("/sobre-nosotros")}`} onClick={() => goTo("/sobre-nosotros")}>
                                 <span className="nav-icon"><AiOutlineBook size={16} /></span> Sobre nosotros
                             </button>

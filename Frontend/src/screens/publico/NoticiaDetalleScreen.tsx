@@ -15,7 +15,8 @@ interface Comentario {
   creado_en: string;
 }
 
-const NoticiaDetalleScreen: React.FC = () => {
+const NoticiaDetalleScreen: React.FC<{ privado?: boolean }> = ({ privado = false }) => {
+  const base = privado ? "/blog" : "/noticias";
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -88,38 +89,38 @@ const NoticiaDetalleScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="noticias-container">
-        <PublicHeader />
+      <div className={`noticias-container${privado ? " noticias-container--privado" : ""}`}>
+        {!privado && <PublicHeader />}
         <div className="noticias-loading">
           <div className="dl-loader-bars"><span /><span /><span /><span /></div>
           <p className="loading-text">Cargando artículo...</p>
         </div>
-        <PublicFooter />
+        {!privado && <PublicFooter />}
       </div>
     );
   }
 
   if (!noticia) {
     return (
-      <div className="noticias-container">
-        <PublicHeader />
+      <div className={`noticias-container${privado ? " noticias-container--privado" : ""}`}>
+        {!privado && <PublicHeader />}
         <div className="noticias-empty">
           <div className="empty-icon">✦</div>
           <p className="empty-title">Artículo no encontrado</p>
-          <Link to="/noticias" className="nd-volver">← Volver al blog</Link>
+          <Link to={base} className="nd-volver">← Volver al blog</Link>
         </div>
-        <PublicFooter />
+        {!privado && <PublicFooter />}
       </div>
     );
   }
 
   return (
-    <div className="noticias-container">
-      <PublicHeader />
+    <div className={`noticias-container${privado ? " noticias-container--privado" : ""}`}>
+      {!privado && <PublicHeader />}
 
       <article className="nd-article">
         <div className="container-lg nd-article-inner">
-          <button className="nd-volver" onClick={() => navigate('/noticias')}>← Volver al blog</button>
+          <button className="nd-volver" onClick={() => navigate(base)}>← Volver al blog</button>
 
           <span className="noticia-category nd-category">{noticia.categoria || "Novedades"}</span>
           <h1 className="nd-titulo">{noticia.titulo}</h1>
@@ -182,7 +183,7 @@ const NoticiaDetalleScreen: React.FC = () => {
         </div>
       </section>
 
-      <PublicFooter />
+      {!privado && <PublicFooter />}
     </div>
   );
 };

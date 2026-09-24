@@ -6,8 +6,10 @@ import { contentAPI } from "../../services/api";
 import "./NoticiasScreen.css";
 import "../../styles/SitioSecciones.css";
 
-const NoticiasScreen: React.FC = () => {
+// privado = versión dentro del layout con sesión (ruta /blog), sin header/footer públicos
+const NoticiasScreen: React.FC<{ privado?: boolean }> = ({ privado = false }) => {
   const navigate = useNavigate();
+  const base = privado ? "/blog" : "/noticias";
   const [noticias, setNoticias] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,8 +51,8 @@ const NoticiasScreen: React.FC = () => {
   const rest = noticias.slice(3);
 
   return (
-    <div className="noticias-container">
-      <PublicHeader />
+    <div className={`noticias-container${privado ? " noticias-container--privado" : ""}`}>
+      {!privado && <PublicHeader />}
 
       {/* ── ENCABEZADO (mismo estilo que el Inicio) ── */}
       <header className="sx-head" style={{ padding: "4.5rem 1.5rem 0", marginBottom: 0 }}>
@@ -102,7 +104,7 @@ const NoticiasScreen: React.FC = () => {
                       <h2 className="noticia-titulo">{featured.titulo}</h2>
                       <div className="noticia-divider" />
                       <p className="noticia-descripcion">{featured.contenido}</p>
-                      <button className="noticia-link" onClick={() => navigate(`/noticias/${featured.id}`)}>
+                      <button className="noticia-link" onClick={() => navigate(`${base}/${featured.id}`)}>
                         Leer artículo <span className="link-arrow">→</span>
                       </button>
                     </div>
@@ -127,7 +129,7 @@ const NoticiasScreen: React.FC = () => {
                           <h3 className="noticia-titulo">{n.titulo}</h3>
                           <div className="noticia-divider" />
                           <p className="noticia-descripcion">{n.contenido}</p>
-                          <button className="noticia-link" onClick={() => navigate(`/noticias/${n.id}`)}>
+                          <button className="noticia-link" onClick={() => navigate(`${base}/${n.id}`)}>
                             Leer artículo <span className="link-arrow">→</span>
                           </button>
                         </div>
@@ -155,7 +157,7 @@ const NoticiasScreen: React.FC = () => {
                         <h3 className="noticia-titulo">{n.titulo}</h3>
                         <div className="noticia-divider" />
                         <p className="noticia-descripcion">{n.contenido}</p>
-                        <button className="noticia-link" onClick={() => navigate(`/noticias/${n.id}`)}>
+                        <button className="noticia-link" onClick={() => navigate(`${base}/${n.id}`)}>
                           Leer artículo <span className="link-arrow">→</span>
                         </button>
                       </div>
@@ -169,7 +171,7 @@ const NoticiasScreen: React.FC = () => {
         </div>
       </section>
 
-      <PublicFooter />
+      {!privado && <PublicFooter />}
     </div>
   );
 };

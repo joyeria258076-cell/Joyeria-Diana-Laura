@@ -591,3 +591,6 @@
   .noticias-bottom-grid { grid-template-columns:1fr; }
   .container-lg    { padding:0 1.25rem; }
 }
+/* Dentro del layout privado: el fondo y el padding ya los pone PrivateLayout */
+.noticias-container--privado { background: none; min-height: 0; }
+.noticias-container--privado .container-lg { padding: 0; }
