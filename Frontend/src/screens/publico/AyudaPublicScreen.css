@@ -846,3 +846,123 @@ details[open] summary {
   color: #6b5647;
   font-size: 0.88rem;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   EL CHATBOT, DENTRO DEL PANEL CREMA
+
+   El componente de Marcos está diseñado para fondo oscuro, y aquí queda
+   dentro de la tarjeta crema: se veía como un bloque negro translúcido
+   pegado encima, con el mensaje del bot en gris sobre gris y el campo de
+   escribir prácticamente invisible.
+
+   Los ajustes van acotados a .ayuda-publica-wrapper: el componente
+   conserva su aspecto original en cualquier otro sitio donde se use.
+═══════════════════════════════════════════════════════════════════ */
+
+.ayuda-publica-wrapper .dlchat {
+  background: #fff;
+  border: 1px solid rgba(201, 149, 108, 0.3);
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(58, 42, 32, 0.1);
+  overflow: hidden;
+}
+
+/* Encabezado: se queda oscuro a propósito, para que el chat se lea como
+   una ventana propia dentro de la tarjeta y no como un hueco. */
+.ayuda-publica-wrapper .dlchat-header {
+  background: linear-gradient(135deg, #4a3529 0%, #3a2a20 100%);
+  border-bottom: 1px solid rgba(201, 149, 108, 0.35);
+  color: #fdfaf6;
+}
+
+.ayuda-publica-wrapper .dlchat-status {
+  color: rgba(253, 250, 246, 0.72);
+}
+
+/* Cuerpo en crema claro */
+.ayuda-publica-wrapper .dlchat-body {
+  background: #fdfaf6;
+  /* 260px fijos dejaban un hueco vacío enorme con un solo mensaje */
+  height: auto;
+  min-height: 120px;
+  max-height: 260px;
+}
+
+/* Burbujas: la del bot iba en gris sobre gris y no se leía */
+.ayuda-publica-wrapper .dlchat-msg--bot {
+  background: #f4e9dd;
+  border: 1px solid rgba(201, 149, 108, 0.22);
+  color: #3a2a20;
+}
+
+.ayuda-publica-wrapper .dlchat-msg--user {
+  background: linear-gradient(135deg, #c9956c 0%, #e3bd93 100%);
+  color: #34261c;
+}
+
+.ayuda-publica-wrapper .dlchat-msg p {
+  color: inherit;
+}
+
+/* Fichas de opción: iban en rosa tenue sobre oscuro */
+.ayuda-publica-wrapper .dlchat-chips {
+  background: #fdfaf6;
+  border-top: 1px solid rgba(201, 149, 108, 0.2);
+}
+
+.ayuda-publica-wrapper .dlchat-chips button {
+  background: rgba(201, 149, 108, 0.12);
+  border: 1px solid rgba(201, 149, 108, 0.4);
+  color: #8a5a2b;
+  /* Zona táctil cómoda: eran de 26px de alto */
+  min-height: 32px;
+  font-weight: 500;
+}
+
+.ayuda-publica-wrapper .dlchat-chips button:hover:not(:disabled) {
+  background: rgba(201, 149, 108, 0.26);
+  border-color: #8a5a2b;
+  color: #34261c;
+}
+
+/* Campo de escribir: el texto de ayuda era casi invisible */
+.ayuda-publica-wrapper .dlchat-form {
+  background: #fdfaf6;
+  border-top: 1px solid rgba(201, 149, 108, 0.2);
+}
+
+.ayuda-publica-wrapper .dlchat-form input {
+  background: #fff;
+  border: 1px solid rgba(201, 149, 108, 0.35);
+  color: #3a2a20;
+  min-height: 40px;
+}
+
+.ayuda-publica-wrapper .dlchat-form input::placeholder {
+  color: #a8968a;
+}
+
+.ayuda-publica-wrapper .dlchat-form input:focus {
+  border-color: #8a5a2b;
+  outline: none;
+}
+
+.ayuda-publica-wrapper .dlchat-form button {
+  background: linear-gradient(135deg, #c9956c 0%, #e3bd93 100%);
+  border: 1px solid rgba(138, 90, 43, 0.35);
+  color: #34261c;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+/* Los tres puntitos de "escribiendo" */
+.ayuda-publica-wrapper .dlchat-typing span {
+  background: #8a5a2b;
+}
+
+/* El botón de WhatsApp de dentro del chat, a juego con el de la tarjeta */
+.ayuda-publica-wrapper .dlchat-wa {
+  background: linear-gradient(135deg, #c9956c 0%, #e3bd93 100%);
+  color: #34261c;
+  border: 1px solid rgba(138, 90, 43, 0.35);
+}
