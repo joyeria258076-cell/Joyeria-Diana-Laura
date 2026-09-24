@@ -7,7 +7,7 @@
   --dark-prime: var(--color-bg);
   --dark-surface: var(--color-bg);
   --gold-lux: var(--color-rose-gold);
-  --border-lux: rgba(236, 178, 195, 0.2);
+  --border-lux: color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -16,7 +16,7 @@
   padding: 2rem;
   background: linear-gradient(135deg, var(--color-bg) 0%, #0a0a0f 100%);
   min-height: 100vh;
-  color: #fff;
+  color: var(--color-text);
   font-family: var(--font-body);
 }
 
@@ -62,9 +62,9 @@
 .page-header-section {
   margin-bottom: 3rem;
   padding: 2rem;
-  background: linear-gradient(145deg, rgba(30, 30, 30, 0.5) 0%, rgba(10, 10, 10, 0.8) 100%);
-  border-top: 1px solid rgba(236, 178, 195, 0.3);
-  border-left: 1px solid rgba(236, 178, 195, 0.15);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-surface) 50%, transparent) 0%, color-mix(in srgb, var(--color-bg) 80%, transparent) 100%);
+  border-top: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
+  border-left: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   border-right: 1px solid rgba(0, 0, 0, 0.5);
   border-bottom: 1px solid rgba(0, 0, 0, 0.8);
   border-radius: 4px;
@@ -81,7 +81,7 @@
   font-size: 3rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, #e49bb3 100%);
+  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-rose-gold) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -89,7 +89,7 @@
 
 .page-description {
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
   margin: 0;
   font-weight: 300;
 }
@@ -105,9 +105,9 @@
 }
 
 .section-card {
-  background: linear-gradient(145deg, rgba(30, 30, 30, 0.4) 0%, rgba(10, 10, 10, 0.7) 100%);
-  border-top: 1px solid rgba(236, 178, 195, 0.25);
-  border-left: 1px solid rgba(236, 178, 195, 0.1);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-surface) 40%, transparent) 0%, color-mix(in srgb, var(--color-bg) 70%, transparent) 100%);
+  border-top: 1px solid color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
+  border-left: 1px solid color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   border-right: 1px solid rgba(0, 0, 0, 0.4);
   border-bottom: 1px solid rgba(0, 0, 0, 0.7);
   border-radius: 4px;
@@ -119,7 +119,7 @@
 
 .section-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 20px 45px rgba(236, 178, 195, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 45px color-mix(in srgb, var(--color-rose-gold) 15%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .section-header {
@@ -128,7 +128,7 @@
   align-items: flex-start;
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(236, 178, 195, 0.15);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
 }
 
 .section-info {
@@ -145,7 +145,7 @@
 
 .section-description {
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
   margin: 0;
   font-weight: 300;
 }
@@ -154,7 +154,7 @@
   width: 60px;
   height: 60px;
   border-radius: 2px;
-  border: 2px solid rgba(236, 178, 195, 0.3);
+  border: 2px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
   flex-shrink: 0;
   margin-left: 2rem;
@@ -176,8 +176,8 @@
 }
 
 .content-item {
-  background: rgba(10, 10, 10, 0.4);
-  border: 1px solid rgba(236, 178, 195, 0.1);
+  background: color-mix(in srgb, var(--color-bg) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   border-radius: 2px;
   padding: 1.5rem;
   display: flex;
@@ -187,8 +187,8 @@
 }
 
 .content-item:hover {
-  background: rgba(15, 15, 18, 0.6);
-  border-color: rgba(236, 178, 195, 0.25);
+  background: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  border-color: color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
 }
 
 .content-preview {
@@ -202,7 +202,7 @@
   height: 120px;
   object-fit: cover;
   border-radius: 2px;
-  border: 1px solid rgba(236, 178, 195, 0.2);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
   flex-shrink: 0;
 }
 
@@ -216,13 +216,13 @@
 .content-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--color-text);
   margin: 0 0 0.5rem 0;
 }
 
 .content-short-desc {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.65);
+  color: color-mix(in srgb, var(--color-text) 65%, transparent);
   margin: 0 0 0.5rem 0;
   line-height: 1.4;
 }
@@ -248,8 +248,8 @@
 
 .btn-action {
   padding: 0.6rem 1rem;
-  border: 1px solid rgba(236, 178, 195, 0.2);
-  background: rgba(236, 178, 195, 0.05);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
+  background: color-mix(in srgb, var(--color-rose-gold) 5%, transparent);
   color: var(--color-rose-gold);
   border-radius: 2px;
   font-size: 0.85rem;
@@ -260,8 +260,8 @@
 }
 
 .btn-action:hover {
-  background: rgba(236, 178, 195, 0.15);
-  border-color: rgba(236, 178, 195, 0.4);
+  background: color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
+  border-color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
 }
 
 .btn-edit {
@@ -300,10 +300,10 @@
 .no-contents {
   padding: 2rem;
   text-align: center;
-  background: rgba(10, 10, 10, 0.3);
-  border: 1px dashed rgba(236, 178, 195, 0.15);
+  background: color-mix(in srgb, var(--color-bg) 30%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   border-radius: 2px;
-  color: rgba(255, 255, 255, 0.5);
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
 }
 
 .no-contents p {
@@ -326,12 +326,12 @@
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
-  box-shadow: 0 10px 25px rgba(236, 178, 195, 0.2);
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
 }
 
 .btn-add-content:hover {
   transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(236, 178, 195, 0.3);
+  box-shadow: 0 15px 35px color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
 }
 
 .btn-add-content:active {
@@ -345,10 +345,10 @@
 .empty-state {
   padding: 3rem 2rem;
   text-align: center;
-  background: linear-gradient(145deg, rgba(30, 30, 30, 0.4) 0%, rgba(10, 10, 10, 0.7) 100%);
-  border: 1px dashed rgba(236, 178, 195, 0.15);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-surface) 40%, transparent) 0%, color-mix(in srgb, var(--color-bg) 70%, transparent) 100%);
+  border: 1px dashed color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   border-radius: 4px;
-  color: rgba(255, 255, 255, 0.6);
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
 }
 
 .empty-state p {
@@ -362,7 +362,7 @@
   align-items: center;
   min-height: 400px;
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
 }
 
 /* =====================================================
@@ -375,7 +375,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -384,8 +384,8 @@
 }
 
 .modal-content {
-  background: linear-gradient(145deg, rgba(20, 20, 25, 0.95) 0%, rgba(10, 10, 15, 0.98) 100%);
-  border: 1px solid rgba(236, 178, 195, 0.2);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-surface) 95%, transparent) 0%, color-mix(in srgb, var(--color-surface) 98%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
   border-radius: 4px;
   width: 100%;
   max-width: 600px;
@@ -400,7 +400,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 2rem;
-  border-bottom: 1px solid rgba(236, 178, 195, 0.15);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
 }
 
 .modal-header h2 {
@@ -460,9 +460,9 @@
 .form-group input[type="url"],
 .form-group input[type="number"],
 .form-group textarea {
-  background: rgba(10, 10, 10, 0.4);
-  border: 1px solid rgba(236, 178, 195, 0.15);
-  color: #fff;
+  background: color-mix(in srgb, var(--color-bg) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
+  color: var(--color-text);
   padding: 0.8rem 1rem;
   border-radius: 2px;
   font-family: var(--font-body);
@@ -475,9 +475,9 @@
 .form-group input[type="number"]:focus,
 .form-group textarea:focus {
   outline: none;
-  background: rgba(15, 15, 18, 0.6);
-  border-color: rgba(236, 178, 195, 0.4);
-  box-shadow: 0 0 10px rgba(236, 178, 195, 0.15);
+  background: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  border-color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
 }
 
 .form-group input[type="checkbox"] {
@@ -491,7 +491,7 @@
   display: flex;
   gap: 1rem;
   padding: 2rem;
-  border-top: 1px solid rgba(236, 178, 195, 0.15);
+  border-top: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   justify-content: flex-end;
 }
 
@@ -508,7 +508,7 @@
 .btn-cancel {
   background: rgba(100, 100, 110, 0.2);
   border: 1px solid rgba(100, 100, 110, 0.3);
-  color: rgba(255, 255, 255, 0.8);
+  color: color-mix(in srgb, var(--color-text) 80%, transparent);
 }
 
 .btn-cancel:hover {
@@ -520,12 +520,12 @@
   background: linear-gradient(135deg, var(--gold-lux) 0%, #e49bb3 100%);
   border: none;
   color: var(--color-bg);
-  box-shadow: 0 10px 20px rgba(236, 178, 195, 0.2);
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
 }
 
 .btn-save:hover {
   transform: translateY(-2px);
-  box-shadow: 0 15px 30px rgba(236, 178, 195, 0.3);
+  box-shadow: 0 15px 30px color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
 }
 
 /* =====================================================

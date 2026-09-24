@@ -19,29 +19,31 @@ export const PALETAS: Record<string, Record<string, string>> = {
     '--color-border': 'rgba(201, 149, 108, 0.18)',
     '--color-glow': 'rgba(201, 149, 108, 0.08)',
   },
+  // En paletas claras "champagne" se usa también como color de texto/acento,
+  // así que debe ser un tono medio legible sobre blanco (no un pastel).
   blanco_rosa: {
     '--color-bg': '#fdf6f8',
     '--color-surface': '#ffffff',
     '--color-surface-2': '#fbeef2',
-    '--color-rose-gold': '#d4607e',
-    '--color-champagne': '#f4c2d1',
-    '--color-blush': '#ecb2c3',
+    '--color-rose-gold': '#c8506f',
+    '--color-champagne': '#a63d5a',
+    '--color-blush': '#b8364f',
     '--color-text': '#2a1a1f',
-    '--color-text-muted': '#7a5a63',
-    '--color-border': 'rgba(212, 96, 126, 0.25)',
-    '--color-glow': 'rgba(212, 96, 126, 0.1)',
+    '--color-text-muted': '#6e5059',
+    '--color-border': 'rgba(200, 80, 111, 0.22)',
+    '--color-glow': 'rgba(200, 80, 111, 0.08)',
   },
   naranja_blanco: {
     '--color-bg': '#fffaf5',
     '--color-surface': '#ffffff',
     '--color-surface-2': '#fff1e0',
-    '--color-rose-gold': '#e08a3c',
-    '--color-champagne': '#f5c98a',
-    '--color-blush': '#f0b070',
+    '--color-rose-gold': '#d9782a',
+    '--color-champagne': '#a8561a',
+    '--color-blush': '#b8431f',
     '--color-text': '#2a1f14',
-    '--color-text-muted': '#7a6650',
-    '--color-border': 'rgba(224, 138, 60, 0.25)',
-    '--color-glow': 'rgba(224, 138, 60, 0.1)',
+    '--color-text-muted': '#6e5a45',
+    '--color-border': 'rgba(217, 120, 42, 0.24)',
+    '--color-glow': 'rgba(217, 120, 42, 0.08)',
   },
 };
 
@@ -53,6 +55,7 @@ export function aplicarTema(fondoUrl?: string | null, paletaClave?: string | nul
   const paleta = paletaClave ? PALETAS[paletaClave] : null;
   if (paleta) {
     Object.entries(paleta).forEach(([variable, valor]) => root.style.setProperty(variable, valor));
+    root.dataset.tema = paletaClave === 'clasico' ? 'oscuro' : 'claro';
   }
 }
 
@@ -64,9 +67,11 @@ const ThemeConfigLoader: React.FC = () => {
           productsAPI.getConfiguracionByClave('sitio_fondo_url').catch(() => null),
           productsAPI.getConfiguracionByClave('sitio_paleta').catch(() => null),
         ]);
+        // ?tema=blanco_rosa en la URL permite previsualizar una paleta solo en esa pestaña
+        const temaUrl = new URLSearchParams(window.location.search).get('tema');
         aplicarTema(
           fondoRes?.success ? fondoRes.data?.valor : null,
-          paletaRes?.success ? paletaRes.data?.valor : null
+          temaUrl && PALETAS[temaUrl] ? temaUrl : (paletaRes?.success ? paletaRes.data?.valor : null)
         );
       } catch {
         // Silencioso: si falla, se queda con los valores por default de index.css.

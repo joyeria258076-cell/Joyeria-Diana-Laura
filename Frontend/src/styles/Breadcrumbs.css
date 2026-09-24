@@ -2,8 +2,8 @@
     padding: 1.2rem 2rem;
     font-size: 0.95rem;
     color: #c0a0b0;
-    background: linear-gradient(90deg, rgba(10, 10, 10, 0.9), rgba(15, 15, 18, 0.8));
-    border-bottom: 1px solid rgba(236, 178, 195, 0.15);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--color-bg) 90%, transparent), color-mix(in srgb, var(--color-surface) 80%, transparent));
+    border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
     backdrop-filter: blur(10px);
     font-family: 'Montserrat', sans-serif;
     transition: all 0.3s ease;
@@ -24,12 +24,12 @@
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #f5c5d8, #ECB2C3);
+    background: linear-gradient(90deg, #f5c5d8, var(--color-rose-gold));
     transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .breadcrumbs-nav a:hover {
-    color: #ECB2C3;
+    color: var(--color-rose-gold);
     text-decoration: none;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .current-page {
-    color: #FFFFFF;
+    color: var(--color-text);
     font-weight: 700;
     text-transform: capitalize;
     font-family: 'Playfair Display', serif;

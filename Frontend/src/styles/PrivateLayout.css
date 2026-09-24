@@ -35,7 +35,7 @@
     position: relative;
     background-color: var(--negro-fondo);
     background-image:
-        linear-gradient(rgba(10, 10, 10, 0.94), rgba(10, 10, 10, 0.94)),
+        linear-gradient(color-mix(in srgb, var(--color-bg) 94%, transparent), color-mix(in srgb, var(--color-bg) 94%, transparent)),
         var(--global-bg-url);
     background-size: cover;
     background-position: center;

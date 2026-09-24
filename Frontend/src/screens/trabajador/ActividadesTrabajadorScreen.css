@@ -38,8 +38,8 @@
 }
 
 .activity-card:hover {
-  border-color: rgba(201,149,108,0.4);
-  box-shadow: 0 16px 40px rgba(201,149,108,0.12);
+  border-color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--color-rose-gold) 12%, transparent);
 }
 
 .activity-card h3 {
@@ -148,12 +148,12 @@
 
 .btn-primary-worker:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(201,149,108,0.3);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
 }
 
 .btn-secondary-worker {
   background: transparent;
-  border: 1px solid rgba(201,149,108,0.4);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
   color: var(--color-rose-gold) !important;
   padding: 11px 22px;
   border-radius: 2px;

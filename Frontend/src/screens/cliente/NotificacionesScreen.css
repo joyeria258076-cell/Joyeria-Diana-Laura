@@ -134,7 +134,7 @@
     height: 8px;
     border-radius: 50%;
     background: var(--color-rose-gold);
-    box-shadow: 0 0 8px rgba(201,149,108,0.6);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--color-rose-gold) 60%, transparent);
 }
 
 .notif-item-content { flex: 1; min-width: 0; }

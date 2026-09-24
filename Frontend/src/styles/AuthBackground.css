@@ -32,8 +32,8 @@
     z-index: 1;
     pointer-events: none;
     background:
-        radial-gradient(ellipse at 30% 40%, rgba(10,10,10,0.4) 0%, rgba(10,10,10,0.9) 72%),
-        linear-gradient(120deg, rgba(10,10,10,0.6) 0%, rgba(10,10,10,0.88) 100%),
+        radial-gradient(ellipse at 30% 40%, color-mix(in srgb, var(--color-bg) 40%, transparent) 0%, color-mix(in srgb, var(--color-bg) 90%, transparent) 72%),
+        linear-gradient(120deg, color-mix(in srgb, var(--color-bg) 60%, transparent) 0%, color-mix(in srgb, var(--color-bg) 88%, transparent) 100%),
         linear-gradient(var(--color-glow) 1px, transparent 1px),
         linear-gradient(90deg, var(--color-glow) 1px, transparent 1px);
     background-size: auto, auto, 60px 60px, 60px 60px;
@@ -47,7 +47,7 @@
     height: 60vw;
     max-width: 700px;
     max-height: 700px;
-    background: radial-gradient(circle, rgba(201,149,108,0.16) 0%, transparent 68%);
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-rose-gold) 16%, transparent) 0%, transparent 68%);
     animation: auth-glow-float 10s ease-in-out infinite;
 }
 @keyframes auth-glow-float {

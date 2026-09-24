@@ -1,6 +1,6 @@
 .pve-container {
   padding: 2rem;
-  color: #fff;
+  color: var(--color-text);
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -16,7 +16,7 @@
 .pve-icon { font-size: 1.4rem; }
 
 .pve-header p {
-  color: rgba(255,255,255,.6);
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
   margin: 0 0 1.5rem;
   font-size: .9rem;
 }
@@ -50,12 +50,12 @@
   flex-wrap: wrap;
 }
 
-.pve-page-selector label { font-size: .85rem; color: rgba(255,255,255,.7); }
+.pve-page-selector label { font-size: .85rem; color: color-mix(in srgb, var(--color-text) 70%, transparent); }
 
 .pve-page-selector select {
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(236, 178, 195, .25);
-  color: #fff;
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
+  color: var(--color-text);
   padding: .5rem .8rem;
   border-radius: 8px;
   font-size: .9rem;
@@ -64,7 +64,7 @@
 .pve-btn-add {
   margin-left: auto;
   background: linear-gradient(135deg, #e8789a, #c0436a);
-  color: #fff;
+  color: var(--color-text);
   border: none;
   border-radius: 100px;
   padding: .55rem 1.2rem;
@@ -81,7 +81,7 @@
 }
 
 .pve-empty, .pve-preview-empty {
-  color: rgba(255,255,255,.5);
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
   text-align: center;
   padding: 3rem 1rem;
   font-size: .9rem;
@@ -89,8 +89,8 @@
 
 /* ── SECTION CARDS ── */
 .pve-seccion-card {
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(236, 178, 195, .18);
+  background: color-mix(in srgb, var(--color-text) 3%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 18%, transparent);
   border-radius: 14px;
   padding: 1rem 1.2rem;
   margin-bottom: 1rem;
@@ -106,7 +106,7 @@
 }
 
 .pve-drag-handle {
-  color: rgba(255,255,255,.35);
+  color: color-mix(in srgb, var(--color-text) 35%, transparent);
   cursor: grab;
   font-size: 1rem;
   user-select: none;
@@ -115,7 +115,7 @@
 .pve-seccion-swatch {
   width: 18px; height: 18px;
   border-radius: 5px;
-  border: 1px solid rgba(255,255,255,.2);
+  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
   flex-shrink: 0;
 }
 
@@ -131,7 +131,7 @@
 }
 
 .pve-seccion-actions button, .pve-contenido-actions button {
-  background: rgba(255,255,255,.06);
+  background: color-mix(in srgb, var(--color-text) 6%, transparent);
   border: none;
   border-radius: 6px;
   width: 28px; height: 28px;
@@ -153,7 +153,7 @@
   display: flex;
   align-items: center;
   gap: .5rem;
-  background: rgba(255,255,255,.03);
+  background: color-mix(in srgb, var(--color-text) 3%, transparent);
   border-radius: 8px;
   padding: .4rem .6rem;
   cursor: grab;
@@ -170,14 +170,14 @@
 .pve-contenido-titulo {
   flex: 1;
   font-size: .85rem;
-  color: rgba(255,255,255,.85);
+  color: color-mix(in srgb, var(--color-text) 85%, transparent);
 }
 
 .pve-btn-add-contenido {
   align-self: flex-start;
   background: none;
-  border: 1px dashed rgba(236, 178, 195, .35);
-  color: rgba(255,255,255,.6);
+  border: 1px dashed color-mix(in srgb, var(--color-rose-gold) 35%, transparent);
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
   border-radius: 8px;
   padding: .4rem .8rem;
   font-size: .8rem;
@@ -191,8 +191,8 @@
 .pve-preview-panel {
   position: sticky;
   top: 1rem;
-  background: rgba(255,255,255,.02);
-  border: 1px solid rgba(236, 178, 195, .18);
+  background: color-mix(in srgb, var(--color-text) 2%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 18%, transparent);
   border-radius: 14px;
   padding: 1rem;
 }
@@ -202,21 +202,21 @@
   font-size: .75rem;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: rgba(255,255,255,.5);
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
   margin-bottom: .8rem;
 }
 
 .pve-preview-frame {
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.1);
+  border: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
 }
 
 .pve-preview-seccion {
   padding: 1.2rem 1rem;
   background-size: cover;
   background-position: center;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
 }
 
 .pve-preview-seccion-nombre {
@@ -225,7 +225,7 @@
   font-size: .85rem;
   color: #1a1a1a;
   margin-bottom: .6rem;
-  text-shadow: 0 1px 2px rgba(255,255,255,.3);
+  text-shadow: 0 1px 2px color-mix(in srgb, var(--color-text) 30%, transparent);
 }
 
 .pve-preview-contenidos {
@@ -255,7 +255,7 @@
 /* ── MODALS ── */
 .pve-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,.6);
+  background: color-mix(in srgb, var(--color-bg) 60%, transparent);
   display: flex; align-items: center; justify-content: center;
   z-index: 1000;
   padding: 1rem;
@@ -263,7 +263,7 @@
 
 .pve-modal {
   background: #16161a;
-  border: 1px solid rgba(236, 178, 195, .25);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
   border-radius: 16px;
   padding: 1.5rem;
   width: 100%;
@@ -279,7 +279,7 @@
 .pve-field label {
   display: block;
   font-size: .8rem;
-  color: rgba(255,255,255,.65);
+  color: color-mix(in srgb, var(--color-text) 65%, transparent);
   margin-bottom: .35rem;
 }
 
@@ -287,9 +287,9 @@
 .pve-field input:not([type]),
 .pve-field textarea {
   width: 100%;
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(236, 178, 195, .2);
-  color: #fff;
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
+  color: var(--color-text);
   border-radius: 8px;
   padding: .55rem .7rem;
   font-size: .88rem;
@@ -319,7 +319,7 @@
 .pve-paleta-swatch {
   width: 26px; height: 26px;
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,.25);
+  border: 2px solid color-mix(in srgb, var(--color-text) 25%, transparent);
   cursor: pointer;
 }
 
@@ -327,7 +327,7 @@
 
 .pve-checkbox {
   display: flex; align-items: center; gap: .5rem;
-  font-size: .85rem; color: rgba(255,255,255,.75);
+  font-size: .85rem; color: color-mix(in srgb, var(--color-text) 75%, transparent);
   margin-bottom: 1rem;
 }
 
@@ -339,8 +339,8 @@
 }
 
 .pve-btn-cancel {
-  background: rgba(255,255,255,.06);
-  color: #fff;
+  background: color-mix(in srgb, var(--color-text) 6%, transparent);
+  color: var(--color-text);
   border: none;
   border-radius: 100px;
   padding: .55rem 1.2rem;
@@ -350,7 +350,7 @@
 
 .pve-btn-save {
   background: linear-gradient(135deg, #e8789a, #c0436a);
-  color: #fff;
+  color: var(--color-text);
   border: none;
   border-radius: 100px;
   padding: .55rem 1.4rem;

@@ -21,17 +21,17 @@
 }
 
 .olvide-contrasenia-card {
-    background: rgba(20,20,20,0.6);
+    background: color-mix(in srgb, var(--color-surface) 60%, transparent);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     padding: 3rem;
     border-radius: 4px;
     width: 100%;
     max-width: 480px;
-    border: 1px solid rgba(201,149,108,0.25);
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
     position: relative;
     z-index: 2;
-    box-shadow: 0 30px 90px rgba(0,0,0,0.5), 0 0 60px rgba(201,149,108,0.08);
+    box-shadow: 0 30px 90px rgba(0,0,0,0.5), 0 0 60px color-mix(in srgb, var(--color-rose-gold) 8%, transparent);
     animation: fadeInUp 0.9s var(--ease-silk) both;
 }
 
@@ -112,7 +112,7 @@
     padding: 10px 2px;
     background: transparent;
     border: none;
-    border-bottom: 1px solid rgba(201,149,108,0.3);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
     border-radius: 0;
     font-size: 0.92rem;
     color: var(--color-text);
@@ -156,7 +156,7 @@
     justify-content: center;
     gap: 0.5rem;
 }
-.submit-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px rgba(201,149,108,0.3); }
+.submit-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent); }
 .submit-button:disabled { opacity: 0.6; cursor: not-allowed; }
 .submit-button.blocked { background: linear-gradient(135deg, #666, #777); cursor: not-allowed; }
 .submit-button.blocked:hover { transform: none; box-shadow: none; }
@@ -235,7 +235,7 @@
 .security-question-button {
     width: 100%;
     background: transparent;
-    border: 1px solid rgba(201,149,108,0.4);
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
     color: var(--color-rose-gold);
     padding: 12px 20px;
     border-radius: 2px;

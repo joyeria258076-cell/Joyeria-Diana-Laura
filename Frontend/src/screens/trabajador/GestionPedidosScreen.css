@@ -30,14 +30,14 @@
 .gp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
 .gp-titulo { font-size: 1.8rem; font-weight: 400; color: var(--color-text); margin: 0; font-family: var(--font-display); letter-spacing: 0.02em; }
 .gp-btn-refrescar { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 1px solid var(--color-border); color: var(--color-rose-gold); padding: 0.5rem 1rem; border-radius: 2px; cursor: pointer; font-size: 0.8rem; font-family: var(--font-body); transition: all 0.35s var(--ease-silk); }
-.gp-btn-refrescar:hover { background: var(--color-glow); border-color: rgba(201,149,108,0.4); }
+.gp-btn-refrescar:hover { background: var(--color-glow); border-color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent); }
 
 /* ── Resumen ── */
 .gp-resumen { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
 @media (max-width: 900px) { .gp-resumen { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 500px) { .gp-resumen { grid-template-columns: repeat(2, 1fr); } }
 .gp-stat { --stat-color: var(--color-rose-gold); background: var(--color-surface); border: 1px solid var(--color-border); border-top: 2px solid var(--stat-color); border-radius: 4px; padding: 1rem 0.85rem; text-align: center; cursor: pointer; transition: all 0.35s var(--ease-silk); }
-.gp-stat:hover { border-color: rgba(201,149,108,0.35); border-top-color: var(--stat-color); transform: translateY(-2px); }
+.gp-stat:hover { border-color: color-mix(in srgb, var(--color-rose-gold) 35%, transparent); border-top-color: var(--stat-color); transform: translateY(-2px); }
 .gp-stat-activo { background: color-mix(in srgb, var(--stat-color) 12%, var(--color-surface)); border-color: var(--stat-color); box-shadow: 0 4px 14px color-mix(in srgb, var(--stat-color) 20%, transparent); }
 .gp-stat-val { font-family: var(--font-display); font-size: 1.7rem; font-weight: 400; margin: 0 0 0.3rem; color: var(--color-rose-gold); }
 .gp-stat-label { font-size: 0.66rem; color: var(--color-text-muted); margin: 0; text-transform: uppercase; letter-spacing: 0.08em; }
@@ -72,8 +72,8 @@
     padding: 1.25rem 1.5rem;
     transition: all 0.35s var(--ease-silk);
 }
-.gp-card:hover { border-top-color: rgba(201,149,108,0.35); border-right-color: rgba(201,149,108,0.35); border-bottom-color: rgba(201,149,108,0.35); box-shadow: 0 12px 32px rgba(201,149,108,0.1); }
-.gp-card-mia { box-shadow: inset 0 0 0 1px rgba(201,149,108,0.25); }
+.gp-card:hover { border-top-color: color-mix(in srgb, var(--color-rose-gold) 35%, transparent); border-right-color: color-mix(in srgb, var(--color-rose-gold) 35%, transparent); border-bottom-color: color-mix(in srgb, var(--color-rose-gold) 35%, transparent); box-shadow: 0 12px 32px color-mix(in srgb, var(--color-rose-gold) 10%, transparent); }
+.gp-card-mia { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rose-gold) 25%, transparent); }
 .gp-card-vencida { background: rgba(224,90,106,0.05); border-color: rgba(224,90,106,0.25); }
 
 .gp-card-principal {
@@ -126,7 +126,7 @@
 .gp-vacio { text-align: center; padding: 3rem; color: var(--color-text-muted); background: var(--color-glow); border-radius: 4px; border: 1px solid var(--color-border); }
 
 /* ── Modal ── */
-.gp-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
+.gp-modal-overlay { position: fixed; inset: 0; background: color-mix(in srgb, var(--color-bg) 78%, transparent); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
 .gp-modal { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 4px; width: 92%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,0.6); }
 .gp-modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.5rem; border-bottom: 1px solid var(--color-border); position: sticky; top: 0; background: var(--color-surface); z-index: 1; }
 .gp-modal-header h3 { font-size: 1.2rem; font-weight: 400; color: var(--color-rose-gold); margin: 0; font-family: var(--font-display); display: flex; align-items: center; gap: 8px; }
@@ -159,7 +159,7 @@
 .gp-msg.ok    { background: rgba(107,203,119,0.1); border: 1px solid rgba(107,203,119,0.3); color: #6bcb77; }
 .gp-msg.error { background: rgba(224,90,106,0.1);  border: 1px solid rgba(224,90,106,0.3);  color: #e05a6a; }
 .gp-btn-actualizar { background: linear-gradient(135deg, var(--color-rose-gold), var(--color-rose-gold)); color: var(--color-bg); border: none; border-radius: 2px; padding: 0.75rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: var(--font-body); transition: 0.2s; }
-.gp-btn-actualizar:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(201,149,108,0.3); }
+.gp-btn-actualizar:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px color-mix(in srgb, var(--color-rose-gold) 30%, transparent); }
 .gp-btn-actualizar:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Asignación ── */
@@ -168,7 +168,7 @@
 
 .gp-asignado { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; font-weight: 600; color: var(--color-text-muted); }
 .gp-asignado-mio { color: #6bcb77; }
-.gp-sin-asignar { font-size: 0.75rem; color: rgba(255,255,255,0.2); font-style: italic; }
+.gp-sin-asignar { font-size: 0.75rem; color: color-mix(in srgb, var(--color-text) 20%, transparent); font-style: italic; }
 
 .gp-acciones-col { display: flex; gap: 0.4rem; align-items: center; }
 
@@ -372,7 +372,7 @@
 .gp-btn-cancelar-confirm {
     width: 100%; padding: 0.85rem;
     background: linear-gradient(135deg, #e05a6a, #c0404f);
-    color: white; border: none; border-radius: 2px;
+    color: var(--color-text); border: none; border-radius: 2px;
     font-size: 0.9rem; font-weight: 700; cursor: pointer;
     font-family: var(--font-body); transition: 0.2s;
 }
@@ -493,7 +493,7 @@
     background: var(--color-rose-gold);
     border-color: var(--color-rose-gold);
     color: var(--color-bg);
-    box-shadow: 0 0 10px rgba(201,149,108,0.5);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-rose-gold) 50%, transparent);
 }
 .gp-step-label {
     font-size: 0.65rem;
@@ -601,7 +601,7 @@
 .gp-comprobante-wrap { display: flex; flex-direction: column; gap: 6px; }
 .gp-comprobante-img {
     width: 100%; max-width: 320px; border-radius: 2px;
-    border: 1px solid rgba(201,149,108,0.3); cursor: pointer;
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent); cursor: pointer;
     transition: opacity 0.2s;
 }
 .gp-comprobante-img:hover { opacity: 0.85; }
@@ -635,7 +635,7 @@
 .gp-header-acciones { display: flex; align-items: center; gap: 10px; }
 .gp-config-dias-wrap { position: relative; }
 .gp-btn-config-dias {
-    background: var(--color-border); border: 1px solid rgba(201,149,108,0.25);
+    background: var(--color-border); border: 1px solid color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
     color: var(--color-rose-gold); border-radius: 2px; padding: 7px 14px;
     font-size: 0.8rem; font-weight: 600; cursor: pointer;
     font-family: var(--font-body); transition: 0.2s;
@@ -643,7 +643,7 @@
 .gp-btn-config-dias:hover { background: var(--color-border); }
 .gp-config-dias-popover {
     position: absolute; top: calc(100% + 8px); right: 0;
-    background: var(--color-bg); border: 1px solid rgba(201,149,108,0.3);
+    background: var(--color-bg); border: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
     border-radius: 12px; padding: 16px; width: 220px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.4); z-index: 100;
 }
@@ -652,15 +652,15 @@
 .gp-config-dias-input-wrap { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .gp-config-dias-btn {
     width: 28px; height: 28px; border-radius: 2px;
-    background: var(--color-border); border: 1px solid rgba(201,149,108,0.3);
+    background: var(--color-border); border: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
     color: var(--color-rose-gold); font-size: 1rem; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
 }
-.gp-config-dias-btn:hover { background: rgba(201,149,108,0.3); }
+.gp-config-dias-btn:hover { background: color-mix(in srgb, var(--color-rose-gold) 30%, transparent); }
 .gp-config-dias-input {
     flex: 1; text-align: center; background: var(--color-bg);
-    border: 1px solid rgba(201,149,108,0.3); border-radius: 2px;
-    color: white; padding: 4px; font-size: 0.9rem; font-weight: 700;
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent); border-radius: 2px;
+    color: var(--color-text); padding: 4px; font-size: 0.9rem; font-weight: 700;
     font-family: var(--font-body);
 }
 .gp-config-dias-msg { font-size: 0.75rem; margin-bottom: 8px; }
@@ -675,7 +675,7 @@
 .gp-config-dias-guardar:disabled { opacity: 0.5; cursor: not-allowed; }
 .gp-confirmar-entrega {
     background: var(--color-glow);
-    border: 1px solid rgba(201,149,108,0.3);
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
     border-radius: 12px; padding: 16px; margin-top: 16px;
 }
 .gp-confirmar-entrega h4 { color: var(--color-rose-gold); font-size: 0.85rem; margin-bottom: 6px; }
@@ -698,12 +698,12 @@
     gap: 16px; padding: 16px 0; margin-top: 8px;
 }
 .gp-pag-btn {
-    background: var(--color-border); border: 1px solid rgba(201,149,108,0.25);
+    background: var(--color-border); border: 1px solid color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
     color: var(--color-rose-gold); border-radius: 2px; padding: 8px 16px;
     font-size: 0.82rem; font-weight: 600; cursor: pointer;
     font-family: var(--font-body); transition: 0.2s;
 }
-.gp-pag-btn:hover:not(:disabled) { background: rgba(201,149,108,0.3); }
+.gp-pag-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--color-rose-gold) 30%, transparent); }
 .gp-pag-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .gp-pag-info { font-size: 0.82rem; color: var(--color-text-muted); }
 .gp-busqueda-wrap { position: relative; flex: 1; min-width: 200px; max-width: 360px; display: flex; align-items: center; }
@@ -722,7 +722,7 @@
 }
 .gp-info-config {
     background: var(--color-glow);
-    border: 1px solid rgba(201,149,108,0.3);
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
     color: var(--color-text-muted); border-radius: 2px;
     padding: 7px 14px; font-size: 0.78rem;
     font-weight: 600;

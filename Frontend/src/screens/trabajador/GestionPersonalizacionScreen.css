@@ -3,22 +3,22 @@
 .gper-page { max-width: 980px; margin: 0 auto; padding: 28px 20px 60px; }
 
 .gper-header h1 { font-family: 'Playfair Display', serif; font-size: 1.7rem; margin: 0 0 6px; }
-.gper-sub { color: rgba(255,255,255,0.55); margin: 0 0 20px; }
+.gper-sub { color: color-mix(in srgb, var(--color-text) 55%, transparent); margin: 0 0 20px; }
 
 .gper-filtros { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
 .gper-filtro-btn {
-  padding: 8px 18px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.15);
-  background: transparent; color: rgba(255,255,255,0.6); font-size: 0.82rem; cursor: pointer;
+  padding: 8px 18px; border-radius: 50px; border: 1px solid color-mix(in srgb, var(--color-text) 15%, transparent);
+  background: transparent; color: color-mix(in srgb, var(--color-text) 60%, transparent); font-size: 0.82rem; cursor: pointer;
 }
 .gper-filtro-btn.activo { background: var(--rose, #d4607e); color: #1a0a10; border-color: transparent; font-weight: 700; }
 
-.gper-vacio { text-align: center; padding: 50px 20px; color: rgba(255,255,255,0.4); }
+.gper-vacio { text-align: center; padding: 50px 20px; color: color-mix(in srgb, var(--color-text) 40%, transparent); }
 
 .gper-lista { display: flex; flex-direction: column; gap: 16px; }
 
 .gper-card {
   display: flex; gap: 16px;
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  background: color-mix(in srgb, var(--color-text) 3%, transparent); border: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
   border-radius: 14px; padding: 18px;
 }
 .gper-producto-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
@@ -36,12 +36,12 @@
 
 .gper-cliente {
   display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
-  font-size: 0.78rem; color: rgba(255,255,255,0.5); margin: 8px 0 0;
+  font-size: 0.78rem; color: color-mix(in srgb, var(--color-text) 50%, transparent); margin: 8px 0 0;
 }
-.gper-detalle { font-size: 0.88rem; color: rgba(255,255,255,0.75); margin: 10px 0 0; line-height: 1.5; }
+.gper-detalle { font-size: 0.88rem; color: color-mix(in srgb, var(--color-text) 75%, transparent); margin: 10px 0 0; line-height: 1.5; }
 
 .gper-ver-imagen { display: inline-block; margin-top: 10px; }
-.gper-imagen-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); }
+.gper-imagen-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--color-text) 15%, transparent); }
 
 .gper-motivo { color: #e05a6a; font-size: 0.82rem; margin: 10px 0 0; }
 
@@ -52,23 +52,23 @@
 }
 .gper-btn-aprobar { background: linear-gradient(135deg, #4a8c7a 0%, #6bb89e 100%); color: #06120e; }
 .gper-btn-rechazar { background: linear-gradient(135deg, #c65a7a 0%, #e05a6a 100%); color: #1a0a10; }
-.gper-btn-cancelar { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: inherit; }
+.gper-btn-cancelar { background: transparent; border: 1px solid color-mix(in srgb, var(--color-text) 25%, transparent); color: inherit; }
 .gper-btn-aprobar:disabled, .gper-btn-rechazar:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .gper-modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  position: fixed; inset: 0; background: color-mix(in srgb, var(--color-bg) 65%, transparent);
   display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
 }
 .gper-modal {
-  background: #14100f; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+  background: #14100f; border: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent); border-radius: 16px;
   padding: 28px; max-width: 440px; width: 100%;
 }
 .gper-modal h3 { font-family: 'Playfair Display', serif; margin: 0 0 6px; }
-.gper-modal-producto { color: rgba(255,255,255,0.5); font-size: 0.85rem; margin: 0 0 16px; }
+.gper-modal-producto { color: color-mix(in srgb, var(--color-text) 50%, transparent); font-size: 0.85rem; margin: 0 0 16px; }
 .gper-label { font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 6px; }
 .gper-textarea {
-  width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(0,0,0,0.2); color: inherit; font-family: inherit; resize: vertical;
+  width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--color-text) 15%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 20%, transparent); color: inherit; font-family: inherit; resize: vertical;
 }
 .gper-error { color: #e05a6a; font-size: 0.82rem; margin: 8px 0 0; }
 .gper-modal-acciones { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }

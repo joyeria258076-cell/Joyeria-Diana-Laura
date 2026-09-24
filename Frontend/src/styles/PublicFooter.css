@@ -2,7 +2,7 @@
    Identidad Joyería Diana Laura: negro cálido + rose gold/champagne/blush. */
 
 .public-footer {
-  background: linear-gradient(to bottom, transparent, rgba(10, 10, 10, 0.75) 18%, rgba(10, 10, 10, 0.9));
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--color-bg) 75%, transparent) 18%, color-mix(in srgb, var(--color-bg) 90%, transparent));
   color: var(--color-text-muted);
   padding: 5.5rem 0 2.5rem;
   margin-top: 5rem;

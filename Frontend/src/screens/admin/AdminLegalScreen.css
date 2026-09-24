@@ -26,17 +26,17 @@
   font-family: var(--font-display);
   font-size: 1.85rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--color-text);
   margin: 0 0 0.4rem;
   line-height: 1.2;
 }
 .alegal-title span {
-  background: linear-gradient(135deg, var(--color-rose-gold), var(--color-rose-gold));
+  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-rose-gold) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-.alegal-sub { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin: 0; }
+.alegal-sub { font-size: 0.8rem; color: color-mix(in srgb, var(--color-text) 40%, transparent); margin: 0; }
 
 .alegal-header-actions {
   display: flex;
@@ -60,9 +60,9 @@
 
 /* ── BUTTONS ── */
 .alegal-btn-preview {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.65);
+  background: color-mix(in srgb, var(--color-text) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
+  color: color-mix(in srgb, var(--color-text) 65%, transparent);
   font-size: 0.78rem;
   font-weight: 700;
   padding: 0.6rem 1.1rem;
@@ -71,11 +71,11 @@
   font-family: inherit;
   transition: all 0.2s;
 }
-.alegal-btn-preview:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.alegal-btn-preview:hover { background: color-mix(in srgb, var(--color-text) 8%, transparent); color: var(--color-text); }
 
 .alegal-btn-save {
-  background: linear-gradient(135deg, rgba(236,178,195,0.18), rgba(201,168,76,0.12));
-  border: 1px solid rgba(236,178,195,0.3);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-rose-gold) 18%, transparent), rgba(201,168,76,0.12));
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
   color: var(--color-rose-gold);
   font-size: 0.78rem;
   font-weight: 700;
@@ -86,7 +86,7 @@
   transition: all 0.2s;
   white-space: nowrap;
 }
-.alegal-btn-save:hover:not(:disabled) { background: rgba(236,178,195,0.22); }
+.alegal-btn-save:hover:not(:disabled) { background: color-mix(in srgb, var(--color-rose-gold) 22%, transparent); }
 .alegal-btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── TABS ── */
@@ -98,9 +98,9 @@
   z-index: 1;
 }
 .alegal-tab {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.07);
-  color: rgba(255,255,255,0.4);
+  background: color-mix(in srgb, var(--color-text) 2%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 7%, transparent);
+  color: color-mix(in srgb, var(--color-text) 40%, transparent);
   padding: 0.75rem 1.5rem;
   border-radius: 4px 12px 0 0;
   border-bottom: none;
@@ -115,23 +115,23 @@
   flex-direction: column;
   line-height: 1.2;
 }
-.alegal-tab:hover { color: rgba(255,255,255,0.6); }
+.alegal-tab:hover { color: color-mix(in srgb, var(--color-text) 60%, transparent); }
 .alegal-tab.active {
-  background: rgba(18,14,24,0.95);
-  border-color: rgba(236,178,195,0.2);
+  background: color-mix(in srgb, var(--color-surface) 95%, transparent);
+  border-color: color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
   color: var(--color-rose-gold);
 }
 .alegal-tab-fecha {
   font-size: 0.62rem;
   font-weight: 400;
-  color: rgba(255,255,255,0.25);
+  color: color-mix(in srgb, var(--color-text) 25%, transparent);
   font-style: italic;
 }
 
 /* ── CARD / EDITOR ── */
 .alegal-card {
-  background: rgba(18,14,24,0.95);
-  border: 1px solid rgba(236,178,195,0.15);
+  background: color-mix(in srgb, var(--color-surface) 95%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   border-radius: 0 16px 16px 16px;
   padding: 2rem;
   margin-bottom: 1.5rem;
@@ -140,15 +140,15 @@
 
 .alegal-field { margin-bottom: 1.5rem; }
 .alegal-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-.alegal-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.45); display: block; margin-bottom: 0.5rem; }
-.alegal-hint { font-size: 0.68rem; color: rgba(255,255,255,0.2); }
+.alegal-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: color-mix(in srgb, var(--color-text) 45%, transparent); display: block; margin-bottom: 0.5rem; }
+.alegal-hint { font-size: 0.68rem; color: color-mix(in srgb, var(--color-text) 20%, transparent); }
 
 .alegal-input {
   width: 100%;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: color-mix(in srgb, var(--color-text) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
   border-radius: 2px;
-  color: #fff;
+  color: var(--color-text);
   font-size: 0.9rem;
   font-family: inherit;
   padding: 0.75rem 1rem;
@@ -156,14 +156,14 @@
   transition: border-color 0.2s;
   box-sizing: border-box;
 }
-.alegal-input:focus { border-color: rgba(236,178,195,0.4); }
+.alegal-input:focus { border-color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent); }
 
 .alegal-textarea {
   width: 100%;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: color-mix(in srgb, var(--color-text) 3%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
   border-radius: 2px;
-  color: rgba(255,255,255,0.85);
+  color: color-mix(in srgb, var(--color-text) 85%, transparent);
   font-size: 0.82rem;
   font-family: 'Courier New', monospace;
   line-height: 1.65;
@@ -173,7 +173,7 @@
   transition: border-color 0.2s;
   box-sizing: border-box;
 }
-.alegal-textarea:focus { border-color: rgba(236,178,195,0.35); }
+.alegal-textarea:focus { border-color: color-mix(in srgb, var(--color-rose-gold) 35%, transparent); }
 
 .alegal-formato-tips {
   display: flex;
@@ -182,33 +182,33 @@
   flex-wrap: wrap;
   margin-top: 0.6rem;
 }
-.alegal-tip { font-size: 0.68rem; font-weight: 700; color: rgba(255,255,255,0.3); }
-.alegal-tip-item { font-size: 0.66rem; color: rgba(255,255,255,0.2); }
-.alegal-tip-item code { background: rgba(255,255,255,0.06); border-radius: 3px; padding: 1px 5px; font-size: 0.64rem; color: var(--color-rose-gold); }
+.alegal-tip { font-size: 0.68rem; font-weight: 700; color: color-mix(in srgb, var(--color-text) 30%, transparent); }
+.alegal-tip-item { font-size: 0.66rem; color: color-mix(in srgb, var(--color-text) 20%, transparent); }
+.alegal-tip-item code { background: color-mix(in srgb, var(--color-text) 6%, transparent); border-radius: 3px; padding: 1px 5px; font-size: 0.64rem; color: var(--color-rose-gold); }
 
 /* ── PREVIEW ── */
 .alegal-preview { padding: 0.5rem 0; }
 .alegal-preview-title {
   font-family: var(--font-display);
   font-size: 1.4rem;
-  color: #fff;
+  color: var(--color-text);
   margin: 0 0 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(236,178,195,0.12);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 12%, transparent);
 }
 .alegal-preview-body { line-height: 1.75; }
 .alegal-preview-h {
   font-size: 0.9rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--color-text);
   margin: 1.5rem 0 0.5rem;
   padding-left: 0.75rem;
   border-left: 3px solid var(--color-rose-gold);
 }
-.alegal-preview-p { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin: 0 0 0.6rem; }
+.alegal-preview-p { font-size: 0.85rem; color: color-mix(in srgb, var(--color-text) 60%, transparent); margin: 0 0 0.6rem; }
 .alegal-preview-li {
   font-size: 0.85rem;
-  color: rgba(255,255,255,0.6);
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
   margin: 0 0 0.3rem 0;
   padding-left: 1.2rem;
   position: relative;
@@ -232,7 +232,7 @@
   justify-content: center;
   gap: 1rem;
   min-height: 200px;
-  color: rgba(255,255,255,0.3);
+  color: color-mix(in srgb, var(--color-text) 30%, transparent);
   font-size: 0.8rem;
 }
 .alegal-spinner {
@@ -251,8 +251,8 @@
   gap: 1rem;
 }
 .alegal-info-card {
-  background: rgba(18,14,24,0.6);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 6%, transparent);
   border-radius: 4px;
   padding: 1.25rem;
   display: flex;
@@ -260,14 +260,14 @@
   align-items: flex-start;
 }
 .alegal-info-icon { font-size: 1.4rem; flex-shrink: 0; }
-.alegal-info-title { font-size: 0.78rem; font-weight: 700; color: #fff; margin: 0 0 0.2rem; }
-.alegal-info-sub { font-size: 0.72rem; color: rgba(255,255,255,0.3); margin: 0; line-height: 1.5; }
-.alegal-info-sub code { background: rgba(255,255,255,0.06); border-radius: 3px; padding: 1px 5px; font-size: 0.66rem; color: var(--color-rose-gold); }
+.alegal-info-title { font-size: 0.78rem; font-weight: 700; color: var(--color-text); margin: 0 0 0.2rem; }
+.alegal-info-sub { font-size: 0.72rem; color: color-mix(in srgb, var(--color-text) 30%, transparent); margin: 0; line-height: 1.5; }
+.alegal-info-sub code { background: color-mix(in srgb, var(--color-text) 6%, transparent); border-radius: 3px; padding: 1px 5px; font-size: 0.66rem; color: var(--color-rose-gold); }
 
 @media (max-width: 700px) {
   .alegal-header { flex-direction: column; }
   .alegal-tabs { flex-direction: column; }
-  .alegal-tab { border-radius: 2px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-direction: row; }
+  .alegal-tab { border-radius: 2px; border-bottom: 1px solid color-mix(in srgb, var(--color-text) 7%, transparent); flex-direction: row; }
   .alegal-card { border-radius: 4px; padding: 1.25rem; }
   .alegal-wrap { padding: 1rem; }
 }

@@ -42,7 +42,7 @@
 .dl-loader-texto {
   font-family: 'Playfair Display', serif;
   font-size: 1.05rem;
-  color: var(--text-muted, rgba(255,255,255,0.6));
+  color: var(--text-muted, color-mix(in srgb, var(--color-text) 60%, transparent));
   margin: 0;
   letter-spacing: .04em;
   text-align: center;

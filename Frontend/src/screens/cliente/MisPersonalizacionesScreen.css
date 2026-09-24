@@ -34,7 +34,7 @@
   background: linear-gradient(to bottom, var(--color-champagne), var(--color-rose-gold));
   opacity: 0; transition: opacity 0.35s ease;
 }
-.mp-card:hover { border-color: rgba(201, 149, 108, 0.55); background: var(--color-surface-2); }
+.mp-card:hover { border-color: color-mix(in srgb, var(--color-rose-gold) 55%, transparent); background: var(--color-surface-2); }
 .mp-card:hover::after { opacity: 1; }
 
 .mp-card-img {
@@ -54,7 +54,7 @@
   letter-spacing: 0.12em; text-transform: uppercase;
   padding: 0.3rem 0.75rem; border-radius: 999px; border: 1px solid;
 }
-.mp-badge--pendiente { color: var(--color-champagne); border-color: rgba(232, 213, 183, 0.4); background: rgba(232, 213, 183, 0.08); }
+.mp-badge--pendiente { color: var(--color-champagne); border-color: color-mix(in srgb, var(--color-champagne) 40%, transparent); background: color-mix(in srgb, var(--color-champagne) 8%, transparent); }
 .mp-badge--aprobada  { color: #9fd3b8; border-color: rgba(159, 211, 184, 0.4); background: rgba(159, 211, 184, 0.08); }
 .mp-badge--rechazada { color: var(--color-blush); border-color: rgba(244, 194, 194, 0.4); background: rgba(244, 194, 194, 0.08); }
 

@@ -6,7 +6,7 @@
   --rose-vivid:    var(--color-champagne);
   --rose-light:    var(--color-champagne);
   --rose-border:   var(--color-border);
-  --rose-border-h: rgba(201, 149, 108, 0.6);
+  --rose-border-h: color-mix(in srgb, var(--color-rose-gold) 60%, transparent);
   --rose-soft:     var(--color-glow);
   --white:         var(--color-text);
   --text-body:     var(--color-text);
@@ -16,7 +16,7 @@
   --bg-card:       var(--color-surface);
   --bg-card-hover: var(--color-surface-2);
   --shadow-card:   0 4px 28px rgba(0, 0, 0, 0.55), 0 1px 6px rgba(0, 0, 0, 0.4);
-  --shadow-hover:  0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(201, 149, 108, 0.15);
+  --shadow-hover:  0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   --ease-expo:     var(--ease-silk);
   --ease-out:      var(--ease-silk);
   --radius:        4px;
@@ -61,8 +61,8 @@
   to   { opacity: 1; }
 }
 @keyframes roseGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 149, 108, 0.2); }
-  50%       { box-shadow: 0 0 0 8px rgba(201, 149, 108, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-rose-gold) 20%, transparent); }
+  50%       { box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-rose-gold) 0%, transparent); }
 }
 
 /* ─── BASE ──────────────────────────────────────── */
@@ -71,7 +71,7 @@
 .inicio-public-container {
   background-color: var(--bg-black);
   background-image:
-    linear-gradient(rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0.9)),
+    linear-gradient(color-mix(in srgb, var(--color-bg) 90%, transparent), color-mix(in srgb, var(--color-bg) 90%, transparent)),
     var(--global-bg-url);
   background-size: cover;
   background-position: center;
@@ -186,7 +186,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
+  background: linear-gradient(110deg, transparent 40%, color-mix(in srgb, var(--color-text) 10%, transparent) 50%, transparent 60%);
   transform: translateX(-100%);
   transition: transform 0.5s var(--ease-out);
 }
@@ -196,12 +196,12 @@
 .inicio-public-container .btn-primary {
   background: linear-gradient(135deg, var(--rose) 0%, var(--rose-vivid) 100%) !important;
   color: var(--bg-black) !important;
-  box-shadow: 0 6px 20px rgba(201, 149, 108, 0.3) !important;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent) !important;
 }
 
 .inicio-public-container .btn-primary:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 36px rgba(201, 149, 108, 0.4) !important;
+  box-shadow: 0 12px 36px color-mix(in srgb, var(--color-rose-gold) 40%, transparent) !important;
 }
 
 .inicio-public-container .btn-secondary {
@@ -248,7 +248,7 @@
 }
 
 .promo-ticker-badge {
-  background: rgba(0,0,0,0.18);
+  background: color-mix(in srgb, var(--color-bg) 18%, transparent);
   border-radius: 20px;
   padding: 2px 10px;
   font-size: 0.72rem;
@@ -296,7 +296,7 @@
 }
 
 .promo-ticker-close {
-  background: rgba(0,0,0,0.18);
+  background: color-mix(in srgb, var(--color-bg) 18%, transparent);
   border: none;
   color: #1a1a1a;
   width: 24px;
@@ -314,7 +314,7 @@
 }
 
 .promo-ticker-close:hover {
-  background: rgba(0,0,0,0.32);
+  background: color-mix(in srgb, var(--color-bg) 32%, transparent);
 }
 
 @keyframes ticker-slide {
@@ -385,8 +385,8 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to top, rgba(8,8,9,0.85) 0%, rgba(8,8,9,0.3) 45%, transparent 70%),
-    linear-gradient(to right, rgba(8,8,9,0.5) 0%, transparent 60%);
+    linear-gradient(to top, color-mix(in srgb, var(--color-bg) 85%, transparent) 0%, color-mix(in srgb, var(--color-bg) 30%, transparent) 45%, transparent 70%),
+    linear-gradient(to right, color-mix(in srgb, var(--color-bg) 50%, transparent) 0%, transparent 60%);
 }
 
 .carousel-content {
@@ -435,7 +435,7 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(10, 10, 11, 0.7);
+  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
   border: 1px solid var(--rose-border);
   color: var(--rose-light);
   width: 48px;
@@ -457,7 +457,7 @@
   border-color: var(--rose-vivid);
   color: var(--white);
   transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 8px 24px rgba(201, 149, 108, 0.4);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
 }
 
 .carousel-btn:active { transform: translateY(-50%) scale(0.96); }
@@ -492,7 +492,7 @@
   width: 8px; height: 8px;
   border-radius: 50%;
   background: rgba(255,255,255,0.25);
-  border: 1px solid rgba(255,255,255,0.3);
+  border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent);
   transition: all 0.4s var(--ease-expo);
 }
 
@@ -510,7 +510,7 @@
    BARRA DE CONFIANZA
 ═══════════════════════════════════════════════════ */
 .trust-strip {
-  background: rgba(10,10,10,0.35);
+  background: color-mix(in srgb, var(--color-bg) 35%, transparent);
   border-bottom: 1px solid var(--rose-border);
   padding: 2.25rem 0;
 }
@@ -561,7 +561,7 @@
   justify-content: center;
   gap: 2.5rem;
   flex-wrap: wrap;
-  background: rgba(10,10,10,0.45);
+  background: color-mix(in srgb, var(--color-bg) 45%, transparent);
   padding: 2.5rem 2rem;
   border-bottom: 1px solid var(--rose-border);
 }
@@ -609,7 +609,7 @@
 }
 
 .showcase-section--alt {
-  background: rgba(10,10,10,0.3);
+  background: color-mix(in srgb, var(--color-bg) 30%, transparent);
 }
 
 .showcase-grid {
@@ -651,7 +651,7 @@
 
 .showcase-card:hover::before { transform: scaleX(1); }
 
-.showcase-card-img { height: 160px; overflow: hidden; background: #1a1a1f; }
+.showcase-card-img { height: 160px; overflow: hidden; background: var(--color-surface-2); }
 .showcase-card-img img {
   width: 100%; height: 100%; object-fit: cover; display: block;
   transition: transform 0.7s var(--ease-out);
@@ -716,7 +716,7 @@
 }
 .product-card:hover::before { transform: scaleX(1); }
 
-.product-card-img { position: relative; height: 200px; overflow: hidden; background: #1a1a1f; }
+.product-card-img { position: relative; height: 200px; overflow: hidden; background: var(--color-surface-2); }
 .product-card-img img {
   width: 100%; height: 100%; object-fit: cover; display: block;
   transition: transform 0.7s var(--ease-out), filter 0.5s ease;
@@ -726,7 +726,7 @@
 
 .product-card-overlay {
   position: absolute; inset: 0;
-  background: rgba(10,10,10,0.45);
+  background: color-mix(in srgb, var(--color-bg) 45%, transparent);
   display: flex; align-items: center; justify-content: center;
   opacity: 0;
   transition: opacity 0.35s var(--ease-silk);
@@ -734,7 +734,7 @@
 .product-card-overlay span {
   color: var(--white); font-size: 0.8rem; font-weight: 600;
   letter-spacing: 0.06em;
-  border: 1px solid rgba(245,240,235,0.5);
+  border: 1px solid color-mix(in srgb, var(--color-text) 50%, transparent);
   padding: 0.5rem 1rem;
 }
 .product-card:hover .product-card-overlay { opacity: 1; }
@@ -786,7 +786,7 @@
 }
 .prod-badge--nuevo  { background: var(--rose-light); color: #1a1a1a; }
 .prod-badge--oferta { top: auto; bottom: 12px; left: 12px; background: var(--rose-vivid); color: var(--white); }
-.prod-badge--agotado { top: auto; bottom: 12px; left: 12px; background: rgba(0,0,0,0.7); color: var(--text-muted); }
+.prod-badge--agotado { top: auto; bottom: 12px; left: 12px; background: color-mix(in srgb, var(--color-bg) 70%, transparent); color: var(--text-muted); }
 .prod-badge--oferta ~ .prod-badge--nuevo { top: 12px; }
 
 .prod-categoria {
@@ -821,7 +821,7 @@
   border-color: var(--rose-border-h);
   box-shadow: var(--shadow-hover);
 }
-.editorial-card-img { position: relative; height: 260px; overflow: hidden; background: #1a1a1f; }
+.editorial-card-img { position: relative; height: 260px; overflow: hidden; background: var(--color-surface-2); }
 .editorial-card-img img {
   width: 100%; height: 100%; object-fit: cover; display: block;
   transition: transform 0.7s var(--ease-out), filter 0.5s ease;
@@ -841,7 +841,7 @@
 .promo-card { position: relative; overflow: hidden; }
 .promo-ribbon {
   position: absolute; top: 15px; right: -35px;
-  background: var(--rose-vivid); color: #fff;
+  background: var(--rose-vivid); color: var(--color-text);
   padding: 0.3rem 3rem; transform: rotate(45deg);
   font-weight: 700; font-size: 0.85rem; z-index: 2;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
@@ -860,7 +860,7 @@
    FEATURES SECTION
 ═══════════════════════════════════════════════════ */
 .features-section {
-  background: rgba(10,10,10,0.3);
+  background: color-mix(in srgb, var(--color-bg) 30%, transparent);
   padding: 6rem 0;
   border-bottom: 1px solid var(--rose-border);
 }
@@ -1033,7 +1033,7 @@
   height: 210px;
   position: relative;
   overflow: hidden;
-  background: #1a1a1f;
+  background: var(--color-surface-2);
   flex-shrink: 0;
 }
 
@@ -1056,7 +1056,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, transparent 55%, rgba(17,17,20,0.65) 100%);
+  background: linear-gradient(to bottom, transparent 55%, color-mix(in srgb, var(--color-surface) 65%, transparent) 100%);
   z-index: 1;
 }
 
@@ -1065,7 +1065,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.1) 50%, transparent 65%);
+  background: linear-gradient(110deg, transparent 35%, color-mix(in srgb, var(--color-text) 10%, transparent) 50%, transparent 65%);
   transform: translateX(-100%) skewX(-15deg);
   z-index: 2;
 }
@@ -1147,7 +1147,7 @@
    CTA SECTION
 ═══════════════════════════════════════════════════ */
 .cta-section {
-  background: rgba(10,10,10,0.4);
+  background: color-mix(in srgb, var(--color-bg) 40%, transparent);
   padding: 6rem 0;
   border-top: 1px solid var(--rose-border);
   position: relative;
@@ -1161,7 +1161,7 @@
   top: -60px; left: 50%;
   transform: translateX(-50%);
   width: 600px; height: 300px;
-  background: radial-gradient(ellipse, rgba(201,149,108,0.08) 0%, transparent 70%);
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--color-rose-gold) 8%, transparent) 0%, transparent 70%);
   pointer-events: none;
 }
 

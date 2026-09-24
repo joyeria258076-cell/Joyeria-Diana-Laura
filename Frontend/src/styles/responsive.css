@@ -51,7 +51,7 @@ table {
   display: block;
   width: 24px;
   height: 2px;
-  background: #ECB2C3;
+  background: var(--color-rose-gold);
   border-radius: 2px;
   transition: all 0.3s ease;
 }
@@ -64,7 +64,7 @@ table {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(10,10,10,0.98);
+  background: color-mix(in srgb, var(--color-bg) 98%, transparent);
   z-index: 150;
   flex-direction: column;
   align-items: center;
@@ -78,11 +78,11 @@ table {
 
 .header-nav-mobile .nav-link {
   font-size: 1.4rem;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   text-decoration: none;
   font-weight: 600;
   padding: 0.5rem 1rem;
-  border-bottom: 1px solid rgba(236,178,195,0.2);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
   width: 80%;
   text-align: center;
 }
@@ -93,7 +93,7 @@ table {
   right: 1.5rem;
   background: none;
   border: none;
-  color: #ECB2C3;
+  color: var(--color-rose-gold);
   font-size: 2rem;
   cursor: pointer;
 }

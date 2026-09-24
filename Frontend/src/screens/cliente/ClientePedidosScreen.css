@@ -21,7 +21,7 @@
 }
 .cp-notif-pago.ok      { background: rgba(107,203,119,0.12); border: 1px solid rgba(107,203,119,0.3); color: #6bcb77; }
 .cp-notif-pago.error   { background: rgba(224,90,106,0.12);  border: 1px solid rgba(224,90,106,0.3);  color: #e05a6a; }
-.cp-notif-pago.pending { background: rgba(232,213,183,0.12); border: 1px solid rgba(232,213,183,0.3); color: var(--color-champagne); }
+.cp-notif-pago.pending { background: color-mix(in srgb, var(--color-champagne) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-champagne) 30%, transparent); color: var(--color-champagne); }
 .cp-notif-pago button  { background: transparent; border: none; color: inherit; font-size: 1.2rem; cursor: pointer; }
 
 /* ── Header ── */
@@ -34,13 +34,13 @@
     letter-spacing: 0.06em; text-transform: uppercase;
     cursor: pointer; font-family: var(--font-body); transition: all 0.35s var(--ease-silk);
 }
-.cp-btn-nuevo:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(201,149,108,0.3); }
+.cp-btn-nuevo:hover { transform: translateY(-2px); box-shadow: 0 0 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent); }
 
 /* ── Stats ── */
 .cp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
 @media (max-width: 700px) { .cp-stats { grid-template-columns: repeat(2, 1fr); } }
 .cp-stat-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 4px; padding: 1.5rem 1.25rem; text-align: center; transition: all 0.35s var(--ease-silk); }
-.cp-stat-card:hover { border-color: rgba(201,149,108,0.35); }
+.cp-stat-card:hover { border-color: color-mix(in srgb, var(--color-rose-gold) 35%, transparent); }
 .cp-stat-icon { display: none; }
 .cp-stat-label { font-size: 0.7rem; color: var(--color-text-muted); margin: 0 0 0.3rem; text-transform: uppercase; letter-spacing: 0.1em; }
 .cp-stat-valor { font-family: var(--font-display); font-size: 2rem; font-weight: 400; color: var(--color-rose-gold); margin: 0; }
@@ -52,16 +52,16 @@
 .cp-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-left: 2px solid rgba(201,149,108,0.3);
+    border-left: 2px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
     border-radius: 4px;
     padding: 1.25rem 1.5rem;
     cursor: pointer;
     transition: all 0.35s var(--ease-silk);
 }
 .cp-card:hover {
-    border-color: rgba(201,149,108,0.35);
+    border-color: color-mix(in srgb, var(--color-rose-gold) 35%, transparent);
     border-left-color: var(--color-rose-gold);
-    box-shadow: 0 16px 40px rgba(201,149,108,0.1);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
     transform: translateX(4px);
 }
 
@@ -97,7 +97,7 @@
 .cp-total { font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; color: var(--color-rose-gold); }
 .cp-badge { display: inline-block; padding: 0.28rem 0.8rem; border-radius: 2px; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.04em; }
 .cp-btn-ver {
-    background: transparent; border: 1px solid rgba(201,149,108,0.35); color: var(--color-rose-gold);
+    background: transparent; border: 1px solid color-mix(in srgb, var(--color-rose-gold) 35%, transparent); color: var(--color-rose-gold);
     padding: 8px 18px; border-radius: 2px; cursor: pointer; font-size: 0.76rem;
     letter-spacing: 0.04em; font-family: var(--font-body);
     transition: all 0.35s var(--ease-silk); white-space: nowrap;
@@ -116,7 +116,7 @@
 .cp-vacio { text-align: center; padding: 4rem; color: var(--color-text-muted); display: flex; flex-direction: column; align-items: center; gap: 1rem; }
 
 /* ── Modal ── */
-.cp-modal-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
+.cp-modal-overlay { position: fixed; inset: 0; background: color-mix(in srgb, var(--color-bg) 80%, transparent); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
 .cp-modal { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 4px; width: 90%; max-width: 560px; max-height: 88vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
 .cp-modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.5rem; border-bottom: 1px solid var(--color-border); }
 .cp-modal-header h3 { font-family: var(--font-display); font-size: 1.35rem; font-weight: 400; color: var(--color-text); margin: 0; }
@@ -201,13 +201,13 @@
 
 .cp-btn-mp {
     background: linear-gradient(135deg, #00b1ea, #009ee3);
-    color: #fff;
+    color: var(--color-text);
 }
 .cp-btn-mp:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,177,234,0.3); }
 
 .cp-btn-paypal {
     background: linear-gradient(135deg, #003087, #009cde);
-    color: #fff;
+    color: var(--color-text);
 }
 .cp-btn-paypal:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,48,135,0.4); }
 
@@ -250,7 +250,7 @@
     width: 100%;
     padding: 12px;
     background: transparent;
-    border: 1px solid rgba(201,149,108,0.35);
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 35%, transparent);
     color: var(--color-rose-gold);
     border-radius: 2px;
     cursor: pointer;
@@ -277,9 +277,9 @@
     border: 1px solid #6bcb7755;
 }
 .cp-pago-pendiente {
-    background: rgba(232,213,183,0.15);
+    background: color-mix(in srgb, var(--color-champagne) 15%, transparent);
     color: var(--color-champagne);
-    border: 1px solid rgba(232,213,183,0.35);
+    border: 1px solid color-mix(in srgb, var(--color-champagne) 35%, transparent);
 }
 
 /* ── Stepper ── */
@@ -401,7 +401,7 @@
 .cp-notif-dropdown {
     position: absolute; top: calc(100% + 8px); right: 0;
     width: 320px; background: var(--color-surface); border: 1px solid var(--color-border);
-    border-radius: 4px; box-shadow: 0 20px 60px rgba(201,149,108,0.15);
+    border-radius: 4px; box-shadow: 0 20px 60px color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
     z-index: 1000; overflow: hidden; max-height: 400px; overflow-y: auto;
 }
 .cp-notif-header {
@@ -440,7 +440,7 @@
     font-size: 0.82rem; font-weight: 500; letter-spacing: 0.04em; cursor: pointer; transition: all 0.35s var(--ease-silk);
     font-family: var(--font-body);
 }
-.cp-btn-subir-comprobante:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px rgba(201,149,108,0.3); }
+.cp-btn-subir-comprobante:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent); }
 .cp-btn-subir-comprobante:disabled { opacity: 0.5; cursor: not-allowed; }
 .cp-comprobante-msg { font-size: 0.82rem; padding: 8px 12px; border-radius: 2px; }
 .cp-comprobante-msg.ok { background: rgba(107,203,119,0.1); color: #6bcb77; border: 1px solid #6bcb7755; }
@@ -487,18 +487,18 @@
     gap: 16px; padding: 16px 0; margin-top: 8px;
 }
 .cp-pag-btn {
-    background: var(--color-glow); border: 1px solid rgba(201,149,108,0.25);
+    background: var(--color-glow); border: 1px solid color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
     color: var(--color-rose-gold); border-radius: 2px; padding: 8px 18px;
     font-size: 0.8rem; font-weight: 500; cursor: pointer;
     font-family: var(--font-body); transition: all 0.35s var(--ease-silk);
 }
-.cp-pag-btn:hover:not(:disabled) { background: rgba(201,149,108,0.2); }
+.cp-pag-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--color-rose-gold) 20%, transparent); }
 .cp-pag-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .cp-pag-info { font-size: 0.82rem; color: var(--color-text-muted); }
 .cp-busqueda {
     flex: 1; min-width: 200px; max-width: 300px;
     padding: 10px 2px; font-size: 0.85rem;
-    background: transparent; border: none; border-bottom: 1px solid rgba(201,149,108,0.3);
+    background: transparent; border: none; border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
     border-radius: 0; color: var(--color-text); font-family: var(--font-body);
     transition: border-color 0.35s var(--ease-silk);
 }

@@ -241,7 +241,7 @@
 .ep3-field input,
 .ep3-field textarea,
 .ep3-field select {
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--color-bg) 20%, transparent);
   border: 1px solid var(--color-border);
   border-radius: 4px;
   padding: 0.68rem 0.9rem;
@@ -357,7 +357,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,0.65);
+  background: color-mix(in srgb, var(--color-bg) 65%, transparent);
   border: none;
   border-radius: 4px;
   color: #e05a6a;
@@ -380,7 +380,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.25);
+  background: color-mix(in srgb, var(--color-bg) 25%, transparent);
   border: 1.5px solid rgba(201, 168, 76, 0.3);
   color: var(--color-rose-gold);
   opacity: 0.9;
@@ -475,7 +475,7 @@
   width: 38px;
   height: 22px;
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--color-text) 10%, transparent);
   border: 1px solid var(--color-border);
   flex-shrink: 0;
   transition: var(--ease-silk, all 0.25s ease);
@@ -528,7 +528,7 @@
 }
 
 .ep3-ubicacion-sugerida:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--color-text) 6%, transparent);
 }
 
 .ep3-ubicacion-input-row {
@@ -566,7 +566,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: #fff;
+  color: var(--color-text);
   font-size: 0.78rem;
   font-weight: 700;
   padding: 0.3rem 0.4rem 0.3rem 0.75rem;
@@ -576,7 +576,7 @@
 .ep3-ubicacion-chip button {
   background: rgba(255, 255, 255, 0.25);
   border: none;
-  color: #fff;
+  color: var(--color-text);
   border-radius: 50%;
   width: 17px;
   height: 17px;
@@ -672,7 +672,7 @@
 }
 
 .ep3-preview-card {
-  background: linear-gradient(150deg, var(--color-surface) 0%, rgba(0, 0, 0, 0.3) 100%);
+  background: linear-gradient(150deg, var(--color-surface) 0%, color-mix(in srgb, var(--color-bg) 30%, transparent) 100%);
   border: 1.5px solid rgba(201, 168, 76, 0.35);
   border-radius: 10px;
   overflow: hidden;
@@ -682,7 +682,7 @@
 .ep3-preview-media {
   position: relative;
   height: 150px;
-  background: rgba(0, 0, 0, 0.3);
+  background: color-mix(in srgb, var(--color-bg) 30%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -709,7 +709,7 @@
 .ep3-preview-badge.new {
   left: 0.6rem;
   background: rgba(96, 165, 250, 0.85);
-  color: #fff;
+  color: var(--color-text);
 }
 
 .ep3-preview-badge.featured {
@@ -734,7 +734,7 @@
 }
 
 .ep3-preview-estado.on { background: rgba(16, 185, 129, 0.15); color: #7fd8ae; }
-.ep3-preview-estado.off { background: rgba(158, 144, 135, 0.15); color: var(--color-text-muted); }
+.ep3-preview-estado.off { background: color-mix(in srgb, var(--color-text-muted) 15%, transparent); color: var(--color-text-muted); }
 
 .ep3-preview-card h4 {
   font-family: var(--font-display);

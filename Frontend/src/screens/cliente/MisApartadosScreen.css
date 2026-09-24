@@ -81,12 +81,12 @@
     border-color: transparent;
 }
 .mapt-filtro-count {
-    background: rgba(245,240,235,0.15);
+    background: color-mix(in srgb, var(--color-text) 15%, transparent);
     padding: 1px 7px;
     border-radius: 2px;
     font-size: 0.72rem;
 }
-.mapt-filtro-btn.activo .mapt-filtro-count { background: rgba(10,10,10,0.2); }
+.mapt-filtro-btn.activo .mapt-filtro-count { background: color-mix(in srgb, var(--color-bg) 20%, transparent); }
 
 /* Vacío */
 .mapt-vacio {
@@ -109,7 +109,7 @@
     cursor: pointer;
     transition: all 0.35s var(--ease-silk);
 }
-.mapt-btn-primario:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(201,149,108,0.3); }
+.mapt-btn-primario:hover { transform: translateY(-2px); box-shadow: 0 0 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent); }
 
 /* Lista de apartados */
 .mapt-lista { display: flex; flex-direction: column; gap: 1rem; }
@@ -122,7 +122,7 @@
     overflow: hidden;
     transition: all 0.35s var(--ease-silk);
 }
-.mapt-card:hover { border-color: rgba(201,149,108,0.3); }
+.mapt-card:hover { border-color: color-mix(in srgb, var(--color-rose-gold) 30%, transparent); }
 .mapt-card--pendiente_pago { border-left: 2px solid #a78bfa; }
 .mapt-card--activo    { border-left: 2px solid #6bcb77; }
 .mapt-card--liquidado { border-left: 2px solid var(--color-rose-gold); }
@@ -276,7 +276,7 @@
 /* ── Modal pago ───────────────────────────────────────────── */
 .mapt-overlay {
     position: fixed; inset: 0;
-    background: rgba(10,10,10,0.8);
+    background: color-mix(in srgb, var(--color-bg) 80%, transparent);
     display: flex; align-items: center; justify-content: center;
     z-index: 1000; padding: 20px;
     backdrop-filter: blur(4px);

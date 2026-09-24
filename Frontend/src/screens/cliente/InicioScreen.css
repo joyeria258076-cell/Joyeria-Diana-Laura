@@ -96,8 +96,8 @@
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse at center, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0.86) 78%),
-        linear-gradient(to top, rgba(10,10,10,0.9) 0%, transparent 45%);
+        radial-gradient(ellipse at center, color-mix(in srgb, var(--color-bg) 55%, transparent) 0%, color-mix(in srgb, var(--color-bg) 86%, transparent) 78%),
+        linear-gradient(to top, color-mix(in srgb, var(--color-bg) 90%, transparent) 0%, transparent 45%);
 }
 .tl-hero::after {
     content: '';
@@ -152,7 +152,7 @@
     font-family: var(--font-body);
     font-weight: 300;
     font-size: 1.05rem;
-    color: rgba(245,240,235,0.75);
+    color: color-mix(in srgb, var(--color-text) 75%, transparent);
     line-height: 1.7;
     margin: 0;
     max-width: 460px;
@@ -174,7 +174,7 @@
     transition: all 0.35s var(--ease-silk);
 }
 .tl-btn-rosa:hover {
-    box-shadow: 0 0 20px rgba(201,149,108,0.3);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
     transform: translateY(-2px);
 }
 .tl-btn-ghost-sm {
@@ -193,7 +193,7 @@
 .tl-btn-rosa-outline {
     padding: 14px 32px;
     background: transparent;
-    border: 1px solid rgba(201,149,108,0.5);
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 50%, transparent);
     color: var(--rosa);
     border-radius: 2px;
     font-family: var(--font-body);
@@ -229,8 +229,8 @@
     transition: all 0.35s var(--ease-silk);
 }
 .tl-mosaic-tile:hover {
-    border-color: rgba(201,149,108,0.4);
-    box-shadow: 0 20px 60px rgba(201,149,108,0.15);
+    border-color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
+    box-shadow: 0 20px 60px color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
 }
 .tl-mosaic-tile img {
     width: 100%;
@@ -242,7 +242,7 @@
 .tl-mosaic-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(10,10,10,0.75) 0%, rgba(10,10,10,0.1) 55%);
+    background: linear-gradient(to top, color-mix(in srgb, var(--color-bg) 75%, transparent) 0%, color-mix(in srgb, var(--color-bg) 10%, transparent) 55%);
 }
 .tl-mosaic-nombre {
     position: absolute;
@@ -306,9 +306,9 @@
     transition: all 0.35s var(--ease-silk);
 }
 .tl-ed-card:hover {
-    border-color: rgba(201,149,108,0.4);
+    border-color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
     transform: translateY(-6px);
-    box-shadow: 0 20px 60px rgba(201,149,108,0.15);
+    box-shadow: 0 20px 60px color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
 }
 .tl-ed-img {
     position: relative;
@@ -326,7 +326,7 @@
 .tl-ed-img-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(10,10,10,0.5) 0%, transparent 55%);
+    background: linear-gradient(to top, color-mix(in srgb, var(--color-bg) 50%, transparent) 0%, transparent 55%);
 }
 .tl-ed-body {
     padding: 1.25rem;
@@ -383,7 +383,7 @@
 .tl-badge--new     { background: var(--rosa); color: var(--bg); }
 .tl-badge--promo   { background: var(--gold); color: var(--bg); top: auto; bottom: 10px; left: 10px; }
 .tl-badge--oferta  { background: var(--color-blush); color: var(--bg); top: auto; bottom: 10px; }
-.tl-badge--agotado { background: rgba(10,10,10,0.8); color: var(--text2); border: 1px solid var(--border); top: 10px; left: auto; right: 10px; }
+.tl-badge--agotado { background: color-mix(in srgb, var(--color-bg) 80%, transparent); color: var(--text2); border: 1px solid var(--border); top: 10px; left: auto; right: 10px; }
 
 /* ─── SECCIÓN GRID PRODUCTOS ────────────────────────── */
 .tl-section {
@@ -423,8 +423,8 @@
     transition: all 0.35s var(--ease-silk);
 }
 .tl-prod-card:hover {
-    border-color: rgba(201,149,108,0.4);
-    box-shadow: 0 20px 60px rgba(201,149,108,0.15);
+    border-color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
+    box-shadow: 0 20px 60px color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
     transform: translateY(-6px);
 }
 .tl-prod-img-wrap {
@@ -445,7 +445,7 @@
 .tl-prod-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(10,10,10,0.5);
+    background: color-mix(in srgb, var(--color-bg) 50%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -458,7 +458,7 @@
     font-size: 0.8rem;
     font-weight: 500;
     letter-spacing: 0.08em;
-    border: 1px solid rgba(245,240,235,0.5);
+    border: 1px solid color-mix(in srgb, var(--color-text) 50%, transparent);
     padding: 0.5rem 1rem;
 }
 .tl-prod-card:hover .tl-prod-overlay { opacity: 1; }
@@ -562,7 +562,7 @@
     position: absolute;
     inset: 0;
     background:
-        linear-gradient(to right, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.3) 65%, transparent 100%);
+        linear-gradient(to right, color-mix(in srgb, var(--color-bg) 92%, transparent) 0%, color-mix(in srgb, var(--color-bg) 30%, transparent) 65%, transparent 100%);
 }
 .tl-banner-ed-content {
     position: relative;
@@ -587,7 +587,7 @@
     font-family: var(--font-body);
     font-weight: 300;
     font-size: 1rem;
-    color: rgba(245,240,235,0.7);
+    color: color-mix(in srgb, var(--color-text) 70%, transparent);
     line-height: 1.7;
     margin: 0;
 }
@@ -670,7 +670,7 @@
 .tl-nov-index {
     font-family: var(--font-display);
     font-size: 1.2rem;
-    color: rgba(201,149,108,0.4);
+    color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
     font-weight: 400;
 }
 .tl-nov-img {

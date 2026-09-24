@@ -3,7 +3,7 @@
    Clases con prefijo fp- para no colisionar con PublicFooter.css. */
 
 .fp-footer {
-    background: linear-gradient(to bottom, transparent, rgba(10, 10, 10, 0.9) 12%, rgba(10, 10, 10, 0.97) 30%);
+    background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--color-bg) 90%, transparent) 12%, color-mix(in srgb, var(--color-bg) 97%, transparent) 30%);
     color: var(--color-text-muted);
     padding: 4.5rem 40px 1.25rem;
     margin: 0 -40px -40px;

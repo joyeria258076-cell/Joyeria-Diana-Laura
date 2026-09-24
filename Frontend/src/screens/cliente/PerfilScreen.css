@@ -28,7 +28,7 @@
   align-items: center;
   gap: 1.5rem;
   background: var(--color-surface);
-  border: 1px solid rgba(201,149,108,0.15);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   border-radius: 4px;
   padding: 1.75rem 2rem;
   margin-bottom: 1.75rem;
@@ -38,8 +38,8 @@
   height: 64px;
   border-radius: 50%;
   background: #1a0d10;
-  border: 2px solid rgba(201,149,108,0.5);
-  box-shadow: 0 0 14px rgba(201,149,108,0.15);
+  border: 2px solid color-mix(in srgb, var(--color-rose-gold) 50%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,13 +51,13 @@
 .pf-hero-avatar-wrap { position: relative; width: 64px; height: 64px; border-radius: 50%; cursor: pointer; flex-shrink: 0; }
 .pf-hero-avatar-img {
   width: 64px; height: 64px; border-radius: 50%;
-  object-fit: cover; border: 2px solid rgba(201,149,108,0.5);
-  box-shadow: 0 0 14px rgba(201,149,108,0.15);
+  object-fit: cover; border: 2px solid color-mix(in srgb, var(--color-rose-gold) 50%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   display: block;
 }
 .pf-hero-avatar-overlay {
   position: absolute; inset: 0; border-radius: 50%;
-  background: rgba(0,0,0,0.6); color: #fff;
+  background: color-mix(in srgb, var(--color-bg) 60%, transparent); color: var(--color-text);
   font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
   display: flex; align-items: center; justify-content: center; text-align: center;
   opacity: 0; transition: opacity 0.2s;
@@ -65,7 +65,7 @@
 .pf-hero-avatar-wrap:hover .pf-hero-avatar-overlay { opacity: 1; }
 .pf-hero-info { display: flex; flex-direction: column; gap: 0.25rem; }
 .pf-hero-name { font-family: var(--font-display); font-size: 1.6rem; font-weight: 400; letter-spacing: 0.02em; color: var(--color-text); margin: 0; }
-.pf-hero-email { font-size: 0.82rem; color: rgba(245,240,235,0.5); margin: 0; }
+.pf-hero-email { font-size: 0.82rem; color: color-mix(in srgb, var(--color-text) 50%, transparent); margin: 0; }
 .pf-hero-role {
   display: inline-block;
   margin-top: 0.3rem;
@@ -74,8 +74,8 @@
   text-transform: uppercase;
   letter-spacing: 0.6px;
   color: var(--color-rose-gold);
-  background: rgba(201,149,108,0.08);
-  border: 1px solid rgba(201,149,108,0.2);
+  background: color-mix(in srgb, var(--color-rose-gold) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
   padding: 2px 10px;
   border-radius: 2px;
   width: fit-content;
@@ -84,7 +84,7 @@
 /* Tabs */
 .pf-tabs {
   display: flex;
-  border-bottom: 1px solid rgba(201,149,108,0.12);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 12%, transparent);
   margin-bottom: 1.75rem;
 }
 .pf-tab {
@@ -94,22 +94,22 @@
   padding: 0.75rem 1.5rem;
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(245,240,235,0.45);
+  color: color-mix(in srgb, var(--color-text) 45%, transparent);
   cursor: pointer;
   transition: color 0.35s var(--ease-silk), border-color 0.35s var(--ease-silk);
   font-family: var(--font-body);
   margin-bottom: -1px;
 }
-.pf-tab:hover { color: rgba(245,240,235,0.8); }
+.pf-tab:hover { color: color-mix(in srgb, var(--color-text) 80%, transparent); }
 .pf-tab--active { color: var(--color-rose-gold); border-bottom-color: var(--color-rose-gold); }
 
 /* Section */
 .pf-section { display: flex; flex-direction: column; gap: 1.25rem; }
 .pf-section-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 .pf-section-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 400; letter-spacing: 0.02em; color: var(--color-text); margin: 0; }
-.pf-section-sub { font-size: 0.82rem; color: rgba(245,240,235,0.45); margin: 0; }
-.pf-loading, .pf-empty { color: rgba(245,240,235,0.4); font-size: 0.88rem; padding: 1rem 0; }
-.pf-divider { border: none; border-top: 1px solid rgba(201,149,108,0.1); margin: 0.5rem 0; }
+.pf-section-sub { font-size: 0.82rem; color: color-mix(in srgb, var(--color-text) 45%, transparent); margin: 0; }
+.pf-loading, .pf-empty { color: color-mix(in srgb, var(--color-text) 40%, transparent); font-size: 0.88rem; padding: 1rem 0; }
+.pf-divider { border: none; border-top: 1px solid color-mix(in srgb, var(--color-rose-gold) 10%, transparent); margin: 0.5rem 0; }
 
 /* Form */
 .pf-form { display: flex; flex-direction: column; gap: 1.1rem; }
@@ -117,7 +117,7 @@
 .pf-field label {
   font-size: 0.75rem;
   font-weight: 500;
-  color: rgba(245,240,235,0.6);
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
@@ -126,7 +126,7 @@
 }
 .pf-field input {
   background: var(--color-surface-2);
-  border: 1px solid rgba(201,149,108,0.15);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   border-radius: 2px;
   color: var(--color-text);
   padding: 0.75rem 1rem;
@@ -136,13 +136,13 @@
   width: 100%;
   box-sizing: border-box;
 }
-.pf-field input:focus { outline: none; border-color: rgba(201,149,108,0.5); }
-.pf-field--locked input { color: rgba(245,240,235,0.3); cursor: not-allowed; background: var(--color-bg); }
+.pf-field input:focus { outline: none; border-color: color-mix(in srgb, var(--color-rose-gold) 50%, transparent); }
+.pf-field--locked input { color: color-mix(in srgb, var(--color-text) 30%, transparent); cursor: not-allowed; background: var(--color-bg); }
 .pf-locked-badge {
   font-size: 0.62rem;
-  background: rgba(245,240,235,0.05);
-  color: rgba(245,240,235,0.3);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
+  color: color-mix(in srgb, var(--color-text) 30%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 7%, transparent);
   padding: 1px 7px;
   border-radius: 2px;
   font-weight: 600;
@@ -150,9 +150,9 @@
 }
 .pf-info-note {
   font-size: 0.8rem;
-  color: rgba(245,240,235,0.4);
-  background: rgba(201,149,108,0.03);
-  border: 1px solid rgba(201,149,108,0.1);
+  color: color-mix(in srgb, var(--color-text) 40%, transparent);
+  background: color-mix(in srgb, var(--color-rose-gold) 3%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   border-radius: 2px;
   padding: 0.85rem 1rem;
   line-height: 1.5;
@@ -163,16 +163,16 @@
 .pf-pass-wrap input { flex: 1; }
 .pf-pass-eye {
   background: var(--color-surface-2);
-  border: 1px solid rgba(201,149,108,0.15);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   border-radius: 2px;
-  color: rgba(245,240,235,0.5);
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
   padding: 0 0.85rem;
   cursor: pointer;
   font-size: 0.85rem;
   transition: border-color 0.35s var(--ease-silk);
   flex-shrink: 0;
 }
-.pf-pass-eye:hover { border-color: rgba(201,149,108,0.4); }
+.pf-pass-eye:hover { border-color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent); }
 
 /* Buttons */
 .pf-btn-save {
@@ -209,8 +209,8 @@
 .pf-btn-secondary {
   padding: 0.7rem 1.5rem;
   background: transparent;
-  color: rgba(245,240,235,0.6);
-  border: 1px solid rgba(255,255,255,0.12);
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   border-radius: 2px;
   font-weight: 600;
   font-size: 0.82rem;
@@ -218,13 +218,13 @@
   transition: all 0.35s var(--ease-silk);
   font-family: var(--font-body);
 }
-.pf-btn-secondary:hover:not(:disabled) { border-color: rgba(255,255,255,0.25); color: var(--color-text); }
+.pf-btn-secondary:hover:not(:disabled) { border-color: color-mix(in srgb, var(--color-text) 25%, transparent); color: var(--color-text); }
 .pf-btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .pf-btn-refresh {
   background: none;
-  border: 1px solid rgba(201,149,108,0.2);
-  color: rgba(201,149,108,0.7);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
+  color: color-mix(in srgb, var(--color-rose-gold) 70%, transparent);
   border-radius: 2px;
   padding: 0.5rem 1rem;
   font-size: 0.78rem;
@@ -242,7 +242,7 @@
 /* MFA card */
 .pf-mfa-card {
   background: var(--color-surface);
-  border: 1px solid rgba(201,149,108,0.12);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 12%, transparent);
   border-radius: 2px;
   padding: 1.25rem 1.5rem;
   display: flex;
@@ -263,13 +263,13 @@
 }
 .pf-mfa-badge--on  { background: rgba(107,203,119,0.15); color: #6bcb77; }
 .pf-mfa-badge--off { background: rgba(150,150,150,0.1);  color: #888; }
-.pf-mfa-info p { font-size: 0.82rem; color: rgba(245,240,235,0.5); margin: 0; }
+.pf-mfa-info p { font-size: 0.82rem; color: color-mix(in srgb, var(--color-text) 50%, transparent); margin: 0; }
 
 /* Sesiones */
 .pf-sesiones-list { display: flex; flex-direction: column; gap: 0.75rem; }
 .pf-sesion {
   background: var(--color-surface);
-  border: 1px solid rgba(201,149,108,0.1);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   border-radius: 2px;
   padding: 1rem 1.25rem;
   display: flex;
@@ -277,12 +277,12 @@
   gap: 1rem;
   transition: border-color 0.35s var(--ease-silk);
 }
-.pf-sesion--actual { border-color: rgba(201,149,108,0.3); }
+.pf-sesion--actual { border-color: color-mix(in srgb, var(--color-rose-gold) 30%, transparent); }
 .pf-sesion-icon { font-size: 1.4rem; flex-shrink: 0; }
 .pf-sesion-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pf-sesion-device { font-size: 0.88rem; font-weight: 600; color: var(--color-text); }
-.pf-sesion-meta   { font-size: 0.75rem; color: rgba(245,240,235,0.4); }
-.pf-sesion-ip     { font-size: 0.7rem;  color: rgba(245,240,235,0.25); }
+.pf-sesion-meta   { font-size: 0.75rem; color: color-mix(in srgb, var(--color-text) 40%, transparent); }
+.pf-sesion-ip     { font-size: 0.7rem;  color: color-mix(in srgb, var(--color-text) 25%, transparent); }
 .pf-sesion-right  { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 .pf-sesion-actual-badge {
   font-size: 0.65rem;
@@ -291,9 +291,9 @@
   letter-spacing: 0.4px;
   padding: 2px 10px;
   border-radius: 2px;
-  background: rgba(201,149,108,0.08);
+  background: color-mix(in srgb, var(--color-rose-gold) 8%, transparent);
   color: var(--color-rose-gold);
-  border: 1px solid rgba(201,149,108,0.2);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
 }
 .pf-btn-cerrar-ses {
   padding: 0.35rem 0.9rem;
@@ -310,7 +310,7 @@
 .pf-btn-cerrar-ses:hover { background: rgba(224,90,106,0.18); }
 
 .pf-sesiones-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem; }
-.pf-sesiones-note { font-size: 0.75rem; color: rgba(245,240,235,0.3); margin: 0; }
+.pf-sesiones-note { font-size: 0.75rem; color: color-mix(in srgb, var(--color-text) 30%, transparent); margin: 0; }
 
 /* Solicitud cambio nombre */
 .pf-btn-solicitar {
@@ -339,7 +339,7 @@
 }
 .pf-solicitud-info {
   font-size: 0.8rem;
-  color: rgba(245,240,235,0.45);
+  color: color-mix(in srgb, var(--color-text) 45%, transparent);
   margin: 0;
   line-height: 1.5;
 }
@@ -353,7 +353,7 @@
 /* Código de trabajador */
 .pf-codigo-trabajador {
   background: var(--color-surface-2);
-  border: 1px solid rgba(201,149,108,0.15);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   border-radius: 4px;
   padding: 1rem 1.25rem;
   display: flex;
@@ -370,11 +370,11 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(245,240,235,0.4);
+  color: color-mix(in srgb, var(--color-text) 40%, transparent);
 }
 .pf-codigo-toggle {
   background: transparent;
-  border: 1px solid rgba(201,149,108,0.2);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
   border-radius: 2px;
   color: var(--color-rose-gold);
   font-size: 0.68rem;
@@ -384,7 +384,7 @@
   font-family: var(--font-body);
   transition: background 0.35s var(--ease-silk);
 }
-.pf-codigo-toggle:hover { background: rgba(201,149,108,0.08); }
+.pf-codigo-toggle:hover { background: color-mix(in srgb, var(--color-rose-gold) 8%, transparent); }
 .pf-codigo-value {
   font-size: 1.6rem;
   font-weight: 500;
@@ -396,7 +396,7 @@
 }
 .pf-codigo-aviso {
   font-size: 0.75rem;
-  color: rgba(245,240,235,0.35);
+  color: color-mix(in srgb, var(--color-text) 35%, transparent);
   line-height: 1.5;
   margin: 0;
 }
@@ -406,9 +406,9 @@
   width: 100%;
   padding: 0.6rem 1rem;
   background: transparent;
-  border: 1px dashed rgba(201,149,108,0.25);
+  border: 1px dashed color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
   border-radius: 2px;
-  color: rgba(201,149,108,0.5);
+  color: color-mix(in srgb, var(--color-rose-gold) 50%, transparent);
   font-size: 0.75rem;
   font-weight: 600;
   font-family: var(--font-body);
@@ -416,9 +416,9 @@
   transition: all 0.35s var(--ease-silk);
 }
 .pf-btn-recuperar-codigo:hover:not(:disabled) {
-  border-color: rgba(201,149,108,0.5);
+  border-color: color-mix(in srgb, var(--color-rose-gold) 50%, transparent);
   color: var(--color-rose-gold);
-  background: rgba(201,149,108,0.05);
+  background: color-mix(in srgb, var(--color-rose-gold) 5%, transparent);
 }
 .pf-btn-recuperar-codigo:disabled {
   opacity: 0.4;
@@ -438,7 +438,7 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: rgba(245,240,235,0.4);
+  color: color-mix(in srgb, var(--color-text) 40%, transparent);
   margin: 0;
 }
 .pf-filtros-sol {
@@ -449,9 +449,9 @@
 .pf-filtro-btn {
   padding: 3px 10px;
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
   border-radius: 2px;
-  color: rgba(245,240,235,0.45);
+  color: color-mix(in srgb, var(--color-text) 45%, transparent);
   font-size: 0.68rem;
   font-weight: 600;
   cursor: pointer;
@@ -461,26 +461,26 @@
   align-items: center;
   gap: 0.3rem;
 }
-.pf-filtro-btn:hover { border-color: rgba(201,149,108,0.3); color: rgba(245,240,235,0.7); }
-.pf-filtro-btn--active { background: rgba(201,149,108,0.1); border-color: rgba(201,149,108,0.4); color: var(--color-rose-gold); }
+.pf-filtro-btn:hover { border-color: color-mix(in srgb, var(--color-rose-gold) 30%, transparent); color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+.pf-filtro-btn--active { background: color-mix(in srgb, var(--color-rose-gold) 10%, transparent); border-color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent); color: var(--color-rose-gold); }
 .pf-filtro-count {
-  background: rgba(255,255,255,0.08);
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
   border-radius: 2px;
   padding: 0 5px;
   font-size: 0.62rem;
 }
-.pf-empty-sol { font-size: 0.8rem; color: rgba(245,240,235,0.3); padding: 0.4rem 0; }
+.pf-empty-sol { font-size: 0.8rem; color: color-mix(in srgb, var(--color-text) 30%, transparent); padding: 0.4rem 0; }
 .pf-solicitud-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   background: var(--color-surface);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid color-mix(in srgb, var(--color-text) 6%, transparent);
   border-radius: 2px;
   padding: 0.65rem 1rem;
 }
-.pf-solicitud-campo { font-size: 0.82rem; color: rgba(245,240,235,0.6); }
+.pf-solicitud-campo { font-size: 0.82rem; color: color-mix(in srgb, var(--color-text) 60%, transparent); }
 .pf-solicitud-campo strong { color: var(--color-text); }
 .pf-solicitud-estado {
   font-size: 0.65rem;

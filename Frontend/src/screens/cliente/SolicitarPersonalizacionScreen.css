@@ -14,7 +14,7 @@
 .sp-header h1 {
   font-family: 'Playfair Display', serif; font-size: 1.9rem; margin: 0 0 8px;
 }
-.sp-sub { color: var(--text-muted, rgba(255,255,255,0.6)); margin: 0; max-width: 620px; }
+.sp-sub { color: var(--text-muted, color-mix(in srgb, var(--color-text) 60%, transparent)); margin: 0; max-width: 620px; }
 
 .sp-layout {
   display: grid;
@@ -27,8 +27,8 @@
 }
 
 .sp-producto-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: color-mix(in srgb, var(--color-text) 3%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
   border-radius: 14px;
   padding: 18px;
   height: fit-content;
@@ -39,11 +39,11 @@
 }
 .sp-producto-card h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin: 0 0 6px; }
 .sp-producto-precio { color: var(--rose, #d4607e); font-weight: 700; margin: 0; }
-.sp-cargo { display: block; color: rgba(255,255,255,0.5); font-size: 0.78rem; font-weight: 400; margin-top: 4px; }
+.sp-cargo { display: block; color: color-mix(in srgb, var(--color-text) 50%, transparent); font-size: 0.78rem; font-weight: 400; margin-top: 4px; }
 
 .sp-form {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: color-mix(in srgb, var(--color-text) 2%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
   border-radius: 14px;
   padding: 24px;
   display: flex;
@@ -55,13 +55,13 @@
 
 .sp-textarea {
   width: 100%; resize: vertical; padding: 12px 14px; border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.2);
+  border: 1px solid color-mix(in srgb, var(--color-text) 15%, transparent); background: color-mix(in srgb, var(--color-bg) 20%, transparent);
   color: inherit; font-family: inherit; font-size: 0.92rem;
 }
-.sp-contador { align-self: flex-end; font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 2px; }
+.sp-contador { align-self: flex-end; font-size: 0.72rem; color: color-mix(in srgb, var(--color-text) 35%, transparent); margin-top: 2px; }
 
 .sp-imagen-upload {
-  border: 2px dashed rgba(255,255,255,0.18);
+  border: 2px dashed color-mix(in srgb, var(--color-text) 18%, transparent);
   border-radius: 12px;
   cursor: pointer;
   overflow: hidden;
@@ -70,7 +70,7 @@
 .sp-imagen-upload:hover { border-color: var(--rose, #d4607e); }
 .sp-imagen-placeholder {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
-  padding: 32px 16px; color: rgba(255,255,255,0.45); text-align: center; font-size: 0.85rem;
+  padding: 32px 16px; color: color-mix(in srgb, var(--color-text) 45%, transparent); text-align: center; font-size: 0.85rem;
 }
 .sp-imagen-preview { width: 100%; max-height: 260px; object-fit: cover; display: block; }
 
@@ -78,7 +78,7 @@
   display: flex; align-items: flex-start; gap: 10px;
   margin-top: 18px; padding: 14px 16px;
   background: rgba(212, 96, 126, 0.08); border: 1px solid rgba(212, 96, 126, 0.3);
-  border-radius: 10px; font-size: 0.85rem; color: rgba(255,255,255,0.75); line-height: 1.5;
+  border-radius: 10px; font-size: 0.85rem; color: color-mix(in srgb, var(--color-text) 75%, transparent); line-height: 1.5;
 }
 .sp-aviso svg { flex-shrink: 0; margin-top: 2px; color: var(--rose, #d4607e); }
 
@@ -89,7 +89,7 @@
 .sp-btn-enviar {
   margin-top: 20px; align-self: flex-start;
   display: flex; align-items: center; gap: 8px;
-  background: linear-gradient(135deg, #d4607e 0%, #ecb2c3 100%);
+  background: linear-gradient(135deg, #d4607e 0%, var(--color-rose-gold) 100%);
   color: #1a0a10; font-weight: 700; font-size: 13px; letter-spacing: 1px;
   text-transform: uppercase; padding: 14px 32px; border: none; border-radius: 50px;
   cursor: pointer;
@@ -98,17 +98,17 @@
 
 .sp-exito {
   max-width: 520px; margin: 60px auto; text-align: center;
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  background: color-mix(in srgb, var(--color-text) 3%, transparent); border: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
   border-radius: 16px; padding: 40px 32px;
 }
 .sp-exito-icon { color: #4a8c7a; margin-bottom: 12px; }
 .sp-exito h2 { font-family: 'Playfair Display', serif; margin: 0 0 12px; }
-.sp-exito p { color: rgba(255,255,255,0.7); line-height: 1.6; margin: 0 0 24px; }
+.sp-exito p { color: color-mix(in srgb, var(--color-text) 70%, transparent); line-height: 1.6; margin: 0 0 24px; }
 .sp-exito-acciones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
 .sp-btn-primario, .sp-btn-secundario {
   padding: 12px 26px; border-radius: 50px; font-weight: 700; font-size: 12.5px;
   letter-spacing: 0.5px; cursor: pointer; border: none;
 }
-.sp-btn-primario { background: linear-gradient(135deg, #d4607e 0%, #ecb2c3 100%); color: #1a0a10; }
-.sp-btn-secundario { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: inherit; }
+.sp-btn-primario { background: linear-gradient(135deg, #d4607e 0%, var(--color-rose-gold) 100%); color: #1a0a10; }
+.sp-btn-secundario { background: transparent; border: 1px solid color-mix(in srgb, var(--color-text) 25%, transparent); color: inherit; }

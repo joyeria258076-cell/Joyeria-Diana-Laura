@@ -114,7 +114,7 @@
 /* ── Barras ── */
 .rp-bar-row { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.7rem; }
 .rp-bar-label { width: 90px; font-size: 0.75rem; color: var(--color-text-muted); text-transform: capitalize; flex-shrink: 0; }
-.rp-bar-track { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+.rp-bar-track { flex: 1; height: 8px; background: color-mix(in srgb, var(--color-text) 6%, transparent); border-radius: 4px; overflow: hidden; }
 .rp-bar-fill { height: 100%; background: var(--color-rose-gold); border-radius: 4px; }
 .rp-bar-val { width: 30px; text-align: right; font-size: 0.78rem; color: var(--color-text); flex-shrink: 0; }
 

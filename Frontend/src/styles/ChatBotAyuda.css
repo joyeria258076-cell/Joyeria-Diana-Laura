@@ -1,9 +1,9 @@
 .dlchat {
     width: 100%;
     margin: 1.2rem 0 1rem;
-    border: 1px solid rgba(201, 149, 108, 0.25);
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
     border-radius: 12px;
-    background: rgba(10, 10, 10, 0.55);
+    background: color-mix(in srgb, var(--color-bg) 55%, transparent);
     overflow: hidden;
     text-align: left;
     font-family: var(--font-body);
@@ -15,7 +15,7 @@
     gap: 0.7rem;
     padding: 0.7rem 1rem;
     background: var(--color-surface-2);
-    border-bottom: 1px solid rgba(201, 149, 108, 0.2);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
     color: var(--color-champagne);
     font-size: 0.85rem;
 }
@@ -73,7 +73,7 @@
 
 .dlchat-msg--bot {
     align-self: flex-start;
-    background: rgba(255, 255, 255, 0.08);
+    background: color-mix(in srgb, var(--color-text) 8%, transparent);
     color: var(--color-text);
     border-bottom-left-radius: 3px;
 }
@@ -127,12 +127,12 @@
     flex-wrap: wrap;
     gap: 0.4rem;
     padding: 0.5rem 0.9rem;
-    border-top: 1px solid rgba(201, 149, 108, 0.12);
+    border-top: 1px solid color-mix(in srgb, var(--color-rose-gold) 12%, transparent);
 }
 
 .dlchat-chips button {
     background: transparent;
-    border: 1px solid rgba(201, 149, 108, 0.4);
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
     color: var(--color-rose-gold);
     border-radius: 999px;
     padding: 0.28rem 0.7rem;
@@ -157,11 +157,11 @@
 .dlchat-form input {
     flex: 1;
     min-width: 0;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(201, 149, 108, 0.25);
+    background: color-mix(in srgb, var(--color-text) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
     border-radius: 999px;
     padding: 0.5rem 0.9rem;
-    color: #f5f0eb;
+    color: var(--color-text);
     font-size: 0.82rem;
     outline: none;
 }
@@ -189,7 +189,7 @@
 .dlchat-prod {
     display: flex; align-items: center; gap: 0.6rem; width: 100%;
     padding: 0.4rem; border-radius: 8px; cursor: pointer; text-align: left;
-    background: rgba(10, 10, 10, 0.5); border: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-bg) 50%, transparent); border: 1px solid var(--color-border);
     color: var(--color-text); font-family: var(--font-body);
     transition: border-color 0.25s ease, background 0.25s ease;
 }

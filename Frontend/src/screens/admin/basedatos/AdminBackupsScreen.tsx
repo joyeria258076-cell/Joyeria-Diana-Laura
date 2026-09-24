@@ -572,7 +572,7 @@ const AdminBackupsScreen: React.FC = () => {
                             ))}
                         </div>
                     ) : (
-                        <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.4)' }}>
+                        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
                             No se encontraron registros de respaldos.
                         </div>
                     )}
@@ -668,7 +668,7 @@ const AdminBackupsScreen: React.FC = () => {
                                 <div className="health-loading">
                                     <div className="spinner-large" style={{ margin: '0 auto 1rem' }}></div>
                                     <p style={{ color: '#ECB2C3', textAlign: 'center', margin: 0 }}>Ejecutando diagnóstico...</p>
-                                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', textAlign: 'center', marginTop: '0.4rem' }}>
+                                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', textAlign: 'center', marginTop: '0.4rem' }}>
                                         VACUUM · ANALYZE · Conexión · Espacio
                                     </p>
                                 </div>
@@ -691,7 +691,7 @@ const AdminBackupsScreen: React.FC = () => {
                                         </div>
                                         <div className="health-row">
                                             <span className="health-label">Servidor</span>
-                                            <span className="health-value" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>{healthData.conexion?.servidor || 'supabase.com'}</span>
+                                            <span className="health-value" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{healthData.conexion?.servidor || 'supabase.com'}</span>
                                         </div>
                                     </div>
 
@@ -711,7 +711,7 @@ const AdminBackupsScreen: React.FC = () => {
                                                     <tr key={row.tabla}>
                                                         <td><code>{row.tabla}</code></td>
                                                         {/* CAMBIO: Muestra mensaje claro cuando Supabase no expone la fecha */}
-                                                        <td style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>
+                                                        <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
                                                             {row.ultimo_vacuum === 'Nunca' ? 'Gestionado por Supabase' : row.ultimo_vacuum}
                                                         </td>
                                                         <td>{row.filas_muertas}</td>
@@ -741,7 +741,7 @@ const AdminBackupsScreen: React.FC = () => {
                                                     <tr key={row.tabla}>
                                                         <td><code>{row.tabla}</code></td>
                                                         {/* CAMBIO: Muestra mensaje claro cuando Supabase no expone la fecha */}
-                                                        <td style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>
+                                                        <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
                                                             {row.ultimo_analyze === 'Nunca' ? 'Gestionado por Supabase' : row.ultimo_analyze}
                                                         </td>
                                                         <td><span className="health-badge ok"><AiOutlineCheckCircle size={12} /> OK</span></td>
@@ -825,7 +825,7 @@ const AdminBackupsScreen: React.FC = () => {
                             )}
                         </div>
                         <div className="modal-body">
-                            <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                            <p style={{ color: 'var(--color-text-muted)', marginBottom: '1rem', fontSize: '0.9rem' }}>
                                 Selecciona la tabla y el formato de descarga.
                             </p>
 
@@ -842,7 +842,7 @@ const AdminBackupsScreen: React.FC = () => {
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'center' }}><AiOutlineFileZip size={22} /></div>
                                     <div style={{ fontWeight: 600, fontSize: '0.9rem', marginTop: '0.3rem' }}>.dump</div>
-                                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.2rem' }}>Restaurable con pg_restore</div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.2rem' }}>Restaurable con pg_restore</div>
                                 </div>
                                 <div
                                     onClick={() => setSelectedFormat('csv')}
@@ -855,7 +855,7 @@ const AdminBackupsScreen: React.FC = () => {
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'center' }}><AiOutlineFileText size={22} /></div>
                                     <div style={{ fontWeight: 600, fontSize: '0.9rem', marginTop: '0.3rem' }}>.csv</div>
-                                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.2rem' }}>Abrir en Excel o editor</div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.2rem' }}>Abrir en Excel o editor</div>
                                 </div>
                             </div>
 
@@ -881,7 +881,7 @@ const AdminBackupsScreen: React.FC = () => {
                                             <span style={{ fontFamily: 'monospace', fontSize: '0.95rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                                                 {selectedTable === t.tabla && <AiOutlineCheckCircle size={14} />}{t.tabla}
                                             </span>
-                                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
+                                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
                                                 {Number(t.filas).toLocaleString()} filas
                                             </span>
                                         </div>

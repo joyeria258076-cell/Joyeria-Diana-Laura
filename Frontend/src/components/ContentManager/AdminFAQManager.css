@@ -34,7 +34,7 @@
 .faq-admin-title {
   font-size: 1.6rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-text);
   margin: 0 0 0.25rem;
 }
 .faq-admin-subtitle {
@@ -44,7 +44,7 @@
 }
 .faq-btn-nueva {
   padding: 0.7rem 1.5rem;
-  background: #ECB2C3;
+  background: var(--color-rose-gold);
   color: #000;
   border: none;
   border-radius: 4px;
@@ -63,8 +63,8 @@
   margin-bottom: 2rem;
 }
 .faq-stat {
-  background: #111;
-  border: 1px solid rgba(236,178,195,0.12);
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 12%, transparent);
   border-radius: 6px;
   padding: 0.9rem 1.5rem;
   display: flex;
@@ -72,7 +72,7 @@
   gap: 2px;
   min-width: 90px;
 }
-.faq-stat strong { font-size: 1.6rem; color: #ECB2C3; font-weight: 700; line-height: 1; }
+.faq-stat strong { font-size: 1.6rem; color: var(--color-rose-gold); font-weight: 700; line-height: 1; }
 .faq-stat span   { font-size: 0.7rem; color: rgba(217,217,217,0.5); text-transform: uppercase; letter-spacing: 0.5px; }
 
 /* Loading / empty */
@@ -91,15 +91,15 @@
 .faq-admin-list { display: flex; flex-direction: column; gap: 1rem; }
 
 .faq-admin-card {
-  background: #111;
-  border: 1px solid rgba(236,178,195,0.12);
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 12%, transparent);
   border-radius: 8px;
   display: flex;
   align-items: stretch;
   overflow: hidden;
   transition: border-color 0.2s;
 }
-.faq-admin-card:hover { border-color: rgba(236,178,195,0.35); }
+.faq-admin-card:hover { border-color: color-mix(in srgb, var(--color-rose-gold) 35%, transparent); }
 .faq-admin-card--oculta { opacity: 0.55; }
 
 .faq-admin-num {
@@ -110,9 +110,9 @@
   justify-content: center;
   font-size: 1.3rem;
   font-weight: 700;
-  color: rgba(236,178,195,0.35);
-  background: rgba(236,178,195,0.04);
-  border-right: 1px solid rgba(236,178,195,0.08);
+  color: color-mix(in srgb, var(--color-rose-gold) 35%, transparent);
+  background: color-mix(in srgb, var(--color-rose-gold) 4%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--color-rose-gold) 8%, transparent);
   font-family: 'Playfair Display', serif;
 }
 
@@ -140,7 +140,7 @@
 .faq-admin-pregunta {
   font-size: 1rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-text);
   margin: 0;
 }
 .faq-admin-respuesta {
@@ -170,7 +170,7 @@
 }
 .faq-btn-edit   { background: rgba(201,168,76,0.12); color: #c9a84c; border-color: rgba(201,168,76,0.25); }
 .faq-btn-edit:hover { background: rgba(201,168,76,0.22); }
-.faq-btn-hide   { background: rgba(217,217,217,0.06); color: #aaa; border-color: rgba(255,255,255,0.1); }
+.faq-btn-hide   { background: rgba(217,217,217,0.06); color: #aaa; border-color: color-mix(in srgb, var(--color-text) 10%, transparent); }
 .faq-btn-hide:hover { background: rgba(217,217,217,0.12); }
 .faq-btn-show   { background: rgba(107,203,119,0.1); color: #6bcb77; border-color: rgba(107,203,119,0.25); }
 .faq-btn-show:hover { background: rgba(107,203,119,0.2); }
@@ -181,7 +181,7 @@
 .faq-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.75);
+  background: color-mix(in srgb, var(--color-bg) 75%, transparent);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -189,8 +189,8 @@
   backdrop-filter: blur(4px);
 }
 .faq-modal {
-  background: #111;
-  border: 1px solid rgba(236,178,195,0.2);
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
   border-radius: 10px;
   width: 90%;
   max-width: 560px;
@@ -204,13 +204,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(236,178,195,0.1);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   position: sticky;
   top: 0;
-  background: #111;
+  background: var(--color-surface);
   z-index: 1;
 }
-.faq-modal-header h2 { font-size: 1.1rem; color: #fff; margin: 0; font-weight: 700; }
+.faq-modal-header h2 { font-size: 1.1rem; color: var(--color-text); margin: 0; font-weight: 700; }
 .faq-modal-close {
   background: none;
   border: none;
@@ -220,7 +220,7 @@
   padding: 0.25rem;
   transition: color 0.15s;
 }
-.faq-modal-close:hover { color: #fff; }
+.faq-modal-close:hover { color: var(--color-text); }
 
 .faq-modal-body {
   padding: 1.5rem;
@@ -239,10 +239,10 @@
 }
 .faq-field input,
 .faq-field textarea {
-  background: #0d0d0d;
-  border: 1px solid rgba(236,178,195,0.15);
+  background: var(--color-bg);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   border-radius: 6px;
-  color: #fff;
+  color: var(--color-text);
   padding: 0.7rem 1rem;
   font-size: 0.9rem;
   font-family: inherit;
@@ -252,7 +252,7 @@
 .faq-field input:focus,
 .faq-field textarea:focus {
   outline: none;
-  border-color: rgba(236,178,195,0.5);
+  border-color: color-mix(in srgb, var(--color-rose-gold) 50%, transparent);
 }
 .faq-field-hint { font-size: 0.72rem; color: rgba(217,217,217,0.35); }
 
@@ -261,22 +261,22 @@
   gap: 0.75rem;
   justify-content: flex-end;
   padding: 1.25rem 1.5rem;
-  border-top: 1px solid rgba(236,178,195,0.1);
+  border-top: 1px solid color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
 }
 .faq-btn-cancel {
   padding: 0.7rem 1.5rem;
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid color-mix(in srgb, var(--color-text) 15%, transparent);
   color: rgba(217,217,217,0.6);
   border-radius: 4px;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.15s;
 }
-.faq-btn-cancel:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+.faq-btn-cancel:hover { border-color: color-mix(in srgb, var(--color-text) 30%, transparent); color: var(--color-text); }
 .faq-btn-save {
   padding: 0.7rem 1.75rem;
-  background: #ECB2C3;
+  background: var(--color-rose-gold);
   color: #000;
   border: none;
   border-radius: 4px;
@@ -290,7 +290,7 @@
 
 @media (max-width: 640px) {
   .faq-admin-card { flex-direction: column; }
-  .faq-admin-num { width: 100%; height: 40px; border-right: none; border-bottom: 1px solid rgba(236,178,195,0.08); }
+  .faq-admin-num { width: 100%; height: 40px; border-right: none; border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 8%, transparent); }
   .faq-admin-actions { flex-direction: row; flex-wrap: wrap; }
   .faq-admin-stats { flex-wrap: wrap; }
 }

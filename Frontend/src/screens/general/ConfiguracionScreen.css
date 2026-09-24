@@ -34,7 +34,7 @@
     border-radius: 4px;
     transition: all 0.35s var(--ease-silk);
 }
-.settings-section:hover { border-color: rgba(201,149,108,0.35); }
+.settings-section:hover { border-color: color-mix(in srgb, var(--color-rose-gold) 35%, transparent); }
 
 .settings-section h4 {
     display: flex;
@@ -88,7 +88,7 @@
     transition: all 0.35s var(--ease-silk);
 }
 .config-switch input:checked + .slider {
-    background: rgba(201,149,108,0.25);
+    background: color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
     border-color: var(--color-rose-gold);
 }
 .config-switch input:checked + .slider::before {
@@ -135,7 +135,7 @@
 
 .btn-save-config:hover {
     transform: translateY(-2px);
-    box-shadow: 0 0 20px rgba(201,149,108,0.3);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
 }
 
 @keyframes cfg-fadeIn {

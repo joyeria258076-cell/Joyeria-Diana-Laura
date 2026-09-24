@@ -351,12 +351,12 @@
 }
 
 .pv-container .pv-status.off {
-  background: rgba(158, 144, 135, 0.14);
+  background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
   color: var(--color-text-muted);
 }
 
 .pv-container .pv-status.off:hover {
-  background: rgba(158, 144, 135, 0.22);
+  background: color-mix(in srgb, var(--color-text-muted) 22%, transparent);
 }
 
 .pv-container .pv-status svg {

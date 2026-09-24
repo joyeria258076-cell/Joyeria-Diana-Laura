@@ -51,7 +51,7 @@
 
 .reset-btn {
   background-color: #2563eb;
-  color: white;
+  color: var(--color-text);
   border: 2px solid #1d4ed8;
 }
 
@@ -61,7 +61,7 @@
 
 .increase-btn {
   background-color: #10b981;
-  color: white;
+  color: var(--color-text);
   border: 2px solid #059669;
 }
 
@@ -101,7 +101,7 @@
   border: none;
   border-radius: 50%;
   background-color: #6b7280;
-  color: white;
+  color: var(--color-text);
   cursor: grab;
   font-weight: bold;
   font-size: 16px;

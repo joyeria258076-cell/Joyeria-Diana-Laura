@@ -6,14 +6,14 @@
 .database-screen-container {
   --dark-prime: var(--color-bg);
   --dark-surface: var(--color-bg);
-  --dark-surface-light: rgba(30, 30, 35, 0.7);
+  --dark-surface-light: color-mix(in srgb, var(--color-surface) 70%, transparent);
   --gold-lux: var(--color-rose-gold);
-  --gold-lux-light: rgba(236, 178, 195, 0.3);
+  --gold-lux-light: color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
   --gold-lux-dark: #d49bb3;
-  --border-lux: rgba(236, 178, 195, 0.2);
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-tertiary: rgba(255, 255, 255, 0.5);
+  --border-lux: color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
+  --text-primary: var(--color-text);
+  --text-secondary: color-mix(in srgb, var(--color-text) 70%, transparent);
+  --text-tertiary: var(--color-text-muted);
   --success-color: #4CAF50;
   --warning-color: #FFC107;
   --error-color: #F44336;
@@ -49,7 +49,7 @@
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, var(--color-rose-gold) 0%, #e49bb3 100%);
+  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-rose-gold) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -107,7 +107,7 @@
 }
 
 .stat-card {
-  background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, rgba(10, 10, 15, 0.7) 100%);
+  background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, color-mix(in srgb, var(--color-surface) 70%, transparent) 100%);
   border: 1px solid var(--border-lux);
   border-radius: 4px;
   padding: 1.5rem;
@@ -120,13 +120,13 @@
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(236, 178, 195, 0.15);
-  border-color: rgba(236, 178, 195, 0.4);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
+  border-color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
 }
 
 .stat-icon {
   font-size: 2rem;
-  background: rgba(236, 178, 195, 0.1);
+  background: color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   width: 50px;
   height: 50px;
   display: flex;
@@ -200,7 +200,7 @@
 
 .quick-action-card:hover {
   transform: translateY(-2px);
-  background: rgba(236, 178, 195, 0.1);
+  background: color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   border-color: var(--gold-lux);
 }
 
@@ -229,7 +229,7 @@
 }
 
 .module-card {
-  background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, rgba(10, 10, 15, 0.7) 100%);
+  background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, color-mix(in srgb, var(--color-surface) 70%, transparent) 100%);
   border: 1px solid var(--border-lux);
   border-radius: 4px;
   padding: 1.8rem;
@@ -257,7 +257,7 @@
 .module-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-  border-color: rgba(236, 178, 195, 0.4);
+  border-color: color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
 }
 
 .module-card:hover::before {
@@ -266,7 +266,7 @@
 
 .module-icon {
   font-size: 2.5rem;
-  background: rgba(236, 178, 195, 0.1);
+  background: color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   width: 60px;
   height: 60px;
   display: flex;
@@ -303,10 +303,10 @@
 .meta-item {
   font-size: 0.8rem;
   color: var(--text-tertiary);
-  background: rgba(0, 0, 0, 0.3);
+  background: color-mix(in srgb, var(--color-bg) 30%, transparent);
   padding: 0.3rem 0.8rem;
   border-radius: 2px;
-  border: 1px solid rgba(236, 178, 195, 0.1);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
 }
 
 .module-arrow {
@@ -325,7 +325,7 @@
 
 /* Recent Activity */
 .recent-activity-section {
-  background: linear-gradient(145deg, rgba(20, 20, 25, 0.5) 0%, rgba(8, 8, 12, 0.8) 100%);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-surface) 50%, transparent) 0%, color-mix(in srgb, var(--color-bg) 80%, transparent) 100%);
   border: 1px solid var(--border-lux);
   border-radius: 4px;
   padding: 1.8rem;
@@ -352,7 +352,7 @@
 }
 
 .view-all-btn:hover {
-  background: rgba(236, 178, 195, 0.1);
+  background: color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
 }
 
 .activity-list {
@@ -366,13 +366,13 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--color-bg) 20%, transparent);
   border-radius: 2px;
   transition: var(--transition);
 }
 
 .activity-item:hover {
-  background: rgba(236, 178, 195, 0.05);
+  background: color-mix(in srgb, var(--color-rose-gold) 5%, transparent);
 }
 
 .activity-icon {
@@ -382,7 +382,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(236, 178, 195, 0.1);
+  background: color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   border-radius: 2px;
 }
 
@@ -436,7 +436,7 @@
 
 /* Health Section */
 .health-section {
-  background: linear-gradient(145deg, rgba(20, 20, 25, 0.5) 0%, rgba(8, 8, 12, 0.8) 100%);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-surface) 50%, transparent) 0%, color-mix(in srgb, var(--color-bg) 80%, transparent) 100%);
   border: 1px solid var(--border-lux);
   border-radius: 4px;
   padding: 1.8rem;
@@ -455,9 +455,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.8rem 1rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--color-bg) 20%, transparent);
   border-radius: 2px;
-  border: 1px solid rgba(236, 178, 195, 0.05);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 5%, transparent);
 }
 
 .health-label {

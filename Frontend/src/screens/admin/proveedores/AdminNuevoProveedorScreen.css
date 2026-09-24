@@ -198,7 +198,7 @@
 
 .np2-field input,
 .np2-field textarea {
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--color-bg) 20%, transparent);
   border: 1px solid var(--color-border);
   border-radius: 4px;
   padding: 0.75rem 0.95rem;
@@ -248,7 +248,7 @@
   width: 42px;
   height: 24px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--color-text) 10%, transparent);
   border: 1px solid var(--color-border);
   flex-shrink: 0;
   transition: var(--ease-silk, all 0.25s ease);
@@ -373,7 +373,7 @@
 }
 
 .np2-preview-card {
-  background: linear-gradient(150deg, var(--color-surface) 0%, rgba(0, 0, 0, 0.3) 100%);
+  background: linear-gradient(150deg, var(--color-surface) 0%, color-mix(in srgb, var(--color-bg) 30%, transparent) 100%);
   border: 1.5px solid rgba(201, 168, 76, 0.35);
   border-radius: 10px;
   padding: 1.6rem 1.5rem;
@@ -505,7 +505,7 @@
 }
 
 .np2-preview-badge.off {
-  background: rgba(158, 144, 135, 0.15);
+  background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
   color: var(--color-text-muted);
 }
 

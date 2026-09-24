@@ -345,7 +345,7 @@
 }
 
 .cat2-container .cat2-dot.off {
-  background: rgba(158, 144, 135, 0.14);
+  background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
   color: var(--color-text-muted);
 }
 
@@ -393,7 +393,7 @@
 /* Subcategorías */
 .cat2-container .cat2-children {
   border-top: 1px solid var(--color-border);
-  background: rgba(0, 0, 0, 0.15);
+  background: color-mix(in srgb, var(--color-bg) 15%, transparent);
 }
 
 .cat2-container .cat2-child {

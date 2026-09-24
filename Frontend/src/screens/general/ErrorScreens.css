@@ -7,10 +7,10 @@
 
 /* El código de error con el estilo de lujo (Playfair + Degradado) */
 .error-code {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-display);
     font-size: 6rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #FFFFFF 0%, #ECB2C3 100%);
+    background: linear-gradient(135deg, var(--color-text) 0%, var(--color-rose-gold) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -23,7 +23,7 @@
 }
 
 .error-description {
-    color: #FFFFFF;
+    color: var(--color-text);
     font-family: 'Montserrat', sans-serif;
     font-size: 1.1rem;
     line-height: 1.6;
@@ -33,10 +33,10 @@
 }
 
 /* BOTÓN (Estilo Negro Premium) */
-.login-button {
-    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 50%, #000000 100%);
-    color: #ECB2C3;
-    border: 1px solid rgba(236, 178, 195, 0.4);
+.error-page .login-button {
+    background: linear-gradient(135deg, var(--color-surface-2) 0%, var(--color-bg) 50%, var(--color-bg) 100%);
+    color: var(--color-rose-gold);
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
     padding: 1.25rem 2rem;
     border-radius: 12px;
     font-size: 1.1rem;
@@ -54,30 +54,30 @@
         inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
-.login-button::before {
+.error-page .login-button::before {
     content: '';
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(236, 178, 195, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-rose-gold) 10%, transparent), transparent);
     transition: left 0.6s;
 }
 
-.login-button:hover {
+.error-page .login-button:hover {
     transform: translateY(-3px);
-    border-color: #ECB2C3;
-    color: #FFFFFF;
-    box-shadow: 0 12px 30px rgba(236, 178, 195, 0.2);
+    border-color: var(--color-rose-gold);
+    color: var(--color-text);
+    box-shadow: 0 12px 30px color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
 }
 
-.login-button:hover::before {
+.error-page .login-button:hover::before {
     left: 100%;
 }
 
 /* Animación para que la tarjeta aparezca suavemente */
-.login-card {
+.error-page .login-card {
     animation: fadeInUp 0.8s ease-out;
 }
 

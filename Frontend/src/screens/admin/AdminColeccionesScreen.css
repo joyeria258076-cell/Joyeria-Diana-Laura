@@ -14,7 +14,7 @@
   white-space: nowrap;
   transition: all 0.35s var(--ease-silk);
 }
-.ac-btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px rgba(201,149,108,0.3); }
+.ac-btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent); }
 .ac-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .ac-btn-secondary {
@@ -308,7 +308,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.25);
+  background: color-mix(in srgb, var(--color-bg) 25%, transparent);
   color: var(--color-rose-gold);
   opacity: 0.85;
   flex-shrink: 0;
@@ -365,7 +365,7 @@
 .ac2-container .ac2-detalle-hero {
   position: relative;
   height: 200px;
-  background: rgba(0, 0, 0, 0.3);
+  background: color-mix(in srgb, var(--color-bg) 30%, transparent);
 }
 
 .ac2-container .ac2-detalle-hero img {
@@ -391,7 +391,7 @@
   flex-direction: column;
   justify-content: flex-end;
   padding: 1.2rem 1.5rem;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.85) 100%);
+  background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--color-bg) 85%, transparent) 100%);
 }
 
 .ac2-container .ac2-detalle-badge {
@@ -406,20 +406,20 @@
 }
 
 .ac2-container .ac2-detalle-badge.on { background: rgba(16, 185, 129, 0.22); color: #7fd8ae; }
-.ac2-container .ac2-detalle-badge.off { background: rgba(158, 144, 135, 0.22); color: var(--color-text-muted); }
+.ac2-container .ac2-detalle-badge.off { background: color-mix(in srgb, var(--color-text-muted) 22%, transparent); color: var(--color-text-muted); }
 
 .ac2-container .ac2-detalle-hero-overlay h2 {
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--color-text);
   margin: 0;
 }
 
 .ac2-container .ac2-detalle-hero-overlay p {
   margin: 0.3rem 0 0;
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: color-mix(in srgb, var(--color-text) 75%, transparent);
   max-width: 60ch;
 }
 
@@ -492,7 +492,7 @@
   aspect-ratio: 1;
   border-radius: 6px;
   object-fit: cover;
-  background: rgba(0, 0, 0, 0.25);
+  background: color-mix(in srgb, var(--color-bg) 25%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -533,7 +533,7 @@
 .ac-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10,10,10,0.8);
+  background: color-mix(in srgb, var(--color-bg) 80%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -702,7 +702,7 @@
   padding: 1.8rem 1rem;
   border: 1.5px dashed var(--color-border);
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.15);
+  background: color-mix(in srgb, var(--color-bg) 15%, transparent);
   cursor: pointer;
   transition: var(--ease-silk, all 0.2s ease);
   text-align: center;
@@ -723,7 +723,7 @@
   padding: 1rem;
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.15);
+  background: color-mix(in srgb, var(--color-bg) 15%, transparent);
 }
 .ac-image-preview img { max-width: 100%; max-height: 160px; border-radius: 4px; object-fit: cover; }
 .ac-image-remove {

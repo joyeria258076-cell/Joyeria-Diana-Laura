@@ -5,7 +5,7 @@
   padding: 2rem;
   background: var(--color-bg);
   min-height: 100vh;
-  color: #ffffff;
+  color: var(--color-text);
   font-family: var(--font-body);
 }
 
@@ -122,7 +122,7 @@
   border-radius: 8px;
   padding: 1rem 1.3rem;
   margin-bottom: 1rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: color-mix(in srgb, var(--color-text) 85%, transparent);
   font-size: 0.85rem;
 }
 
@@ -198,7 +198,7 @@
 
 .bu2-diff-field-name {
   font-family: monospace;
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
   color: var(--color-text-muted);
   padding: 0.15rem 0.5rem;
   border-radius: 4px;
@@ -238,7 +238,7 @@
   align-items: flex-start;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(236, 178, 195, 0.2);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
 }
 
 .header-left {
@@ -262,7 +262,7 @@
 
 .page-description {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
   margin: 0;
   max-width: 600px;
   line-height: 1.6;
@@ -316,8 +316,8 @@
 
 /* Selector de Tabla */
 .table-selector-card {
-  background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, rgba(10, 10, 15, 0.7) 100%);
-  border: 1px solid rgba(236, 178, 195, 0.2);
+  background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, color-mix(in srgb, var(--color-surface) 70%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
   border-radius: 4px;
   padding: 1.5rem;
   backdrop-filter: blur(10px);
@@ -334,7 +334,7 @@
 .selector-header h3 {
   font-size: 1.1rem;
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text);
 }
 
 .selector-icon {
@@ -353,29 +353,29 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.8rem 1.2rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--color-text) 3%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
   border-radius: 2px;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: rgba(255, 255, 255, 0.8);
+  color: color-mix(in srgb, var(--color-text) 80%, transparent);
   font-size: 0.9rem;
 }
 
 .table-option:hover {
-  background: rgba(236, 178, 195, 0.1);
+  background: color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   transform: translateY(-2px);
 }
 
 .table-option.selected {
-  background: rgba(236, 178, 195, 0.15);
+  background: color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
   border-width: 2px;
 }
 
 /* Instrucciones */
 .upload-section {
-  background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, rgba(10, 10, 15, 0.7) 100%);
-  border: 1px solid rgba(236, 178, 195, 0.2);
+  background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, color-mix(in srgb, var(--color-surface) 70%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
   border-radius: 4px;
   padding: 1.5rem;
   backdrop-filter: blur(10px);
@@ -399,7 +399,7 @@
 .instructions-text {
   flex: 1;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: color-mix(in srgb, var(--color-text) 80%, transparent);
   line-height: 1.5;
 }
 
@@ -420,7 +420,7 @@
 
 /* Área de carga */
 .file-upload-area {
-  border: 2px dashed rgba(236, 178, 195, 0.3);
+  border: 2px dashed color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
   border-radius: 4px;
   padding: 2rem;
   text-align: center;
@@ -445,7 +445,7 @@
 
 .file-upload-area.drag-active {
   border-color: var(--color-rose-gold);
-  background: rgba(236, 178, 195, 0.1);
+  background: color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   transform: scale(1.02);
 }
 
@@ -460,7 +460,7 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
 }
 
 .upload-prompt svg {
@@ -474,7 +474,7 @@
 
 .file-types {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: color-mix(in srgb, var(--color-text) 40%, transparent);
 }
 
 .file-info {
@@ -500,13 +500,13 @@
 
 .file-size {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
 }
 
 .btn-change-file {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--color-text) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  color: var(--color-text);
   padding: 0.5rem 1rem;
   border-radius: 2px;
   cursor: pointer;
@@ -515,7 +515,7 @@
 }
 
 .btn-change-file:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: color-mix(in srgb, var(--color-text) 15%, transparent);
 }
 
 .upload-actions {
@@ -550,8 +550,8 @@
 
 /* Vista Previa */
 .preview-section {
-  background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, rgba(10, 10, 15, 0.7) 100%);
-  border: 1px solid rgba(236, 178, 195, 0.2);
+  background: linear-gradient(145deg, rgba(30, 30, 35, 0.4) 0%, color-mix(in srgb, var(--color-surface) 70%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
   border-radius: 4px;
   padding: 1.5rem;
   backdrop-filter: blur(10px);
@@ -570,7 +570,7 @@
   gap: 0.5rem;
   font-size: 1.1rem;
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text);
 }
 
 .preview-icon {
@@ -587,8 +587,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 1rem;
-  background: rgba(236, 178, 195, 0.1);
-  border: 1px solid rgba(236, 178, 195, 0.3);
+  background: color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
   border-radius: 2px;
   color: var(--color-rose-gold);
   font-size: 0.9rem;
@@ -597,7 +597,7 @@
 .changes-table-container {
   max-height: 400px;
   overflow-y: auto;
-  border: 1px solid rgba(236, 178, 195, 0.1);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   border-radius: 2px;
   margin-bottom: 1.5rem;
 }
@@ -609,7 +609,7 @@
 }
 
 .changes-table th {
-  background: rgba(236, 178, 195, 0.1);
+  background: color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   color: var(--color-rose-gold);
   padding: 1rem;
   text-align: left;
@@ -621,16 +621,16 @@
 
 .changes-table td {
   padding: 1rem;
-  border-bottom: 1px solid rgba(236, 178, 195, 0.1);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   vertical-align: middle;
 }
 
 .changes-table tr:hover td {
-  background: rgba(236, 178, 195, 0.05);
+  background: color-mix(in srgb, var(--color-rose-gold) 5%, transparent);
 }
 
 .changes-table code {
-  background: rgba(236, 178, 195, 0.1);
+  background: color-mix(in srgb, var(--color-rose-gold) 10%, transparent);
   color: var(--color-rose-gold);
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
@@ -638,7 +638,7 @@
 }
 
 .current-value {
-  color: rgba(255, 255, 255, 0.6);
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
   max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -667,7 +667,7 @@
   justify-content: center;
   padding: 3rem;
   text-align: center;
-  color: rgba(255, 255, 255, 0.5);
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
   gap: 1rem;
 }
 
@@ -693,7 +693,7 @@
 
 .btn-execute {
   background: #4CAF50;
-  color: white;
+  color: var(--color-text);
   border: none;
   padding: 0.8rem 1.5rem;
   border-radius: 2px;
@@ -723,8 +723,8 @@
   display: inline-block;
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
+  border: 2px solid color-mix(in srgb, var(--color-text) 30%, transparent);
+  border-top-color: var(--color-text);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-right: 0.5rem;
@@ -825,9 +825,9 @@
   gap: 0.8rem;
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background: rgba(236, 178, 195, 0.05);
+  background: color-mix(in srgb, var(--color-rose-gold) 5%, transparent);
   border-radius: 4px;
-  border: 1px solid rgba(236, 178, 195, 0.15);
+  border: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
 }
 
 .btn-download-template {
@@ -843,12 +843,12 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(236, 178, 195, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
 }
 
 .btn-download-template:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(236, 178, 195, 0.4);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
 }
 
 .btn-download-template:disabled {
@@ -858,7 +858,7 @@
 
 .template-hint {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
   margin: 0;
   text-align: center;
 }
@@ -876,12 +876,12 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: rgba(236, 178, 195, 0.2);
+  background: color-mix(in srgb, var(--color-rose-gold) 20%, transparent);
 }
 
 .file-upload-divider span {
   padding: 0 1rem;
-  color: rgba(236, 178, 195, 0.6);
+  color: color-mix(in srgb, var(--color-rose-gold) 60%, transparent);
   font-size: 0.8rem;
 }
 

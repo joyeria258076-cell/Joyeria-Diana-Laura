@@ -215,7 +215,7 @@
   padding: 1.6rem 1.2rem 1.7rem;
   background:
     radial-gradient(circle at 50% 0%, rgba(201, 168, 76, 0.18) 0%, transparent 65%),
-    linear-gradient(150deg, rgba(201, 168, 76, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+    linear-gradient(150deg, rgba(201, 168, 76, 0.1) 0%, color-mix(in srgb, var(--color-bg) 30%, transparent) 100%);
   border-bottom: 1.5px dashed rgba(201, 168, 76, 0.4);
   overflow: hidden;
 }
@@ -256,7 +256,7 @@
   font-size: 2.4rem;
   font-weight: 700;
   line-height: 1;
-  background: linear-gradient(135deg, #ffffff 0%, var(--color-champagne) 55%, var(--color-rose-gold) 100%);
+  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-rose-gold) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -277,7 +277,7 @@
 
 .ap3-container .ap3-card-estado.on { background: rgba(16, 185, 129, 0.2); color: #7fd8ae; box-shadow: 0 0 12px rgba(16, 185, 129, 0.2); }
 .ap3-container .ap3-card-estado.soon { background: rgba(96, 165, 250, 0.2); color: #93c5fd; box-shadow: 0 0 12px rgba(96, 165, 250, 0.2); }
-.ap3-container .ap3-card-estado.off { background: rgba(158, 144, 135, 0.2); color: var(--color-text-muted); }
+.ap3-container .ap3-card-estado.off { background: color-mix(in srgb, var(--color-text-muted) 20%, transparent); color: var(--color-text-muted); }
 
 .ap3-container .ap3-card-body {
   padding: 1rem 1.2rem 1.2rem;
@@ -335,7 +335,7 @@
 .ap3-container .ap3-card-usos-bar {
   height: 5px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
   overflow: hidden;
 }
 
@@ -397,7 +397,7 @@
 .ap3-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: color-mix(in srgb, var(--color-bg) 65%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -439,7 +439,7 @@
 
 .ap3-modal-preview {
   padding: 1.4rem 1.5rem;
-  background: rgba(0, 0, 0, 0.15);
+  background: color-mix(in srgb, var(--color-bg) 15%, transparent);
 }
 
 .ap3-preview-eyebrow {
@@ -468,7 +468,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 1.1rem 1rem 1.3rem;
-  background: linear-gradient(150deg, rgba(201, 168, 76, 0.14) 0%, rgba(0, 0, 0, 0.25) 100%);
+  background: linear-gradient(150deg, rgba(201, 168, 76, 0.14) 0%, color-mix(in srgb, var(--color-bg) 25%, transparent) 100%);
   border-bottom: 1.5px dashed rgba(201, 168, 76, 0.35);
 }
 
@@ -629,7 +629,7 @@
 
 .ap3-field input,
 .ap3-field select {
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--color-bg) 20%, transparent);
   border: 1px solid var(--color-border);
   border-radius: 4px;
   padding: 0.68rem 0.9rem;

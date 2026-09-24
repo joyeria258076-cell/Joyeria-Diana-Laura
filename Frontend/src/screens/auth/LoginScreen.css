@@ -9,7 +9,7 @@
     overflow-x: hidden;
     background-color: var(--color-bg);
     background-image:
-        linear-gradient(rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0.9)),
+        linear-gradient(color-mix(in srgb, var(--color-bg) 90%, transparent), color-mix(in srgb, var(--color-bg) 90%, transparent)),
         var(--global-bg-url);
     background-size: cover;
     background-position: center;
@@ -88,7 +88,7 @@
 
 .login-image-content p {
     font-size: 1rem;
-    color: rgba(245,240,235,0.75);
+    color: color-mix(in srgb, var(--color-text) 75%, transparent);
     line-height: 1.7;
     font-weight: 300;
     font-family: var(--font-body);
@@ -106,16 +106,16 @@
 }
 
 .login-card {
-    background: rgba(20,20,20,0.55);
+    background: color-mix(in srgb, var(--color-surface) 55%, transparent);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     padding: 3.5rem 3rem;
     border-radius: 4px;
     width: 100%;
     max-width: 440px;
-    border: 1px solid rgba(201,149,108,0.25);
+    border: 1px solid color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
     position: relative;
-    box-shadow: 0 30px 90px rgba(0,0,0,0.5), 0 0 60px rgba(201,149,108,0.08);
+    box-shadow: 0 30px 90px rgba(0,0,0,0.5), 0 0 60px color-mix(in srgb, var(--color-rose-gold) 8%, transparent);
     animation: fadeInUp 0.9s var(--ease-silk) 0.1s both;
 }
 
@@ -186,7 +186,7 @@
 .login-input {
     padding: 10px 2px;
     border: none;
-    border-bottom: 1px solid rgba(201,149,108,0.3);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
     border-radius: 0;
     font-size: 16px;
     transition: border-color 0.35s var(--ease-silk);
@@ -206,7 +206,7 @@
 .login-input:focus {
     outline: none;
     border-bottom-color: var(--color-rose-gold);
-    box-shadow: 0 1px 0 0 var(--color-rose-gold), 0 8px 16px -8px rgba(201,149,108,0.4);
+    box-shadow: 0 1px 0 0 var(--color-rose-gold), 0 8px 16px -8px color-mix(in srgb, var(--color-rose-gold) 40%, transparent);
 }
 
 .login-input.error {
@@ -263,7 +263,7 @@
 
 .login-button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 0 20px rgba(201,149,108,0.3);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--color-rose-gold) 30%, transparent);
 }
 
 .login-button:disabled {

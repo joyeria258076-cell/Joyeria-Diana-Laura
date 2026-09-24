@@ -300,7 +300,7 @@
 .inv2-container .inv2-card-media {
   position: relative;
   height: 160px;
-  background: radial-gradient(circle at 30% 20%, rgba(201, 168, 76, 0.1) 0%, rgba(0, 0, 0, 0.35) 70%);
+  background: radial-gradient(circle at 30% 20%, rgba(201, 168, 76, 0.1) 0%, color-mix(in srgb, var(--color-bg) 35%, transparent) 70%);
   overflow: hidden;
 }
 
@@ -347,7 +347,7 @@
 
 .inv2-container .inv2-badge.new {
   background: rgba(96, 165, 250, 0.85);
-  color: #fff;
+  color: var(--color-text);
 }
 
 .inv2-container .inv2-badge.featured {
@@ -359,7 +359,7 @@
   position: absolute;
   top: 0.6rem;
   right: 0.6rem;
-  background: rgba(0, 0, 0, 0.75);
+  background: color-mix(in srgb, var(--color-bg) 75%, transparent);
   color: var(--color-text-muted);
   font-size: 0.62rem;
   font-weight: 700;
@@ -451,7 +451,7 @@
 .inv2-container .inv2-stock-bar {
   height: 5px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
   overflow: hidden;
 }
 
