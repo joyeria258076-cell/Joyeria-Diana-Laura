@@ -116,7 +116,7 @@ const InicioPublicScreen: React.FC = () => {
           .map((c: any) => ({
             id: c.id.toString(),
             titulo: c.titulo,
-            tag: c.descripcion ? c.descripcion.split('\n')[0].substring(0, 20) : "Exclusivo",
+            tag: c.etiqueta || "Exclusivo",
             descripcion: c.descripcion || "Descubre nuestras colecciones exclusivas",
             imagen: optimizarImagen(c.imagen_url, 1080),
             image: optimizarImagen(c.imagen_url, 1080),
@@ -234,7 +234,7 @@ const InicioPublicScreen: React.FC = () => {
 
       <PublicHeader />
 
-      <main>
+      <main className="dl-orden">
       {/* ═══════════ HERO / CARRUSEL PRINCIPAL ═══════════ */}
       <Seccion id="inicio.carrusel" nombre="Carrusel principal">
       <section className="hero-carousel-section">

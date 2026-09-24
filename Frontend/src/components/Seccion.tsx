@@ -1,22 +1,26 @@
 // Ruta: Frontend/src/components/Seccion.tsx
-// Envoltorio para los bloques de las páginas públicas que el admin puede
-// ocultar desde "Gestión de páginas" (editor visual).
+// Envoltorio para los bloques de las páginas públicas que el admin controla
+// desde "Gestión de páginas" (editor visual).
 //
-// • Sitio normal: si el id está en configuracion.secciones_ocultas, no se renderiza.
-// • Modo editor (la página se abre dentro del iframe del admin con ?editor=1):
-//   el bloque se resalta al pasar el mouse, un clic lo marca oculto/visible y
-//   se comunica con la pantalla del admin mediante postMessage.
-import React, { useEffect, useSyncExternalStore } from 'react';
+// • Sitio normal: si el id está en configuracion.secciones_ocultas no se
+//   renderiza; si la página tiene orden guardado (secciones_orden) el bloque
+//   recibe su posición con CSS `order` (el contenedor debe tener .dl-orden).
+// • Modo editor (la página dentro del iframe del admin con ?editor=1): el
+//   bloque se resalta, un clic lo oculta/muestra y todo se comunica con la
+//   pantalla del admin mediante postMessage.
+import React, { useEffect, useRef, useSyncExternalStore } from 'react';
 import { productsAPI } from '../services/api';
 import '../styles/Seccion.css';
 
-// ── Store de ids ocultos (compartido por todas las secciones) ──
-let ocultas = new Set<string>();
+type Orden = Record<string, string[]>;
+interface Estado { ocultas: Set<string>; orden: Orden; }
+
+let estado: Estado = { ocultas: new Set(), orden: {} };
 const oyentes = new Set<() => void>();
 let cargado = false;
 
 const notificar = () => oyentes.forEach(fn => fn());
-const setOcultas = (ids: string[]) => { ocultas = new Set(ids); notificar(); };
+const actualizar = (parcial: Partial<Estado>) => { estado = { ...estado, ...parcial }; notificar(); };
 
 export const enModoEditor = (() => {
   try {
@@ -24,46 +28,68 @@ export const enModoEditor = (() => {
   } catch { return false; }
 })();
 
-const cargarOcultas = () => {
+const leerJson = (res: any, def: any) => {
+  try { const v = JSON.parse(res?.data?.valor ?? ''); return v ?? def; } catch { return def; }
+};
+
+const cargar = () => {
   if (cargado) return;
   cargado = true;
   productsAPI.getConfiguracionByClave('secciones_ocultas')
-    .then((res: any) => {
-      const lista = JSON.parse(res?.data?.valor || '[]');
-      if (Array.isArray(lista)) setOcultas(lista.map(String));
-    })
-    .catch(() => { /* sin config: todo visible */ });
+    .then((res: any) => { const l = leerJson(res, []); if (Array.isArray(l)) actualizar({ ocultas: new Set(l.map(String)) }); })
+    .catch(() => { /* todo visible */ });
+  productsAPI.getConfiguracionByClave('secciones_orden')
+    .then((res: any) => { const o = leerJson(res, {}); if (o && typeof o === 'object') actualizar({ orden: o }); })
+    .catch(() => { /* orden original */ });
 
   if (enModoEditor) {
-    // El admin manda la lista actual (aún sin guardar) para refrescar la vista previa
     window.addEventListener('message', (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
-      if (e.data?.tipo === 'dl-ocultas' && Array.isArray(e.data.ids)) setOcultas(e.data.ids);
+      const d = e.data;
+      if (d?.tipo === 'dl-ocultas' && Array.isArray(d.ids)) actualizar({ ocultas: new Set(d.ids) });
+      if (d?.tipo === 'dl-orden' && d.orden && typeof d.orden === 'object') actualizar({ orden: d.orden });
+      if (d?.tipo === 'dl-ir' && d.id) {
+        const el = document.querySelector(`[data-seccion="${CSS.escape(d.id)}"]`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.remove('dl-sec--foco');
+          void (el as HTMLElement).offsetWidth; // reinicia la animación
+          el.classList.add('dl-sec--foco');
+        }
+      }
     });
     window.parent.postMessage({ tipo: 'dl-listo', ruta: window.location.pathname }, window.location.origin);
   }
 };
 
-const suscribir = (fn: () => void) => { oyentes.add(fn); cargarOcultas(); return () => { oyentes.delete(fn); }; };
-const obtener = () => ocultas;
+const suscribir = (fn: () => void) => { oyentes.add(fn); cargar(); return () => { oyentes.delete(fn); }; };
+const obtener = () => estado;
 
 interface Props {
-  id: string;          // p. ej. "inicio.estadisticas"
+  id: string;          // "<pagina>.<bloque>", p. ej. "inicio.estadisticas"
   nombre: string;      // nombre legible para el admin
   children: React.ReactNode;
 }
 
 const Seccion: React.FC<Props> = ({ id, nombre, children }) => {
-  const actuales = useSyncExternalStore(suscribir, obtener);
-  const oculta = actuales.has(id);
+  const { ocultas, orden } = useSyncExternalStore(suscribir, obtener);
+  const oculta = ocultas.has(id);
+  const pagina = id.split('.')[0];
+  const listaOrden = orden[pagina];
+  const posicion = listaOrden ? (listaOrden.indexOf(id) >= 0 ? listaOrden.indexOf(id) : 999) : undefined;
+  const registrado = useRef(false);
 
-  // Registrar el bloque en el panel del admin
+  // Registrar el bloque en el panel del admin (en el orden en que aparece)
   useEffect(() => {
-    if (!enModoEditor) return;
+    if (!enModoEditor || registrado.current) return;
+    registrado.current = true;
     window.parent.postMessage({ tipo: 'dl-seccion', id, nombre }, window.location.origin);
   }, [id, nombre]);
 
-  if (!enModoEditor) return oculta ? null : <>{children}</>;
+  if (!enModoEditor) {
+    if (oculta) return null;
+    return posicion === undefined ? <>{children}</> : <div className="dl-sec-orden" style={{ order: posicion }}>{children}</div>;
+  }
 
   const alternar = (e: React.MouseEvent) => {
     // En el editor, un clic en cualquier parte del bloque lo selecciona (no navega)
@@ -73,7 +99,8 @@ const Seccion: React.FC<Props> = ({ id, nombre, children }) => {
   };
 
   return (
-    <div className={`dl-sec${oculta ? ' dl-sec--oculta' : ''}`} onClickCapture={alternar} data-seccion={id}>
+    <div className={`dl-sec${oculta ? ' dl-sec--oculta' : ''}`} onClickCapture={alternar} data-seccion={id}
+      style={posicion === undefined ? undefined : { order: posicion }}>
       <span className="dl-sec-etiqueta">
         {nombre} · {oculta ? 'Oculta — clic para mostrar' : 'Clic para ocultar'}
       </span>

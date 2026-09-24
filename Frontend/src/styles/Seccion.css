@@ -38,3 +38,14 @@
   pointer-events: none;
 }
 .dl-sec--oculta .dl-sec-etiqueta { opacity: 1; background: var(--color-text); color: var(--color-bg); }
+
+/* Contenedor cuyos bloques pueden reordenarse desde el editor */
+.dl-orden { display: flex; flex-direction: column; }
+.dl-orden > * { min-width: 0; }
+
+/* Destello al llegar a un bloque desde la lista del editor */
+.dl-sec--foco { animation: dlFoco 1.4s ease; }
+@keyframes dlFoco {
+  0%, 60% { outline-color: var(--color-rose-gold); box-shadow: inset 0 0 0 9999px color-mix(in srgb, var(--color-rose-gold) 10%, transparent); }
+  100% { box-shadow: none; }
+}

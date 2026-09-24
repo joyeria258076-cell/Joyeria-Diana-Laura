@@ -853,7 +853,10 @@ export const adminContentController = {
     try {
       const { seccionId } = req.params;
       const result = await pool.query(
-        'SELECT * FROM contenidos WHERE seccion_id = $1 AND activo = true ORDER BY orden ASC',
+        // ?todos=true incluye los ocultos (para el editor del admin)
+        req.query.todos === 'true'
+          ? 'SELECT * FROM contenidos WHERE seccion_id = $1 ORDER BY orden ASC, id ASC'
+          : 'SELECT * FROM contenidos WHERE seccion_id = $1 AND activo = true ORDER BY orden ASC',
         [seccionId]
       );
       res.json(result.rows);
@@ -917,7 +920,7 @@ export const adminContentController = {
 
   createContenido: async (req: Request, res: Response): Promise<void> => {
     try {
-      const { seccion_id, titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden } = req.body;
+      const { seccion_id, titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden, etiqueta } = req.body;
 
       if (hasInvalidInput(titulo, descripcion)) {
         res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
@@ -926,10 +929,11 @@ export const adminContentController = {
 
       const result = await pool.query(
         `INSERT INTO contenidos
-         (seccion_id, titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden, creado_por, activo)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)
+         (seccion_id, titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden, creado_por, activo, etiqueta)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9)
          RETURNING *`,
-        [seccion_id, titulo, descripcion || '', imagen_url || '', enlace_url || '', enlace_nueva_ventana ?? false, orden || 0, userId]
+        [seccion_id, titulo, descripcion || '', imagen_url || '', enlace_url || '', enlace_nueva_ventana ?? false, orden || 0, userId,
+         etiqueta ? String(etiqueta).slice(0, 40) : null]
       );
 
       invalidateCache('carrusel-inicio');
@@ -943,7 +947,7 @@ export const adminContentController = {
   updateContenido: async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const { titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden } = req.body;
+      const { titulo, descripcion, imagen_url, enlace_url, enlace_nueva_ventana, orden, activo, etiqueta } = req.body;
       if (hasInvalidInput(titulo, descripcion)) {
         res.status(400).json({ message: 'Datos inválidos en la solicitud' }); return;
       }
@@ -951,10 +955,15 @@ export const adminContentController = {
 
       const result = await pool.query(
         `UPDATE contenidos
-         SET titulo = $1, descripcion = $2, imagen_url = $3, enlace_url = $4, enlace_nueva_ventana = $5, orden = $6, fecha_actualizacion = CURRENT_TIMESTAMP
+         SET titulo = $1, descripcion = $2, imagen_url = $3, enlace_url = $4, enlace_nueva_ventana = $5, orden = $6,
+             activo = COALESCE($8, activo),
+             etiqueta = CASE WHEN $9::boolean THEN $10 ELSE etiqueta END,
+             fecha_actualizacion = CURRENT_TIMESTAMP
          WHERE id = $7
          RETURNING *`,
-        [titulo, descripcion || '', imagen_url || '', enlace_url || '', enlace_nueva_ventana ?? false, orden || 0, id]
+        [titulo, descripcion || '', imagen_url || '', enlace_url || '', enlace_nueva_ventana ?? false, orden || 0, id,
+         typeof activo === 'boolean' ? activo : null,
+         etiqueta !== undefined, etiqueta ? String(etiqueta).slice(0, 40) : null]
       );
 
       if (result.rows.length === 0) {

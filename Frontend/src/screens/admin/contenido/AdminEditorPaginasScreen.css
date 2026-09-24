@@ -59,7 +59,7 @@
 
 .aep-lista { list-style: none; margin: 0 0 1rem; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; max-height: 48vh; overflow-y: auto; }
 .aep-bloque {
-  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.2rem 0.65rem;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.2rem 0.65rem;
   padding: 0.55rem 0.6rem; border-radius: 10px;
   border: 1px solid var(--color-border); background: var(--color-surface-2);
   transition: opacity 0.2s ease;
@@ -73,9 +73,28 @@
   color: var(--color-rose-gold); cursor: pointer;
 }
 .aep-bloque.oculta .aep-switch { color: var(--color-text-muted); background: transparent; }
-.aep-bloque-nombre { color: var(--color-text); font-size: 0.88rem; }
+.aep-bloque-nombre {
+  justify-self: start; display: inline-flex; align-items: center; gap: 6px;
+  padding: 0; border: 0; background: none; cursor: pointer; text-align: left;
+  color: var(--color-text); font-family: var(--font-body); font-size: 0.88rem;
+}
+.aep-bloque-nombre svg { color: var(--color-text-muted); opacity: 0; transition: opacity 0.2s ease; }
+.aep-bloque:hover .aep-bloque-nombre svg { opacity: 1; }
+.aep-mover { grid-row: span 2; display: inline-flex; flex-direction: column; gap: 3px; }
+.aep-mover button {
+  width: 26px; height: 22px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--color-border); background: transparent; color: var(--color-text-muted);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.aep-mover button:hover:not(:disabled) { color: var(--color-rose-gold); border-color: var(--color-rose-gold); }
+.aep-mover button:disabled { opacity: 0.3; cursor: default; }
+.aep-cambios {
+  margin: -0.4rem 0 0.9rem; padding: 0.5rem 0.7rem; border-radius: 8px;
+  background: var(--color-glow); border: 1px dashed var(--color-rose-gold);
+  font-size: 0.78rem; color: var(--color-text);
+}
 .aep-editar {
-  justify-self: start; display: inline-flex; align-items: center; gap: 4px;
+  grid-column: 2; justify-self: start; display: inline-flex; align-items: center; gap: 4px;
   padding: 0; border: 0; background: none; cursor: pointer;
   color: var(--color-rose-gold); font-family: var(--font-body); font-size: 0.72rem;
 }

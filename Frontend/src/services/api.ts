@@ -828,7 +828,7 @@ export const seccionesAPI = {
 // GESTIÓN DE CONTENIDOS (CMS DINÁMICO)
 // ==========================================
 export const contenidosAPI = {
-  getBySeccion: async (seccionId: string | number) => enhancedApi.get(`/content/contenidos/seccion/${seccionId}`),
+  getBySeccion: async (seccionId: string | number, todos = false) => enhancedApi.get(`/content/contenidos/seccion/${seccionId}${todos ? '?todos=true' : ''}`),
   getById: async (id: string | number) => enhancedApi.get(`/content/contenidos/${id}`),
   create: async (data: {
     seccion_id: string | number;
@@ -838,6 +838,7 @@ export const contenidosAPI = {
     enlace_url?: string;
     enlace_nueva_ventana?: boolean;
     orden?: number;
+    etiqueta?: string;
   }) => enhancedApi.post('/content/contenidos', data),
   update: async (id: string | number, data: {
     titulo: string;
@@ -846,6 +847,8 @@ export const contenidosAPI = {
     enlace_url?: string;
     enlace_nueva_ventana?: boolean;
     orden?: number;
+    activo?: boolean;
+    etiqueta?: string;
   }) => enhancedApi.put(`/content/contenidos/${id}`, data),
   delete: async (id: string | number) => enhancedApi.delete(`/content/contenidos/${id}`)
 };
