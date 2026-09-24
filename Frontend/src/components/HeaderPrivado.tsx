@@ -224,7 +224,7 @@ const HeaderPrivado: React.FC = () => {
                                             <span className="dropdown-icon"><AiOutlineBgColors size={14} /></span> Contenido de Inicio
                                         </button>
                                         <button className={`dropdown-item ${isActive("/admin-contenido/pagina-noticias") ? "active" : ""}`} onClick={() => goTo("/admin-contenido/pagina-noticias")}>
-                                            <span className="dropdown-icon"><AiOutlineRead size={14} /></span> Contenido de Noticias
+                                            <span className="dropdown-icon"><AiOutlineRead size={14} /></span> Blog y novedades
                                         </button>
                                         <button className={`dropdown-item ${isActive("/admin-contenido/info") ? "active" : ""}`} onClick={() => goTo("/admin-contenido/info")}>
                                             <span className="dropdown-icon"><AiOutlineInfoCircle size={14} /></span> Información Empresarial

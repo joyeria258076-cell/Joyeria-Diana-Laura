@@ -1,0 +1,128 @@
+/* AdminContenido.css
+   Formularios de "Gestionar contenido" (Información empresarial, Misión/Visión/
+   Valores, etc.). Todo va acotado a .acf para no afectar otras pantallas y usa
+   solo variables de la paleta. El encabezado usa las clases sx-* compartidas. */
+
+.acf { max-width: 980px; margin: 0 auto; padding: 1.5rem 0 3rem; font-family: var(--font-body); color: var(--color-text); }
+
+/* Bloques del formulario */
+.acf .manager-subsection {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+  animation: sxFadeUp 0.6s var(--ease-silk) both;
+}
+.acf .subsection-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin: 0 0 0.25rem;
+  letter-spacing: 0.02em;
+}
+.acf .subsection-description { margin: 0 0 1.25rem; color: var(--color-text-muted); font-size: 0.88rem; }
+
+/* Campos */
+.acf .info-form, .acf .social-form, .acf .mvv-form, .acf .valores-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem 1.25rem;
+}
+.acf .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin: 0; }
+.acf .form-group:has(textarea) { grid-column: 1 / -1; }
+.acf .form-group label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-rose-gold);
+}
+.acf input, .acf textarea, .acf select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  transition: border-color 0.25s var(--ease-silk), box-shadow 0.25s var(--ease-silk);
+}
+.acf textarea { resize: vertical; line-height: 1.55; }
+.acf input:focus, .acf textarea:focus, .acf select:focus {
+  outline: none;
+  border-color: var(--color-rose-gold);
+  box-shadow: 0 0 0 3px var(--color-glow);
+}
+.acf input::placeholder, .acf textarea::placeholder { color: var(--color-text-muted); opacity: 0.8; }
+
+/* Vista previa (Misión/Visión/Valores) */
+.acf .mvv-preview, .acf .preview-box {
+  margin-top: 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 10px;
+  border-left: 3px solid var(--color-rose-gold);
+  background: var(--color-glow);
+  color: var(--color-text);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+/* Lista de valores */
+.acf .valores-list { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem; }
+.acf .valor-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.7rem 0.9rem; border-radius: 10px;
+  border: 1px solid var(--color-border); background: var(--color-surface-2);
+}
+.acf .valor-number {
+  width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-rose-gold); color: #0a0a0a; font-size: 0.8rem; font-weight: 500;
+}
+.acf .valor-content, .acf .valor-text { flex: 1; min-width: 0; }
+.acf .valor-input-group { display: flex; gap: 0.6rem; grid-column: 1 / -1; }
+.acf .empty-state { color: var(--color-text-muted); font-size: 0.88rem; margin: 0 0 1rem; }
+
+/* Botones */
+.acf .btn-primary, .acf .btn-add-valor {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 12px 28px; border: none; border-radius: 8px; cursor: pointer;
+  background: linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-champagne) 100%);
+  color: #0a0a0a;
+  font-family: var(--font-body); font-size: 0.78rem; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--color-rose-gold) 25%, transparent);
+  transition: transform 0.3s var(--ease-silk), box-shadow 0.3s var(--ease-silk);
+  white-space: nowrap;
+}
+.acf .btn-primary:hover, .acf .btn-add-valor:hover { transform: translateY(-2px); }
+.acf .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.acf .btn-delete {
+  padding: 0.45rem 0.8rem; border-radius: 8px; cursor: pointer;
+  border: 1px solid rgba(224, 90, 106, 0.4); background: transparent;
+  color: var(--color-blush); font-family: var(--font-body); font-size: 0.78rem;
+}
+.acf .btn-delete:hover { background: rgba(224, 90, 106, 0.1); }
+
+.acf .save-section {
+  position: sticky; bottom: 1rem; z-index: 5;
+  display: flex; justify-content: flex-end;
+  padding: 0.9rem 1rem; border-radius: 12px;
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(8px);
+}
+
+/* Mensajes */
+.acf .message { padding: 0.85rem 1rem; border-radius: 10px; margin-bottom: 1.25rem; font-size: 0.9rem; }
+.acf .success-message { background: var(--color-glow); border: 1px solid var(--color-border); color: var(--color-text); }
+.acf .error-message { background: rgba(224, 90, 106, 0.1); border: 1px solid rgba(224, 90, 106, 0.4); color: var(--color-blush); }
+
+@media (max-width: 600px) {
+  .acf .manager-subsection { padding: 1.25rem; }
+  .acf .save-section .btn-primary { width: 100%; }
+}

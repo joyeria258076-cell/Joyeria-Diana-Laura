@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+import '../../styles/SitioSecciones.css';
+import '../../styles/AdminContenido.css';
 interface MisionVisionValores {
     mision: string;
     vision: string;
@@ -51,13 +53,16 @@ const AdminMisionVisionValoresManager: React.FC = () => {
     };
 
     return (
-        <div className="content-page">
-            <h2 className="content-page-title">🎯 Misión, Visión y Valores</h2>
-            <p className="content-page-subtitle">Define la identidad y propósito de tu empresa</p>
+        <div className="content-page acf">
+            <header className="sx-head">
+                <div className="sx-eyebrow">Contenido</div>
+                <h1 className="sx-title">Misión, visión y <span>valores</span></h1>
+                <p className="sx-subtitle">Define la identidad y el propósito de la joyería. Se muestra en "Sobre nosotros".</p>
+            </header>
 
             {/* SECCIÓN DE MISIÓN */}
             <div className="manager-subsection">
-                <h3 className="subsection-title">🎯 Nuestra Misión</h3>
+                <h3 className="subsection-title">Nuestra Misión</h3>
                 <p className="subsection-description">¿Cuál es el propósito principal de tu empresa?</p>
 
                 <div className="mvv-form">
@@ -82,7 +87,7 @@ const AdminMisionVisionValoresManager: React.FC = () => {
 
             {/* SECCIÓN DE VISIÓN */}
             <div className="manager-subsection">
-                <h3 className="subsection-title">🔭 Nuestra Visión</h3>
+                <h3 className="subsection-title">Nuestra Visión</h3>
                 <p className="subsection-description">¿Qué aspiras a lograr en el futuro?</p>
 
                 <div className="mvv-form">
@@ -107,7 +112,7 @@ const AdminMisionVisionValoresManager: React.FC = () => {
 
             {/* SECCIÓN DE VALORES */}
             <div className="manager-subsection">
-                <h3 className="subsection-title">💎 Nuestros Valores</h3>
+                <h3 className="subsection-title">Nuestros Valores</h3>
                 <p className="subsection-description">Principios fundamentales que guían tu empresa</p>
 
                 <div className="valores-form">

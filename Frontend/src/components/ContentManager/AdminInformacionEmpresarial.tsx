@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { contentAPI, uploadAPI } from '../../services/api';
 
+import '../../styles/SitioSecciones.css';
+import '../../styles/AdminContenido.css';
 interface InfoEmpresa {
     nombre: string;
     descripcion: string;
@@ -105,15 +107,16 @@ const AdminInformacionEmpresarial: React.FC = () => {
     };
 
     if (loading) {
-        return <div className="content-page"><p>Cargando información empresarial...</p></div>;
+        return <div className="content-page acf"><p>Cargando información empresarial...</p></div>;
     }
 
     return (
-        <div className="content-page">
-            <h2 className="content-page-title">ℹ️ Información Empresarial</h2>
-            <p className="content-page-subtitle">
-                Esta información se muestra en tiempo real en la página pública "Sobre Nosotros".
-            </p>
+        <div className="content-page acf">
+            <header className="sx-head">
+                <div className="sx-eyebrow">Contenido</div>
+                <h1 className="sx-title">Información <span>empresarial</span></h1>
+                <p className="sx-subtitle">Datos de contacto, horario, redes y textos del negocio. Se usan en Contacto, Ubicación, el pie de página, el asistente y "Sobre nosotros".</p>
+            </header>
 
             {mensaje && (
                 <div className={mensaje.tipo === 'ok' ? 'message success-message' : 'message error-message'}>
@@ -122,7 +125,7 @@ const AdminInformacionEmpresarial: React.FC = () => {
             )}
 
             <div className="manager-subsection">
-                <h3 className="subsection-title">🏢 Datos de la Empresa</h3>
+                <h3 className="subsection-title">Datos de la Empresa</h3>
                 <p className="subsection-description">Información de contacto y detalles generales de tu negocio</p>
 
                 <div className="info-form">
@@ -132,7 +135,8 @@ const AdminInformacionEmpresarial: React.FC = () => {
                     </div>
                     <div className="form-group">
                         <label>Dirección</label>
-                        <input type="text" value={info.direccion} onChange={e => handleChange('direccion', e.target.value)} />
+                        <input type="text" placeholder="Calle, número, colonia, ciudad, estado" value={info.direccion} onChange={e => handleChange('direccion', e.target.value)} />
+                        <small className="subsection-description" style={{ margin: 0 }}>Escríbela completa: con ella se genera el mapa de Ubicación.</small>
                     </div>
                     <div className="form-group">
                         <label>Teléfono</label>
@@ -154,7 +158,7 @@ const AdminInformacionEmpresarial: React.FC = () => {
             </div>
 
             <div className="manager-subsection">
-                <h3 className="subsection-title">💎 Sobre Nosotros</h3>
+                <h3 className="subsection-title">Sobre Nosotros</h3>
                 <p className="subsection-description">Contenido que aparece en la página pública "Sobre Nosotros"</p>
 
                 <div className="info-form">
@@ -184,7 +188,7 @@ const AdminInformacionEmpresarial: React.FC = () => {
             </div>
 
             <div className="manager-subsection">
-                <h3 className="subsection-title">📱 Redes Sociales</h3>
+                <h3 className="subsection-title">Redes Sociales</h3>
                 <p className="subsection-description">Vincula tus perfiles en redes sociales</p>
 
                 <div className="social-form">
@@ -198,7 +202,8 @@ const AdminInformacionEmpresarial: React.FC = () => {
                     </div>
                     <div className="form-group">
                         <label>WhatsApp</label>
-                        <input type="tel" placeholder="+1 234 567 8900" value={info.whatsapp} onChange={e => handleChange('whatsapp', e.target.value)} />
+                        <input type="tel" placeholder="52 771 123 4567" value={info.whatsapp} onChange={e => handleChange('whatsapp', e.target.value)} />
+                        <small className="subsection-description" style={{ margin: 0 }}>Con lada de país (52 para México). Activa los botones de WhatsApp del sitio y del asistente.</small>
                     </div>
                     <div className="form-group">
                         <label>TikTok</label>

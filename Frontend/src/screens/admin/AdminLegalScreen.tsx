@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { contentAPI } from '../../services/api';
 import Loader from '../../components/Loader';
+import '../../styles/SitioSecciones.css';
 import './AdminLegalScreen.css';
 
 type Doc = 'terminos' | 'privacidad';
@@ -69,10 +70,10 @@ export default function AdminLegalScreen() {
 
       {/* ── HEADER ── */}
       <div className="alegal-header">
-        <div>
-          <p className="alegal-eyebrow">Gestión de contenido legal</p>
-          <h1 className="alegal-title">Documentos <span>Legales</span></h1>
-          <p className="alegal-sub">Edita los términos y condiciones y el aviso de privacidad que se muestran en la página pública.</p>
+        <div className="adm-head">
+          <div className="sx-eyebrow">Contenido</div>
+          <h1 className="sx-title">Documentos <span>legales</span></h1>
+          <p className="sx-subtitle">Edita los términos y condiciones y el aviso de privacidad que se muestran en la página pública.</p>
         </div>
         <div className="alegal-header-actions">
           {toast && (
@@ -80,11 +81,11 @@ export default function AdminLegalScreen() {
               {toast.ok ? '✓' : '✕'} {toast.msg}
             </div>
           )}
-          <button className="alegal-btn-preview" onClick={() => setPreview(p => !p)}>
-            {preview ? '✏️ Editar' : '👁 Vista previa'}
+          <button className="sx-btn sx-btn--ghost" onClick={() => setPreview(p => !p)}>
+            {preview ? 'Editar' : 'Vista previa'}
           </button>
-          <button className="alegal-btn-save" onClick={handleGuardar} disabled={saving}>
-            {saving ? 'Guardando…' : '💾 Guardar cambios'}
+          <button className="sx-btn" onClick={handleGuardar} disabled={saving}>
+            {saving ? 'Guardando…' : 'Guardar cambios'}
           </button>
         </div>
       </div>

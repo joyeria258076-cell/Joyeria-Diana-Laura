@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { contentAPI } from '../../../services/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+import '../../../styles/SitioSecciones.css';
 import './AdminPageContentNoticiasScreen.css';
 
 interface Noticia {
@@ -181,12 +182,13 @@ const AdminPageContentNoticiasScreen: React.FC = () => {
 
       {/* Header */}
       <div className="an-header">
-        <div>
-          <h1 className="an-title">Novedades</h1>
-          <p className="an-subtitle">Publica artículos que aparecen en la sección de novedades del sitio</p>
+        <div className="adm-head">
+          <div className="sx-eyebrow">Contenido</div>
+          <h1 className="sx-title">Blog y <span>novedades</span></h1>
+          <p className="sx-subtitle">Publica artículos para el blog y la sección de novedades del inicio. Los clientes pueden comentarlos.</p>
         </div>
-        <button className="an-btn-nueva" onClick={abrirCrear}>
-          + Nueva novedad
+        <button className="sx-btn" onClick={abrirCrear}>
+          + Nuevo artículo
         </button>
       </div>
 

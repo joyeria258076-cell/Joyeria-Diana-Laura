@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { contentAPI } from '../../services/api';
+import '../../styles/SitioSecciones.css';
 import './AdminFAQManager.css';
 
 interface FAQ {
@@ -106,11 +107,12 @@ const AdminFAQManager: React.FC = () => {
       )}
 
       <div className="faq-admin-header">
-        <div>
-          <h1 className="faq-admin-title">Preguntas Frecuentes</h1>
-          <p className="faq-admin-subtitle">Gestiona las FAQs que aparecen en la sección de Ayuda del sitio</p>
+        <div className="adm-head">
+          <div className="sx-eyebrow">Contenido</div>
+          <h1 className="sx-title">Preguntas <span>frecuentes</span></h1>
+          <p className="sx-subtitle">Se muestran en el Centro de ayuda y el asistente las usa para responder a los clientes.</p>
         </div>
-        <button className="faq-btn-nueva" onClick={abrirCrear}>+ Nueva pregunta</button>
+        <button className="sx-btn" onClick={abrirCrear}>+ Nueva pregunta</button>
       </div>
 
       <div className="faq-admin-stats">

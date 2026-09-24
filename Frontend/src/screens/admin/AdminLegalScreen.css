@@ -271,3 +271,9 @@
   .alegal-card { border-radius: 4px; padding: 1.25rem; }
   .alegal-wrap { padding: 1rem; }
 }
+
+/* Encabezado con el estilo del sitio (alineado a la izquierda en pantallas de gestión) */
+.adm-head .sx-eyebrow { justify-content: flex-start; margin-bottom: 0.6rem; }
+.adm-head .sx-eyebrow::before { display: none; }
+.adm-head .sx-title { font-size: clamp(1.9rem, 3.5vw, 2.6rem); margin-bottom: 0.4rem; }
+.adm-head .sx-subtitle { margin: 0; max-width: 640px; }
