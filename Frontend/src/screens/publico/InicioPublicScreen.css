@@ -2231,3 +2231,200 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   INICIO — más presencia y menos glare
+
+   Dos problemas medidos sobre la página renderizada:
+
+   1. El crema está al 96% de brillo, y en el Inicio hay CUATRO paneles
+      seguidos de ese tono. Es el mismo cansancio que en Contacto, pero
+      repetido: la vista no descansa en toda la página. Se baja el crema a
+      un tono de perla cálida (78%), que conserva el aire claro sin el
+      deslumbre.
+
+   2. El banner queda apagado: la fotografía se ve lavada y el título
+      pequeño en una esquina. Es lo primero que ve la clienta y no
+      sostiene la página.
+═══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Crema más descansado ──
+   Un solo sitio para los dos tonos: cambia aquí y cambia toda la página. */
+.inicio-public-container .showcase-section > .container-lg,
+.inicio-public-container .features-section > .container-lg,
+.inicio-public-container .news-section > .container-lg,
+.inicio-public-container .valores-section > .container-lg,
+.inicio-public-container .cta-section > .container-lg {
+  background: linear-gradient(168deg, #f7f1e8 0%, #ebdfd0 100%);
+}
+
+.pc-panel {
+  background: linear-gradient(168deg, #f7f1e8 0%, #ebdfd0 100%);
+}
+
+/* Las tarjetas blancas dentro bajan a hueso: el blanco puro sobre el
+   crema era el punto más brillante de toda la pantalla. */
+.inicio-public-container .product-card,
+.inicio-public-container .editorial-card,
+.inicio-public-container .showcase-card,
+.inicio-public-container .news-card,
+.inicio-public-container .feature-card,
+.inicio-public-container .valor-card {
+  background: #fdfbf7;
+}
+
+.pc-item {
+  background: linear-gradient(170deg, #fdfbf7 0%, #f6efe5 100%);
+}
+
+/* ── 2. El banner, con fuerza ── */
+.inicio-public-container .carousel-container {
+  /* Era clamp(280px, 30vw, 440px): demasiado bajo para ser la portada */
+  height: clamp(340px, 38vw, 540px);
+}
+
+/* La fotografía recupera color: el velo la dejaba lavada */
+.inicio-public-container .carousel-slide-img {
+  filter: saturate(1.08) contrast(1.04);
+}
+
+/* Degradado más marcado del lado del texto, para que el título tenga
+   dónde apoyarse sin tapar la pieza */
+.inicio-public-container .carousel-overlay {
+  background:
+    linear-gradient(to right, rgba(8,8,9,0.94) 0%, rgba(8,8,9,0.72) 34%, rgba(8,8,9,0.18) 68%, transparent 100%),
+    linear-gradient(to top, rgba(8,8,9,0.55) 0%, transparent 42%);
+}
+
+.inicio-public-container .carousel-title {
+  font-size: clamp(2rem, 4.2vw, 3.4rem);
+  font-weight: 300;
+  /* 1.1 recortaba los acentos de las mayúsculas */
+  line-height: 1.16;
+  letter-spacing: 0.015em;
+  margin-bottom: 0.5rem;
+}
+
+.inicio-public-container .carousel-desc {
+  font-size: 1rem;
+  color: rgba(245, 240, 235, 0.86);
+  max-width: 30rem;
+}
+
+.inicio-public-container .carousel-tag {
+  background: rgba(244, 194, 194, 0.14);
+  border-color: rgba(244, 194, 194, 0.4);
+  color: var(--color-blush);
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+}
+
+/* Rombo de remate bajo el título, el motivo de la marca */
+.inicio-public-container .carousel-title::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 5px;
+  margin: 0.9rem 0 0;
+  background: var(--color-rose-gold);
+  transform: rotate(45deg);
+  box-shadow:
+    14px 0 0 -1.2px var(--color-blush),
+    28px 0 0 -2px rgba(207, 138, 156, 0.6);
+}
+
+/* ── 3. Encabezados de sección con más peso ──
+   "Lo que más enamora" se perdía dentro de un panel enorme. */
+.inicio-public-container .section-title {
+  font-size: clamp(1.7rem, 2.8vw, 2.3rem);
+}
+
+.inicio-public-container .eyebrow-txt {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+}
+
+/* ── 4. Las tarjetas, con jerarquía ──
+   El nombre y el precio pesaban lo mismo; en una tienda el precio es lo
+   que la clienta busca con la mirada. */
+.inicio-public-container .product-card-body h3,
+.inicio-public-container .editorial-card-body h3 {
+  font-size: 0.95rem;
+  color: #3a2a20;
+}
+
+.inicio-public-container .precio-final {
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: #7a4e24;
+}
+
+.inicio-public-container .prod-categoria {
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  color: #9a7a5e;
+}
+
+/* El filete dorado sobre el precio separa dato de nombre */
+.inicio-public-container .product-card-precio {
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(201, 149, 108, 0.22);
+  margin-top: auto;
+}
+
+/* Realce al pasar el cursor: la tarjeta se levanta un poco más */
+.inicio-public-container .product-card:hover,
+.inicio-public-container .editorial-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 34px rgba(58, 42, 32, 0.2);
+}
+
+/* El rombo de remate bajo el título del banner se leía como una mota
+   suelta junto a la descripción, más como defecto que como adorno. El
+   título ya tiene peso suficiente sin él. */
+.inicio-public-container .carousel-title::after {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   AJUSTE FINO DEL CREMA
+
+   Medido: el primer ajuste solo bajó el brillo de 96% a 89%, que sigue
+   siendo mucho para cuatro paneles seguidos. Se baja a 81% el panel y a
+   89% las tarjetas de dentro, que es donde de verdad descansa la vista
+   sin perder el aire claro.
+
+   Y la etiqueta de categoría quedaba en 3.54:1, por debajo del mínimo
+   legible. Pasa a un tono más profundo: 5.25:1.
+═══════════════════════════════════════════════════════════════════ */
+.inicio-public-container .showcase-section > .container-lg,
+.inicio-public-container .features-section > .container-lg,
+.inicio-public-container .news-section > .container-lg,
+.inicio-public-container .valores-section > .container-lg,
+.inicio-public-container .cta-section > .container-lg,
+.pc-panel {
+  background: linear-gradient(168deg, #efe7db 0%, #e2d6c4 100%);
+}
+
+.inicio-public-container .product-card,
+.inicio-public-container .editorial-card,
+.inicio-public-container .showcase-card,
+.inicio-public-container .news-card,
+.inicio-public-container .feature-card,
+.inicio-public-container .valor-card {
+  background: #f9f5ee;
+}
+
+.pc-item {
+  background: linear-gradient(170deg, #f9f5ee 0%, #f1e9dc 100%);
+}
+
+/* El marco interior y los filetes se refuerzan un punto: sobre un crema
+   más oscuro, los de antes se perdían. */
+.pc-panel::after {
+  border-color: rgba(201, 149, 108, 0.26);
+}
+
+.inicio-public-container .prod-categoria {
+  color: #7d5f43;
+}
