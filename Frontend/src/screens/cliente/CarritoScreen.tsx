@@ -186,7 +186,7 @@ const SelectorDireccion: React.FC<{ onChange: (dir: DireccionData) => void }> = 
 // ── Pantalla principal ────────────────────────────────────────
 const CarritoScreen: React.FC = () => {
     const navigate = useNavigate();
-    const { items, count, total, loading, promoNoAplica, actualizarCantidad, eliminarItem, vaciarCarrito } = useCart();
+    const { items, count, total, loading, promoNoAplica, actualizarCantidad, eliminarItem, vaciarCarrito, recargar } = useCart();
 
     const [recsCarrito, setRecsCarrito] = useState<Recomendacion[]>([]);
 
@@ -196,7 +196,6 @@ const CarritoScreen: React.FC = () => {
     const [folioPedido, setFolioPedido]       = useState('');
     const [showCheckout, setShowCheckout]     = useState(false);
     const [direccion, setDireccion]           = useState<DireccionData | null>(null);
-    const [notasCliente, setNotasCliente]     = useState('');
     const [errorMsg, setErrorMsg]             = useState('');
     const [metodosPago, setMetodosPago]       = useState<MetodoPago[]>([]);
     const [metodoPagoId, setMetodoPagoId]     = useState<number | null>(null);
@@ -276,7 +275,7 @@ const CarritoScreen: React.FC = () => {
         try {
             const data = await carritoAPI.crearPedido({
                 direccion_envio: tipoEntrega === 'domicilio' ? direccion!.texto_completo : 'Recoger en tienda',
-                notas_cliente: notasCliente,
+                notas_cliente: '',
                 metodo_pago_id: metodoPagoId,
                 tipo_entrega: tipoEntrega,
                 costo_envio: tipoEntrega === 'domicilio' ? costoEnvio : 0,
@@ -286,6 +285,8 @@ const CarritoScreen: React.FC = () => {
             setFolioPedido(data.data.folio || `#${data.data.id}`);
             setPedidoExitoso(true);
             setShowCheckout(false);
+            // El backend ya pasó los productos al pedido: refrescar el carrito y el contador
+            recargar();
         } catch (err: any) {
             setErrorMsg(err.message || 'Error al solicitar el pedido');
         } finally { setSolicitando(false); }
@@ -326,6 +327,7 @@ const CarritoScreen: React.FC = () => {
             setFolioApartado(res.data.folio);
             setApartandoExitoso(true);
             setShowApartado(false);
+            recargar();
         } catch (err: any) {
             setErrorApartado(err.message || 'Error al crear el apartado.');
         } finally {
@@ -632,14 +634,11 @@ const CarritoScreen: React.FC = () => {
                                     </div>
                                 )}
                             </div>
-                            <div className="carrito-form-group">
-                                <label>Notas e instrucciones para tu pedido (opcional)</label>
-                                <textarea rows={3}
-                                    placeholder="Ej: talla del anillo 7, grabado con nombre 'Ana', color preferido..."
-                                    value={notasCliente} onChange={e => setNotasCliente(e.target.value)}
-                                    className="carrito-textarea" />
-                                <small className="carrito-form-ayuda">¿Necesitas alguna personalización, talla específica o tienes alguna indicación para tu pedido? Escríbela aquí.</small>
-                            </div>
+                            {items.some(i => i.talla_medida || i.nota) && (
+                                <div className="carrito-metodo-info">
+                                    Las especificaciones de tus piezas personalizadas ya van incluidas en cada producto del pedido.
+                                </div>
+                            )}
                             {errorMsg && <div className="carrito-error-msg">{errorMsg}</div>}
                             <div className="carrito-modal-resumen">
                                 {(() => {
