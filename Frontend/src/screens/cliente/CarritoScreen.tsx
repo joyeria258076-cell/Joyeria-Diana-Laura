@@ -9,6 +9,7 @@ import {
 import { useCart } from '../../contexts/CartContext';
 import { carritoAPI, apartadoAPI, recomendacionAPI, type Recomendacion } from '../../services/api';
 import './CarritoScreen.css';
+import './CarritoApp.css';
 
 const PLACEHOLDER = `data:image/svg+xml;utf8,<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="%23141414"/><g transform="translate(150,150)" stroke="%23594936" stroke-width="1.5" fill="none" opacity="0.7"><path d="M-22,-14 L22,-14 L32,-2 L0,34 L-32,-2 Z"/><path d="M-22,-14 L0,-2 L22,-14 M-32,-2 L32,-2 M0,-2 L0,34"/></g></svg>`;
 const STOCK_POCO = 5;
@@ -405,7 +406,8 @@ const CarritoScreen: React.FC = () => {
     return (
         <main className="carrito-body">
             <div className="carrito-encabezado">
-                <h1 className="carrito-titulo">Mi Carrito <span className="carrito-count-badge">{count}</span></h1>
+                <span className="carrito-eyebrow">{count} {count === 1 ? 'pieza' : 'piezas'}</span>
+                <h1 className="carrito-titulo">Tu <span>carrito</span></h1>
                 <ol className="carrito-stepper">
                     <li className="carrito-stepper-paso is-activo">
                         <span className="carrito-stepper-num">1</span>

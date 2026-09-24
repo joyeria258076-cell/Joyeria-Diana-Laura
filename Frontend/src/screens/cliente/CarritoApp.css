@@ -1,0 +1,126 @@
+/* CarritoApp.css — Carrito y checkout con el estilo de la app móvil.
+   Se carga después de CarritoScreen.css. */
+
+/* Encabezado */
+body .carrito-eyebrow { display: block; font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--color-primary); margin-bottom: 4px; }
+body .carrito-titulo {
+  font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -1.5px !important;
+  font-size: clamp(32px, 4vw, 46px) !important; margin: 0 0 20px !important; color: var(--color-text) !important;
+}
+body .carrito-titulo > span { font-family: var(--font-accent); font-style: italic; font-weight: 600; color: var(--color-primary); letter-spacing: -0.5px; }
+
+/* Pasos del proceso como píldoras */
+body .carrito-stepper { gap: 8px !important; margin-bottom: 24px !important; flex-wrap: wrap; }
+body .carrito-stepper-paso {
+  display: inline-flex !important; align-items: center; gap: 8px; padding: 6px 14px 6px 6px !important;
+  border-radius: var(--radius-pill) !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important;
+  color: var(--color-text-muted);
+}
+body .carrito-stepper-num {
+  width: 26px !important; height: 26px !important; border-radius: 50% !important;
+  display: inline-flex !important; align-items: center; justify-content: center;
+  background: var(--color-surface-2) !important; color: var(--color-text-muted) !important; border: 0 !important;
+  font-family: var(--font-body); font-weight: 700; font-size: 12px;
+}
+body .carrito-stepper-paso.is-activo { color: var(--color-text); border-color: color-mix(in srgb, var(--color-primary) 40%, transparent) !important; }
+body .carrito-stepper-paso.is-activo .carrito-stepper-num { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; }
+body .carrito-stepper-label { font-family: var(--font-body); font-size: 13px; font-weight: 600; text-transform: none !important; letter-spacing: 0 !important; }
+body .carrito-stepper-linea { display: none !important; }
+
+/* Artículos */
+body .carrito-items { gap: 14px !important; }
+body .carrito-item {
+  border-radius: var(--radius-xl) !important; border: 1px solid var(--color-border) !important;
+  background: var(--color-surface) !important; box-shadow: var(--shadow-soft); padding: 12px !important; gap: 16px !important;
+  align-items: center;
+}
+body .carrito-item::before { display: none !important; }
+body .carrito-item-imagen { width: 96px !important; height: 96px !important; border-radius: var(--radius-lg) !important; overflow: hidden; flex-shrink: 0; }
+body .carrito-item-imagen img { width: 100%; height: 100%; object-fit: cover; }
+body .carrito-item-categoria { font-size: 11px !important; letter-spacing: 1.5px !important; text-transform: uppercase; color: var(--color-primary) !important; }
+body .carrito-item-nombre { font-family: var(--font-body) !important; font-weight: 600 !important; font-size: 16px !important; letter-spacing: -0.3px !important; }
+body .carrito-precio-final, body .carrito-item-subtotal { font-family: var(--font-body) !important; font-weight: 700 !important; color: var(--color-primary) !important; }
+body .carrito-precio-tachado { color: var(--color-text-muted) !important; }
+
+/* Cantidad en píldora */
+body .carrito-qty-btn {
+  width: 34px !important; height: 34px !important; border-radius: 50% !important; border: 0 !important;
+  background: var(--color-surface-2) !important; color: var(--color-text) !important;
+}
+body .carrito-qty-num { font-family: var(--font-body); font-weight: 700; min-width: 26px; text-align: center; }
+body .carrito-btn-eliminar {
+  width: 38px; height: 38px; border-radius: 50% !important; border: 0 !important;
+  background: color-mix(in srgb, var(--color-error) 12%, transparent) !important; color: var(--color-error) !important;
+}
+body .carrito-btn-vaciar { border-radius: var(--radius-pill) !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--color-error) !important; }
+
+/* Resumen */
+body .carrito-resumen-card {
+  border-radius: var(--radius-xl) !important; border: 1px solid var(--glass-border) !important;
+  background: var(--glass-bg) !important; backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--shadow-lift) !important; padding: 24px !important;
+}
+body .carrito-resumen-titulo { font-family: var(--font-body) !important; font-weight: 700 !important; font-size: 20px !important; letter-spacing: -0.5px !important; text-transform: none !important; }
+body .carrito-resumen-fila { font-family: var(--font-body); font-size: 14px; }
+body .carrito-resumen-fila:last-of-type { font-size: 18px; font-weight: 700; }
+
+/* Botones */
+body .carrito-btn-primario {
+  width: 100%; min-height: 56px; border: 0 !important; border-radius: var(--radius-lg) !important;
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important;
+  font-family: var(--font-body) !important; font-size: 16px !important; font-weight: 600 !important;
+  letter-spacing: 0 !important; text-transform: none !important; box-shadow: var(--shadow-primary) !important;
+}
+body .carrito-btn-primario:hover:not(:disabled) { transform: translateY(-2px); }
+body .carrito-btn-secundario {
+  width: 100%; min-height: 52px; border-radius: var(--radius-lg) !important;
+  border: 1.5px solid var(--color-primary) !important; background: transparent !important; color: var(--color-primary) !important;
+  font-family: var(--font-body) !important; font-weight: 600 !important; letter-spacing: 0 !important; text-transform: none !important;
+}
+
+/* ── Checkout (modal) ── */
+body .carrito-modal-overlay { background: color-mix(in srgb, var(--color-bg) 65%, transparent) !important; backdrop-filter: blur(6px); }
+body .carrito-modal {
+  border-radius: 32px !important; border: 1px solid var(--glass-border) !important;
+  background: var(--color-surface) !important; box-shadow: var(--shadow-lift) !important; overflow: hidden;
+}
+body .carrito-modal-header { border-bottom: 1px solid var(--color-border) !important; padding: 20px 24px !important; }
+body .carrito-modal-header h2, body .carrito-modal-header h3 { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.6px !important; }
+body .carrito-modal-close { width: 38px; height: 38px; border-radius: 50% !important; background: var(--color-surface-2) !important; border: 0 !important; }
+body .carrito-modal-footer { border-top: 1px solid var(--color-border) !important; padding: 16px 24px !important; gap: 10px; }
+body .carrito-metodos-titulo { font-family: var(--font-body) !important; font-weight: 700 !important; font-size: 15px !important; text-transform: none !important; letter-spacing: -0.2px !important; }
+
+/* Opciones de entrega / pago como tarjetas seleccionables */
+body :is(.carrito-metodo-opcion, .carrito-plan-opcion) {
+  border-radius: var(--radius-md) !important; border: 1.5px solid var(--color-border) !important;
+  background: var(--color-surface) !important; padding: 14px 16px !important;
+  transition: border-color var(--t-fast) ease, box-shadow var(--t-fast) ease;
+}
+body :is(.carrito-metodo-opcion, .carrito-plan-opcion):hover { border-color: color-mix(in srgb, var(--color-primary) 50%, transparent) !important; }
+body :is(.carrito-metodo-opcion, .carrito-plan-opcion):is(.activo, .seleccionado, .is-activo, .selected) {
+  border-color: var(--color-primary) !important; box-shadow: var(--focus-ring);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface)) !important;
+}
+body .carrito-metodo-icono {
+  width: 40px; height: 40px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent); color: var(--color-primary);
+}
+body .carrito-metodo-nombre { font-family: var(--font-body); font-weight: 600; }
+body .carrito-metodo-info, body .carrito-promo-aviso {
+  border-radius: var(--radius-sm) !important; border: 0 !important; border-left: 3px solid var(--color-info) !important;
+  background: color-mix(in srgb, var(--color-info) 10%, transparent) !important; color: var(--color-text) !important;
+}
+body .carrito-error-msg { border-radius: var(--radius-sm) !important; background: color-mix(in srgb, var(--color-error) 12%, transparent) !important; color: var(--color-error) !important; border: 0 !important; }
+body .carrito-form-group label { font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0.2px !important; color: var(--color-text) !important; }
+
+/* Recomendaciones */
+body .carrito-recs-card { border-radius: var(--radius-lg) !important; border: 1px solid var(--color-border) !important; background: var(--color-surface) !important; overflow: hidden; }
+body .carrito-recs-card-img { border-radius: 0 !important; }
+body .carrito-recs-card-precio { color: var(--color-primary) !important; font-weight: 700 !important; font-family: var(--font-body) !important; }
+body .carrito-recs-titulo { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.5px !important; text-transform: none !important; }
+
+@media (max-width: 640px) {
+  body .carrito-item { flex-wrap: wrap; }
+  body .carrito-item-imagen { width: 80px !important; height: 80px !important; }
+  body .carrito-modal { border-radius: 28px 28px 0 0 !important; }
+}
