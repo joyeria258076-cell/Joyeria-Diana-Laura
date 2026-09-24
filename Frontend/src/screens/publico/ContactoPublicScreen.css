@@ -670,3 +670,176 @@
   color: var(--con-oro);
   opacity: 0.75;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   CONTACTO — fuera el crema, entra el vidrio ahumado
+
+   Medido: el panel crema está al 96% de brillo sobre un fondo al 0%. Ese
+   salto es el que cansa la vista, y en un formulario —donde la persona se
+   queda un rato mirando mientras escribe— se nota el doble.
+
+   Pasa al mismo vidrio ahumado de la tarjeta de inicio de sesión. Queda
+   un criterio claro para todo el sitio:
+     formularios (login, registro, contacto)  →  vidrio ahumado
+     contenido que se ojea (inicio, catálogo)  →  panel crema
+
+   Se reutilizan los nombres de variable ya existentes para no duplicar
+   reglas: solo cambian sus valores y los pocos sitios donde el color iba
+   escrito a mano.
+═══════════════════════════════════════════════════════════════════ */
+
+.contacto-container {
+  --con-texto: #f5f0eb;
+  --con-texto-suave: rgba(245, 240, 235, 0.66);
+  --con-oro: var(--color-rose-gold);
+  --rosa-perla: #e3a9b4;
+}
+
+/* ── Los dos paneles ── */
+.contacto-container .contacto-form-wrapper,
+.contacto-container .contacto-info-wrapper {
+  background:
+    /* Halo rosado arriba a la derecha */
+    radial-gradient(120% 90% at 85% -10%, rgba(207, 138, 156, 0.16) 0%, transparent 55%),
+    /* Halo dorado abajo a la izquierda, en la esquina opuesta */
+    radial-gradient(100% 80% at 0% 110%, rgba(201, 149, 108, 0.14) 0%, transparent 55%),
+    linear-gradient(165deg, rgba(46, 30, 35, 0.84) 0%, rgba(20, 14, 16, 0.9) 100%);
+  backdrop-filter: blur(22px) saturate(1.1);
+  -webkit-backdrop-filter: blur(22px) saturate(1.1);
+  border: 1px solid rgba(227, 169, 180, 0.3);
+  box-shadow:
+    0 26px 64px rgba(0, 0, 0, 0.5),
+    0 0 44px -20px rgba(207, 138, 156, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Filete superior en degradado, como en el login */
+.contacto-container .contacto-form-wrapper::before,
+.contacto-container .contacto-info-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-rose-gold) 20%,
+    var(--color-champagne) 38%,
+    var(--color-blush) 55%,
+    #cf8a9c 75%,
+    transparent 100%
+  );
+}
+
+/* ── Títulos y etiquetas ── */
+.contacto-container .form-title,
+.contacto-container .info-title {
+  color: var(--color-text);
+}
+
+.contacto-container .form-group label {
+  color: var(--rosa-perla);
+}
+
+.contacto-container .form-group label::before {
+  color: var(--color-blush);
+  opacity: 0.85;
+}
+
+/* ── Campos ── */
+.contacto-container .form-group input,
+.contacto-container .form-group textarea {
+  background: rgba(94, 51, 64, 0.16);
+  border: 1px solid rgba(227, 169, 180, 0.18);
+  border-bottom: 2px solid rgba(207, 138, 156, 0.4);
+  color: var(--color-text);
+}
+
+.contacto-container .form-group input::placeholder,
+.contacto-container .form-group textarea::placeholder {
+  color: rgba(227, 169, 180, 0.4);
+}
+
+.contacto-container .form-group input:focus,
+.contacto-container .form-group textarea:focus {
+  background: rgba(94, 51, 64, 0.26);
+  border-color: rgba(227, 169, 180, 0.4);
+  border-bottom-color: var(--color-blush);
+  box-shadow: 0 8px 22px -14px rgba(207, 138, 156, 0.9);
+}
+
+/* El autocompletado de Chrome impone su propio fondo claro */
+.contacto-container .form-group input:-webkit-autofill,
+.contacto-container .form-group input:-webkit-autofill:hover,
+.contacto-container .form-group input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text);
+  -webkit-box-shadow: 0 0 0 1000px #2b1d22 inset;
+  box-shadow: 0 0 0 1000px #2b1d22 inset;
+  caret-color: var(--color-text);
+}
+
+/* ── Botón: el degradado recorre la gama, como en el login ── */
+.contacto-container .contacto-form button[type="submit"],
+.contacto-container .contacto-form .btn-primary {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 58%),
+    linear-gradient(
+      112deg,
+      var(--color-blush) 0%,
+      #eabfae 34%,
+      var(--color-rose-gold) 68%,
+      var(--color-champagne) 100%
+    );
+  border: 1px solid rgba(244, 194, 194, 0.45);
+  color: #46232f;
+  box-shadow:
+    0 10px 26px -14px rgba(207, 138, 156, 0.85),
+    inset 0 -1px 0 rgba(94, 51, 64, 0.18);
+}
+
+/* ── Datos de contacto ── */
+.contacto-container .info-item {
+  border-bottom-color: rgba(227, 169, 180, 0.18);
+}
+
+.contacto-container .info-icon {
+  background: rgba(201, 149, 108, 0.14);
+  border-color: rgba(227, 169, 180, 0.32);
+  color: var(--rosa-perla);
+}
+
+.contacto-container .info-content h4,
+.contacto-container .info-content h3,
+.contacto-container .info-content strong {
+  color: var(--rosa-perla);
+}
+
+.contacto-container .info-content p,
+.contacto-container .info-content span {
+  color: var(--con-texto-suave);
+}
+
+/* ── Redes ── */
+.contacto-container .socials-section {
+  border-top-color: rgba(227, 169, 180, 0.22);
+}
+
+.contacto-container .socials-section h3,
+.contacto-container .socials-section h4 {
+  color: var(--rosa-perla);
+}
+
+.contacto-container .social-link {
+  background: rgba(201, 149, 108, 0.12);
+  border-color: rgba(227, 169, 180, 0.3);
+  color: var(--rosa-perla);
+}
+
+.contacto-container .social-link:hover,
+.contacto-container .social-link:focus-visible {
+  background: linear-gradient(120deg, var(--color-blush), var(--color-rose-gold));
+  border-color: var(--color-blush);
+  color: #46232f;
+}
