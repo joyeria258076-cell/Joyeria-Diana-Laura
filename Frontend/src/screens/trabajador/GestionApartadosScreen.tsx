@@ -12,6 +12,8 @@ import {
     AiOutlineThunderbolt, AiOutlineDown, AiOutlineUp, AiOutlineReload, AiOutlineClose,
 } from 'react-icons/ai';
 import './GestionApartadosScreen.css';
+import '../../styles/SitioSecciones.css';
+import '../../styles/GestionSitio.css';
 
 const IconoMetodo: React.FC<{ codigo?: string; size?: number }> = ({ codigo, size = 13 }) => {
     if (codigo === 'mercadopago')   return <AiOutlineShopping size={size} />;
@@ -706,7 +708,11 @@ const GestionApartadosScreen: React.FC = () => {
     return (
         <main className="gapt-body">
             <div className="gapt-top-bar">
-                <h1 className="gapt-titulo"><AiOutlineFlag size={20} /> Gestión de Apartados</h1>
+                <div className="gs-head">
+                    <div className="sx-eyebrow">Operación</div>
+                    <h1 className="sx-title">Gestión de <span>apartados</span></h1>
+                    <p className="sx-subtitle">Confirma anticipos, registra abonos y da seguimiento a las fechas límite.</p>
+                </div>
                 <button
                     className={`gapt-btn-archivo ${verArchivados ? 'activo' : ''}`}
                     onClick={() => { setVerArchivados(!verArchivados); setPagina(1); setFiltro('todos'); }}>

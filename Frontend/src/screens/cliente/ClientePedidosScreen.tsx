@@ -9,6 +9,8 @@ import {
     AiOutlineTool, AiOutlineCar, AiOutlineGift,
 } from 'react-icons/ai';
 import './ClientePedidosScreen.css';
+import '../../styles/SitioSecciones.css';
+import '../../styles/GestionSitio.css';
 
 interface ItemPedido {
     id: number;
@@ -460,7 +462,11 @@ const ClientePedidosScreen: React.FC = () => {
             )}
 
             <div className="cp-header">
-                <h2 className="cp-titulo">Mis Pedidos</h2>
+                <div className="gs-head">
+                    <div className="sx-eyebrow">Mi cuenta</div>
+                    <h1 className="sx-title">Mis <span>pedidos</span></h1>
+                    <p className="sx-subtitle">Sigue el estado de tus compras, paga y descarga tu recibo.</p>
+                </div>
                 <div className="cp-header-acciones">
                     <button className="cp-btn-nuevo" onClick={() => navigate('/carrito')}>Ir al carrito</button>
                 </div>

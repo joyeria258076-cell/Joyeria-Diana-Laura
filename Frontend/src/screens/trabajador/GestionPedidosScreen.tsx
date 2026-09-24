@@ -12,6 +12,8 @@ import {
     AiOutlineFlag, AiOutlineCheck,
 } from 'react-icons/ai';
 import './GestionPedidosScreen.css';
+import '../../styles/SitioSecciones.css';
+import '../../styles/GestionSitio.css';
 
 interface ItemPedido {
     id: number;
@@ -755,7 +757,11 @@ const GestionPedidosScreen: React.FC = () => {
                 </div>
             )}
             <div className="gp-header">
-                <h2 className="gp-titulo">Gestión de Pedidos</h2>
+                <div className="gs-head">
+                    <div className="sx-eyebrow">Operación</div>
+                    <h1 className="sx-title">Gestión de <span>pedidos</span></h1>
+                    <p className="sx-subtitle">Toma pedidos, verifica pagos y lleva cada compra hasta la entrega.</p>
+                </div>
                 <div className="gp-header-acciones">
                     {/* ✅ Info días de entrega (solo lectura) */}
                     <span className="gp-info-config" title="Días de entrega configurados por el admin">

@@ -9,6 +9,8 @@ import {
     AiOutlineUpload, AiOutlinePaperClip, AiOutlineGift, AiOutlineCalendar, AiOutlineThunderbolt,
 } from 'react-icons/ai';
 import './MisApartadosScreen.css';
+import '../../styles/SitioSecciones.css';
+import '../../styles/GestionSitio.css';
 
 interface Abono {
     id: number;
@@ -524,7 +526,11 @@ const MisApartadosScreen: React.FC = () => {
 
     return (
         <main className="mapt-body">
-            <h1 className="mapt-titulo">Mis Apartados</h1>
+            <div className="gs-head">
+                    <div className="sx-eyebrow">Mi cuenta</div>
+                    <h1 className="sx-title">Mis <span>apartados</span></h1>
+                    <p className="sx-subtitle">Revisa cuánto llevas pagado, tus próximos abonos y la fecha límite de cada pieza.</p>
+                </div>
 
             {msgExito && (
                 <div className="mapt-exito-banner">

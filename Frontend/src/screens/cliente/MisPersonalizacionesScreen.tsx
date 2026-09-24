@@ -8,6 +8,7 @@ import { personalizacionAPI, carritoAPI, SolicitudPersonalizacion } from '../../
 import Loader from '../../components/Loader';
 import '../../styles/SitioSecciones.css';
 import './MisPersonalizacionesScreen.css';
+import '../../styles/GestionSitio.css';
 
 const ESTADO_META: Record<string, { label: string; icon: React.ReactNode }> = {
     pendiente:  { label: 'En verificación', icon: <AiOutlineClockCircle size={13} /> },

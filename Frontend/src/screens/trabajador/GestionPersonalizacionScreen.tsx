@@ -6,6 +6,8 @@ import {
 import { personalizacionAPI, SolicitudPersonalizacion } from '../../services/api';
 import Loader from '../../components/Loader';
 import './GestionPersonalizacionScreen.css';
+import '../../styles/SitioSecciones.css';
+import '../../styles/GestionSitio.css';
 
 const FILTROS = [
     { key: 'pendiente', label: 'Pendientes' },
@@ -67,10 +69,11 @@ const GestionPersonalizacionScreen: React.FC = () => {
 
     return (
         <main className="gper-page">
-            <div className="gper-header">
-                <h1>Solicitudes de Personalización</h1>
-                <p className="gper-sub">Revisa el detalle y la imagen de referencia antes de aprobar cada pieza.</p>
-            </div>
+            <div className="gs-head">
+                    <div className="sx-eyebrow">Operación</div>
+                    <h1 className="sx-title">Solicitudes de <span>personalización</span></h1>
+                    <p className="sx-subtitle">Revisa el detalle y la imagen de referencia antes de aprobar cada pieza.</p>
+                </div>
 
             <div className="gper-filtros">
                 {FILTROS.map(f => (
