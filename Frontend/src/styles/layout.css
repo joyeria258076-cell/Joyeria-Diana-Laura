@@ -188,3 +188,27 @@ body .btn-acceso, body .pub-nav-mobile-acceso {
   body .hamburger-btn { display: none; }
   body .sidebar-privado { border-radius: 0 var(--radius-xl) var(--radius-xl) 0; }
 }
+
+/* ── Tema claro: fondo limpio (sin la foto, que en claro se ve grisácea) ── */
+[data-theme="blanco_rosa"] body :is(.content-area, .sx-page, .inicio-public-container, .catalogo-public-container,
+  .legal-page, .noticias-container, .pdp-wrapper, .login-page-wrapper, .register-page-wrapper) {
+  background-color: var(--color-bg) !important;
+  background-image:
+    radial-gradient(900px 600px at 100% 0%, color-mix(in srgb, var(--blob-1) 35%, transparent), transparent 70%),
+    radial-gradient(800px 600px at 0% 100%, color-mix(in srgb, var(--blob-2) 30%, transparent), transparent 70%),
+    linear-gradient(180deg, #FFF9FC 0%, var(--color-bg) 100%) !important;
+  background-attachment: fixed !important;
+}
+/* Las fotos del login quedan como un velo muy suave */
+[data-theme="blanco_rosa"] body .auth-bg-stack { opacity: 0.18; filter: saturate(0.7); }
+[data-theme="blanco_rosa"] body .auth-bg-overlay {
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--color-bg) 70%, transparent), color-mix(in srgb, var(--color-bg) 92%, transparent)) !important;
+}
+[data-theme="blanco_rosa"] body .login-container,
+[data-theme="blanco_rosa"] body .register-container { background: transparent !important; }
+/* Tarjetas blancas con sombra rosada suave para despegarlas del fondo */
+[data-theme="blanco_rosa"] body :is(.login-card, .register-card, .sx-card, .sx-feature) {
+  background: rgba(255, 255, 255, 0.86) !important;
+  box-shadow: 0 2px 6px rgba(122, 44, 82, 0.06), 0 24px 60px rgba(184, 92, 131, 0.14) !important;
+}
