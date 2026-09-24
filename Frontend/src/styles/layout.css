@@ -1,0 +1,190 @@
+/* ═══════════════════════════════════════════════════════════════════
+   layout.css — Paso 3: marco de la web con el estilo de la app móvil.
+   Sidebar y header de vidrio, ítem activo en píldora con degradado,
+   manchas de color difuminadas en el fondo y, en celular, barra inferior
+   flotante de vidrio. Prefijo `body` para ganar a HeaderPrivado.css.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Fondo con manchas de color (blur 60px, opacidad 0.3) ─────────── */
+body .app-private-wrapper,
+body .sx-page,
+body .inicio-public-container,
+body .noticias-container:not(.noticias-container--privado) {
+  position: relative;
+  isolation: isolate;
+}
+body .app-private-wrapper::before,
+body .app-private-wrapper::after,
+body .sx-page::before,
+body .sx-page::after,
+body .inicio-public-container::before,
+body .inicio-public-container::after {
+  content: '';
+  position: fixed;
+  z-index: 0;
+  width: 42vmax;
+  height: 42vmax;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.3;
+  pointer-events: none;
+}
+body .app-private-wrapper::before, body .sx-page::before, body .inicio-public-container::before {
+  top: -14vmax; right: -10vmax; background: var(--blob-1);
+}
+body .app-private-wrapper::after, body .sx-page::after, body .inicio-public-container::after {
+  bottom: -16vmax; left: 10vmax; background: var(--blob-2);
+}
+/* El contenido queda por encima de las manchas */
+body .app-private-wrapper > .content-area,
+body .app-private-wrapper > .header-top-privado,
+body .sx-page > :not(.public-header):not(.pub-nav-overlay),
+body .inicio-public-container > main { position: relative; z-index: 1; }
+body .app-private-wrapper > .sidebar-privado { z-index: 200; }
+body .app-private-wrapper { background: var(--color-bg); }
+
+/* El área de contenido deja ver las manchas (antes era un velo casi opaco) */
+body .content-area {
+  background-color: transparent;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-bg) 88%, transparent), color-mix(in srgb, var(--color-bg) 88%, transparent)),
+    var(--global-bg-url);
+  padding: 32px 40px;
+}
+
+/* ── Sidebar de vidrio ────────────────────────────────────────────── */
+body .sidebar-privado {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  border-right: 1px solid var(--glass-border);
+}
+body .sidebar-logo { border-bottom-color: var(--glass-border); }
+body .logo-text { font-family: var(--font-body); font-weight: 700; font-size: 1.35rem; letter-spacing: -0.6px; }
+body .logo-subtext { font-family: var(--font-body); font-weight: 600; letter-spacing: 2px; font-size: 10px; color: var(--color-primary); }
+body .sidebar-nav { padding: 8px 12px 20px; gap: 4px; }
+body .nav-section-label { font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 2px; color: var(--color-text-muted); }
+
+/* Ítems del menú: píldora; el activo con el degradado */
+body .nav-item,
+body .dropdown-item {
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--color-text-muted);
+  transition: background var(--t-fast) ease, color var(--t-fast) ease, box-shadow var(--t-base) ease;
+}
+body .nav-item { padding: 11px 16px; font-size: 14px; }
+body .dropdown-item { padding: 9px 14px; font-size: 13px; }
+body .nav-item:hover,
+body .dropdown-item:hover {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-text);
+}
+body .nav-item.active:not(.dropdown-toggle),
+body .dropdown-item.active {
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-primary);
+  font-weight: 600;
+}
+body .nav-item.active:not(.dropdown-toggle) .nav-icon,
+body .dropdown-item.active .dropdown-icon { color: inherit; opacity: 1; }
+/* Grupo desplegable que contiene la pantalla actual: resaltado suave */
+body .nav-item.dropdown-toggle.active { background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-text); }
+body .nav-item.active::before { display: none; }
+body .dropdown-menu { border-left: 1px solid var(--glass-border); margin-left: 22px; padding-left: 8px; }
+body .logout-item { color: var(--color-error); }
+body .logout-item:hover { background: color-mix(in srgb, var(--color-error) 10%, transparent); color: var(--color-error); }
+
+/* ── Header superior de vidrio ────────────────────────────────────── */
+body .header-top-privado {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  border-bottom: 1px solid var(--glass-border);
+}
+body .header-welcome { font-family: var(--font-body); }
+body .header-notif-btn,
+body .user-avatar {
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft);
+}
+body .user-name { font-family: var(--font-body); font-weight: 600; }
+body .user-role { font-family: var(--font-body); letter-spacing: 1.5px; color: var(--color-primary); }
+body .user-profile-info { border-radius: var(--radius-pill); padding: 4px 12px 4px 4px; transition: background var(--t-fast) ease; }
+body .user-profile-info:hover { background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+
+/* ── Header público de vidrio ─────────────────────────────────────── */
+body .public-header {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  border-bottom: 1px solid var(--glass-border);
+}
+body .brand-initials, body .brand-name { font-family: var(--font-body); font-weight: 700; letter-spacing: -0.5px; }
+body .nav-link { font-family: var(--font-body); font-weight: 500; font-size: 13px; letter-spacing: 0.4px; text-transform: none; border-radius: var(--radius-pill); padding: 8px 14px; }
+body .nav-link::after { display: none; }
+body .nav-link:hover { background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--color-text); }
+body .nav-link.active { background: var(--gradient-primary); color: var(--color-on-primary); box-shadow: var(--shadow-primary); }
+body .btn-acceso, body .pub-nav-mobile-acceso {
+  background: var(--gradient-primary); color: var(--color-on-primary);
+  border-radius: var(--radius-lg); text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 600;
+  box-shadow: var(--shadow-primary);
+}
+
+/* ── Barra inferior flotante (celular) ────────────────────────────── */
+.dl-bottom-nav { display: none; }
+
+@media (max-width: 768px) {
+  body .dl-bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 12px; right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 250;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 8px;
+    border-radius: var(--radius-xl);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-lift);
+  }
+  body .dl-bottom-item {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    padding: 8px 4px;
+    border: 0; border-radius: var(--radius-lg);
+    background: transparent;
+    color: var(--color-text-muted);
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: background var(--t-fast) ease, color var(--t-fast) ease;
+  }
+  body .dl-bottom-item.activo {
+    background: var(--gradient-primary);
+    color: var(--color-on-primary);
+    box-shadow: var(--shadow-primary);
+  }
+  body .dl-bottom-icon { position: relative; display: inline-flex; }
+  body .dl-bottom-label { font-size: 10.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  body .dl-bottom-badge {
+    position: absolute; top: -6px; right: -10px;
+    min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--color-error); color: #fff; font-size: 9.5px; font-weight: 700;
+  }
+
+  /* Espacio para que la barra no tape el contenido ni el pie */
+  body .content-area { padding: 20px 16px calc(110px + env(safe-area-inset-bottom, 0px)); }
+  /* La hamburguesa deja de hacer falta: "Más" abre el menú completo */
+  body .hamburger-btn { display: none; }
+  body .sidebar-privado { border-radius: 0 var(--radius-xl) var(--radius-xl) 0; }
+}

@@ -397,6 +397,46 @@ const HeaderPrivado: React.FC = () => {
                     </div>
                 </div>
             </header>
+
+            {/* ── Barra inferior flotante (solo celular) ── */}
+            <nav className="dl-bottom-nav" aria-label="Navegación principal">
+                {(userRole === 'admin'
+                    ? [
+                        { ruta: '/admin-dashboard', label: 'Inicio', icon: <AiOutlineDashboard size={20} /> },
+                        { ruta: '/admin-inventario', label: 'Inventario', icon: <AiOutlineInbox size={20} /> },
+                        { ruta: '/admin/monitoreo-operacion', label: 'Operación', icon: <AiOutlineEye size={20} /> },
+                        { ruta: '/admin-reportes', label: 'Reportes', icon: <AiOutlineBarChart size={20} /> },
+                      ]
+                    : userRole === 'trabajador'
+                    ? [
+                        { ruta: '/dashboard-trabajador', label: 'Inicio', icon: <AiOutlineHome size={20} /> },
+                        { ruta: '/pedidos-admin', label: 'Pedidos', icon: <AiOutlineShoppingCart size={20} /> },
+                        { ruta: '/apartados-admin', label: 'Apartados', icon: <AiOutlineFlag size={20} /> },
+                        { ruta: '/personalizaciones-admin', label: 'Personaliz.', icon: <AiOutlineEdit size={20} /> },
+                      ]
+                    : [
+                        { ruta: '/inicio', label: 'Inicio', icon: <AiOutlineHome size={20} /> },
+                        { ruta: '/catalogo', label: 'Catálogo', icon: <AiOutlineShop size={20} /> },
+                        { ruta: '/carrito', label: 'Carrito', icon: <AiOutlineShoppingCart size={20} />, badge: cartCount },
+                        { ruta: '/favoritos', label: 'Favoritos', icon: <AiOutlineHeart size={20} /> },
+                      ]
+                ).map(it => {
+                    const activo = location.pathname.startsWith(it.ruta);
+                    return (
+                        <button key={it.ruta} className={`dl-bottom-item${activo ? ' activo' : ''}`} onClick={() => goTo(it.ruta)} aria-current={activo ? 'page' : undefined}>
+                            <span className="dl-bottom-icon">
+                                {it.icon}
+                                {!!(it as any).badge && <span className="dl-bottom-badge">{(it as any).badge}</span>}
+                            </span>
+                            <span className="dl-bottom-label">{it.label}</span>
+                        </button>
+                    );
+                })}
+                <button className={`dl-bottom-item${sidebarOpen ? ' activo' : ''}`} onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Más opciones">
+                    <span className="dl-bottom-icon"><AiOutlineUnorderedList size={20} /></span>
+                    <span className="dl-bottom-label">Más</span>
+                </button>
+            </nav>
         </>
     );
 };
