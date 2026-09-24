@@ -9,6 +9,7 @@ import {
     AiOutlineUpload, AiOutlinePaperClip, AiOutlineGift, AiOutlineCalendar, AiOutlineThunderbolt,
 } from 'react-icons/ai';
 import './MisApartadosScreen.css';
+import './PedidosApartadosApp.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/GestionSitio.css';
 
@@ -593,6 +594,10 @@ const MisApartadosScreen: React.FC = () => {
 
                                 {/* Barra de progreso */}
                                 <div className="mapt-progreso-wrap">
+                                    <div className="mapt-anillo" style={{ ['--pct' as any]: pct }} aria-label={`${pct}% pagado`}>
+                                        <span>{pct}<small>%</small></span>
+                                    </div>
+                                    <div className="mapt-progreso-cuerpo">
                                     <div className="mapt-progreso-bar">
                                         <div className="mapt-progreso-fill" style={{ width: `${pct}%`, backgroundColor: cfg.color }} />
                                     </div>
@@ -600,6 +605,7 @@ const MisApartadosScreen: React.FC = () => {
                                         <span>Pagado: <strong>{fmtMoneda(a.monto_pagado)}</strong></span>
                                         <span>{pct}%</span>
                                         <span>Total: <strong>{fmtMoneda(a.monto_total)}</strong></span>
+                                    </div>
                                     </div>
                                 </div>
 

@@ -1,0 +1,68 @@
+/* PedidosApartadosApp.css — Mis pedidos y Mis apartados con el estilo de la app.
+   · Seguimiento del pedido como línea de tiempo vertical (puntos + línea).
+   · Apartados con anillo de progreso (conic-gradient) y barra de abonos. */
+
+/* ── Mis pedidos: tarjetas y etiquetas ── */
+body .cp-card { border-radius: var(--radius-xl) !important; }
+body .cp-card-folio { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.4px !important; }
+body .cp-total { font-family: var(--font-body) !important; font-weight: 700 !important; color: var(--color-primary) !important; }
+body .cp-badge { border-radius: var(--radius-pill) !important; font-family: var(--font-body) !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; font-size: 12px !important; }
+body .cp-stat-valor { font-family: var(--font-body) !important; font-weight: 700 !important; color: var(--color-primary) !important; }
+
+/* Línea de tiempo vertical */
+body .cp-stepper { display: flex !important; flex-direction: column !important; gap: 0 !important; padding: 8px 4px !important; }
+body .cp-step-wrap { display: flex !important; flex-direction: column !important; align-items: stretch !important; }
+body .cp-step { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 14px !important; text-align: left !important; }
+body .cp-step-icono {
+  width: 36px !important; height: 36px !important; flex-shrink: 0; border-radius: 50% !important;
+  display: inline-flex !important; align-items: center; justify-content: center;
+  background: var(--color-surface-2) !important; color: var(--color-text-muted) !important; border: 0 !important;
+}
+body .cp-step.completado .cp-step-icono { background: color-mix(in srgb, var(--color-success) 16%, transparent) !important; color: var(--color-success) !important; }
+body .cp-step.activo .cp-step-icono { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-primary) 18%, transparent) !important; }
+body .cp-step-label { font-family: var(--font-body) !important; font-size: 14px !important; font-weight: 500 !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--color-text-muted) !important; }
+body .cp-step.completado .cp-step-label { color: var(--color-text) !important; }
+body .cp-step.activo .cp-step-label { color: var(--color-text) !important; font-weight: 700 !important; }
+body .cp-step-linea {
+  width: 2px !important; height: 22px !important; min-width: 0 !important; flex: none !important;
+  margin: 4px 0 4px 17px !important; border-radius: 2px;
+  background: var(--color-border) !important;
+}
+body .cp-step-linea.completada { background: var(--color-success) !important; }
+body .cp-stepper-cancelado { border-radius: var(--radius-md) !important; border-left: 3px solid var(--color-error) !important; background: color-mix(in srgb, var(--color-error) 10%, transparent) !important; }
+body .cp-modal { border-radius: 32px !important; }
+
+/* ── Mis apartados: anillo de progreso ── */
+body .mapt-progreso-wrap { display: flex !important; align-items: center; gap: 18px; }
+body .mapt-progreso-cuerpo { flex: 1; min-width: 0; }
+.mapt-anillo {
+  --pct: 0;
+  position: relative; flex-shrink: 0;
+  width: 76px; height: 76px; border-radius: 50%;
+  background:
+    conic-gradient(var(--color-primary) 0, var(--color-accent) calc(var(--pct) * 1%), var(--color-surface-2) 0);
+  display: flex; align-items: center; justify-content: center;
+}
+.mapt-anillo::before {
+  content: ''; position: absolute; inset: 7px; border-radius: 50%;
+  background: var(--color-surface);
+}
+.mapt-anillo span { position: relative; font-family: var(--font-body); font-weight: 700; font-size: 18px; color: var(--color-text); letter-spacing: -0.5px; }
+.mapt-anillo small { font-size: 11px; font-weight: 600; margin-left: 1px; }
+body .mapt-card--cancelado .mapt-anillo, body .mapt-card--vencido .mapt-anillo { filter: grayscale(0.8); opacity: 0.6; }
+body .mapt-folio { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.4px !important; }
+body .mapt-estado-badge { border-radius: var(--radius-pill) !important; font-family: var(--font-body) !important; font-weight: 600 !important; }
+body .mapt-dato-valor { font-family: var(--font-body) !important; font-weight: 700 !important; }
+
+/* Barras de abono (historial) */
+body .mapt-abono-fila { border-radius: var(--radius-sm); }
+body .mapt-abono-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 28px; height: 28px; border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent); color: var(--color-primary) !important; font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .mapt-anillo { width: 64px; height: 64px; }
+  .mapt-anillo span { font-size: 16px; }
+}

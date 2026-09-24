@@ -9,6 +9,7 @@ import {
     AiOutlineTool, AiOutlineCar, AiOutlineGift,
 } from 'react-icons/ai';
 import './ClientePedidosScreen.css';
+import './PedidosApartadosApp.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/GestionSitio.css';
 
