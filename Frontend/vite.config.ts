@@ -42,10 +42,55 @@ export default defineConfig({
         // pantalla de "404" de la app (el "app shell" solo debe aplicar a
         // rutas de navegación de React, no a archivos estáticos).
         navigateFallbackDenylist: [/^\/api\//, /\.[a-zA-Z0-9]+$/],
+        // Estrategias de caché en tiempo de ejecución (además del precache,
+        // que funciona como Cache Only para los archivos del build):
         runtimeCaching: [
+          // Network First: catálogo y contenido público (GET). Si hay
+          // internet se pide fresco; si no, se muestra lo último guardado.
+          {
+            urlPattern: ({ url, request }) =>
+              request.method === 'GET' &&
+              /\/api\/(products|content)(\/|$|\?)/.test(url.pathname) &&
+              !url.pathname.includes('/resenas'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-publica',
+              networkTimeoutSeconds: 6,
+              expiration: { maxEntries: 150, maxAgeSeconds: 60 * 60 * 24 * 3 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          // Network Only: el resto de la API (login, carrito, pedidos,
+          // apartados, admin). Nunca se guarda en caché.
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
             handler: 'NetworkOnly',
+          },
+          // Cache First: imágenes de Cloudinary (no cambian una vez subidas).
+          {
+            urlPattern: ({ url }) => url.hostname === 'res.cloudinary.com',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'imagenes-cloudinary',
+              expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          // Stale-While-Revalidate: hojas de estilo de Google Fonts.
+          {
+            urlPattern: ({ url }) => url.hostname === 'fonts.googleapis.com',
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'google-fonts-css' },
+          },
+          // Cache First: archivos de fuente (woff2), versionados por Google.
+          {
+            urlPattern: ({ url }) => url.hostname === 'fonts.gstatic.com',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-archivos',
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
           },
         ],
       },

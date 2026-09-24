@@ -5,10 +5,11 @@ import '../styles/OfflineBanner.css';
 
 function OfflineBanner(): React.JSX.Element | null {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [cerrado, setCerrado] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
+    const handleOffline = () => { setIsOffline(true); setCerrado(false); };
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     return () => {
@@ -17,7 +18,7 @@ function OfflineBanner(): React.JSX.Element | null {
     };
   }, []);
 
-  if (!isOffline) return null;
+  if (!isOffline || cerrado) return null;
 
   return (
     <div className="offline-banner" role="alert">
@@ -27,6 +28,9 @@ function OfflineBanner(): React.JSX.Element | null {
       </span>
       <button className="offline-banner-retry" onClick={() => window.location.reload()}>
         Reintentar
+      </button>
+      <button className="offline-banner-close" onClick={() => setCerrado(true)} aria-label="Cerrar aviso">
+        ✕
       </button>
     </div>
   );
