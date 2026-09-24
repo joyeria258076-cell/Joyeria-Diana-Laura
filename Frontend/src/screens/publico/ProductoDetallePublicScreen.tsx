@@ -12,6 +12,8 @@ import Loader from '../../components/Loader';
 import PublicHeader from '../../components/PublicHeader';
 import PublicFooter from '../../components/PublicFooter';
 import './ProductoDetallePublicScreen.css';
+import '../../styles/SitioSecciones.css';
+import '../../styles/ProductosRelacionados.css';
 
 const estaLogueado = (): boolean => {
     try {
@@ -254,44 +256,64 @@ const ProductoDetallePublicScreen: React.FC = () => {
     if (!producto) return null;
 
     const TarjetaProducto = ({ item }: { item: Producto }) => (
-        <div className="pdp-rel-card" onClick={() => navigate(`/producto-publico/${item.id}`)}>
-            <div className="pdp-rel-imagen">
-                <img src={item.imagen_principal || placeholderPara(item.id)} alt={item.nombre}
-                    onError={(e) => { (e.target as HTMLImageElement).src = placeholderPara(item.id); }} />
-                <div className="pdp-rel-overlay"><span>Ver pieza →</span></div>
-                {item.es_nuevo && <span className="pdp-rel-badge-new">Nuevo</span>}
-                {item.precio_oferta && <span className="pdp-rel-badge-sale">Oferta</span>}
+        <div
+            className="rel-card"
+            role="link"
+            tabIndex={0}
+            onClick={() => navigate(`/producto-publico/${item.id}`)}
+            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/producto-publico/${item.id}`); }}
+        >
+            <div className="rel-imagen">
+                <img
+                    src={item.imagen_principal || placeholderPara(item.id)}
+                    alt={item.nombre}
+                    loading="lazy"
+                    onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
+                />
+                <div className="rel-overlay"><span>Ver pieza</span></div>
+                <div className="rel-badges">
+                    {item.es_nuevo && <span className="rel-badge">Nuevo</span>}
+                    {item.precio_oferta && <span className="rel-badge rel-badge--oro">Oferta</span>}
+                    {(item as any).permite_personalizacion && <span className="rel-badge">✦ Personalizable</span>}
+                </div>
             </div>
-            <div className="pdp-rel-info">
-                <p className="pdp-rel-categoria">{item.categoria_nombre}</p>
-                <h4 className="pdp-rel-nombre">{item.nombre}</h4>
-                <div className="pdp-rel-precios">
+            <div className="rel-info">
+                {item.categoria_nombre && <p className="rel-categoria">{item.categoria_nombre}</p>}
+                <h4 className="rel-nombre">{item.nombre}</h4>
+                <div className="rel-precios">
                     {item.precio_oferta ? (
                         <>
-                            <span className="pdp-rel-original">${Number(item.precio_venta).toLocaleString('es-MX')}</span>
-                            <span className="pdp-rel-final">${Number(item.precio_oferta).toLocaleString('es-MX')}</span>
+                            <span className="rel-final">${Number(item.precio_oferta).toLocaleString('es-MX')}</span>
+                            <span className="rel-original">${Number(item.precio_venta).toLocaleString('es-MX')}</span>
                         </>
                     ) : (
-                        <span className="pdp-rel-final">${Number(item.precio_venta).toLocaleString('es-MX')}</span>
+                        <span className="rel-final">${Number(item.precio_venta).toLocaleString('es-MX')}</span>
                     )}
                 </div>
             </div>
         </div>
     );
 
-    const SeccionProductos = ({ titulo, items }: { titulo: string; items: Producto[] }) => (
-        <section className="pdp-relacionados">
-            <div className="pdp-relacionados-header">
-                <span className="pdp-rel-eyebrow">Más piezas para ti</span>
-                <div className="pdp-relacionados-header-row">
-                    <h2 className="pdp-relacionados-titulo">{titulo}</h2>
-                    <button className="pdp-btn-ver-mas" onClick={() => navigate('/catalogo-publico')}>
-                        Ver catálogo completo →
-                    </button>
-                </div>
-            </div>
-            <div className="pdp-relacionados-grid">
+    // Título con la última palabra en rose gold, como en el Inicio
+    const tituloAcento = (t: string) => {
+        const partes = t.trim().split(' ');
+        const ultima = partes.pop();
+        return <>{partes.join(' ')} <span>{ultima}</span></>;
+    };
+
+    const SeccionProductos = ({ titulo, items, eyebrow = 'Más piezas para ti' }: { titulo: string; items: Producto[]; eyebrow?: string }) => (
+        <section className="rel-seccion">
+            <header className="sx-head">
+                <div className="sx-eyebrow">{eyebrow}</div>
+                <h2 className="sx-title">{tituloAcento(titulo)}</h2>
+            </header>
+            <div className="rel-grid">
                 {items.map(item => <TarjetaProducto key={item.id} item={item} />)}
+            </div>
+            <div className="rel-footer">
+                <button className="sx-btn sx-btn--ghost" onClick={() => navigate('/catalogo-publico')}>
+                    Ver catálogo completo
+                </button>
             </div>
         </section>
     );
@@ -633,7 +655,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
                 </section>
 
                 {similaresIA.length > 0 && (
-                    <SeccionProductos titulo="Productos similares que te pueden interesar" items={similaresIA} />
+                    <SeccionProductos titulo="Productos similares que te pueden interesar" eyebrow="Recomendado para ti" items={similaresIA} />
                 )}
                 {relacionados.length > 0 && (
                     <SeccionProductos titulo={`Más en ${producto.categoria_nombre || 'esta categoría'}`} items={relacionados} />

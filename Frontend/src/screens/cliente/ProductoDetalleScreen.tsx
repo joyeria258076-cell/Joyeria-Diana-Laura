@@ -6,6 +6,8 @@ import { productsAPI, recomendacionAPI, resenasAPI } from '../../services/api';
 import { colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import { useCart } from '../../contexts/CartContext';
 import './ProductoDetalleScreen.css';
+import '../../styles/SitioSecciones.css';
+import '../../styles/ProductosRelacionados.css';
 
 interface Producto {
     id: number;
@@ -221,53 +223,65 @@ const ProductoDetalleScreen: React.FC = () => {
     if (!producto) return null;
 
     // ── Componente de tarjeta reutilizable ───────────────────────────────────
-    const TarjetaProducto = ({ item, indice = 0 }: { item: Producto; indice?: number }) => (
+    const TarjetaProducto = ({ item }: { item: Producto }) => (
         <div
-            className="pd-rel-card reveal-stagger"
-            style={{ ['--stagger-i' as any]: indice }}
+            className="rel-card"
+            role="link"
+            tabIndex={0}
             onClick={() => navigate(`/producto/${item.id}`)}
+            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/producto/${item.id}`); }}
         >
-            <div className="pd-rel-imagen">
+            <div className="rel-imagen">
                 <img
                     src={item.imagen_principal || PLACEHOLDER}
                     alt={item.nombre}
+                    loading="lazy"
                     onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
                 />
-                <div className="pd-rel-overlay"><span>Ver pieza →</span></div>
-                {item.es_nuevo && <span className="pd-rel-badge-new">Nuevo</span>}
-                {item.precio_oferta && <span className="pd-rel-badge-sale">Oferta</span>}
+                <div className="rel-overlay"><span>Ver pieza</span></div>
+                <div className="rel-badges">
+                    {item.es_nuevo && <span className="rel-badge">Nuevo</span>}
+                    {item.precio_oferta && <span className="rel-badge rel-badge--oro">Oferta</span>}
+                    {(item as any).permite_personalizacion && <span className="rel-badge">✦ Personalizable</span>}
+                </div>
             </div>
-            <div className="pd-rel-info">
-                <p className="pd-rel-categoria">{item.categoria_nombre}</p>
-                <h4 className="pd-rel-nombre">{item.nombre}</h4>
-                <div className="pd-rel-precios">
+            <div className="rel-info">
+                {item.categoria_nombre && <p className="rel-categoria">{item.categoria_nombre}</p>}
+                <h4 className="rel-nombre">{item.nombre}</h4>
+                <div className="rel-precios">
                     {item.precio_oferta ? (
                         <>
-                            <span className="pd-rel-original">${Number(item.precio_venta).toLocaleString('es-MX')}</span>
-                            <span className="pd-rel-final">${Number(item.precio_oferta).toLocaleString('es-MX')}</span>
+                            <span className="rel-final">${Number(item.precio_oferta).toLocaleString('es-MX')}</span>
+                            <span className="rel-original">${Number(item.precio_venta).toLocaleString('es-MX')}</span>
                         </>
                     ) : (
-                        <span className="pd-rel-final">${Number(item.precio_venta).toLocaleString('es-MX')}</span>
+                        <span className="rel-final">${Number(item.precio_venta).toLocaleString('es-MX')}</span>
                     )}
                 </div>
             </div>
         </div>
     );
 
-    // ── Componente de sección de productos ───────────────────────────────────
-    const SeccionProductos = ({ titulo, items }: { titulo: string; items: Producto[] }) => (
-        <section className="pd-relacionados">
-            <div className="pd-relacionados-header">
-                <span className="pd-rel-eyebrow">Más piezas para ti</span>
-                <div className="pd-relacionados-header-row">
-                    <h2 className="pd-relacionados-titulo">{titulo}</h2>
-                    <button className="pd-btn-ver-mas" onClick={() => navigate('/catalogo')}>
-                        Ver catálogo completo →
-                    </button>
-                </div>
+    // Título con la última palabra en rose gold, como en el Inicio
+    const tituloAcento = (t: string) => {
+        const partes = t.trim().split(' ');
+        const ultima = partes.pop();
+        return <>{partes.join(' ')} <span>{ultima}</span></>;
+    };
+
+    const SeccionProductos = ({ titulo, items, eyebrow = 'Más piezas para ti' }: { titulo: string; items: Producto[]; eyebrow?: string }) => (
+        <section className="rel-seccion">
+            <header className="sx-head">
+                <div className="sx-eyebrow">{eyebrow}</div>
+                <h2 className="sx-title">{tituloAcento(titulo)}</h2>
+            </header>
+            <div className="rel-grid">
+                {items.map(item => <TarjetaProducto key={item.id} item={item} />)}
             </div>
-            <div className="pd-relacionados-grid">
-                {items.map((item, i) => <TarjetaProducto key={item.id} item={item} indice={i} />)}
+            <div className="rel-footer">
+                <button className="sx-btn sx-btn--ghost" onClick={() => navigate('/catalogo')}>
+                    Ver catálogo completo
+                </button>
             </div>
         </section>
     );
@@ -592,7 +606,7 @@ const ProductoDetalleScreen: React.FC = () => {
             {/* ── SIMILARES POR CONTENT-BASED FILTERING (similitud coseno) ── */}
             {similaresIA.length > 0 && (
                 <SeccionProductos
-                    titulo="Productos similares que te pueden interesar"
+                    titulo="Productos similares que te pueden interesar" eyebrow="Recomendado para ti"
                     items={similaresIA}
                 />
             )}
