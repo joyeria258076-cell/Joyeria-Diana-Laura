@@ -5,6 +5,7 @@ import { authAPI, profileAPI, solicitudesAPI, uploadAPI } from "../../services/a
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineDesktop, AiOutlineReload } from "react-icons/ai";
 import SelectorTema from "../../components/SelectorTema";
 import "./PerfilScreen.css";
+import "./PerfilApp.css";
 
 interface SesionActiva {
   id: number;
