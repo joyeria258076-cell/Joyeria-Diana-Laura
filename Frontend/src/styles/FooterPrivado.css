@@ -123,3 +123,7 @@
     .fp-content { grid-template-columns: 1fr; gap: 1.5rem; }
     .fp-bottom { flex-direction: column; align-items: flex-start; }
 }
+
+/* Datos de contacto como enlaces */
+.fp-info a { color: inherit; text-decoration: none; overflow-wrap: anywhere; transition: color 0.3s ease; }
+.fp-info a:hover { color: var(--color-rose-gold); }

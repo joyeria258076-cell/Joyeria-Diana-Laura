@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { AiOutlinePhone, AiOutlineMail, AiOutlineEnvironment, AiOutlineInstagram, AiOutlineFacebook, AiOutlineTwitter } from "react-icons/ai";
+import { AiOutlinePhone, AiOutlineMail, AiOutlineEnvironment, AiOutlineInstagram, AiOutlineFacebook, AiOutlineWhatsApp } from "react-icons/ai";
+import { FaTiktok } from "react-icons/fa";
+import { useInfoEmpresa } from "../utils/useInfoEmpresa";
 import { zonaEntregaAPI } from "../services/api";
 import "../styles/PublicFooter.css";
 
 const PublicFooter: React.FC = () => {
   const [zonas, setZonas] = useState<string[]>([]);
+  const info = useInfoEmpresa();
+  const wa = info?.whatsapp?.replace(/\D/g, "");
 
   useEffect(() => {
     zonaEntregaAPI.getAll()
@@ -24,8 +28,8 @@ const PublicFooter: React.FC = () => {
           <div className="footer-section">
             <h3 className="footer-title">Diana Laura</h3>
             <p className="footer-description">
-              Joyería y bisutería premium con diseños elegantes y contemporáneos.
-              Cada pieza está creada para destacar tu estilo único.
+              {info?.descripcion?.trim() ||
+                "Joyería y bisutería premium con diseños elegantes y contemporáneos. Cada pieza está creada para destacar tu estilo único."}
             </p>
           </div>
 
@@ -43,7 +47,7 @@ const PublicFooter: React.FC = () => {
                 <Link to="/noticias">Blog</Link>
               </li>
               <li>
-                <Link to="/contacto">Contacto</Link>
+                <Link to="/contacto-publico">Contacto</Link>
               </li>
             </ul>
           </div>
@@ -52,18 +56,21 @@ const PublicFooter: React.FC = () => {
           <div className="footer-section">
             <h3 className="footer-title">Contacto</h3>
             <ul className="footer-info">
-              <li>
-                <AiOutlinePhone size={15} />
-                <span>+1 (555) 123-4567</span>
-              </li>
-              <li>
-                <AiOutlineMail size={15} />
-                <span>info@dianaLaura.com</span>
-              </li>
-              <li>
-                <AiOutlineEnvironment size={15} />
-                <span>Ciudad, País</span>
-              </li>
+              {info?.telefono && (
+                <li><AiOutlinePhone size={15} /><a href={`tel:${info.telefono.replace(/\s/g, "")}`}>{info.telefono}</a></li>
+              )}
+              {wa && (
+                <li><AiOutlineWhatsApp size={15} /><a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+              )}
+              {info?.email && (
+                <li><AiOutlineMail size={15} /><a href={`mailto:${info.email}`}>{info.email}</a></li>
+              )}
+              {info?.direccion && (
+                <li><AiOutlineEnvironment size={15} /><Link to="/ubicacion-publica">{info.direccion}</Link></li>
+              )}
+              {!info?.telefono && !wa && !info?.email && !info?.direccion && (
+                <li><Link to="/contacto-publico">Ver formas de contacto</Link></li>
+              )}
             </ul>
           </div>
 
@@ -83,20 +90,28 @@ const PublicFooter: React.FC = () => {
           )}
 
           {/* Columna 4: Redes sociales */}
-          <div className="footer-section">
-            <h3 className="footer-title">Síguenos</h3>
-            <div className="footer-socials">
-              <a href="#" className="social-link" title="Instagram">
-                <AiOutlineInstagram size={16} />
-              </a>
-              <a href="#" className="social-link" title="Facebook">
-                <AiOutlineFacebook size={16} />
-              </a>
-              <a href="#" className="social-link" title="Twitter">
-                <AiOutlineTwitter size={16} />
-              </a>
+          {(info?.instagram_url || info?.facebook_url || info?.tiktok_url) && (
+            <div className="footer-section">
+              <h3 className="footer-title">Síguenos</h3>
+              <div className="footer-socials">
+                {info?.instagram_url && (
+                  <a href={info.instagram_url} className="social-link" title="Instagram" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+                    <AiOutlineInstagram size={16} />
+                  </a>
+                )}
+                {info?.facebook_url && (
+                  <a href={info.facebook_url} className="social-link" title="Facebook" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
+                    <AiOutlineFacebook size={16} />
+                  </a>
+                )}
+                {info?.tiktok_url && (
+                  <a href={info.tiktok_url} className="social-link" title="TikTok" aria-label="TikTok" target="_blank" rel="noopener noreferrer">
+                    <FaTiktok size={14} />
+                  </a>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Separador */}
@@ -104,7 +119,7 @@ const PublicFooter: React.FC = () => {
 
         {/* Copyright */}
         <div className="footer-bottom">
-          <p>&copy; 2026 Diana Laura Joyería. Todos los derechos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} Diana Laura Joyería. Todos los derechos reservados.</p>
           <div className="footer-policies">
             <Link to="/legal/privacidad">Política de Privacidad</Link>
             <span className="separator">•</span>

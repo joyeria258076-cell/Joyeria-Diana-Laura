@@ -174,3 +174,7 @@
     margin-top: 2rem;
   }
 }
+
+/* Datos de contacto como enlaces */
+.footer-info a { color: inherit; text-decoration: none; overflow-wrap: anywhere; transition: color 0.3s ease; }
+.footer-info a:hover { color: var(--color-rose-gold); }
