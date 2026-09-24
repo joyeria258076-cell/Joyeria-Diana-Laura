@@ -727,3 +727,18 @@
     padding: 7px 14px; font-size: 0.78rem;
     font-weight: 600;
 }
+/* ════════════════════════════════════════════════════════════
+   Refinamiento visual (misma línea que Mis pedidos del cliente)
+   ════════════════════════════════════════════════════════════ */
+.gp-resumen { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+.gp-stat { border-radius: 12px !important; text-align: left; border-top-width: 1px !important; }
+.gp-stat-activo { border-color: var(--stat-color) !important; }
+.gp-stat-val { font-size: 1.8rem; line-height: 1; }
+.gp-grupo-label {
+  background: transparent !important; border: 0 !important; padding: 0 !important;
+  margin: 1.75rem 0 0.75rem !important; gap: 1rem;
+}
+.gp-grupo-label::after { content: ''; flex: 1; height: 1px; background: var(--color-border); order: 1; }
+.gp-grupo-label > :last-child { order: 2; }
+.gp-card { border-radius: 14px !important; }
+.gp-card-folio-col strong, .gp-folio { font-family: var(--font-display); font-size: 1.25rem; font-weight: 500; }

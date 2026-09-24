@@ -518,3 +518,36 @@
 .gapt-pag-btn:hover:not(:disabled) { border-color: var(--color-rose-gold); color: var(--color-rose-gold); }
 .gapt-pag-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .gapt-pag-info { font-size: 0.85rem; color: #888; }
+/* ════════════════════════════════════════════════════════════
+   Refinamiento visual (misma línea que Mis apartados del cliente)
+   ════════════════════════════════════════════════════════════ */
+.gapt-body { max-width: 1180px; margin: 0 auto; }
+.gapt-filtros { gap: 0.5rem; flex-wrap: wrap; }
+.gapt-filtro-btn { border-radius: 999px !important; padding: 0.5rem 1rem; gap: 0.5rem; }
+.gapt-filtro-count {
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 0.68rem;
+}
+.gapt-resumen-cards > * { border-radius: 12px !important; }
+.gapt-card { border-radius: 14px !important; overflow: hidden; }
+.gapt-folio { font-size: 1.3rem; font-weight: 500; color: var(--color-text); }
+.gapt-progreso-bar { height: 8px; border-radius: 999px; background: var(--color-surface-2); }
+.gapt-progreso-fill { border-radius: 999px; background: linear-gradient(90deg, var(--color-rose-gold), var(--color-champagne)) !important; }
+.gapt-card--cancelado .gapt-progreso-fill, .gapt-card--vencido .gapt-progreso-fill { filter: grayscale(0.8); opacity: 0.6; }
+.gapt-datos-rapidos { gap: 0.75rem; padding: 0 1.4rem 1.2rem; border: 0 !important; }
+.gapt-dato {
+  border: 1px solid var(--color-border) !important; border-radius: 10px;
+  background: var(--color-surface-2); padding: 0.8rem 0.75rem;
+}
+/* Avisos discretos: fondo neutro + línea de color */
+.gapt-pago-pendiente-info, .gapt-aviso-cancelar, .gapt-error-banner {
+  background: var(--color-surface-2) !important;
+  border: 1px solid var(--color-border) !important;
+  border-left: 3px solid var(--color-rose-gold) !important;
+  border-radius: 8px !important;
+  color: var(--color-text) !important;
+  line-height: 1.55;
+}
+.gapt-aviso-cancelar, .gapt-error-banner { border-left-color: #e05a6a !important; }
+.gapt-detalle { background: color-mix(in srgb, var(--color-surface-2) 55%, transparent); }
+@media (max-width: 700px) { .gapt-datos-rapidos { grid-template-columns: 1fr 1fr; padding: 0 1rem 1rem; } }

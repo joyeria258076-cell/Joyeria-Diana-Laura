@@ -7,6 +7,8 @@ import React, { useEffect, useState } from 'react';
 import { AiOutlineShoppingCart, AiOutlineFlag, AiOutlineEye } from 'react-icons/ai';
 import { carritoAPI, apartadoAPI } from '../../services/api';
 import Loader from '../../components/Loader';
+import '../../styles/SitioSecciones.css';
+import '../../styles/GestionSitio.css';
 import './AdminMonitoreoOperacionScreen.css';
 
 type Tab = 'pedidos' | 'apartados';
@@ -43,9 +45,10 @@ const AdminMonitoreoOperacionScreen: React.FC = () => {
 
     return (
         <main className="mop-page">
-            <div className="mop-header">
-                <h1>Monitoreo de Operación</h1>
-                <p className="mop-sub">Vista de solo consulta — tomar pedidos, cambiar estados o confirmar pagos es trabajo exclusivo del personal trabajador.</p>
+            <div className="gs-head">
+                <div className="sx-eyebrow">Operación de la tienda</div>
+                <h1 className="sx-title">Monitoreo de <span>pedidos y apartados</span></h1>
+                <p className="sx-subtitle">Vista de solo consulta: tomar pedidos, cambiar estados o confirmar pagos es trabajo del personal trabajador.</p>
             </div>
 
             <div className="mop-tabs">
