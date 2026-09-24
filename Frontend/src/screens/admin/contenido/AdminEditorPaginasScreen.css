@@ -1,0 +1,96 @@
+/* Gestión de páginas — editor visual con vista previa */
+.aep-page { padding: 1.5rem 0 3rem; }
+
+.aep-toolbar {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.aep-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.aep-tab {
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-silk);
+}
+.aep-tab:hover { color: var(--color-text); border-color: var(--color-rose-gold); }
+.aep-tab.activa { background: var(--color-rose-gold); border-color: var(--color-rose-gold); color: #0a0a0a; }
+
+.aep-tools { display: flex; gap: 0.4rem; }
+.aep-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--color-border); background: transparent;
+  color: var(--color-text-muted); cursor: pointer; transition: all 0.25s var(--ease-silk);
+}
+.aep-icon:hover, .aep-icon.activa { color: var(--color-rose-gold); border-color: var(--color-rose-gold); background: var(--color-glow); }
+
+.aep-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.aep-preview {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--color-surface);
+  height: calc(100vh - 230px);
+  min-height: 520px;
+  transition: max-width 0.35s var(--ease-silk);
+}
+.aep-preview iframe { width: 100%; height: 100%; border: 0; display: block; background: var(--color-bg); }
+.aep-preview--movil { max-width: 390px; margin: 0 auto; width: 100%; }
+
+.aep-panel { position: sticky; top: calc(var(--header-height, 75px) + 1rem); padding: 1.5rem 1.25rem; }
+.aep-panel-title {
+  font-family: var(--font-display); font-size: 1.45rem; font-weight: 500;
+  color: var(--color-text); margin: 0 0 0.2rem;
+}
+.aep-panel-sub { margin: 0 0 1rem; color: var(--color-text-muted); font-size: 0.82rem; }
+
+.aep-lista { list-style: none; margin: 0 0 1rem; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; max-height: 48vh; overflow-y: auto; }
+.aep-bloque {
+  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.2rem 0.65rem;
+  padding: 0.55rem 0.6rem; border-radius: 10px;
+  border: 1px solid var(--color-border); background: var(--color-surface-2);
+  transition: opacity 0.2s ease;
+}
+.aep-bloque.oculta { opacity: 0.55; }
+.aep-bloque.oculta .aep-bloque-nombre { text-decoration: line-through; }
+.aep-switch {
+  width: 32px; height: 32px; border-radius: 8px; grid-row: span 2;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--color-border); background: var(--color-glow);
+  color: var(--color-rose-gold); cursor: pointer;
+}
+.aep-bloque.oculta .aep-switch { color: var(--color-text-muted); background: transparent; }
+.aep-bloque-nombre { color: var(--color-text); font-size: 0.88rem; }
+.aep-editar {
+  justify-self: start; display: inline-flex; align-items: center; gap: 4px;
+  padding: 0; border: 0; background: none; cursor: pointer;
+  color: var(--color-rose-gold); font-family: var(--font-body); font-size: 0.72rem;
+}
+.aep-editar:hover { text-decoration: underline; }
+
+.aep-msg { padding: 0.7rem 0.85rem; border-radius: 10px; font-size: 0.84rem; margin-bottom: 0.75rem; }
+.aep-msg--ok { background: var(--color-glow); border: 1px solid var(--color-border); color: var(--color-text); }
+.aep-msg--error { background: rgba(224, 90, 106, 0.1); border: 1px solid rgba(224, 90, 106, 0.4); color: var(--color-blush); }
+
+.aep-acciones { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.aep-acciones .sx-btn { flex: 1; padding: 12px 16px; font-size: 0.72rem; }
+.aep-acciones .sx-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+@media (max-width: 1100px) {
+  .aep-layout { grid-template-columns: 1fr; }
+  .aep-panel { position: static; }
+  .aep-preview { height: 70vh; }
+}

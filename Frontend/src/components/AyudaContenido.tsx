@@ -3,6 +3,7 @@ import { AiOutlineDown, AiOutlineWhatsApp, AiOutlineMail } from "react-icons/ai"
 import ChatBotAyuda from "./ChatBotAyuda";
 import Loader from "./Loader";
 import { contentAPI } from "../services/api";
+import Seccion from "./Seccion";
 import "../styles/SitioSecciones.css";
 
 interface FAQ { id: number; pregunta: string; respuesta: string; orden: number; activa: boolean; }
@@ -47,6 +48,7 @@ const AyudaContenido: React.FC<{ privado?: boolean }> = ({ privado = false }) =>
       </header>
 
       <div className="sx-layout-aside">
+        <Seccion id="ayuda.faq" nombre="Preguntas frecuentes">
         <section>
           <h2 className="sx-section-title">Preguntas frecuentes</h2>
           {loading ? (
@@ -71,7 +73,9 @@ const AyudaContenido: React.FC<{ privado?: boolean }> = ({ privado = false }) =>
             </div>
           )}
         </section>
+        </Seccion>
 
+        <Seccion id="ayuda.asistente" nombre="Asistente y WhatsApp">
         <aside className="sx-card sx-card--static sx-sticky">
           <h2 className="sx-card-title" style={{ fontSize: "1.6rem" }}>¿Aún tienes dudas?</h2>
           <p className="sx-card-text">
@@ -91,6 +95,7 @@ const AyudaContenido: React.FC<{ privado?: boolean }> = ({ privado = false }) =>
             </p>
           )}
         </aside>
+        </Seccion>
       </div>
     </div>
   );

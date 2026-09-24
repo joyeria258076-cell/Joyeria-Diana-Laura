@@ -6,6 +6,7 @@ import {
 import { FaTiktok } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { contentAPI } from "../services/api";
+import Seccion from "./Seccion";
 import "../styles/SitioSecciones.css";
 
 interface InfoEmpresa {
@@ -59,6 +60,7 @@ const ContactoContenido: React.FC<{ privado?: boolean }> = ({ privado = false })
         </p>
       </header>
 
+      <Seccion id="contacto.whatsapp" nombre="Bloque de WhatsApp">
       <section className="sx-feature">
         <div>
           <div className="sx-eyebrow" style={{ justifyContent: "flex-start" }}>Atención directa</div>
@@ -83,7 +85,9 @@ const ContactoContenido: React.FC<{ privado?: boolean }> = ({ privado = false })
           </button>
         </div>
       </section>
+      </Seccion>
 
+      <Seccion id="contacto.datos" nombre="Tarjetas de contacto">
       {tarjetas.length > 0 && (
         <div className="sx-grid">
           {tarjetas.map(t => (
@@ -95,7 +99,9 @@ const ContactoContenido: React.FC<{ privado?: boolean }> = ({ privado = false })
           ))}
         </div>
       )}
+      </Seccion>
 
+      <Seccion id="contacto.redes" nombre="Redes sociales">
       {redes.length > 0 && (
         <div style={{ marginTop: "3rem", textAlign: "center" }}>
           <div className="sx-eyebrow">Síguenos</div>
@@ -108,6 +114,7 @@ const ContactoContenido: React.FC<{ privado?: boolean }> = ({ privado = false })
           </div>
         </div>
       )}
+      </Seccion>
     </div>
   );
 };

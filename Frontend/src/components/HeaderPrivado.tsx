@@ -8,7 +8,7 @@ import {
     AiOutlineDashboard, AiOutlineAppstore, AiOutlineUnorderedList, AiOutlineTag, AiOutlineInbox,
     AiOutlinePlusCircle, AiOutlineFolderOpen, AiOutlineBank, AiOutlineDatabase, AiOutlineSave,
     AiOutlineImport, AiOutlineExport, AiOutlineSync, AiOutlineDesktop, AiOutlineSetting, AiOutlineTool,
-    AiOutlineEdit, AiOutlineFileText, AiOutlineProfile, AiOutlineBgColors, AiOutlineRead,
+    AiOutlineEdit, AiOutlineFileText, AiOutlineBgColors, AiOutlineRead,
     AiOutlineInfoCircle, AiOutlineQuestionCircle, AiOutlineAim, AiOutlineAudit, AiOutlineShoppingCart,
     AiOutlineFlag, AiOutlineTeam, AiOutlineUser, AiOutlineBarChart,
     AiOutlineUsergroupAdd, AiOutlineCheckSquare, AiOutlineHome, AiOutlineShop, AiOutlineHeart,
@@ -219,9 +219,6 @@ const HeaderPrivado: React.FC = () => {
                                     <div className="dropdown-menu">
                                         <button className={`dropdown-item ${isActive("/admin-contenido/paginas") ? "active" : ""}`} onClick={() => goTo("/admin-contenido/paginas")}>
                                             <span className="dropdown-icon"><AiOutlineFileText size={14} /></span> Gestión de Páginas
-                                        </button>
-                                        <button className={`dropdown-item ${isActive("/admin-contenido/secciones") ? "active" : ""}`} onClick={() => goTo("/admin-contenido/secciones")}>
-                                            <span className="dropdown-icon"><AiOutlineProfile size={14} /></span> Gestión de Secciones
                                         </button>
                                         <button className={`dropdown-item ${isActive("/admin-contenido/pagina-inicio") ? "active" : ""}`} onClick={() => goTo("/admin-contenido/pagina-inicio")}>
                                             <span className="dropdown-icon"><AiOutlineBgColors size={14} /></span> Contenido de Inicio

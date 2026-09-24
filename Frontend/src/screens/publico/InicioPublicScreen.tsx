@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
+import Seccion from "../../components/Seccion";
 import { Link } from "react-router-dom";
 import { contentAPI, carruselAPI, promocionesAPI, productsAPI, coleccionesAPI } from "../../services/api";
 import {
@@ -208,6 +209,7 @@ const InicioPublicScreen: React.FC = () => {
   return (
     <div className="inicio-public-container">
       {/* ═══════════ BARRA TICKER PROMOCIONES ═══════════ */}
+      <Seccion id="inicio.ticker" nombre="Barra de ofertas">
       {promociones.length > 0 && !tickerCerrado && (
         <div className="promo-ticker-fixed">
           <span className="promo-ticker-badge"><AiOutlineTag size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />OFERTA</span>
@@ -228,11 +230,13 @@ const InicioPublicScreen: React.FC = () => {
         </div>
       )}
       {promociones.length > 0 && !tickerCerrado && <div className="promo-ticker-spacer" />}
+      </Seccion>
 
       <PublicHeader />
 
       <main>
       {/* ═══════════ HERO / CARRUSEL PRINCIPAL ═══════════ */}
+      <Seccion id="inicio.carrusel" nombre="Carrusel principal">
       <section className="hero-carousel-section">
         <div className="carousel-container">
           <div className="carousel-wrapper">
@@ -290,8 +294,10 @@ const InicioPublicScreen: React.FC = () => {
           </div>
         </div>
       </section>
+      </Seccion>
 
       {/* ═══════════ BARRA DE CONFIANZA ═══════════ */}
+      <Seccion id="inicio.confianza" nombre="Barra de beneficios">
       <section className="trust-strip">
         <div className="container-lg trust-grid">
           <div className="trust-item">
@@ -324,8 +330,10 @@ const InicioPublicScreen: React.FC = () => {
           </div>
         </div>
       </section>
+      </Seccion>
 
       {/* ═══════════ STATS BAND ═══════════ */}
+      <Seccion id="inicio.estadisticas" nombre="Estadísticas">
       <div className="stats-band">
         {[
           { icon: AiOutlineBulb, n: "", l: "Muchos diseños exclusivos" },
@@ -343,8 +351,10 @@ const InicioPublicScreen: React.FC = () => {
           </React.Fragment>
         ))}
       </div>
+      </Seccion>
 
       {/* ═══════════ COLECCIONES ═══════════ */}
+      <Seccion id="inicio.colecciones" nombre="Colecciones">
       {colecciones.length > 0 && (
         <section className="showcase-section">
           <div className="container-lg">
@@ -376,8 +386,10 @@ const InicioPublicScreen: React.FC = () => {
           </div>
         </section>
       )}
+      </Seccion>
 
       {/* ═══════════ PIEZAS DESTACADAS (editorial) ═══════════ */}
+      <Seccion id="inicio.destacadas" nombre="Piezas destacadas">
       {productosDestacadosEd.length > 0 && (
         <section className="showcase-section showcase-section--alt">
           <div className="container-lg">
@@ -420,8 +432,10 @@ const InicioPublicScreen: React.FC = () => {
           </div>
         </section>
       )}
+      </Seccion>
 
       {/* ═══════════ SELECCIÓN (bento) ═══════════ */}
+      <Seccion id="inicio.seleccion" nombre="Productos recientes">
       {productosDestacadosGrid.length > 0 && (
         <section className="showcase-section">
           <div className="container-lg">
@@ -470,8 +484,10 @@ const InicioPublicScreen: React.FC = () => {
           </div>
         </section>
       )}
+      </Seccion>
 
       {/* ═══════════ PROMOCIONES ═══════════ */}
+      <Seccion id="inicio.promociones" nombre="Promociones activas">
       {promociones.length > 0 && (
         <section className="features-section">
           <div className="container-lg">
@@ -507,8 +523,10 @@ const InicioPublicScreen: React.FC = () => {
           </div>
         </section>
       )}
+      </Seccion>
 
       {/* ═══════════ POR QUÉ ELEGIRNOS ═══════════ */}
+      <Seccion id="inicio.porque" nombre="Por qué elegirnos">
       <section className="features-section" style={{ borderTop: '1px solid var(--rose-soft)' }}>
         <div className="container-lg">
           <div className="section-header text-center mb-5">
@@ -541,8 +559,10 @@ const InicioPublicScreen: React.FC = () => {
           </div>
         </div>
       </section>
+      </Seccion>
 
       {/* ═══════════ NOTICIAS DINÁMICAS ═══════════ */}
+      <Seccion id="inicio.noticias" nombre="Noticias y novedades">
       <section className="news-section">
         <div className="container-lg">
           <div className="section-header text-center mb-5">
@@ -582,8 +602,10 @@ const InicioPublicScreen: React.FC = () => {
           </div>
         </div>
       </section>
+      </Seccion>
 
       {/* ═══════════ CTA ═══════════ */}
+      <Seccion id="inicio.cta" nombre="Invitación al catálogo">
       <section className="cta-section">
         <div className="container-lg">
           <div className="cta-content">
@@ -594,6 +616,7 @@ const InicioPublicScreen: React.FC = () => {
           </div>
         </div>
       </section>
+      </Seccion>
       </main>
 
       <PublicFooter />

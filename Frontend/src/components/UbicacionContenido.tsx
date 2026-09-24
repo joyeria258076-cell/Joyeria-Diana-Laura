@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { AiOutlineEnvironment, AiOutlineClockCircle, AiOutlineCar, AiOutlineWhatsApp } from "react-icons/ai";
 import { contentAPI, zonaEntregaAPI } from "../services/api";
+import Seccion from "./Seccion";
 import "../styles/SitioSecciones.css";
 
 interface Info { direccion?: string | null; horario?: string | null; whatsapp?: string | null; }
@@ -43,6 +44,7 @@ const UbicacionContenido: React.FC<{ privado?: boolean }> = ({ privado = false }
       </header>
 
       <div className="sx-layout-aside">
+        <Seccion id="ubicacion.mapa" nombre="Mapa">
         <div className="sx-card sx-card--static" style={{ padding: 0, minHeight: 380 }}>
           {mapaSrc ? (
             <iframe
@@ -59,6 +61,7 @@ const UbicacionContenido: React.FC<{ privado?: boolean }> = ({ privado = false }
             </p>
           )}
         </div>
+        </Seccion>
 
         <aside style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
           <div className="sx-card sx-card--static">
@@ -73,6 +76,7 @@ const UbicacionContenido: React.FC<{ privado?: boolean }> = ({ privado = false }
             )}
           </div>
 
+          <Seccion id="ubicacion.horario" nombre="Horario">
           {info?.horario && (
             <div className="sx-card sx-card--static">
               <div className="sx-icon"><AiOutlineClockCircle size={22} /></div>
@@ -80,7 +84,9 @@ const UbicacionContenido: React.FC<{ privado?: boolean }> = ({ privado = false }
               <p className="sx-card-text">{info.horario}</p>
             </div>
           )}
+          </Seccion>
 
+          <Seccion id="ubicacion.entregas" nombre="Entregas a domicilio">
           <div className="sx-card sx-card--static">
             <div className="sx-icon"><AiOutlineCar size={22} /></div>
             <h3 className="sx-card-title">Entregas a domicilio</h3>
@@ -96,6 +102,7 @@ const UbicacionContenido: React.FC<{ privado?: boolean }> = ({ privado = false }
               </a>
             )}
           </div>
+          </Seccion>
         </aside>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { visitaSitioAPI } from '../services/api';
+import { enModoEditor } from './Seccion';
 
 const VISITOR_ID_KEY = 'dl_visitor_id';
 const PING_INTERVAL_MS = 4 * 60 * 1000;
@@ -19,6 +20,7 @@ const VisitorTracker: React.FC = () => {
   const lastPing = useRef(0);
 
   useEffect(() => {
+    if (enModoEditor) return; // la vista previa del editor de páginas no cuenta como visita
     const now = Date.now();
     if (now - lastPing.current < PING_INTERVAL_MS) return;
     lastPing.current = now;

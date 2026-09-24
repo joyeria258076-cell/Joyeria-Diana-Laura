@@ -64,6 +64,7 @@ const AdminContentZonasEntregaScreen = lazy(() => import("../screens/admin/conte
 const AdminPageEditorScreen = lazy(() => import("../screens/admin/contenido/AdminPageEditorScreen"));
 const AdminContentMisionScreen = lazy(() => import("../screens/admin/contenido/AdminContentMisionScreen"));
 const AdminPageManagementScreen = lazy(() => import("../screens/admin/contenido/AdminPageManagementScreen"));
+const AdminEditorPaginasScreen = lazy(() => import("../screens/admin/contenido/AdminEditorPaginasScreen"));
 const AdminSectionManagementScreen = lazy(() => import("../screens/admin/contenido/AdminSectionManagementScreen"));
 const GestionPedidosScreen = lazy(() => import("../screens/trabajador/GestionPedidosScreen"));
 const GestionApartadosScreen = lazy(() => import("../screens/trabajador/GestionApartadosScreen"));
@@ -274,7 +275,8 @@ export default function AppRoutes() {
 
             {/* Rutas de contenido */}
             <Route path="/admin-contenido"                    element={<AdminContentManagerScreen />} />
-            <Route path="/admin-contenido/paginas"            element={<AdminPageManagementScreen />} />
+            <Route path="/admin-contenido/paginas"            element={<AdminEditorPaginasScreen />} />
+            <Route path="/admin-contenido/paginas-avanzado"   element={<AdminPageManagementScreen />} />
             <Route path="/admin-contenido/secciones"          element={<AdminSectionManagementScreen />} />
             <Route path="/admin-contenido/pagina-inicio"      element={<AdminPageContentInitialScreen />} />
             <Route path="/admin-contenido/pagina-noticias"    element={<AdminPageContentNoticiasScreen />} />
