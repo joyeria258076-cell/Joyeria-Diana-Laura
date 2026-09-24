@@ -99,6 +99,7 @@ const COLORES_ESTADO: Record<string, string> = {
     enviado:        '#f5d8e8',
     entregado:      '#ecb2c3',
     cancelado:      '#e05a6a',
+    expirado:       '#8a8078',
     vencido:        '#ff8c00', 
 };
 const COLOR_DEFAULT = '#888888';
@@ -113,6 +114,7 @@ const DESCRIPCION_ESTADO: Record<string, string> = {
     enviado:        '🚚 El pedido fue enviado. Indica al cliente cuándo llegará.',
     entregado:      '📦 El pedido llegó al cliente. Proceso completado.',
     cancelado:      '🚫 El pedido será cancelado. El stock será restaurado.',
+    expirado:       '⏳ El pedido expiró por falta de movimiento. Ya no se puede tomar ni modificar.',
 };
 
 const GUIA_ESTADO: Record<string, string> = {
@@ -122,12 +124,14 @@ const GUIA_ESTADO: Record<string, string> = {
     enviado:        '1️⃣ Comparte el número de guía si aplica · 2️⃣ Espera confirmación de entrega · 3️⃣ Marca como "Entregado"',
     entregado:      '✅ Pedido completado. No se requieren más acciones.',
     cancelado:      '🚫 Pedido cancelado. El stock fue restaurado automáticamente.',
+    expirado:       '⏳ Pedido expirado automáticamente. No se requieren acciones.',
 };
 
 const getEstadosDisponibles = (estados: EstadoConfig[], metodoCodigo?: string, esApartado?: boolean, tipoEntrega?: string): EstadoConfig[] => {
     // "Enviado" solo aplica para domicilio; "Entregado" en tienda requiere código (se excluye del selector)
     const esTienda = !tipoEntrega || tipoEntrega === 'tienda';
-    let filtrados = estados;
+    // "expirado" lo asigna el sistema, nunca el trabajador
+    let filtrados = estados.filter(e => e.value !== 'expirado');
     if (esTienda) filtrados = filtrados.filter(e => e.value !== 'enviado' && e.value !== 'entregado');
     else          filtrados = filtrados.filter(e => e.value !== 'entregado'); // domicilio: entregado solo por código también
 
@@ -164,6 +168,7 @@ const FASES_DOMICILIO = FASES_STEPPER;
 
 const StepperPedido: React.FC<{ estado: string; estado_pago: string; tipoEntrega?: string }> = ({ estado, estado_pago, tipoEntrega }) => {
     if (estado === 'cancelado') return <div className="gp-stepper-cancelado"><AiOutlineStop size={14} /> Pedido cancelado</div>;
+    if (estado === 'expirado') return <div className="gp-stepper-cancelado"><AiOutlineStop size={14} /> Pedido expirado por falta de movimiento</div>;
     const esTienda = !tipoEntrega || tipoEntrega === 'tienda';
     const fases = esTienda ? FASES_TIENDA : FASES_DOMICILIO;
     const faseActual = getFaseIndex(estado, estado_pago);
@@ -406,6 +411,7 @@ const GestionPedidosScreen: React.FC = () => {
                 { value: 'enviado',        label: 'Enviado',        color: '#f5d8e8' },
                 { value: 'entregado',      label: 'Entregado',      color: '#ecb2c3' },
                 { value: 'cancelado',      label: 'Cancelado',      color: '#e05a6a' },
+                { value: 'expirado',       label: 'Expirado',       color: '#8a8078' },
             ]);
         }
     };
@@ -628,7 +634,9 @@ const GestionPedidosScreen: React.FC = () => {
     const puedoEditar = (p: Pedido) => esMio(p) || user?.rol === 'admin';
 
     const pedidosFiltrados = pedidos.filter(p => {
-        if (filtroPagoPendiente && (['cancelado','entregado'].includes(p.estado) || p.estado_pago === 'aprobado'))
+        // Los expirados solo se ven al elegir la categoría "Expirado"
+        if (p.estado === 'expirado' && filtroEstado !== 'expirado') return false;
+        if (filtroPagoPendiente && (['cancelado','entregado','expirado'].includes(p.estado) || p.estado_pago === 'aprobado'))
             return false;
         if (filtroVencidos) {
             const estaVencido = p.estado === 'confirmado' &&
@@ -729,7 +737,7 @@ const GestionPedidosScreen: React.FC = () => {
                         onClick={() => abrirModal(pedido, 'estado')}><AiOutlineSync size={16} /> Cambiar estado</button>
                     <button className="gp-btn-accion gp-btn-cancelar" title="Cancelar pedido"
                         onClick={() => abrirModal(pedido, 'cancelar')}
-                        disabled={['cancelado','entregado'].includes(pedido.estado)}><AiOutlineStop size={16} /> Cancelar</button>
+                        disabled={['cancelado','entregado','expirado'].includes(pedido.estado)}><AiOutlineStop size={16} /> Cancelar</button>
                 </>
             )}
             <button className="gp-btn-accion" title="Datos cliente" onClick={() => abrirModal(pedido, 'cliente')}><AiOutlineUser size={16} /> Cliente</button>
@@ -1116,11 +1124,13 @@ const GestionPedidosScreen: React.FC = () => {
 
                                     {modalTipo === 'estado' && (
                                         <div className="gp-modal-form">
-                                            {['entregado', 'cancelado'].includes(pedidoSel.estado) ? (
+                                            {['entregado', 'cancelado', 'expirado'].includes(pedidoSel.estado) ? (
                                                 <div className="gp-aviso-codigo-entrega">
                                                     {pedidoSel.estado === 'entregado'
                                                         ? '✅ Este pedido ya fue entregado. No se puede cambiar su estado.'
-                                                        : '🚫 Este pedido está cancelado. No se puede cambiar su estado.'}
+                                                        : pedidoSel.estado === 'expirado'
+                                                            ? '⏳ Este pedido expiró por falta de movimiento. No se puede cambiar su estado.'
+                                                            : '🚫 Este pedido está cancelado. No se puede cambiar su estado.'}
                                                 </div>
                                             ) : (<>
                                             <div className="gp-estado-actual">

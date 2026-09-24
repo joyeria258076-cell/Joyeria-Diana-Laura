@@ -13,7 +13,7 @@ type Tab = 'pedidos' | 'apartados';
 
 const ESTADO_COLOR: Record<string, string> = {
     pendiente: '#f5c842', confirmado: '#6bcb77', en_preparacion: '#4d96ff',
-    enviado: '#f5d8e8', entregado: '#c9956c', cancelado: '#e05a6a',
+    enviado: '#f5d8e8', entregado: '#c9956c', cancelado: '#e05a6a', expirado: '#8a8078',
     activo: '#4d96ff', liquidado: '#4a8c7a', vencido: '#e05a6a', pendiente_pago: '#f5c842',
 };
 

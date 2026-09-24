@@ -17,6 +17,7 @@ const ESTADO_COLOR: Record<string, string> = {
     enviado:    '#f4c2c2',
     entregado:  '#c9956c',
     cancelado:  '#e05a6a',
+    expirado:   '#8a8078',
 };
 
 const ESTADO_LABEL: Record<string, string> = {
@@ -27,6 +28,7 @@ const ESTADO_LABEL: Record<string, string> = {
     enviado:    'Enviado',
     entregado:  'Entregado',
     cancelado:  'Cancelado',
+    expirado:   'Expirado',
 };
 
 export default function DashboardTrabajadorScreen() {

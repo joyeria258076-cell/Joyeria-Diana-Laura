@@ -5,6 +5,8 @@ import { pool } from '../../config/database';
 import crypto from 'crypto';
 import axios from 'axios';
 
+import { expirarSiToca } from '../../services/expiracionPedidosService';
+
 const getUsuario = (req: Request) => {
     const user = (req as any).user;
     const id = user?.userId || user?.dbId || user?.id || null;
@@ -564,6 +566,7 @@ export const crearPedido = async (req: Request, res: Response) => {
 };
 
 export const getMisPedidos = async (req: Request, res: Response) => {
+    await expirarSiToca();
     try {
         const { id } = getUsuario(req);
         if (!id) return res.status(401).json({ success: false, message: 'No autenticado' });
@@ -598,6 +601,7 @@ export const getPedidoById = async (req: Request, res: Response) => {
 };
 
 export const getAllPedidos = async (req: Request, res: Response) => {
+    await expirarSiToca();
     try {
         const { estado } = req.query;
         const ESTADOS_VALIDOS = ['pendiente','confirmado','en_preparacion','enviado','entregado','cancelado'];
@@ -1052,6 +1056,7 @@ export const getClienteVenta = async (req: Request, res: Response) => {
 // ── TOMAR PEDIDO (asignación a trabajador) ───────────────────
 
 export const tomarPedido = async (req: Request, res: Response) => {
+    await expirarSiToca();
     try {
         const usuario = getUsuario(req);
         if (!usuario.id) return res.status(401).json({ success: false, message: 'No autenticado' });
@@ -1639,6 +1644,7 @@ export const subirComprobante = async (req: Request, res: Response) => {
 
 // ── ENDPOINT DE POLLING PARA NOTIFICACIONES ───────────────────
 export const getEstadosPedidosCliente = async (req: Request, res: Response) => {
+    await expirarSiToca();
     try {
         const usuario = getUsuario(req);
         if (!usuario.id) return res.status(401).json({ success: false, message: 'No autenticado' });

@@ -49,6 +49,7 @@ import zonaEntregaRoutes from './routes/zonaEntregaRoutes';
 import comentarioNoticiaRoutes from './routes/comentarioNoticiaRoutes';
 import visitaSitioRoutes from './routes/visitaSitioRoutes';
 import asistenteRoutes from './routes/asistenteRoutes';
+import { iniciarExpiracionPedidos } from './services/expiracionPedidosService';
 import pool from './config/database';
 
 // IAST Agent
@@ -287,6 +288,7 @@ app.use(expressErrorMiddleware);
 // =============================================
 
 app.listen(PORT, async () => {
+  iniciarExpiracionPedidos();
   console.log(`\n🎯 Servidor en puerto ${PORT}`);
   console.log(`📊 Endpoints disponibles:`);
   console.log(`   🔐 Auth: http://localhost:${PORT}/api/auth`);

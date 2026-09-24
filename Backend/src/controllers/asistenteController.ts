@@ -51,7 +51,7 @@ const fecha = (d: string | Date | null) => d ? new Date(d).toLocaleDateString('e
 
 const ESTADO_PEDIDO: Record<string, string> = {
   pendiente: 'Pendiente (esperando confirmación)', confirmado: 'Confirmado', en_preparacion: 'En preparación',
-  enviado: 'Enviado', entregado: 'Entregado', cancelado: 'Cancelado',
+  enviado: 'Enviado', entregado: 'Entregado', cancelado: 'Cancelado', expirado: 'Expirado (sin movimiento)',
 };
 const ESTADO_PERS: Record<string, string> = {
   pendiente: 'en revisión', aprobada: 'aprobada — ya puedes comprarla', aprobado: 'aprobada — ya puedes comprarla',

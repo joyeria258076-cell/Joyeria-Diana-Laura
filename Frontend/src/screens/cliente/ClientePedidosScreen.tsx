@@ -79,6 +79,7 @@ const COLORES_ESTADO: Record<string, { color: string; bg: string }> = {
     enviado:        { color: '#0a0a0a', bg: '#f5d8e8' },
     entregado:      { color: '#0a0a0a', bg: '#c9956c' },
     cancelado:      { color: '#fff',    bg: '#e05a6a' },
+    expirado:       { color: '#fff',    bg: '#6b625c' },
 };
 const COLOR_DEFAULT = { color: '#fff', bg: '#555555' };
 const labelEstado = (v: string) => v.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -104,6 +105,7 @@ const getFaseIndex = (estado: string, estado_pago: string): number => {
 
 const StepperPedido: React.FC<{ estado: string; estado_pago: string }> = ({ estado, estado_pago }) => {
     if (estado === 'cancelado') return <div className="cp-stepper-cancelado">Este pedido fue cancelado</div>;
+    if (estado === 'expirado') return <div className="cp-stepper-cancelado">Este pedido expiró porque no tuvo movimiento. Si aún lo quieres, vuelve a hacerlo desde el catálogo.</div>;
     const faseActual = getFaseIndex(estado, estado_pago);
     return (
         <div className="cp-stepper">
@@ -260,7 +262,7 @@ const ClientePedidosScreen: React.FC = () => {
             const data = await carritoAPI.getEstadosPedido();
             if (data.success) {
                 setEstados(data.data.map((v: string) => ({ value: v, label: labelEstado(v), ...(COLORES_ESTADO[v] || COLOR_DEFAULT) })));
-                setEstadosPagables(data.data.filter((e: string) => !['pendiente','enviado','entregado','cancelado'].includes(e)));
+                setEstadosPagables(data.data.filter((e: string) => !['pendiente','enviado','entregado','cancelado','expirado'].includes(e)));
             }
         } catch {
             setEstados([
@@ -270,6 +272,7 @@ const ClientePedidosScreen: React.FC = () => {
                 { value: 'enviado', label: 'Enviado', color: '#0a0a0a', bg: '#f5d8e8' },
                 { value: 'entregado', label: 'Entregado', color: '#0a0a0a', bg: '#c9956c' },
                 { value: 'cancelado', label: 'Cancelado', color: '#fff', bg: '#e05a6a' },
+                { value: 'expirado', label: 'Expirado', color: '#fff', bg: '#6b625c' },
             ]);
             setEstadosPagables(['confirmado', 'en_preparacion']);
         }
@@ -333,7 +336,7 @@ const ClientePedidosScreen: React.FC = () => {
     };
 
     const contar = (estado: string) => pedidos.filter(p => p.estado === estado).length;
-    const enProceso = pedidos.filter(p => !['enviado','entregado','cancelado'].includes(p.estado)).length;
+    const enProceso = pedidos.filter(p => !['enviado','entregado','cancelado','expirado'].includes(p.estado)).length;
     const esPagable = (pedido: Pedido) => !pedido.es_apartado && estadosPagables.includes(pedido.estado) && !['aprobado','pagado'].includes(pedido.estado_pago);
     const pedidosFiltrados = busqueda.trim()
         ? pedidos.filter(p =>
@@ -469,6 +472,7 @@ const ClientePedidosScreen: React.FC = () => {
                     { label: 'Enviados', value: contar('enviado') },
                     { label: 'Entregados', value: contar('entregado') },
                     { label: 'Cancelados', value: contar('cancelado') },
+                    { label: 'Expirados', value: contar('expirado') },
                 ].map((s, i) => (
                     <div key={i} className="cp-stat-card">
                         
@@ -640,7 +644,7 @@ const ClientePedidosScreen: React.FC = () => {
                                     {/* ✅ Código de entrega */}
                                     {['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && 
                                     pedidoDetalle.codigo_entrega &&
-                                    !['entregado','cancelado'].includes(pedidoDetalle.estado) && (
+                                    !['entregado','cancelado','expirado'].includes(pedidoDetalle.estado) && (
                                         <div className="cp-codigo-entrega">
                                             <h4>Tu código de entrega</h4>
                                             <p className="cp-codigo-entrega-desc">Muestra este código al trabajador al momento de recibir tu pedido</p>
