@@ -9,9 +9,10 @@ import { useAuth } from "../../contexts/AuthContext";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { securityQuestionAPI } from "../../services/securityQuestionAPI";
-import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineLock, AiOutlineArrowLeft, AiOutlineArrowRight, AiOutlineCamera } from "react-icons/ai";
+import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineLock, AiOutlineArrowLeft, AiOutlineArrowRight, AiOutlineCamera, AiOutlineUser, AiOutlineMail } from "react-icons/ai";
 import AuthBackground from "../../components/AuthBackground";
 import "./RegistroScreen.css";
+import "./AuthTema.css";
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string | undefined;
 
@@ -254,8 +255,9 @@ export default function RegistroScreen() {
             <AuthBackground />
             <div className="register-card">
                 <div className="register-header">
-                    <h2>Crear Cuenta</h2>
-                    <p>Regístrate en Joyería Diana Laura</p>
+                    <span className="auth-paso">Paso {step} de 2</span>
+                    <h2>Crea tu <span>cuenta</span> <span className="auth-destello" aria-hidden="true">✦</span></h2>
+                    <p>Guarda favoritos, aparta piezas y sigue tus pedidos.</p>
                 </div>
                 
                 {errors.root && (
@@ -273,6 +275,8 @@ export default function RegistroScreen() {
                             
                             <div className="register-form-group">
                                 <label htmlFor="nombre">Nombre completo</label>
+                                <div className="auth-field">
+                                <AiOutlineUser className="auth-field-icon" size={18} aria-hidden="true" />
                                 <input 
                                     id="nombre"
                                     type="text"
@@ -290,6 +294,7 @@ export default function RegistroScreen() {
                                         nombreReg.onChange(e);
                                     }}
                                 />
+                                </div>
                                 {errors.nombre && <span className="register-error">{errors.nombre.message}</span>}
                                 
                                 {/* SE MUESTRA AL ENFOCAR O EN CASO DE ERROR */}
@@ -305,6 +310,8 @@ export default function RegistroScreen() {
 
                             <div className="register-form-group">
                                 <label htmlFor="email">Correo electrónico</label>
+                                <div className="auth-field">
+                                <AiOutlineMail className="auth-field-icon" size={18} aria-hidden="true" />
                                 <input 
                                     id="email"
                                     type="email"
@@ -313,12 +320,14 @@ export default function RegistroScreen() {
                                     {...formRegister("email")} 
                                     maxLength={60}
                                 />
+                                </div>
                                 {errors.email && <span className="register-error">{errors.email.message}</span>}
                             </div>
 
                             <div className="register-form-group">
                                 <label htmlFor="password">Contraseña</label>
-                                <div className="password-input-container">
+                                <div className="password-input-container auth-field">
+                                    <AiOutlineLock className="auth-field-icon" size={18} aria-hidden="true" />
                                     <input 
                                         id="password"
                                         type={showPassword ? "text" : "password"}
@@ -364,7 +373,8 @@ export default function RegistroScreen() {
 
                             <div className="register-form-group">
                                 <label htmlFor="confirmPassword">Confirmar Contraseña</label>
-                                <div className="password-input-container">
+                                <div className="password-input-container auth-field">
+                                    <AiOutlineLock className="auth-field-icon" size={18} aria-hidden="true" />
                                     <input 
                                         id="confirmPassword"
                                         type={showConfirmPassword ? "text" : "password"}

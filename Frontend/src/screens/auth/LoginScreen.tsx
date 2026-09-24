@@ -9,9 +9,10 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { useAuth } from "../../contexts/AuthContext";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineMail, AiOutlineLock, AiOutlineArrowRight } from "react-icons/ai";
 import AuthBackground from "../../components/AuthBackground";
 import "./LoginScreen.css";
+import "./AuthTema.css";
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string | undefined;
 
@@ -313,8 +314,9 @@ const onSubmit = async (data: FormData) => {
             <AuthBackground />
             <div className="login-image-section">
                 <div className="login-image-content">
-                    <span className="login-image-eyebrow">Bienvenida de vuelta</span>
-                    <h1>Joyería y Bisutería<br /><em>Diana Laura</em></h1>
+                    <div className="auth-logo" aria-hidden="true">DL</div>
+                    <span className="login-image-eyebrow">Joyería Diana Laura</span>
+                    <h1>Tu <em>brillo</em>,<br />en tu bolsillo.</h1>
                     <span className="login-image-divider" aria-hidden="true" />
                     <p>Descubre nuestra exclusiva colección de joyas elaboradas especialmente para ti</p>
                 </div>
@@ -323,7 +325,8 @@ const onSubmit = async (data: FormData) => {
             <div className="login-form-section">
                 <div className="login-card">
                     <div className="login-header">
-                        <h2>Iniciar sesión</h2>
+                        <span className="auth-eyebrow">Bienvenida de vuelta</span>
+                        <h2>Inicia <span>sesión</span></h2>
                         <p>Ingresa a tu cuenta de Joyería Diana Laura</p>
                     </div>
                     
@@ -348,6 +351,8 @@ const onSubmit = async (data: FormData) => {
                     <form onSubmit={handleSubmit(onSubmit)} className="login-form">
                         <div className="login-form-group">
                             <label htmlFor="email">Correo electrónico</label>
+                            <div className="auth-field">
+                            <AiOutlineMail className="auth-field-icon" size={18} aria-hidden="true" />
                             <input 
                                 id="email"
                                 type="email" 
@@ -356,6 +361,7 @@ const onSubmit = async (data: FormData) => {
                                 {...register("email")} 
                                 maxLength={60}
                             />
+                            </div>
                             {errors.email && (
                                 <span className="login-error">{errors.email.message}</span>
                             )}
@@ -363,7 +369,8 @@ const onSubmit = async (data: FormData) => {
 
                         <div className="login-form-group">
                             <label htmlFor="password">Contraseña</label>
-                            <div className="password-input-container">
+                            <div className="password-input-container auth-field">
+                                <AiOutlineLock className="auth-field-icon" size={18} aria-hidden="true" />
                                 <input 
                                     id="password"
                                     type={showPassword ? "text" : "password"}
@@ -405,17 +412,19 @@ const onSubmit = async (data: FormData) => {
                             className="login-button"
                             disabled={isVerifying || loading} // 🆕 Agregar loading al disable
                         >
-                            {isVerifying ? "Verificando..." : loading ? "Iniciando sesión..." : "Entrar"}
+                            <span>{isVerifying ? "Verificando..." : loading ? "Iniciando sesión..." : "Iniciar sesión"}</span>
+                            <span className="auth-btn-arrow" aria-hidden="true"><AiOutlineArrowRight size={16} /></span>
                         </button>
                     </form>
 
                     <div className="login-links">
-                        <Link to="/registro" className="login-link">
-                            Crear cuenta
-                        </Link>
-                        <Link to="/olvide" className="login-link">
+                        <Link to="/olvide" className="login-link auth-link-sec">
                             ¿Olvidaste tu contraseña?
                         </Link>
+                        <p className="auth-alt">
+                            ¿Nueva por aquí? <Link to="/registro" className="login-link">Crea tu cuenta</Link>
+                        </p>
+                        <Link to="/" className="auth-explorar">o explora sin cuenta</Link>
                     </div>
                 </div>
             </div>
