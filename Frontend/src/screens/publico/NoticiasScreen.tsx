@@ -4,6 +4,7 @@ import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { contentAPI } from "../../services/api";
 import "./NoticiasScreen.css";
+import "../../styles/SitioSecciones.css";
 
 const NoticiasScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -27,15 +28,6 @@ const NoticiasScreen: React.FC = () => {
     fetchDatos();
   }, []);
 
-  const renderTituloConSpan = (titulo: string) => {
-    // <-- CORRECCIÓN: Si no hay título, devolvemos null para que no ponga "Novedades" por defecto
-    if (!titulo) return null; 
-    const palabras = titulo.trim().split(" ");
-    if (palabras.length === 1) return <span>{titulo}</span>;
-    const ultimaPalabra = palabras.pop();
-    return <>{palabras.join(" ")} <span>{ultimaPalabra}</span></>;
-  };
-
   const formatearFecha = (f: string) => {
     if (!f) return "Próximamente";
     if (f.includes("de")) return f;
@@ -56,44 +48,16 @@ const NoticiasScreen: React.FC = () => {
   // Resto: grid de 4 abajo
   const rest = noticias.slice(3);
 
-  // <-- Calculamos categorías únicas para la estadística dinámica
-  const coleccionesUnicas = new Set(noticias.map(n => n.categoria).filter(Boolean)).size;
-
   return (
     <div className="noticias-container">
       <PublicHeader />
 
-      {/* ── HERO ── */}
-      <section className="noticias-hero">
-        <div className="container-lg">
-          <div className="noticias-hero-inner">
-            <p className="noticias-hero-tag">
-              <span className="tag-dot" />
-              Blog Diana Laura
-            </p>
-            <h1 className="noticias-title">
-              Blog <span>Diana Laura</span>
-            </h1>
-            <p className="noticias-subtitle">Colecciones, cuidados, tendencias y todo lo nuevo de nuestra joyería.</p>
-            <div className="noticias-stats">
-              <div className="noticias-stat">
-                <strong>{loading ? "—" : noticias.length}</strong>
-                <span>Artículos</span>
-              </div>
-              <div className="noticias-stat">
-                {/* <-- Año dinámico */}
-                <strong>{loading ? "—" : new Date().getFullYear()}</strong>
-                <span>Temporada</span>
-              </div>
-              <div className="noticias-stat">
-                {/* <-- Colecciones (categorías) dinámicas */}
-                <strong>{loading ? "—" : coleccionesUnicas}</strong>
-                <span>Colecciones</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ── ENCABEZADO (mismo estilo que el Inicio) ── */}
+      <header className="sx-head" style={{ padding: "4.5rem 1.5rem 0", marginBottom: 0 }}>
+        <div className="sx-eyebrow">Blog Diana Laura</div>
+        <h1 className="sx-title">Historias que <span>brillan</span></h1>
+        <p className="sx-subtitle">Colecciones, cuidados, tendencias y todo lo nuevo de nuestra joyería.</p>
+      </header>
 
       {/* ── NOTICIAS ── */}
       <section className="noticias-section">

@@ -1,30 +1,31 @@
-/* NoticiasScreen.css — Dark Luxury: Black, Rose & White */
+/* NoticiasScreen.css — identidad Joyería Diana Laura: negro cálido + rose gold */
 
-/* Fuentes Playfair Display / DM Sans cargadas globalmente en index.html */
+/* Usa las fuentes del sitio: Cormorant Garamond (display) + Jost (texto) */
 
 /* ─── VARIABLES ───────────────────────────── */
-:root {
+/* Variables acotadas al blog (antes estaban en :root y se filtraban a otras pantallas) */
+.noticias-container {
   --rose:          var(--color-rose-gold);
   --rose-vivid:    var(--color-champagne);
   --rose-light:    var(--color-champagne);
-  --rose-soft:     rgba(232,120,154,.12);
-  --rose-border:   rgba(232,120,154,.25);
-  --rose-border-h: rgba(232,120,154,.6);
-  --white:         #ffffff;
-  --white-60:      rgba(255,255,255,.6);
-  --white-30:      rgba(255,255,255,.3);
-  --bg-black:      #0a0a0b;
-  --bg-card:       #111114;
-  --bg-card-h:     #18181d;
-  --bg-hero:       #080809;
-  --text-main:     #ffffff;
-  --text-body:     rgba(255,255,255,.78);
-  --text-muted:    rgba(255,255,255,.48);
+  --rose-soft:     var(--color-glow);
+  --rose-border:   var(--color-border);
+  --rose-border-h: rgba(201,149,108,.6);
+  --white:         var(--color-text);
+  --white-60:      rgba(245,240,235,.6);
+  --white-30:      rgba(245,240,235,.3);
+  --bg-black:      var(--color-bg);
+  --bg-card:       var(--color-surface);
+  --bg-card-h:     var(--color-surface-2);
+  --bg-hero:       transparent;
+  --text-main:     var(--color-text);
+  --text-body:     rgba(245,240,235,.8);
+  --text-muted:    var(--color-text-muted);
   --shadow-card:   0 4px 28px rgba(0,0,0,.55), 0 1px 6px rgba(0,0,0,.4);
-  --shadow-hover:  0 20px 60px rgba(0,0,0,.75), 0 0 40px rgba(232,120,154,.18);
-  --ease-expo:     cubic-bezier(0.16,1,0.3,1);
-  --ease-out:      cubic-bezier(0.25,0.46,0.45,0.94);
-  --radius:        16px;
+  --shadow-hover:  0 20px 60px rgba(0,0,0,.7), 0 0 40px rgba(201,149,108,.15);
+  --ease-expo:     var(--ease-silk);
+  --ease-out:      var(--ease-silk);
+  --radius:        12px;
 }
 
 /* ─── KEYFRAMES ───────────────────────────── */
@@ -46,12 +47,12 @@
   to   { transform:translateX(220%) skewX(-15deg); }
 }
 @keyframes rosePulse {
-  0%,100% { box-shadow:0 0 0 0 rgba(232,120,154,.25); }
-  50%      { box-shadow:0 0 0 8px rgba(232,120,154,0); }
+  0%,100% { box-shadow:0 0 0 0 rgba(201,149,108,.25); }
+  50%      { box-shadow:0 0 0 8px rgba(201,149,108,0); }
 }
 @keyframes tagPulse {
-  0%,100% { box-shadow:0 0 0 0 rgba(232,120,154,.4); }
-  50%     { box-shadow:0 0 0 5px rgba(232,120,154,0); }
+  0%,100% { box-shadow:0 0 0 0 rgba(201,149,108,.4); }
+  50%     { box-shadow:0 0 0 5px rgba(201,149,108,0); }
 }
 @keyframes spin    { to { transform:rotate(360deg); } }
 @keyframes dotBlink {
@@ -64,7 +65,7 @@
 }
 
 /* ─── BASE ────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
+.noticias-container *, .noticias-container *::before, .noticias-container *::after { box-sizing: border-box; }
 
 .noticias-container {
   background-color: var(--bg-black);
@@ -77,7 +78,7 @@
   background-repeat: no-repeat;
   color: var(--text-main);
   min-height: 100vh;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
 }
 
 .container-lg {
@@ -100,7 +101,7 @@
   content:'';
   position:absolute; top:-120px; right:-120px;
   width:480px; height:480px;
-  background:radial-gradient(circle,rgba(232,120,154,.1) 0%,transparent 65%);
+  background:radial-gradient(circle,rgba(201,149,108,.1) 0%,transparent 65%);
   border-radius:50%; pointer-events:none;
 }
 
@@ -116,7 +117,7 @@
 
 .noticias-hero-tag {
   display:inline-flex; align-items:center; gap:.5rem;
-  background:rgba(232,120,154,.12);
+  background:rgba(201,149,108,.12);
   color:var(--rose-light);
   border:1px solid var(--rose-border);
   padding:.4rem 1rem;
@@ -136,9 +137,9 @@
 }
 
 .noticias-title {
-  font-family:'Playfair Display',serif;
+  font-family:var(--font-display);
   font-size:clamp(2.4rem,5vw,3.8rem);
-  font-weight:900; color:var(--white);
+  font-weight:500; color:var(--white);
   line-height:1.1; margin:0 0 1rem;
   letter-spacing:-.02em;
 }
@@ -158,8 +159,8 @@
 
 .noticias-stat strong {
   display:block;
-  font-family:'Playfair Display',serif;
-  font-size:1.9rem; font-weight:700;
+  font-family:var(--font-display);
+  font-size:1.9rem; font-weight:500;
   color:var(--rose); line-height:1;
 }
 
@@ -170,7 +171,7 @@
 }
 
 /* ─── SECTION ─────────────────────────────── */
-.noticias-section { padding:5rem 0 6.5rem; }
+.noticias-section { padding:3rem 0 6.5rem; }
 
 /* ══════════════════════════════════════════════
    LAYOUT IDÉNTICO AL ORIGINAL
@@ -226,10 +227,10 @@
   padding:1px;
   background:linear-gradient(
     135deg,
-    rgba(232,120,154,.4) 0%,
-    rgba(232,120,154,.06) 40%,
+    rgba(201,149,108,.4) 0%,
+    rgba(201,149,108,.06) 40%,
     rgba(255,255,255,.03) 60%,
-    rgba(232,120,154,.25) 100%
+    rgba(201,149,108,.25) 100%
   );
   -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite:xor;
@@ -241,10 +242,10 @@
 .noticia-item:hover::before {
   background:linear-gradient(
     135deg,
-    rgba(232,120,154,.8) 0%,
-    rgba(232,120,154,.25) 35%,
+    rgba(201,149,108,.8) 0%,
+    rgba(201,149,108,.25) 35%,
     rgba(255,255,255,.06) 60%,
-    rgba(232,120,154,.55) 100%
+    rgba(201,149,108,.55) 100%
   );
 }
 
@@ -267,7 +268,7 @@
   height: 220px;
   position: relative;
   overflow: hidden;
-  background: #1a1a1f;
+  background: var(--color-surface-2);
   flex-shrink: 0;
 }
 
@@ -308,7 +309,7 @@
 .noticia-image .img-accent {
   position:absolute; bottom:0; left:0; right:0;
   height:2px;
-  background:linear-gradient(90deg,var(--rose-vivid),rgba(232,120,154,0));
+  background:linear-gradient(90deg,var(--rose-vivid),rgba(201,149,108,0));
   z-index:3;
   transform:scaleX(0); transform-origin:left;
   transition:transform .5s var(--ease-expo);
@@ -320,10 +321,10 @@
 
 .noticia-category {
   position:absolute; top:1rem; left:1rem;
-  background:linear-gradient(135deg,var(--rose-vivid),#c0436a);
-  color:#fff;
+  background:linear-gradient(135deg,var(--color-rose-gold),var(--color-champagne));
+  color:#0a0a0a;
   padding:.3rem .9rem; border-radius:100px;
-  font-size:.69rem; font-weight:700;
+  font-size:.66rem; font-weight:500;
   letter-spacing:.1em; text-transform:uppercase;
   z-index:3;
   box-shadow:0 3px 14px rgba(201,149,108,.55), 0 1px 0 rgba(255,255,255,.15) inset;
@@ -343,9 +344,9 @@
   height:1px;
   background:linear-gradient(
     90deg, transparent,
-    rgba(232,120,154,.4) 20%,
-    rgba(232,120,154,.7) 50%,
-    rgba(232,120,154,.4) 80%,
+    rgba(201,149,108,.4) 20%,
+    rgba(201,149,108,.7) 50%,
+    rgba(201,149,108,.4) 80%,
     transparent
   );
 }
@@ -360,8 +361,8 @@
 .noticia-fecha i { color:var(--rose); font-size:.7rem; }
 
 .noticia-titulo {
-  font-family:'Playfair Display',serif;
-  font-size:1.25rem; font-weight:700;
+  font-family:var(--font-display);
+  font-size:1.25rem; font-weight:500;
   color:var(--white); margin:0; line-height:1.35;
   transition:color .3s ease;
 }
@@ -409,7 +410,7 @@
   content:'';
   position:absolute; bottom:-2px; left:0; right:0;
   height:1px;
-  background:linear-gradient(90deg,var(--rose),rgba(232,120,154,0));
+  background:linear-gradient(90deg,var(--rose),rgba(201,149,108,0));
   transform:scaleX(0); transform-origin:left;
   transition:transform .35s var(--ease-expo);
 }
@@ -466,16 +467,16 @@
   padding:.65rem 1.5rem;
   border:1px solid var(--rose-border);
   border-radius:100px;
-  background:rgba(232,120,154,.07);
+  background:rgba(201,149,108,.07);
   backdrop-filter:blur(4px);
 }
 
 .noticia-item--featured .noticia-link::after { display:none; }
 
 .noticia-item--featured .noticia-link:hover {
-  background:rgba(232,120,154,.18);
-  border-color:rgba(232,120,154,.6);
-  box-shadow:0 0 20px rgba(232,120,154,.15);
+  background:rgba(201,149,108,.18);
+  border-color:rgba(201,149,108,.6);
+  box-shadow:0 0 20px rgba(201,149,108,.15);
   color:var(--rose-light);
 }
 
@@ -535,7 +536,7 @@
 }
 
 .loading-text {
-  font-family:'Playfair Display',serif;
+  font-family:var(--font-display);
   font-size:1.05rem; color:var(--text-muted);
   margin:0; letter-spacing:.04em;
 }
@@ -557,9 +558,9 @@
   padding:8rem 2rem; gap:.8rem; text-align:center;
 }
 
-.empty-icon { font-size:3rem; color:rgba(232,120,154,.4); line-height:1; }
+.empty-icon { font-size:3rem; color:rgba(201,149,108,.4); line-height:1; }
 .empty-title {
-  font-family:'Playfair Display',serif;
+  font-family:var(--font-display);
   font-size:1.3rem; color:rgba(255,255,255,.5); margin:0;
 }
 .empty-sub { font-size:.86rem; color:var(--text-muted); margin:0; }
