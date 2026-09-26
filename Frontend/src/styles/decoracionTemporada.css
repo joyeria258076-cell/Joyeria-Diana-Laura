@@ -1,0 +1,22 @@
+/* decoracionTemporada.css — elementos que caen en las temáticas de temporada
+   y las muestras del selector de tema. */
+
+.dl-deco { position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden; }
+.dl-deco-pieza {
+  position: absolute; top: -40px; opacity: 0.28; line-height: 1;
+  animation-name: dl-deco-caer; animation-timing-function: linear; animation-iteration-count: infinite;
+  will-change: transform;
+}
+.dl-deco--nieve .dl-deco-pieza { opacity: 0.45; }
+@keyframes dl-deco-caer {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%  { transform: translate3d(18px, 55vh, 0) rotate(calc(var(--giro) / 2)); }
+  100% { transform: translate3d(-12px, 110vh, 0) rotate(var(--giro)); }
+}
+@media (prefers-reduced-motion: reduce) { .dl-deco { display: none; } }
+
+/* Muestra de la temática en el selector de tema */
+.dl-tema-muestra--temporada {
+  width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid;
+  display: inline-flex !important; align-items: center; justify-content: center; font-size: 11px; line-height: 1;
+}

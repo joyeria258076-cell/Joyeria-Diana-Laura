@@ -1612,6 +1612,38 @@ export const zonaEntregaAPI = {
 };
 
 // ==========================================
+// 🎃 TEMÁTICAS DE TEMPORADA API
+// ==========================================
+export interface TemaTemporada {
+  id: number;
+  clave: string;
+  nombre: string;
+  descripcion?: string | null;
+  modo: 'oscuro' | 'claro';
+  color_fondo: string;
+  color_superficie: string;
+  color_superficie_2: string;
+  color_principal: string;
+  color_principal_fuerte: string;
+  color_acento: string;
+  color_texto: string;
+  color_texto_suave: string;
+  decoracion: 'ninguna' | 'calabazas' | 'corazones' | 'nieve' | 'estrellas' | 'flores';
+  activo: boolean;
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
+}
+
+export const temasTemporadaAPI = {
+  getActivas: () => enhancedApi.get('/temas-temporada', true),
+  getTodas: () => enhancedApi.get('/temas-temporada/todas'),
+  crear: (data: Partial<TemaTemporada>) => enhancedApi.post('/temas-temporada', data),
+  actualizar: (id: number, data: Partial<TemaTemporada>) => enhancedApi.put(`/temas-temporada/${id}`, data),
+  cambiarActivo: (id: number, activo: boolean) => enhancedApi.patch(`/temas-temporada/${id}/activo`, { activo }),
+  eliminar: (id: number) => enhancedApi.delete(`/temas-temporada/${id}`),
+};
+
+// ==========================================
 // ❤️ FAVORITOS API
 // ==========================================
 export const favoritosAPI = {

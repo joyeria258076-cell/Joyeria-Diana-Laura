@@ -8,7 +8,7 @@ import {
     AiOutlineDashboard, AiOutlineAppstore, AiOutlineUnorderedList, AiOutlineTag, AiOutlineInbox,
     AiOutlinePlusCircle, AiOutlineFolderOpen, AiOutlineBank, AiOutlineDatabase, AiOutlineSave,
     AiOutlineImport, AiOutlineExport, AiOutlineSync, AiOutlineDesktop, AiOutlineSetting, AiOutlineTool,
-    AiOutlineEdit, AiOutlineFileText, AiOutlineBgColors, AiOutlineRead,
+    AiOutlineEdit, AiOutlineFileText, AiOutlineBgColors, AiOutlineStar, AiOutlineRead,
     AiOutlineInfoCircle, AiOutlineQuestionCircle, AiOutlineAim, AiOutlineAudit, AiOutlineShoppingCart,
     AiOutlineFlag, AiOutlineTeam, AiOutlineUser, AiOutlineBarChart,
     AiOutlineUsergroupAdd, AiOutlineCheckSquare, AiOutlineHome, AiOutlineShop, AiOutlineHeart,
@@ -244,6 +244,9 @@ const HeaderPrivado: React.FC = () => {
                                         </button>
                                         <button className={`dropdown-item ${isActive("/admin/personalizacion-visual") ? "active" : ""}`} onClick={() => goTo("/admin/personalizacion-visual")}>
                                             <span className="dropdown-icon"><AiOutlineBgColors size={14} /></span> Personalización Visual
+                                        </button>
+                                        <button className={`dropdown-item ${isActive("/admin/tematicas") ? "active" : ""}`} onClick={() => goTo("/admin/tematicas")}>
+                                            <span className="dropdown-icon"><AiOutlineStar size={14} /></span> Temáticas de temporada
                                         </button>
                                     </div>
                                 )}

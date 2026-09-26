@@ -7,6 +7,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { NotificacionesProvider } from './contexts/NotificacionesContext';
 import ThemeConfigLoader from './components/ThemeConfigLoader';
+import DecoracionTemporada from './components/DecoracionTemporada';
 import OfflineBanner from './components/OfflineBanner';
 import './styles/AccessibilityFonts.css';
 
@@ -107,6 +108,7 @@ function App(): React.JSX.Element {
       <CartProvider>
       <NotificacionesProvider>
         <ThemeConfigLoader />
+        <DecoracionTemporada />
         <OfflineBanner />
         {/* Botones de control de accesibilidad */}
         <div

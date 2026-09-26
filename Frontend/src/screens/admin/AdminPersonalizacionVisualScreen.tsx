@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AiOutlineCloudUpload, AiOutlineCheckCircle, AiOutlinePicture } from 'react-icons/ai';
 import { productsAPI, carritoAPI, uploadAPI } from '../../services/api';
-import { PALETAS, NOMBRES_TEMA, aplicarTema, restaurarTema, normalizarTema } from '../../components/ThemeConfigLoader';
+import { PALETAS, NOMBRES_TEMA, aplicarTema, restaurarTema, normalizarBase as normalizarTema } from '../../components/ThemeConfigLoader';
 import Loader from '../../components/Loader';
 import '../../styles/SitioSecciones.css';
 import './AdminPersonalizacionVisualScreen.css';
