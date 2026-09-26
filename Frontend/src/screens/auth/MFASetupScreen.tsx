@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { authAPI } from '../../services/api';
 import { AiOutlineSafety, AiOutlineQrcode, AiOutlineNumber, AiOutlineCheckCircle, AiOutlineFileProtect } from 'react-icons/ai';
 import "./MFASetupScreen.css";
+import './AuthExtraApp.css';
 
 interface MFASetupData {
   secret: string;

@@ -1,0 +1,72 @@
+/* AuthExtraApp.css — Recuperar contraseña, pregunta secreta, reiniciar,
+   MFA y acceso de trabajador con el mismo estilo que el login de la app. */
+
+/* Tarjeta de vidrio */
+body :is(.olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .mfa-setup-card, .wauth-card) {
+  border-radius: 32px !important; border: 1px solid var(--glass-border) !important;
+  background: var(--glass-bg) !important; backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--shadow-lift) !important; padding: 36px 32px !important; box-sizing: border-box;
+  font-family: var(--font-body);
+}
+body :is(.olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .mfa-setup-card, .wauth-card)::before,
+body :is(.olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .mfa-setup-card, .wauth-card)::after { display: none !important; }
+
+/* Encabezados */
+body :is(.olvide-contrasenia-header, .recuperar-pregunta-header, .reset-password-header, .mfa-header) { text-align: left !important; }
+body :is(.olvide-contrasenia-header, .recuperar-pregunta-header, .reset-password-header, .mfa-header, .mfa-setup-card) :is(h1, h2),
+body .wauth-title {
+  font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -1px !important;
+  font-size: clamp(26px, 3vw, 32px) !important; line-height: 1.1 !important; color: var(--color-text) !important;
+  text-transform: none !important; background: none !important; -webkit-text-fill-color: currentColor !important; text-align: left !important;
+}
+body :is(.olvide-contrasenia-header, .recuperar-pregunta-header, .reset-password-header, .mfa-header) p,
+body .wauth-sub { color: var(--color-text-muted) !important; font-size: 14.5px !important; text-align: left !important; }
+
+/* Campos */
+body :is(.olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .mfa-setup-card, .wauth-card) label,
+body .wauth-label {
+  font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0.2px !important; color: var(--color-text) !important;
+}
+body :is(.olvide-input, .pregunta-input, .password-input, .reset-password-input, .mfa-code-input, .wauth-input) {
+  min-height: 56px; border-radius: 20px !important; padding: 0 18px !important; box-sizing: border-box;
+  border: 1px solid var(--color-border) !important; background: var(--color-surface) !important; color: var(--color-text) !important;
+  font-family: var(--font-body) !important; font-size: 15px !important;
+}
+body :is(.mfa-code-input, .wauth-input--code) { text-align: center; letter-spacing: 8px !important; font-size: 22px !important; font-weight: 700 !important; }
+body :is(.olvide-input, .pregunta-input, .password-input, .reset-password-input, .mfa-code-input, .wauth-input):focus {
+  outline: none; border-color: var(--color-primary) !important; box-shadow: var(--focus-ring) !important;
+}
+
+/* Botón principal */
+body :is(.olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .mfa-setup-card) :is(.submit-button, .verify-button, .login-button, .reset-password-button, .primary-button, .try-again-button),
+body .wauth-btn-primary {
+  width: 100%; min-height: 56px; border: 0 !important; border-radius: 22px !important;
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; box-shadow: var(--shadow-primary) !important;
+  font-family: var(--font-body) !important; font-size: 16px !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+  display: inline-flex !important; align-items: center; justify-content: center; gap: 8px;
+}
+/* Botones secundarios */
+body :is(.olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .mfa-setup-card) :is(.security-question-button, .secondary-button, .back-button, .register-button),
+body :is(.wauth-btn-ghost, .wauth-btn-recuperar, .wauth-btn-copiar) {
+  min-height: 50px; border-radius: 20px !important; border: 1.5px solid var(--color-primary) !important;
+  background: transparent !important; color: var(--color-primary) !important;
+  font-family: var(--font-body) !important; font-size: 15px !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important; opacity: 1 !important;
+}
+body .back-to-login, body .reset-password-link { color: var(--color-primary) !important; font-weight: 600; }
+body .methods-separator { text-transform: none !important; letter-spacing: 0 !important; color: var(--color-text-muted) !important; font-size: 13px !important; }
+
+/* Avisos */
+body :is(.security-info, .security-notice, .email-tips, .mfa-help, .password-requirements, .wauth-aviso, .benefits, .manual-setup) {
+  border-radius: 18px !important; border: 0 !important; border-left: 3px solid var(--color-info) !important;
+  background: color-mix(in srgb, var(--color-info) 10%, transparent) !important; color: var(--color-text) !important; font-size: 13.5px !important;
+}
+body :is(.error, .error-message, .field-error, .wauth-error) { border-radius: 16px !important; color: var(--color-error) !important; }
+body :is(.success-section, .success-message, .success-verification, .step-complete) { border-radius: 20px !important; }
+body :is(.security-question-display, .question-text) {
+  border-radius: 18px !important; background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface)) !important;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent) !important; color: var(--color-text) !important;
+}
+body :is(.qr-container, .backup-codes, .wauth-codigo-display) { border-radius: 22px !important; }

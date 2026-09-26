@@ -6,6 +6,7 @@ import { securityQuestionAPI } from '../../services/securityQuestionAPI';
 import AuthBackground from '../../components/AuthBackground';
 import { AiOutlineLock, AiOutlineCheckCircle, AiOutlineReload, AiOutlineArrowLeft, AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import './RecuperarConPreguntaScreen.css';
+import './AuthExtraApp.css';
 
 const RecuperarConPreguntaScreen: React.FC = () => {
     const navigate = useNavigate();

@@ -5,6 +5,7 @@ import { authAPI } from '../../services/api';
 import AuthBackground from '../../components/AuthBackground';
 import { AiOutlineSafety, AiOutlineArrowLeft } from 'react-icons/ai';
 import "./MFAVerifyScreen.css";
+import './AuthExtraApp.css';
 
 export default function MFAVerifyScreen() {
   const navigate = useNavigate();

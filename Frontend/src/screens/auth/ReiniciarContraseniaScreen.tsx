@@ -8,6 +8,7 @@ import { getAuth, verifyPasswordResetCode, confirmPasswordReset } from 'firebase
 import AuthBackground from '../../components/AuthBackground';
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineArrowLeft } from 'react-icons/ai';
 import './ReiniciarContraseniaScreen.css';
+import './AuthExtraApp.css';
 
 const ResetPasswordScreen: React.FC = () => {
   const [searchParams] = useSearchParams();

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { workerAuthAPI, solicitudesAPI } from '../../services/api';
 import './WorkerAuth.css';
+import './AuthExtraApp.css';
 
 type Vista = 'codigo' | 'recuperar' | 'recuperar-ok';
 

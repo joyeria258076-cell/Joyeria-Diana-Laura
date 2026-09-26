@@ -11,6 +11,7 @@ import { authAPI } from '../../services/api';
 import AuthBackground from '../../components/AuthBackground';
 import { AiOutlineMail, AiOutlineLock } from 'react-icons/ai';
 import './OlvideContraseniaScreen.css';
+import './AuthExtraApp.css';
 
 // 🆕 FUNCIONES DE VALIDACIÓN PARA PREVENIR INYECCIONES
 const validateNoSQLInjection = (value: string) => {

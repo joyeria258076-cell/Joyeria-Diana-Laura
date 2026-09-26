@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { workerAuthAPI } from '../../services/api';
 import './WorkerAuth.css';
+import './AuthExtraApp.css';
 
 export default function WorkerActivacionScreen() {
   const navigate = useNavigate();
