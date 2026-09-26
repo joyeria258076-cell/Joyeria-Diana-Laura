@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AiOutlineClose, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineStar, AiFillStar, AiOutlineArrowRight, AiOutlineLock, AiOutlineEdit, AiOutlineCheckCircle, AiOutlineWarning, AiOutlineTag, AiOutlineGift } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineStar, AiFillStar, AiOutlineArrowRight, AiOutlineLock, AiOutlineEdit, AiOutlineCheckCircle, AiOutlineWarning, AiOutlineTag, AiOutlineGift, AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
 import { useCart } from '../../contexts/CartContext';
 import { favoritosAPI, recomendacionAPI, type Recomendacion } from '../../services/api';
 import './DetalleProductoModal.css';
@@ -50,6 +50,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
   const [esFavorito, setEsFavorito]       = React.useState(false);
   const [togglingFav, setTogglingFav]     = React.useState(false);
   const [recomendaciones, setRecomendaciones] = React.useState<Recomendacion[]>([]);
+  const [descAbierta, setDescAbierta]     = React.useState(false);
   const navigate = useNavigate();
   const logueado = estaLogueado();
   const { agregarAlCarrito } = useCart();
@@ -172,88 +173,79 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
         )}
 
         {/* Body */}
-        <div className="detalle-modal-body">
+        <div className="detalle-modal-body dm-body">
           {/* Imagen */}
-          <div className="detalle-imagen-section">
-            <div className="detalle-imagen-container">
+          <div className="detalle-imagen-section dm-foto-col">
+            <div className="detalle-imagen-container dm-foto">
               <img src={imagenUrl} alt={producto.nombre} />
               {producto.es_nuevo && <span className="badge badge-nuevo">Nuevo</span>}
               {hayDescuento && <span className="badge badge-descuento">En oferta</span>}
               {producto.permite_personalizacion && (
                 <span className="badge badge-personalizable-modal"><AiOutlineEdit size={12} /> Personalizable</span>
               )}
+              {producto.stock_actual === 0 && <span className="dm-agotado">Agotado</span>}
             </div>
           </div>
 
           {/* Información */}
-          <div className="detalle-info-section">
+          <div className="detalle-info-section dm-info">
             <div className="detalle-chips">
-              {producto.categoria_nombre && (
-                <p className="detalle-categoria">{producto.categoria_nombre}</p>
-              )}
+              {producto.categoria_nombre && <p className="detalle-categoria">{producto.categoria_nombre}</p>}
               {producto.permite_personalizacion && (
                 <span className="detalle-chip-personalizable"><AiOutlineEdit size={12} /> Personalizable</span>
               )}
+              {producto.stock_actual > 0 && producto.stock_actual <= 5 && (
+                <span className="dm-chip-quedan">Quedan {producto.stock_actual}</span>
+              )}
             </div>
+
+            <div className="detalle-precios dm-precios">
+              <span className="precio-actual">${Number(precioFinal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              {hayDescuento && <span className="precio-original">${Number(producto.precio_venta).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>}
+              {esPromocion && <span className="badge-promo-modal"><AiOutlineTag size={12} /> Promoción</span>}
+              {promoVenceLabel && <p className="promo-vence-label">{promoVenceLabel}</p>}
+            </div>
+
+            <p className={`dm-stock ${producto.stock_actual === 0 ? 'dm-stock--no' : producto.stock_actual <= 5 ? 'dm-stock--poco' : ''}`}>
+              <span />
+              {producto.stock_actual === 0 ? 'Agotado por ahora' : producto.stock_actual <= 5 ? `Solo quedan ${producto.stock_actual}` : `${producto.stock_actual} disponibles`}
+            </p>
+
             {producto.descripcion && (
-              <p className="detalle-descripcion">{producto.descripcion}</p>
+              <div className="dm-desc">
+                <p className={`detalle-descripcion${descAbierta ? '' : ' dm-desc--corta'}`}>{producto.descripcion}</p>
+                {producto.descripcion.length > 160 && (
+                  <button type="button" className="dm-leer-mas" onClick={() => setDescAbierta(v => !v)}>
+                    {descAbierta ? 'Leer menos' : 'Leer más'}
+                  </button>
+                )}
+              </div>
             )}
 
-            <div className="detalle-caracteristicas">
-              {producto.material_principal && (
+            {producto.material_principal && (
+              <div className="detalle-caracteristicas">
                 <div className="caracteristica-item">
-                  <span className="label">Material:</span>
+                  <span className="label">Material</span>
                   <span className="valor">{producto.material_principal}</span>
                 </div>
-              )}
-              {producto.permite_personalizacion && (
-                <div className="caracteristica-item">
-                  <span className="label">Personalización:</span>
-                  <span className="valor">Disponible</span>
-                </div>
-              )}
-              <div className="caracteristica-item">
-                <span className="label">Stock Disponible:</span>
-                <span className={`valor ${producto.stock_actual === 0 ? 'sin-stock' : ''}`}>
-                  {producto.stock_actual === 0 ? 'Agotado' : `${producto.stock_actual} unidades`}
-                </span>
+                {producto.permite_personalizacion && (
+                  <div className="caracteristica-item">
+                    <span className="label">Personalización</span>
+                    <span className="valor">Disponible</span>
+                  </div>
+                )}
               </div>
-              {producto.stock_actual > 0 && producto.stock_actual <= 5 && (
-              <div className="caracteristica-item">
-                  <span className="label detalle-poco-stock"><AiOutlineWarning size={13} /> Quedan solo</span>
-                  <span className="valor detalle-poco-stock">{producto.stock_actual} unidades</span>
-              </div>
-          )}
-            </div>
-
-            <div className="detalle-precios">
-              {hayDescuento ? (
-                <>
-                  <span className="precio-original">${producto.precio_venta.toLocaleString('es-MX')}</span>
-                  <span className="precio-actual">${Number(precioFinal).toLocaleString('es-MX')}</span>
-                  {esPromocion && <span className="badge-promo-modal"><AiOutlineTag size={12} /> Promoción</span>}
-                </>
-              ) : null}
-              {promoVenceLabel && (
-                <p className="promo-vence-label">{promoVenceLabel}</p>
-              )}
-              {!hayDescuento && (
-                <span className="precio-actual">${Number(precioFinal).toLocaleString('es-MX')}</span>
-              )}
-            </div>
+            )}
 
             {producto.stock_actual > 0 && (
               <>
-                {/* ✅ Campo de talla/medida si el producto lo requiere */}
                 {requiereTalla && (
                   <div className="detalle-talla">
-                    <label>
-                      Talla / Medida <span className="detalle-requerido">*</span>
-                    </label>
+                    <label>Talla / medida <span className="detalle-requerido">*</span></label>
                     <input
                       type="text"
                       className={`detalle-talla-input ${tallaError ? 'input-error' : ''}`}
-                      placeholder="Ej: 7, M, 15cm, personalización..."
+                      placeholder="Ej: 7, M, 15cm…"
                       value={talla}
                       onChange={e => { setTalla(e.target.value); setTallaError(''); }}
                     />
@@ -261,14 +253,13 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                   </div>
                 )}
 
-                {/* Campo de nota opcional */}
                 {producto.permite_personalizacion && (
                   <div className="detalle-talla">
                     <label>Notas de personalización (opcional)</label>
                     <input
                       type="text"
                       className="detalle-talla-input"
-                      placeholder="Ej: grabado con nombre 'Ana', color dorado..."
+                      placeholder="Ej: grabado con nombre 'Ana', color dorado…"
                       value={nota}
                       onChange={e => setNota(e.target.value)}
                     />
@@ -276,9 +267,9 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                 )}
 
                 <div className="detalle-cantidad">
-                  <label>Cantidad:</label>
+                  <label>Cantidad</label>
                   <div className="cantidad-control">
-                    <button className="btn-cantidad" onClick={decrementar} disabled={cantidad === 1}>
+                    <button className="btn-cantidad" onClick={decrementar} disabled={cantidad === 1} aria-label="Quitar uno">
                       <AiOutlineMinus size={16} />
                     </button>
                     <input
@@ -288,8 +279,9 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                         if (val > 0 && val <= producto.stock_actual) setCantidad(val);
                       }}
                       min="1" max={producto.stock_actual}
+                      aria-label="Cantidad"
                     />
-                    <button className="btn-cantidad" onClick={incrementar} disabled={cantidad === producto.stock_actual}>
+                    <button className="btn-cantidad" onClick={incrementar} disabled={cantidad === producto.stock_actual} aria-label="Agregar uno">
                       <AiOutlinePlus size={16} />
                     </button>
                   </div>
@@ -297,36 +289,40 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
               </>
             )}
 
-            <div className="detalle-acciones">
-              {producto.stock_actual > 0 ? (
-                <button
-                  className={`btn btn-primary ${exitoso ? 'btn-exitoso' : ''}`}
-                  onClick={handleAgregar}
-                  disabled={agregando || exitoso}
-                >
-                  <AiOutlineShoppingCart size={20} />
-                  {agregando ? 'Agregando…' : exitoso ? 'Agregado al carrito' : 'Agregar al carrito'}
-                  {!logueado && <AiOutlineLock size={13} style={{marginLeft: 4, opacity: 0.7}} />}
-                </button>
-              ) : (
-                <button className="btn btn-disabled" disabled>Producto Agotado</button>
-              )}
-
-              <button
-                className={`btn btn-secondary${esFavorito ? ' btn-fav-activo' : ''}`}
-                onClick={handleFavorito}
-                disabled={togglingFav}
-              >
-                {esFavorito ? <AiFillStar size={20} /> : <AiOutlineStar size={20} />}
-                {togglingFav ? 'Guardando…' : esFavorito ? 'En favoritos' : 'Guardar en favoritos'}
-                {!logueado && <AiOutlineLock size={13} style={{marginLeft: 4, opacity: 0.7}} />}
-              </button>
-
-              <button className="btn btn-ver-detalles" onClick={handleVerDetalles}>
-                Ver detalles completos
-              </button>
-            </div>
+            <button className="dm-ver-completo" onClick={handleVerDetalles}>
+              Ver detalles completos <AiOutlineArrowRight size={14} />
+            </button>
           </div>
+        </div>
+
+        {/* Barra de compra fija (como la app): total · favorito · agregar */}
+        <div className="dm-barra">
+          <div className="dm-barra-precio">
+            <span>{cantidad > 1 ? `Total · ${cantidad} piezas` : 'Precio'}</span>
+            <strong>${(Number(precioFinal) * cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small>MXN</small></strong>
+          </div>
+          <button
+            className={`dm-fav${esFavorito ? ' activo' : ''}`}
+            onClick={handleFavorito}
+            disabled={togglingFav}
+            aria-label={esFavorito ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+            title={esFavorito ? 'En favoritos' : 'Guardar en favoritos'}
+          >
+            {esFavorito ? <AiFillHeart size={20} /> : <AiOutlineHeart size={20} />}
+          </button>
+          {producto.stock_actual > 0 ? (
+            <button
+              className={`dm-agregar${exitoso ? ' exito' : ''}`}
+              onClick={handleAgregar}
+              disabled={agregando || exitoso}
+            >
+              {exitoso ? <AiOutlineCheckCircle size={18} /> : <AiOutlineShoppingCart size={18} />}
+              {agregando ? 'Agregando…' : exitoso ? 'Agregado' : 'Agregar'}
+              {!logueado && <AiOutlineLock size={13} className="dm-candado" />}
+            </button>
+          ) : (
+            <button className="dm-agregar" disabled>Agotado</button>
+          )}
         </div>
 
         {recomendaciones.length > 0 && (

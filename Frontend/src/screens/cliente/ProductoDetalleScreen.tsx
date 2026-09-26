@@ -7,6 +7,7 @@ import { colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import { useCart } from '../../contexts/CartContext';
 import './ProductoDetalleScreen.css';
 import './DetalleApp.css';
+import EsqueletoDetalle from '../../components/EsqueletoDetalle';
 import '../../styles/DetalleBoceto.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/ProductosRelacionados.css';
@@ -215,10 +216,7 @@ const ProductoDetalleScreen: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="pd-loading">
-                <div className="pd-loading-gem" />
-                <p>Cargando producto...</p>
-            </div>
+            <EsqueletoDetalle />
         );
     }
 
@@ -354,15 +352,15 @@ const ProductoDetalleScreen: React.FC = () => {
                     <div className="pd-precios">
                         {hayDescuento && (
                             <span className="pd-precio-original">
-                                ${producto.precio_venta.toLocaleString('es-MX')}
+                                ${producto.precio_venta.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         )}
                         <span className="pd-precio-final">
-                            ${precioFinal.toLocaleString('es-MX')}
+                            ${precioFinal.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                         {hayDescuento && (
                             <span className="pd-ahorro">
-                                {esPromocion ? 'Promoción — ' : ''}Ahorras ${(producto.precio_venta - precioFinal).toLocaleString('es-MX')} ({descuentoPct}% off)
+                                {esPromocion ? 'Promoción — ' : ''}Ahorras ${(producto.precio_venta - precioFinal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({descuentoPct}% off)
                             </span>
                         )}
                     </div>
@@ -417,7 +415,7 @@ const ProductoDetalleScreen: React.FC = () => {
                             <div className="pd-barra-compra">
                                 <div className="pd-barra-precio">
                                     <span>{cantidad > 1 ? `Total · ${cantidad} piezas` : 'Precio'}</span>
-                                    <strong>${(precioFinal * cantidad).toLocaleString('es-MX')} <small>MXN</small></strong>
+                                    <strong>${(precioFinal * cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small>MXN</small></strong>
                                 </div>
                                 <button
                                     className={`pd-btn-carrito ${exitoso ? 'success' : ''}`}

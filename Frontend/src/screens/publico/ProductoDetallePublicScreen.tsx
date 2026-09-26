@@ -8,13 +8,13 @@ import {
 import { productsAPI, recomendacionAPI, resenasAPI, favoritosAPI } from '../../services/api';
 import { colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import { useCart } from '../../contexts/CartContext';
-import Loader from '../../components/Loader';
 import PublicHeader from '../../components/PublicHeader';
 import PublicFooter from '../../components/PublicFooter';
 import './ProductoDetallePublicScreen.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/ProductosRelacionados.css';
 import './DetallePublicoApp.css';
+import EsqueletoDetalle from '../../components/EsqueletoDetalle';
 import '../../styles/DetalleBoceto.css';
 
 const estaLogueado = (): boolean => {
@@ -249,8 +249,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
         return (
             <div className="pdp-wrapper">
                 <PublicHeader />
-                <Loader texto="Cargando producto..." />
-                <PublicFooter />
+                <EsqueletoDetalle />
             </div>
         );
     }
@@ -386,12 +385,12 @@ const ProductoDetallePublicScreen: React.FC = () => {
 
                         <div className="pdp-precios">
                             {hayDescuento && (
-                                <span className="pdp-precio-original">${producto.precio_venta.toLocaleString('es-MX')}</span>
+                                <span className="pdp-precio-original">${producto.precio_venta.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             )}
-                            <span className="pdp-precio-final">${precioFinal.toLocaleString('es-MX')}</span>
+                            <span className="pdp-precio-final">${precioFinal.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             {hayDescuento && (
                                 <span className="pdp-ahorro">
-                                    {esPromocion ? 'Promoción — ' : ''}Ahorras ${(producto.precio_venta - precioFinal).toLocaleString('es-MX')} ({descuentoPct}% off)
+                                    {esPromocion ? 'Promoción — ' : ''}Ahorras ${(producto.precio_venta - precioFinal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({descuentoPct}% off)
                                 </span>
                             )}
                         </div>
@@ -455,7 +454,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
                                     <div className="pdp-barra-compra">
                                     <div className="pdp-barra-precio">
                                         <span>{cantidad > 1 ? `Total · ${cantidad} piezas` : 'Precio'}</span>
-                                        <strong>${(precioFinal * cantidad).toLocaleString('es-MX')} <small>MXN</small></strong>
+                                        <strong>${(precioFinal * cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small>MXN</small></strong>
                                     </div>
                                     <button
                                         className={`pdp-btn-accion pdp-btn-carrito ${exitoso ? 'success' : ''}`}

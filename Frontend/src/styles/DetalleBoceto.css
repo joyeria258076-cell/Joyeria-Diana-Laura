@@ -59,3 +59,12 @@ body :is(.pd-image-frame, .pdp-image-frame):has(:is(.pd-agotado-overlay, .pdp-ag
   :is(.pd-barra-precio, .pdp-barra-precio) strong { font-size: 22px; }
   body :is(.pd-barra-compra, .pdp-barra-compra) :is(.pd-btn-carrito, .pdp-btn-carrito) { min-width: 0; padding: 0 18px !important; }
 }
+
+/* Pantallas grandes: foto más grande y fija mientras se lee la información */
+@media (min-width: 1100px) {
+  body :is(.pd-body, .pdp-wrapper .pdp-body) { max-width: 1320px !important; }
+  body :is(.pd-main, .pdp-main) { display: grid !important; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr) !important; gap: 44px !important; align-items: start !important; }
+  body :is(.pd-gallery, .pdp-gallery) { position: sticky; top: 96px; }
+  body :is(.pd-image-frame, .pdp-image-frame) { aspect-ratio: 1 / 1; }
+  body :is(.pd-image-frame, .pdp-image-frame) img { width: 100%; height: 100%; object-fit: cover; }
+}

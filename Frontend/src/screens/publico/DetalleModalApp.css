@@ -190,3 +190,92 @@ body .detalle-rec-card-precio { font-family: var(--font-body) !important; font-s
 body .detalle-imagen-container .badge:not(.badge-personalizable-modal) { position: absolute !important; top: 14px !important; left: 14px !important; right: auto !important; width: auto !important; }
 body .detalle-imagen-container .badge-descuento { left: auto !important; right: 14px !important; }
 body .detalle-acciones .btn-ver-detalles, body .detalle-acciones .btn-ver-detalles * { text-decoration: none !important; border-bottom: 0 !important; }
+
+/* ── Distribución tipo app (boceto P7): foto fija, precio arriba, barra de compra abajo ── */
+body .detalle-modal-content { max-width: 940px !important; width: 94% !important; max-height: 92vh !important; overscroll-behavior: contain; }
+body .detalle-modal-header { position: sticky; top: 0; z-index: 3; background: var(--color-surface) !important; }
+body .detalle-modal-body.dm-body {
+  display: grid !important; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr) !important;
+  gap: 28px !important; align-items: start !important; padding: 24px 24px 18px !important;
+}
+body .dm-foto-col { position: sticky; top: 92px; align-self: start; }
+body .dm-foto { aspect-ratio: 1 / 1; width: 100%; height: auto !important; max-height: none !important; }
+body .dm-foto img { position: absolute; inset: 0; width: 100% !important; height: 100% !important; object-fit: cover; }
+.dm-agotado {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2;
+  padding: 10px 22px; border-radius: 999px; background: rgba(13, 8, 12, 0.62); color: #fff;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-family: var(--font-body); font-weight: 600; font-size: 15px;
+}
+body .dm-info { display: flex !important; flex-direction: column; gap: 12px; min-width: 0; padding: 0 !important; }
+body .dm-info .detalle-chips { margin: 0; }
+.dm-chip-quedan {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
+  background: color-mix(in srgb, var(--color-warning) 16%, transparent); color: var(--color-warning);
+  font-family: var(--font-body); font-size: 12px; font-weight: 600;
+}
+.dm-chip-quedan::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+body .dm-precios { margin: 0 !important; }
+body .dm-precios .precio-actual { font-size: 34px !important; }
+.dm-stock { display: inline-flex; align-items: center; gap: 8px; margin: -4px 0 0; font-family: var(--font-body); font-size: 13.5px; color: var(--color-text-muted); }
+.dm-stock span { width: 8px; height: 8px; border-radius: 50%; background: var(--color-success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-success) 20%, transparent); }
+.dm-stock--poco span { background: var(--color-warning); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-warning) 20%, transparent); }
+.dm-stock--no span { background: var(--color-error); box-shadow: none; }
+.dm-desc { padding: 14px 16px; border-radius: 18px; background: var(--color-surface-2); }
+body .dm-desc .detalle-descripcion { margin: 0 !important; font-size: 14px !important; line-height: 1.6 !important; }
+.dm-desc--corta { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.dm-leer-mas { margin-top: 6px; padding: 0; border: 0; background: none; cursor: pointer; font-family: var(--font-body); font-size: 13px; font-weight: 600; color: var(--color-primary); }
+body .dm-info .detalle-caracteristicas { margin: 0 !important; }
+body .dm-info .detalle-cantidad { margin: 2px 0 0 !important; }
+.dm-ver-completo {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 0; border: 0; background: none; cursor: pointer;
+  font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--color-primary);
+}
+.dm-ver-completo:hover { text-decoration: underline; }
+
+/* Barra de compra pegada abajo del modal */
+.dm-barra {
+  position: sticky; bottom: 0; z-index: 3;
+  display: flex; align-items: center; gap: 12px; padding: 14px 24px;
+  border-top: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+.dm-barra-precio { flex: 1; min-width: 0; display: flex; flex-direction: column; font-family: var(--font-body); }
+.dm-barra-precio span { font-size: 12px; color: var(--color-text-muted); }
+.dm-barra-precio strong { font-size: 24px; font-weight: 700; letter-spacing: -0.8px; color: var(--color-text); white-space: nowrap; line-height: 1.1; }
+.dm-barra-precio small { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: var(--color-text-muted); }
+.dm-fav {
+  width: 52px; height: 52px; flex-shrink: 0; border-radius: 18px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 55%, transparent); background: transparent; color: var(--color-primary);
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+.dm-fav:hover { transform: scale(1.05); }
+.dm-fav.activo { background: #fff; border-color: #fff; color: var(--color-primary-strong); }
+.dm-agregar {
+  min-height: 52px; min-width: 170px; padding: 0 24px; border: 0; border-radius: 18px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--gradient-primary); color: var(--color-on-primary); box-shadow: var(--shadow-primary);
+  font-family: var(--font-body); font-size: 16px; font-weight: 600;
+  transition: transform 0.15s ease;
+}
+.dm-agregar:hover:not(:disabled) { transform: translateY(-2px); }
+.dm-agregar:disabled { cursor: default; }
+.dm-agregar.exito { background: var(--color-success); color: #fff; }
+.dm-agregar:disabled:not(.exito) { background: var(--color-surface-2); color: var(--color-text-muted); box-shadow: none; }
+.dm-candado { opacity: 0.7; }
+
+/* Oculta los botones viejos por si quedara alguno */
+body .dm-body ~ .detalle-acciones { display: none !important; }
+
+@media (max-width: 700px) {
+  body .detalle-modal-body.dm-body { grid-template-columns: 1fr !important; gap: 16px !important; padding: 16px !important; }
+  body .dm-foto-col { position: static; }
+  body .dm-foto { aspect-ratio: 4 / 3.4; }
+  .dm-barra { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .dm-agregar { min-width: 0; padding: 0 18px; }
+  .dm-barra-precio strong { font-size: 21px; }
+}
+
+/* Con la vista rápida abierta, el botón de accesibilidad sube para no tapar "Agregar" */
+body:has(.detalle-modal-overlay) .global-accessibility-buttons { bottom: 104px !important; }
