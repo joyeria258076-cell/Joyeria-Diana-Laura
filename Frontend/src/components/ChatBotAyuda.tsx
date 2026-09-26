@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AiOutlineSend, AiOutlineWhatsApp } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { asistenteAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import '../styles/ChatBotAyuda.css';
 
 interface FAQItem { pregunta: string; respuesta: string; }
@@ -36,7 +37,10 @@ const normalizar = (s: string) =>
 
 const CHIPS = ['¿Cómo va mi pedido?', 'Anillos de menos de $500', 'Promociones vigentes', 'Zonas de entrega', 'Formas de pago', 'Personalización', 'Horarios', 'Hablar con una persona'];
 
-const ChatBotAyuda: React.FC<Props> = ({ faqs, whatsapp, info, logeado = false }) => {
+const ChatBotAyuda: React.FC<Props> = ({ faqs, whatsapp, info, logeado: logeadoProp = false }) => {
+  // Con sesión iniciada no se pide "inicia sesión", aunque la ayuda se abra desde la parte pública
+  const { user } = useAuth();
+  const logeado = logeadoProp || !!user;
   const [mensajes, setMensajes] = useState<Mensaje[]>([
     { from: 'bot', text: '¡Hola! Soy el asistente virtual de Joyería Diana Laura 💎 Puedo buscar piezas por tipo o precio, decirte promociones, zonas de entrega' + (logeado ? ' y cómo van tus pedidos, apartados o personalizaciones.' : '. Si inicias sesión, también te digo cómo van tus pedidos.') + ' Escribe tu pregunta.' },
   ]);

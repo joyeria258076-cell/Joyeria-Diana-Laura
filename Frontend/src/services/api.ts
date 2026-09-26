@@ -79,7 +79,10 @@ class EnhancedApiService {
     }
 
     const config: RequestInit = {
-      credentials: 'include', 
+      credentials: 'include',
+      // Nunca reutilizar respuestas guardadas por el navegador (carrito, pedidos y
+      // stock deben verse al día justo después de cada acción).
+      cache: 'no-store',
       headers: {
         ...headers,
         ...options.headers,

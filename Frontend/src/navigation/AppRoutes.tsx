@@ -236,6 +236,7 @@ export default function AppRoutes() {
           <Route path="/ayuda" element={<Ayuda />} />
           <Route path="/blog" element={<NoticiasScreen privado />} />
           <Route path="/blog/:id" element={<NoticiaDetalleScreen privado />} />
+          <Route path="/terminos/:tipo" element={<LegalScreen privado />} />
           <Route path="/pedidos" element={<ClientePedidosScreen />} />
           <Route path="/carrito" element={<CarritoScreen />} />
           <Route path="/mis-apartados" element={<MisApartadosScreen />} />

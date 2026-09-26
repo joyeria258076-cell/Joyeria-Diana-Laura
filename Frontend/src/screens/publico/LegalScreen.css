@@ -288,3 +288,7 @@
   .legal-tab { border-radius: 10px; border-bottom: 1px solid; width: 100%; }
   .legal-content-wrap { padding: 1.5rem 1rem 3rem; }
 }
+
+/* Versión con sesión (/terminos/:tipo): vive dentro del área privada, sin fondo propio */
+body .legal-page--privado { background: none !important; min-height: 0 !important; }
+body .legal-page--privado .legal-main { padding-top: 0 !important; }

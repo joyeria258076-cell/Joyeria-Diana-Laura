@@ -101,8 +101,10 @@ Nos reservamos el derecho de actualizar este Aviso. Las modificaciones serán pu
 Al utilizar nuestros servicios y proporcionar sus datos personales, usted acepta los términos del presente Aviso de Privacidad.
 Última actualización: 11 de septiembre de 2025.`;
 
-const LegalScreen: React.FC = () => {
+// privado = versión dentro del layout con sesión (ruta /terminos/:tipo), sin header/footer públicos
+const LegalScreen: React.FC<{ privado?: boolean }> = ({ privado = false }) => {
   const { tipo } = useParams<{ tipo: string }>();
+  const base = privado ? '/terminos' : '/legal';
   const navigate = useNavigate();
   const [contenido, setContenido] = useState('');
   const [titulo, setTitulo] = useState('');
@@ -171,8 +173,8 @@ const LegalScreen: React.FC = () => {
   };
 
   return (
-    <div className="legal-page">
-      <PublicHeader />
+    <div className={`legal-page${privado ? ' legal-page--privado' : ''}`}>
+      {!privado && <PublicHeader />}
       <main className="legal-main">
         {/* Hero */}
         <div className="legal-hero">
@@ -191,11 +193,11 @@ const LegalScreen: React.FC = () => {
           <div className="legal-tabs">
             <button
               className={`legal-tab ${pageName === 'terminos' ? 'active' : ''}`}
-              onClick={() => navigate('/legal/terminos')}
+              onClick={() => navigate(`${base}/terminos`)}
             >📋 Términos y Condiciones</button>
             <button
               className={`legal-tab ${pageName === 'privacidad' ? 'active' : ''}`}
-              onClick={() => navigate('/legal/privacidad')}
+              onClick={() => navigate(`${base}/privacidad`)}
             >🔒 Aviso de Privacidad</button>
           </div>
         </div>
@@ -235,17 +237,17 @@ const LegalScreen: React.FC = () => {
             </div>
             <div className="legal-aside-card legal-aside-card--nav">
               <h4>Documentos legales</h4>
-              <button className={`legal-aside-nav ${pageName === 'terminos' ? 'active' : ''}`} onClick={() => navigate('/legal/terminos')}>
+              <button className={`legal-aside-nav ${pageName === 'terminos' ? 'active' : ''}`} onClick={() => navigate(`${base}/terminos`)}>
                 📋 Términos y Condiciones
               </button>
-              <button className={`legal-aside-nav ${pageName === 'privacidad' ? 'active' : ''}`} onClick={() => navigate('/legal/privacidad')}>
+              <button className={`legal-aside-nav ${pageName === 'privacidad' ? 'active' : ''}`} onClick={() => navigate(`${base}/privacidad`)}>
                 🔒 Aviso de Privacidad
               </button>
             </div>
           </aside>
         </div>
       </main>
-      <PublicFooter />
+      {!privado && <PublicFooter />}
     </div>
   );
 };

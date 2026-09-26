@@ -82,9 +82,9 @@ const FooterPrivado: React.FC = () => {
         <div className="fp-bottom">
           <p>&copy; {new Date().getFullYear()} Diana Laura Joyería. Todos los derechos reservados.</p>
           <div className="fp-policies">
-            <Link to="/legal/privacidad">Política de Privacidad</Link>
+            <Link to="/terminos/privacidad">Política de Privacidad</Link>
             <span className="fp-separator">•</span>
-            <Link to="/legal/terminos">Términos de Servicio</Link>
+            <Link to="/terminos/terminos">Términos de Servicio</Link>
           </div>
         </div>
       </div>
