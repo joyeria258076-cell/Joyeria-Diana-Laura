@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { paginasAPI, seccionesAPI } from '../../../services/api';
+import { AiOutlineEdit, AiOutlineDelete, AiOutlineLayout, AiOutlinePicture, AiOutlineEye } from 'react-icons/ai';
 import './AdminSectionManagementScreen.css';
+import './GestionSeccionesApp.css';
 
 interface Pagina {
   id: number;
@@ -18,6 +20,24 @@ interface Seccion {
   orden: number;
   activo: boolean;
 }
+
+// Texto claro u oscuro según el color de fondo de la sección (para la vista previa).
+const textoSobre = (hex?: string) => {
+  const h = (hex || '#ffffff').replace('#', '');
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return '#2A0F22';
+  const [r, g, b] = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.6 ? '#2A0F22' : '#FFFFFF';
+};
+
+const VistaSeccion: React.FC<{ nombre: string; descripcion?: string; imagen?: string; color?: string; mini?: boolean }> = ({ nombre, descripcion, imagen, color, mini }) => (
+  <div className={`gsec-vista${mini ? ' gsec-vista--mini' : ''}`} style={{ background: color || '#ffffff', color: textoSobre(color) }}>
+    {imagen ? <img className="gsec-vista-img" src={imagen} alt="" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : null}
+    <div className="gsec-vista-texto">
+      <strong>{nombre || 'Nombre de la sección'}</strong>
+      {!mini && <p>{descripcion || 'Aquí aparecerá la descripción de la sección tal como la verán tus clientes.'}</p>}
+    </div>
+  </div>
+);
 
 const AdminSectionManagementScreen: React.FC = () => {
   // Estados
@@ -165,183 +185,109 @@ const AdminSectionManagementScreen: React.FC = () => {
     }
   };
 
+  const paginaActual = paginas.find(p => p.id === selectedPaginaId);
+
   return (
-    <div className="section-management-container">
-      <h2 className="section-management-title">
-        <span className="title-icon">📑</span> Gestión de Secciones
-      </h2>
+    <div className="section-management-container gsec">
+      <span className="gsec-eyebrow">Contenido</span>
+      <h2 className="section-management-title">Gestión de <span>secciones</span></h2>
+      <p className="gsec-sub">Elige una página, arma cada apartado y mira cómo quedará antes de guardarlo.</p>
 
-      {error && <div className="error-message">❌ {error}</div>}
-      {successMessage && <div className="success-message">✅ {successMessage}</div>}
+      {error && <div className="error-message">{error}</div>}
+      {successMessage && <div className="success-message">{successMessage}</div>}
 
-      {/* Selector de página */}
-      <div className="page-selector-container">
-        <label className="page-selector-label" htmlFor="page-select">
-          Selecciona una página para gestionar sus secciones:
-        </label>
-        <select
-          id="page-select"
-          className="page-selector"
-          value={selectedPaginaId || ''}
-          onChange={(e) => {
-            setSelectedPaginaId(e.target.value ? Number.parseInt(e.target.value) : null);
-            resetForm();
-          }}
-        >
-          <option value="">-- Elige una página --</option>
-          {paginas.map(pagina => (
-            <option key={pagina.id} value={pagina.id}>
-              {pagina.nombre} (/{pagina.slug})
-            </option>
-          ))}
-        </select>
+      {/* Páginas como píldoras */}
+      <div className="gsec-paginas" role="tablist" aria-label="Páginas">
+        {paginas.length === 0 && <span className="gsec-nota">No hay páginas registradas todavía.</span>}
+        {paginas.map(pagina => (
+          <button
+            key={pagina.id}
+            role="tab"
+            aria-selected={selectedPaginaId === pagina.id}
+            className={`gsec-pagina${selectedPaginaId === pagina.id ? ' activa' : ''}`}
+            onClick={() => { setSelectedPaginaId(pagina.id); resetForm(); }}
+          >
+            <AiOutlineLayout size={15} /> {pagina.nombre} <small>/{pagina.slug}</small>
+          </button>
+        ))}
       </div>
 
-      {selectedPaginaId && (
-        <div className="section-management-section">
+      {!selectedPaginaId ? (
+        <div className="gsec-vacio">
+          <AiOutlineLayout size={30} />
+          <p>Selecciona una página para ver y editar sus secciones.</p>
+        </div>
+      ) : (
+        <div className="gsec-grid">
           {/* Formulario */}
-          <div className="section-form-container">
-            <h3 style={{ marginTop: 0, marginBottom: 20, color: '#333' }}>
-              {editingId ? 'Editar Sección' : 'Nueva Sección'}
-            </h3>
-
+          <div className="gsec-card">
+            <h3 className="gsec-card-titulo">{editingId ? 'Editar sección' : 'Nueva sección'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label htmlFor="nombre">Nombre de la Sección *</label>
-                <input
-                  id="nombre"
-                  type="text"
-                  name="nombre"
-                  placeholder="Ej: Nuestros Servicios"
-                  value={formData.nombre}
-                  onChange={handleInputChange}
-                />
+                <label htmlFor="nombre">Nombre de la sección *</label>
+                <input id="nombre" type="text" name="nombre" placeholder="Ej: Nuestros servicios" value={formData.nombre} onChange={handleInputChange} />
               </div>
-
               <div className="form-group">
                 <label htmlFor="descripcion">Descripción</label>
-                <textarea
-                  id="descripcion"
-                  name="descripcion"
-                  placeholder="Descripción de la sección"
-                  value={formData.descripcion}
-                  onChange={handleInputChange}
-                />
+                <textarea id="descripcion" name="descripcion" placeholder="Descripción de la sección" value={formData.descripcion} onChange={handleInputChange} />
               </div>
-
               <div className="form-group">
-                <label htmlFor="imagen_url">URL de la Imagen</label>
-                <input
-                  id="imagen_url"
-                  type="text"
-                  name="imagen_url"
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                  value={formData.imagen_url}
-                  onChange={handleInputChange}
-                />
+                <label htmlFor="imagen_url">URL de la imagen</label>
+                <input id="imagen_url" type="text" name="imagen_url" placeholder="https://ejemplo.com/imagen.jpg" value={formData.imagen_url} onChange={handleInputChange} />
               </div>
-
-              <div className="form-group">
-                <label htmlFor="color_fondo">Color de Fondo</label>
-                <div className="color-input-wrapper">
-                  <input
-                    id="color_fondo"
-                    type="color"
-                    name="color_fondo"
-                    value={formData.color_fondo}
-                    onChange={handleInputChange}
-                  />
-                  <input
-                    type="text"
-                    value={formData.color_fondo}
-                    placeholder="#ffffff"
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      color_fondo: e.target.value
-                    }))}
-                  />
+              <div className="gsec-fila">
+                <div className="form-group">
+                  <label htmlFor="color_fondo">Color de fondo</label>
+                  <div className="color-input-wrapper">
+                    <input id="color_fondo" type="color" name="color_fondo" value={formData.color_fondo} onChange={handleInputChange} />
+                    <input type="text" value={formData.color_fondo} placeholder="#ffffff"
+                      onChange={(e) => setFormData(prev => ({ ...prev, color_fondo: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="orden">Orden</label>
+                  <input id="orden" type="number" name="orden" value={formData.orden} onChange={handleInputChange} />
                 </div>
               </div>
-
-              <div className="form-group">
-                <label htmlFor="orden">Orden de Visualización</label>
-                <input
-                  id="orden"
-                  type="number"
-                  name="orden"
-                  value={formData.orden}
-                  onChange={handleInputChange}
-                />
-              </div>
-
               <div className="form-actions">
-                {editingId && (
-                  <button type="button" className="btn-secondary" onClick={resetForm}>
-                    Cancelar
-                  </button>
-                )}
-                <button type="submit" className="btn-primary">
-                  {editingId ? 'Actualizar' : 'Crear'} Sección
-                </button>
+                {editingId && <button type="button" className="btn-secondary" onClick={resetForm}>Cancelar</button>}
+                <button type="submit" className="btn-primary">{editingId ? 'Guardar cambios' : 'Crear sección'}</button>
               </div>
             </form>
           </div>
 
-          {/* Lista de secciones */}
-          <div className="sections-list-container">
-            <h3 className="sections-list-title">
-              Secciones de {paginas.find(p => p.id === selectedPaginaId)?.nombre}
-            </h3>
+          {/* Vista previa + lista */}
+          <div className="gsec-columna">
+            <div className="gsec-card">
+              <h3 className="gsec-card-titulo"><AiOutlineEye size={16} /> Vista previa</h3>
+              <VistaSeccion nombre={formData.nombre} descripcion={formData.descripcion} imagen={formData.imagen_url} color={formData.color_fondo} />
+            </div>
 
-            {loading ? (
-              <div className="loading-message">Cargando secciones...</div>
-            ) : secciones.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-state-icon">📭</div>
-                <div className="empty-state-title">No hay secciones</div>
-                <p>Crea tu primera sección usando el formulario</p>
-              </div>
-            ) : (
-              <div>
-                {secciones.map(seccion => (
-                  <div
-                    key={seccion.id}
-                    className="section-item"
-                    style={{ borderLeftColor: seccion.color_fondo || '#8b7355' }}
-                  >
-                    <div className="section-item-content">
-                      <div className="section-item-name">{seccion.nombre}</div>
-                      <div className="section-item-info">
-                        <span>
-                          Color:{' '}
-                          <span
-                            className="section-item-color"
-                            style={{ backgroundColor: seccion.color_fondo || '#ffffff' }}
-                            title={seccion.color_fondo}
-                          />
-                        </span>
-                        {seccion.imagen_url && <span>🖼️ Con imagen</span>}
-                        <span>Orden: {seccion.orden}</span>
+            <div className="gsec-card">
+              <h3 className="gsec-card-titulo">Secciones de {paginaActual?.nombre} <span className="gsec-contador">{secciones.length}</span></h3>
+              {loading ? (
+                <p className="gsec-nota">Cargando secciones…</p>
+              ) : secciones.length === 0 ? (
+                <p className="gsec-nota">Aún no hay secciones. Crea la primera con el formulario.</p>
+              ) : (
+                <div className="gsec-lista">
+                  {[...secciones].sort((a, b) => a.orden - b.orden).map(seccion => (
+                    <div key={seccion.id} className={`gsec-item${editingId === seccion.id ? ' editando' : ''}`}>
+                      <span className="gsec-orden">{seccion.orden}</span>
+                      <VistaSeccion mini nombre={seccion.nombre} imagen={seccion.imagen_url} color={seccion.color_fondo} />
+                      <div className="gsec-item-info">
+                        <strong>{seccion.nombre}</strong>
+                        <span>{seccion.imagen_url ? <><AiOutlinePicture size={12} /> Con imagen</> : 'Sin imagen'}</span>
+                      </div>
+                      <div className="gsec-item-acciones">
+                        <button className="gsec-icono" onClick={() => handleEdit(seccion)} aria-label="Editar sección" title="Editar"><AiOutlineEdit size={16} /></button>
+                        <button className="gsec-icono gsec-icono--peligro" onClick={() => handleDelete(seccion.id)} aria-label="Eliminar sección" title="Eliminar"><AiOutlineDelete size={16} /></button>
                       </div>
                     </div>
-                    <div className="section-item-actions">
-                      <button
-                        className="btn-edit"
-                        onClick={() => handleEdit(seccion)}
-                      >
-                        ✏️ Editar
-                      </button>
-                      <button
-                        className="btn-remove"
-                        onClick={() => handleDelete(seccion.id)}
-                      >
-                        🗑️ Eliminar
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
