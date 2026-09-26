@@ -10,6 +10,7 @@ import {
 import { productsAPI } from '../../services/api';
 import { colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import './AdminProductoDetalleScreen.css';
+import './AdminDetalleApp.css';
 
 interface Producto {
   id: number;

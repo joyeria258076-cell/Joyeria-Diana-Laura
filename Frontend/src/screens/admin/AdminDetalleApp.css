@@ -1,0 +1,95 @@
+/* AdminDetalleApp.css — Detalle de producto del admin con el estilo de la app. */
+body .pd3-container { max-width: 1180px; margin: 0 auto; }
+
+/* Cabecera con degradado */
+body .pd3-hero {
+  border: 0 !important; border-radius: 32px !important; padding: 26px 28px !important; gap: 22px !important;
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important;
+  box-shadow: var(--shadow-primary) !important; flex-wrap: wrap;
+}
+body .pd3-hero::before, body .pd3-hero::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; background: rgba(255, 255, 255, 0.14); }
+body .pd3-hero::before { width: 260px; height: 260px; right: -70px; top: -110px; }
+body .pd3-hero::after { width: 150px; height: 150px; right: 220px; bottom: -90px; background: rgba(255, 255, 255, 0.08); }
+body .pd3-hero > * { position: relative; z-index: 1; }
+body .pd3-hero-media { width: 128px !important; height: 128px !important; border-radius: 26px !important; border: 3px solid rgba(255, 255, 255, 0.5); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25) !important; }
+body .pd3-hero-info { flex: 1; min-width: 240px; }
+body .content-area .pd3-hero h1 {
+  font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -1px !important;
+  font-size: clamp(24px, 3vw, 34px) !important; color: inherit !important; margin: 8px 0 4px !important; line-height: 1.1 !important;
+  background: none !important; -webkit-text-fill-color: currentColor !important;
+}
+body .pd3-hero-codigo { color: inherit !important; opacity: 0.85; font-size: 13px !important; }
+body .pd3-hero-desc { color: inherit !important; opacity: 0.88; font-size: 14px !important; margin: 8px 0 !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+body .pd3-hero-precio { font-family: var(--font-body) !important; font-size: 26px !important; font-weight: 700 !important; letter-spacing: -0.8px; color: inherit !important; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+body .pd3-hero-precio-oferta { font-size: 13px !important; font-weight: 600 !important; padding: 4px 10px; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.22); color: inherit !important; }
+body .content-area .pd3-badge {
+  display: inline-flex !important; align-items: center; gap: 5px; padding: 4px 11px !important; border-radius: var(--radius-pill) !important;
+  font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important;
+  background: rgba(255, 255, 255, 0.22) !important; color: inherit !important; border: 0 !important;
+}
+body .content-area .pd3-badge.off { background: rgba(0, 0, 0, 0.22) !important; }
+body .pd3-hero-actions { display: flex; gap: 10px; }
+body .content-area .pd3-btn-edit {
+  min-height: 46px; padding: 0 20px !important; border-radius: 16px !important; border: 0 !important;
+  background: #fff !important; color: var(--color-primary-strong) !important; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+  font-family: var(--font-body) !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important;
+  display: inline-flex !important; align-items: center; gap: 8px;
+}
+body .pd3-btn-delete {
+  width: 46px; height: 46px; border-radius: 16px !important; border: 0 !important;
+  background: rgba(0, 0, 0, 0.22) !important; color: #fff !important; display: inline-flex !important; align-items: center; justify-content: center;
+}
+
+/* Tarjetas */
+body .content-area :is(.pd3-stock-card, .pd3-meta-card, .pd3-panel) {
+  border-radius: 24px !important; border: 1px solid var(--color-border) !important;
+  background: var(--color-surface) !important; box-shadow: var(--shadow-soft) !important;
+}
+body .pd3-stock-card { padding: 20px !important; }
+body :is(.pd3-stock-titulo, .pd3-meta-label) {
+  display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-body) !important;
+  font-size: 12px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0.2px !important; color: var(--color-text-muted) !important;
+}
+body .pd3-stock-num { font-family: var(--font-body) !important; font-size: 36px !important; font-weight: 700 !important; letter-spacing: -1px !important; color: var(--color-text) !important; }
+body .pd3-stock-num small { font-size: 13px; font-weight: 500; color: var(--color-text-muted); letter-spacing: 0; }
+body .pd3-stock-bar { height: 10px !important; border-radius: var(--radius-pill) !important; background: var(--color-surface-2) !important; overflow: hidden; }
+body .pd3-stock-fill { border-radius: var(--radius-pill) !important; }
+body .pd3-stock-fill.ok { background: var(--color-success) !important; }
+body .pd3-stock-fill.medio { background: var(--color-warning) !important; }
+body .pd3-stock-fill.bajo { background: var(--color-error) !important; }
+body .pd3-stock-row { border-color: var(--color-border) !important; font-size: 13.5px; }
+body .pd3-meta-card { padding: 14px 18px !important; }
+body .pd3-meta-value { font-family: var(--font-body) !important; font-weight: 600 !important; color: var(--color-text) !important; }
+
+/* Paneles */
+body .pd3-panel { padding: 22px !important; }
+body .content-area .pd3-panel h3 {
+  display: flex; align-items: center; gap: 10px; font-family: var(--font-body) !important; font-size: 17px !important; font-weight: 700 !important;
+  letter-spacing: -0.3px !important; text-transform: none !important; color: var(--color-text) !important; margin: 0 0 14px !important;
+}
+body .pd3-panel h3 svg {
+  box-sizing: content-box; padding: 8px; border-radius: 12px;
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent); color: var(--color-primary);
+}
+body .pd3-precios-grid { gap: 10px !important; }
+body .pd3-precio-item { border-radius: 18px !important; border: 1px solid var(--color-border) !important; background: var(--color-surface-2) !important; padding: 14px !important; }
+body .pd3-precio-item span { font-size: 12px !important; font-weight: 600 !important; color: var(--color-text-muted) !important; text-transform: none !important; letter-spacing: 0.2px !important; }
+body .pd3-precio-item strong { font-family: var(--font-body) !important; font-size: 20px !important; font-weight: 700 !important; letter-spacing: -0.5px; color: var(--color-text) !important; }
+body .pd3-precio-item.destacado { background: var(--gradient-primary) !important; border-color: transparent !important; box-shadow: var(--shadow-primary); }
+body .pd3-precio-item.destacado :is(span, strong) { color: var(--color-on-primary) !important; }
+body .pd3-precio-item.oferta strong { color: var(--color-success) !important; }
+body .pd3-info-row { border-color: color-mix(in srgb, var(--color-border) 70%, transparent) !important; font-size: 14px; padding: 10px 0 !important; }
+body .pd3-info-row span { color: var(--color-text-muted) !important; }
+body .pd3-info-row strong { font-weight: 600 !important; color: var(--color-text) !important; }
+body .pd3-chip {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent) !important; color: var(--color-primary) !important;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent) !important; border-radius: var(--radius-pill) !important;
+  font-weight: 600 !important; box-shadow: none !important;
+}
+body .pd3-medidas-pre { border-radius: 16px !important; background: var(--color-surface-2) !important; border: 1px solid var(--color-border) !important; }
+
+@media (max-width: 760px) {
+  body .pd3-hero { padding: 20px !important; border-radius: 28px !important; }
+  body .pd3-hero-media { width: 96px !important; height: 96px !important; }
+  body .pd3-layout { grid-template-columns: 1fr !important; }
+}
