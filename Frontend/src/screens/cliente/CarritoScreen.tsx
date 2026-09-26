@@ -1,15 +1,18 @@
 // Ruta: Frontend/src/screens/cliente/CarritoScreen.tsx
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import Loader from '../../components/Loader';
 import {
     AiOutlineDelete, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart,
     AiOutlineShop, AiOutlineCar, AiOutlineCreditCard, AiOutlineBank, AiOutlineDollarCircle,
+    AiOutlineClose, AiOutlineCheck, AiOutlineCheckCircle, AiOutlineInfoCircle, AiOutlineCalendar,
 } from 'react-icons/ai';
 import { useCart } from '../../contexts/CartContext';
 import { carritoAPI, apartadoAPI, recomendacionAPI, type Recomendacion } from '../../services/api';
 import './CarritoScreen.css';
 import './CarritoApp.css';
+import './HojaCompra.css';
 
 const PLACEHOLDER = `data:image/svg+xml;utf8,<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="%23141414"/><g transform="translate(150,150)" stroke="%23594936" stroke-width="1.5" fill="none" opacity="0.7"><path d="M-22,-14 L22,-14 L32,-2 L0,34 L-32,-2 Z"/><path d="M-22,-14 L0,-2 L22,-14 M-32,-2 L32,-2 M0,-2 L0,34"/></g></svg>`;
 const STOCK_POCO = 5;
@@ -21,6 +24,16 @@ interface MetodoPago {
     tipo: string;
     es_pasarela: boolean;
 }
+
+// Frase corta bajo cada método de pago en la hoja de compra
+const DESC_METODO: Record<string, string> = {
+    mercadopago:   'Tarjeta, OXXO o saldo Mercado Pago',
+    paypal:        'Cuenta PayPal o tarjeta',
+    transferencia: 'Transferencia bancaria y comprobante',
+    efectivo:      'Pagas al recoger en tienda',
+};
+
+const dinero = (n: number) => `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const ICONOS_METODO: Record<string, React.ReactNode> = {
     mercadopago:   <AiOutlineCreditCard size={18} />,
@@ -354,6 +367,54 @@ const CarritoScreen: React.FC = () => {
         }
     }, [tipoEntrega, metodoPagoId, metodosPago]);
 
+    // ── Hoja de compra: estado derivado ───────────────────────
+    const precioItem = (it: any) => {
+        const base = Number.parseFloat(String(it.precio_promocion ?? it.precio_oferta ?? it.precio_venta));
+        const personalizado = !!(it.permite_personalizacion && (it.talla_medida || it.nota));
+        return base + (personalizado ? Number(it.precio_personalizacion || 0) : 0);
+    };
+    const ahorroPromo = Math.max(0, items.reduce((s, i) => s + Number.parseFloat(String(i.precio_venta)) * i.cantidad, 0) - total);
+    const metodoSel = metodosPago.find(m => m.id === metodoPagoId) || null;
+    const entregaOk = tipoEntrega === 'tienda'
+        || !!(direccion && direccion.calle && direccion.colonia && direccion.codigo_postal && direccion.colonia !== '__otra__');
+    const pagoOk = !!metodoSel && !(tipoEntrega === 'domicilio' && metodoSel.codigo === 'efectivo');
+    const totalPedido = total + (tipoEntrega === 'domicilio' ? costoEnvio : 0);
+    const minimoApartado = Math.ceil(total * 50) / 100;
+    const abonoNum = Number.parseFloat(montoAbonoInicial) || 0;
+    const abonoOk = abonoNum >= minimoApartado - 0.005 && abonoNum <= total + 0.005;
+    const pctAbono = total > 0 ? Math.min(100, Math.round((abonoNum * 100) / total)) : 0;
+    const planActual = planes.find(p => p.id === planSeleccionado) || null;
+    /** Fechas y montos de los abonos según el plan (a partir de hoy). */
+    const calendarioPlan = (p: { intervalo_dias: number; porcentaje_abono: number }) => {
+        const saldo = Math.max(0, total - (abonoNum || minimoApartado));
+        const monto = Math.round(saldo * (p.porcentaje_abono / 100));
+        if (saldo <= 0 || monto <= 0) return { pagos: [] as Date[], monto: 0, ultimo: 0 };
+        const n = Math.ceil(saldo / monto);
+        const pagos = Array.from({ length: n }, (_, k) => new Date(Date.now() + (k + 1) * p.intervalo_dias * 86400000));
+        return { pagos, monto, ultimo: saldo - monto * (n - 1) };
+    };
+
+    // Hoja abierta: Esc cierra y la página de atrás no se desplaza
+    useEffect(() => {
+        if (!showCheckout && !showApartado) return;
+        const area = document.querySelector('.content-area') as HTMLElement | null;
+        const antes = area?.style.overflow ?? '';
+        if (area) area.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        const alTeclado = (e: KeyboardEvent) => { if (e.key === 'Escape') { setShowCheckout(false); setShowApartado(false); } };
+        window.addEventListener('keydown', alTeclado);
+        return () => {
+            if (area) area.style.overflow = antes;
+            document.body.style.overflow = '';
+            window.removeEventListener('keydown', alTeclado);
+        };
+    }, [showCheckout, showApartado]);
+
+    // Al abrir el apartado se propone el mínimo (50%)
+    useEffect(() => {
+        if (showApartado && !montoAbonoInicial && total > 0) setMontoAbonoInicial((Math.ceil(total * 50) / 100).toFixed(2));
+    }, [showApartado]);
+
     // ── Pantalla éxito apartado ───────────────────────────────
     if (apartandoExitoso) {
         return (
@@ -527,286 +588,243 @@ const CarritoScreen: React.FC = () => {
                 </aside>
             </div>
 
-            {/* ── Modal checkout normal ─────────────────────── */}
-            {showCheckout && (
-                <div className="carrito-modal-overlay" onClick={() => setShowCheckout(false)}>
-                    <div className="carrito-modal carrito-modal-grande" onClick={e => e.stopPropagation()}>
-                        <div className="carrito-modal-header">
-                            <h2>Datos del pedido</h2>
-                            <button className="carrito-modal-close" onClick={() => setShowCheckout(false)}>×</button>
-                        </div>
-                        <div className="carrito-modal-body">
-                            <div className="carrito-checkout-guia">
-                                <div className="carrito-guia-paso"><span className="carrito-guia-num">1</span><span>¿Cómo recibes tu pedido?</span></div>
-                                <div className="carrito-guia-sep">→</div>
-                                <div className="carrito-guia-paso"><span className="carrito-guia-num">2</span><span>Elige tu método de pago</span></div>
-                                <div className="carrito-guia-sep">→</div>
-                                <div className="carrito-guia-paso"><span className="carrito-guia-num">3</span><span>Confirma tu pedido</span></div>
+            {/* ── Hoja de compra: pedido normal ─────────────── */}
+            {showCheckout && createPortal(
+                <div className="hc-overlay" onClick={() => setShowCheckout(false)}>
+                    <div className="hc-hoja" role="dialog" aria-modal="true" aria-labelledby="hc-titulo-pedido" onClick={e => e.stopPropagation()}>
+                        <header className="hc-head">
+                            <div>
+                                <span className="hc-eyebrow">Paso 2 de 3 · Entrega y pago</span>
+                                <h2 id="hc-titulo-pedido" className="hc-titulo">Confirma tu <em>pedido</em></h2>
                             </div>
-                            <div className="carrito-form-group">
-                                <label>¿Cómo quieres recibir tu pedido? <span className="carrito-requerido">*</span></label>
-                                <div className="carrito-metodos-opciones">
-                                    <label className={`carrito-metodo-opcion ${tipoEntrega === 'tienda' ? 'seleccionado' : ''}`}>
-                                        <input type="radio" name="tipo_entrega" value="tienda"
-                                            checked={tipoEntrega === 'tienda'}
-                                            onChange={() => setTipoEntrega('tienda')} />
-                                        <span className="carrito-metodo-icono"><AiOutlineShop size={18} /></span>
-                                        <span className="carrito-metodo-nombre">Recoger en tienda <small className="carrito-metodo-nota carrito-metodo-nota--ok">(Sin costo)</small></span>
-                                    </label>
-                                    <label className={`carrito-metodo-opcion ${tipoEntrega === 'domicilio' ? 'seleccionado' : ''}`}>
-                                        <input type="radio" name="tipo_entrega" value="domicilio"
-                                            checked={tipoEntrega === 'domicilio'}
-                                            onChange={() => setTipoEntrega('domicilio')} />
-                                        <span className="carrito-metodo-icono"><AiOutlineCar size={18} /></span>
-                                        <span className="carrito-metodo-nombre">Envío a domicilio <small className="carrito-metodo-nota">(+${costoEnvio.toLocaleString('es-MX')} MXN)</small></span>
-                                    </label>
-                                </div>
-                            </div>
-                            {tipoEntrega === 'domicilio' ? (
-                                <div className="carrito-form-group">
-                                    <label>Dirección de envío <span className="carrito-requerido">*</span></label>
-                                    <SelectorDireccion onChange={setDireccion} />
-                                    <div className="carrito-metodo-info">
-                                        <strong>Aviso:</strong> el envío a domicilio se realiza a través de un servicio de transporte externo (mensajería/transportista tercero), no por personal de la tienda.
+                            <button className="hc-cerrar" onClick={() => setShowCheckout(false)} aria-label="Cerrar"><AiOutlineClose size={18} /></button>
+                        </header>
+
+                        <div className="hc-cuerpo">
+                            <div className="hc-pasos">
+                                {/* 1. Entrega */}
+                                <section className={`hc-paso${entregaOk ? ' hc-paso--ok' : ''}`}>
+                                    <h3 className="hc-paso-titulo"><span className="hc-num">{entregaOk ? <AiOutlineCheck size={14} /> : '1'}</span> ¿Cómo lo recibes?</h3>
+                                    <div className="hc-opciones hc-opciones--2">
+                                        <button type="button" className={`hc-opcion${tipoEntrega === 'tienda' ? ' activa' : ''}`} onClick={() => setTipoEntrega('tienda')} aria-pressed={tipoEntrega === 'tienda'}>
+                                            <span className="hc-opcion-icono"><AiOutlineShop size={20} /></span>
+                                            <span className="hc-opcion-textos"><strong>Recoger en tienda</strong><small>Sin costo · te avisamos cuando esté lista</small></span>
+                                            <span className="hc-opcion-precio hc-opcion-precio--ok">Gratis</span>
+                                        </button>
+                                        <button type="button" className={`hc-opcion${tipoEntrega === 'domicilio' ? ' activa' : ''}`} onClick={() => setTipoEntrega('domicilio')} aria-pressed={tipoEntrega === 'domicilio'}>
+                                            <span className="hc-opcion-icono"><AiOutlineCar size={20} /></span>
+                                            <span className="hc-opcion-textos"><strong>Envío a domicilio</strong><small>Por paquetería o transporte local</small></span>
+                                            <span className="hc-opcion-precio">+{dinero(costoEnvio)}</span>
+                                        </button>
                                     </div>
-                                </div>
-                            ) : (
-                                <div className="carrito-metodo-info">
-                                    <strong>Recoger en tienda:</strong> Te avisaremos cuando tu pedido esté listo. Preséntate en nuestra sucursal con tu código de entrega.
-                                </div>
-                            )}
-                            <div className="carrito-form-group">
-                                <label>Método de pago <span className="carrito-requerido">*</span></label>
-                                {cargandoMetodos ? (
-                                    <div className="carrito-dir-cargando">Cargando métodos de pago...</div>
-                                ) : (
-                                    <div className="carrito-metodos-pago">
-                                        {pasarelas.length > 0 && (
-                                            <div className="carrito-metodos-grupo">
-                                                <p className="carrito-metodos-titulo">Pago en línea</p>
-                                                <div className="carrito-metodos-opciones">
-                                                    {pasarelas.map(m => (
-                                                        <label key={m.id} className={`carrito-metodo-opcion ${metodoPagoId === m.id ? 'seleccionado' : ''}`}>
-                                                            <input type="radio" name="metodo_pago" value={m.id}
-                                                                checked={metodoPagoId === m.id}
-                                                                onChange={() => setMetodoPagoId(m.id)} />
-                                                            <span className="carrito-metodo-icono">{ICONOS_METODO[m.codigo] || <AiOutlineCreditCard size={18} />}</span>
-                                                            <span className="carrito-metodo-nombre">{m.nombre}</span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                        {otros.length > 0 && (
-                                            <div className="carrito-metodos-grupo">
-                                                <p className="carrito-metodos-titulo">Otros métodos</p>
-                                                <div className="carrito-metodos-opciones">
-                                                    {otros.map(m => (
-                                                        <label key={m.id} className={`carrito-metodo-opcion ${metodoPagoId === m.id ? 'seleccionado' : ''}`}>
-                                                            <input type="radio" name="metodo_pago" value={m.id}
-                                                                checked={metodoPagoId === m.id}
-                                                                onChange={() => setMetodoPagoId(m.id)} />
-                                                            <span className="carrito-metodo-icono">{ICONOS_METODO[m.codigo] || <AiOutlineDollarCircle size={18} />}</span>
-                                                            <span className="carrito-metodo-nombre">{m.nombre}</span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                        {metodoPagoId && (() => {
-                                            const m = metodosPago.find(x => x.id === metodoPagoId);
-                                            if (!m) return null;
-                                            if (m.es_pasarela) return (
-                                                <div className="carrito-metodo-info">
-                                                    Serás redirigido a <strong>{m.nombre}</strong> para completar el pago después de que el trabajador confirme tu pedido.
-                                                </div>
-                                            );
-                                            if (m.codigo === 'transferencia') return (
-                                                <div className="carrito-metodo-info">
-                                                    Deberás realizar una transferencia bancaria y subir tu comprobante. El trabajador verificará el pago.
-                                                </div>
-                                            );
-                                            if (m.codigo === 'efectivo') return (
-                                                <div className="carrito-metodo-info">
-                                                    Podrás pagar en efectivo al recoger tu pedido en nuestra tienda.
-                                                </div>
-                                            );
-                                            return null;
-                                        })()}
-                                    </div>
-                                )}
-                            </div>
-                            {items.some(i => i.talla_medida || i.nota) && (
-                                <div className="carrito-metodo-info">
-                                    Las especificaciones de tus piezas personalizadas ya van incluidas en cada producto del pedido.
-                                </div>
-                            )}
-                            {errorMsg && <div className="carrito-error-msg">{errorMsg}</div>}
-                            <div className="carrito-modal-resumen">
-                                {(() => {
-                                    const totalSinPromo = items.reduce((s, i) => s + Number.parseFloat(String(i.precio_venta)) * i.cantidad, 0);
-                                    const ahorro = totalSinPromo - total;
-                                    return ahorro > 0 ? (
-                                        <div className="carrito-resumen-fila" style={{color:'#e8d5b7', fontSize:'0.85rem'}}>
-                                            <span>Descuento aplicado</span><span>-${ahorro.toLocaleString('es-MX')}</span>
+                                    {tipoEntrega === 'domicilio' ? (
+                                        <div className="hc-bloque">
+                                            <p className="hc-etiqueta">Dirección de envío</p>
+                                            <SelectorDireccion onChange={setDireccion} />
+                                            <p className="hc-nota"><AiOutlineInfoCircle size={14} /> El envío lo realiza un servicio de transporte externo, no personal de la tienda.</p>
                                         </div>
-                                    ) : null;
-                                })()}
-                                <div className="carrito-resumen-fila">
-                                    <span>Productos ({count})</span>
-                                    <span>${total.toLocaleString('es-MX')}</span>
-                                </div>
-                                {tipoEntrega === 'domicilio' && (
-                                    <div className="carrito-resumen-fila">
-                                        <span>Envío a domicilio</span>
-                                        <span>+${costoEnvio.toLocaleString('es-MX')}</span>
-                                    </div>
-                                )}
-                                <div className="carrito-resumen-fila" style={{fontWeight:700}}>
-                                    <span>Total</span>
-                                    <strong>${(total + (tipoEntrega === 'domicilio' ? costoEnvio : 0)).toLocaleString('es-MX')}</strong>
-                                </div>
+                                    ) : (
+                                        <p className="hc-nota"><AiOutlineInfoCircle size={14} /> Recógelo en Calle Lázaro Cárdenas S/N, Col. El Zapote, Huejutla. Te damos un código de entrega.</p>
+                                    )}
+                                </section>
+
+                                {/* 2. Pago */}
+                                <section className={`hc-paso${pagoOk ? ' hc-paso--ok' : ''}`}>
+                                    <h3 className="hc-paso-titulo"><span className="hc-num">{pagoOk ? <AiOutlineCheck size={14} /> : '2'}</span> ¿Cómo pagas?</h3>
+                                    {cargandoMetodos ? (
+                                        <div className="hc-opciones hc-opciones--2">{[0, 1, 2].map(i => <span key={i} className="hc-opcion hc-opcion--cargando" />)}</div>
+                                    ) : (
+                                        <div className="hc-opciones hc-opciones--2">
+                                            {[...pasarelas, ...otros].map(m => (
+                                                <button key={m.id} type="button" className={`hc-opcion${metodoPagoId === m.id ? ' activa' : ''}`} onClick={() => setMetodoPagoId(m.id)} aria-pressed={metodoPagoId === m.id}>
+                                                    <span className="hc-opcion-icono">{ICONOS_METODO[m.codigo] || <AiOutlineCreditCard size={18} />}</span>
+                                                    <span className="hc-opcion-textos"><strong>{m.nombre}</strong><small>{DESC_METODO[m.codigo] || (m.es_pasarela ? 'Pago en línea seguro' : 'Pago directo')}</small></span>
+                                                    {m.es_pasarela && <span className="hc-opcion-tag">En línea</span>}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {metodoSel && (
+                                        <p className="hc-nota"><AiOutlineInfoCircle size={14} /> {
+                                            metodoSel.es_pasarela ? `Cuando un trabajador confirme tu pedido, te llevamos a ${metodoSel.nombre} para pagar.`
+                                            : metodoSel.codigo === 'transferencia' ? 'Haz la transferencia y sube tu comprobante desde "Mis pedidos"; lo verificamos.'
+                                            : metodoSel.codigo === 'efectivo' ? 'Pagas en efectivo al recoger tu pedido en la tienda.'
+                                            : 'Te indicamos cómo pagar cuando confirmemos tu pedido.'
+                                        }</p>
+                                    )}
+                                </section>
+
+                                {/* 3. Revisión */}
+                                <section className="hc-paso">
+                                    <h3 className="hc-paso-titulo"><span className="hc-num">3</span> Revisa y confirma</h3>
+                                    <ul className="hc-lista">
+                                        <li><AiOutlineCheckCircle size={16} /> Un trabajador revisa tu pedido y te avisa por correo cuando lo confirme.</li>
+                                        <li><AiOutlineCheckCircle size={16} /> No se cobra nada hasta que confirmemos que tenemos tus piezas.</li>
+                                        {items.some(i => i.talla_medida || i.nota) && <li><AiOutlineCheckCircle size={16} /> Las especificaciones de tus piezas personalizadas ya van incluidas.</li>}
+                                    </ul>
+                                </section>
                             </div>
-                        </div>
-                        <div className="carrito-modal-footer">
-                            <button className="carrito-btn-secundario" onClick={() => setShowCheckout(false)}>Cancelar</button>
-                            <button className="carrito-btn-primario" onClick={handleSolicitarPedido} disabled={solicitando}>
-                                {solicitando ? 'Enviando...' : 'Confirmar pedido'}
-                            </button>
+
+                            {/* Resumen */}
+                            <aside className="hc-resumen">
+                                <p className="hc-etiqueta">Tu pedido · {count} {count === 1 ? 'pieza' : 'piezas'}</p>
+                                <ul className="hc-piezas">
+                                    {items.map(it => (
+                                        <li key={it.id}>
+                                            <img src={it.producto_imagen || PLACEHOLDER} alt="" onError={e => { (e.target as HTMLImageElement).src = PLACEHOLDER; }} />
+                                            <span className="hc-pieza-nombre">{it.producto_nombre}<small>× {it.cantidad}{it.talla_medida ? ` · Talla ${it.talla_medida}` : ''}</small></span>
+                                            <span className="hc-pieza-precio">{dinero(precioItem(it) * it.cantidad)}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="hc-totales">
+                                    {ahorroPromo > 0 && <div className="hc-fila hc-fila--ahorro"><span>Descuento aplicado</span><span>-{dinero(ahorroPromo)}</span></div>}
+                                    <div className="hc-fila"><span>Productos</span><span>{dinero(total)}</span></div>
+                                    <div className="hc-fila"><span>Entrega</span><span>{tipoEntrega === 'domicilio' ? `+${dinero(costoEnvio)}` : 'Gratis'}</span></div>
+                                    <div className="hc-fila hc-fila--total"><span>Total</span><span>{dinero(totalPedido)}</span></div>
+                                </div>
+                                {errorMsg && <p className="hc-error">{errorMsg}</p>}
+                                <button className="hc-btn" onClick={handleSolicitarPedido} disabled={solicitando || !entregaOk || !pagoOk}>
+                                    {solicitando ? 'Enviando…' : !entregaOk ? 'Completa tu dirección' : !pagoOk ? 'Elige cómo pagar' : <>Confirmar pedido · {dinero(totalPedido)}</>}
+                                </button>
+                                <button className="hc-btn-texto" onClick={() => setShowCheckout(false)}>Seguir revisando mi carrito</button>
+                            </aside>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
-            {/* ── Modal apartado ────────────────────────────── */}
-            {showApartado && (
-                <div className="carrito-modal-overlay" onClick={() => setShowApartado(false)}>
-                    <div className="carrito-modal carrito-modal-grande" onClick={e => e.stopPropagation()}>
-                        <div className="carrito-modal-header">
-                            <h2>Apartar productos</h2>
-                            <button className="carrito-modal-close" onClick={() => setShowApartado(false)}>×</button>
-                        </div>
-                        <div className="carrito-modal-body">
-                            <div className="carrito-apartado-info">
-                                <p>Al apartar, el <strong>50% mínimo</strong> se cobra ahora y el stock queda reservado para ti.</p>
+            {/* ── Hoja de compra: apartado ──────────────────── */}
+            {showApartado && createPortal(
+                <div className="hc-overlay" onClick={() => setShowApartado(false)}>
+                    <div className="hc-hoja" role="dialog" aria-modal="true" aria-labelledby="hc-titulo-apartado" onClick={e => e.stopPropagation()}>
+                        <header className="hc-head">
+                            <div>
+                                <span className="hc-eyebrow">Aparta hoy · paga en partes</span>
+                                <h2 id="hc-titulo-apartado" className="hc-titulo">Aparta tus <em>piezas</em></h2>
                             </div>
-                            <div className="carrito-modal-resumen">
-                                {(() => {
-                                    const totalSinPromo = items.reduce((s, i) => s + Number.parseFloat(String(i.precio_venta)) * i.cantidad, 0);
-                                    const ahorro = totalSinPromo - total;
-                                    return ahorro > 0 ? (
-                                        <>
-                                            <div className="carrito-resumen-fila" style={{opacity:0.5, textDecoration:'line-through', fontSize:'0.85rem'}}>
-                                                <span>Precio original</span><span>${totalSinPromo.toLocaleString('es-MX')}</span>
+                            <button className="hc-cerrar" onClick={() => setShowApartado(false)} aria-label="Cerrar"><AiOutlineClose size={18} /></button>
+                        </header>
+
+                        <div className="hc-cuerpo">
+                            <div className="hc-pasos">
+                                {/* 1. Abono inicial */}
+                                <section className={`hc-paso${abonoOk ? ' hc-paso--ok' : ''}`}>
+                                    <h3 className="hc-paso-titulo"><span className="hc-num">{abonoOk ? <AiOutlineCheck size={14} /> : '1'}</span> ¿Cuánto abonas hoy?</h3>
+                                    <div className="hc-abono">
+                                        <div className="hc-anillo" style={{ ['--pct' as any]: pctAbono }}>
+                                            <span>{pctAbono}<small>%</small></span>
+                                        </div>
+                                        <div className="hc-abono-campos">
+                                            <label className="hc-monto">
+                                                <span>$</span>
+                                                <input type="number" inputMode="decimal" min={minimoApartado} max={total} step="0.01"
+                                                    placeholder={minimoApartado.toFixed(2)} value={montoAbonoInicial}
+                                                    onChange={e => setMontoAbonoInicial(e.target.value)} aria-label="Abono inicial" />
+                                            </label>
+                                            <div className="hc-rapidos">
+                                                {[50, 75, 100].map(p => (
+                                                    <button key={p} type="button" className={`hc-rapido${pctAbono === p ? ' activo' : ''}`}
+                                                        onClick={() => setMontoAbonoInicial((Math.ceil(total * p) / 100).toFixed(2))}>
+                                                        {p === 100 ? 'Todo' : `${p}%`}
+                                                    </button>
+                                                ))}
                                             </div>
-                                            <div className="carrito-resumen-fila" style={{color:'#e8d5b7', fontSize:'0.85rem', fontWeight:600}}>
-                                                <span>Descuento aplicado</span><span>-${ahorro.toLocaleString('es-MX')}</span>
-                                            </div>
-                                        </>
-                                    ) : null;
-                                })()}
-                                <div className="carrito-resumen-fila" style={{fontWeight:700}}>
-                                    <span>Total del pedido</span>
-                                    <span>${total.toLocaleString('es-MX')}</span>
-                                </div>
-                                <div className="carrito-resumen-fila" style={{ color: '#e8d5b7' }}>
-                                    <span>Mínimo para apartar (50%)</span>
-                                    <span>${(total * 0.5).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-                                </div>
-                            </div>
-                            <div className="carrito-form-group">
-                                <label>Abono inicial <span className="carrito-requerido">*</span></label>
-                                <input
-                                    type="number"
-                                    className="carrito-dir-input"
-                                    placeholder={`Mínimo $${(total * 0.5).toFixed(2)}`}
-                                    min={total * 0.5}
-                                    max={total}
-                                    value={montoAbonoInicial}
-                                    onChange={e => setMontoAbonoInicial(e.target.value)}
-                                />
-                                <small className="carrito-form-ayuda">Puedes pagar más del 50% si lo deseas.</small>
-                            </div>
-                            {/* ── Plan de abono ── */}
-                            <div className="carrito-form-group">
-                                <label>Plan de pagos (opcional)</label>
-                                {cargandoPlanes ? (
-                                    <div className="carrito-dir-cargando">Cargando planes...</div>
-                                ) : planes.length === 0 ? (
-                                    <p className="carrito-form-ayuda">No hay planes disponibles por el momento.</p>
-                                ) : (
-                                    <>
-                                        <div className="carrito-planes-opciones">
+                                            <p className="hc-nota">{abonoNum >= total
+                                                ? 'Con este abono liquidas todo de una vez.'
+                                                : `Mínimo ${dinero(minimoApartado)} (50%). Te quedaría ${dinero(Math.max(0, total - (abonoNum || minimoApartado)))} por pagar.`}</p>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* 2. Plan */}
+                                <section className="hc-paso">
+                                    <h3 className="hc-paso-titulo"><span className="hc-num">2</span> Elige cómo liquidar <small>(opcional)</small></h3>
+                                    {cargandoPlanes ? (
+                                        <div className="hc-opciones">{[0, 1].map(i => <span key={i} className="hc-opcion hc-opcion--cargando" />)}</div>
+                                    ) : planes.length === 0 ? (
+                                        <p className="hc-nota">Por ahora no hay planes; podrás abonar cuando quieras antes de la fecha límite.</p>
+                                    ) : (
+                                        <div className="hc-opciones">
                                             {planes.map(p => {
-                                                const abonoIni     = parseFloat(montoAbonoInicial) || total * 0.5;
-                                                const saldoRest    = Math.max(0, total - abonoIni);
-                                                const montoPorAbono = Math.round(saldoRest * (p.porcentaje_abono / 100));
-                                                const numPagos     = montoPorAbono > 0 ? Math.ceil(saldoRest / montoPorAbono) : '—';
+                                                const cal = calendarioPlan(p);
                                                 return (
-                                                    <label key={p.id} className={`carrito-plan-opcion ${planSeleccionado === p.id ? 'seleccionado' : ''}`}>
-                                                        <input type="radio" name="plan_abono"
-                                                            checked={planSeleccionado === p.id}
-                                                            onChange={() => setPlanSeleccionado(p.id)} />
-                                                        <div className="carrito-plan-info">
-                                                            <span className="carrito-plan-nombre">{p.nombre}</span>
-                                                            <span className="carrito-plan-desc">
-                                                                ${typeof montoPorAbono === 'number' ? montoPorAbono.toLocaleString('es-MX') : '—'} cada {p.intervalo_dias} días
-                                                                · {numPagos} pago{numPagos !== 1 ? 's' : ''} para liquidar
-                                                            </span>
-                                                        </div>
-                                                    </label>
+                                                    <button key={p.id} type="button" className={`hc-opcion${planSeleccionado === p.id ? ' activa' : ''}`}
+                                                        onClick={() => setPlanSeleccionado(planSeleccionado === p.id ? null : p.id)} aria-pressed={planSeleccionado === p.id}>
+                                                        <span className="hc-opcion-icono"><AiOutlineCalendar size={18} /></span>
+                                                        <span className="hc-opcion-textos">
+                                                            <strong>{p.nombre}</strong>
+                                                            <small>{cal.pagos.length ? `${cal.pagos.length} pago${cal.pagos.length === 1 ? '' : 's'} de ${dinero(cal.monto)} cada ${p.intervalo_dias} días` : 'Liquidas con tu abono inicial'}</small>
+                                                        </span>
+                                                    </button>
                                                 );
                                             })}
                                         </div>
-                                        {planSeleccionado && (() => {
-                                            const plan     = planes.find(p => p.id === planSeleccionado);
-                                            if (!plan) return null;
-                                            const abono    = parseFloat(montoAbonoInicial) || total * 0.5;
-                                            const saldo    = Math.max(0, total - abono);
-                                            const montoPag = Math.round(saldo * (plan.porcentaje_abono / 100));
-                                            const numPagos = montoPag > 0 ? Math.ceil(saldo / montoPag) : 0;
-                                            return (
-                                                <div className="carrito-plan-preview">
-                                                    <p><strong>Tu calendario de pagos:</strong></p>
-                                                    <p>Abono inicial ahora: <strong>${abono.toLocaleString('es-MX')}</strong></p>
-                                                    {saldo <= 0
-                                                        ? <p style={{ color: '#e8d5b7' }}>Con este abono liquidas el apartado completo.</p>
-                                                        : <p>Luego: <strong>{numPagos} pago{numPagos !== 1 ? 's' : ''}</strong> de <strong>${montoPag.toLocaleString('es-MX')}</strong> cada <strong>{plan.intervalo_dias} días</strong></p>
-                                                    }
-                                                </div>
-                                            );
-                                        })()}
-                                    </>
-                                )}
+                                    )}
+                                    {planActual && (() => {
+                                        const cal = calendarioPlan(planActual);
+                                        return cal.pagos.length > 0 && (
+                                            <div className="hc-calendario">
+                                                <p className="hc-etiqueta">Tu calendario de pagos</p>
+                                                <ol>
+                                                    <li className="hy"><span>Hoy</span><strong>{dinero(abonoNum || minimoApartado)}</strong></li>
+                                                    {cal.pagos.slice(0, 6).map((f, i) => (
+                                                        <li key={i}><span>{f.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</span><strong>{dinero(i === cal.pagos.length - 1 ? cal.ultimo : cal.monto)}</strong></li>
+                                                    ))}
+                                                    {cal.pagos.length > 6 && <li className="mas"><span>+{cal.pagos.length - 6} pagos más</span></li>}
+                                                </ol>
+                                            </div>
+                                        );
+                                    })()}
+                                </section>
+
+                                {/* 3. Pago del abono */}
+                                <section className={`hc-paso${metodoPagoApartadoId ? ' hc-paso--ok' : ''}`}>
+                                    <h3 className="hc-paso-titulo"><span className="hc-num">{metodoPagoApartadoId ? <AiOutlineCheck size={14} /> : '3'}</span> ¿Cómo pagas el abono?</h3>
+                                    {cargandoMetodos ? (
+                                        <div className="hc-opciones hc-opciones--2">{[0, 1, 2].map(i => <span key={i} className="hc-opcion hc-opcion--cargando" />)}</div>
+                                    ) : (
+                                        <div className="hc-opciones hc-opciones--2">
+                                            {metodosPago.map(m => (
+                                                <button key={m.id} type="button" className={`hc-opcion${metodoPagoApartadoId === m.id ? ' activa' : ''}`} onClick={() => setMetodoPagoApartadoId(m.id)} aria-pressed={metodoPagoApartadoId === m.id}>
+                                                    <span className="hc-opcion-icono">{ICONOS_METODO[m.codigo] || <AiOutlineDollarCircle size={18} />}</span>
+                                                    <span className="hc-opcion-textos"><strong>{m.nombre}</strong><small>{DESC_METODO[m.codigo] || (m.es_pasarela ? 'Pago en línea seguro' : 'Pago directo')}</small></span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <p className="hc-nota"><AiOutlineInfoCircle size={14} /> Tus piezas quedan reservadas para ti y se recogen en tienda al liquidar.</p>
+                                </section>
                             </div>
-                            <div className="carrito-form-group">
-                                <label>Método de pago del abono inicial <span className="carrito-requerido">*</span></label>
-                                {cargandoMetodos ? (
-                                    <div className="carrito-dir-cargando">Cargando métodos de pago...</div>
-                                ) : (
-                                    <div className="carrito-metodos-opciones">
-                                        {metodosPago.map(m => (
-                                            <label key={m.id} className={`carrito-metodo-opcion ${metodoPagoApartadoId === m.id ? 'seleccionado' : ''}`}>
-                                                <input type="radio" name="metodo_apartado"
-                                                    checked={metodoPagoApartadoId === m.id}
-                                                    onChange={() => setMetodoPagoApartadoId(m.id)} />
-                                                <span className="carrito-metodo-icono">{ICONOS_METODO[m.codigo] || <AiOutlineDollarCircle size={18} />}</span>
-                                                <span className="carrito-metodo-nombre">{m.nombre}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            {errorApartado && <div className="carrito-error-msg">{errorApartado}</div>}
-                        </div>
-                        <div className="carrito-modal-footer">
-                            <button className="carrito-btn-secundario" onClick={() => setShowApartado(false)}>Cancelar</button>
-                            <button className="carrito-btn-primario" onClick={handleApartar} disabled={solicitandoApartado}>
-                                {solicitandoApartado ? 'Apartando...' : 'Confirmar apartado'}
-                            </button>
+
+                            <aside className="hc-resumen">
+                                <p className="hc-etiqueta">Vas a apartar · {count} {count === 1 ? 'pieza' : 'piezas'}</p>
+                                <ul className="hc-piezas">
+                                    {items.map(it => (
+                                        <li key={it.id}>
+                                            <img src={it.producto_imagen || PLACEHOLDER} alt="" onError={e => { (e.target as HTMLImageElement).src = PLACEHOLDER; }} />
+                                            <span className="hc-pieza-nombre">{it.producto_nombre}<small>× {it.cantidad}</small></span>
+                                            <span className="hc-pieza-precio">{dinero(precioItem(it) * it.cantidad)}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="hc-totales">
+                                    {ahorroPromo > 0 && <div className="hc-fila hc-fila--ahorro"><span>Descuento aplicado</span><span>-{dinero(ahorroPromo)}</span></div>}
+                                    <div className="hc-fila"><span>Total de las piezas</span><span>{dinero(total)}</span></div>
+                                    <div className="hc-fila"><span>Queda por pagar</span><span>{dinero(Math.max(0, total - (abonoNum || 0)))}</span></div>
+                                    <div className="hc-fila hc-fila--total"><span>Pagas hoy</span><span>{dinero(abonoNum || 0)}</span></div>
+                                </div>
+                                {errorApartado && <p className="hc-error">{errorApartado}</p>}
+                                <button className="hc-btn" onClick={handleApartar} disabled={solicitandoApartado || !abonoOk || !metodoPagoApartadoId}>
+                                    {solicitandoApartado ? 'Apartando…' : !abonoOk ? `Abona al menos ${dinero(minimoApartado)}` : !metodoPagoApartadoId ? 'Elige cómo pagas el abono' : <>Apartar · pagar {dinero(abonoNum)}</>}
+                                </button>
+                                <button className="hc-btn-texto" onClick={() => setShowApartado(false)}>Seguir revisando mi carrito</button>
+                            </aside>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
             {recsCarrito.length > 0 && (
                 <section className="carrito-recs">
