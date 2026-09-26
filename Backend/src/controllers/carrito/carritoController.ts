@@ -4,6 +4,7 @@ import { CarritoModel, VentaModel } from '../../models/carritoModel';
 import { pool } from '../../config/database';
 import crypto from 'crypto';
 import axios from 'axios';
+import { C, SITIO_URL, dinero, escapar, fila, tablaFilas, tarjeta, lineaTiempo, layoutCorreo } from '../../utils/plantillaCorreo';
 
 import { expirarSiToca } from '../../services/expiracionPedidosService';
 
@@ -34,120 +35,74 @@ const BREVO_ENDPOINT = 'https://api.brevo.com/v3/smtp/email';
 const REMITENTE_EMAIL = process.env.BREVO_SENDER_EMAIL || '';
 const REMITENTE_NOMBRE = process.env.BREVO_SENDER_NOMBRE || 'Joyeria Diana Laura';
 
-const ESTADO_NOTIFICACION_META: Record<string, { color: string; colorClaro: string; icono: string; mensaje: string }> = {
-    pendiente:      { color: '#ecb2c3', colorClaro: '#f9dde4', icono: '⏳', mensaje: 'Tu pedido está pendiente de confirmación.' },
-    confirmado:     { color: '#d4607e', colorClaro: '#f4c2d1', icono: '✅', mensaje: 'Tu pedido fue confirmado y está siendo procesado.' },
-    en_preparacion: { color: '#c65a7a', colorClaro: '#ecb2c3', icono: '📦', mensaje: 'Estamos preparando tu pedido con mucho cuidado.' },
-    enviado:        { color: '#c9a84c', colorClaro: '#e6d9a8', icono: '🚚', mensaje: 'Tu pedido va en camino.' },
-    entregado:      { color: '#4c9a5b', colorClaro: '#b8e6c2', icono: '🎁', mensaje: '¡Tu pedido fue entregado! Gracias por tu compra.' },
-    cancelado:      { color: '#8a2b2b', colorClaro: '#e6a8a8', icono: '✖️', mensaje: 'Tu pedido fue cancelado.' },
-    expirado:       { color: '#6b625c', colorClaro: '#cfc6bf', icono: '⏳', mensaje: 'Tu pedido expiró porque no tuvo movimiento. Si aún lo quieres, puedes volver a hacerlo desde el catálogo.' },
+// Texto y color de cada evento del pedido (colores de estado de la app)
+const ESTADO_NOTIFICACION_META: Record<string, { color: string; titulo: string; mensaje: string }> = {
+    pendiente:      { color: C.aviso,  titulo: 'Tu pedido está *pendiente*', mensaje: 'Tu pedido está pendiente de confirmación.' },
+    confirmado:     { color: C.info,   titulo: 'Pedido *confirmado*', mensaje: 'Confirmamos tu pedido y ya lo estamos procesando.' },
+    en_preparacion: { color: C.rosa,   titulo: 'Preparando tu *pieza*', mensaje: 'Estamos preparando tu pedido con mucho cuidado.' },
+    enviado:        { color: C.lila,   titulo: 'Tu pedido va en *camino*', mensaje: 'Tu pedido ya salió y pronto estará contigo.' },
+    entregado:      { color: C.exito,  titulo: '¡Pedido *entregado*!', mensaje: 'Tu pedido fue entregado. Gracias por confiar en nosotros.' },
+    cancelado:      { color: C.error,  titulo: 'Pedido *cancelado*', mensaje: 'Tu pedido fue cancelado. Si tienes dudas, escríbenos por WhatsApp.' },
+    expirado:       { color: C.suave,  titulo: 'Tu pedido *expiró*', mensaje: 'Tu pedido expiró porque no tuvo movimiento. Si aún lo quieres, puedes volver a hacerlo desde el catálogo.' },
     // Eventos que no son un cambio de estado
-    recibido:       { color: '#c9956c', colorClaro: '#e8d5b7', icono: '🛍️', mensaje: 'Recibimos tu pedido. Un trabajador lo revisará y te avisaremos en cuanto lo tome.' },
-    tomado:         { color: '#c9956c', colorClaro: '#e8d5b7', icono: '🤝', mensaje: 'Un miembro de nuestro equipo ya está atendiendo tu pedido.' },
+    recibido:       { color: C.rosa,   titulo: 'Recibimos tu *pedido*', mensaje: 'Un trabajador lo revisará y te avisaremos en cuanto lo tome.' },
+    tomado:         { color: C.info,   titulo: 'Ya estamos con tu *pedido*', mensaje: 'Un miembro de nuestro equipo ya está atendiendo tu pedido.' },
 };
 
-// Eventos que se muestran en el tracker como si fueran el estado "pendiente"
+// Eventos que en la línea de tiempo cuentan como el estado "pendiente"
 const EVENTO_A_ESTADO: Record<string, string> = { recibido: 'pendiente', tomado: 'pendiente' };
-
 const ORDEN_ESTADOS_TRACKER = ['pendiente', 'confirmado', 'en_preparacion', 'enviado', 'entregado'];
-const ICONO_TRACKER: Record<string, string> = { pendiente: '⏳', confirmado: '✅', en_preparacion: '📦', enviado: '🚚', entregado: '🎁' };
-
-function construirTrackerEstado(estado: string, meta: { color: string; colorClaro: string }): string {
-    if (estado === 'cancelado' || estado === 'expirado') return '';
-    const indexActual = ORDEN_ESTADOS_TRACKER.indexOf(EVENTO_A_ESTADO[estado] || estado);
-
-    const pasos = ORDEN_ESTADOS_TRACKER.map((paso, i) => {
-        const activo = i <= indexActual;
-        const esActual = i === indexActual;
-        const circleColor = activo ? meta.color : 'rgba(255,255,255,0.08)';
-        const borderColor = activo ? meta.colorClaro : 'rgba(255,255,255,0.15)';
-        const lineColor = i < indexActual ? meta.color : 'rgba(255,255,255,0.12)';
-        return `
-        <td style="text-align:center; width:${100 / ORDEN_ESTADOS_TRACKER.length}%;">
-          <table role="presentation" width="100%"><tr>
-            ${i > 0 ? `<td style="height:2px; background:${lineColor}; padding:0;"></td>` : ''}
-          </tr></table>
-          <div style="width:30px; height:30px; line-height:30px; border-radius:50%; background:${circleColor}; border:2px solid ${borderColor}; margin:6px auto 6px; font-size:13px; ${esActual ? `box-shadow:0 0 0 4px ${meta.color}25;` : ''}">${activo ? ICONO_TRACKER[paso] : ''}</div>
-          <p style="margin:0; font-size:9.5px; letter-spacing:0.3px; text-transform:uppercase; color:${activo ? '#fff' : 'rgba(255,255,255,0.35)'}; font-family:'Segoe UI',Arial,sans-serif; font-weight:${esActual ? 700 : 400};">${labelEstado(paso)}</p>
-        </td>`;
-    }).join('');
-
-    return `
-    <table role="presentation" width="100%" style="margin:0 0 26px;"><tr>${pasos}</tr></table>`;
-}
+const TITULO_PASO: Record<string, string> = {
+    pendiente: 'Pedido recibido', confirmado: 'Pago confirmado', en_preparacion: 'Preparando tu pedido',
+    enviado: 'En camino', entregado: 'Entregado',
+};
 
 function construirHtmlNotificacionEstado(venta: any, estado: string): string {
-    const meta = ESTADO_NOTIFICACION_META[estado] || { color: '#d4607e', colorClaro: '#ecb2c3', icono: '💍', mensaje: 'El estado de tu pedido fue actualizado.' };
+    const meta = ESTADO_NOTIFICACION_META[estado] || { color: C.rosa, titulo: 'Tu pedido se *actualizó*', mensaje: 'El estado de tu pedido cambió.' };
     const nombrePila = (venta.cliente_nombre_completo || venta.cliente_nombre_reg || '').split(' ')[0];
     const items: any[] = venta.items || [];
+    const ETIQUETA: Record<string, string> = { recibido: 'Nuevo pedido', tomado: 'En atención', pendiente: 'Pendiente', confirmado: 'Confirmado', en_preparacion: 'En preparación', enviado: 'Enviado', entregado: 'Entregado', cancelado: 'Cancelado', expirado: 'Expirado' };
+    const etiqueta = ETIQUETA[estado] || labelEstado(estado);
 
-    const filasItems = items.map(it => `
-        <tr>
-            <td style="padding:9px 0; font-size:13.5px; color:#f0dede; font-family:'Segoe UI',Arial,sans-serif; border-bottom:1px solid rgba(255,255,255,0.06);">${it.producto_nombre} <span style="color:rgba(255,255,255,0.4);">× ${it.cantidad}</span></td>
-            <td style="padding:9px 0; font-size:13.5px; color:#f0dede; text-align:right; font-family:'Segoe UI',Arial,sans-serif; border-bottom:1px solid rgba(255,255,255,0.06);">$${Number(it.subtotal).toFixed(2)}</td>
-        </tr>`).join('');
+    // Línea de tiempo vertical (no aplica a cancelado/expirado)
+    let seguimiento = '';
+    if (estado !== 'cancelado' && estado !== 'expirado') {
+        const indexActual = ORDEN_ESTADOS_TRACKER.indexOf(EVENTO_A_ESTADO[estado] || estado);
+        seguimiento = tarjeta(`
+            <p style="margin:0 0 14px; font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:12px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:${C.suave};">Seguimiento</p>
+            ${lineaTiempo(ORDEN_ESTADOS_TRACKER.map((paso, i) => ({
+                titulo: TITULO_PASO[paso],
+                estado: i < indexActual ? 'hecho' : i === indexActual ? 'actual' : 'pendiente',
+            })))}`);
+    }
 
-    return `
-    <div style="background:#050505; padding:40px 16px; font-family:Georgia,'Times New Roman',serif;">
-      <table role="presentation" width="100%" style="max-width:560px; margin:0 auto; background:linear-gradient(160deg,#161116 0%,#0b0708 55%,#050405 100%); border-radius:24px; overflow:hidden; border:1px solid ${meta.color}40; box-shadow:0 24px 60px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.04);">
-        <tr><td style="height:6px; background:linear-gradient(90deg,#c9a84c,${meta.color},${meta.colorClaro},${meta.color},#c9a84c); background-size:200% 100%;"></td></tr>
+    const filasItems = items.map(it =>
+        fila(`${escapar(it.producto_nombre)} <span style="color:${C.suave};">× ${it.cantidad}</span>`, dinero(it.subtotal))).join('');
 
-        <tr>
-          <td style="padding:48px 36px 30px; text-align:center; background:radial-gradient(circle at 50% -10%, ${meta.color}22 0%, transparent 60%);">
-            <p style="margin:0 0 10px; font-size:11px; letter-spacing:6px; text-transform:uppercase; color:${meta.colorClaro}; font-family:Georgia,serif;">Joyería</p>
-            <h1 style="margin:0 0 22px; font-family:'Playfair Display',Georgia,serif; font-weight:700; font-style:italic; font-size:36px; color:#ffffff; text-shadow:0 2px 12px rgba(0,0,0,0.4);">Diana Laura</h1>
-            <div style="display:inline-block; background:linear-gradient(135deg,${meta.color}2b,${meta.color}10); border:1px solid ${meta.color}80; border-radius:50px; padding:11px 26px; box-shadow:0 6px 18px ${meta.color}25;">
-              <span style="font-size:16px; vertical-align:middle;">${meta.icono}</span>
-              <span style="font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:${meta.colorClaro}; font-weight:700; vertical-align:middle; margin-left:9px; font-family:'Segoe UI',Arial,sans-serif;">${labelEstado(estado)}</span>
-            </div>
-          </td>
-        </tr>
+    const resumen = tarjeta(`
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;"><tr>
+          <td style="font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:12px; color:${C.suave};">Pedido</td>
+          <td align="right" style="font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:16px; font-weight:700; color:${C.texto};">${escapar(venta.folio)}</td>
+        </tr></table>
+        ${tablaFilas(filasItems + fila('Total', dinero(venta.total), { fuerte: true, color: C.rosa }))}`, { acento: meta.color });
 
-        <tr>
-          <td style="padding:6px 36px 8px;">
-            <p style="margin:0 0 8px; font-size:24px; color:#ffffff; font-family:'Playfair Display',Georgia,serif; font-style:italic;">Hola, ${nombrePila} 👋</p>
-            <p style="margin:0 0 26px; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.65); font-family:'Segoe UI',Arial,sans-serif;">${meta.mensaje}</p>
+    const envio = venta.dir_calle ? tarjeta(`
+        <p style="margin:0 0 4px; font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:12px; font-weight:600; color:${C.suave};">Se entrega en</p>
+        <p style="margin:0; font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:14px; line-height:1.5; color:${C.texto};">
+          ${escapar(`${venta.dir_calle} ${venta.dir_numero || ''}, ${venta.dir_colonia}, ${venta.dir_ciudad}, ${venta.dir_estado}, CP ${venta.dir_codigo_postal}`)}
+        </p>`) : '';
 
-            ${construirTrackerEstado(estado, meta)}
-
-            <table role="presentation" width="100%" style="background:linear-gradient(160deg,${meta.color}1a 0%, rgba(255,255,255,0.02) 100%); border:1px solid ${meta.color}4a; border-radius:16px; margin:0 0 22px;">
-              <tr><td style="padding:24px 26px;">
-                <p style="margin:0 0 3px; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:${meta.colorClaro}; font-family:'Segoe UI',Arial,sans-serif;">Folio</p>
-                <p style="margin:0 0 16px; font-size:18px; color:#fff; font-weight:700; font-family:'Segoe UI',Arial,sans-serif; letter-spacing:0.3px;">${venta.folio}</p>
-                ${filasItems ? `<table role="presentation" width="100%">${filasItems}</table>` : ''}
-                <table role="presentation" width="100%" style="margin-top:14px;">
-                  <tr>
-                    <td style="font-size:15px; color:#fff; font-weight:700; font-family:'Segoe UI',Arial,sans-serif;">Total</td>
-                    <td style="font-size:15px; color:${meta.colorClaro}; font-weight:800; text-align:right; font-family:'Segoe UI',Arial,sans-serif;">$${Number(venta.total).toFixed(2)}</td>
-                  </tr>
-                </table>
-              </td></tr>
-            </table>
-
-            ${venta.dir_calle ? `
-            <table role="presentation" width="100%" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px; margin:0 0 24px;">
-              <tr><td style="padding:14px 18px; font-size:12px; line-height:1.6; color:rgba(255,255,255,0.55); font-family:'Segoe UI',Arial,sans-serif;">
-                📍 <strong style="color:rgba(255,255,255,0.75);">Envío a:</strong> ${venta.dir_calle} ${venta.dir_numero || ''}, ${venta.dir_colonia}, ${venta.dir_ciudad}, ${venta.dir_estado}, CP ${venta.dir_codigo_postal}
-              </td></tr>
-            </table>` : ''}
-
-            <div style="text-align:center; margin:0 0 8px;">
-              <a href="https://joyeria-diana-laura.vercel.app/pedidos" style="display:inline-block; background:linear-gradient(135deg,${meta.color} 0%,${meta.colorClaro} 100%); color:#1a0a10; text-decoration:none; font-weight:700; font-size:12.5px; letter-spacing:1.5px; padding:15px 40px; border-radius:50px; box-shadow:0 10px 26px ${meta.color}45; font-family:'Segoe UI',Arial,sans-serif; text-transform:uppercase;">Ver mi pedido</a>
-            </div>
-          </td>
-        </tr>
-
-        <tr><td style="padding:20px 36px 0;"><div style="height:1px; background:linear-gradient(90deg,transparent,${meta.color}45,transparent);"></div></td></tr>
-        <tr>
-          <td style="padding:22px 36px 36px; text-align:center;">
-            <p style="margin:0 0 5px; font-size:16px; color:${meta.colorClaro}; font-weight:700; font-style:italic; font-family:'Playfair Display',Georgia,serif;">Joyería Diana Laura</p>
-            <p style="margin:0 0 12px; font-size:11px; letter-spacing:0.5px; color:rgba(255,255,255,0.35); font-family:'Segoe UI',Arial,sans-serif;">✨ Elegancia que brilla contigo ✨</p>
-            <p style="margin:0; font-size:11px; color:rgba(255,255,255,0.3); font-family:'Segoe UI',Arial,sans-serif;">📩 Mantente atento a tu correo: te avisaremos cada vez que tu pedido avance de estado.</p>
-          </td>
-        </tr>
-      </table>
-    </div>`;
+    return layoutCorreo({
+        preheader: `${ESTADO_NOTIFICACION_META[estado]?.mensaje || 'Tu pedido se actualizó.'} Folio ${venta.folio}.`,
+        etiqueta: { texto: etiqueta, color: meta.color },
+        titulo: meta.titulo,
+        nombre: nombrePila,
+        mensaje: meta.mensaje,
+        contenido: seguimiento + resumen + envio,
+        botonTexto: 'Ver mi pedido',
+        botonUrl: `${SITIO_URL}/pedidos`,
+        notaPie: 'Te avisaremos por correo cada vez que tu pedido avance.',
+    });
 }
 
 const enviarNotificacionEstadoPedido = async (venta: any, estado: string, asunto?: string): Promise<void> => {

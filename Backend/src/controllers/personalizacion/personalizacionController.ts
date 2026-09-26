@@ -1,6 +1,7 @@
 // Ruta: Backend/src/controllers/personalizacion/personalizacionController.ts
 import { Response } from 'express';
 import axios from 'axios';
+import { C, SITIO_URL, escapar, tarjeta, layoutCorreo } from '../../utils/plantillaCorreo';
 import { PersonalizacionModel } from '../../models/personalizacionModel';
 import { VentaModel } from '../../models/carritoModel';
 import pool from '../../config/database';
@@ -11,30 +12,27 @@ const REMITENTE_EMAIL = process.env.BREVO_SENDER_EMAIL || '';
 const REMITENTE_NOMBRE = process.env.BREVO_SENDER_NOMBRE || 'Joyeria Diana Laura';
 
 function construirHtmlRespuesta(nombrePila: string, aprobada: boolean, productoNombre: string, motivo?: string): string {
-  const color = aprobada ? '#4a8c7a' : '#c65a7a';
-  const titulo = aprobada ? '¡Tu personalización fue aprobada!' : 'Sobre tu solicitud de personalización';
-  const cuerpo = aprobada
-    ? `Ya revisamos el detalle y la imagen de referencia que enviaste para <strong>${productoNombre}</strong>. Todo listo — ya puedes continuar con tu compra desde la sección "Mis solicitudes de personalización".`
-    : `Revisamos tu solicitud para <strong>${productoNombre}</strong> y no pudimos aprobarla en esta ocasión.${motivo ? ` Motivo: ${motivo}` : ''} Puedes enviar una nueva solicitud con los ajustes necesarios.`;
+  const color = aprobada ? C.exito : C.error;
+  const contenido = tarjeta(`
+      <p style="margin:0 0 4px; font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:12px; font-weight:600; color:${C.suave};">Pieza</p>
+      <p style="margin:0; font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:16px; font-weight:700; color:${C.texto};">${escapar(productoNombre)}</p>
+      ${!aprobada && motivo ? `
+      <p style="margin:14px 0 4px; font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:12px; font-weight:600; color:${C.suave};">Motivo</p>
+      <p style="margin:0; font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:14px; line-height:1.55; color:${C.texto};">${escapar(motivo)}</p>` : ''}`,
+    { acento: color });
 
-  return `
-  <div style="background:#050505; padding:40px 16px; font-family:Georgia,'Times New Roman',serif;">
-    <table role="presentation" width="100%" style="max-width:540px; margin:0 auto; background:linear-gradient(160deg,#141014 0%,#0a0708 60%,#050405 100%); border-radius:20px; overflow:hidden; border:1px solid ${color}35;">
-      <tr><td style="height:5px; background:${color};"></td></tr>
-      <tr>
-        <td style="padding:36px 32px 8px;">
-          <p style="margin:0 0 6px; font-size:22px; color:#ffffff; font-family:'Playfair Display',Georgia,serif; font-style:italic;">Hola, ${nombrePila}</p>
-          <h2 style="margin:0 0 18px; font-size:18px; color:${color};">${titulo}</h2>
-          <p style="margin:0 0 24px; font-size:15px; line-height:1.7; color:#f0dede; font-family:'Segoe UI',Arial,sans-serif;">${cuerpo}</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:0 32px 36px; text-align:center;">
-          <a href="https://joyeria-diana-laura.vercel.app/mis-personalizaciones" style="display:inline-block; background:${color}; color:#050405; text-decoration:none; font-weight:700; font-size:12.5px; letter-spacing:1.5px; padding:15px 40px; border-radius:50px; font-family:'Segoe UI',Arial,sans-serif; text-transform:uppercase;">Ver mis solicitudes</a>
-        </td>
-      </tr>
-    </table>
-  </div>`;
+  return layoutCorreo({
+    preheader: aprobada ? `Aprobamos tu personalización de ${productoNombre}.` : `Revisamos tu solicitud de personalización de ${productoNombre}.`,
+    etiqueta: { texto: aprobada ? 'Aprobada' : 'No aprobada', color },
+    titulo: aprobada ? 'Tu personalización fue *aprobada*' : 'Sobre tu *personalización*',
+    nombre: nombrePila,
+    mensaje: aprobada
+      ? 'Revisamos el detalle y la imagen de referencia que enviaste. Todo está listo: ya puedes continuar con tu compra.'
+      : 'Revisamos tu solicitud y esta vez no pudimos aprobarla. Puedes enviar una nueva con los ajustes necesarios.',
+    contenido,
+    botonTexto: aprobada ? 'Continuar con mi compra' : 'Ver mis solicitudes',
+    botonUrl: `${SITIO_URL}/mis-personalizaciones`,
+  });
 }
 
 async function enviarEmailRespuesta(email: string, nombre: string, aprobada: boolean, productoNombre: string, motivo?: string) {
