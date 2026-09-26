@@ -116,11 +116,9 @@ export const adminContentController = {
     try {
       const noticias = await getOrSetCache('noticias', 60_000, async () => {
         const result = await pool.query('SELECT * FROM noticias ORDER BY fecha DESC');
-        // Formatear la fecha para enviarla bonita al frontend
-        return result.rows.map(n => ({
-          ...n,
-          fecha: new Date(n.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
-        }));
+        // La fecha se envía tal cual (ISO): cada pantalla la formatea y el admin
+        // la usa para ordenar. Antes iba ya formateada y el cliente mostraba "Invalid Date".
+        return result.rows;
       });
 
       res.json(noticias);
