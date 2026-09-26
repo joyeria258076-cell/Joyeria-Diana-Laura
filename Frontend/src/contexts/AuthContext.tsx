@@ -400,7 +400,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const lockCheckResponse = await authAPI.checkAccountLock({ email });
       if (lockCheckResponse.data.locked) {
         const lockedUntil = new Date(lockCheckResponse.data.lockedUntil);
-        const remainingTime = Math.ceil((lockedUntil.getTime() - Date.now()) / 60000);
+        const remainingTime = lockCheckResponse.data.remainingMinutes
+          ?? Math.max(1, Math.ceil((lockedUntil.getTime() - Date.now()) / 60000));
         throw new Error(`🔒 Cuenta temporalmente bloqueada. Demasiados intentos fallidos. Intenta nuevamente en ${remainingTime} minutos.`);
       }
 

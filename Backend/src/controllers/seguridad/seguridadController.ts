@@ -22,6 +22,7 @@ export const checkAccountLock = async (req: Request, res: Response) => {
       data: {
         locked: lockStatus.locked,
         lockedUntil: lockStatus.lockedUntil,
+        remainingMinutes: lockStatus.remainingMinutes,
         securityStats: securityStats
       }
     });

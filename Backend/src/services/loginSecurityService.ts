@@ -14,7 +14,19 @@ export interface LoginAttempt {
 export class LoginSecurityService {
   // 🎯 MISMOS PARÁMETROS QUE RECUPERACIÓN: 3 intentos, 2 minutos
   public static readonly MAX_ATTEMPTS = 3;
-  public static readonly LOCK_DURATION_MINUTES = 5; // 🎯 CAMBIADO A 5 MINUTOS
+  public static readonly LOCK_DURATION_MINUTES = 15;
+
+  /**
+   * Las columnas son TIMESTAMP sin zona y guardan hora UTC; el driver las entrega
+   * como texto ("2026-09-26 21:42:44"). Sin la "Z", el navegador las leía como hora
+   * local y el aviso mostraba 6 horas de más.
+   */
+  static aFechaUTC(v: any): Date | null {
+    if (!v) return null;
+    if (v instanceof Date) return v;
+    const t = String(v).trim().replace(' ', 'T');
+    return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(t) ? t : `${t}Z`);
+  }
 
   /**
    * Obtener duración del bloqueo
@@ -50,7 +62,8 @@ export class LoginSecurityService {
    */
   static async isAccountLocked(email: string): Promise<{ 
     locked: boolean; 
-    lockedUntil?: Date; 
+    lockedUntil?: string; 
+    remainingMinutes?: number;
     attempts?: number;
     remainingAttempts?: number;
   }> {
@@ -75,12 +88,14 @@ export class LoginSecurityService {
       const now = new Date();
 
       // Verificar si está bloqueado
-      if (security.login_blocked_until && new Date(security.login_blocked_until) > now) {
-        const remainingTime = Math.ceil((new Date(security.login_blocked_until).getTime() - now.getTime()) / 60000);
+      const bloqueadoHasta = this.aFechaUTC(security.login_blocked_until);
+      if (bloqueadoHasta && bloqueadoHasta > now) {
+        const remainingTime = Math.ceil((bloqueadoHasta.getTime() - now.getTime()) / 60000);
         
         return {
           locked: true,
-          lockedUntil: security.login_blocked_until,
+          lockedUntil: bloqueadoHasta.toISOString(),
+          remainingMinutes: remainingTime,
           attempts: security.login_attempts,
           remainingAttempts: 0
         };
@@ -221,8 +236,8 @@ export class LoginSecurityService {
     attempts: number;
     remainingAttempts: number;
     isLocked: boolean;
-    lockedUntil?: Date;
-    lastAttempt?: Date;
+    lockedUntil?: string;
+    lastAttempt?: string;
   }> {
     try {
       const result = await pool.query(
@@ -239,15 +254,16 @@ export class LoginSecurityService {
       }
 
       const security = result.rows[0];
-      const isLocked = security.login_blocked_until && new Date(security.login_blocked_until) > new Date();
+      const hasta = this.aFechaUTC(security.login_blocked_until);
+      const isLocked = !!hasta && hasta > new Date();
       const remainingAttempts = Math.max(0, this.MAX_ATTEMPTS - security.login_attempts);
 
       return {
         attempts: security.login_attempts,
         remainingAttempts: remainingAttempts,
         isLocked: isLocked,
-        lockedUntil: security.login_blocked_until,
-        lastAttempt: security.last_login_attempt
+        lockedUntil: hasta ? hasta.toISOString() : undefined,
+        lastAttempt: this.aFechaUTC(security.last_login_attempt)?.toISOString()
       };
     } catch (error) {
       console.error('Error obteniendo estadísticas de seguridad:', error);
