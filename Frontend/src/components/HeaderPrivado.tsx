@@ -98,8 +98,11 @@ const HeaderPrivado: React.FC = () => {
                     onClick={() => goTo(userRole === 'admin' ? "/admin-dashboard" : userRole === 'trabajador' ? "/dashboard-trabajador" : "/inicio")}
                     style={{ cursor: 'pointer' }}
                 >
-                    <div className="logo-text">Diana Laura</div>
-                    <p className="logo-subtext">TU TIENDA DE JOYAS</p>
+                    <img className="sidebar-logo-img" src="/pwa-192.png" alt="" width={44} height={44} />
+                    <div className="sidebar-logo-textos">
+                        <div className="logo-text"><small>Joyería</small> Diana Laura</div>
+                        <p className="logo-subtext">TU TIENDA DE JOYAS</p>
+                    </div>
                 </div>
 
                 <nav className="sidebar-nav">

@@ -41,8 +41,8 @@ const PublicHeader: React.FC = () => {
           {/* Logo y marca */}
           <div className="header-brand">
             <Link to="/" className="brand-link">
-              <span className="brand-initials">DL</span>
-              <span className="brand-name">Diana Laura</span>
+              <img className="brand-logo" src="/pwa-192.png" alt="" width={44} height={44} />
+              <span className="brand-name"><small>Joyería</small> Diana Laura</span>
             </Link>
           </div>
 
