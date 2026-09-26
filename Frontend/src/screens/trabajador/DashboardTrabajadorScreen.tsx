@@ -89,11 +89,11 @@ export default function DashboardTrabajadorScreen() {
         new Date(p.fecha_actualizacion || p.fecha_creacion) >= inicioMes).length;
 
     const tarjetas = [
-        { icon: <AiOutlineShoppingCart size={20} />, n: porTomar.length, titulo: 'Pedidos por tomar', desc: 'Nadie los atiende aún', ruta: '/pedidos-admin' },
-        { icon: <AiOutlineCreditCard size={20} />, n: pagosPorVerificar.length, titulo: 'Pagos por verificar', desc: 'Comprobantes de tus pedidos', ruta: '/pedidos-admin' },
-        { icon: <AiOutlineGift size={20} />, n: porPreparar.length, titulo: 'Por preparar o enviar', desc: 'Pagados y listos para armar', ruta: '/pedidos-admin' },
-        { icon: <AiOutlineFlag size={20} />, n: apartadosPendPago.length + apartadosPorVencer.length, titulo: 'Apartados por atender', desc: `${apartadosPendPago.length} por confirmar · ${apartadosPorVencer.length} por vencer`, ruta: '/apartados-admin' },
-        { icon: <AiOutlineEdit size={20} />, n: persPendientes, titulo: 'Personalizaciones', desc: 'Solicitudes por revisar', ruta: '/personalizaciones-admin' },
+        { icon: <AiOutlineShoppingCart size={20} />, n: porTomar.length, titulo: 'Pedidos por tomar', desc: 'Nadie los atiende aún', ruta: '/pedidos-admin', tono: 'info' },
+        { icon: <AiOutlineCreditCard size={20} />, n: pagosPorVerificar.length, titulo: 'Pagos por verificar', desc: 'Comprobantes de tus pedidos', ruta: '/pedidos-admin', tono: 'warning' },
+        { icon: <AiOutlineGift size={20} />, n: porPreparar.length, titulo: 'Por preparar o enviar', desc: 'Pagados y listos para armar', ruta: '/pedidos-admin', tono: 'primary' },
+        { icon: <AiOutlineFlag size={20} />, n: apartadosPendPago.length + apartadosPorVencer.length, titulo: 'Apartados por atender', desc: `${apartadosPendPago.length} por confirmar · ${apartadosPorVencer.length} por vencer`, ruta: '/apartados-admin', tono: 'accent' },
+        { icon: <AiOutlineEdit size={20} />, n: persPendientes, titulo: 'Personalizaciones', desc: 'Solicitudes por revisar', ruta: '/personalizaciones-admin', tono: 'success' },
     ];
     const totalPendiente = tarjetas.reduce((s, t) => s + t.n, 0);
 
@@ -118,7 +118,8 @@ export default function DashboardTrabajadorScreen() {
     return (
         <div className="tr2-wrap">
             <header className="tr2-head">
-                <div>
+                <span className="tr2-avatar" aria-hidden="true">{nombre.charAt(0).toUpperCase()}</span>
+                <div className="tr2-head-textos">
                     <div className="sx-eyebrow tr2-eyebrow">{hoy}</div>
                     <h1 className="sx-title tr2-title">Hola, <span>{nombre}</span></h1>
                     <p className="sx-subtitle tr2-sub">
@@ -131,6 +132,10 @@ export default function DashboardTrabajadorScreen() {
                     <AiOutlineReload size={16} />
                     <span>{actualizado ? `Actualizado ${actualizado.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}` : 'Actualizar'}</span>
                 </button>
+                <div className="tr2-head-total" aria-hidden="true">
+                    <strong>{loading ? '—' : totalPendiente}</strong>
+                    <span>{totalPendiente === 1 ? 'pendiente' : 'pendientes'}</span>
+                </div>
             </header>
 
             {aviso && <div className="tr2-aviso" role="status">{aviso}<button onClick={() => setAviso('')} aria-label="Cerrar">×</button></div>}
@@ -138,7 +143,7 @@ export default function DashboardTrabajadorScreen() {
             {/* ── Qué atender ahora ── */}
             <section className="tr2-tarjetas">
                 {tarjetas.map(t => (
-                    <button key={t.titulo} className={`tr2-tarjeta${t.n > 0 ? ' tr2-tarjeta--alerta' : ''}`} onClick={() => navigate(t.ruta)}>
+                    <button key={t.titulo} className={`tr2-tarjeta tr2-tarjeta--${t.tono}${t.n > 0 ? ' tr2-tarjeta--alerta' : ''}`} onClick={() => navigate(t.ruta)}>
                         <span className="tr2-tarjeta-icon">{t.icon}</span>
                         <span className="tr2-tarjeta-n">{loading ? '—' : t.n}</span>
                         <span className="tr2-tarjeta-titulo">{t.titulo}</span>
@@ -160,6 +165,7 @@ export default function DashboardTrabajadorScreen() {
                         <ul className="tr2-lista">
                             {porTomar.slice(0, 5).map(p => (
                                 <li key={p.id} className="tr2-fila">
+                                    <span className="tr2-fila-tile"><AiOutlineShoppingCart size={16} /></span>
                                     <div className="tr2-fila-info">
                                         <strong>{p.folio}</strong>
                                         <span>{p.cliente_nombre_completo} · {dinero(p.total)} · {p.tipo_entrega === 'domicilio' ? 'Domicilio' : 'Tienda'}</span>
@@ -186,6 +192,7 @@ export default function DashboardTrabajadorScreen() {
                         <ul className="tr2-lista">
                             {enCurso.slice(0, 5).map(p => (
                                 <li key={p.id} className="tr2-fila tr2-fila--link" onClick={() => navigate('/pedidos-admin')}>
+                                    <span className="tr2-fila-tile"><AiOutlineGift size={16} /></span>
                                     <div className="tr2-fila-info">
                                         <strong>{p.folio}</strong>
                                         <span>{p.cliente_nombre_completo} · {dinero(p.total)}</span>
@@ -214,6 +221,7 @@ export default function DashboardTrabajadorScreen() {
                                 const d = diasPara(a.fecha_limite_liquidacion);
                                 return (
                                     <li key={a.id} className="tr2-fila tr2-fila--link" onClick={() => navigate('/apartados-admin')}>
+                                        <span className="tr2-fila-tile"><AiOutlineFlag size={16} /></span>
                                         <div className="tr2-fila-info">
                                             <strong>{a.folio}</strong>
                                             <span>{a.cliente_nombre} · falta {dinero(a.saldo_pendiente)}</span>
@@ -231,10 +239,16 @@ export default function DashboardTrabajadorScreen() {
                 {/* ── Mi mes ── */}
                 <section className="tr2-panel tr2-panel--resumen">
                     <div className="tr2-panel-head"><h2>Mi mes</h2></div>
+                    <div className="tr2-mes">
+                    <div className="tr2-anillo" style={{ ['--pct' as any]: (entregadosMes + enCurso.length) ? Math.round(entregadosMes * 100 / (entregadosMes + enCurso.length)) : 0 }}>
+                        <span>{(entregadosMes + enCurso.length) ? Math.round(entregadosMes * 100 / (entregadosMes + enCurso.length)) : 0}<small>%</small></span>
+                        <em>entregado</em>
+                    </div>
                     <div className="tr2-resumen">
                         <div><strong>{loading ? '—' : entregadosMes}</strong><span>Entregados este mes</span></div>
                         <div><strong>{loading ? '—' : enCurso.length}</strong><span>Pedidos activos</span></div>
                         <div><strong>{loading ? '—' : mios.filter(p => p.estado === 'entregado').length}</strong><span>Entregados en total</span></div>
+                    </div>
                     </div>
                     <Link to="/trabajador/actividades" className="sx-btn sx-btn--ghost tr2-btn-actividades">Ver mis actividades</Link>
                 </section>

@@ -6,6 +6,7 @@ import './index.css';
 import './styles/temas.css';
 import './styles/componentes.css';
 import './styles/layout.css';
+import './styles/modulos.css';
 import App from './App';
 // import reportWebVitals from './reportWebVitals';
 

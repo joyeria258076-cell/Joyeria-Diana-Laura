@@ -1,0 +1,133 @@
+/* modulos.css — Capa común con el estilo de los bocetos de la app móvil para
+   todas las pantallas privadas (admin, trabajador y cliente).
+   Solo toca apariencia: tipografía, radios, fondos, sombras y colores.
+   Cada pantalla usa su propio prefijo (inv2-, ap3-, gp-, rp-…), así que aquí se
+   apunta a los sufijos comunes (-header, -titulo, -card, -badge, -modal…). */
+
+/* ── Sidebar: grupos alineados a la izquierda ── */
+body .sidebar-privado .dropdown-toggle { justify-content: flex-start !important; text-align: left !important; gap: 12px; }
+body .sidebar-privado .dropdown-toggle .dropdown-arrow { margin-left: auto; }
+body .sidebar-privado .dropdown-item { border-radius: 12px; text-align: left; justify-content: flex-start; }
+
+/* ── Encabezado de página ── */
+body .content-area h1 {
+  font-family: var(--font-body) !important; font-weight: 700 !important;
+  letter-spacing: -1px !important; line-height: 1.1 !important;
+  font-size: clamp(26px, 3vw, 36px) !important; color: var(--color-text) !important;
+  text-transform: none !important;
+}
+body .content-area h1 > svg:first-child,
+body .content-area h1 > i:first-child {
+  box-sizing: content-box; width: 22px !important; height: 22px !important; padding: 10px;
+  border-radius: 14px; vertical-align: middle; margin-right: 6px;
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent); color: var(--color-primary);
+}
+body .content-area h1 em, body .content-area h1 span[class*="acento"] {
+  font-family: var(--font-accent); font-style: italic; font-weight: 600; color: var(--color-primary); letter-spacing: -0.5px;
+}
+body .content-area :is([class$="-subtitulo"], [class*="-subtitulo "], [class$="-subtitle"], [class*="-subtitle "], [class$="-header"] > p, [class$="-header"] > div > p) {
+  text-transform: none !important; color: var(--color-text-muted) !important;
+  font-family: var(--font-body) !important; font-size: 14.5px !important; letter-spacing: 0 !important;
+}
+body .content-area :is(h2, h3) { font-family: var(--font-body) !important; letter-spacing: -0.4px; }
+
+/* ── Tarjetas ── */
+body .content-area :is([class$="-card"], [class*="-card "], [class$="-panel"], [class*="-panel "], [class$="-seccion"], [class$="-section"]) {
+  border-radius: var(--radius-xl);
+  border-color: var(--color-border);
+}
+body .content-area :is([class$="-card"], [class*="-card "]):not(button) {
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+body .content-area :is([class$="-card"], [class*="-card "])::before { border-radius: inherit; }
+
+/* Estadísticas: número grande + etiqueta en minúsculas */
+body .content-area :is([class$="-stat"], [class*="-stat "], [class$="-stat-card"], [class$="-kpi"], [class*="-kpi "], [class$="-resumen-item"]) {
+  border-radius: 22px !important; border: 1px solid var(--color-border) !important;
+  background: var(--color-surface) !important; box-shadow: var(--shadow-soft);
+}
+body .content-area :is([class$="-stat-val"], [class$="-stat-valor"], [class$="-stat-value"], [class$="-stat-num"], [class$="-kpi-valor"], [class$="-kpi-value"]) {
+  font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.8px !important; color: var(--color-text) !important;
+}
+body .content-area :is([class$="-stat-label"], [class$="-stat-lbl"], [class$="-stat-etiqueta"], [class$="-kpi-label"]) {
+  text-transform: none !important; letter-spacing: 0.2px !important; font-size: 12.5px !important;
+  font-weight: 500 !important; color: var(--color-text-muted) !important;
+}
+
+/* ── Botones ── */
+body .content-area :is([class*="-btn-nuevo"], [class*="-btn-crear"], [class*="-btn-guardar"], [class*="-btn-primary"], [class*="-btn-primario"], [class*="-btn-pri"], [class*="btn-registrar"], [class*="-btn-principal"]):not(:disabled) {
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important;
+  border: 0 !important; border-radius: 16px !important; box-shadow: var(--shadow-primary) !important;
+  font-family: var(--font-body) !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+body .content-area :is([class*="-btn-nuevo"], [class*="-btn-crear"], [class*="btn-registrar"]) { min-height: 46px; padding-inline: 20px !important; }
+body .content-area :is([class*="-btn-sec"], [class*="-btn-secundario"], [class*="-btn-cancelar"], [class*="-btn-refrescar"], [class*="-btn-refresh"]) {
+  border-radius: 14px !important; text-transform: none !important; letter-spacing: 0 !important; font-family: var(--font-body) !important;
+}
+body .content-area button { text-transform: none; }
+body .content-area :is([class*="-btn-accion"], [class*="-btn-icon"], [class$="-icon-btn"], [class*="-accion-btn"]) { border-radius: 12px !important; }
+
+/* ── Pestañas y filtros como píldoras ── */
+body .content-area :is([class$="-tabs"], [class$="-filtros-tabs"], [class$="-tab-bar"]) { gap: 6px; flex-wrap: wrap; }
+body .content-area :is([class$="-tab"], [class*="-tab "], [class$="-chip"], [class*="-chip "], [class$="-filtro-btn"], [class*="-filtro-btn "]) {
+  border-radius: var(--radius-pill) !important; text-transform: none !important; letter-spacing: 0 !important;
+  font-family: var(--font-body) !important; font-weight: 500 !important;
+}
+body .content-area :is([class$="-tab"], [class*="-tab "], [class$="-chip"], [class*="-chip "], [class$="-filtro-btn"], [class*="-filtro-btn "]):is(.active, .activo, .activa, .is-active, [aria-selected="true"], [class*="--active"], [class*="--activo"], [class*="-activo"], [class*="-activa"]) {
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important;
+  border-color: transparent !important; font-weight: 600 !important; box-shadow: var(--shadow-primary);
+}
+
+/* ── Etiquetas de estado ── */
+body .content-area :is([class$="-badge"], [class*="-badge "], [class*="-badge-"], [class$="-estado"], [class*="-estado "], [class$="-tag"], [class*="-tag "], [class$="-pill"]):not(div[class*="-card"]) {
+  border-radius: var(--radius-pill) !important; text-transform: none !important; letter-spacing: 0.1px !important;
+  font-family: var(--font-body) !important; font-weight: 600 !important;
+}
+
+/* ── Buscadores y campos ── */
+body .content-area :is(input[type="text"], input[type="search"], input[type="email"], input[type="number"], input[type="date"], input[type="tel"], input:not([type]), select, textarea):not([class*="toggle"]) {
+  border-radius: 14px; font-family: var(--font-body);
+}
+body .content-area :is([class$="-search"], [class$="-buscador"], [class$="-busqueda"], [class$="-search-box"]) { border-radius: var(--radius-pill) !important; }
+body .content-area :is([class$="-search"], [class$="-buscador"], [class$="-busqueda"], [class$="-search-box"]) input { border-radius: var(--radius-pill) !important; }
+
+/* ── Tablas ── */
+body .content-area table { border-collapse: separate !important; border-spacing: 0; width: 100%; }
+body .content-area :is([class*="table-wrap"], [class*="tabla-wrap"], [class$="-tabla"], [class$="-table"]) {
+  border-radius: var(--radius-lg) !important; overflow: auto; border: 1px solid var(--color-border);
+}
+body .content-area thead th {
+  background: var(--color-surface-2) !important; color: var(--color-text-muted) !important;
+  font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0.2px !important; border-bottom: 1px solid var(--color-border) !important;
+}
+body .content-area tbody td { border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent) !important; font-family: var(--font-body); }
+body .content-area tbody tr:hover td { background: color-mix(in srgb, var(--color-primary) 5%, transparent); }
+
+/* ── Modales ── */
+body :is([class$="-overlay"], [class*="-overlay "], [class$="-modal-bg"], [class$="-backdrop"]):not(.sidebar-overlay) {
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+body :is([class$="-modal"], [class*="-modal "], [class$="-modal-content"], [class$="-dialog"]):not([class*="-overlay"]) {
+  border-radius: 28px !important;
+}
+body :is([class$="-modal-header"], [class$="-modal-head"]) h2,
+body :is([class$="-modal-header"], [class$="-modal-head"]) h3 { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.5px !important; text-transform: none !important; }
+body :is([class$="-modal-close"], [class$="-close"], [class$="-cerrar"]) { border-radius: 50% !important; }
+
+/* ── Estados vacíos ── */
+body .content-area :is([class$="-empty"], [class$="-vacio"], [class*="-empty "], [class*="-vacio "], [class$="-sin-datos"]) {
+  border-radius: var(--radius-xl) !important; font-family: var(--font-body) !important;
+  color: var(--color-text-muted) !important;
+}
+
+/* ── Etiquetas "eyebrow" ── */
+body .content-area :is([class$="-eyebrow"], [class$="-kicker"], [class$="-overline"]) {
+  font-family: var(--font-body) !important; font-size: 11px !important; font-weight: 600 !important;
+  letter-spacing: 2px !important; text-transform: uppercase !important; color: var(--color-primary) !important;
+}
+
+/* ── Fondo de pantalla configurable: más tenue para que el contenido respire ── */
+body .content-area { position: relative; }
