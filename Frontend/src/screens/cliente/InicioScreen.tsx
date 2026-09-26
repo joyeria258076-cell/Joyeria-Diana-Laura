@@ -427,7 +427,7 @@ const InicioScreen: React.FC = () => {
                                 </div>
                                 <div className="tl-nov-body">
                                     <span className="tl-nov-fecha">
-                                        {new Date(n.fecha).toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' })}
+                                        {(() => { const d = new Date(n.fecha); return isNaN(d.getTime()) ? (n.fecha || '') : d.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' }); })()}
                                     </span>
                                     <h3 className="tl-nov-titulo">{n.titulo}</h3>
                                     <p className="tl-nov-texto">
