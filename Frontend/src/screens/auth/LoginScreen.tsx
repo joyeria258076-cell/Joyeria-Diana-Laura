@@ -314,7 +314,7 @@ const onSubmit = async (data: FormData) => {
             <AuthBackground />
             <div className="login-image-section">
                 <div className="login-image-content">
-                    <div className="auth-logo" aria-hidden="true">DL</div>
+                    <div className="auth-logo" aria-hidden="true"><img src="/pwa-192.png" alt="" width={72} height={72} /></div>
                     <span className="login-image-eyebrow">Joyería Diana Laura</span>
                     <h1>Tu <em>brillo</em>,<br />en tu bolsillo.</h1>
                     <span className="login-image-divider" aria-hidden="true" />

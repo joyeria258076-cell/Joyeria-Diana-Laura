@@ -80,3 +80,14 @@ body .stats-band-item span {
   body .hero-carousel-section .carousel-wrapper, body .hero-carousel-section .carousel-container { border-radius: 28px; }
   body .stats-band { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 12px !important; }
 }
+
+/* El banner siempre va sobre foto: velo oscuro y texto claro en cualquier tema
+   (en Blanco·Rosa el texto oscuro se perdía sobre fotos oscuras). */
+body .carousel-overlay {
+  background: linear-gradient(90deg, rgba(13, 8, 12, 0.82) 0%, rgba(13, 8, 12, 0.45) 55%, rgba(13, 8, 12, 0.08) 100%) !important;
+}
+body .hero-carousel-section .carousel-title { color: #fff !important; }
+body .hero-carousel-section .carousel-desc { color: rgba(255, 255, 255, 0.85) !important; }
+body .hero-carousel-section .carousel-tag { background: rgba(255, 255, 255, 0.18) !important; color: #fff !important; }
+body .hero-carousel-section .carousel-actions .btn-secondary { background: rgba(255, 255, 255, 0.14) !important; color: #fff !important; border-color: rgba(255, 255, 255, 0.35) !important; }
+body .hero-carousel-section .carousel-btn { background: rgba(255, 255, 255, 0.16) !important; color: #fff !important; border-color: rgba(255, 255, 255, 0.3) !important; }
