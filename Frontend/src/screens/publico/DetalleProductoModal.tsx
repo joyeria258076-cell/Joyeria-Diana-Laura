@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AiOutlineClose, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineStar, AiFillStar, AiOutlineArrowRight, AiOutlineLock } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineStar, AiFillStar, AiOutlineArrowRight, AiOutlineLock, AiOutlineEdit, AiOutlineCheckCircle, AiOutlineWarning, AiOutlineTag, AiOutlineGift } from 'react-icons/ai';
 import { useCart } from '../../contexts/CartContext';
 import { favoritosAPI, recomendacionAPI, type Recomendacion } from '../../services/api';
 import './DetalleProductoModal.css';
+import './DetalleModalApp.css';
 
 const estaLogueado = (): boolean => {
   try {
@@ -166,7 +167,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
         {/* ✅ Confirmación visual al agregar */}
         {exitoso && (
           <div className="modal-agregado-ok">
-            🛒 ¡<strong>{producto.nombre}</strong> agregado al carrito!
+            <AiOutlineCheckCircle size={16} /> <strong>{producto.nombre}</strong> se agregó al carrito
           </div>
         )}
 
@@ -177,15 +178,23 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
             <div className="detalle-imagen-container">
               <img src={imagenUrl} alt={producto.nombre} />
               {producto.es_nuevo && <span className="badge badge-nuevo">Nuevo</span>}
-              {hayDescuento && <span className="badge badge-descuento">En Oferta</span>}
+              {hayDescuento && <span className="badge badge-descuento">En oferta</span>}
+              {producto.permite_personalizacion && (
+                <span className="badge badge-personalizable-modal"><AiOutlineEdit size={12} /> Personalizable</span>
+              )}
             </div>
           </div>
 
           {/* Información */}
           <div className="detalle-info-section">
-            {producto.categoria_nombre && (
-              <p className="detalle-categoria">{producto.categoria_nombre}</p>
-            )}
+            <div className="detalle-chips">
+              {producto.categoria_nombre && (
+                <p className="detalle-categoria">{producto.categoria_nombre}</p>
+              )}
+              {producto.permite_personalizacion && (
+                <span className="detalle-chip-personalizable"><AiOutlineEdit size={12} /> Personalizable</span>
+              )}
+            </div>
             {producto.descripcion && (
               <p className="detalle-descripcion">{producto.descripcion}</p>
             )}
@@ -211,8 +220,8 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
               </div>
               {producto.stock_actual > 0 && producto.stock_actual <= 5 && (
               <div className="caracteristica-item">
-                  <span className="label" style={{color:'#f5c842'}}>⚠️ Quedan solo</span>
-                  <span className="valor" style={{color:'#f5c842', fontWeight:700}}>{producto.stock_actual} unidades</span>
+                  <span className="label detalle-poco-stock"><AiOutlineWarning size={13} /> Quedan solo</span>
+                  <span className="valor detalle-poco-stock">{producto.stock_actual} unidades</span>
               </div>
           )}
             </div>
@@ -222,7 +231,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                 <>
                   <span className="precio-original">${producto.precio_venta.toLocaleString('es-MX')}</span>
                   <span className="precio-actual">${Number(precioFinal).toLocaleString('es-MX')}</span>
-                  {esPromocion && <span className="badge-promo-modal">🏷️ Promoción</span>}
+                  {esPromocion && <span className="badge-promo-modal"><AiOutlineTag size={12} /> Promoción</span>}
                 </>
               ) : null}
               {promoVenceLabel && (
@@ -239,7 +248,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                 {requiereTalla && (
                   <div className="detalle-talla">
                     <label>
-                      Talla / Medida <span style={{ color: '#e05a6a' }}>*</span>
+                      Talla / Medida <span className="detalle-requerido">*</span>
                     </label>
                     <input
                       type="text"
@@ -248,7 +257,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                       value={talla}
                       onChange={e => { setTalla(e.target.value); setTallaError(''); }}
                     />
-                    {tallaError && <span className="detalle-talla-error">⚠️ {tallaError}</span>}
+                    {tallaError && <span className="detalle-talla-error"><AiOutlineWarning size={12} /> {tallaError}</span>}
                   </div>
                 )}
 
@@ -296,7 +305,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                   disabled={agregando || exitoso}
                 >
                   <AiOutlineShoppingCart size={20} />
-                  {agregando ? 'Agregando...' : exitoso ? '¡Agregado al carrito! ✓' : 'Agregar al Carrito'}
+                  {agregando ? 'Agregando…' : exitoso ? 'Agregado al carrito' : 'Agregar al carrito'}
                   {!logueado && <AiOutlineLock size={13} style={{marginLeft: 4, opacity: 0.7}} />}
                 </button>
               ) : (
@@ -308,8 +317,8 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                 onClick={handleFavorito}
                 disabled={togglingFav}
               >
-                {esFavorito ? <AiFillStar size={20} style={{color:'#c9a84c'}} /> : <AiOutlineStar size={20} />}
-                {togglingFav ? 'Guardando...' : esFavorito ? 'En Favoritos ❤️' : 'Guardar Favorito'}
+                {esFavorito ? <AiFillStar size={20} /> : <AiOutlineStar size={20} />}
+                {togglingFav ? 'Guardando…' : esFavorito ? 'En favoritos' : 'Guardar en favoritos'}
                 {!logueado && <AiOutlineLock size={13} style={{marginLeft: 4, opacity: 0.7}} />}
               </button>
 
@@ -323,7 +332,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
         {recomendaciones.length > 0 && (
           <div className="detalle-recomendaciones">
             <div className="detalle-rec-inner">
-            <p className="detalle-rec-titulo">✨ Productos similares que te pueden interesar</p>
+            <p className="detalle-rec-titulo">Productos similares que te pueden <em>interesar</em></p>
             <ul className="detalle-rec-lista">
               {recomendaciones.map((r, i) => (
                 <li
@@ -343,7 +352,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                     {r.imagen_url ? (
                       <img src={r.imagen_url} alt={r.nombre} loading="lazy" />
                     ) : (
-                      <span className="detalle-rec-img-fallback">💍</span>
+                      <span className="detalle-rec-img-fallback"><AiOutlineGift size={22} /></span>
                     )}
                   </div>
                   <div className="detalle-rec-card-info">

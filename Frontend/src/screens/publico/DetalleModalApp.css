@@ -1,0 +1,192 @@
+/* DetalleModalApp.css — Vista rápida de producto (catálogo público y privado)
+   con el estilo de la app móvil. En teléfono se abre como hoja inferior. */
+
+body .detalle-modal-overlay {
+  background: color-mix(in srgb, var(--color-bg) 70%, transparent) !important;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+body .detalle-modal-content {
+  border-radius: 32px !important; border: 1px solid var(--glass-border) !important;
+  background: var(--color-surface) !important; box-shadow: var(--shadow-lift) !important;
+  overflow-x: hidden; font-family: var(--font-body);
+}
+body .detalle-modal-content::before, body .detalle-modal-content::after { display: none !important; }
+
+/* Encabezado */
+body .detalle-modal-header {
+  border-bottom: 1px solid var(--color-border) !important; padding: 20px 24px !important;
+  background: transparent !important; align-items: center !important; gap: 12px;
+}
+body .detalle-modal-header h2 {
+  font-family: var(--font-body) !important; font-size: 22px !important; font-weight: 700 !important;
+  letter-spacing: -0.6px !important; line-height: 1.2 !important; color: var(--color-text) !important;
+  text-transform: none !important; background: none !important; -webkit-text-fill-color: currentColor !important;
+}
+body .detalle-modal-content .btn-close {
+  width: 40px !important; height: 40px !important; flex-shrink: 0; border-radius: 50% !important; border: 0 !important;
+  background: var(--color-surface-2) !important; color: var(--color-text) !important;
+  display: inline-flex !important; align-items: center; justify-content: center; font-size: 15px !important;
+}
+
+/* Cuerpo */
+body .detalle-modal-body { gap: 26px !important; padding: 24px !important; }
+body .detalle-imagen-container {
+  position: relative; border-radius: 28px !important; overflow: hidden;
+  border: 1px solid var(--glass-border) !important; background: var(--color-surface-2) !important; box-shadow: var(--shadow-soft);
+}
+body .detalle-imagen-container img { width: 100%; height: 100%; object-fit: cover; }
+body .detalle-imagen-container .badge {
+  border-radius: var(--radius-pill) !important; padding: 5px 12px !important; border: 0 !important;
+  font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important;
+  letter-spacing: 0.2px !important; text-transform: none !important;
+  display: inline-flex !important; align-items: center; gap: 5px;
+}
+body .detalle-imagen-container .badge-nuevo { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; }
+body .detalle-imagen-container .badge-descuento { background: var(--color-error) !important; color: #fff !important; }
+body .detalle-imagen-container .badge-personalizable-modal {
+  position: absolute !important; left: 14px !important; bottom: 14px !important; top: auto !important; right: auto !important;
+  background: #fff !important; color: var(--color-primary-strong) !important; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+/* Chips de categoría y personalización */
+.detalle-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+body .detalle-categoria {
+  display: inline-flex !important; align-items: center; margin: 0 !important;
+  padding: 5px 12px !important; border-radius: var(--radius-pill) !important;
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent) !important; color: var(--color-primary) !important;
+  font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important;
+  letter-spacing: 0 !important; text-transform: none !important;
+}
+.detalle-chip-personalizable {
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent); color: var(--color-accent);
+  font-family: var(--font-body); font-size: 12px; font-weight: 600;
+}
+body .detalle-descripcion { color: var(--color-text-muted) !important; font-size: 14.5px !important; line-height: 1.6 !important; }
+
+/* Características como tarjetitas */
+body .detalle-caracteristicas {
+  display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px !important;
+  border: 0 !important; padding: 0 !important; background: transparent !important; margin: 14px 0 !important;
+}
+body .caracteristica-item {
+  display: flex !important; flex-direction: column !important; align-items: flex-start !important; gap: 2px;
+  padding: 10px 14px !important; border-radius: 16px !important; border: 1px solid var(--color-border) !important;
+  background: var(--color-surface-2) !important;
+}
+body .caracteristica-item .label {
+  font-family: var(--font-body) !important; font-size: 11px !important; font-weight: 600 !important;
+  letter-spacing: 1px !important; text-transform: uppercase !important; color: var(--color-text-muted) !important;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+body .caracteristica-item .valor { font-family: var(--font-body) !important; font-size: 14.5px !important; font-weight: 600 !important; color: var(--color-text) !important; }
+body .caracteristica-item .valor.sin-stock { color: var(--color-error) !important; }
+body .caracteristica-item .detalle-poco-stock { color: var(--color-warning) !important; }
+
+/* Precios */
+body .detalle-precios { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; margin: 6px 0 16px !important; padding: 0 !important; border: 0 !important; background: none !important; }
+body .detalle-precios .precio-actual {
+  font-family: var(--font-body) !important; font-size: 30px !important; font-weight: 700 !important; letter-spacing: -1px !important;
+  color: var(--color-primary) !important; background: none !important; -webkit-text-fill-color: currentColor !important;
+}
+body .detalle-precios .precio-original { font-size: 16px !important; color: var(--color-text-muted) !important; text-decoration: line-through; }
+body .badge-promo-modal {
+  display: inline-flex !important; align-items: center; gap: 5px; padding: 4px 10px !important; border-radius: var(--radius-pill) !important;
+  background: color-mix(in srgb, var(--color-success) 14%, transparent) !important; color: var(--color-success) !important;
+  font-size: 12px !important; font-weight: 600 !important; border: 0 !important; text-transform: none !important;
+}
+body .promo-vence-label { width: 100%; margin: 0 !important; font-size: 12.5px !important; color: var(--color-warning) !important; }
+
+/* Campos */
+body .detalle-talla label, body .detalle-cantidad label {
+  font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important;
+  letter-spacing: 0.2px !important; text-transform: none !important; color: var(--color-text) !important;
+}
+.detalle-requerido { color: var(--color-error); }
+body .detalle-talla-input {
+  min-height: 52px; border-radius: 18px !important; padding: 0 16px !important;
+  border: 1px solid var(--color-border) !important; background: var(--color-surface-2) !important; color: var(--color-text) !important;
+  font-family: var(--font-body) !important; font-size: 14.5px !important;
+}
+body .detalle-talla-input:focus { outline: none; border-color: var(--color-primary) !important; box-shadow: var(--focus-ring); }
+body .detalle-talla-error { display: inline-flex; align-items: center; gap: 4px; color: var(--color-error) !important; font-size: 12.5px !important; }
+body .detalle-cantidad { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 12px; margin: 14px 0 !important; width: 100%; }
+body .cantidad-control {
+  display: inline-flex !important; align-items: center; gap: 6px; height: 52px; padding: 0 6px !important;
+  border-radius: var(--radius-pill) !important; border: 1px solid var(--color-border) !important; background: var(--color-surface) !important;
+}
+body .btn-cantidad {
+  width: 40px !important; height: 40px !important; border-radius: 50% !important; border: 0 !important;
+  background: var(--color-surface-2) !important; color: var(--color-text) !important;
+  display: inline-flex !important; align-items: center; justify-content: center;
+}
+body .cantidad-control input {
+  width: 44px !important; border: 0 !important; background: transparent !important; text-align: center;
+  font-family: var(--font-body) !important; font-size: 16px !important; font-weight: 700 !important; color: var(--color-text) !important;
+  -moz-appearance: textfield; appearance: textfield;
+}
+body .cantidad-control input::-webkit-inner-spin-button, body .cantidad-control input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Botones */
+body .detalle-acciones { display: flex !important; flex-direction: column !important; gap: 10px !important; }
+body .detalle-acciones .btn {
+  width: 100%; min-height: 54px; border-radius: 20px !important;
+  display: inline-flex !important; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--font-body) !important; font-size: 15.5px !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+body .detalle-acciones .btn-primary { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important; box-shadow: var(--shadow-primary) !important; }
+body .detalle-acciones .btn-primary.btn-exitoso { background: var(--color-success) !important; color: #fff !important; }
+body .detalle-acciones .btn-secondary { background: transparent !important; color: var(--color-primary) !important; border: 1.5px solid var(--color-primary) !important; box-shadow: none !important; }
+body .detalle-acciones .btn-secondary.btn-fav-activo { background: color-mix(in srgb, var(--color-primary) 12%, transparent) !important; }
+body .detalle-acciones .btn-ver-detalles { background: var(--color-surface-2) !important; color: var(--color-text) !important; border: 0 !important; min-height: 48px; }
+body .detalle-acciones .btn-disabled { background: var(--color-surface-2) !important; color: var(--color-text-muted) !important; border: 0 !important; }
+
+/* Avisos */
+body .modal-agregado-ok {
+  display: flex !important; align-items: center; gap: 8px; margin: 14px 24px 0 !important; padding: 12px 16px !important;
+  border-radius: 18px !important; border: 0 !important; border-left: 3px solid var(--color-success) !important;
+  background: color-mix(in srgb, var(--color-success) 12%, transparent) !important; color: var(--color-text) !important; font-size: 14px !important;
+}
+body .modal-agregado-ok svg { color: var(--color-success); flex-shrink: 0; }
+body .modal-login-alert-content {
+  border-radius: 24px !important; border: 1px solid var(--glass-border) !important;
+  background: var(--color-surface) !important; box-shadow: var(--shadow-lift) !important; padding: 22px !important;
+}
+body :is(.btn-alerta-login, .btn-alerta-cancelar) { min-height: 46px; border-radius: 16px !important; font-family: var(--font-body) !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; }
+body .btn-alerta-login { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important; }
+body .btn-alerta-cancelar { background: transparent !important; color: var(--color-primary) !important; border: 1.5px solid var(--color-primary) !important; }
+
+/* Productos similares */
+body .detalle-recomendaciones { border-top: 1px solid var(--color-border) !important; background: transparent !important; padding: 20px 24px 24px !important; }
+body .detalle-rec-inner { padding: 0 !important; }
+body .detalle-rec-titulo {
+  margin: 0 0 14px !important; font-family: var(--font-body) !important; font-size: 18px !important; font-weight: 700 !important;
+  letter-spacing: -0.4px !important; text-transform: none !important; color: var(--color-text) !important;
+}
+body .detalle-rec-titulo em { font-family: var(--font-accent); font-weight: 600; color: var(--color-primary); }
+body .detalle-rec-lista { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px !important; padding: 0 !important; margin: 0 !important; list-style: none; }
+body .detalle-rec-card {
+  padding: 6px !important; border-radius: 22px !important; border: 1px solid var(--color-border) !important;
+  background: var(--color-surface-2) !important; cursor: pointer; overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+body .detalle-rec-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
+body .detalle-rec-card-img { border-radius: 16px !important; overflow: hidden; aspect-ratio: 1 / 1; background: var(--color-surface) !important; display: flex; align-items: center; justify-content: center; }
+body .detalle-rec-card-img img { width: 100%; height: 100%; object-fit: cover; }
+body .detalle-rec-img-fallback { color: var(--color-primary); }
+body .detalle-rec-card-info { padding: 8px 6px 4px !important; display: flex; flex-direction: column; gap: 2px; }
+body .detalle-rec-card-nombre { font-family: var(--font-body) !important; font-size: 13px !important; font-weight: 600 !important; color: var(--color-text) !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+body .detalle-rec-card-precio { font-family: var(--font-body) !important; font-size: 14.5px !important; font-weight: 700 !important; color: var(--color-primary) !important; }
+
+/* Teléfono: hoja inferior como en la app */
+@media (max-width: 700px) {
+  body .detalle-modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+  body .detalle-modal-content { width: 100% !important; max-width: 100% !important; max-height: 92vh !important; border-radius: 28px 28px 0 0 !important; }
+  body .detalle-modal-body { padding: 18px !important; gap: 18px !important; }
+  body .detalle-modal-header h2 { font-size: 19px !important; }
+  body .detalle-rec-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+body .detalle-imagen-container .badge:not(.badge-personalizable-modal) { position: absolute !important; top: 14px !important; left: 14px !important; right: auto !important; width: auto !important; }
+body .detalle-imagen-container .badge-descuento { left: auto !important; right: 14px !important; }
+body .detalle-acciones .btn-ver-detalles, body .detalle-acciones .btn-ver-detalles * { text-decoration: none !important; border-bottom: 0 !important; }
