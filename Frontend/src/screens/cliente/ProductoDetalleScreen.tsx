@@ -7,6 +7,7 @@ import { colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import { useCart } from '../../contexts/CartContext';
 import './ProductoDetalleScreen.css';
 import './DetalleApp.css';
+import '../../styles/DetalleBoceto.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/ProductosRelacionados.css';
 
@@ -243,7 +244,7 @@ const ProductoDetalleScreen: React.FC = () => {
                 <div className="rel-badges">
                     {item.es_nuevo && <span className="rel-badge">Nuevo</span>}
                     {item.precio_oferta && <span className="rel-badge rel-badge--oro">Oferta</span>}
-                    {(item as any).permite_personalizacion && <span className="rel-badge">✦ Personalizable</span>}
+                    {(item as any).permite_personalizacion && <span className="rel-badge">Personalizable</span>}
                 </div>
             </div>
             <div className="rel-info">
@@ -307,7 +308,7 @@ const ProductoDetalleScreen: React.FC = () => {
                         {producto.stock_actual === 0 && (
                             <div className="pd-agotado-overlay">Agotado</div>
                         )}
-                        <span className="pd-gallery-tag">{producto.permite_personalizacion ? '✦ Pieza personalizable' : 'Pieza Diana Laura'}</span>
+                        <span className="pd-gallery-tag">{producto.permite_personalizacion ? 'Pieza personalizable' : 'Pieza Diana Laura'}</span>
                     </div>
                     {!!producto.galeria?.length && (
                         <div className="pd-thumbs">
@@ -342,8 +343,10 @@ const ProductoDetalleScreen: React.FC = () => {
                             <span className="pd-tipo">{producto.tipo_producto_nombre}</span>
                         )}
                         {producto.permite_personalizacion && (
-                            <span className="pd-tipo" title="Esta pieza se hace a tu medida">✦ Personalizable</span>
+                            <span className="pd-chip pd-chip--personalizable" title="Esta pieza se hace a tu medida">Personalizable</span>
                         )}
+                        {producto.stock_actual > 0 && producto.stock_actual <= 5 && <span className="pd-chip pd-chip--quedan">Quedan {producto.stock_actual}</span>}
+                        {producto.stock_actual === 0 && <span className="pd-chip pd-chip--agotado">Agotado</span>}
                     </div>
 
                     <h1 className="pd-nombre">{producto.nombre}</h1>
@@ -411,14 +414,20 @@ const ProductoDetalleScreen: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
-                            <button
-                                className={`pd-btn-carrito ${exitoso ? 'success' : ''}`}
-                                onClick={handleAgregar}
-                                disabled={agregando}
-                            >
-                                <AiOutlineShoppingCart size={20} />
-                                {agregando ? 'Agregando...' : exitoso ? 'Agregado' : 'Agregar al carrito'}
-                            </button>
+                            <div className="pd-barra-compra">
+                                <div className="pd-barra-precio">
+                                    <span>{cantidad > 1 ? `Total · ${cantidad} piezas` : 'Precio'}</span>
+                                    <strong>${(precioFinal * cantidad).toLocaleString('es-MX')} <small>MXN</small></strong>
+                                </div>
+                                <button
+                                    className={`pd-btn-carrito ${exitoso ? 'success' : ''}`}
+                                    onClick={handleAgregar}
+                                    disabled={agregando}
+                                >
+                                    <AiOutlineShoppingCart size={20} />
+                                    {agregando ? 'Agregando...' : exitoso ? 'Agregado' : 'Agregar'}
+                                </button>
+                            </div>
                         </div>
                     )}
 

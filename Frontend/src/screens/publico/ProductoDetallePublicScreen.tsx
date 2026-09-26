@@ -15,6 +15,7 @@ import './ProductoDetallePublicScreen.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/ProductosRelacionados.css';
 import './DetallePublicoApp.css';
+import '../../styles/DetalleBoceto.css';
 
 const estaLogueado = (): boolean => {
     try {
@@ -275,7 +276,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
                 <div className="rel-badges">
                     {item.es_nuevo && <span className="rel-badge">Nuevo</span>}
                     {item.precio_oferta && <span className="rel-badge rel-badge--oro">Oferta</span>}
-                    {(item as any).permite_personalizacion && <span className="rel-badge">✦ Personalizable</span>}
+                    {(item as any).permite_personalizacion && <span className="rel-badge">Personalizable</span>}
                 </div>
             </div>
             <div className="rel-info">
@@ -356,7 +357,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
                             {producto.es_nuevo && <span className="pdp-badge pdp-badge-new">Nuevo</span>}
                             {hayDescuento && <span className="pdp-badge pdp-badge-sale">-{descuentoPct}%</span>}
                             {producto.stock_actual === 0 && <div className="pdp-agotado-overlay">Agotado</div>}
-                            <span className="pdp-gallery-tag">{producto.permite_personalizacion ? '✦ Pieza personalizable' : 'Pieza Diana Laura'}</span>
+                            <span className="pdp-gallery-tag">{producto.permite_personalizacion ? 'Pieza personalizable' : 'Pieza Diana Laura'}</span>
                         </div>
                         {!!producto.galeria?.length && (
                             <div className="pdp-thumbs">
@@ -375,7 +376,9 @@ const ProductoDetallePublicScreen: React.FC = () => {
                     <div className="pdp-info">
                         <div className="pdp-meta-row">
                             {producto.categoria_nombre && <span className="pdp-categoria">{producto.categoria_nombre}</span>}
-                            {producto.permite_personalizacion && <span className="pdp-categoria" title="Esta pieza se hace a tu medida">✦ Personalizable</span>}
+                            {producto.permite_personalizacion && <span className="pdp-chip pdp-chip--personalizable" title="Esta pieza se hace a tu medida">Personalizable</span>}
+                            {producto.stock_actual > 0 && producto.stock_actual <= 5 && <span className="pdp-chip pdp-chip--quedan">Quedan {producto.stock_actual}</span>}
+                            {producto.stock_actual === 0 && <span className="pdp-chip pdp-chip--agotado">Agotado</span>}
                             {producto.tipo_producto_nombre && <span className="pdp-tipo">{producto.tipo_producto_nombre}</span>}
                         </div>
 
@@ -449,15 +452,21 @@ const ProductoDetallePublicScreen: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="pdp-acciones-publico">
+                                    <div className="pdp-barra-compra">
+                                    <div className="pdp-barra-precio">
+                                        <span>{cantidad > 1 ? `Total · ${cantidad} piezas` : 'Precio'}</span>
+                                        <strong>${(precioFinal * cantidad).toLocaleString('es-MX')} <small>MXN</small></strong>
+                                    </div>
                                     <button
                                         className={`pdp-btn-accion pdp-btn-carrito ${exitoso ? 'success' : ''}`}
                                         onClick={handleAgregar}
                                         disabled={agregando}
                                     >
                                         <AiOutlineShoppingCart size={20} />
-                                        {agregando ? 'Agregando...' : exitoso ? 'Agregado' : 'Agregar al carrito'}
+                                        {agregando ? 'Agregando...' : exitoso ? 'Agregado' : 'Agregar'}
                                         {!logueado && <AiOutlineLock size={14} className="pdp-lock-icon" />}
                                     </button>
+                                    </div>
                                     <button
                                         className={`pdp-btn-accion pdp-btn-favorito ${esFavorito ? 'active' : ''}`}
                                         onClick={handleToggleFavorito}

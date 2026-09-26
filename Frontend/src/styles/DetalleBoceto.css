@@ -1,0 +1,61 @@
+/* DetalleBoceto.css — Piezas del detalle de producto tal como el boceto P7
+   de la app móvil. Lo usan el detalle privado (pd-) y el público (pdp-). */
+
+/* Etiquetas arriba del nombre */
+:is(.pd-chip, .pdp-chip) {
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: var(--radius-pill);
+  font-family: var(--font-body); font-size: 12px; font-weight: 600; line-height: 1.2;
+}
+:is(.pd-chip, .pdp-chip)::before { font-size: 11px; }
+:is(.pd-chip--personalizable, .pdp-chip--personalizable) { background: color-mix(in srgb, var(--color-accent) 18%, transparent); color: var(--color-accent); }
+:is(.pd-chip--personalizable, .pdp-chip--personalizable)::before { content: '✎'; }
+:is(.pd-chip--quedan, .pdp-chip--quedan) { background: color-mix(in srgb, var(--color-warning) 16%, transparent); color: var(--color-warning); }
+:is(.pd-chip--quedan, .pdp-chip--quedan)::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+:is(.pd-chip--agotado, .pdp-chip--agotado) { background: color-mix(in srgb, var(--color-error) 14%, transparent); color: var(--color-error); }
+
+/* Barra de compra: precio a la izquierda, botón a la derecha */
+:is(.pd-barra-compra, .pdp-barra-compra) {
+  display: flex; align-items: center; gap: 14px; width: 100%; box-sizing: border-box;
+  padding: 12px 12px 12px 22px; border-radius: 26px;
+  border: 1px solid var(--glass-border); background: var(--color-surface-2);
+  box-shadow: var(--shadow-soft);
+}
+:is(.pd-barra-precio, .pdp-barra-precio) { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+:is(.pd-barra-precio, .pdp-barra-precio) span { font-family: var(--font-body); font-size: 12px; color: var(--color-text-muted); }
+:is(.pd-barra-precio, .pdp-barra-precio) strong {
+  font-family: var(--font-body); font-size: 26px; font-weight: 700; letter-spacing: -0.8px; line-height: 1.05; color: var(--color-text);
+  white-space: nowrap;
+}
+:is(.pd-barra-precio, .pdp-barra-precio) small { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: var(--color-text-muted); }
+body :is(.pd-barra-compra, .pdp-barra-compra) :is(.pd-btn-carrito, .pdp-btn-carrito) { flex: 0 0 auto !important; width: auto !important; min-width: 150px; padding: 0 26px !important; margin: 0 !important; }
+body .pd-compra-section { flex-direction: column !important; }
+body .pd-cantidad-wrap, body .pdp-cantidad-wrap { display: flex !important; align-items: center; justify-content: space-between; width: 100%; }
+body .pdp-acciones-publico { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+/* Agotado: la foto se ve, solo con una etiqueta de vidrio */
+body :is(.pd-agotado-overlay, .pdp-agotado-overlay) {
+  inset: auto !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%);
+  width: auto !important; height: auto !important; padding: 10px 22px !important; border-radius: var(--radius-pill) !important;
+  background: rgba(13, 8, 12, 0.62) !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  color: #fff !important; font-family: var(--font-body) !important; font-size: 15px !important; font-weight: 600 !important;
+  letter-spacing: 0.5px !important; text-transform: none !important;
+}
+body :is(.pd-image-frame, .pdp-image-frame) img { filter: none !important; }
+body :is(.pd-image-frame, .pdp-image-frame):has(:is(.pd-agotado-overlay, .pdp-agotado-overlay)) img { filter: grayscale(0.35) !important; }
+
+/* Miniaturas encima de la foto (columna a la derecha), como en el boceto */
+@media (min-width: 901px) {
+  body :is(.pd-gallery, .pdp-gallery) { position: relative; }
+  body :is(.pd-thumbs, .pdp-thumbs) {
+    position: absolute; top: 18px; right: 18px; z-index: 3; margin: 0 !important;
+    display: flex !important; flex-direction: column; gap: 10px !important; max-height: calc(100% - 90px); overflow: auto; scrollbar-width: none;
+  }
+  body :is(.pd-thumb, .pdp-thumb) { width: 60px !important; height: 60px !important; border: 2px solid rgba(255, 255, 255, 0.55) !important; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3); }
+  body :is(.pd-thumb, .pdp-thumb).active { border-color: #fff !important; }
+}
+
+@media (max-width: 560px) {
+  :is(.pd-barra-compra, .pdp-barra-compra) { padding: 10px 10px 10px 16px; }
+  :is(.pd-barra-precio, .pdp-barra-precio) strong { font-size: 22px; }
+  body :is(.pd-barra-compra, .pdp-barra-compra) :is(.pd-btn-carrito, .pdp-btn-carrito) { min-width: 0; padding: 0 18px !important; }
+}
