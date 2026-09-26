@@ -1,12 +1,13 @@
 // Frontend/src/screens/publico/CatalogoPublicScreen.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { AiOutlineSearch, AiOutlineTag } from "react-icons/ai";
+import { AiOutlineSearch, AiOutlineTag, AiOutlineAppstore } from "react-icons/ai";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import DetalleProductoModal from "./DetalleProductoModal";
 import { productsAPI, promocionesAPI, favoritosAPI } from "../../services/api";
 import "./CatalogoPublicScreen.css";
+import "../cliente/CatalogoApp.css";
 
 const estaLogueado = (): boolean => {
   try {
@@ -421,10 +422,32 @@ const CatalogoPublicScreen: React.FC = () => {
       ) : (
       <main className="catalogo-body" style={promociones.length > 0 && !tickerCerrado ? { paddingTop: '36px' } : {}}>
         <div className="catalogo-encabezado">
-          <span className="catalogo-eyebrow">Colección completa</span>
-          <h2 className="page-title">Catálogo</h2>
+          <span className="catalogo-eyebrow">Catálogo</span>
+          <h2 className="page-title">Encuentra tu <span>pieza</span></h2>
           <p className="catalogo-subtitulo">Cada pieza, seleccionada con la misma atención al detalle con la que la harías tú.</p>
         </div>
+
+        {categorias.length > 0 && (
+          <div className="cat-burbujas" role="list" aria-label="Categorías">
+            <button role="listitem" className={`cat-burbuja${!searchMode ? ' activa' : ''}`} onClick={() => handleLimpiarFiltros()}>
+              <span className="cat-burbuja-img cat-burbuja-img--todo"><AiOutlineAppstore size={26} /></span>
+              <span className="cat-burbuja-nombre">Todo</span>
+            </button>
+            {categorias.map((c: any) => {
+              const img = productosPorCategoria[c.nombre]?.find(p => p.imagen_principal)?.imagen_principal;
+              const activa = searchMode && Number(filtros.categoria_id) === c.id;
+              return (
+                <button key={c.id} role="listitem" className={`cat-burbuja${activa ? ' activa' : ''}`}
+                  onClick={() => { setFiltros({ ...filtros, categoria_id: c.id }); handleVerMasCategoria(c.id); }}>
+                  <span className="cat-burbuja-img">
+                    {img ? <img src={img} alt="" loading="lazy" /> : <AiOutlineAppstore size={24} />}
+                  </span>
+                  <span className="cat-burbuja-nombre">{c.nombre}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div className="catalogo-shell">
           <aside className="catalogo-filtros-panel">

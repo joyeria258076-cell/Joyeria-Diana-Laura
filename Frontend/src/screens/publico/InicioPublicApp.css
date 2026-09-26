@@ -1,0 +1,82 @@
+/* InicioPublicApp.css — Inicio público con el estilo de la app móvil:
+   banner redondeado como tarjeta, botones en píldora con degradado y
+   franjas de confianza/estadísticas como tarjetas. */
+
+/* Banner principal como tarjeta con esquinas redondeadas */
+body .hero-carousel-section { padding: 20px 24px 0; box-sizing: border-box; }
+body .hero-carousel-section .carousel-wrapper,
+body .hero-carousel-section .carousel-container {
+  border-radius: 36px; overflow: hidden;
+}
+body .hero-carousel-section .carousel-wrapper { box-shadow: var(--shadow-lift); border: 1px solid var(--glass-border); }
+body .carousel-overlay {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--color-bg) 88%, transparent) 0%, color-mix(in srgb, var(--color-bg) 45%, transparent) 55%, transparent 100%) !important;
+}
+body .carousel-tag {
+  display: inline-flex !important; align-items: center; gap: 6px; width: auto !important;
+  padding: 6px 14px !important; border-radius: var(--radius-pill) !important; border: 0 !important;
+  background: color-mix(in srgb, var(--color-surface) 55%, transparent) !important; color: var(--color-text) !important;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important; letter-spacing: 0.3px !important; text-transform: none !important;
+}
+body .carousel-title {
+  font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -1.5px !important;
+  line-height: 1.05 !important; color: var(--color-text) !important;
+}
+body .carousel-desc { font-family: var(--font-body) !important; color: var(--color-text-muted) !important; }
+body .carousel-actions .btn {
+  min-height: 54px; padding: 0 26px !important; border-radius: var(--radius-lg) !important;
+  font-family: var(--font-body) !important; font-size: 15px !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+body .carousel-actions .btn-primary { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important; box-shadow: var(--shadow-primary) !important; }
+body .carousel-actions .btn-secondary {
+  background: color-mix(in srgb, var(--color-surface) 45%, transparent) !important; color: var(--color-text) !important;
+  border: 1px solid var(--glass-border) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+body .carousel-btn {
+  width: 46px !important; height: 46px !important; border-radius: 50% !important;
+  background: color-mix(in srgb, var(--color-surface) 55%, transparent) !important; border: 1px solid var(--glass-border) !important;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--color-text) !important;
+}
+body .carousel-dots button, body .carousel-dots span { border-radius: var(--radius-pill) !important; }
+
+/* Franja de confianza como tarjetas */
+body .trust-strip { background: transparent !important; border: 0 !important; padding: 24px 0 8px !important; }
+body .trust-grid { gap: 14px !important; }
+body .trust-item {
+  padding: 16px 18px !important; border-radius: 24px !important;
+  border: 1px solid var(--color-border) !important; background: var(--color-surface) !important; box-shadow: var(--shadow-soft);
+}
+body .trust-item svg { color: var(--color-primary); }
+body .trust-item :is(strong, h4) { font-family: var(--font-body) !important; font-weight: 600 !important; letter-spacing: -0.2px !important; }
+
+/* Estadísticas como tarjetas */
+body .stats-band {
+  width: 100%; max-width: 1340px; margin: 12px auto 0 !important; box-sizing: border-box;
+  display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px !important;
+  padding: 0 24px !important; background: transparent !important; border: 0 !important;
+}
+body .stats-band-sep { display: none !important; }
+body .stats-band-item {
+  padding: 20px 16px !important; border-radius: 24px; text-align: center;
+  border: 1px solid var(--color-border); background: var(--color-surface); box-shadow: var(--shadow-soft);
+}
+body .stats-band-icon {
+  box-sizing: content-box; padding: 10px; border-radius: 14px; margin-bottom: 8px;
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent); color: var(--color-primary) !important;
+}
+body .stats-band-item strong {
+  display: block; font-family: var(--font-body) !important; font-size: 26px !important; font-weight: 700 !important;
+  letter-spacing: -0.8px !important; color: var(--color-text) !important;
+}
+body .stats-band-item span {
+  font-family: var(--font-body) !important; font-size: 13px !important; font-weight: 500 !important;
+  letter-spacing: 0 !important; text-transform: none !important; color: var(--color-text-muted) !important;
+}
+
+@media (max-width: 760px) {
+  body .hero-carousel-section { padding: 12px 12px 0; }
+  body .hero-carousel-section .carousel-wrapper, body .hero-carousel-section .carousel-container { border-radius: 28px; }
+  body .stats-band { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 12px !important; }
+}

@@ -120,3 +120,38 @@
   .rel-info { padding: 0.8rem 0.85rem 1rem; }
   .rel-nombre { font-size: 1.02rem; }
 }
+
+/* ── Estilo de la app móvil (igual que las tarjetas del catálogo) ── */
+body .rel-seccion { max-width: 1240px; margin-left: auto; margin-right: auto; }
+body .rel-seccion .sx-head { text-align: left; margin-bottom: 20px; }
+body .rel-seccion .sx-eyebrow { justify-content: flex-start; }
+body .rel-seccion .sx-eyebrow::before, body .rel-seccion .sx-eyebrow::after { display: none; }
+body .rel-seccion .sx-title { font-family: var(--font-body); font-weight: 700; letter-spacing: -1px; font-size: clamp(24px, 3vw, 32px); text-align: left; }
+body .rel-grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)) !important; gap: 20px !important; }
+body .rel-card {
+  padding: 8px; border-radius: var(--radius-xl) !important; border: 1px solid var(--color-border) !important;
+  background: var(--color-surface) !important; box-shadow: var(--shadow-soft) !important;
+}
+body .rel-card::before, body .rel-card::after { display: none !important; }
+body .rel-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift) !important; }
+body .rel-imagen { border-radius: var(--radius-lg) !important; overflow: hidden; aspect-ratio: 1 / 1.05; }
+body .rel-imagen img { width: 100%; height: 100%; object-fit: cover; }
+body .rel-overlay { display: none !important; }
+body .rel-badge {
+  border-radius: var(--radius-pill) !important; padding: 4px 10px !important; border: 0 !important;
+  background: #fff !important; color: var(--color-primary-strong) !important;
+  font-family: var(--font-body) !important; font-size: 11px !important; font-weight: 600 !important; letter-spacing: 0.2px !important; text-transform: none !important;
+}
+body .rel-badge--oro { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; }
+body .rel-info { padding: 12px 8px 8px !important; }
+body .rel-categoria { font-size: 11px !important; letter-spacing: 1.5px !important; text-transform: uppercase; color: var(--color-primary) !important; font-weight: 600 !important; margin: 0 0 2px !important; }
+body .rel-nombre {
+  font-family: var(--font-body) !important; font-size: 15px !important; font-weight: 600 !important; letter-spacing: -0.2px !important;
+  color: var(--color-text) !important; margin: 0 0 6px !important; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+body .rel-final { font-size: 18px !important; font-weight: 700 !important; color: var(--color-primary) !important; }
+body .rel-footer .sx-btn { border-radius: var(--radius-pill) !important; text-transform: none !important; letter-spacing: 0 !important; }
+@media (max-width: 640px) {
+  body .rel-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px !important; }
+}

@@ -14,6 +14,7 @@ import PublicFooter from '../../components/PublicFooter';
 import './ProductoDetallePublicScreen.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/ProductosRelacionados.css';
+import './DetallePublicoApp.css';
 
 const estaLogueado = (): boolean => {
     try {

@@ -10,6 +10,7 @@ import {
   AiOutlineBulb, AiOutlineSmile, AiOutlineTool,
 } from "react-icons/ai";
 import "./InicioPublicScreen.css";
+import "./InicioPublicApp.css";
 
 const JDL_CLOUD = 'https://res.cloudinary.com/dltvkwwq4/image/upload';
 
@@ -336,8 +337,8 @@ const InicioPublicScreen: React.FC = () => {
       <Seccion id="inicio.estadisticas" nombre="Estadísticas">
       <div className="stats-band">
         {[
-          { icon: AiOutlineBulb, n: "", l: "Muchos diseños exclusivos" },
-          { icon: AiOutlineSmile, n: "", l: "Muchos clientes satisfechos" },
+          { icon: AiOutlineBulb, n: "Únicos", l: "Diseños exclusivos" },
+          { icon: AiOutlineSmile, n: "Felices", l: "Clientes satisfechos" },
           { icon: AiOutlineTool, n: "100%", l: "Hecho a mano" },
           { icon: AiOutlineStar, n: "5 ★", l: "Calidad garantizada" },
         ].map((s, i, arr) => (
