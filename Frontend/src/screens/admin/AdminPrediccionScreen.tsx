@@ -398,7 +398,7 @@ export default function AdminPrediccionScreen() {
 
   return (
     <div className="prediccion-container">
-      <h1>📈 Modelo Predictivo de Inventario</h1>
+      <h1>Modelo <em>predictivo</em> de inventario</h1>
       <p>Identificación de categoría estrella · Proyección de demanda · Gestión de reabastecimiento</p>
 
       {error && <div className="error-message">❌ {error}</div>}
@@ -568,7 +568,7 @@ export default function AdminPrediccionScreen() {
 
               <div className="kpis">
                 <div>📦 Total periodo: <strong>{estadisticas.total_anual} uds</strong></div>
-                <div>📈 Promedio mensual: <strong>{estadisticas.promedio_mensual} uds</strong></div>
+                <div>Promedio mensual: <strong>{estadisticas.promedio_mensual} uds</strong></div>
                 <div>📅 Meses con ventas: <strong>{estadisticas.meses_con_ventas}</strong></div>
                 <div>⚡ Tasa k: <strong>{estadisticas.k_pct}% mensual</strong></div>
                 <div>📐 Q₀ = <strong>{estadisticas.q0}</strong> | QT = <strong>{estadisticas.qT}</strong></div>

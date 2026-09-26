@@ -131,3 +131,15 @@ body .content-area :is([class$="-eyebrow"], [class$="-kicker"], [class$="-overli
 
 /* ── Fondo de pantalla configurable: más tenue para que el contenido respire ── */
 body .content-area { position: relative; }
+
+/* ── Más nombres de botones usados en admin ── */
+body .content-area :is([class*="-btn-save"], .btn-save, [class*="-btn-submit"], [class$="-empty-btn"], [class*="btn-nuevo-"], .btn-primary, [class*="-btn-guardar"], .plan-btn-guardar, .btn-import, [class*="-btn-add"]):not(:disabled) {
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important;
+  border: 0 !important; border-radius: 16px !important; box-shadow: var(--shadow-primary) !important;
+  font-family: var(--font-body) !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important;
+  min-height: 44px; padding-inline: 20px !important;
+}
+body .content-area :is([class*="-btn-cancel"], .btn-cancel, .btn-secondary, [class*="-btn-secondary"], .plan-btn-cancelar, .plan-btn-editar, .btn-edit, .btn-preview) {
+  border-radius: 16px !important; text-transform: none !important; letter-spacing: 0 !important; font-family: var(--font-body) !important; font-weight: 600 !important;
+}
+body .content-area :is([class*="-btn-danger"], [class*="-btn-delete"], .btn-delete, .btn-remove, [class*="-btn-rechazar"]) { border-radius: 14px !important; text-transform: none !important; letter-spacing: 0 !important; }

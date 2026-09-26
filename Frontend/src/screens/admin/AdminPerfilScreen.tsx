@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { profileAPI, solicitudesAPI, workerAuthAPI, workersAPI, uploadAPI } from '../../services/api';
 import './AdminPerfilScreen.css';
+import './AdminPerfilApp.css';
 
 export default function AdminPerfilScreen() {
   const { user, refreshUserName, refreshUserFoto } = useAuth();
