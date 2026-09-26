@@ -1,0 +1,82 @@
+/* NotificacionesApp.css — Notificaciones con el estilo de la app móvil. */
+body .notif-page { max-width: 880px; margin: 0 auto; width: 100%; }
+body .notif-page-header { display: flex !important; align-items: flex-end !important; justify-content: space-between; gap: 16px; flex-wrap: wrap; border: 0 !important; padding: 0 !important; margin-bottom: 20px !important; }
+body .notif-page-eyebrow {
+  display: inline-flex !important; align-items: center; gap: 6px; margin: 0 0 4px !important;
+  font-family: var(--font-body) !important; font-size: 11px !important; font-weight: 600 !important;
+  letter-spacing: 2px !important; text-transform: uppercase !important; color: var(--color-primary) !important;
+}
+body .notif-page-titulo {
+  font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -1.5px !important;
+  font-size: clamp(32px, 4vw, 46px) !important; margin: 0 0 4px !important; color: var(--color-text) !important; line-height: 1.05;
+}
+body .notif-page-titulo > span { font-family: var(--font-accent); font-style: italic; font-weight: 600; color: var(--color-primary); letter-spacing: -0.5px; }
+body .notif-page-sub { margin: 0 !important; color: var(--color-text-muted) !important; font-size: 15px !important; }
+body .notif-page-acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+body :is(.notif-btn-secundario, .notif-btn-peligro) {
+  min-height: 42px; padding: 0 16px !important; border-radius: var(--radius-pill) !important;
+  font-family: var(--font-body) !important; font-size: 13px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; cursor: pointer;
+}
+body .notif-btn-secundario { background: transparent !important; color: var(--color-primary) !important; border: 1.5px solid var(--color-primary) !important; }
+body .notif-btn-peligro { background: color-mix(in srgb, var(--color-error) 12%, transparent) !important; color: var(--color-error) !important; border: 0 !important; }
+
+/* Filtros en barra de píldoras */
+body .notif-filtros {
+  display: inline-flex !important; gap: 4px; padding: 4px; margin-bottom: 22px !important; flex-wrap: wrap;
+  border-radius: var(--radius-pill); background: var(--color-surface-2); border: 1px solid var(--color-border);
+}
+body .notif-filtro-btn {
+  border: 0 !important; border-radius: var(--radius-pill) !important; padding: 9px 18px !important;
+  background: transparent !important; color: var(--color-text-muted) !important;
+  font-family: var(--font-body) !important; font-size: 13.5px !important; font-weight: 500 !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+body .notif-filtro-btn.activo { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; font-weight: 600 !important; box-shadow: var(--shadow-primary); }
+
+/* Grupos y avisos */
+body .notif-grupo-titulo {
+  font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important;
+  letter-spacing: 1.5px !important; text-transform: uppercase !important; color: var(--color-text-muted) !important; margin: 18px 0 10px !important;
+}
+body .notif-lista { display: flex; flex-direction: column; gap: 10px; }
+body .notif-item {
+  display: flex !important; align-items: center; gap: 14px; position: relative;
+  padding: 14px 16px !important; border-radius: 22px !important; cursor: pointer;
+  border: 1px solid var(--color-border) !important; background: var(--color-surface) !important; box-shadow: var(--shadow-soft);
+  transition: transform var(--t-fast) ease, border-color var(--t-fast) ease;
+}
+body .notif-item:hover { transform: translateX(2px); border-color: color-mix(in srgb, var(--color-primary) 45%, transparent) !important; }
+body .notif-item:not(.leida) { background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface)) !important; }
+.notif-item-tile {
+  position: relative; width: 44px; height: 44px; flex-shrink: 0; border-radius: 15px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent); color: var(--color-primary);
+}
+body .notif-item.leida .notif-item-tile { background: var(--color-surface-2); color: var(--color-text-muted); }
+body .notif-item-tile .notif-dot {
+  position: absolute !important; top: -2px !important; right: -2px !important; left: auto !important; width: 12px !important; height: 12px !important;
+  border-radius: 50%; background: var(--color-primary) !important; border: 2px solid var(--color-surface); margin: 0 !important;
+}
+body .notif-item-content { flex: 1; min-width: 0; }
+body .notif-item-folio { margin: 0 0 2px !important; font-family: var(--font-body) !important; font-size: 14.5px !important; font-weight: 700 !important; color: var(--color-text) !important; letter-spacing: -0.2px; }
+body .notif-item-msg { margin: 0 0 4px !important; font-size: 14px !important; color: var(--color-text) !important; opacity: 0.9; line-height: 1.45; }
+body .notif-item-fecha { margin: 0 !important; font-size: 12px !important; color: var(--color-text-muted) !important; }
+body .notif-item-borrar {
+  width: 34px; height: 34px; flex-shrink: 0; border-radius: 50% !important; border: 0 !important;
+  display: inline-flex !important; align-items: center; justify-content: center;
+  background: var(--color-surface-2) !important; color: var(--color-text-muted) !important; cursor: pointer;
+}
+body .notif-item-borrar:hover { color: var(--color-error) !important; }
+
+/* Vacío */
+body .notif-vacio {
+  max-width: 520px; margin: 12px auto 0 !important; padding: 40px 28px !important; text-align: center;
+  border-radius: 32px; border: 1px solid var(--glass-border); background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); box-shadow: var(--shadow-soft);
+}
+body .notif-vacio-icono {
+  width: 84px; height: 84px; border-radius: 50%; margin: 0 auto 14px;
+  display: flex !important; align-items: center; justify-content: center;
+  background: var(--gradient-primary); color: var(--color-on-primary) !important;
+  box-shadow: var(--shadow-primary), 0 0 0 10px color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+body .notif-vacio p { margin: 0 !important; color: var(--color-text-muted) !important; font-size: 15px; }

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { favoritosAPI } from '../../services/api';
 import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai';
 import './MisFavoritosScreen.css';
+import './FavoritosApp.css';
 
 interface ProductoFavorito {
     id: number;
@@ -55,16 +56,18 @@ const MisFavoritosScreen: React.FC = () => {
     return (
         <main className="mf-body">
             <div className="mf-header">
-                <h2 className="mf-titulo">Mis Favoritos</h2>
-                <span className="mf-contador">{favoritos.length} producto{favoritos.length !== 1 ? 's' : ''}</span>
+                <span className="mf-eyebrow">{favoritos.length} pieza{favoritos.length !== 1 ? 's' : ''} guardada{favoritos.length !== 1 ? 's' : ''}</span>
+                <h2 className="mf-titulo">Mis <span>favoritos</span></h2>
+                <p className="mf-sub">Las joyas que te enamoraron, listas para cuando decidas llevarlas.</p>
             </div>
 
             {loading ? (
                 <div className="mf-loading">Cargando tus favoritos...</div>
             ) : favoritos.length === 0 ? (
                 <div className="mf-vacio">
-                    <AiOutlineHeart size={44} className="mf-vacio-icon" />
-                    <p>Aún no has marcado ningún producto como favorito.</p>
+                    <span className="mf-vacio-circulo"><AiOutlineHeart size={38} className="mf-vacio-icon" /></span>
+                    <h3 className="mf-vacio-titulo">Aún no tienes favoritos</h3>
+                    <p>Toca el corazón de cualquier pieza del catálogo y aparecerá aquí.</p>
                     <button className="mf-btn-catalogo" onClick={() => navigate('/catalogo')}>Ver catálogo</button>
                 </div>
             ) : (

@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { useNotificaciones, Notificacion } from '../../contexts/NotificacionesContext';
 import { AiOutlineBell, AiOutlineInbox, AiOutlineClose } from 'react-icons/ai';
 import './NotificacionesScreen.css';
+import './NotificacionesApp.css';
 
 type Filtro = 'dia' | 'semana' | 'mes' | 'todas';
 
@@ -62,7 +63,7 @@ const NotificacionesScreen: React.FC = () => {
             <div className="notif-page-header">
                 <div>
                     <p className="notif-page-eyebrow"><AiOutlineBell size={14} />Centro de avisos</p>
-                    <h2 className="notif-page-titulo">Notificaciones</h2>
+                    <h2 className="notif-page-titulo">Tus <span>avisos</span></h2>
                     <p className="notif-page-sub">{noLeidas > 0 ? `${noLeidas} sin leer` : 'Estás al día'}</p>
                 </div>
                 <div className="notif-page-acciones">
@@ -99,7 +100,7 @@ const NotificacionesScreen: React.FC = () => {
                                     className={`notif-item ${n.leida ? 'leida' : ''}`}
                                     onClick={() => marcarLeida(n.id)}
                                 >
-                                    {!n.leida && <span className="notif-dot" />}
+                                    <span className="notif-item-tile"><AiOutlineBell size={18} />{!n.leida && <span className="notif-dot" />}</span>
                                     <div className="notif-item-content">
                                         <p className="notif-item-folio">{n.folio}</p>
                                         <p className="notif-item-msg">{n.mensaje}</p>
