@@ -10,6 +10,7 @@ import Loader from '../../components/Loader';
 import '../../styles/SitioSecciones.css';
 import '../../styles/GestionSitio.css';
 import './AdminMonitoreoOperacionScreen.css';
+import '../trabajador/OperacionApp.css';
 
 type Tab = 'pedidos' | 'apartados';
 

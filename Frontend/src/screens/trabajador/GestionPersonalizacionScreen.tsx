@@ -6,6 +6,7 @@ import {
 import { personalizacionAPI, SolicitudPersonalizacion } from '../../services/api';
 import Loader from '../../components/Loader';
 import './GestionPersonalizacionScreen.css';
+import './OperacionApp.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/GestionSitio.css';
 

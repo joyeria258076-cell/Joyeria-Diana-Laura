@@ -1,0 +1,162 @@
+/* OperacionApp.css — Pedidos, apartados y personalizaciones (trabajador y
+   monitoreo del admin) con el estilo de la app móvil y detalles "vivos":
+   color por estado, punto que late en lo pendiente, barras de progreso con
+   brillo y tarjetas que se elevan al pasar el cursor. */
+
+@keyframes op-late { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--op-tono, var(--color-primary)) 55%, transparent); } 70% { box-shadow: 0 0 0 7px transparent; } }
+@keyframes op-brillo { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+@keyframes op-entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ── Tono por estado (lo usan tarjetas y etiquetas) ── */
+:is(.gp-card, .gapt-card, .gper-card) { --op-tono: var(--color-primary); }
+:is(.gp-card--pendiente, .gapt-card--pendiente_pago, .gper-card:has(.gper-estado-pendiente)) { --op-tono: var(--color-warning); }
+:is(.gp-card--confirmado, .gapt-card--activo) { --op-tono: var(--color-info); }
+:is(.gp-card--en_preparacion) { --op-tono: var(--color-primary); }
+:is(.gp-card--enviado) { --op-tono: var(--color-accent); }
+:is(.gp-card--entregado, .gapt-card--liquidado, .gper-card:has(.gper-estado-aprobada), .gper-card:has(.gper-estado-aprobado)) { --op-tono: var(--color-success); }
+:is(.gp-card--cancelado, .gp-card--expirado, .gapt-card--cancelado, .gapt-card--vencido, .gper-card:has(.gper-estado-rechazada), .gper-card:has(.gper-estado-rechazado)) { --op-tono: var(--color-error); }
+
+/* ── Contadores superiores ── */
+body :is(.gp-resumen, .gapt-resumen-cards) { gap: 12px !important; }
+body :is(.gp-stat, .gapt-stat-card) {
+  border-radius: 22px !important; border: 1px solid var(--color-border) !important;
+  background: var(--color-surface) !important; box-shadow: var(--shadow-soft) !important;
+  padding: 16px 18px !important; cursor: pointer; text-align: left !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+}
+body :is(.gp-stat, .gapt-stat-card):hover { transform: translateY(-3px); box-shadow: var(--shadow-lift) !important; }
+body :is(.gp-stat-val, .gapt-stat-num) { font-family: var(--font-body) !important; font-size: 30px !important; font-weight: 700 !important; letter-spacing: -1px !important; line-height: 1 !important; color: var(--color-text) !important; }
+body :is(.gp-stat-label, .gapt-stat-label) { font-family: var(--font-body) !important; font-size: 13px !important; font-weight: 500 !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--color-text-muted) !important; margin-top: 6px !important; }
+body :is(.gp-stat.gp-stat-activo, .gapt-stat-card.activo, .gapt-stat-card.active, .gapt-stat-card[class*="activ"]) {
+  background: var(--gradient-primary) !important; border-color: transparent !important; box-shadow: var(--shadow-primary) !important;
+}
+body :is(.gp-stat.gp-stat-activo, .gapt-stat-card.activo, .gapt-stat-card.active, .gapt-stat-card[class*="activ"]) :is(.gp-stat-val, .gp-stat-label, .gapt-stat-num, .gapt-stat-label) { color: var(--color-on-primary) !important; }
+
+/* ── Filtros y búsqueda ── */
+body :is(.gapt-filtro-btn, .gper-filtro-btn, .mop-tab) {
+  border-radius: var(--radius-pill) !important; padding: 9px 16px !important;
+  font-family: var(--font-body) !important; font-size: 13.5px !important; font-weight: 500 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+body :is(.gapt-filtro-btn, .gper-filtro-btn, .mop-tab):is(.activo, .active, .activa, [class*="--activ"], [class*="-activ"]) {
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border-color: transparent !important; box-shadow: var(--shadow-primary);
+}
+body :is(.gp-busqueda, .gapt-search, .gp-select) { border-radius: var(--radius-pill) !important; min-height: 48px; }
+
+/* ── Tarjetas ── */
+body :is(.gp-card, .gapt-card, .gper-card) {
+  position: relative; overflow: hidden;
+  border-radius: 24px !important; border: 1px solid var(--color-border) !important;
+  background: var(--color-surface) !important; box-shadow: var(--shadow-soft) !important;
+  animation: op-entra 0.35s ease both;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+}
+body :is(.gp-card, .gapt-card, .gper-card)::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: var(--op-tono); border-radius: 4px 0 0 4px; display: block !important;
+}
+body :is(.gp-card, .gapt-card, .gper-card):hover {
+  transform: translateY(-2px); box-shadow: var(--shadow-lift) !important;
+  border-color: color-mix(in srgb, var(--op-tono) 45%, transparent) !important;
+}
+body .gp-card-mia { background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface)) !important; }
+body .gp-card-vencida { --op-tono: var(--color-warning); }
+body :is(.gp-folio, .gapt-folio) { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.3px !important; }
+body :is(.gp-total, .gp-total-final) { font-family: var(--font-body) !important; font-weight: 700 !important; color: var(--color-primary) !important; }
+body :is(.gp-card-label, .gapt-dato-label, .gp-dato-label, .gper-label) {
+  font-family: var(--font-body) !important; font-size: 11.5px !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0.2px !important; color: var(--color-text-muted) !important;
+}
+body .gp-cliente-avatar {
+  border-radius: 14px !important; background: var(--gradient-primary) !important; color: var(--color-on-primary) !important;
+  font-family: var(--font-body) !important; font-weight: 700 !important; border: 0 !important;
+}
+
+/* ── Etiquetas de estado con punto que late en lo pendiente ── */
+body :is(.gp-badge, .gapt-badge, .gper-estado, .mop-badge, .gp-pago-badge, .gp-metodo-tag, .gp-tag-apartado, .gp-tag-personalizado, .gapt-metodo-chip) {
+  display: inline-flex !important; align-items: center; gap: 6px;
+  border-radius: var(--radius-pill) !important; padding: 4px 11px !important;
+  font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+body :is(.gp-badge-vencido, .gapt-badge-vencido, .gapt-badge-urgente, .gp-sin-asignar, .mop-sin-asignar) {
+  --op-tono: var(--color-warning);
+  display: inline-flex !important; align-items: center; gap: 6px; border-radius: var(--radius-pill) !important; padding: 4px 11px !important;
+  font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+body :is(.gp-card--pendiente .gp-badge, .gapt-card--pendiente_pago .gapt-badge, .gper-estado-pendiente, .gp-sin-asignar, .mop-sin-asignar, .gapt-badge-urgente)::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  background: currentColor; animation: op-late 1.8s ease-out infinite;
+}
+body .gper-estado-pendiente { color: var(--color-warning) !important; background: color-mix(in srgb, var(--color-warning) 14%, transparent) !important; }
+body :is(.gper-estado-aprobada, .gper-estado-aprobado) { color: var(--color-success) !important; background: color-mix(in srgb, var(--color-success) 14%, transparent) !important; }
+body :is(.gper-estado-rechazada, .gper-estado-rechazado) { color: var(--color-error) !important; background: color-mix(in srgb, var(--color-error) 14%, transparent) !important; }
+
+/* ── Línea de avance del pedido ── */
+body .gp-step-icono {
+  border-radius: 50% !important; border: 0 !important;
+  background: var(--color-surface-2) !important; color: var(--color-text-muted) !important;
+}
+body .gp-step.completado .gp-step-icono { background: color-mix(in srgb, var(--color-success) 18%, transparent) !important; color: var(--color-success) !important; }
+body .gp-step.activo .gp-step-icono {
+  --op-tono: var(--color-primary);
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important;
+  animation: op-late 2s ease-out infinite;
+}
+body .gp-step-label { font-family: var(--font-body) !important; text-transform: none !important; letter-spacing: 0 !important; }
+body .gp-step-linea { border-radius: 2px; background: var(--color-border) !important; }
+body .gp-step-linea.completada { background: linear-gradient(90deg, var(--color-success), var(--color-primary)) !important; }
+
+/* ── Barras de progreso de apartados con brillo ── */
+body :is(.gapt-progreso-bar, .gapt-abono-barra) { border-radius: var(--radius-pill) !important; background: var(--color-surface-2) !important; overflow: hidden; height: 10px !important; }
+body :is(.gapt-progreso-fill, .gapt-abono-barra-fill) {
+  border-radius: var(--radius-pill) !important;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent), var(--color-primary)) !important;
+  background-size: 200% 100% !important; animation: op-brillo 3.5s linear infinite;
+}
+body .gapt-abono-dot { background: var(--gradient-primary) !important; border: 0 !important; box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 18%, transparent); }
+body .gapt-abono-item { border-radius: 18px !important; }
+
+/* ── Botones de acción ── */
+body :is(.gp-btn-tomar, .gp-btn-confirmar-pago, .gp-btn-confirmar-entrega, .gp-btn-actualizar, .gapt-btn-pri, .gper-btn-aprobar) {
+  border: 0 !important; border-radius: 16px !important; min-height: 44px;
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; box-shadow: var(--shadow-primary) !important;
+  font-family: var(--font-body) !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+body :is(.gp-btn-cancelar, .gapt-btn-danger, .gapt-btn-danger-sm, .gper-btn-rechazar, .gp-btn-cancelar-confirm) {
+  border-radius: 16px !important; border: 0 !important;
+  background: color-mix(in srgb, var(--color-error) 13%, transparent) !important; color: var(--color-error) !important;
+  font-family: var(--font-body) !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+body :is(.gp-btn-accion, .gp-btn-estado, .gapt-btn-sec, .gapt-btn-archivar, .gapt-btn-archivo, .gp-btn-refrescar, .gp-btn-limpiar, .gper-btn-cancelar, .gper-ver-imagen) {
+  border-radius: 14px !important; font-family: var(--font-body) !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+body .gapt-btn-warn { border-radius: 16px !important; text-transform: none !important; letter-spacing: 0 !important; }
+
+/* ── Modales ── */
+body :is(.gp-modal, .gapt-modal, .gper-modal) {
+  border-radius: 32px !important; border: 1px solid var(--glass-border) !important;
+  background: var(--color-surface) !important; box-shadow: var(--shadow-lift) !important; overflow: hidden;
+}
+body :is(.gp-modal-header, .gapt-modal-header) { border-bottom: 1px solid var(--color-border) !important; }
+body :is(.gp-modal-header, .gapt-modal-header) :is(h2, h3) { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.5px !important; text-transform: none !important; }
+body :is(.gp-modal-close, .gapt-modal-close) { border-radius: 50% !important; background: var(--color-surface-2) !important; }
+body :is(.gp-modal-seccion, .gapt-seccion) { border-radius: 20px !important; }
+body :is(.gp-modal-item) { border-radius: 16px !important; }
+
+/* ── Vacíos ── */
+body :is(.gp-vacio, .gapt-vacio, .gper-vacio, .mop-vacio, .gapt-sin-datos) {
+  border-radius: 28px !important; border: 1px dashed color-mix(in srgb, var(--color-primary) 35%, transparent) !important;
+  background: color-mix(in srgb, var(--color-primary) 4%, var(--color-surface)) !important;
+  color: var(--color-text-muted) !important; font-family: var(--font-body) !important;
+}
+
+/* ── Monitoreo del admin ── */
+body .mop-tabla-wrap { border-radius: 24px !important; border: 1px solid var(--color-border) !important; background: var(--color-surface) !important; box-shadow: var(--shadow-soft); }
+body .mop-nota { border-radius: 18px !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  body :is(.gp-card, .gapt-card, .gper-card, .gp-step.activo .gp-step-icono, .gapt-progreso-fill, .gapt-abono-barra-fill),
+  body :is(.gp-badge, .gapt-badge, .gper-estado, .gp-sin-asignar, .mop-sin-asignar, .gapt-badge-urgente)::before { animation: none !important; }
+}

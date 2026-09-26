@@ -12,6 +12,7 @@ import {
     AiOutlineFlag, AiOutlineCheck,
 } from 'react-icons/ai';
 import './GestionPedidosScreen.css';
+import './OperacionApp.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/GestionSitio.css';
 
@@ -682,7 +683,7 @@ const GestionPedidosScreen: React.FC = () => {
 
     return (
     <div key={pedido.id}
-        className={`gp-card ${esMio(pedido) ? 'gp-card-mia' : ''} ${estaVencido ? 'gp-card-vencida' : ''}`}
+        className={`gp-card gp-card--${pedido.estado} ${esMio(pedido) ? 'gp-card-mia' : ''} ${estaVencido ? 'gp-card-vencida' : ''}`}
         style={{ '--estado-color': colorEstado } as React.CSSProperties}
     >
         <div className="gp-card-principal">

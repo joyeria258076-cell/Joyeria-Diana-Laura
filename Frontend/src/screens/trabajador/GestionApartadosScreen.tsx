@@ -12,6 +12,7 @@ import {
     AiOutlineThunderbolt, AiOutlineDown, AiOutlineUp, AiOutlineReload, AiOutlineClose,
 } from 'react-icons/ai';
 import './GestionApartadosScreen.css';
+import './OperacionApp.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/GestionSitio.css';
 
