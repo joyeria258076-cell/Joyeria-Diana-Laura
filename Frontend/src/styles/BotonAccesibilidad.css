@@ -1,0 +1,32 @@
+/* BotonAccesibilidad.css — botón pequeño de tamaño de texto */
+.dl-a11y { position: fixed; left: 16px; bottom: 16px; z-index: 1250; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; font-family: var(--font-body); }
+.dl-a11y-boton {
+  width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--color-text);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-soft); font-size: 13px; font-weight: 700; letter-spacing: -0.3px;
+  opacity: 0.75; transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.dl-a11y-boton:hover, .dl-a11y.abierto .dl-a11y-boton { opacity: 1; transform: translateY(-1px); }
+.dl-a11y-boton:focus-visible { outline: none; box-shadow: var(--focus-ring); opacity: 1; }
+.dl-a11y-panel {
+  min-width: 190px; padding: 12px; border-radius: 20px;
+  border: 1px solid var(--glass-border); background: var(--color-surface); box-shadow: var(--shadow-lift);
+  display: flex; flex-direction: column; gap: 8px; animation: dl-a11y-in 0.15s ease;
+}
+@keyframes dl-a11y-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.dl-a11y-titulo { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--color-text-muted); }
+.dl-a11y-fila { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.dl-a11y-fila button {
+  width: 44px; height: 38px; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--color-surface-2); color: var(--color-text); font-family: var(--font-body); font-size: 14px; font-weight: 700;
+}
+.dl-a11y-fila button:disabled { opacity: 0.4; cursor: default; }
+.dl-a11y-valor { font-size: 15px; font-weight: 700; color: var(--color-primary); }
+.dl-a11y-reset { border: 0; background: none; cursor: pointer; padding: 2px 0; font-family: var(--font-body); font-size: 12.5px; font-weight: 600; color: var(--color-primary); }
+
+/* Con barra inferior (celular) o con hojas abiertas, sube para no tapar */
+@media (max-width: 900px) { body:has(.dl-bottom-nav) .dl-a11y { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); } }
+body:has(.hc-overlay, .detalle-modal-overlay, .gp-modal-overlay, .cp-modal-overlay) .dl-a11y { display: none; }
+@media print { .dl-a11y { display: none; } }
