@@ -2,15 +2,16 @@ import React, { useState, useEffect } from "react";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import Seccion from "../../components/Seccion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { contentAPI, carruselAPI, promocionesAPI, productsAPI, coleccionesAPI } from "../../services/api";
 import {
   AiOutlineTag, AiOutlineClose, AiOutlineLeft, AiOutlineRight, AiOutlineCar, AiOutlineGift,
   AiOutlineFolderOpen, AiOutlineStar, AiOutlineHeart, AiOutlinePhone, AiOutlineSafetyCertificate,
-  AiOutlineBulb, AiOutlineSmile, AiOutlineTool,
+  AiOutlineSearch, AiOutlineArrowRight, AiOutlineEnvironment, AiOutlineEdit,
 } from "react-icons/ai";
 import "./InicioPublicScreen.css";
 import "./InicioPublicApp.css";
+import "./InicioPortada.css";
 
 const JDL_CLOUD = 'https://res.cloudinary.com/dltvkwwq4/image/upload';
 
@@ -79,7 +80,9 @@ const defaultNews = [
 ];
 
 const InicioPublicScreen: React.FC = () => {
+  const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [busqueda, setBusqueda] = useState("");
 
   // ── ESTADOS DE CARGA Y DATOS DINÁMICOS ──
   // (sin gate de "pantalla completa de carga": cada sección se pinta con
@@ -189,8 +192,22 @@ const InicioPublicScreen: React.FC = () => {
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
-  const productosDestacadosEd   = productosDestacados.slice(0, 3);
-  const productosDestacadosGrid = productosDestacados.slice(3, 11);
+  // Solo piezas reales disponibles y con foto para lo que se muestra en portada
+  const visibles = productosDestacados.filter((p: any) => p.imagen_principal && p.stock_actual > 0 && !String(p.nombre).startsWith('[DEMO]'));
+  const baseVitrina = visibles.length >= 6 ? visibles : productosDestacados;
+  const piezaFlotante: any = visibles[0] || null;
+  // Categorías con la foto de una de sus piezas y cuántas hay
+  const categoriasFoto = Object.values(productosDestacados.reduce((acc: Record<string, any>, p: any) => {
+    if (!p.categoria_id || !p.categoria_nombre) return acc;
+    const c = acc[p.categoria_id] || (acc[p.categoria_id] = { id: p.categoria_id, nombre: p.categoria_nombre, cuantos: 0, imagen: null });
+    c.cuantos += 1;
+    if (!c.imagen && p.imagen_principal && p.stock_actual > 0) c.imagen = p.imagen_principal;
+    return acc;
+  }, {})).map((c: any) => ({ ...c, imagen: c.imagen || productosDestacados.find((p: any) => p.categoria_id === c.id && p.imagen_principal)?.imagen_principal }))
+    .filter((c: any) => c.imagen) as { id: number; nombre: string; cuantos: number; imagen: string }[];
+
+  const productosDestacadosEd   = baseVitrina.slice(0, 3);
+  const productosDestacadosGrid = baseVitrina.slice(3, 11);
 
   useEffect(() => {
     if (promociones.length <= 1) return;
@@ -236,122 +253,93 @@ const InicioPublicScreen: React.FC = () => {
       <PublicHeader />
 
       <main className="dl-orden">
-      {/* ═══════════ HERO / CARRUSEL PRINCIPAL ═══════════ */}
       <Seccion id="inicio.carrusel" nombre="Carrusel principal">
-      <section className="hero-carousel-section">
-        <div className="carousel-container">
-          <div className="carousel-wrapper">
+      <section className="ph-hero">
+        {/* Texto y buscador */}
+        <div className="ph-hero-texto">
+          <span className="ph-eyebrow"><AiOutlineEnvironment size={13} /> Joyería Diana Laura · Huejutla</span>
+          <h1 className="ph-titulo">Tu brillo,<br /><em>en tu bolsillo.</em></h1>
+          <p className="ph-sub">Joyería y bisutería con esencia femenina. Piezas únicas, personalizables y listas para regalar.</p>
+          <form className="ph-buscador" role="search" onSubmit={e => { e.preventDefault(); navigate(`/catalogo-publico${busqueda.trim() ? `?q=${encodeURIComponent(busqueda.trim())}` : ''}`); }}>
+            <AiOutlineSearch size={20} />
+            <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Busca anillos, cadenas, aretes…" aria-label="Buscar joyas" />
+            <button type="submit">Buscar</button>
+          </form>
+          <div className="ph-acciones">
+            <Link to="/catalogo-publico" className="ph-btn">Ver catálogo <AiOutlineArrowRight size={16} /></Link>
+            <Link to="/registro" className="ph-btn ph-btn--borde">Crear mi cuenta</Link>
+          </div>
+          <ul className="ph-puntos">
+            <li><AiOutlineHeart size={15} /> Hecho con amor</li>
+            <li><AiOutlineEdit size={15} /> Personalizable</li>
+            <li><AiOutlineCar size={15} /> Envíos en Huejutla y alrededores</li>
+          </ul>
+        </div>
+
+        {/* Imagen del carrusel en tarjeta alta */}
+        <div className="ph-visual">
+          <div className="ph-foto">
             {slides.map((slide, index) => {
-              // Solo se carga la imagen de la diapositiva activa (+ la
-              // siguiente, para que la transición no "parpadee"). Antes se
-              // renderizaban las <img> de TODAS las diapositivas a la vez
-              // (aunque solo una es visible), inflando el peso de la
-              // página en más de 1 MB innecesariamente.
               const siguiente = (currentSlide + 1) % slides.length;
               const debeCargar = index === currentSlide || index === siguiente;
               return (
-                <div
-                  key={slide.id}
-                  className={`carousel-slide ${index === currentSlide ? "active" : ""}`}
-                >
+                <div key={slide.id} className={`ph-slide${index === currentSlide ? ' activa' : ''}`}>
                   {debeCargar && (
-                    <img
-                      className="carousel-slide-img"
-                      src={slide.imagen || slide.image}
-                      srcSet={construirSrcSetHero(slide.imagenBase || slide.imagen || slide.image)}
-                      sizes="100vw"
-                      alt=""
-                      fetchPriority={index === 0 ? "high" : "low"}
-                      loading={index === 0 ? "eager" : "lazy"}
-                    />
+                    <img src={slide.imagen || slide.image} srcSet={construirSrcSetHero(slide.imagenBase || slide.imagen || slide.image)}
+                      sizes="(max-width: 900px) 100vw, 50vw" alt="" fetchPriority={index === 0 ? 'high' : 'low'} loading={index === 0 ? 'eager' : 'lazy'} />
                   )}
-                  <div className="carousel-overlay" />
-                  <div className="carousel-content">
-                    <span className="carousel-tag">{slide.tag || "Exclusivo"}</span>
-                    <h1 className="carousel-title">{slide.titulo || slide.title}</h1>
-                    <p className="carousel-desc">{slide.descripcion || slide.description}</p>
-                    <div className="carousel-actions">
-                      <Link to={slide.enlace || "/catalogo-publico"} className="btn btn-primary">Explorar colección</Link>
-                      <Link to="/catalogo-publico" className="btn btn-secondary">Ver catálogo completo</Link>
-                    </div>
-                  </div>
                 </div>
               );
             })}
+            <div className="ph-foto-velo" />
+            <Link to={slides[currentSlide]?.enlace || '/catalogo-publico'} className="ph-slide-info">
+              <span>{slides[currentSlide]?.tag || 'Exclusivo'}</span>
+              <strong>{slides[currentSlide]?.titulo || slides[currentSlide]?.title}</strong>
+              <small>{slides[currentSlide]?.descripcion || slides[currentSlide]?.description}</small>
+            </Link>
+            {slides.length > 1 && (
+              <div className="ph-controles">
+                <button onClick={prevSlide} aria-label="Anterior"><AiOutlineLeft /></button>
+                <div className="ph-dots">
+                  {slides.map((s, i) => <button key={s.id} className={i === currentSlide ? 'activo' : ''} onClick={() => setCurrentSlide(i)} aria-label={`Diapositiva ${i + 1}`} />)}
+                </div>
+                <button onClick={nextSlide} aria-label="Siguiente"><AiOutlineRight /></button>
+              </div>
+            )}
           </div>
+          {piezaFlotante && (
+            <Link to={`/producto-publico/${piezaFlotante.id}`} className="ph-flotante">
+              <img src={optimizarImagen(piezaFlotante.imagen_principal, 200)} alt="" />
+              <span>
+                <small>Nuevo en tienda</small>
+                <strong>{piezaFlotante.nombre}</strong>
+                <b>${Number(piezaFlotante.precio_oferta ?? piezaFlotante.precio_venta).toLocaleString('es-MX')}</b>
+              </span>
+            </Link>
+          )}
+        </div>
+      </section>
+      </Seccion>
 
-          <button className="carousel-btn carousel-btn-prev" onClick={prevSlide} aria-label="Anterior"><AiOutlineLeft /></button>
-          <button className="carousel-btn carousel-btn-next" onClick={nextSlide} aria-label="Siguiente"><AiOutlineRight /></button>
-
-          <div className="carousel-dots">
-            {slides.map((slide, index) => (
-              <button
-                key={slide.id}
-                className={`carousel-dot ${index === currentSlide ? "active" : ""}`}
-                onClick={() => setCurrentSlide(index)}
-                aria-label={`Diapositiva ${index + 1}`}
-              />
+      {/* ═══════════ CATEGORÍAS CON FOTO ═══════════ */}
+      <Seccion id="inicio.categorias" nombre="Categorías">
+      {categoriasFoto.length > 0 && (
+        <section className="ph-cats">
+          <div className="ph-seccion-cabeza">
+            <div><span className="ph-eyebrow">Explora</span><h2 className="ph-h2">¿Qué estás <em>buscando</em>?</h2></div>
+            <Link to="/catalogo-publico" className="ph-ver">Ver todo <AiOutlineArrowRight size={14} /></Link>
+          </div>
+          <div className="ph-cats-fila">
+            {categoriasFoto.map(c => (
+              <Link key={c.id} to={`/catalogo-publico?categoria=${c.id}`} className="ph-cat">
+                <span className="ph-cat-foto"><img src={optimizarImagen(c.imagen, 300)} alt="" loading="lazy" /></span>
+                <strong>{c.nombre}</strong>
+                <small>{c.cuantos} pieza{c.cuantos === 1 ? '' : 's'}</small>
+              </Link>
             ))}
           </div>
-        </div>
-      </section>
-      </Seccion>
-
-      {/* ═══════════ BARRA DE CONFIANZA ═══════════ */}
-      <Seccion id="inicio.confianza" nombre="Barra de beneficios">
-      <section className="trust-strip">
-        <div className="container-lg trust-grid">
-          <div className="trust-item">
-            <AiOutlineHeart size={20} />
-            <div>
-              <strong>Hecho con amor</strong>
-              <span>Piezas artesanales, una a una</span>
-            </div>
-          </div>
-          <div className="trust-item">
-            <AiOutlineSafetyCertificate size={20} />
-            <div>
-              <strong>Calidad garantizada</strong>
-              <span>Materiales premium certificados</span>
-            </div>
-          </div>
-          <div className="trust-item">
-            <AiOutlineCar size={20} />
-            <div>
-              <strong>Envíos a todo Huejutla</strong>
-              <span>Seguimiento en tiempo real</span>
-            </div>
-          </div>
-          <div className="trust-item">
-            <AiOutlinePhone size={20} />
-            <div>
-              <strong>Atención personalizada</strong>
-              <span>Estamos aquí para ayudarte</span>
-            </div>
-          </div>
-        </div>
-      </section>
-      </Seccion>
-
-      {/* ═══════════ STATS BAND ═══════════ */}
-      <Seccion id="inicio.estadisticas" nombre="Estadísticas">
-      <div className="stats-band">
-        {[
-          { icon: AiOutlineBulb, n: "Únicos", l: "Diseños exclusivos" },
-          { icon: AiOutlineSmile, n: "Felices", l: "Clientes satisfechos" },
-          { icon: AiOutlineTool, n: "100%", l: "Hecho a mano" },
-          { icon: AiOutlineStar, n: "5 ★", l: "Calidad garantizada" },
-        ].map((s, i, arr) => (
-          <React.Fragment key={i}>
-            <div className="stats-band-item">
-              <s.icon size={20} className="stats-band-icon" />
-              {s.n && <strong>{s.n}</strong>}
-              <span>{s.l}</span>
-            </div>
-            {i < arr.length - 1 && <div className="stats-band-sep" />}
-          </React.Fragment>
-        ))}
-      </div>
+        </section>
+      )}
       </Seccion>
 
       {/* ═══════════ COLECCIONES ═══════════ */}
@@ -404,7 +392,7 @@ const InicioPublicScreen: React.FC = () => {
                 const precioFinal = prod.precio_promocion ?? prod.precio_oferta;
                 const conDesc = precioFinal && precioFinal < prod.precio_venta;
                 return (
-                  <Link to={`/producto/${prod.id}`} className="editorial-card" key={prod.id}>
+                  <Link to={`/producto-publico/${prod.id}`} className="editorial-card" key={prod.id}>
                     <div className="editorial-card-img">
                       <img
                         src={optimizarImagen(prod.imagen_principal, 500) || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"}
@@ -412,7 +400,7 @@ const InicioPublicScreen: React.FC = () => {
                         loading="lazy"
                       />
                       {prod.es_nuevo && <span className="prod-badge prod-badge--nuevo">Nuevo</span>}
-                      {(prod as any).permite_personalizacion && <span className="prod-badge prod-badge--nuevo">✦ Personalizable</span>}
+                      {(prod as any).permite_personalizacion && <span className="prod-badge prod-badge--nuevo">Personalizable</span>}
                       {conDesc && <span className="prod-badge prod-badge--oferta">Oferta</span>}
                     </div>
                     <div className="editorial-card-body">
@@ -451,7 +439,7 @@ const InicioPublicScreen: React.FC = () => {
                 const precioFinal = prod.precio_promocion ?? prod.precio_oferta;
                 const conDesc = precioFinal && precioFinal < prod.precio_venta;
                 return (
-                  <Link to={`/producto/${prod.id}`} className="product-card" key={prod.id}>
+                  <Link to={`/producto-publico/${prod.id}`} className="product-card" key={prod.id}>
                     <div className="product-card-img">
                       <img
                         src={optimizarImagen(prod.imagen_principal, 500) || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"}
@@ -459,7 +447,7 @@ const InicioPublicScreen: React.FC = () => {
                         loading="lazy"
                       />
                       {prod.es_nuevo && <span className="prod-badge prod-badge--nuevo">Nuevo</span>}
-                      {(prod as any).permite_personalizacion && <span className="prod-badge prod-badge--nuevo">✦ Personalizable</span>}
+                      {(prod as any).permite_personalizacion && <span className="prod-badge prod-badge--nuevo">Personalizable</span>}
                       {conDesc && <span className="prod-badge prod-badge--oferta">Oferta</span>}
                       {prod.stock_actual === 0 && <span className="prod-badge prod-badge--agotado">Agotado</span>}
                       <div className="product-card-overlay"><span>Ver pieza →</span></div>
@@ -490,37 +478,23 @@ const InicioPublicScreen: React.FC = () => {
       {/* ═══════════ PROMOCIONES ═══════════ */}
       <Seccion id="inicio.promociones" nombre="Promociones activas">
       {promociones.length > 0 && (
-        <section className="features-section">
-          <div className="container-lg">
-            <div className="section-header text-center mb-5">
-              <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Ofertas especiales</span><span className="eyebrow-line" /></div>
-              <h2 className="section-title">Promociones <span>Activas</span></h2>
-            </div>
-            <div className="features-grid">
-              {promociones.map(promo => (
-                <div className="feature-card promo-card" key={promo.id}>
-                  {(promo.tipo === 'porcentaje' || promo.tipo === 'monto_fijo' || promo.tipo === 'cupon') && (
-                    <div className="promo-ribbon">
-                      {promo.tipo === 'monto_fijo' ? `-$${promo.valor_descuento}` : `-${promo.valor_descuento}%`}
-                    </div>
-                  )}
-                  <div className="feature-icon">
-                    {promo.tipo === 'envio_gratis' ? <AiOutlineCar size={22} /> : promo.tipo === '2x1' ? <AiOutlineGift size={22} /> : <AiOutlineTag size={22} />}
-                  </div>
-                  <h3>{promo.nombre}</h3>
-                  <p>{promoLabel(promo)}</p>
-                  {promo.monto_minimo_compra && (
-                    <p className="promo-minimo">Compra mínima: ${promo.monto_minimo_compra}</p>
-                  )}
-                  {promo.codigo_cupon && (
-                    <div className="promo-codigo">{promo.codigo_cupon}</div>
-                  )}
-                  <p className="promo-vigencia">
-                    Hasta {new Date(promo.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}
-                  </p>
-                </div>
-              ))}
-            </div>
+        <section className="ph-promos">
+          <div className="ph-seccion-cabeza">
+            <div><span className="ph-eyebrow">Ofertas</span><h2 className="ph-h2">Promociones <em>activas</em></h2></div>
+          </div>
+          <div className="ph-promos-fila">
+            {promociones.map((promo, i) => (
+              <Link key={promo.id} to="/catalogo-publico" className={`ph-promo ph-promo--${i % 3}`}>
+                <span className="ph-promo-tag"><AiOutlineTag size={12} /> {promo.fecha_fin ? `Hasta el ${new Date(promo.fecha_fin).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}` : 'Por tiempo limitado'}</span>
+                <strong className="ph-promo-valor">
+                  {promo.tipo === 'monto_fijo' ? `-$${promo.valor_descuento}` : promo.tipo === 'envio_gratis' ? 'Envío gratis' : promo.tipo === '2x1' ? '2×1' : `-${promo.valor_descuento}%`}
+                </strong>
+                <span className="ph-promo-nombre">{promo.nombre}</span>
+                {promo.codigo_cupon && <span className="ph-promo-cupon">Código: <b>{promo.codigo_cupon}</b></span>}
+                {promo.monto_minimo_compra && <small>Compra mínima ${promo.monto_minimo_compra}</small>}
+                <span className="ph-promo-ir">Ver piezas <AiOutlineArrowRight size={14} /></span>
+              </Link>
+            ))}
           </div>
         </section>
       )}
