@@ -674,8 +674,10 @@ const ClientePedidosScreen: React.FC = () => {
                                         <div className="cp-modal-total-fila cp-modal-total-final"><span>Total</span><span>${Number.parseFloat(String(pedidoDetalle.total)).toLocaleString('es-MX')}</span></div>
                                     </div>
 
-                                    {pedidoDetalle.estado === 'entregado' && (
+                                    {pedidoDetalle.estado === 'entregado' ? (
                                         <button className="cp-btn-recibo" onClick={() => descargarRecibo(pedidoDetalle)}>Ver / Descargar recibo</button>
+                                    ) : !['cancelado', 'expirado'].includes(pedidoDetalle.estado) && (
+                                        <p className="cp-recibo-aviso">Tu recibo estará disponible aquí cuando el pedido se marque como entregado.</p>
                                     )}
                                 </>
                             )}

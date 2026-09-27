@@ -1188,20 +1188,6 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
             `);
         }
 
-        const itemsHTML = (venta.items || []).map((item: any) => `
-            <tr>
-                <td>
-                    <p class="prod-nombre">${item.producto_nombre}</p>
-                    ${item.talla_medida ? `<p class="prod-detalle">Talla/Medida: ${item.talla_medida}</p>` : ''}
-                    ${item.nota ? `<p class="prod-detalle">Nota: ${item.nota}</p>` : ''}
-                    ${item.opciones_resumen ? `<p class="prod-detalle">${item.opciones_resumen}</p>` : ''}
-                </td>
-                <td>${item.cantidad}</td>
-                <td>$${Number.parseFloat(item.precio_unitario).toLocaleString('es-MX')}</td>
-                <td>$${Number.parseFloat(item.subtotal).toLocaleString('es-MX')}</td>
-            </tr>
-        `).join('');
-
         const fechaStr = venta.fecha_creacion;
         const fechaUTC = /Z|[+-]\d{2}:?\d{2}$/.test(fechaStr) ? fechaStr : fechaStr.replace(' ', 'T') + 'Z';
         const fechaFormato = new Intl.DateTimeFormat('es-MX', {
@@ -1211,307 +1197,140 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
         }).format(new Date(fechaUTC));
         const fechaHoy = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric', timeZone:'America/Mexico_City' });
 
+        const esc = (v: any) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+        const dinero = (v: any) => `$${Number.parseFloat(v || '0').toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const piezas = (venta.items || []).reduce((n: number, i: any) => n + Number(i.cantidad || 0), 0);
+        const esDomicilio = venta.tipo_entrega === 'domicilio' && venta.dir_calle;
+        const filasHTML = (venta.items || []).map((item: any) => {
+            const img = item.producto_imagen || item.imagen_principal || item.imagen_url;
+            return `
+            <div class="item">
+                ${img ? `<img src="${esc(img)}" alt="">` : '<div class="item-ph">◆</div>'}
+                <div class="item-info">
+                    <p class="item-nombre">${esc(item.producto_nombre)}</p>
+                    ${item.talla_medida ? `<p class="item-det">Talla/medida: ${esc(item.talla_medida)}</p>` : ''}
+                    ${item.opciones_resumen ? `<p class="item-det">${esc(item.opciones_resumen)}</p>` : ''}
+                    ${item.nota ? `<p class="item-det">Nota: ${esc(item.nota)}</p>` : ''}
+                    <p class="item-cant">${item.cantidad} × ${dinero(item.precio_unitario)}</p>
+                </div>
+                <p class="item-total">${dinero(item.subtotal)}</p>
+            </div>`;
+        }).join('');
+
         const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recibo ${venta.folio} - Joyería Diana Laura</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;600;700&display=swap');
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Montserrat', Arial, sans-serif;
-            color: #2c2c2c;
-            background: #f9f6f7;
-            min-height: 100vh;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            padding: 40px 20px;
-        }
-
-        .recibo {
-            background: white;
-            max-width: 720px;
-            width: 100%;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 40px rgba(0,0,0,0.10);
-        }
-
-        .header {
-            background: linear-gradient(135deg, #0f0f12 0%, #1a1a2e 100%);
-            color: white;
-            padding: 40px 48px 32px;
-            text-align: center;
-            position: relative;
-        }
-        .header::after {
-            content: '';
-            display: block;
-            height: 4px;
-            background: linear-gradient(90deg, #ecb2c3, #d4899f, #ecb2c3);
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-        }
-        .header-emoji { font-size: 48px; margin-bottom: 12px; }
-        .header h1 {
-            font-family: 'Playfair Display', Georgia, serif;
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            color: #fff;
-            margin-bottom: 6px;
-        }
-        .header-sub {
-            font-size: 13px;
-            color: rgba(255,255,255,0.6);
-            letter-spacing: 0.08em;
-            margin-bottom: 16px;
-        }
-        .header-badge {
-            display: inline-block;
-            background: #ecb2c3;
-            color: #0f0f12;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            padding: 6px 20px;
-            border-radius: 20px;
-        }
-
-        .body { padding: 40px 48px; }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-        .info-card {
-            background: #faf8f9;
-            border: 1px solid #f0e6ea;
-            border-radius: 10px;
-            padding: 20px;
-        }
-        .info-card h3 {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: #ecb2c3;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #f0e6ea;
-        }
-        .info-row { margin-bottom: 6px; }
-        .info-label { font-size: 11px; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-        .info-value { font-size: 13px; color: #2c2c2c; font-weight: 500; margin-top: 1px; }
-        .estado-badge {
-            display: inline-block;
-            background: #ecb2c3;
-            color: #0f0f12;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 12px;
-            text-transform: capitalize;
-        }
-
-        .seccion-titulo {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: #ecb2c3;
-            margin-bottom: 14px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #f0e6ea;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 28px;
-        }
-        thead tr { background: #0f0f12; }
-        thead th {
-            padding: 12px 14px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #ecb2c3;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            text-align: left;
-        }
-        thead th:not(:first-child) { text-align: right; }
-        tbody tr { border-bottom: 1px solid #f5eff1; }
-        tbody tr:last-child { border-bottom: none; }
-        tbody td {
-            padding: 14px;
-            font-size: 13px;
-            color: #2c2c2c;
-            vertical-align: middle;
-        }
-        tbody td:not(:first-child) { text-align: right; }
-        .prod-nombre { font-weight: 600; }
-        .prod-detalle { font-size: 11px; color: #999; margin-top: 2px; }
-
-        .totales-wrap {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 32px;
-        }
-        .totales-tabla {
-            width: 280px;
-            background: #faf8f9;
-            border: 1px solid #f0e6ea;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .totales-fila {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 16px;
-            font-size: 13px;
-            border-bottom: 1px solid #f0e6ea;
-            color: #666;
-        }
-        .totales-fila:last-child {
-            border-bottom: none;
-            background: #0f0f12;
-            color: white;
-            font-size: 15px;
-            font-weight: 700;
-            padding: 14px 16px;
-        }
-        .totales-fila:last-child span:last-child { color: #ecb2c3; }
-
-        .footer {
-            background: #faf8f9;
-            border-top: 2px solid #f0e6ea;
-            padding: 28px 48px;
-            text-align: center;
-        }
-        .footer-titulo {
-            font-family: 'Playfair Display', Georgia, serif;
-            font-size: 16px;
-            color: #0f0f12;
-            margin-bottom: 8px;
-        }
-        .footer-sub { font-size: 12px; color: #aaa; line-height: 1.6; }
-        .footer-folio { font-size: 11px; color: #ccc; margin-top: 12px; font-family: monospace; }
-
-        @media print {
-            body { background: white; padding: 0; }
-            .recibo { box-shadow: none; border-radius: 0; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recibo ${esc(venta.folio)} · Joyería Diana Laura</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Poppins',Arial,sans-serif;color:#2b1d24;background:radial-gradient(circle at 15% 0%,#fbe3ec 0,transparent 45%),radial-gradient(circle at 90% 100%,#f3e6ff 0,transparent 40%),#fdf7f9;min-height:100vh;padding:36px 16px 60px}
+.barra{max-width:680px;margin:0 auto 16px;display:flex;justify-content:flex-end;gap:10px}
+.barra button{font:600 14px 'Poppins',sans-serif;border:0;border-radius:14px;padding:12px 20px;cursor:pointer;background:linear-gradient(135deg,#d4899f,#b85c7c);color:#fff;box-shadow:0 8px 22px rgba(184,92,124,.3)}
+.barra button.sec{background:#fff;color:#b85c7c;border:1.5px solid #ecb2c3;box-shadow:none}
+.recibo{max-width:680px;margin:0 auto;background:#fff;border-radius:32px;overflow:hidden;box-shadow:0 20px 60px rgba(120,50,80,.14);position:relative}
+.cabeza{position:relative;padding:36px 40px 70px;color:#fff;background:linear-gradient(135deg,#2a1520 0%,#5a2340 55%,#b85c7c 100%);overflow:hidden}
+.cabeza::before,.cabeza::after{content:'';position:absolute;border-radius:50%;background:rgba(255,255,255,.08)}
+.cabeza::before{width:260px;height:260px;right:-80px;top:-110px}
+.cabeza::after{width:160px;height:160px;right:120px;bottom:-100px}
+.marca{display:flex;align-items:center;gap:12px;position:relative}
+.logo{width:48px;height:48px;border-radius:16px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font:italic 600 22px 'Playfair Display',serif}
+.marca strong{display:block;font:italic 600 22px 'Playfair Display',serif}
+.marca small{font-size:12px;opacity:.75;letter-spacing:.5px}
+.cabeza-fila{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:30px;position:relative}
+.eti{font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.7}
+.folio{font-size:30px;font-weight:700;letter-spacing:-.5px;margin-top:2px}
+.sello{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:#fff;color:#1f8a5b;font-size:13px;font-weight:700}
+.sello i{width:20px;height:20px;border-radius:50%;background:#1f8a5b;color:#fff;font-style:normal;display:flex;align-items:center;justify-content:center;font-size:12px}
+.total-card{position:relative;margin:-44px 28px 0;background:#fff;border-radius:24px;padding:20px 24px;box-shadow:0 12px 34px rgba(120,50,80,.14);display:flex;justify-content:space-between;align-items:center;gap:16px}
+.total-card .eti{opacity:1;color:#9a7f8b}
+.total-card .monto{font-size:34px;font-weight:700;letter-spacing:-1px;color:#b85c7c;line-height:1.1}
+.total-card .monto small{font-size:14px;font-weight:500;color:#9a7f8b;margin-left:4px}
+.total-card .lado{text-align:right;font-size:13px;color:#6b5560;line-height:1.6}
+.cuerpo{padding:28px 28px 8px}
+.datos{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px}
+.dato{background:#fbf5f7;border-radius:18px;padding:14px 16px}
+.dato .eti{opacity:1;color:#b85c7c;font-weight:600;font-size:10px}
+.dato p{font-size:13.5px;font-weight:600;margin-top:4px;line-height:1.4}
+.dato span{display:block;font-size:12px;color:#8a7380;font-weight:400;word-break:break-word}
+.titulo{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.titulo h2{font:italic 600 20px 'Playfair Display',serif}
+.titulo span{font-size:12.5px;color:#8a7380}
+.item{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px dashed #efdde4}
+.item:last-child{border-bottom:0}
+.item img,.item-ph{width:56px;height:56px;border-radius:16px;object-fit:cover;flex-shrink:0;background:#fbe3ec;color:#b85c7c;display:flex;align-items:center;justify-content:center}
+.item-info{flex:1;min-width:0}
+.item-nombre{font-weight:600;font-size:14.5px}
+.item-det{font-size:12px;color:#8a7380;margin-top:1px}
+.item-cant{font-size:12.5px;color:#6b5560;margin-top:3px}
+.item-total{font-weight:700;font-size:15px;white-space:nowrap}
+.corte{position:relative;height:28px;margin:14px 0}
+.corte::before{content:'';position:absolute;left:28px;right:28px;top:50%;border-top:2px dashed #efdde4}
+.corte::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 0 50%,#fdf7f9 14px,transparent 15px),radial-gradient(circle at 100% 50%,#fdf7f9 14px,transparent 15px)}
+.totales{padding:0 28px 26px}
+.fila{display:flex;justify-content:space-between;font-size:14px;color:#6b5560;padding:5px 0}
+.fila.final{margin-top:8px;padding-top:12px;border-top:1px solid #efdde4;font-size:18px;font-weight:700;color:#2b1d24}
+.fila.final span:last-child{color:#b85c7c}
+.nota{margin:0 28px 26px;padding:14px 16px;border-radius:18px;background:#fff7e8;color:#7a5a1e;font-size:13px;line-height:1.5}
+.pie{text-align:center;padding:26px 28px 30px;background:#fbf5f7}
+.pie h3{font:italic 600 22px 'Playfair Display',serif;color:#b85c7c}
+.pie p{font-size:12.5px;color:#8a7380;margin-top:6px;line-height:1.6}
+.pie .gen{font-size:11px;color:#b9a6ae;margin-top:14px;letter-spacing:.5px}
+@media (max-width:560px){.cabeza{padding:28px 22px 64px}.cabeza-fila{flex-direction:column;align-items:flex-start}.total-card{margin:-40px 14px 0;flex-direction:column;align-items:flex-start}.total-card .lado{text-align:left}.cuerpo{padding:22px 16px 4px}.datos{grid-template-columns:1fr}.totales{padding:0 16px 22px}.nota{margin:0 16px 22px}}
+@media print{body{background:#fff;padding:0}.barra{display:none}.recibo{box-shadow:none;border-radius:0;max-width:none}.corte::after{display:none}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
 </head>
 <body>
-    <div class="recibo">
-        <div class="header">
-            <div class="header-emoji">💎</div>
-            <h1>Joyería Diana Laura</h1>
-            <p class="header-sub">Tu tienda de joyas exclusivas</p>
-            <span class="header-badge">Recibo de Compra</span>
-        </div>
-
-        <div class="body">
-            <div class="info-grid">
-                <div class="info-card">
-                    <h3>Datos del pedido</h3>
-                    <div class="info-row">
-                        <p class="info-label">Folio</p>
-                        <p class="info-value">${venta.folio}</p>
-                    </div>
-                    <div class="info-row">
-                        <p class="info-label">Fecha</p>
-                        <p class="info-value">${fechaFormato}</p>
-                    </div>
-                    <div class="info-row">
-                        <p class="info-label">Estado</p>
-                        <span class="estado-badge">${venta.estado}</span>
-                    </div>
-                    <div class="info-row">
-                        <p class="info-label">Método de pago</p>
-                        <p class="info-value">${venta.metodo_pago_nombre || 'No especificado'}</p>
-                    </div>
-                    ${venta.trabajador_nombre ? `
-                    <div class="info-row">
-                        <p class="info-label">Atendido por</p>
-                        <p class="info-value">${venta.trabajador_nombre}</p>
-                    </div>` : ''}
-                </div>
-                <div class="info-card">
-                    <h3>Cliente</h3>
-                    <div class="info-row">
-                        <p class="info-label">Nombre</p>
-                        <p class="info-value">${venta.cliente_nombre_completo}</p>
-                    </div>
-                    <div class="info-row">
-                        <p class="info-label">Email</p>
-                        <p class="info-value">${venta.cliente_email}</p>
-                    </div>
-                    ${venta.tipo_entrega === 'domicilio' && venta.dir_calle ? `
-                    <div class="info-row">
-                        <p class="info-label">Dirección de envío</p>
-                        <p class="info-value">
-                            ${venta.dir_calle} ${venta.dir_numero || ''}${venta.dir_numero_interior ? ` Int. ${venta.dir_numero_interior}` : ''}, 
-                            ${venta.dir_colonia}, ${venta.dir_ciudad}, ${venta.dir_estado}, CP ${venta.dir_codigo_postal}
-                            ${venta.dir_telefono_contacto ? `<br/>📱 ${venta.dir_telefono_contacto}` : ''}
-                            ${venta.dir_referencias ? `<br/>📌 ${venta.dir_referencias}` : ''}
-                        </p>
-                    </div>` : `
-                    <div class="info-row">
-                        <p class="info-label">Entrega</p>
-                        <p class="info-value">🏪 Recoger en tienda</p>
-                    </div>`}
-                    ${venta.notas_cliente ? `
-                    <div class="info-row">
-                        <p class="info-label">Notas del pedido</p>
-                        <p class="info-value">${venta.notas_cliente}</p>
-                    </div>` : ''}
-                </div>
-            </div>
-
-            <p class="seccion-titulo">Productos</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Cant.</th>
-                        <th>Precio unit.</th>
-                        <th>Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${itemsHTML}
-                </tbody>
-            </table>
-
-            <div class="totales-wrap">
-                <div class="totales-tabla">
-                    <div class="totales-fila"><span>Subtotal</span><span>$${Number.parseFloat(venta.subtotal).toLocaleString('es-MX')} MXN</span></div>
-                    <div class="totales-fila"><span>IVA (16%)</span><span>$${Number.parseFloat(venta.iva).toLocaleString('es-MX')} MXN</span></div>
-                    ${Number.parseFloat(venta.costo_envio || '0') > 0 ? `<div class="totales-fila"><span>🚚 Envío a domicilio</span><span>+$${Number.parseFloat(venta.costo_envio).toLocaleString('es-MX')} MXN</span></div>` : ''}
-                    <div class="totales-fila"><span>Total</span><span>$${Number.parseFloat(venta.total).toLocaleString('es-MX')} MXN</span></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p class="footer-titulo">¡Gracias por tu compra! 💎</p>
-            <p class="footer-sub">
-                Tu pedido está siendo atendido con todo el cuidado que mereces.<br>
-                Cualquier duda contáctanos en <strong>info@dianaalaura.com</strong>
-            </p>
-            <p class="footer-folio">Generado el ${fechaHoy} · ${venta.folio}</p>
+<div class="barra">
+    <button class="sec" onclick="window.close()">Cerrar</button>
+    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+</div>
+<div class="recibo">
+    <div class="cabeza">
+        <div class="marca"><div class="logo">DL</div><div><strong>Joyería Diana Laura</strong><small>Huejutla de Reyes, Hidalgo</small></div></div>
+        <div class="cabeza-fila">
+            <div><p class="eti">Recibo de compra</p><p class="folio">${esc(venta.folio)}</p></div>
+            <span class="sello"><i>✓</i> Pagado y entregado</span>
         </div>
     </div>
+
+    <div class="total-card">
+        <div><p class="eti">Total pagado</p><p class="monto">${dinero(venta.total)}<small>MXN</small></p></div>
+        <div class="lado">${fechaFormato}<br>${esc(venta.metodo_pago_nombre || 'Método no especificado')}</div>
+    </div>
+
+    <div class="cuerpo">
+        <div class="datos">
+            <div class="dato"><p class="eti">Cliente</p><p>${esc(venta.cliente_nombre_completo)}<span>${esc(venta.cliente_email)}</span></p></div>
+            <div class="dato"><p class="eti">Entrega</p>${esDomicilio
+                ? `<p>Envío a domicilio<span>${esc(venta.dir_calle)} ${esc(venta.dir_numero || '')}${venta.dir_numero_interior ? ` Int. ${esc(venta.dir_numero_interior)}` : ''}, ${esc(venta.dir_colonia)}, ${esc(venta.dir_ciudad)}, CP ${esc(venta.dir_codigo_postal)}</span></p>`
+                : `<p>Recogido en tienda<span>Joyería Diana Laura</span></p>`}</div>
+            <div class="dato"><p class="eti">Atendido por</p><p>${esc(venta.trabajador_nombre || 'Equipo Diana Laura')}<span>${piezas} pieza${piezas === 1 ? '' : 's'}</span></p></div>
+        </div>
+
+        <div class="titulo"><h2>Tus piezas</h2><span>${(venta.items || []).length} producto${(venta.items || []).length === 1 ? '' : 's'}</span></div>
+        ${filasHTML}
+    </div>
+
+    <div class="corte"></div>
+
+    <div class="totales">
+        <div class="fila"><span>Subtotal</span><span>${dinero(venta.subtotal)}</span></div>
+        <div class="fila"><span>IVA (16%)</span><span>${dinero(venta.iva)}</span></div>
+        ${Number.parseFloat(venta.costo_envio || '0') > 0 ? `<div class="fila"><span>Envío a domicilio</span><span>+${dinero(venta.costo_envio)}</span></div>` : ''}
+        <div class="fila final"><span>Total</span><span>${dinero(venta.total)} MXN</span></div>
+    </div>
+
+    ${venta.notas_cliente ? `<div class="nota"><strong>Tu nota:</strong> ${esc(venta.notas_cliente)}</div>` : ''}
+
+    <div class="pie">
+        <h3>¡Gracias por elegirnos!</h3>
+        <p>Cuida tus piezas lejos del agua, perfumes y cremas para que conserven su brillo.<br>Cualquier duda, escríbenos desde la sección de contacto de la tienda.</p>
+        <p class="gen">Generado el ${fechaHoy} · ${esc(venta.folio)}</p>
+    </div>
+</div>
 </body>
 </html>`;
 

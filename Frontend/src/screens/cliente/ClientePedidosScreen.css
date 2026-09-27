@@ -547,3 +547,4 @@
 @media (max-width: 900px) {
   .cp-card-principal { grid-template-columns: 1fr 1fr; }
 }
+.cp-recibo-aviso { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: var(--color-surface-2); color: var(--color-text-muted); font-size: 13px; text-align: center; }
