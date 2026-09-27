@@ -5,8 +5,7 @@ import Loader from '../../../components/Loader';
 import {
   AiOutlineSave, AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineSetting,
   AiOutlineDollarCircle, AiOutlineShoppingCart, AiOutlineInbox, AiOutlineBarChart,
-  AiOutlineTag, AiOutlinePlus, AiOutlineEdit, AiOutlineCheckCircle, AiOutlineStop,
-} from 'react-icons/ai';
+  AiOutlineTag, AiOutlinePlus, AiOutlineEdit, AiOutlineCheckCircle, AiOutlineStop, AiOutlineBgColors, AiOutlineShopping, AiOutlineFileText } from 'react-icons/ai';
 import { configAPI, apartadoAPI } from '../../../services/api';
 import './AdminVariablesConfigScreen.css';
 import AdminHero from '../../../components/AdminHero';
@@ -16,6 +15,23 @@ const ICONOS_CATEGORIA: Record<string, React.ComponentType<{size?:number}>> = {
   ventas: AiOutlineShoppingCart,
   envios: AiOutlineInbox,
   inventario: AiOutlineBarChart,
+  apariencia: AiOutlineBgColors,
+  pedidos: AiOutlineShopping,
+  personalizacion: AiOutlineEdit,
+  contenido: AiOutlineFileText,
+};
+
+// Nombres legibles de las variables más comunes
+const NOMBRES_VARIABLE: Record<string, string> = {
+  costo_envio_default: 'Costo de envío', envio_gratis_desde: 'Envío gratis desde',
+  iva_porcentaje: 'IVA (%)', stock_minimo_default: 'Stock mínimo por defecto',
+  dias_entrega_default: 'Días de entrega', dias_expiracion_pago: 'Aviso de pago vencido',
+  dias_expiracion_pedido: 'Expirar pedidos sin atender', unidad_expiracion_pago: 'Unidad del aviso de pago',
+  dias_verificacion_personalizacion: 'Días para revisar personalizaciones',
+  dias_cancelacion: 'Horas para cancelar sin penalización', margen_ganancia_default: 'Margen de ganancia (%)',
+  secciones_ocultas: 'Secciones ocultas', secciones_orden: 'Orden de secciones',
+  sitio_fondo_url: 'Imagen de fondo del sitio', sitio_paleta: 'Paleta de colores',
+  sitio_mision_vision_valores: 'Misión, visión y valores',
 };
 
 interface VariableConfig {
@@ -286,7 +302,7 @@ const AdminVariablesConfigScreen: React.FC = () => {
     const totalEjemplo = 1000;
     const montoPorAbono = Math.round(totalEjemplo * (plan.porcentaje_abono / 100));
     const numPagos = Math.ceil(500 / montoPorAbono); // 500 = saldo tras 50% inicial
-    return `Para un producto de $1,000: ${numPagos} pago${numPagos !== 1 ? 's' : ''} de $${montoPorAbono} cada ${plan.intervalo_dias} días`;
+    return `Pieza de $1,000: anticipo de $500 y después ${numPagos} pago${numPagos !== 1 ? 's' : ''} de $${montoPorAbono} cada ${plan.intervalo_dias} días`;
   };
 
   const categoriasOrdenadas = Object.keys(grupos).sort();
@@ -295,8 +311,9 @@ const AdminVariablesConfigScreen: React.FC = () => {
 
   const nombreCategoria = (categoria: string) => {
     const nombres: Record<string,string> = {
-      fiscal: 'Configuración fiscal', ventas: 'Configuración de ventas',
-      envios: 'Configuración de envíos', inventario: 'Configuración de inventario',
+      fiscal: 'Impuestos', ventas: 'Ventas',
+      envios: 'Envíos', inventario: 'Inventario', apariencia: 'Apariencia del sitio',
+      contenido: 'Contenido', pedidos: 'Pedidos', personalizacion: 'Personalización', planes: 'Planes de abono',
     };
     return nombres[categoria] || categoria;
   };
@@ -366,7 +383,7 @@ const AdminVariablesConfigScreen: React.FC = () => {
                 <div key={variable.id} className="vc-setting-row">
                   <div className="vc-setting-info">
                     <div className="vc-setting-name-row">
-                      <strong>{variable.clave.replace(/_/g, ' ')}</strong>
+                      <strong>{NOMBRES_VARIABLE[variable.clave] || (variable.clave.charAt(0).toUpperCase() + variable.clave.slice(1).replace(/_/g, ' '))}</strong>
                       <span className="variable-tipo">{formatTipoDato(variable.tipo_dato)}</span>
                       {variable.es_sensible && (
                         <button className="btn-toggle-sensitive" onClick={() => toggleShowSensitive(variable.clave)}>
