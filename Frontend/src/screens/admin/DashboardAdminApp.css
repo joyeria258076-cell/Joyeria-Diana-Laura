@@ -1,0 +1,98 @@
+/* DashboardAdminApp.css — inicio del admin con el estilo de la app */
+body .dc-wrap.da { max-width: 1180px; margin: 0 auto; padding: 4px 0 48px !important; display: flex; flex-direction: column; gap: 22px; font-family: var(--font-body); color: var(--color-text); }
+.da-eyebrow { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--color-primary); }
+
+/* Portada */
+.da-hero {
+  position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 20px; align-items: stretch;
+  padding: 30px 32px; border-radius: 34px; background: var(--gradient-primary); color: var(--color-on-primary); box-shadow: var(--shadow-primary);
+}
+.da-hero::before, .da-hero::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; background: rgba(255, 255, 255, 0.14); }
+.da-hero::before { width: 320px; height: 320px; right: -90px; top: -150px; }
+.da-hero::after { width: 180px; height: 180px; left: 38%; bottom: -120px; background: rgba(255, 255, 255, 0.08); }
+.da-hero > * { position: relative; z-index: 1; }
+.da-hero-fecha { display: block; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.85; }
+body .content-area .da-hero-titulo { margin: 6px 0 4px !important; font-size: clamp(30px, 4vw, 42px) !important; font-weight: 700 !important; letter-spacing: -1.2px !important; line-height: 1.05 !important; color: inherit !important; }
+.da-hero-titulo em { font-family: var(--font-accent); font-weight: 600; letter-spacing: -0.5px; }
+.da-hero-sub { margin: 0 0 18px; font-size: 14.5px; opacity: 0.9; }
+.da-hero-ingresos { display: flex; flex-direction: column; }
+.da-hero-ingresos span { font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; opacity: 0.85; }
+.da-hero-ingresos strong { font-size: clamp(36px, 5vw, 52px); font-weight: 700; letter-spacing: -1.5px; line-height: 1.05; }
+.da-hero-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.da-hero-chips span { padding: 6px 12px; border-radius: 999px; font-size: 13px; background: rgba(255, 255, 255, 0.22); }
+.da-hero-grafica { min-height: 180px; padding: 12px; border-radius: 24px; background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25); display: flex; align-items: center; justify-content: center; }
+.da-hero-grafica canvas { width: 100% !important; height: 100% !important; }
+.da-hero-sin { margin: 0; font-size: 14px; opacity: 0.85; text-align: center; }
+
+/* Indicadores */
+.da-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.da-kpi {
+  --tono: var(--color-primary);
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 18px; cursor: pointer; text-align: left;
+  border-radius: 24px; border: 1px solid var(--color-border); background: var(--color-surface); box-shadow: var(--shadow-soft);
+  color: var(--color-text); font-family: var(--font-body); transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.da-kpi:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); border-color: color-mix(in srgb, var(--tono) 50%, transparent); }
+.da-kpi--info { --tono: var(--color-info); } .da-kpi--warning { --tono: var(--color-warning); } .da-kpi--success { --tono: var(--color-success); }
+.da-kpi-icono { width: 44px; height: 44px; border-radius: 15px; margin-bottom: 8px; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--tono) 16%, transparent); color: var(--tono); }
+.da-kpi-val { font-size: 28px; font-weight: 700; letter-spacing: -0.8px; line-height: 1.1; }
+.da-kpi-label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--color-text-muted); }
+.da-kpi-label small { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: color-mix(in srgb, var(--tono) 14%, transparent); color: var(--tono); }
+.da-kpi--alerta::after { content: ''; position: absolute; top: 18px; right: 18px; width: 10px; height: 10px; border-radius: 50%; background: var(--tono); box-shadow: 0 0 0 5px color-mix(in srgb, var(--tono) 22%, transparent); }
+
+/* Paneles */
+.da-dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.da-panel { padding: 22px; border-radius: 28px; border: 1px solid var(--color-border); background: var(--color-surface); box-shadow: var(--shadow-soft); }
+.da-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.da-panel-head h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+.da-panel-head h3 svg { color: var(--color-primary); }
+.da-panel-head button { border: 0; background: none; cursor: pointer; font-family: var(--font-body); font-size: 13px; font-weight: 600; color: var(--color-primary); }
+.da-vacio { margin: 0; padding: 18px; border-radius: 18px; text-align: center; font-size: 14px; color: var(--color-text-muted); background: var(--color-surface-2); }
+.da-ranking { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.da-ranking li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 16px; background: var(--color-surface-2); }
+.da-medalla { width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: var(--color-surface); color: var(--color-text-muted); }
+.da-medalla--0 { background: linear-gradient(135deg, #F6D365, #E0A82E); color: #3A2A00; }
+.da-medalla--1 { background: linear-gradient(135deg, #E6E6EE, #B9BCC6); color: #2A2A33; }
+.da-medalla--2 { background: linear-gradient(135deg, #E9B38A, #C27A4A); color: #3A1D08; }
+.da-ranking-nombre { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.da-ranking-val { font-size: 13px; font-weight: 700; color: var(--color-primary); }
+.da-estados { display: flex; flex-direction: column; gap: 12px; }
+.da-estado { display: grid; grid-template-columns: 130px minmax(0, 1fr) 36px; align-items: center; gap: 10px; }
+.da-estado-label { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+.da-estado-label i { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.da-estado-barra { height: 10px; border-radius: 999px; background: var(--color-surface-2); overflow: hidden; }
+.da-estado-barra div { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+.da-estado-val { text-align: right; font-size: 14px; font-weight: 700; }
+
+/* Personas */
+.da-personas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.da-persona { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-radius: 26px; border: 1px solid var(--color-border); background: var(--color-surface); box-shadow: var(--shadow-soft); }
+.da-persona[role="button"] { cursor: pointer; }
+.da-persona-avatar { width: 52px; height: 52px; flex-shrink: 0; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; background: var(--gradient-primary); color: var(--color-on-primary); }
+.da-persona--dorado .da-persona-avatar { background: linear-gradient(135deg, #F6D365, #E0A82E); color: #3A2A00; }
+.da-persona > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.da-persona-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--color-text-muted); }
+.da-persona strong { font-size: 16px; font-weight: 700; }
+.da-persona small { font-size: 13px; color: var(--color-text-muted); }
+
+/* Accesos */
+.da-accesos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.da-accesos--ia { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.da-acceso {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 16px; cursor: pointer; text-align: left;
+  border-radius: 22px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font-family: var(--font-body);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.da-acceso:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--color-primary) 50%, transparent); }
+.da-acceso-icono { width: 42px; height: 42px; border-radius: 14px; margin-bottom: 8px; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--color-primary) 16%, transparent); color: var(--color-primary); }
+.da-acceso strong { font-size: 14.5px; font-weight: 700; }
+.da-acceso small { font-size: 12.5px; color: var(--color-text-muted); line-height: 1.35; }
+.da-acceso--ia { background: color-mix(in srgb, var(--color-accent) 7%, var(--color-surface)); }
+.da-acceso--ia .da-acceso-icono { background: color-mix(in srgb, var(--color-accent) 20%, transparent); color: var(--color-accent); }
+
+@media (max-width: 980px) {
+  .da-hero { grid-template-columns: 1fr; padding: 24px; border-radius: 28px; }
+  .da-kpis, .da-accesos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .da-dos, .da-personas, .da-accesos--ia { grid-template-columns: 1fr; }
+}
+body .content-area .da-hero-titulo em { color: inherit !important; }
