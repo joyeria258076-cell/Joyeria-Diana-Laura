@@ -640,6 +640,7 @@ const ClientePedidosScreen: React.FC = () => {
                                                         onError={e => { (e.target as HTMLImageElement).src = PLACEHOLDER; }} />
                                                     <div className="cp-modal-item-info">
                                                         <p className="cp-modal-item-nombre">{item.producto_nombre}</p>
+                                                        {(item as any).opciones_resumen && <p className="cp-modal-item-sub cp-modal-item-sub--opciones">{(item as any).opciones_resumen}</p>}
                                                         {item.talla_medida && <p className="cp-modal-item-sub">Talla: {item.talla_medida}</p>}
                                                         {item.nota && <p className="cp-modal-item-sub">Nota: {item.nota}</p>}
                                                         {item.precio_original && item.precio_original > item.precio_unitario ? (

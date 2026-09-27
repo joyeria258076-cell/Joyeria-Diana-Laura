@@ -15,6 +15,7 @@ import '../../styles/SitioSecciones.css';
 import '../../styles/ProductosRelacionados.css';
 import './DetallePublicoApp.css';
 import EsqueletoDetalle from '../../components/EsqueletoDetalle';
+import SelectorOpciones, { type EstadoOpciones } from '../../components/SelectorOpciones';
 import '../../styles/DetalleBoceto.css';
 
 const estaLogueado = (): boolean => {
@@ -183,17 +184,21 @@ const ProductoDetallePublicScreen: React.FC = () => {
 
     const handleIrLogin = () => navigate('/login');
 
+    const [opc, setOpc] = useState<EstadoOpciones>({ hayOpciones: false, eleccion: [], costo: 0, valido: true, falta: null });
+    const [intentoOpc, setIntentoOpc] = useState(false);
+
     const handleAgregar = async () => {
         if (!producto) return;
         if (!logueado) { setShowLoginAlert(true); return; }
-        if (producto.permite_personalizacion && !tallaMedida.trim() && !notaPersonalizacion.trim()) {
+        if (opc.hayOpciones && !opc.valido) { setIntentoOpc(true); return; }
+        if (!opc.hayOpciones && producto.permite_personalizacion && !tallaMedida.trim() && !notaPersonalizacion.trim()) {
             setErrorPersonalizacion('Indica al menos la talla/medida o describe cómo quieres personalizar tu pieza.');
             return;
         }
         setErrorPersonalizacion('');
         setAgregando(true);
         try {
-            await agregarAlCarrito(producto.id, cantidad, tallaMedida.trim() || undefined, notaPersonalizacion.trim() || undefined);
+            await agregarAlCarrito(producto.id, cantidad, opc.hayOpciones ? undefined : (tallaMedida.trim() || undefined), notaPersonalizacion.trim() || undefined, opc.hayOpciones ? opc.eleccion : undefined);
             setExitoso(true);
             setTallaMedida('');
             setNotaPersonalizacion('');
@@ -404,7 +409,11 @@ const ProductoDetallePublicScreen: React.FC = () => {
                             </span>
                         </div>
 
-                        {producto.stock_actual > 0 && producto.permite_personalizacion && (
+                        {producto.stock_actual > 0 && (
+                            <SelectorOpciones productoId={producto.id} onChange={setOpc} mostrarErrores={intentoOpc} />
+                        )}
+
+                        {producto.stock_actual > 0 && producto.permite_personalizacion && !opc.hayOpciones && (
                             <div className="pdp-personalizacion-form">
                                 <p className="pdp-personalizacion-titulo">Personaliza tu pieza</p>
                                 {!!producto.precio_personalizacion && (
@@ -454,7 +463,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
                                     <div className="pdp-barra-compra">
                                     <div className="pdp-barra-precio">
                                         <span>{cantidad > 1 ? `Total · ${cantidad} piezas` : 'Precio'}</span>
-                                        <strong>${(precioFinal * cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small>MXN</small></strong>
+                                        <strong>${((precioFinal + opc.costo) * cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small>MXN</small></strong>
                                     </div>
                                     <button
                                         className={`pdp-btn-accion pdp-btn-carrito ${exitoso ? 'success' : ''}`}
@@ -462,7 +471,7 @@ const ProductoDetallePublicScreen: React.FC = () => {
                                         disabled={agregando}
                                     >
                                         <AiOutlineShoppingCart size={20} />
-                                        {agregando ? 'Agregando...' : exitoso ? 'Agregado' : 'Agregar'}
+                                        {agregando ? 'Agregando...' : exitoso ? 'Agregado' : (intentoOpc && opc.falta) ? opc.falta : 'Agregar'}
                                         {!logueado && <AiOutlineLock size={14} className="pdp-lock-icon" />}
                                     </button>
                                     </div>

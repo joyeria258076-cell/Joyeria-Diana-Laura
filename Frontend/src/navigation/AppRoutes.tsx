@@ -113,6 +113,7 @@ const AdminSegmentosScreen = lazy(() => import("../screens/admin/AdminSegmentosS
 const AdminLegalScreen = lazy(() => import("../screens/admin/AdminLegalScreen"));
 const AdminPersonalizacionVisualScreen = lazy(() => import("../screens/admin/AdminPersonalizacionVisualScreen"));
 const AdminTematicasScreen = lazy(() => import("../screens/admin/AdminTematicasScreen"));
+const AdminOpcionesPersonalizacionScreen = lazy(() => import("../screens/admin/AdminOpcionesPersonalizacionScreen"));
 
 const ClientePedidosScreen = lazy(() => import("../screens/cliente/ClientePedidosScreen"));
 const CarritoScreen = lazy(() => import("../screens/cliente/CarritoScreen"));
@@ -302,6 +303,7 @@ export default function AppRoutes() {
             <Route path="/admin-legal"                   element={<AdminLegalScreen />} />
             <Route path="/admin/personalizacion-visual"  element={<AdminPersonalizacionVisualScreen />} />
             <Route path="/admin/tematicas"               element={<AdminTematicasScreen />} />
+            <Route path="/admin/opciones-personalizacion" element={<AdminOpcionesPersonalizacionScreen />} />
             <Route path="/admin/producto/:id"            element={<AdminProductoDetalleScreen />} />
             <Route path="/admin/editar-producto/:id"     element={<AdminEditarProductoScreen />} />
           </Route>

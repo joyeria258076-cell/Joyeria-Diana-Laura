@@ -1,0 +1,32 @@
+/* SelectorOpciones.css — opciones de personalización en píldoras (boceto P7) */
+.sop { display: flex; flex-direction: column; gap: 14px; font-family: var(--font-body); }
+.sop-grupo { padding: 2px 0; border-radius: 16px; transition: box-shadow 0.2s ease; }
+.sop-grupo--falta { padding: 10px 12px; box-shadow: 0 0 0 1.5px var(--color-error); background: color-mix(in srgb, var(--color-error) 6%, transparent); }
+.sop-cabeza { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.sop-nombre { font-size: 13px; font-weight: 700; color: var(--color-text); }
+.sop-nombre b { color: var(--color-error); }
+.sop-extra { padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; background: color-mix(in srgb, var(--color-warning) 16%, transparent); color: var(--color-warning); }
+.sop-opcional { margin-left: auto; font-size: 11.5px; color: var(--color-text-muted); }
+.sop-opciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.sop-opcion {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  min-height: 44px; padding: 6px 16px; border-radius: 999px; cursor: pointer;
+  border: 1.5px solid var(--color-border); background: var(--color-surface-2); color: var(--color-text);
+  font-family: var(--font-body); font-size: 14px; font-weight: 600; line-height: 1.15;
+  transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.sop-opcion small { font-size: 10.5px; font-weight: 600; color: var(--color-text-muted); }
+.sop-opcion--corta { min-width: 48px; padding: 6px 10px; border-radius: 50%; }
+.sop-opcion:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--color-primary) 55%, transparent); }
+.sop-opcion.activa {
+  background: var(--gradient-primary); color: var(--color-on-primary); border-color: transparent;
+  box-shadow: var(--shadow-primary), 0 0 0 4px color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+.sop-opcion.activa small { color: inherit; opacity: 0.85; }
+.sop-texto {
+  width: 100%; box-sizing: border-box; margin-top: 10px; min-height: 48px; padding: 0 16px; border-radius: 16px;
+  border: 1.5px solid var(--color-border); background: var(--color-surface-2); color: var(--color-text);
+  font-family: var(--font-body); font-size: 14.5px;
+}
+.sop-texto:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
+.sop--compacto .sop-opcion { min-height: 40px; font-size: 13.5px; }

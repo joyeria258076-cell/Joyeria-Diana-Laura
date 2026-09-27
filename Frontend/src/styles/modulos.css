@@ -143,3 +143,11 @@ body .content-area :is([class*="-btn-cancel"], .btn-cancel, .btn-secondary, [cla
   border-radius: 16px !important; text-transform: none !important; letter-spacing: 0 !important; font-family: var(--font-body) !important; font-weight: 600 !important;
 }
 body .content-area :is([class*="-btn-danger"], [class*="-btn-delete"], .btn-delete, .btn-remove, [class*="-btn-rechazar"]) { border-radius: 14px !important; text-transform: none !important; letter-spacing: 0 !important; }
+
+/* Opciones de personalización elegidas (carrito y detalle del pedido) */
+body :is(.carrito-item-opciones, .gp-modal-item-sub--opciones, .cp-modal-item-sub--opciones) {
+  display: inline-block; margin-top: 4px !important; padding: 4px 10px; border-radius: 12px;
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent); color: var(--color-text) !important; font-weight: 600 !important;
+}
+.pd-link-unico { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 8px; padding: 0; border: 0; background: none; cursor: pointer; font-family: var(--font-body); font-size: 13.5px; font-weight: 600; color: var(--color-primary); text-align: left; }
+.pd-link-unico:hover { text-decoration: underline; }

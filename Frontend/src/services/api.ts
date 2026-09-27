@@ -1142,8 +1142,8 @@ export const carritoAPI = {
   getCount: async () => {
     return enhancedApi.get('/carrito/count');
   },
-  agregar: async (producto_id: number, cantidad: number, talla_medida?: string, nota?: string) => {
-    return enhancedApi.post('/carrito', { producto_id, cantidad, talla_medida, nota });
+  agregar: async (producto_id: number, cantidad: number, talla_medida?: string, nota?: string, opciones?: EleccionOpcion[]) => {
+    return enhancedApi.post('/carrito', { producto_id, cantidad, talla_medida, nota, opciones });
   },
   agregarPersonalizado: async (producto_id: number, solicitud_personalizacion_id: number) => {
     return enhancedApi.post('/carrito', { producto_id, cantidad: 1, solicitud_personalizacion_id });
@@ -1612,6 +1612,24 @@ export const zonaEntregaAPI = {
   eliminar: async (id: number) => {
     return enhancedApi.delete(`/zonas-entrega/${id}`);
   },
+};
+
+// ==========================================
+// ✎ OPCIONES DE PERSONALIZACIÓN API
+// ==========================================
+export interface OpcionPers { id?: number; etiqueta: string; costo_extra: number; pide_texto: boolean; texto_ayuda?: string | null; activo?: boolean; }
+export interface GrupoPers {
+  id: number; nombre: string; requerido: boolean; origen?: 'categoria' | 'producto'; opciones: OpcionPers[];
+  categoria_id?: number | null; producto_id?: number | null; categoria_nombre?: string | null; producto_nombre?: string | null; activo?: boolean;
+}
+export interface EleccionOpcion { grupo_id: number; opcion_id: number; texto?: string; }
+
+export const opcionesPersonalizacionAPI = {
+  deProducto: (productoId: number) => enhancedApi.get(`/opciones-personalizacion/producto/${productoId}`, true),
+  listar: () => enhancedApi.get('/opciones-personalizacion'),
+  crear: (data: Partial<GrupoPers>) => enhancedApi.post('/opciones-personalizacion', data),
+  actualizar: (id: number, data: Partial<GrupoPers>) => enhancedApi.put(`/opciones-personalizacion/${id}`, data),
+  eliminar: (id: number) => enhancedApi.delete(`/opciones-personalizacion/${id}`),
 };
 
 // ==========================================

@@ -1,7 +1,7 @@
 // Ruta: Frontend/src/contexts/CartContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { carritoAPI } from '../services/api';
+import { carritoAPI, type EleccionOpcion } from '../services/api';
 
 // ── Interfaces ────────────────────────────────────────────────
 export interface CartItem {
@@ -22,7 +22,21 @@ export interface CartItem {
     precio_personalizacion?: number;
     tiene_medidas:           boolean;
     categoria_nombre:        string;
+    solicitud_personalizacion_id?: number | null;
+    personalizacion_detalle?: string | null;
+    opciones?:               { grupo: string; opcion: string; texto: string | null; costo: number }[] | null;
+    costo_opciones?:         number | string;
 }
+
+/** Cargo extra por pieza: igual que lo cobra el servidor (solicitud aprobada + opciones elegidas). */
+export const cargoPersonalizacion = (i: Partial<CartItem>) =>
+    (i.solicitud_personalizacion_id ? Number(i.precio_personalizacion || 0) : 0) + Number(i.costo_opciones || 0);
+
+/** "Talla: 7 · Grabado: Nombre "Ana"" */
+export const resumenOpciones = (i: Partial<CartItem>) =>
+    Array.isArray(i.opciones) && i.opciones.length
+        ? i.opciones.map(o => `${o.grupo}: ${o.opcion}${o.texto ? ` "${o.texto}"` : ''}`).join(' · ')
+        : '';
 
 interface CartContextType {
     items:              CartItem[];
@@ -30,7 +44,7 @@ interface CartContextType {
     total:              number;
     loading:            boolean;
     promoNoAplica:      {nombre:string;minimo:number}|null;
-    agregarAlCarrito:   (producto_id: number, cantidad: number, talla_medida?: string, nota?: string) => Promise<void>;
+    agregarAlCarrito:   (producto_id: number, cantidad: number, talla_medida?: string, nota?: string, opciones?: EleccionOpcion[]) => Promise<void>;
     actualizarCantidad: (id: number, cantidad: number) => Promise<void>;
     eliminarItem:       (id: number) => Promise<void>;
     vaciarCarrito:      () => Promise<void>;
@@ -57,7 +71,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCount(cartItems.reduce((s, i) => s + i.cantidad, 0));
         setTotal(cartItems.reduce((s, i) => {
             const precio = Number.parseFloat(String(i.precio_promocion ?? i.precio_oferta ?? i.precio_venta));
-            const cargo = (i.permite_personalizacion && (i.talla_medida || i.nota)) ? Number(i.precio_personalizacion || 0) : 0;
+            const cargo = cargoPersonalizacion(i);
             return s + (precio + cargo) * i.cantidad;
         }, 0));
     };
@@ -80,9 +94,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         else { setItems([]); setCount(0); setTotal(0); }
     }, [user?.dbId]);
 
-    const agregarAlCarrito = async (producto_id: number, cantidad: number, talla_medida?: string, nota?: string) => {
+    const agregarAlCarrito = async (producto_id: number, cantidad: number, talla_medida?: string, nota?: string, opciones?: EleccionOpcion[]) => {
         if (!user?.dbId) throw new Error('Debes iniciar sesión');
-        const data = await carritoAPI.agregar(producto_id, cantidad, talla_medida, nota);
+        const data = await carritoAPI.agregar(producto_id, cantidad, talla_medida, nota, opciones);
         if (!data.success) throw new Error(data.message);
         await recargar();
     };

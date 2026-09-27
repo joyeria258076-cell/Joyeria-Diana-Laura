@@ -5,6 +5,7 @@ import { useCart } from '../../contexts/CartContext';
 import { favoritosAPI, recomendacionAPI, type Recomendacion } from '../../services/api';
 import './DetalleProductoModal.css';
 import './DetalleModalApp.css';
+import SelectorOpciones, { type EstadoOpciones } from '../../components/SelectorOpciones';
 
 const estaLogueado = (): boolean => {
   try {
@@ -51,6 +52,8 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
   const [togglingFav, setTogglingFav]     = React.useState(false);
   const [recomendaciones, setRecomendaciones] = React.useState<Recomendacion[]>([]);
   const [descAbierta, setDescAbierta]     = React.useState(false);
+  const [opc, setOpc]                     = React.useState<EstadoOpciones>({ hayOpciones: false, eleccion: [], costo: 0, valido: true, falta: null });
+  const [intentoOpc, setIntentoOpc]       = React.useState(false);
   const navigate = useNavigate();
   const logueado = estaLogueado();
   const { agregarAlCarrito } = useCart();
@@ -93,15 +96,16 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
   const handleAgregar = async () => {
     if (!logueado) { setShowLoginAlert(true); return; }
 
-    // ✅ Validar talla si el producto la requiere
-    if (requiereTalla && !talla.trim()) {
+    if (opc.hayOpciones && !opc.valido) { setIntentoOpc(true); return; }
+    // ✅ Validar talla si el producto la requiere (solo si no tiene opciones dadas de alta)
+    if (!opc.hayOpciones && requiereTalla && !talla.trim()) {
       setTallaError('Por favor indica la talla o medida');
       return;
     }
     setTallaError('');
     setAgregando(true);
     try {
-      await agregarAlCarrito(producto.id, cantidad, talla.trim() || undefined, nota.trim() || undefined);
+      await agregarAlCarrito(producto.id, cantidad, opc.hayOpciones ? undefined : (talla.trim() || undefined), opc.hayOpciones ? undefined : (nota.trim() || undefined), opc.hayOpciones ? opc.eleccion : undefined);
       setExitoso(true);
       setCantidad(1);
       setTalla('');
@@ -239,7 +243,8 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
 
             {producto.stock_actual > 0 && (
               <>
-                {requiereTalla && (
+                <SelectorOpciones productoId={producto.id} onChange={setOpc} mostrarErrores={intentoOpc} compacto />
+                {!opc.hayOpciones && requiereTalla && (
                   <div className="detalle-talla">
                     <label>Talla / medida <span className="detalle-requerido">*</span></label>
                     <input
@@ -253,7 +258,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
                   </div>
                 )}
 
-                {producto.permite_personalizacion && (
+                {!opc.hayOpciones && producto.permite_personalizacion && (
                   <div className="detalle-talla">
                     <label>Notas de personalización (opcional)</label>
                     <input
@@ -299,7 +304,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
         <div className="dm-barra">
           <div className="dm-barra-precio">
             <span>{cantidad > 1 ? `Total · ${cantidad} piezas` : 'Precio'}</span>
-            <strong>${(Number(precioFinal) * cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small>MXN</small></strong>
+            <strong>${((Number(precioFinal) + opc.costo) * cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small>MXN</small></strong>
           </div>
           <button
             className={`dm-fav${esFavorito ? ' activo' : ''}`}
@@ -317,7 +322,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
               disabled={agregando || exitoso}
             >
               {exitoso ? <AiOutlineCheckCircle size={18} /> : <AiOutlineShoppingCart size={18} />}
-              {agregando ? 'Agregando…' : exitoso ? 'Agregado' : 'Agregar'}
+              {agregando ? 'Agregando…' : exitoso ? 'Agregado' : (intentoOpc && opc.falta) ? opc.falta : 'Agregar'}
               {!logueado && <AiOutlineLock size={13} className="dm-candado" />}
             </button>
           ) : (

@@ -8,7 +8,7 @@ import {
     AiOutlineShop, AiOutlineCar, AiOutlineCreditCard, AiOutlineBank, AiOutlineDollarCircle,
     AiOutlineClose, AiOutlineCheck, AiOutlineCheckCircle, AiOutlineInfoCircle, AiOutlineCalendar,
 } from 'react-icons/ai';
-import { useCart } from '../../contexts/CartContext';
+import { useCart, cargoPersonalizacion as cargoDe, resumenOpciones } from '../../contexts/CartContext';
 import { carritoAPI, apartadoAPI, recomendacionAPI, type Recomendacion } from '../../services/api';
 import './CarritoScreen.css';
 import './CarritoApp.css';
@@ -370,8 +370,7 @@ const CarritoScreen: React.FC = () => {
     // ── Hoja de compra: estado derivado ───────────────────────
     const precioItem = (it: any) => {
         const base = Number.parseFloat(String(it.precio_promocion ?? it.precio_oferta ?? it.precio_venta));
-        const personalizado = !!(it.permite_personalizacion && (it.talla_medida || it.nota));
-        return base + (personalizado ? Number(it.precio_personalizacion || 0) : 0);
+        return base + cargoDe(it);
     };
     const ahorroPromo = Math.max(0, items.reduce((s, i) => s + Number.parseFloat(String(i.precio_venta)) * i.cantidad, 0) - total);
     const metodoSel = metodosPago.find(m => m.id === metodoPagoId) || null;
@@ -494,8 +493,9 @@ const CarritoScreen: React.FC = () => {
                     ) : (
                         items.map(item => {
                             const precioBase   = Number.parseFloat(String(item.precio_promocion ?? item.precio_oferta ?? item.precio_venta));
-                            const esPersonalizado = !!(item.permite_personalizacion && (item.talla_medida || item.nota));
-                            const cargoPersonalizacion = esPersonalizado ? Number(item.precio_personalizacion || 0) : 0;
+                            const opcionesTxt = resumenOpciones(item);
+                            const esPersonalizado = !!(item.solicitud_personalizacion_id || opcionesTxt || item.talla_medida || item.nota);
+                            const cargoPersonalizacion = cargoDe(item);
                             const precio       = precioBase + cargoPersonalizacion;
                             const subtotal     = precio * item.cantidad;
                             const hayDescuento = precioBase < Number.parseFloat(String(item.precio_venta));
@@ -513,6 +513,7 @@ const CarritoScreen: React.FC = () => {
                                             {item.producto_nombre}
                                             {esPersonalizado && <span className="carrito-badge-personalizado">Personalizado</span>}
                                         </h3>
+                                        {opcionesTxt && <p className="carrito-item-detalle carrito-item-opciones">{opcionesTxt}</p>}
                                         {item.talla_medida && <p className="carrito-item-detalle">Talla/Medida: <strong>{item.talla_medida}</strong></p>}
                                         {item.nota && <p className="carrito-item-detalle carrito-item-nota">{item.nota}</p>}
                                         {cargoPersonalizacion > 0 && (
@@ -660,7 +661,7 @@ const CarritoScreen: React.FC = () => {
                                     <ul className="hc-lista">
                                         <li><AiOutlineCheckCircle size={16} /> Un trabajador revisa tu pedido y te avisa por correo cuando lo confirme.</li>
                                         <li><AiOutlineCheckCircle size={16} /> No se cobra nada hasta que confirmemos que tenemos tus piezas.</li>
-                                        {items.some(i => i.talla_medida || i.nota) && <li><AiOutlineCheckCircle size={16} /> Las especificaciones de tus piezas personalizadas ya van incluidas.</li>}
+                                        {items.some(i => i.talla_medida || i.nota || resumenOpciones(i)) && <li><AiOutlineCheckCircle size={16} /> Las opciones de tus piezas personalizadas ya van incluidas.</li>}
                                     </ul>
                                 </section>
                             </div>
@@ -672,7 +673,7 @@ const CarritoScreen: React.FC = () => {
                                     {items.map(it => (
                                         <li key={it.id}>
                                             <img src={it.producto_imagen || PLACEHOLDER} alt="" onError={e => { (e.target as HTMLImageElement).src = PLACEHOLDER; }} />
-                                            <span className="hc-pieza-nombre">{it.producto_nombre}<small>× {it.cantidad}{it.talla_medida ? ` · Talla ${it.talla_medida}` : ''}</small></span>
+                                            <span className="hc-pieza-nombre">{it.producto_nombre}<small>× {it.cantidad}{resumenOpciones(it) ? ` · ${resumenOpciones(it)}` : it.talla_medida ? ` · Talla ${it.talla_medida}` : ''}</small></span>
                                             <span className="hc-pieza-precio">{dinero(precioItem(it) * it.cantidad)}</span>
                                         </li>
                                     ))}

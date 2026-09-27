@@ -8,6 +8,7 @@ import { useCart } from '../../contexts/CartContext';
 import './ProductoDetalleScreen.css';
 import './DetalleApp.css';
 import EsqueletoDetalle from '../../components/EsqueletoDetalle';
+import SelectorOpciones, { type EstadoOpciones } from '../../components/SelectorOpciones';
 import '../../styles/DetalleBoceto.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/ProductosRelacionados.css';
@@ -190,11 +191,15 @@ const ProductoDetalleScreen: React.FC = () => {
         cargar();
     }, [id]);
 
+    const [opc, setOpc] = useState<EstadoOpciones>({ hayOpciones: false, eleccion: [], costo: 0, valido: true, falta: null });
+    const [intentoOpc, setIntentoOpc] = useState(false);
+
     const handleAgregar = async () => {
         if (!producto) return;
+        if (opc.hayOpciones && !opc.valido) { setIntentoOpc(true); return; }
         setAgregando(true);
         try {
-            await agregarAlCarrito(producto.id, cantidad);
+            await agregarAlCarrito(producto.id, cantidad, undefined, undefined, opc.hayOpciones ? opc.eleccion : undefined);
             setExitoso(true);
             setTimeout(() => setExitoso(false), 2500);
         } catch (err: any) {
@@ -376,7 +381,17 @@ const ProductoDetalleScreen: React.FC = () => {
                         </span>
                     </div>
 
-                    {producto.stock_actual > 0 && producto.permite_personalizacion && (
+                    {producto.stock_actual > 0 && (
+                        <SelectorOpciones productoId={producto.id} onChange={setOpc} mostrarErrores={intentoOpc} />
+                    )}
+
+                    {producto.stock_actual > 0 && producto.permite_personalizacion && opc.hayOpciones && (
+                        <button type="button" className="pd-link-unico" onClick={() => navigate(`/producto/${producto.id}/personalizar`)}>
+                            <AiOutlineEdit size={15} /> ¿Quieres algo único? Solicita una personalización con tu idea
+                        </button>
+                    )}
+
+                    {producto.stock_actual > 0 && producto.permite_personalizacion && !opc.hayOpciones && (
                         <div className="pd-personalizacion-form">
                             <p className="pd-personalizacion-titulo">Esta pieza requiere personalización</p>
                             {!!producto.precio_personalizacion && (
@@ -398,7 +413,7 @@ const ProductoDetalleScreen: React.FC = () => {
                         </div>
                     )}
 
-                    {producto.stock_actual > 0 && !producto.permite_personalizacion && (
+                    {producto.stock_actual > 0 && (!producto.permite_personalizacion || opc.hayOpciones) && (
                         <div className="pd-compra-section">
                             <div className="pd-cantidad-wrap">
                                 <label className="pd-cantidad-label">Cantidad</label>
@@ -415,7 +430,7 @@ const ProductoDetalleScreen: React.FC = () => {
                             <div className="pd-barra-compra">
                                 <div className="pd-barra-precio">
                                     <span>{cantidad > 1 ? `Total · ${cantidad} piezas` : 'Precio'}</span>
-                                    <strong>${(precioFinal * cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small>MXN</small></strong>
+                                    <strong>${((precioFinal + opc.costo) * cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <small>MXN</small></strong>
                                 </div>
                                 <button
                                     className={`pd-btn-carrito ${exitoso ? 'success' : ''}`}
@@ -423,7 +438,7 @@ const ProductoDetalleScreen: React.FC = () => {
                                     disabled={agregando}
                                 >
                                     <AiOutlineShoppingCart size={20} />
-                                    {agregando ? 'Agregando...' : exitoso ? 'Agregado' : 'Agregar'}
+                                    {agregando ? 'Agregando...' : exitoso ? 'Agregado' : (intentoOpc && opc.falta) ? opc.falta : 'Agregar'}
                                 </button>
                             </div>
                         </div>
