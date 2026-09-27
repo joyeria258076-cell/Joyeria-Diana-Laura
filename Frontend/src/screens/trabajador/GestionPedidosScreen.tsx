@@ -1,5 +1,6 @@
 // Ruta: Frontend/src/screens/trabajador/GestionPedidosScreen.tsx
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { carritoAPI } from '../../services/api';
 import Loader from '../../components/Loader';
 import { useAuth } from '../../contexts/AuthContext';
@@ -13,6 +14,7 @@ import {
 } from 'react-icons/ai';
 import './GestionPedidosScreen.css';
 import './OperacionApp.css';
+import './DetallePedidoApp.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/GestionSitio.css';
 
@@ -128,6 +130,20 @@ const GUIA_ESTADO: Record<string, string> = {
     entregado:      '✅ Pedido completado. No se requieren más acciones.',
     cancelado:      '🚫 Pedido cancelado. El stock fue restaurado automáticamente.',
     expirado:       '⏳ Pedido expirado automáticamente. No se requieren acciones.',
+};
+
+/** "¿Qué sigue?" como pasos numerados (el texto viene separado por " · "). */
+const GuiaSiguiente: React.FC<{ texto: string }> = ({ texto }) => {
+    const pasos = texto.split(' · ').map(t => t.replace(/^\S*\uFE0F?\u20E3\s*/u, '').replace(/^[✅🚫⏳]\s*/u, '').trim());
+    const final = pasos.length === 1;
+    return (
+        <div className={`gp-siguiente${final ? ' gp-siguiente--final' : ''}`}>
+            <span className="gp-siguiente-titulo">{final ? 'Estado final' : '¿Qué sigue?'}</span>
+            {final ? <p>{pasos[0]}</p> : (
+                <ol>{pasos.map((t, i) => <li key={i}><span>{i + 1}</span>{t}</li>)}</ol>
+            )}
+        </div>
+    );
 };
 
 const getEstadosDisponibles = (estados: EstadoConfig[], metodoCodigo?: string, esApartado?: boolean, tipoEntrega?: string): EstadoConfig[] => {
@@ -851,8 +867,8 @@ const GestionPedidosScreen: React.FC = () => {
             )}
 
             {modalTipo && pedidoSel && (
-                <div className="gp-modal-overlay" onClick={cerrar}>
-                    <div className="gp-modal" onClick={e => e.stopPropagation()}>
+                createPortal(<div className="gp-modal-overlay" onClick={cerrar}>
+                    <div className={`gp-modal gp-modal--${modalTipo}`} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
                         <div className="gp-modal-header">
                             <div>
                                 <h3>
@@ -863,11 +879,10 @@ const GestionPedidosScreen: React.FC = () => {
                                     {modalTipo === 'estado'   && <><AiOutlineSync size={18} /> Cambiar estado</>}
                                 </h3>
                                 <p className="gp-modal-sub">
-                                    {pedidoSel.folio} · {formatFecha(pedidoSel.fecha_creacion)}
+                                    <strong className="gp-modal-folio">{pedidoSel.folio}</strong>
+                                    <span className="gp-modal-fecha">{formatFecha(pedidoSel.fecha_creacion)}</span>
                                     {pedidoSel.es_apartado && (
-                                        <span style={{ marginLeft: 8, fontSize: '0.75rem', background: '#a78bfa22', color: '#a78bfa', borderRadius: 4, padding: '1px 8px', fontWeight: 600 }}>
-                                            🔖 Originado de apartado {pedidoSel.apartado_folio}
-                                        </span>
+                                        <span className="gp-modal-apartado">Viene del apartado {pedidoSel.apartado_folio}</span>
                                     )}
                                 </p>
                             </div>
@@ -882,12 +897,7 @@ const GestionPedidosScreen: React.FC = () => {
                                     {modalTipo === 'detalle' && (
                                         <>
                                             <StepperPedido estado={pedidoSel.estado} estado_pago={pedidoSel.estado_pago || 'pendiente'} tipoEntrega={pedidoSel.tipo_entrega} />
-                                            {GUIA_ESTADO[pedidoSel.estado] && (
-                                                <div className="gp-guia-pasos">
-                                                    <span className="gp-guia-titulo">📌 ¿Qué sigue?</span>
-                                                    <p>{GUIA_ESTADO[pedidoSel.estado]}</p>
-                                                </div>
-                                            )}
+                                            {GUIA_ESTADO[pedidoSel.estado] && <GuiaSiguiente texto={GUIA_ESTADO[pedidoSel.estado]} />}
                                             <div className="gp-modal-estado">
                                                 {getBadge(pedidoSel.estado)}
                                                 {getBadgePago(pedidoSel)}
@@ -897,12 +907,6 @@ const GestionPedidosScreen: React.FC = () => {
                                                     </span>
                                                 )}
                                             </div>
-                                            {(pedidoSel.es_apartado || pedidoSel.metodo_pago_nombre) && (
-                                                <div className="gp-modal-seccion">
-                                                    <h4><AiOutlineCreditCard size={14} /> Método de pago</h4>
-                                                    <p>{pedidoSel.es_apartado ? '🔖 Apartado (varios pagos)' : pedidoSel.metodo_pago_nombre}</p>
-                                                </div>
-                                            )}
                                             {pedidoSel.metodo_pago_codigo === 'transferencia' && (
                                                 <div className="gp-modal-seccion">
                                                     <h4><AiOutlinePaperClip size={14} /> Comprobante de transferencia</h4>
@@ -911,10 +915,10 @@ const GestionPedidosScreen: React.FC = () => {
                                                             <img src={(pedidoSel as any).comprobante_transferencia_url}
                                                                 alt="Comprobante" className="gp-comprobante-img"
                                                                 onClick={() => window.open((pedidoSel as any).comprobante_transferencia_url, '_blank')} />
-                                                            <p className="gp-comprobante-hint">🔍 Clic para ver en tamaño completo</p>
+                                                            <p className="gp-comprobante-hint">Clic para verlo en tamaño completo</p>
                                                         </div>
                                                     ) : (
-                                                        <p className="gp-comprobante-pendiente">⏳ El cliente aún no ha subido el comprobante.</p>
+                                                        <p className="gp-comprobante-pendiente">El cliente aún no ha subido el comprobante.</p>
                                                     )}
                                                 </div>
                                             )}
@@ -924,15 +928,13 @@ const GestionPedidosScreen: React.FC = () => {
                                                 <div className="gp-confirmar-pago">
                                                     <p>
                                                         {pedidoSel.metodo_pago_codigo === 'efectivo'
-                                                            ? '💵 Confirma que recibiste el pago en efectivo del cliente.'
-                                                            : '🏦 Revisa el comprobante y confirma que la transferencia fue recibida.'}
+                                                            ? 'Confirma que recibiste el pago en efectivo del cliente.'
+                                                            : 'Revisa el comprobante y confirma que la transferencia fue recibida.'}
                                                     </p>
                                                     {/* ✅ Fecha estimada opcional al confirmar pago */}
                                                     {!pedidoSel.fecha_estimada_entrega && (
                                                         <div className="gp-form-grupo" style={{marginTop:'10px'}}>
-                                                            <label style={{fontSize:'0.78rem', color:'#8a7a82'}}>
-                                                                📅 Fecha estimada de entrega (opcional — si no indicas una, se calculará automáticamente)
-                                                            </label>
+                                                            <label>Fecha estimada de entrega (opcional; si no la indicas se calcula sola)</label>
                                                             <input className="gp-input" type="date" value={fechaEstModal}
                                                                 onChange={e => setFechaEstModal(e.target.value)} />
                                                         </div>
@@ -940,43 +942,61 @@ const GestionPedidosScreen: React.FC = () => {
                                                     {msg && <div className={`gp-msg ${msg.startsWith('✅') ? 'ok' : 'error'}`}>{msg}</div>}
                                                     <button className="gp-btn-confirmar-pago" onClick={confirmarPagoEfectivo}
                                                         disabled={cargando || msg.startsWith('✅')}>
-                                                        {cargando ? '⏳ Confirmando...' : msg.startsWith('✅') ? '✅ Pago confirmado' : '✅ Confirmar pago recibido'}
+                                                        {cargando ? 'Confirmando…' : msg.startsWith('✅') ? 'Pago confirmado' : 'Confirmar pago recibido'}
                                                     </button>
                                                 </div>
                                             )}
-                                            <div className="gp-modal-seccion">
-                                                <h4><AiOutlineUser size={14} /> Cliente</h4>
-                                                <p>{pedidoSel.cliente_nombre_completo} — {pedidoSel.cliente_email}</p>
+                                            <div className="gp-datos-grid">
+                                                <div className="gp-dato-card gp-dato-card--cliente">
+                                                    <span className="gp-dato-avatar">{(pedidoSel.cliente_nombre_completo || '?').charAt(0).toUpperCase()}</span>
+                                                    <div>
+                                                        <span className="gp-dato-card-label">Cliente</span>
+                                                        <strong>{pedidoSel.cliente_nombre_completo}</strong>
+                                                        <small>{pedidoSel.cliente_email}</small>
+                                                    </div>
+                                                </div>
+                                                <div className="gp-dato-card">
+                                                    <span className="gp-dato-icono">{pedidoSel.tipo_entrega === 'domicilio' ? <AiOutlineEnvironment size={18} /> : <AiOutlineShop size={18} />}</span>
+                                                    <div>
+                                                        <span className="gp-dato-card-label">{pedidoSel.tipo_entrega === 'domicilio' ? 'Envío a domicilio' : 'Entrega'}</span>
+                                                        {pedidoSel.tipo_entrega === 'domicilio' && pedidoSel.dir_calle ? (<>
+                                                            <strong>{pedidoSel.dir_calle} {pedidoSel.dir_numero}{pedidoSel.dir_numero_interior ? ` Int. ${pedidoSel.dir_numero_interior}` : ''}</strong>
+                                                            <small>{pedidoSel.dir_colonia}, {pedidoSel.dir_ciudad}, {pedidoSel.dir_estado}, CP {pedidoSel.dir_codigo_postal}</small>
+                                                            {pedidoSel.dir_telefono_contacto && <small>Tel. {pedidoSel.dir_telefono_contacto}</small>}
+                                                            {pedidoSel.dir_referencias && <small>Referencias: {pedidoSel.dir_referencias}</small>}
+                                                        </>) : <strong>Recoger en tienda</strong>}
+                                                    </div>
+                                                </div>
+                                                {(pedidoSel.es_apartado || pedidoSel.metodo_pago_nombre) && (
+                                                    <div className="gp-dato-card">
+                                                        <span className="gp-dato-icono"><AiOutlineCreditCard size={18} /></span>
+                                                        <div>
+                                                            <span className="gp-dato-card-label">Método de pago</span>
+                                                            <strong>{pedidoSel.es_apartado ? 'Apartado (varios pagos)' : pedidoSel.metodo_pago_nombre}</strong>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {pedidoSel.fecha_estimada_entrega && (
+                                                    <div className="gp-dato-card">
+                                                        <span className="gp-dato-icono"><AiOutlineCalendar size={18} /></span>
+                                                        <div>
+                                                            <span className="gp-dato-card-label">Entrega estimada</span>
+                                                            <strong>{formatFechaSolo(pedidoSel.fecha_estimada_entrega)}</strong>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {pedidoSel.notas_cliente && (
+                                                    <div className="gp-dato-card gp-dato-card--ancha">
+                                                        <span className="gp-dato-icono"><AiOutlineFileText size={18} /></span>
+                                                        <div>
+                                                            <span className="gp-dato-card-label">Notas del cliente</span>
+                                                            <small className="gp-dato-nota">{pedidoSel.notas_cliente}</small>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-                                            {pedidoSel.tipo_entrega === 'domicilio' && pedidoSel.dir_calle ? (
-                                                <div className="gp-modal-seccion">
-                                                    <h4><AiOutlineEnvironment size={14} /> Dirección de envío</h4>
-                                                    <p>
-                                                        {pedidoSel.dir_calle} {pedidoSel.dir_numero}{pedidoSel.dir_numero_interior ? ` Int. ${pedidoSel.dir_numero_interior}` : ''}, {pedidoSel.dir_colonia}, {pedidoSel.dir_ciudad}, {pedidoSel.dir_estado}, CP {pedidoSel.dir_codigo_postal}
-                                                        {pedidoSel.dir_telefono_contacto && <><br/>📱 {pedidoSel.dir_telefono_contacto}</>}
-                                                        {pedidoSel.dir_referencias && <><br/>📌 {pedidoSel.dir_referencias}</>}
-                                                    </p>
-                                                </div>
-                                            ) : pedidoSel.tipo_entrega === 'tienda' ? (
-                                                <div className="gp-modal-seccion">
-                                                    <h4><AiOutlineEnvironment size={14} /> Tipo de entrega</h4>
-                                                    <p><AiOutlineShop size={13} /> Recoger en tienda</p>
-                                                </div>
-                                            ) : null}
-                                            {pedidoSel.notas_cliente && (
-                                                <div className="gp-modal-seccion">
-                                                    <h4><AiOutlineFileText size={14} /> Notas del cliente</h4>
-                                                    <p>{pedidoSel.notas_cliente}</p>
-                                                </div>
-                                            )}
-                                            {pedidoSel.fecha_estimada_entrega && (
-                                                <div className="gp-modal-seccion">
-                                                    <h4><AiOutlineCalendar size={14} /> Fecha estimada de entrega</h4>
-                                                    <p>{formatFechaSolo(pedidoSel.fecha_estimada_entrega)}</p>
-                                                </div>
-                                            )}
                                             <div className="gp-modal-seccion">
-                                                <h4><AiOutlineShoppingCart size={14} /> Productos</h4>
+                                                <h4><AiOutlineShoppingCart size={14} /> Productos · {(pedidoSel.items || []).length}</h4>
                                                 <div className="gp-modal-items">
                                                     {(pedidoSel.items || []).map((item, i) => (
                                                         <div key={i} className="gp-modal-item">
@@ -1004,7 +1024,7 @@ const GestionPedidosScreen: React.FC = () => {
                                                 <div className="gp-total-fila"><span>Subtotal</span><span>${parseFloat(String(pedidoSel.subtotal)).toLocaleString('es-MX')}</span></div>
                                                 <div className="gp-total-fila"><span>IVA (16%)</span><span>${parseFloat(String(pedidoSel.iva)).toLocaleString('es-MX')}</span></div>
                                                 {parseFloat(String(pedidoSel.costo_envio)) > 0 && (
-                                                    <div className="gp-total-fila"><span>🚚 Envío a domicilio</span><span>+${parseFloat(String(pedidoSel.costo_envio)).toLocaleString('es-MX')}</span></div>
+                                                    <div className="gp-total-fila"><span>Envío a domicilio</span><span>+${parseFloat(String(pedidoSel.costo_envio)).toLocaleString('es-MX')}</span></div>
                                                 )}
                                                 <div className="gp-total-fila gp-total-final"><span>Total</span><span>${parseFloat(String(pedidoSel.total)).toLocaleString('es-MX')}</span></div>
                                             </div>
@@ -1022,7 +1042,7 @@ const GestionPedidosScreen: React.FC = () => {
                                                             onChange={e => setCodigoInput(e.target.value.toUpperCase())} />
                                                         <button className="gp-btn-confirmar-entrega" onClick={confirmarEntregaConCodigo}
                                                             disabled={validandoCodigo || msgCodigo.startsWith('✅')}>
-                                                            {validandoCodigo ? '⏳ Verificando...' : '✅ Confirmar entrega'}
+                                                            {validandoCodigo ? 'Verificando…' : 'Confirmar entrega'}
                                                         </button>
                                                     </div>
                                                     {msgCodigo && (
@@ -1200,7 +1220,7 @@ const GestionPedidosScreen: React.FC = () => {
                             )}
                         </div>
                     </div>
-                </div>
+                </div>, document.body)
             )}
         </div>
     );

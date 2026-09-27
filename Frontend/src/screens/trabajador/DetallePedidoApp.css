@@ -1,0 +1,140 @@
+/* DetallePedidoApp.css — Ventana "Detalle del pedido" del trabajador con el
+   estilo de la app: encabezado con folio grande, avance, "¿Qué sigue?" en
+   pasos, datos clave en tarjetas, productos con foto y acciones destacadas. */
+
+body .gp-modal-overlay {
+  position: fixed !important; inset: 0 !important; z-index: 1300 !important;
+  display: flex !important; align-items: center; justify-content: center; padding: 20px !important;
+  background: color-mix(in srgb, var(--color-bg) 72%, transparent) !important;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  font-family: var(--font-body); color: var(--color-text);
+}
+body .gp-modal {
+  width: 100% !important; max-width: 760px !important; max-height: calc(100vh - 40px) !important; max-height: calc(100dvh - 40px) !important;
+  display: flex !important; flex-direction: column; overflow: hidden !important; padding: 0 !important;
+  border-radius: 32px !important; border: 1px solid var(--glass-border) !important;
+  background: var(--color-bg) !important; box-shadow: var(--shadow-lift) !important;
+}
+body .gp-modal--estado, body .gp-modal--cancelar, body .gp-modal--editar, body .gp-modal--cliente { max-width: 560px !important; }
+
+/* Encabezado */
+body .gp-modal-header {
+  flex-shrink: 0; display: flex !important; align-items: flex-start !important; justify-content: space-between; gap: 12px;
+  padding: 22px 26px 18px !important; background: var(--color-surface) !important; border-bottom: 1px solid var(--color-border) !important;
+}
+body .gp-modal-header h3 {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 8px !important;
+  font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important;
+  letter-spacing: 1.8px !important; text-transform: uppercase !important; color: var(--color-primary) !important;
+}
+body .gp-modal-sub { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin: 0 !important; }
+.gp-modal-folio { font-size: 24px; font-weight: 700; letter-spacing: -0.6px; color: var(--color-text); }
+.gp-modal-fecha { font-size: 13.5px; color: var(--color-text-muted); }
+.gp-modal-apartado { padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: color-mix(in srgb, var(--color-accent) 18%, transparent); color: var(--color-accent); }
+body .gp-modal-close {
+  width: 42px !important; height: 42px !important; flex-shrink: 0; border: 0 !important; border-radius: 50% !important;
+  display: inline-flex !important; align-items: center; justify-content: center; font-size: 22px !important; line-height: 1;
+  background: var(--color-surface-2) !important; color: var(--color-text) !important; cursor: pointer;
+}
+
+/* Cuerpo con desplazamiento propio */
+body .gp-modal-body {
+  flex: 1; min-height: 0; overflow-y: auto !important; overscroll-behavior: contain;
+  padding: 20px 24px 26px !important; display: flex; flex-direction: column; gap: 16px;
+  max-height: none !important;
+}
+
+/* Avance */
+body .gp-modal .gp-stepper { padding: 14px 10px !important; border-radius: 24px; background: var(--color-surface); border: 1px solid var(--color-border); justify-content: center; }
+
+/* ¿Qué sigue? */
+.gp-siguiente { padding: 16px 18px; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--color-info) 35%, transparent); background: color-mix(in srgb, var(--color-info) 8%, var(--color-surface)); }
+.gp-siguiente-titulo { display: block; margin-bottom: 10px; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--color-info); }
+.gp-siguiente ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.gp-siguiente li { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 1.4; }
+.gp-siguiente li span { width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: color-mix(in srgb, var(--color-info) 20%, transparent); color: var(--color-info); }
+.gp-siguiente p { margin: 0; font-size: 14px; }
+.gp-siguiente--final { border-color: var(--color-border); background: var(--color-surface); }
+.gp-siguiente--final .gp-siguiente-titulo { color: var(--color-text-muted); }
+
+/* Etiquetas de estado */
+body .gp-modal-estado { display: flex !important; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 !important; }
+body .gp-modal-trabajador { margin-left: auto; font-size: 13px !important; color: var(--color-text-muted) !important; }
+
+/* Datos en tarjetas */
+.gp-datos-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.gp-dato-card { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border-radius: 20px; background: var(--color-surface); border: 1px solid var(--color-border); min-width: 0; }
+.gp-dato-card > div { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.gp-dato-card strong { font-size: 14.5px; font-weight: 600; color: var(--color-text); overflow-wrap: anywhere; }
+.gp-dato-card small { font-size: 12.5px; color: var(--color-text-muted); overflow-wrap: anywhere; line-height: 1.4; }
+.gp-dato-card-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--color-text-muted); }
+.gp-dato-icono, .gp-dato-avatar { width: 42px; height: 42px; flex-shrink: 0; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--color-primary) 16%, transparent); color: var(--color-primary); }
+.gp-dato-avatar { background: var(--gradient-primary); color: var(--color-on-primary); font-weight: 700; font-size: 17px; }
+.gp-dato-card--cliente, .gp-dato-card--ancha { grid-column: 1 / -1; }
+.gp-dato-nota { white-space: pre-wrap; font-size: 13.5px !important; color: var(--color-text) !important; }
+
+/* Secciones (comprobante, productos) */
+body .gp-modal-seccion { margin: 0 !important; padding: 16px 18px !important; border-radius: 22px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; }
+body .gp-modal-seccion h4 {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 12px !important;
+  font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 700 !important;
+  letter-spacing: 1.2px !important; text-transform: uppercase !important; color: var(--color-text-muted) !important;
+}
+body .gp-modal-items { display: flex; flex-direction: column; gap: 10px; }
+body .gp-modal-item { display: flex !important; align-items: center; gap: 12px; padding: 8px !important; border-radius: 18px !important; background: var(--color-surface-2) !important; border: 0 !important; }
+body .gp-modal-item img { width: 60px !important; height: 60px !important; border-radius: 14px !important; object-fit: cover; flex-shrink: 0; }
+body .gp-modal-item-info { flex: 1; min-width: 0; }
+body .gp-modal-item-nombre { margin: 0 0 2px !important; font-size: 14.5px !important; font-weight: 600 !important; color: var(--color-text) !important; }
+body .gp-modal-item-sub { margin: 0 !important; font-size: 12.5px !important; color: var(--color-text-muted) !important; }
+body .gp-modal-item-total { margin: 0 !important; font-size: 15px !important; font-weight: 700 !important; color: var(--color-text) !important; white-space: nowrap; }
+body .gp-comprobante-img { border-radius: 18px !important; max-height: 280px; object-fit: contain; cursor: zoom-in; }
+body :is(.gp-comprobante-hint, .gp-comprobante-pendiente) { font-size: 13px !important; color: var(--color-text-muted) !important; margin: 8px 0 0 !important; }
+
+/* Totales */
+body .gp-modal-totales { margin: 0 !important; padding: 16px 18px !important; border-radius: 22px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; }
+body .gp-total-fila { display: flex !important; justify-content: space-between; padding: 5px 0 !important; font-size: 14px !important; color: var(--color-text-muted) !important; border: 0 !important; }
+body .gp-total-fila span:last-child { color: var(--color-text); font-weight: 600; }
+body .gp-total-final { margin-top: 6px !important; padding-top: 10px !important; border-top: 1px dashed var(--color-border) !important; font-size: 16px !important; font-weight: 700 !important; color: var(--color-text) !important; }
+body .gp-total-final span:last-child { font-size: 22px !important; font-weight: 700 !important; letter-spacing: -0.6px; color: var(--color-primary) !important; }
+
+/* Acciones destacadas */
+body :is(.gp-confirmar-pago, .gp-confirmar-entrega) {
+  margin: 0 !important; padding: 18px !important; border-radius: 24px !important;
+  border: 1.5px solid color-mix(in srgb, var(--color-success) 45%, transparent) !important;
+  background: color-mix(in srgb, var(--color-success) 7%, var(--color-surface)) !important;
+}
+body :is(.gp-confirmar-pago, .gp-confirmar-entrega) :is(p, h4) { margin: 0 0 10px !important; font-size: 14px !important; color: var(--color-text) !important; text-transform: none !important; letter-spacing: 0 !important; }
+body .gp-confirmar-entrega h4 { display: flex; align-items: center; gap: 8px; font-weight: 700 !important; font-size: 16px !important; }
+body .gp-codigo-input-wrap { display: flex; gap: 10px; flex-wrap: wrap; }
+body .gp-codigo-input { flex: 1; min-width: 160px; min-height: 52px; border-radius: 16px !important; text-align: center; letter-spacing: 6px !important; font-size: 20px !important; font-weight: 700 !important; text-transform: uppercase; }
+body :is(.gp-btn-confirmar-pago, .gp-btn-confirmar-entrega) {
+  min-height: 52px; padding: 0 22px !important; border: 0 !important; border-radius: 16px !important; cursor: pointer;
+  background: var(--color-success) !important; color: #fff !important; font-family: var(--font-body) !important;
+  font-size: 15px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--color-success) 30%, transparent) !important;
+}
+body .gp-btn-confirmar-pago { width: 100%; margin-top: 4px; }
+body .gp-confirmar-pago .gp-form-grupo label { font-size: 12.5px !important; color: var(--color-text-muted) !important; }
+
+/* Formularios de las otras ventanas (estado, editar, cancelar) */
+body .gp-modal-form { display: flex; flex-direction: column; gap: 14px; }
+body .gp-modal-form :is(.gp-input, .gp-select, .gp-textarea) { border-radius: 16px !important; min-height: 50px; }
+body :is(.gp-aviso-codigo-entrega, .gp-aviso-pago-manual, .gp-estado-desc, .gp-cancelar-aviso) {
+  border-radius: 18px !important; border: 0 !important; border-left: 3px solid var(--color-info) !important;
+  background: color-mix(in srgb, var(--color-info) 9%, transparent) !important; color: var(--color-text) !important; font-size: 13.5px !important; padding: 12px 14px !important;
+}
+body .gp-cancelar-aviso { border-left-color: var(--color-error) !important; background: color-mix(in srgb, var(--color-error) 9%, transparent) !important; }
+body .gp-estado-actual { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+
+@media (max-width: 640px) {
+  body .gp-modal-overlay { padding: 0 !important; align-items: flex-end !important; }
+  body .gp-modal { max-height: 94vh !important; max-height: 94dvh !important; border-radius: 28px 28px 0 0 !important; }
+  body .gp-modal-header { padding: 18px !important; }
+  body .gp-modal-body { padding: 16px !important; }
+  .gp-datos-grid { grid-template-columns: 1fr; }
+  .gp-modal-folio { font-size: 20px; }
+  body .gp-modal .gp-stepper { overflow-x: auto; justify-content: flex-start; }
+}
+
+/* Los bloques no se encogen: la ventana se desplaza en su lugar */
+body .gp-modal-body > * { flex-shrink: 0; }
