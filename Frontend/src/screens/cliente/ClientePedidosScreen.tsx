@@ -428,6 +428,7 @@ const ClientePedidosScreen: React.FC = () => {
                     <div className="cp-card-tags">
                         {pedido.es_apartado && <span className="cp-tag cp-tag-apartado">Apartado {pedido.apartado_folio}</span>}
                         {pedido.es_personalizado && <span className="cp-tag cp-tag-personalizado">Personalizado</span>}
+                        {(pedido as any).notas_internas && pedido.estado !== 'cancelado' && <span className="cp-tag cp-tag-mensaje">💬 Mensaje de la tienda</span>}
                     </div>
                 </div>
                 <div className="cp-card-estado-col">

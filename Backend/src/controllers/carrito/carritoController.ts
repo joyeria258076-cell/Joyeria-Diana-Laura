@@ -58,7 +58,7 @@ const TITULO_PASO: Record<string, string> = {
     enviado: 'En camino', entregado: 'Entregado',
 };
 
-function construirHtmlNotificacionEstado(venta: any, estado: string): string {
+function construirHtmlNotificacionEstado(venta: any, estado: string, nota?: string): string {
     const meta = ESTADO_NOTIFICACION_META[estado] || { color: C.rosa, titulo: 'Tu pedido se *actualizó*', mensaje: 'El estado de tu pedido cambió.' };
     const nombrePila = (venta.cliente_nombre_completo || venta.cliente_nombre_reg || '').split(' ')[0];
     const items: any[] = venta.items || [];
@@ -99,14 +99,16 @@ function construirHtmlNotificacionEstado(venta: any, estado: string): string {
         titulo: meta.titulo,
         nombre: nombrePila,
         mensaje: meta.mensaje,
-        contenido: seguimiento + resumen + envio,
+        contenido: (nota ? tarjeta(`
+            <p style="margin:0 0 6px; font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:12px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:${C.info};">Mensaje de la tienda</p>
+            <p style="margin:0; font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:14.5px; line-height:1.55; color:${C.texto}; white-space:pre-wrap;">${escapar(nota)}</p>`, { acento: C.info }) : '') + seguimiento + resumen + envio,
         botonTexto: 'Ver mi pedido',
         botonUrl: `${SITIO_URL}/pedidos`,
         notaPie: 'Te avisaremos por correo cada vez que tu pedido avance.',
     });
 }
 
-const enviarNotificacionEstadoPedido = async (venta: any, estado: string, asunto?: string): Promise<void> => {
+const enviarNotificacionEstadoPedido = async (venta: any, estado: string, asunto?: string, nota?: string): Promise<void> => {
     const destinatarioEmail = venta.cliente_email || venta.cliente_email_reg;
     if (!destinatarioEmail) return;
 
@@ -117,7 +119,7 @@ const enviarNotificacionEstadoPedido = async (venta: any, estado: string, asunto
                 sender: { name: REMITENTE_NOMBRE, email: REMITENTE_EMAIL },
                 to: [{ email: destinatarioEmail, name: venta.cliente_nombre_completo || venta.cliente_nombre_reg || '' }],
                 subject: asunto || `Tu pedido ${venta.folio} está: ${labelEstado(estado)}`,
-                htmlContent: construirHtmlNotificacionEstado(venta, estado),
+                htmlContent: construirHtmlNotificacionEstado(venta, estado, nota),
             },
             {
                 headers: {
@@ -601,7 +603,10 @@ export const actualizarEstadoPedido = async (req: Request, res: Response) => {
     try {
         const usuario = getUsuario(req);
         const { id } = req.params;
-        const { estado, notas_internas } = req.body;
+        const { estado } = req.body;
+        // Campo vacío = no tocar la nota anterior (antes la borraba sin querer)
+        const notas_internas = typeof req.body.notas_internas === 'string' && req.body.notas_internas.trim()
+            ? req.body.notas_internas.trim() : undefined;
 
         const estadosValidos = ['pendiente','confirmado','en_preparacion','enviado','entregado','cancelado'];
         if (!estadosValidos.includes(estado))
@@ -692,7 +697,7 @@ export const actualizarEstadoPedido = async (req: Request, res: Response) => {
         }
 
         const ventaCompleta = await VentaModel.getById(Number.parseInt(id));
-        enviarNotificacionEstadoPedido(ventaCompleta, estado);
+        enviarNotificacionEstadoPedido(ventaCompleta, estado, undefined, notas_internas);
 
         res.json({ success: true, message: `Pedido actualizado a: ${labelEstado(estado)}`, data: venta });
     } catch (error: any) {
@@ -1643,6 +1648,7 @@ export const getEstadosPedidosCliente = async (req: Request, res: Response) => {
                 v.folio,
                 v.estado,
                 v.fecha_actualizacion,
+                v.notas_internas,
                 u.nombre AS trabajador_nombre,
                 COALESCE(
                     (SELECT tp.estado FROM transacciones_pago tp

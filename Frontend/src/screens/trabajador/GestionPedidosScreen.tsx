@@ -1,7 +1,7 @@
 // Ruta: Frontend/src/screens/trabajador/GestionPedidosScreen.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { carritoAPI } from '../../services/api';
+import { carritoAPI, productsAPI } from '../../services/api';
 import Loader from '../../components/Loader';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -325,7 +325,7 @@ const GestionPedidosScreen: React.FC = () => {
     // ✅ Cargar días de entrega desde BD
     const cargarDiasEntrega = async () => {
         try {
-            const data = await carritoAPI.getConfiguracion('dias_entrega_default');
+            const data = await productsAPI.getConfiguracionByClave('dias_entrega_default');
             if (data.success) {
                 const dias = Number.parseInt(data.data.valor) || 7;
                 setDiasEntrega(dias);
@@ -337,8 +337,8 @@ const GestionPedidosScreen: React.FC = () => {
     const cargarMinutosExpiracion = async () => {
         try {
             const [dataValor, dataUnidad] = await Promise.all([
-                carritoAPI.getConfiguracion('dias_expiracion_pago'),
-                carritoAPI.getConfiguracion('unidad_expiracion_pago')
+                productsAPI.getConfiguracionByClave('dias_expiracion_pago'),
+                productsAPI.getConfiguracionByClave('unidad_expiracion_pago')
             ]);
             if (dataValor.success && dataUnidad.success) {
                 const valor = parseInt(dataValor.data.valor);
@@ -782,10 +782,10 @@ const GestionPedidosScreen: React.FC = () => {
                 <div className="gp-header-acciones">
                     {/* ✅ Info días de entrega (solo lectura) */}
                     <span className="gp-info-config" title="Días de entrega configurados por el admin">
-                        <AiOutlineCalendar size={14} /> Días de entrega: {diasEntrega !== null ? `${diasEntrega}` : '...'}
+                        <AiOutlineCalendar size={14} /> Entrega en <b>{diasEntrega !== null ? `${diasEntrega} día${diasEntrega === 1 ? '' : 's'}` : '…'}</b>
                     </span>
-                    <span className="gp-info-config" title="Tiempo de alerta configurado por el admin">
-                        <AiOutlineExclamationCircle size={14} /> Alerta: {valorExpiracion} {unidadExpiracion}
+                    <span className="gp-info-config" title="Si un pedido confirmado no se paga en este tiempo, se marca como vencido (lo configura el admin)">
+                        <AiOutlineExclamationCircle size={14} /> Alerta de pago a <b>{valorExpiracion ? `${valorExpiracion} ${unidadExpiracion === 'dias' ? 'días' : unidadExpiracion || ''}` : '…'}</b>
                     </span>
                     <button className="gp-btn-refrescar" onClick={cargarPedidos}><AiOutlineReload size={14} /> Refrescar</button>
                 </div>

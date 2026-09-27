@@ -138,3 +138,15 @@ body .gp-estado-actual { display: flex; align-items: center; flex-wrap: wrap; ga
 
 /* Los bloques no se encogen: la ventana se desplaza en su lugar */
 body .gp-modal-body > * { flex-shrink: 0; }
+
+/* Datos de configuración del encabezado como píldoras informativas */
+body .gp-header-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+body .gp-info-config {
+  display: inline-flex !important; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px !important;
+  border-radius: 999px !important; border: 1px solid var(--color-border) !important; background: var(--color-surface) !important;
+  font-family: var(--font-body) !important; font-size: 13px !important; font-weight: 500 !important; color: var(--color-text-muted) !important;
+  text-transform: none !important; letter-spacing: 0 !important; cursor: help;
+}
+body .gp-info-config svg { color: var(--color-primary); }
+body .gp-info-config b { color: var(--color-text); font-weight: 700; }
+body .gp-btn-refrescar { min-height: 40px; border-radius: 999px !important; padding: 0 16px !important; }

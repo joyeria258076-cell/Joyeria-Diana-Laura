@@ -79,16 +79,25 @@ export const NotificacionesProvider: React.FC<{ children: React.ReactNode }> = (
             const nuevasNotifs: Notificacion[] = [];
             const estadosGuardados = cargarEstadosAnteriores(userId);
             data.data.forEach((p: any) => {
-                // Se guarda "estado|trabajador" para avisar también cuando alguien toma el pedido
-                const actual = `${p.estado}|${p.trabajador_nombre || ''}`;
+                // Se guarda "estado|trabajador|nota" para avisar también cuando alguien toma el
+                // pedido o cuando la tienda deja un mensaje
+                const nota = (p.notas_internas || '').replace(/\|/g, '/');
+                const actual = `${p.estado}|${p.trabajador_nombre || ''}|${nota}`;
                 const anterior = estadosGuardados[p.id];
                 if (anterior && anterior !== actual) {
-                    const [estadoAnt, trabAnt] = anterior.split('|');
+                    const partes = anterior.split('|');
+                    const [estadoAnt, trabAnt] = partes;
+                    const notaAnt = partes.length >= 3 ? partes.slice(2).join('|') : null;
                     const ahora = new Date().toISOString();
                     if (estadoAnt !== p.estado && MENSAJE_ESTADO[p.estado]) {
                         nuevasNotifs.push({ id: `${p.id}-${p.estado}-${Date.now()}`, folio: p.folio, mensaje: MENSAJE_ESTADO[p.estado], fecha: ahora, leida: false });
                     } else if (anterior.includes('|') && !trabAnt && p.trabajador_nombre) {
                         nuevasNotifs.push({ id: `${p.id}-tomado-${Date.now()}`, folio: p.folio, mensaje: `🤝 ${p.trabajador_nombre} ya está atendiendo tu pedido.`, fecha: ahora, leida: false });
+                    }
+                    // Mensaje nuevo de la tienda (solo si ya se conocía la nota anterior)
+                    if (notaAnt !== null && nota && nota !== notaAnt) {
+                        const corto = nota.length > 90 ? `${nota.slice(0, 90)}…` : nota;
+                        nuevasNotifs.push({ id: `${p.id}-nota-${Date.now()}`, folio: p.folio, mensaje: `💬 Mensaje de la tienda: ${corto}`, fecha: ahora, leida: false });
                     }
                 }
                 estadosAnteriores.current[p.id] = actual;
