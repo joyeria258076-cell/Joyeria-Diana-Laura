@@ -38,6 +38,7 @@ const InicioScreen: React.FC = () => {
     const navigate = useNavigate();
     const [productos, setProductos]     = useState<Producto[]>([]);
     const [categorias, setCategorias]   = useState<Categoria[]>([]);
+    const [imgCategoria, setImgCategoria] = useState<Record<string, string>>({});
     const [promociones, setPromociones] = useState<Promo[]>([]);
     const [loading, setLoading]         = useState(true);
     const [novedades, setNovedades]     = useState<any[]>([]);
@@ -68,6 +69,14 @@ const InicioScreen: React.FC = () => {
                     const cats: any[] = Array.isArray(resProds.value?.data) ? resProds.value.data : [];
                     const todos: Producto[] = cats.flatMap((c: any) => Array.isArray(c.productos) ? c.productos : []);
                     setProductos(todos.slice(0, 16));
+                    // Foto representativa de cada categoría, tomada de sus propias piezas
+                    const mapa: Record<string, string> = {};
+                    cats.forEach((c: any) => {
+                        const conFoto = (c.productos || []).find((p: any) => p.imagen_principal && p.stock_actual > 0)
+                            || (c.productos || []).find((p: any) => p.imagen_principal);
+                        if (conFoto) mapa[c.categoria_nombre || c.nombre] = conFoto.imagen_principal;
+                    });
+                    setImgCategoria(mapa);
                 }
                 if (resPromos.status === 'fulfilled') {
                     setPromociones(Array.isArray(resPromos.value?.data) ? resPromos.value.data : []);
@@ -111,7 +120,7 @@ const InicioScreen: React.FC = () => {
 
     /* imagen representativa por categoría, tomada de productos reales (sin inventar assets) */
     const imagenDeCategoria = (nombreCat: string) =>
-        productos.find(p => p.categoria_nombre === nombreCat && p.imagen_principal)?.imagen_principal || SVG_PH;
+        imgCategoria[nombreCat] || productos.find(p => p.categoria_nombre === nombreCat && p.imagen_principal)?.imagen_principal || SVG_PH;
 
     return (
         <div className="tl-page">
@@ -245,7 +254,7 @@ const InicioScreen: React.FC = () => {
                                     key={p.id}
                                     className={`tl-ed-card tl-ed-card--${i} reveal-stagger`}
                                     style={{ ['--stagger-i' as any]: i }}
-                                    onClick={() => navigate("/catalogo")}
+                                    onClick={() => navigate(`/producto/${p.id}`)}
                                 >
                                     <div className="tl-ed-img">
                                         <img
@@ -255,7 +264,7 @@ const InicioScreen: React.FC = () => {
                                         />
                                         <div className="tl-ed-img-overlay" />
                                         {p.es_nuevo && <span className="tl-badge tl-badge--new">Nuevo</span>}
-                                        {(p as any).permite_personalizacion && <span className="tl-badge tl-badge--new">✦ Personalizable</span>}
+                                        {(p as any).permite_personalizacion && <span className="tl-badge tl-badge--new">Personalizable</span>}
                                         {desc && <span className="tl-badge tl-badge--oferta">Oferta</span>}
                                     </div>
                                     <div className="tl-ed-body">
@@ -328,7 +337,7 @@ const InicioScreen: React.FC = () => {
                                     key={p.id}
                                     className="tl-prod-card reveal-stagger"
                                     style={{ ['--stagger-i' as any]: i }}
-                                    onClick={() => navigate("/catalogo")}
+                                    onClick={() => navigate(`/producto/${p.id}`)}
                                 >
                                     <div className="tl-prod-img-wrap">
                                         <img
@@ -337,7 +346,7 @@ const InicioScreen: React.FC = () => {
                                             onError={e => { (e.target as HTMLImageElement).src = SVG_PH; }}
                                         />
                                         {p.es_nuevo && <span className="tl-badge tl-badge--new">Nuevo</span>}
-                                        {(p as any).permite_personalizacion && <span className="tl-badge tl-badge--new">✦ Personalizable</span>}
+                                        {(p as any).permite_personalizacion && <span className="tl-badge tl-badge--new">Personalizable</span>}
                                         {p.precio_promocion && <span className="tl-badge tl-badge--promo">Promo</span>}
                                         {p.precio_oferta && !p.precio_promocion && (
                                             <span className="tl-badge tl-badge--oferta">Oferta</span>

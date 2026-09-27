@@ -107,3 +107,68 @@ body .ap-buscador-campo input {
    recupera su espacio interior para no quedar cortado bajo la barra. */
 .tl-page .ap-top { padding: 48px 40px 0; box-sizing: border-box; max-width: calc(1100px + 80px); }
 @media (max-width: 768px) { .tl-page .ap-top { padding: 36px 16px 0; } }
+
+/* ══ Pulido de las secciones del inicio (estilo app) ══ */
+/* Secciones sin franjas de fondo distintas: todo fluye sobre el mismo fondo */
+body .tl-page :is(.tl-cats-mosaic, .tl-editorial, .tl-section, .tl-nov-section, .tl-cta-band) { background: transparent !important; border: 0 !important; }
+body .tl-page .tl-section { border-radius: 0 !important; }
+/* Encabezados alineados a la izquierda, sin rayitas */
+body .tl-page .tl-eyebrow-row { justify-content: flex-start !important; gap: 0 !important; }
+body .tl-page .tl-eyebrow-line-h { display: none !important; }
+body .tl-page .tl-eyebrow-txt { font-family: var(--font-body) !important; font-size: 11px !important; font-weight: 600 !important; letter-spacing: 2px !important; color: var(--color-primary) !important; }
+body .tl-page .tl-section-h2 { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -1px !important; font-size: clamp(26px, 3vw, 34px) !important; }
+
+/* Mosaico de categorías */
+body .tl-mosaic-grid { gap: 12px !important; }
+body .tl-mosaic-tile { border-radius: 26px !important; overflow: hidden; box-shadow: var(--shadow-soft); border: 0 !important; transition: transform 0.25s ease !important; }
+body .tl-mosaic-tile:hover { transform: translateY(-3px); }
+body .tl-mosaic-tile img { transition: transform 0.5s ease !important; }
+body .tl-mosaic-tile:hover img { transform: scale(1.05); }
+body .tl-mosaic-overlay { background: linear-gradient(to top, rgba(13, 8, 12, 0.75), transparent 60%) !important; }
+body .tl-mosaic-nombre { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.4px !important; }
+
+/* Tarjetas de producto (destacadas y recientes) como las del catálogo */
+body :is(.tl-ed-card, .tl-prod-card) {
+  border-radius: 26px !important; border: 1px solid var(--color-border) !important; background: var(--color-surface) !important;
+  box-shadow: var(--shadow-soft) !important; padding: 8px !important; overflow: hidden; cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+body :is(.tl-ed-card, .tl-prod-card):hover { transform: translateY(-4px); box-shadow: var(--shadow-lift) !important; }
+body :is(.tl-ed-img, .tl-prod-img-wrap) { border-radius: 20px !important; overflow: hidden; }
+body :is(.tl-ed-img-overlay, .tl-prod-overlay) { display: none !important; }
+body :is(.tl-ed-body, .tl-prod-info) { padding: 12px 8px 8px !important; }
+body :is(.tl-ed-nombre, .tl-prod-nombre) { font-family: var(--font-body) !important; font-weight: 600 !important; letter-spacing: -0.2px !important; }
+body .tl-prod-precios, body .tl-ed-precio-row { color: var(--color-primary) !important; font-weight: 700 !important; }
+body .tl-badge { border-radius: 999px !important; font-family: var(--font-body) !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0.2px !important; }
+
+/* Cifras como tarjetas */
+body .tl-stats-band { display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px !important; background: transparent !important; border: 0 !important; padding: 8px 0 !important; }
+body .tl-stat-sep { display: none !important; }
+body .tl-stat { padding: 18px 12px !important; border-radius: 24px; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-soft); text-align: center; }
+
+/* Botones cuadrados → píldoras con degradado */
+body .tl-page :is(.tl-btn-rosa, .tl-btn-rosa-outline) {
+  min-height: 52px; padding: 0 28px !important; border-radius: 18px !important; border: 0 !important;
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; box-shadow: var(--shadow-primary);
+  font-family: var(--font-body) !important; font-size: 15px !important; font-weight: 600 !important; letter-spacing: 0 !important; text-transform: none !important;
+}
+body .tl-page .tl-ver-mas { display: flex; justify-content: center; background: none !important; border: 0 !important; padding: 0 !important; }
+body .tl-page .tl-btn-rosa-outline { background: transparent !important; color: var(--color-primary) !important; border: 1.5px solid var(--color-primary) !important; box-shadow: none !important; }
+
+/* Banner "Cada joya, una historia" como tarjeta */
+body .tl-banner-ed { border-radius: 34px !important; overflow: hidden; margin: 8px 0 !important; box-shadow: var(--shadow-lift); }
+
+/* Novedades como tarjetas */
+body .tl-nov-lista { display: flex; flex-direction: column; gap: 10px; }
+body .tl-nov-fila { border: 1px solid var(--color-border) !important; border-radius: 22px !important; background: var(--color-surface) !important; padding: 12px 16px !important; }
+body .tl-nov-img { border-radius: 16px !important; overflow: hidden; }
+
+/* Llamado final como tarjeta con degradado suave */
+body .tl-page .tl-cta-band .tl-cta-inner {
+  border-radius: 34px; padding: 40px 28px !important;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface)) !important; border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+@media (max-width: 760px) {
+  body .tl-stats-band { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
