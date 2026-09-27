@@ -126,3 +126,7 @@
   .acf .manager-subsection { padding: 1.25rem; }
   .acf .save-section .btn-primary { width: 100%; }
 }
+
+.acf-aviso { margin: 0 0 10px; padding: 10px 14px; border-radius: 14px; font-size: 14px; }
+.acf-aviso--ok { background: color-mix(in srgb, var(--color-success) 13%, transparent); color: var(--color-success); }
+.acf-aviso--error { background: color-mix(in srgb, var(--color-error) 13%, transparent); color: var(--color-error); }

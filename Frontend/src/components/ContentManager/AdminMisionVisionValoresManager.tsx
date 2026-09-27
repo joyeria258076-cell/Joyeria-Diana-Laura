@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { carritoAPI, productsAPI } from '../../services/api';
+
+const CLAVE_MVV = 'sitio_mision_vision_valores';
 
 import '../../styles/SitioSecciones.css';
 import '../../styles/AdminContenido.css';
@@ -21,6 +24,18 @@ const AdminMisionVisionValoresManager: React.FC = () => {
     });
 
     const [newValor, setNewValor] = useState('');
+    const [guardando, setGuardando] = useState(false);
+    const [aviso, setAviso] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+
+    // Carga lo guardado (antes esta pantalla no leía ni guardaba nada)
+    useEffect(() => {
+        productsAPI.getConfiguracionByClave(CLAVE_MVV).then((r: any) => {
+            try {
+                const v = JSON.parse(r?.data?.valor || 'null');
+                if (v && typeof v === 'object') setContent({ mision: v.mision || '', vision: v.vision || '', valores: Array.isArray(v.valores) ? v.valores : [] });
+            } catch { /* se queda con los textos por defecto */ }
+        }).catch(() => {});
+    }, []);
 
     const handleMisionChange = (value: string) => {
         setContent({ ...content, mision: value });
@@ -47,9 +62,15 @@ const AdminMisionVisionValoresManager: React.FC = () => {
         });
     };
 
-    const saveChanges = () => {
-        console.log('Misión, Visión y Valores guardados:', content);
-        alert('✓ Cambios guardados exitosamente');
+    const saveChanges = async () => {
+        setGuardando(true); setAviso(null);
+        try {
+            const r: any = await carritoAPI.setConfiguracion(CLAVE_MVV, JSON.stringify(content));
+            if (r?.success === false) throw new Error(r.message);
+            setAviso({ tipo: 'ok', texto: 'Cambios guardados. Ya se ven en "Sobre nosotros".' });
+        } catch (e: any) {
+            setAviso({ tipo: 'error', texto: e?.message || 'No se pudieron guardar los cambios' });
+        } finally { setGuardando(false); }
     };
 
     return (
@@ -171,8 +192,9 @@ const AdminMisionVisionValoresManager: React.FC = () => {
             </div>
 
             <div className="save-section">
-                <button className="btn-primary btn-save" onClick={saveChanges}>
-                    💾 Guardar Cambios
+                {aviso && <p className={`acf-aviso acf-aviso--${aviso.tipo}`} role="status">{aviso.texto}</p>}
+                <button className="btn-primary btn-save" onClick={saveChanges} disabled={guardando}>
+                    {guardando ? 'Guardando…' : 'Guardar cambios'}
                 </button>
             </div>
         </div>

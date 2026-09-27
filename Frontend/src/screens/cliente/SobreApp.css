@@ -1,0 +1,107 @@
+/* SobreApp.css — "Sobre nosotros" con el estilo de la app */
+.sa-page { max-width: 1180px; margin: 0 auto; padding: 4px 0 48px; display: flex; flex-direction: column; gap: 36px; font-family: var(--font-body); color: var(--color-text); }
+.sa-eyebrow { display: block; margin-bottom: 6px; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--color-primary); }
+.sa-eyebrow--claro { color: rgba(255, 255, 255, 0.85); }
+body .content-area :is(.sa-titulo, .sa-hero-titulo) { text-transform: none !important; }
+body .content-area .sa-titulo { margin: 0 0 18px !important; font-size: clamp(26px, 3vw, 36px) !important; font-weight: 700 !important; letter-spacing: -1px !important; color: var(--color-text) !important; }
+.sa-titulo em, .sa-hero-titulo em { font-family: var(--font-accent); font-style: italic; font-weight: 600; color: var(--color-primary); letter-spacing: -0.5px; }
+body .content-area .sa-titulo--claro { color: #fff !important; }
+.sa-titulo--claro em { color: #fff; }
+
+/* Botones */
+.sa-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 0 22px;
+  border: 0; border-radius: 18px; cursor: pointer; text-decoration: none;
+  background: var(--gradient-primary); color: var(--color-on-primary); box-shadow: var(--shadow-primary);
+  font-family: var(--font-body); font-size: 15px; font-weight: 600; transition: transform 0.2s ease;
+}
+.sa-btn:hover { transform: translateY(-2px); }
+.sa-btn--vidrio { background: rgba(255, 255, 255, 0.16); color: #fff; box-shadow: none; border: 1px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.sa-btn--blanco { background: #fff; color: #2A0F22; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); }
+.sa-btn--borde { background: transparent; color: var(--color-primary); border: 1.5px solid var(--color-primary); box-shadow: none; }
+
+/* Portada */
+.sa-hero {
+  position: relative; overflow: hidden; min-height: 420px; border-radius: 36px; display: flex; align-items: flex-end;
+  background-size: cover; background-position: center; box-shadow: var(--shadow-lift);
+}
+.sa-hero-velo { position: absolute; inset: 0; background: linear-gradient(to top, rgba(13, 8, 12, 0.92) 0%, rgba(13, 8, 12, 0.55) 45%, rgba(13, 8, 12, 0.15) 100%); }
+.sa-hero-contenido { position: relative; padding: 40px; max-width: 680px; }
+body .content-area .sa-hero-titulo { margin: 0 0 12px !important; font-size: clamp(36px, 5vw, 58px) !important; font-weight: 700 !important; letter-spacing: -1.8px !important; line-height: 1.02 !important; color: #fff !important; }
+.sa-hero-titulo em { color: #F4C9DA; }
+.sa-hero-texto { margin: 0 0 22px; font-size: 16.5px; line-height: 1.6; color: rgba(255, 255, 255, 0.85); }
+.sa-hero-acciones { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* Cifras */
+.sa-cifras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: -8px; }
+.sa-cifra { padding: 22px; border-radius: 26px; text-align: center; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 4px; min-height: 60px; }
+.sa-cifra strong { font-size: 34px; font-weight: 700; letter-spacing: -1px; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sa-cifra span { font-size: 13.5px; color: var(--color-text-muted); }
+
+/* Misión y visión */
+.sa-mv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.sa-mv-card { position: relative; overflow: hidden; padding: 28px; border-radius: 30px; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-soft); }
+.sa-mv-card::after { content: ''; position: absolute; width: 180px; height: 180px; right: -60px; top: -70px; border-radius: 50%; background: color-mix(in srgb, var(--color-primary) 10%, transparent); }
+.sa-mv-card--acento::after { background: color-mix(in srgb, var(--color-accent) 14%, transparent); }
+.sa-mv-icono { position: relative; z-index: 1; width: 52px; height: 52px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; background: var(--gradient-primary); color: var(--color-on-primary); box-shadow: var(--shadow-primary); margin-bottom: 16px; }
+.sa-mv-card h3 { position: relative; margin: 0 0 8px; font-size: 20px; font-weight: 700; letter-spacing: -0.4px; }
+.sa-mv-card p { position: relative; margin: 0; font-size: 15px; line-height: 1.65; color: var(--color-text-muted); }
+
+/* Valores */
+.sa-valores { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.sa-valor { padding: 22px; border-radius: 26px; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-soft); transition: transform 0.2s ease, border-color 0.2s ease; }
+.sa-valor:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--color-primary) 45%, transparent); }
+.sa-valor-icono { width: 44px; height: 44px; border-radius: 15px; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--color-primary) 16%, transparent); color: var(--color-primary); margin-bottom: 12px; }
+.sa-valor h4 { margin: 0 0 6px; font-size: 16.5px; font-weight: 700; }
+.sa-valor p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--color-text-muted); }
+
+/* Artesanía + galería */
+.sa-arte { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 28px; align-items: center; padding: 28px; border-radius: 34px; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-soft); }
+.sa-arte-texto p { margin: 0 0 20px; font-size: 15.5px; line-height: 1.7; color: var(--color-text-muted); }
+.sa-galeria { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 150px); gap: 10px; }
+.sa-foto { padding: 0; border: 0; border-radius: 22px; overflow: hidden; cursor: pointer; background: var(--color-surface-2); }
+.sa-foto img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.sa-foto:hover img { transform: scale(1.06); }
+.sa-foto--0 { grid-row: span 2; }
+.sa-galeria--1, .sa-galeria--2 { grid-template-rows: 300px; }
+.sa-galeria--1 .sa-foto--0 { grid-column: 1 / -1; }
+
+/* Visítanos */
+.sa-visita { position: relative; overflow: hidden; padding: 32px; border-radius: 34px; background: var(--gradient-primary); color: #fff; box-shadow: var(--shadow-primary); }
+.sa-visita::before { content: ''; position: absolute; width: 320px; height: 320px; right: -90px; top: -140px; border-radius: 50%; background: rgba(255, 255, 255, 0.14); }
+.sa-visita > * { position: relative; }
+.sa-visita-cabeza { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.sa-visita-acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+.sa-visita-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.sa-dato { display: flex; gap: 12px; align-items: flex-start; padding: 16px; border-radius: 22px; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.sa-dato svg { flex-shrink: 0; margin-top: 2px; }
+.sa-dato span { display: block; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; opacity: 0.85; }
+.sa-dato p { margin: 2px 0 0; font-size: 14.5px; font-weight: 600; line-height: 1.45; }
+.sa-dato a { color: inherit; text-decoration: none; }
+.sa-redes { display: flex; gap: 8px; margin-top: 16px; }
+.sa-redes a { width: 42px; height: 42px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.2); color: #fff; }
+
+/* Carga */
+.sa-esqueleto { background: var(--color-surface-2) !important; animation: sa-pulso 1.2s ease-in-out infinite; }
+@keyframes sa-pulso { 50% { opacity: 0.55; } }
+
+@media (max-width: 860px) {
+  .sa-hero { min-height: 360px; border-radius: 28px; }
+  .sa-hero-contenido { padding: 24px; }
+  .sa-cifras { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .sa-cifra { padding: 14px 8px; border-radius: 20px; }
+  .sa-cifra strong { font-size: 24px; }
+  .sa-mv, .sa-arte { grid-template-columns: 1fr; }
+  .sa-arte, .sa-visita { padding: 22px; border-radius: 28px; }
+  .sa-galeria { grid-template-rows: repeat(2, 110px); }
+}
+
+/* Visítanos: fondo oscuro con acentos (el texto claro sobre rosa se leía poco) */
+.sa-visita { background: linear-gradient(135deg, #1F1319 0%, #2A1822 60%, #231A2E 100%); box-shadow: var(--shadow-lift); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent); }
+.sa-visita::before { background: color-mix(in srgb, var(--color-primary) 22%, transparent); filter: blur(10px); }
+.sa-visita .sa-eyebrow--claro { color: #F4C9DA; }
+.sa-titulo--claro em { color: #F4C9DA; }
+.sa-dato { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 244, 250, 0.12); }
+.sa-dato svg { color: #F4C9DA; }
+.sa-dato p { overflow-wrap: anywhere; }
+.sa-redes a { background: rgba(255, 255, 255, 0.1); }
