@@ -108,13 +108,19 @@ const getFaseIndex = (estado: string, estado_pago: string): number => {
     return 0;
 };
 
-const StepperPedido: React.FC<{ estado: string; estado_pago: string }> = ({ estado, estado_pago }) => {
+// Recoger en tienda no tiene paso "Enviado": el último paso es "Recogido"
+const StepperPedido: React.FC<{ estado: string; estado_pago: string; tipoEntrega?: string }> = ({ estado, estado_pago, tipoEntrega }) => {
     if (estado === 'cancelado') return <div className="cp-stepper-cancelado">Este pedido fue cancelado</div>;
     if (estado === 'expirado') return <div className="cp-stepper-cancelado">Este pedido expiró porque no tuvo movimiento. Si aún lo quieres, vuelve a hacerlo desde el catálogo.</div>;
-    const faseActual = getFaseIndex(estado, estado_pago);
+    const esTienda = !tipoEntrega || tipoEntrega === 'tienda';
+    const fases = esTienda
+        ? FASES_STEPPER.filter(f => f.key !== 'enviado').map(f => f.key === 'entregado' ? { ...f, label: 'Recogido' } : f)
+        : FASES_STEPPER;
+    const indice = getFaseIndex(estado, estado_pago);
+    const faseActual = esTienda && indice >= 4 ? indice - 1 : indice;
     return (
         <div className="cp-stepper">
-            {FASES_STEPPER.map((fase, i) => (
+            {fases.map((fase, i) => (
                 <div key={fase.key} className="cp-step-wrap">
                     <div className={`cp-step ${i < faseActual ? 'completado' : i === faseActual ? 'activo' : 'inactivo'}`}>
                         <div className="cp-step-icono">
@@ -122,7 +128,7 @@ const StepperPedido: React.FC<{ estado: string; estado_pago: string }> = ({ esta
                         </div>
                         <div className="cp-step-label">{fase.label}</div>
                     </div>
-                    {i < FASES_STEPPER.length - 1 && (
+                    {i < fases.length - 1 && (
                         <div className={`cp-step-linea ${i < faseActual ? 'completada' : ''}`} />
                     )}
                 </div>
@@ -584,7 +590,7 @@ const ClientePedidosScreen: React.FC = () => {
 
                                     <div className="cp-modal-bloque">
                                         <p className="cp-modal-bloque-titulo">Seguimiento</p>
-                                        <StepperPedido estado={pedidoDetalle.estado} estado_pago={pedidoDetalle.estado_pago || 'pendiente'} />
+                                        <StepperPedido estado={pedidoDetalle.estado} estado_pago={pedidoDetalle.estado_pago || 'pendiente'} tipoEntrega={pedidoDetalle.tipo_entrega} />
                                     </div>
 
                                     {pedidoDetalle.notas_internas && (

@@ -151,3 +151,6 @@
 
 /* Con la hoja abierta, el botón de accesibilidad sube para no tapar el total */
 body:has(.hc-overlay) .global-accessibility-buttons { bottom: 150px !important; }
+
+.hc-nota--ok { color: var(--color-success); } .hc-nota--ok svg { color: var(--color-success); }
+.hc-nota--aviso { padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--color-warning) 11%, transparent); color: var(--color-text); } .hc-nota--aviso svg { color: var(--color-warning); }

@@ -9,7 +9,7 @@ import {
     AiOutlineClose, AiOutlineCheck, AiOutlineCheckCircle, AiOutlineInfoCircle, AiOutlineCalendar,
 } from 'react-icons/ai';
 import { useCart, cargoPersonalizacion as cargoDe, resumenOpciones } from '../../contexts/CartContext';
-import { carritoAPI, apartadoAPI, recomendacionAPI, type Recomendacion } from '../../services/api';
+import { carritoAPI, apartadoAPI, recomendacionAPI, zonaEntregaAPI, type Recomendacion } from '../../services/api';
 import './CarritoScreen.css';
 import './CarritoApp.css';
 import './HojaCompra.css';
@@ -203,6 +203,10 @@ const CarritoScreen: React.FC = () => {
     const { items, count, total, loading, promoNoAplica, actualizarCantidad, eliminarItem, vaciarCarrito, recargar } = useCart();
 
     const [recsCarrito, setRecsCarrito] = useState<Recomendacion[]>([]);
+    const [zonas, setZonas] = useState<string[]>([]);
+    useEffect(() => {
+        zonaEntregaAPI.getAll().then((r: any) => setZonas((r?.data || []).map((z: any) => String(z.nombre || '')).filter(Boolean))).catch(() => {});
+    }, []);
 
     // ── Estados pedido normal ─────────────────────────────────
     const [solicitando, setSolicitando]       = useState(false);
@@ -622,6 +626,16 @@ const CarritoScreen: React.FC = () => {
                                         <div className="hc-bloque">
                                             <p className="hc-etiqueta">Dirección de envío</p>
                                             <SelectorDireccion onChange={setDireccion} />
+                                            {(() => {
+                                                // ¿La dirección cae en alguna zona de entrega dada de alta?
+                                                if (!direccion?.colonia || !zonas.length) return null;
+                                                const norm = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+                                                const donde = norm(`${direccion.colonia} ${direccion.ciudad} ${direccion.estado_dir}`);
+                                                const dentro = zonas.some(z => donde.includes(norm(z)));
+                                                return dentro
+                                                    ? <p className="hc-nota hc-nota--ok"><AiOutlineCheckCircle size={14} /> Entregamos en tu zona.</p>
+                                                    : <p className="hc-nota hc-nota--aviso"><AiOutlineInfoCircle size={14} /> Tu dirección está fuera de nuestras zonas habituales ({zonas.join(', ')}). Puedes hacer el pedido: lo enviamos por paquetería y, si el costo de envío cambia, te lo confirmamos antes de cobrar.</p>;
+                                            })()}
                                             <p className="hc-nota"><AiOutlineInfoCircle size={14} /> El envío lo realiza un servicio de transporte externo, no personal de la tienda.</p>
                                         </div>
                                     ) : (

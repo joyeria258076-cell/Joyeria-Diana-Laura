@@ -150,3 +150,22 @@ body .gp-info-config {
 body .gp-info-config svg { color: var(--color-primary); }
 body .gp-info-config b { color: var(--color-text); font-weight: 700; }
 body .gp-btn-refrescar { min-height: 40px; border-radius: 999px !important; padding: 0 16px !important; }
+
+/* Bloque "Actualizar pedido" dentro del detalle (antes era otra ventana) */
+.gp-avanzar { flex-shrink: 0; padding: 18px; border-radius: 24px; border: 1.5px solid color-mix(in srgb, var(--color-primary) 40%, transparent); background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface)); display: flex; flex-direction: column; gap: 12px; }
+.gp-avanzar h4 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; font-weight: 700; color: var(--color-text); }
+.gp-avanzar h4 svg { color: var(--color-primary); }
+.gp-avanzar-estados { display: flex; flex-wrap: wrap; gap: 8px; }
+.gp-avanzar-estado { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 999px; cursor: pointer; border: 1.5px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font-family: var(--font-body); font-size: 13.5px; font-weight: 600; }
+.gp-avanzar-estado small { font-size: 10.5px; font-weight: 600; padding: 1px 6px; border-radius: 999px; background: var(--color-surface-2); color: var(--color-text-muted); }
+.gp-avanzar-estado.activo { background: var(--gradient-primary); color: var(--color-on-primary); border-color: transparent; box-shadow: var(--shadow-primary); }
+.gp-avanzar-estado.activo small { background: rgba(255, 255, 255, 0.25); color: inherit; }
+.gp-avanzar-desc, .gp-avanzar-nota, .gp-avanzar-aviso { margin: 0; font-size: 13px; line-height: 1.5; color: var(--color-text-muted); }
+.gp-avanzar-aviso { padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--color-warning) 12%, transparent); color: var(--color-warning); font-weight: 600; }
+.gp-avanzar-campos { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 10px; }
+.gp-avanzar-campos label { display: flex; flex-direction: column; gap: 6px; }
+.gp-avanzar-campos label span { font-size: 12px; font-weight: 600; color: var(--color-text); }
+body .gp-avanzar .gp-btn-actualizar { min-height: 50px; border: 0 !important; border-radius: 16px !important; background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; font-family: var(--font-body) !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; box-shadow: var(--shadow-primary); }
+body .gp-avanzar .gp-btn-actualizar:disabled { background: var(--color-surface-2) !important; color: var(--color-text-muted) !important; box-shadow: none; }
+body .gp-btn-gestionar { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important; }
+@media (max-width: 640px) { .gp-avanzar-campos { grid-template-columns: 1fr; } }

@@ -123,9 +123,9 @@ const DESCRIPCION_ESTADO: Record<string, string> = {
 };
 
 const GUIA_ESTADO: Record<string, string> = {
-    pendiente:      '1️⃣ Revisa los productos · 2️⃣ Toma el pedido · 3️⃣ Confírmalo para que el cliente pueda pagar',
-    confirmado:     '1️⃣ Espera el pago del cliente · 2️⃣ Verifica el pago en "Ver detalle" · 3️⃣ Avanza a "En preparación"',
-    en_preparacion: '1️⃣ Prepara los productos · 2️⃣ Empácalos · 3️⃣ Marca como "Enviado" cuando salgan',
+    pendiente:      '1️⃣ Revisa los productos · 2️⃣ Toma el pedido · 3️⃣ Márcalo como "Confirmado" para que el cliente pueda pagar',
+    confirmado:     '1️⃣ Espera el pago del cliente · 2️⃣ Confirma el pago en el recuadro verde · 3️⃣ Avanza a "En preparación"',
+    en_preparacion: '1️⃣ Prepara y empaca los productos · 2️⃣ Si es a domicilio, márcalo como "Enviado" · 3️⃣ Si es en tienda, pide el código de entrega cuando lo recojan',
     enviado:        '1️⃣ Comparte el número de guía si aplica · 2️⃣ Espera confirmación de entrega · 3️⃣ Marca como "Entregado"',
     entregado:      '✅ Pedido completado. No se requieren más acciones.',
     cancelado:      '🚫 Pedido cancelado. El stock fue restaurado automáticamente.',
@@ -182,7 +182,7 @@ const getFaseIndex = (estado: string, estado_pago: string): number => {
     return 0;
 };
 
-const FASES_TIENDA  = FASES_STEPPER.filter(f => f.key !== 'enviado');
+const FASES_TIENDA  = FASES_STEPPER.filter(f => f.key !== 'enviado').map(f => f.key === 'entregado' ? { ...f, label: 'Recogido' } : f);
 const FASES_DOMICILIO = FASES_STEPPER;
 
 const StepperPedido: React.FC<{ estado: string; estado_pago: string; tipoEntrega?: string }> = ({ estado, estado_pago, tipoEntrega }) => {
@@ -463,7 +463,11 @@ const GestionPedidosScreen: React.FC = () => {
             setFechaEstModal(pedido.fecha_estimada_entrega?.split('T')[0] || '');
         }
         if (tipo === 'detalle') {
-            setFechaEstModal('');
+            const disponibles = getEstadosDisponibles(estados, pedido.metodo_pago_codigo, pedido.es_apartado, pedido.tipo_entrega)
+                .filter(e => !['cancelado', 'entregado'].includes(e.value));
+            setNuevoEstado(disponibles.find(e => e.value === pedido.estado) ? pedido.estado : disponibles[0]?.value || pedido.estado);
+            setNotasTrabajador('');
+            setFechaEstModal(pedido.fecha_estimada_entrega?.split('T')[0] || '');
             setCodigoInput('');
             setMsgCodigo('');
             setPedidoValidado(null);
@@ -748,12 +752,13 @@ const GestionPedidosScreen: React.FC = () => {
         </div>
 
         <div className="gp-card-acciones">
-            <button className="gp-btn-accion" title="Ver detalle" onClick={() => abrirModal(pedido, 'detalle')}><AiOutlineEye size={16} /> Ver detalle</button>
+            {puedoEditar(pedido) && !['cancelado', 'entregado', 'expirado'].includes(pedido.estado) ? (
+                <button className="gp-btn-accion gp-btn-gestionar" title="Ver y actualizar el pedido" onClick={() => abrirModal(pedido, 'detalle')}><AiOutlineSync size={16} /> Gestionar</button>
+            ) : (
+                <button className="gp-btn-accion" title="Ver detalle" onClick={() => abrirModal(pedido, 'detalle')}><AiOutlineEye size={16} /> Ver detalle</button>
+            )}
             {puedoEditar(pedido) && (
                 <>
-                    <button className="gp-btn-accion" title="Editar detalles" onClick={() => abrirModal(pedido, 'editar')}><AiOutlineEdit size={16} /> Editar</button>
-                    <button className="gp-btn-accion gp-btn-estado" title="Cambiar estado"
-                        onClick={() => abrirModal(pedido, 'estado')}><AiOutlineSync size={16} /> Cambiar estado</button>
                     <button className="gp-btn-accion gp-btn-cancelar" title="Cancelar pedido"
                         onClick={() => abrirModal(pedido, 'cancelar')}
                         disabled={['cancelado','entregado','expirado'].includes(pedido.estado)}><AiOutlineStop size={16} /> Cancelar</button>
@@ -898,6 +903,50 @@ const GestionPedidosScreen: React.FC = () => {
                                         <>
                                             <StepperPedido estado={pedidoSel.estado} estado_pago={pedidoSel.estado_pago || 'pendiente'} tipoEntrega={pedidoSel.tipo_entrega} />
                                             {GUIA_ESTADO[pedidoSel.estado] && <GuiaSiguiente texto={GUIA_ESTADO[pedidoSel.estado]} />}
+                                            {puedoEditar(pedidoSel) && !['entregado', 'cancelado', 'expirado'].includes(pedidoSel.estado) && (() => {
+                                                const opciones = getEstadosDisponibles(estados, pedidoSel.metodo_pago_codigo, pedidoSel.es_apartado, pedidoSel.tipo_entrega)
+                                                    .filter(e => !['cancelado', 'entregado'].includes(e.value));
+                                                const sinPago = ['efectivo', 'transferencia'].includes(pedidoSel.metodo_pago_codigo || '') && pedidoSel.estado_pago !== 'aprobado';
+                                                return (
+                                                    <div className="gp-avanzar">
+                                                        <h4><AiOutlineSync size={15} /> Actualizar pedido</h4>
+                                                        <div className="gp-avanzar-estados" role="radiogroup" aria-label="Estado del pedido">
+                                                            {opciones.map(e => (
+                                                                <button key={e.value} type="button" role="radio" aria-checked={nuevoEstado === e.value}
+                                                                    className={`gp-avanzar-estado${nuevoEstado === e.value ? ' activo' : ''}${pedidoSel.estado === e.value ? ' actual' : ''}`}
+                                                                    onClick={() => { setNuevoEstado(e.value); setMsg(''); }}>
+                                                                    {e.label}{pedidoSel.estado === e.value && <small>actual</small>}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        {nuevoEstado && DESCRIPCION_ESTADO[nuevoEstado] && nuevoEstado !== pedidoSel.estado && (
+                                                            <p className="gp-avanzar-desc">{DESCRIPCION_ESTADO[nuevoEstado]}</p>
+                                                        )}
+                                                        {sinPago && ['en_preparacion', 'enviado'].includes(nuevoEstado) && (
+                                                            <p className="gp-avanzar-aviso">Primero confirma el pago del cliente en el recuadro verde de arriba.</p>
+                                                        )}
+                                                        <p className="gp-avanzar-nota">Para marcarlo como {pedidoSel.tipo_entrega === 'domicilio' ? 'entregado' : 'recogido'}, usa el código de entrega del cliente (abajo).</p>
+                                                        <div className="gp-avanzar-campos">
+                                                            <label>
+                                                                <span>Fecha estimada de entrega</span>
+                                                                <input className="gp-input" type="date" value={fechaEstModal} onChange={e => setFechaEstModal(e.target.value)} />
+                                                            </label>
+                                                            <label>
+                                                                <span>Mensaje para el cliente (opcional)</span>
+                                                                <textarea className="gp-textarea" rows={2} value={notasTrabajador} onChange={e => setNotasTrabajador(e.target.value)}
+                                                                    placeholder="Le llega por correo y en sus avisos. Ej: Tu pedido ya está listo para recoger" />
+                                                            </label>
+                                                        </div>
+                                                        {msg && !msg.toLowerCase().includes('pago confirmado') && (
+                                                            <div className={`gp-msg ${msg.startsWith('✅') ? 'ok' : msg.startsWith('⚠️') ? 'warning' : 'error'}`}>{msg}</div>
+                                                        )}
+                                                        <button className="gp-btn-actualizar" onClick={actualizarEstado}
+                                                            disabled={cargando || (nuevoEstado === pedidoSel.estado && !notasTrabajador.trim() && fechaEstModal === (pedidoSel.fecha_estimada_entrega?.split('T')[0] || ''))}>
+                                                            {cargando ? 'Guardando…' : nuevoEstado !== pedidoSel.estado ? `Guardar: ${opciones.find(o => o.value === nuevoEstado)?.label || ''}` : 'Guardar cambios'}
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })()}
                                             <div className="gp-modal-estado">
                                                 {getBadge(pedidoSel.estado)}
                                                 {getBadgePago(pedidoSel)}
