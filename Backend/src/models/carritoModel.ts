@@ -13,6 +13,8 @@ export const CarritoModel = {
                 c.cantidad,
                 c.talla_medida,
                 c.nota,
+                c.opciones,
+                c.costo_opciones,
                 c.fecha_agregado,
                 c.solicitud_personalizacion_id,
                 sp.detalle              AS personalizacion_detalle,
@@ -76,6 +78,27 @@ export const CarritoModel = {
             RETURNING *
         `, [usuario_id, producto_id, solicitud_id]);
         return result.rows[0];
+    },
+
+    // Pieza con opciones de personalización elegidas (Talla, Metal, Grabado…).
+    // Si ya hay una línea con exactamente las mismas opciones, se suma la cantidad.
+    agregarConOpciones: async (usuario_id: number, producto_id: number, cantidad: number,
+                               opciones: any[], clave: string, costo: number, nota?: string) => {
+        const existe = await pool.query(
+            `SELECT id FROM carrito WHERE usuario_id = $1 AND producto_id = $2 AND opciones_clave = $3
+               AND solicitud_personalizacion_id IS NULL LIMIT 1`, [usuario_id, producto_id, clave]);
+        if (existe.rows.length) {
+            const r = await pool.query(
+                `UPDATE carrito SET cantidad = cantidad + $1, costo_opciones = $2, opciones = $3,
+                        nota = COALESCE($4, nota), fecha_agregado = CURRENT_TIMESTAMP
+                  WHERE id = $5 RETURNING *`, [cantidad, costo, JSON.stringify(opciones), nota || null, existe.rows[0].id]);
+            return r.rows[0];
+        }
+        const r = await pool.query(
+            `INSERT INTO carrito (usuario_id, producto_id, cantidad, nota, opciones, opciones_clave, costo_opciones)
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            [usuario_id, producto_id, cantidad, nota || null, JSON.stringify(opciones), clave, costo]);
+        return r.rows[0];
     },
 
     upsert: async (usuario_id: number, producto_id: number, cantidad: number, talla_medida?: string, nota?: string) => {
@@ -188,6 +211,8 @@ export const VentaModel = {
             precio_original?: number;
             talla_medida?:   string;
             nota?:           string;
+            opciones?:       any[] | null;
+            opciones_resumen?: string | null;
             cargo_personalizacion?: number;
             solicitud_personalizacion_id?: number;
         }[];
@@ -235,10 +260,12 @@ export const VentaModel = {
                 const descuento = item.precio_original && item.precio_original > item.precio_unitario
                     ? Number((item.precio_original - item.precio_unitario).toFixed(2))
                     : null;
-                const personalizacion = (item.talla_medida || item.nota || item.solicitud_personalizacion_id)
+                const personalizacion = (item.talla_medida || item.nota || item.solicitud_personalizacion_id || item.opciones_resumen)
                     ? JSON.stringify({
                         talla_medida: item.talla_medida || null,
                         nota: item.nota || null,
+                        opciones: item.opciones || null,
+                        opciones_resumen: item.opciones_resumen || null,
                         cargo_personalizacion: item.cargo_personalizacion || 0,
                         solicitud_personalizacion_id: item.solicitud_personalizacion_id || null
                     })
@@ -312,6 +339,7 @@ export const VentaModel = {
                         'subtotal',             dv.subtotal,
                         'talla_medida',         dv.personalizacion->>'talla_medida',
                         'nota',                 dv.personalizacion->>'nota',
+                        'opciones_resumen',     dv.personalizacion->>'opciones_resumen',
                         'cargo_personalizacion', (dv.personalizacion->>'cargo_personalizacion')::numeric
                     ))
                     FROM detalle_ventas dv WHERE dv.venta_id = v.id
@@ -427,6 +455,7 @@ export const VentaModel = {
                             'subtotal',         dv.subtotal,
                             'talla_medida',     dv.personalizacion->>'talla_medida',
                             'nota',             dv.personalizacion->>'nota',
+                            'opciones_resumen', dv.personalizacion->>'opciones_resumen',
                             'cargo_personalizacion', (dv.personalizacion->>'cargo_personalizacion')::numeric
                         ))
                         FROM detalle_ventas dv WHERE dv.venta_id = v.id

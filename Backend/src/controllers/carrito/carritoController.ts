@@ -7,6 +7,7 @@ import axios from 'axios';
 import { C, SITIO_URL, dinero, escapar, fila, tablaFilas, tarjeta, lineaTiempo, layoutCorreo } from '../../utils/plantillaCorreo';
 
 import { expirarSiToca } from '../../services/expiracionPedidosService';
+import { validarEleccion, resumenDe } from '../../services/opcionesPersonalizacionService';
 
 const getUsuario = (req: Request) => {
     const user = (req as any).user;
@@ -77,7 +78,7 @@ function construirHtmlNotificacionEstado(venta: any, estado: string): string {
     }
 
     const filasItems = items.map(it =>
-        fila(`${escapar(it.producto_nombre)} <span style="color:${C.suave};">× ${it.cantidad}</span>`, dinero(it.subtotal))).join('');
+        fila(`${escapar(it.producto_nombre)} <span style="color:${C.suave};">× ${it.cantidad}</span>${it.opciones_resumen ? `<br><span style="font-size:12px;color:${C.suave};">${escapar(it.opciones_resumen)}</span>` : ''}`, dinero(it.subtotal))).join('');
 
     const resumen = tarjeta(`
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;"><tr>
@@ -279,7 +280,7 @@ export const agregarAlCarrito = async (req: Request, res: Response) => {
         const { id, email, nombre } = getUsuario(req);
         if (!id) return res.status(401).json({ success: false, message: 'No autenticado' });
 
-        const { producto_id, cantidad = 1, talla_medida, nota, solicitud_personalizacion_id } = req.body;
+        const { producto_id, cantidad = 1, talla_medida, nota, solicitud_personalizacion_id, opciones } = req.body;
         if (!producto_id) return res.status(400).json({ success: false, message: 'producto_id requerido' });
 
         const prod = await pool.query(
@@ -308,6 +309,14 @@ export const agregarAlCarrito = async (req: Request, res: Response) => {
                 return res.status(400).json({ success: false, message: 'Esta solicitud ya fue utilizada en una compra' });
 
             const item = await CarritoModel.agregarPersonalizado(id, producto_id, solicitud_personalizacion_id);
+            return res.json({ success: true, message: 'Agregado al carrito', data: item });
+        }
+
+        // Opciones de personalización dadas de alta por el admin (Talla, Metal, Grabado…)
+        const eleccion = await validarEleccion(Number.parseInt(producto_id), Array.isArray(opciones) ? opciones : undefined);
+        if (!eleccion.ok) return res.status(400).json({ success: false, message: eleccion.mensaje });
+        if (eleccion.guardado) {
+            const item = await CarritoModel.agregarConOpciones(id, producto_id, cantidad, eleccion.guardado, eleccion.clave!, eleccion.costo, nota);
             return res.json({ success: true, message: 'Agregado al carrito', data: item });
         }
 
@@ -443,7 +452,9 @@ export const crearPedido = async (req: Request, res: Response) => {
             // solicitud de personalizacion aprobada (flujo con verificacion del
             // trabajador), no de un simple campo de nota/talla libre.
             const esPersonalizado = !!item.solicitud_personalizacion_id;
-            const cargo_personalizacion = esPersonalizado ? Number.parseFloat(item.precio_personalizacion || 0) : 0;
+            // Las opciones elegidas (grabado, metal…) suman su costo extra, guardado al agregar.
+            const cargo_personalizacion = (esPersonalizado ? Number.parseFloat(item.precio_personalizacion || 0) : 0)
+                + Number.parseFloat(item.costo_opciones || 0);
             const precio_unitario = precioBase + cargo_personalizacion;
             return {
                 producto_id:     item.producto_id,
@@ -455,6 +466,8 @@ export const crearPedido = async (req: Request, res: Response) => {
                 precio_original: precio_original !== precioBase ? precio_original : undefined,
                 talla_medida:    item.talla_medida || undefined,
                 nota:            item.nota || undefined,
+                opciones:        item.opciones || null,
+                opciones_resumen: resumenDe(item.opciones),
                 cargo_personalizacion,
                 solicitud_personalizacion_id: item.solicitud_personalizacion_id || undefined,
             };
@@ -1176,6 +1189,7 @@ export const generarReciboPDF = async (req: Request, res: Response) => {
                     <p class="prod-nombre">${item.producto_nombre}</p>
                     ${item.talla_medida ? `<p class="prod-detalle">Talla/Medida: ${item.talla_medida}</p>` : ''}
                     ${item.nota ? `<p class="prod-detalle">Nota: ${item.nota}</p>` : ''}
+                    ${item.opciones_resumen ? `<p class="prod-detalle">${item.opciones_resumen}</p>` : ''}
                 </td>
                 <td>${item.cantidad}</td>
                 <td>$${Number.parseFloat(item.precio_unitario).toLocaleString('es-MX')}</td>
