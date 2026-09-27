@@ -1,0 +1,40 @@
+/* InicioClienteV2.css — portada del inicio con sesión en dos columnas + "Tu resumen" */
+@media (min-width: 1000px) {
+  body .tl-page .ap-top {
+    display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); column-gap: 36px; row-gap: 16px;
+    grid-template-areas: "saludo banner" "titulo banner" "buscador banner" "resumen banner" "chips chips";
+    align-items: start; max-width: 1320px; margin: 0 auto;
+  }
+  body .tl-page .ap-saludo { grid-area: saludo; }
+  body .tl-page .ap-titulo { grid-area: titulo; font-size: clamp(40px, 4.6vw, 64px) !important; letter-spacing: -2.4px !important; line-height: 1 !important; margin: 0 !important; }
+  body .tl-page .ap-buscador { grid-area: buscador; }
+  body .tl-page .ap-resumen { grid-area: resumen; }
+  body .tl-page .ap-banner { grid-area: banner; height: 100% !important; min-height: 460px; margin: 0 !important; border-radius: 36px !important; }
+  body .tl-page .ap-chips { grid-area: chips; }
+}
+body .tl-page .ap-titulo span { background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; color: transparent !important; padding-right: 4px; }
+
+/* Tu resumen */
+.ap-resumen { display: flex; flex-direction: column; gap: 10px; font-family: var(--font-body); }
+.ap-resumen-titulo { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--color-primary); }
+.ap-resumen-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ap-resumen-item {
+  --tono: var(--color-primary);
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 14px; cursor: pointer; text-align: left;
+  border-radius: 22px; border: 1px solid var(--color-border); background: var(--color-surface); box-shadow: var(--shadow-soft);
+  color: var(--color-text); font-family: var(--font-body); transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.ap-resumen-item:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--tono) 50%, transparent); }
+.ap-resumen-item--info { --tono: var(--color-info); } .ap-resumen-item--accent { --tono: var(--color-accent); } .ap-resumen-item--success { --tono: var(--color-success); }
+.ap-resumen-icono { width: 36px; height: 36px; border-radius: 12px; margin-bottom: 6px; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--tono) 16%, transparent); color: var(--tono); }
+.ap-resumen-item strong { font-size: 24px; font-weight: 700; letter-spacing: -0.6px; line-height: 1.1; }
+.ap-resumen-item small { font-size: 12px; color: var(--color-text-muted); line-height: 1.3; }
+
+/* Categorías del inicio con sesión */
+body .tl-page .ap-cats { padding-top: 32px; }
+body .tl-page .ap-cats .ph-cat { cursor: pointer; }
+
+@media (max-width: 999px) {
+  .ap-resumen-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+body .tl-page button.ph-ver { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; cursor: pointer; }

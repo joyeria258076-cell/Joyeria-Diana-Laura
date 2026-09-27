@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { productsAPI, promocionesAPI, contentAPI } from "../../services/api";
+import { productsAPI, promocionesAPI, contentAPI, carritoAPI, apartadoAPI, favoritosAPI } from "../../services/api";
+import { useCart } from "../../contexts/CartContext";
 import { initScrollReveal } from "../../utils/scrollReveal";
-import { AiOutlineSearch, AiOutlineControl, AiOutlineThunderbolt, AiOutlineStar, AiOutlineArrowRight, AiOutlineAppstore } from "react-icons/ai";
+import { AiOutlineSearch, AiOutlineControl, AiOutlineThunderbolt, AiOutlineStar, AiOutlineArrowRight, AiOutlineAppstore, AiOutlineShopping, AiOutlineFlag, AiOutlineHeart, AiOutlineShoppingCart } from "react-icons/ai";
 import "./InicioScreen.css";
 import "./InicioApp.css";
+import "../publico/InicioPortada.css";
+import "./InicioClienteV2.css";
 
 interface Producto {
     id: number;
@@ -39,6 +42,25 @@ const InicioScreen: React.FC = () => {
     const [productos, setProductos]     = useState<Producto[]>([]);
     const [categorias, setCategorias]   = useState<Categoria[]>([]);
     const [imgCategoria, setImgCategoria] = useState<Record<string, string>>({});
+    const [cuantosCategoria, setCuantosCategoria] = useState<Record<string, number>>({});
+    const [resumen, setResumen] = useState<{ pedidos: number | null; apartados: number | null; favoritos: number | null }>({ pedidos: null, apartados: null, favoritos: null });
+    const { count: enCarrito } = useCart();
+
+    // "Tu resumen": lo que la clienta tiene en curso
+    useEffect(() => {
+        Promise.allSettled([
+            carritoAPI.getEstadosPedidosCliente(),
+            apartadoAPI.getMisApartados(),
+            favoritosAPI.getAll(),
+        ]).then(([p, a, f]) => {
+            const lista = (r: any) => Array.isArray(r) ? r : (Array.isArray(r?.data) ? r.data : []);
+            setResumen({
+                pedidos: p.status === 'fulfilled' ? lista(p.value).filter((x: any) => !['entregado', 'cancelado', 'expirado'].includes(x.estado)).length : null,
+                apartados: a.status === 'fulfilled' ? lista(a.value).filter((x: any) => ['activo', 'pendiente_pago'].includes(x.estado)).length : null,
+                favoritos: f.status === 'fulfilled' ? lista(f.value).length : null,
+            });
+        });
+    }, []);
     const [promociones, setPromociones] = useState<Promo[]>([]);
     const [loading, setLoading]         = useState(true);
     const [novedades, setNovedades]     = useState<any[]>([]);
@@ -77,6 +99,9 @@ const InicioScreen: React.FC = () => {
                         if (conFoto) mapa[c.categoria_nombre || c.nombre] = conFoto.imagen_principal;
                     });
                     setImgCategoria(mapa);
+                    const cuantos: Record<string, number> = {};
+                    cats.forEach((c: any) => { cuantos[c.categoria_nombre || c.nombre] = (c.productos || []).length; });
+                    setCuantosCategoria(cuantos);
                 }
                 if (resPromos.status === 'fulfilled') {
                     setPromociones(Array.isArray(resPromos.value?.data) ? resPromos.value.data : []);
@@ -192,6 +217,24 @@ const InicioScreen: React.FC = () => {
                     </div>
                 </div>
 
+                <div className="ap-resumen">
+                    <span className="ap-resumen-titulo">Tu resumen</span>
+                    <div className="ap-resumen-grid">
+                        {[
+                            { label: 'Pedidos en curso', n: resumen.pedidos, icono: <AiOutlineShopping size={18} />, ruta: '/pedidos', tono: 'info' },
+                            { label: 'Apartados activos', n: resumen.apartados, icono: <AiOutlineFlag size={18} />, ruta: '/mis-apartados', tono: 'accent' },
+                            { label: 'Favoritos', n: resumen.favoritos, icono: <AiOutlineHeart size={18} />, ruta: '/favoritos', tono: 'primary' },
+                            { label: 'En tu carrito', n: enCarrito, icono: <AiOutlineShoppingCart size={18} />, ruta: '/carrito', tono: 'success' },
+                        ].map(t => (
+                            <button key={t.label} className={`ap-resumen-item ap-resumen-item--${t.tono}`} onClick={() => navigate(t.ruta)}>
+                                <span className="ap-resumen-icono">{t.icono}</span>
+                                <strong>{t.n ?? '—'}</strong>
+                                <small>{t.label}</small>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 {categorias.length > 0 && (
                     <div className="ap-chips" role="list">
                         <button className="ap-chip activo" onClick={() => navigate('/catalogo')} role="listitem">
@@ -206,28 +249,19 @@ const InicioScreen: React.FC = () => {
                 )}
             </section>
 
-            {/* ── CATEGORÍAS EN MOSAICO (bento) ── */}
+            {/* ── CATEGORÍAS CON FOTO ── */}
             {categorias.length > 0 && (
-                <section className="tl-cats-mosaic reveal-on-scroll">
-                    <div className="tl-eyebrow-row">
-                        <span className="tl-eyebrow-line-h" />
-                        <span className="tl-eyebrow-txt">Explora por categoría</span>
-                        <span className="tl-eyebrow-line-h" />
+                <section className="ph-cats ap-cats">
+                    <div className="ph-seccion-cabeza">
+                        <div><span className="ph-eyebrow">Explora</span><h2 className="ph-h2">¿Qué se te <em>antoja</em> hoy?</h2></div>
+                        <button className="ph-ver" onClick={() => navigate('/catalogo')}>Ver todo <AiOutlineArrowRight size={14} /></button>
                     </div>
-                    <div className="tl-mosaic-grid">
-                        {categorias.slice(0, 5).map((c, i) => (
-                            <button
-                                key={c.id}
-                                className={`tl-mosaic-tile tl-mosaic-tile--${i}`}
-                                onClick={() => navigate(`/catalogo?categoria=${c.id}`)}
-                            >
-                                <img
-                                    src={imagenDeCategoria(c.nombre)}
-                                    alt={c.nombre}
-                                    onError={e => { (e.target as HTMLImageElement).src = SVG_PH; }}
-                                />
-                                <div className="tl-mosaic-overlay" />
-                                <span className="tl-mosaic-nombre">{c.nombre}</span>
+                    <div className="ph-cats-fila">
+                        {categorias.filter(c => imgCategoria[c.nombre]).slice(0, 8).map(c => (
+                            <button key={c.id} className="ph-cat" onClick={() => navigate(`/catalogo?categoria=${c.id}`)}>
+                                <span className="ph-cat-foto"><img src={imagenDeCategoria(c.nombre)} alt="" loading="lazy" /></span>
+                                <strong>{c.nombre}</strong>
+                                {cuantosCategoria[c.nombre] ? <small>{cuantosCategoria[c.nombre]} pieza{cuantosCategoria[c.nombre] === 1 ? '' : 's'}</small> : null}
                             </button>
                         ))}
                     </div>
