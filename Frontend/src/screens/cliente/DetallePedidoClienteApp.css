@@ -1,0 +1,135 @@
+/* DetallePedidoClienteApp.css — "Tu pedido" (detalle en Mis pedidos) con el
+   estilo de la app: folio grande, código de entrega como boleto, seguimiento,
+   pago, datos en tarjetas, productos y total. */
+
+body .cp-modal-overlay {
+  position: fixed !important; inset: 0 !important; z-index: 1300 !important;
+  display: flex !important; align-items: center; justify-content: center; padding: 20px !important;
+  background: color-mix(in srgb, var(--color-bg) 72%, transparent) !important;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  font-family: var(--font-body); color: var(--color-text);
+}
+body .cp-modal--detalle {
+  width: 100% !important; max-width: 640px !important; max-height: calc(100vh - 40px) !important; max-height: calc(100dvh - 40px) !important;
+  display: flex !important; flex-direction: column; overflow: hidden !important; padding: 0 !important;
+  border-radius: 32px !important; border: 1px solid var(--glass-border) !important; background: var(--color-bg) !important; box-shadow: var(--shadow-lift) !important;
+}
+body .cp-modal--detalle .cp-modal-header {
+  flex-shrink: 0; display: flex !important; align-items: flex-start !important; justify-content: space-between; gap: 12px;
+  padding: 22px 26px 18px !important; background: var(--color-surface) !important; border-bottom: 1px solid var(--color-border) !important;
+}
+.cp-modal-eyebrow { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--color-primary); }
+body .cp-modal-folio { margin: 0 0 4px !important; font-family: var(--font-body) !important; font-size: 24px !important; font-weight: 700 !important; letter-spacing: -0.6px !important; color: var(--color-text) !important; }
+body .cp-modal--detalle .cp-modal-fecha { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 !important; font-size: 13.5px !important; color: var(--color-text-muted) !important; }
+.cp-modal-apartado { padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: color-mix(in srgb, var(--color-accent) 18%, transparent); color: var(--color-accent); }
+body .cp-modal--detalle .cp-modal-close {
+  width: 42px !important; height: 42px !important; flex-shrink: 0; border: 0 !important; border-radius: 50% !important;
+  display: inline-flex !important; align-items: center; justify-content: center; font-size: 22px !important; line-height: 1;
+  background: var(--color-surface-2) !important; color: var(--color-text) !important; cursor: pointer;
+}
+body .cp-modal--detalle .cp-modal-body {
+  flex: 1; min-height: 0; overflow-y: auto !important; overscroll-behavior: contain; max-height: none !important;
+  padding: 20px 24px 26px !important; display: flex; flex-direction: column; gap: 14px;
+}
+body .cp-modal--detalle .cp-modal-body > * { flex-shrink: 0; margin: 0 !important; }
+
+body .cp-modal--detalle .cp-modal-estado { display: flex !important; flex-wrap: wrap; align-items: center; gap: 8px; }
+body .cp-modal--detalle .cp-modal-trabajador { margin-left: auto; font-size: 13px !important; color: var(--color-text-muted) !important; }
+
+/* Código de entrega como boleto */
+body .cp-boleto {
+  position: relative; text-align: center; padding: 20px 18px !important; border-radius: 24px !important; border: 0 !important;
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; box-shadow: var(--shadow-primary);
+}
+body .cp-boleto::before, body .cp-boleto::after {
+  content: ''; position: absolute; top: 50%; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; background: var(--color-bg);
+}
+body .cp-boleto::before { left: -11px; }
+body .cp-boleto::after { right: -11px; }
+.cp-boleto-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0.85; }
+body .cp-boleto .cp-codigo-valor {
+  margin: 8px auto !important; padding: 6px 0 !important; border: 0 !important; background: none !important;
+  font-family: 'Courier New', monospace !important; font-size: 34px !important; font-weight: 700 !important; letter-spacing: 10px !important; color: inherit !important;
+}
+body .cp-boleto .cp-codigo-entrega-desc { margin: 0 !important; font-size: 13px !important; color: inherit !important; opacity: 0.85; }
+
+/* Bloques */
+.cp-modal-bloque { padding: 16px 18px; border-radius: 22px; background: var(--color-surface); border: 1px solid var(--color-border); }
+.cp-modal-bloque-titulo { display: block; margin: 0 0 12px; font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--color-text-muted); }
+body .cp-modal--detalle .cp-modal-nota-trabajador {
+  padding: 16px 18px !important; border-radius: 22px !important; border: 0 !important; border-left: 3px solid var(--color-info) !important;
+  background: color-mix(in srgb, var(--color-info) 9%, var(--color-surface)) !important;
+}
+body .cp-modal--detalle .cp-modal-nota-trabajador .cp-modal-bloque-titulo { margin-bottom: 6px; color: var(--color-info); }
+body .cp-modal--detalle .cp-modal-nota-trabajador p { margin: 0 !important; font-size: 14px; line-height: 1.5; }
+body .cp-modal--detalle .cp-modal-nota--cancelado { border-left-color: var(--color-error) !important; background: color-mix(in srgb, var(--color-error) 9%, var(--color-surface)) !important; }
+body .cp-modal--detalle .cp-modal-nota--cancelado .cp-modal-bloque-titulo { color: var(--color-error); }
+
+/* Pago */
+body .cp-modal--detalle .cp-seccion-pago {
+  padding: 18px !important; border-radius: 24px !important;
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 40%, transparent) !important;
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface)) !important;
+}
+body .cp-modal--detalle .cp-pago-titulo { margin: 0 0 8px !important; font-size: 16px !important; font-weight: 700 !important; letter-spacing: -0.3px; text-transform: none !important; color: var(--color-text) !important; }
+body .cp-modal--detalle .cp-pago-instrucciones { font-size: 14px !important; color: var(--color-text-muted) !important; line-height: 1.5; }
+body .cp-modal--detalle .cp-pago-botones { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+body .cp-modal--detalle :is(.cp-btn-mp, .cp-btn-paypal, .cp-btn-subir-comprobante) {
+  width: 100%; min-height: 52px; border: 0 !important; border-radius: 18px !important; cursor: pointer;
+  font-family: var(--font-body) !important; font-size: 15px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+body .cp-modal--detalle :is(.cp-btn-mp, .cp-btn-subir-comprobante) { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; box-shadow: var(--shadow-primary); }
+body .cp-modal--detalle .cp-btn-paypal { background: #FFC439 !important; color: #111 !important; }
+body .cp-modal--detalle .cp-transferencia-datos { border-radius: 18px !important; background: var(--color-surface-2) !important; padding: 12px 14px !important; }
+body .cp-modal--detalle .cp-transferencia-fila { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; font-size: 14px; }
+body .cp-modal--detalle :is(.cp-pago-seguro, .cp-transferencia-nota) { font-size: 12.5px !important; color: var(--color-text-muted) !important; }
+body .cp-modal--detalle .cp-pago-completado {
+  display: flex; flex-direction: column; gap: 4px; padding: 14px 16px !important; border-radius: 20px !important; border: 0 !important;
+  background: color-mix(in srgb, var(--color-success) 12%, transparent) !important; color: var(--color-success) !important;
+}
+body .cp-modal--detalle .cp-pago-completado span { font-size: 13.5px; color: var(--color-text); opacity: 0.85; }
+
+/* Datos en tarjetas */
+.cp-datos-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.cp-dato-card { display: flex; flex-direction: column; gap: 3px; padding: 14px 16px; border-radius: 20px; background: var(--color-surface); border: 1px solid var(--color-border); min-width: 0; }
+.cp-dato-card strong { font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; }
+.cp-dato-card small { font-size: 12.5px; color: var(--color-text-muted); line-height: 1.4; overflow-wrap: anywhere; }
+.cp-dato-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--color-text-muted); }
+.cp-dato-card--ancha { grid-column: 1 / -1; }
+.cp-dato-nota { white-space: pre-wrap; font-size: 13.5px !important; color: var(--color-text) !important; }
+
+/* Productos y totales */
+body .cp-modal--detalle .cp-modal-seccion { padding: 16px 18px !important; border-radius: 22px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; }
+body .cp-modal--detalle .cp-modal-seccion h4 { margin: 0 0 12px !important; font-size: 12px !important; font-weight: 700 !important; letter-spacing: 1.2px !important; text-transform: uppercase !important; color: var(--color-text-muted) !important; }
+body .cp-modal--detalle .cp-modal-items { display: flex; flex-direction: column; gap: 10px; }
+body .cp-modal--detalle .cp-modal-item { display: flex !important; align-items: center; gap: 12px; padding: 8px !important; border-radius: 18px !important; background: var(--color-surface-2) !important; border: 0 !important; }
+body .cp-modal--detalle .cp-modal-item img { width: 60px !important; height: 60px !important; border-radius: 14px !important; object-fit: cover; flex-shrink: 0; }
+body .cp-modal--detalle .cp-modal-item-info { flex: 1; min-width: 0; }
+body .cp-modal--detalle .cp-modal-item-nombre { margin: 0 0 2px !important; font-size: 14.5px !important; font-weight: 600 !important; color: var(--color-text) !important; }
+body .cp-modal--detalle .cp-modal-item-sub { margin: 0 !important; font-size: 12.5px !important; color: var(--color-text-muted) !important; }
+body .cp-modal--detalle .cp-modal-item-sub s { opacity: 0.6; margin-right: 4px; }
+body .cp-modal--detalle .cp-descuento-unitario { color: var(--color-success); font-weight: 600; }
+body .cp-modal--detalle .cp-modal-item-subtotal { margin: 0 !important; font-size: 15px !important; font-weight: 700 !important; white-space: nowrap; color: var(--color-text) !important; }
+body .cp-modal--detalle .cp-modal-totales { padding: 16px 18px !important; border-radius: 22px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; }
+body .cp-modal--detalle .cp-modal-total-fila { display: flex !important; justify-content: space-between; padding: 5px 0 !important; font-size: 14px !important; color: var(--color-text-muted) !important; border: 0 !important; }
+body .cp-modal--detalle .cp-modal-total-fila span:last-child { color: var(--color-text); font-weight: 600; }
+body .cp-modal--detalle .cp-modal-total-final { margin-top: 6px; padding-top: 10px !important; border-top: 1px dashed var(--color-border) !important; font-size: 16px !important; font-weight: 700 !important; color: var(--color-text) !important; }
+body .cp-modal--detalle .cp-modal-total-final span:last-child { font-size: 22px !important; letter-spacing: -0.6px; color: var(--color-primary) !important; }
+body .cp-modal--detalle .cp-btn-recibo {
+  width: 100%; min-height: 52px; border-radius: 18px !important; border: 1.5px solid var(--color-primary) !important;
+  background: transparent !important; color: var(--color-primary) !important; font-family: var(--font-body) !important; font-weight: 600 !important; font-size: 15px !important; cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  body .cp-modal-overlay { padding: 0 !important; align-items: flex-end !important; }
+  body .cp-modal--detalle { max-height: 94vh !important; max-height: 94dvh !important; border-radius: 28px 28px 0 0 !important; }
+  body .cp-modal--detalle .cp-modal-header { padding: 18px !important; }
+  body .cp-modal--detalle .cp-modal-body { padding: 16px !important; }
+  .cp-datos-grid { grid-template-columns: 1fr; }
+  body .cp-modal-folio { font-size: 20px !important; }
+}
+
+/* Seguimiento alineado a la izquierda dentro de su tarjeta */
+body .cp-modal--detalle .cp-modal-bloque .cp-stepper { align-items: stretch !important; padding: 0 !important; margin: 0 !important; }
+body .cp-modal--detalle .cp-modal-bloque .cp-step-wrap { align-items: flex-start !important; width: 100%; }
+body .cp-modal--detalle .cp-modal-bloque .cp-step { justify-content: flex-start !important; width: 100%; }

@@ -1,5 +1,6 @@
 // Ruta: Frontend/src/screens/cliente/ClientePedidosScreen.tsx
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { carritoAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -10,6 +11,7 @@ import {
 } from 'react-icons/ai';
 import './ClientePedidosScreen.css';
 import './PedidosApartadosApp.css';
+import './DetallePedidoClienteApp.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/GestionSitio.css';
 
@@ -541,69 +543,96 @@ const ClientePedidosScreen: React.FC = () => {
             </div>
         )}
 
-            {pedidoDetalle && (
+            {pedidoDetalle && createPortal(
                 <div className="cp-modal-overlay" onClick={() => setPedidoDetalle(null)}>
-                    <div className="cp-modal" onClick={e => e.stopPropagation()}>
+                    <div className="cp-modal cp-modal--detalle" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
                         <div className="cp-modal-header">
                             <div>
-                                <h3>Pedido {pedidoDetalle.folio}</h3>
-                                {pedidoDetalle.es_apartado && (
-                                    <span style={{ fontSize: '0.78rem', background: '#a78bfa22', color: '#a78bfa', borderRadius: 4, padding: '2px 8px', fontWeight: 600 }}>
-                                        Originado de apartado {pedidoDetalle.apartado_folio}
-                                    </span>
-                                )}
-                                <p className="cp-modal-fecha">{formatFechaHora(pedidoDetalle.fecha_creacion)}</p>
+                                <span className="cp-modal-eyebrow">Tu pedido</span>
+                                <h3 className="cp-modal-folio">{pedidoDetalle.folio}</h3>
+                                <p className="cp-modal-fecha">
+                                    {formatFechaHora(pedidoDetalle.fecha_creacion)}
+                                    {pedidoDetalle.es_apartado && <span className="cp-modal-apartado">Viene del apartado {pedidoDetalle.apartado_folio}</span>}
+                                </p>
                             </div>
-                            <button className="cp-modal-close" onClick={() => setPedidoDetalle(null)}>×</button>
+                            <button className="cp-modal-close" onClick={() => setPedidoDetalle(null)} aria-label="Cerrar">×</button>
                         </div>
                         <div className="cp-modal-body">
                             {cargandoDetalle ? (
                                 <Loader texto="Cargando detalle..." />
                             ) : (
                                 <>
-                                    <StepperPedido estado={pedidoDetalle.estado} estado_pago={pedidoDetalle.estado_pago || 'pendiente'} />
                                     <div className="cp-modal-estado">
                                         {getBadge(pedidoDetalle.estado)}
                                         {['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && <span className="cp-pago-badge cp-pago-ok">Pago completado</span>}
                                         {pedidoDetalle.trabajador_nombre && pedidoDetalle.estado !== 'pendiente' && (
-                                            <span className="cp-modal-trabajador">Atendido por: {pedidoDetalle.trabajador_nombre}</span>
+                                            <span className="cp-modal-trabajador">Te atiende {pedidoDetalle.trabajador_nombre}</span>
                                         )}
                                     </div>
-                                    {pedidoDetalle.notas_internas && (
-                                        <div className="cp-modal-nota-trabajador">
-                                            <p>
-                                                
-                                                <strong> {pedidoDetalle.estado === 'cancelado' ? 'Motivo de cancelación:' : 'Nota del trabajador:'}</strong> {pedidoDetalle.notas_internas.replace('CANCELADO: ', '')}
-                                            </p>
+
+                                    {/* Código de entrega como boleto (lo primero que necesita la clienta) */}
+                                    {['aprobado','pagado'].includes(pedidoDetalle.estado_pago) &&
+                                    pedidoDetalle.codigo_entrega &&
+                                    !['entregado','cancelado','expirado'].includes(pedidoDetalle.estado) && (
+                                        <div className="cp-codigo-entrega cp-boleto">
+                                            <span className="cp-boleto-label">Tu código de entrega</span>
+                                            <div className="cp-codigo-valor">{pedidoDetalle.codigo_entrega}</div>
+                                            <p className="cp-codigo-entrega-desc">Muéstralo al recibir tu pedido</p>
                                         </div>
                                     )}
-                                    <div className="cp-modal-seccion">
-                                        <h4>Fecha estimada de entrega</h4>
-                                        <p>{pedidoDetalle.fecha_estimada_entrega ? formatFecha(pedidoDetalle.fecha_estimada_entrega) : 'Por confirmar — el trabajador la indicará al procesar tu pedido'}</p>
+
+                                    <div className="cp-modal-bloque">
+                                        <p className="cp-modal-bloque-titulo">Seguimiento</p>
+                                        <StepperPedido estado={pedidoDetalle.estado} estado_pago={pedidoDetalle.estado_pago || 'pendiente'} />
                                     </div>
-                                    {pedidoDetalle.tipo_entrega === 'domicilio' && pedidoDetalle.dir_calle ? (
-                                        <div className="cp-modal-seccion">
-                                            <h4>Dirección de envío</h4>
-                                            <p>
-                                                {pedidoDetalle.dir_calle} {pedidoDetalle.dir_numero}{pedidoDetalle.dir_numero_interior ? ` Int. ${pedidoDetalle.dir_numero_interior}` : ''}, {pedidoDetalle.dir_colonia}, {pedidoDetalle.dir_ciudad}, {pedidoDetalle.dir_estado}, CP {pedidoDetalle.dir_codigo_postal}
-                                                {pedidoDetalle.dir_telefono_contacto && <><br/>Tel. {pedidoDetalle.dir_telefono_contacto}</>}
-                                                {pedidoDetalle.dir_referencias && <><br/>{pedidoDetalle.dir_referencias}</>}
-                                            </p>
-                                        </div>
-                                    ) : pedidoDetalle.tipo_entrega === 'tienda' ? (
-                                        <div className="cp-modal-seccion">
-                                            <h4>Tipo de entrega</h4>
-                                            <p>Recoger en tienda</p>
-                                        </div>
-                                    ) : null}
-                                    {pedidoDetalle.notas_cliente && (
-                                        <div className="cp-modal-seccion">
-                                            <h4>Notas del pedido</h4>
-                                            <p>{pedidoDetalle.notas_cliente}</p>
+
+                                    {pedidoDetalle.notas_internas && (
+                                        <div className={`cp-modal-nota-trabajador${pedidoDetalle.estado === 'cancelado' ? ' cp-modal-nota--cancelado' : ''}`}>
+                                            <span className="cp-modal-bloque-titulo">{pedidoDetalle.estado === 'cancelado' ? 'Motivo de cancelación' : 'Mensaje de la tienda'}</span>
+                                            <p>{pedidoDetalle.notas_internas.replace('CANCELADO: ', '')}</p>
                                         </div>
                                     )}
+
+                                    {/* Pago: lo que falta por hacer */}
+                                    {pedidoDetalle.es_apartado ? (
+                                        <div className="cp-pago-completado cp-pago-completado--apartado">
+                                            <strong>Pago completado con tu apartado</strong>
+                                            <span>Pasa a recoger tu pieza a la tienda cuando te avisemos que está lista.</span>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {renderSeccionPago(pedidoDetalle)}
+                                            {['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && (
+                                                <div className="cp-pago-completado"><strong>Pago completado</strong></div>
+                                            )}
+                                        </>
+                                    )}
+
+                                    <div className="cp-datos-grid">
+                                        <div className="cp-dato-card">
+                                            <span className="cp-dato-label">{pedidoDetalle.tipo_entrega === 'domicilio' ? 'Envío a domicilio' : 'Entrega'}</span>
+                                            {pedidoDetalle.tipo_entrega === 'domicilio' && pedidoDetalle.dir_calle ? (<>
+                                                <strong>{pedidoDetalle.dir_calle} {pedidoDetalle.dir_numero}{pedidoDetalle.dir_numero_interior ? ` Int. ${pedidoDetalle.dir_numero_interior}` : ''}</strong>
+                                                <small>{pedidoDetalle.dir_colonia}, {pedidoDetalle.dir_ciudad}, {pedidoDetalle.dir_estado}, CP {pedidoDetalle.dir_codigo_postal}</small>
+                                                {pedidoDetalle.dir_telefono_contacto && <small>Tel. {pedidoDetalle.dir_telefono_contacto}</small>}
+                                                {pedidoDetalle.dir_referencias && <small>{pedidoDetalle.dir_referencias}</small>}
+                                            </>) : <><strong>Recoger en tienda</strong><small>Calle Lázaro Cárdenas S/N, Col. El Zapote, Huejutla</small></>}
+                                        </div>
+                                        <div className="cp-dato-card">
+                                            <span className="cp-dato-label">Entrega estimada</span>
+                                            <strong>{pedidoDetalle.fecha_estimada_entrega ? formatFecha(pedidoDetalle.fecha_estimada_entrega) : 'Por confirmar'}</strong>
+                                            {!pedidoDetalle.fecha_estimada_entrega && <small>Te la indicamos al procesar tu pedido</small>}
+                                        </div>
+                                        {pedidoDetalle.notas_cliente && (
+                                            <div className="cp-dato-card cp-dato-card--ancha">
+                                                <span className="cp-dato-label">Tus notas</span>
+                                                <small className="cp-dato-nota">{pedidoDetalle.notas_cliente}</small>
+                                            </div>
+                                        )}
+                                    </div>
+
                                     <div className="cp-modal-seccion">
-                                        <h4>Productos</h4>
+                                        <h4>Productos · {(pedidoDetalle.items || []).length}</h4>
                                         <div className="cp-modal-items">
                                             {(pedidoDetalle.items || []).map((item, i) => (
                                                 <div key={i} className="cp-modal-item">
@@ -614,10 +643,11 @@ const ClientePedidosScreen: React.FC = () => {
                                                         {item.talla_medida && <p className="cp-modal-item-sub">Talla: {item.talla_medida}</p>}
                                                         {item.nota && <p className="cp-modal-item-sub">Nota: {item.nota}</p>}
                                                         {item.precio_original && item.precio_original > item.precio_unitario ? (
-                                                            <>
-                                                                <p className="cp-modal-item-sub" style={{textDecoration:'line-through', opacity:0.5}}>{item.cantidad} × ${Number.parseFloat(String(item.precio_original)).toLocaleString('es-MX')}</p>
-                                                                <p className="cp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')} <span className="cp-descuento-unitario">-${Number.parseFloat(String(item.descuento_unitario)).toLocaleString('es-MX')} c/u</span></p>
-                                                            </>
+                                                            <p className="cp-modal-item-sub">
+                                                                <s>{item.cantidad} × ${Number.parseFloat(String(item.precio_original)).toLocaleString('es-MX')}</s>{' '}
+                                                                {item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')}{' '}
+                                                                <span className="cp-descuento-unitario">-${Number.parseFloat(String(item.descuento_unitario)).toLocaleString('es-MX')} c/u</span>
+                                                            </p>
                                                         ) : (
                                                             <p className="cp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')}</p>
                                                         )}
@@ -635,31 +665,6 @@ const ClientePedidosScreen: React.FC = () => {
                                         )}
                                         <div className="cp-modal-total-fila cp-modal-total-final"><span>Total</span><span>${Number.parseFloat(String(pedidoDetalle.total)).toLocaleString('es-MX')}</span></div>
                                     </div>
-                                    {pedidoDetalle.es_apartado && (
-                                        <div className="cp-pago-completado" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
-                                            <div><strong>Pago completado — Pedido originado de apartado</strong></div>
-                                            <div style={{ fontSize: '0.85em', opacity: 0.85, lineHeight: '1.5' }}>
-                                                Este pedido fue liquidado mediante un plan de apartado.<br />
-                                                Recuerda pasar a recoger tu producto a la tienda una vez que esté listo.
-                                            </div>
-                                        </div>
-                                    )}
-                                    {!pedidoDetalle.es_apartado && renderSeccionPago(pedidoDetalle)}
-                                    {!pedidoDetalle.es_apartado && ['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && (
-                                        <div className="cp-pago-completado"><strong>Pago completado</strong></div>
-                                    )}
-
-                                    {/* ✅ Código de entrega */}
-                                    {['aprobado','pagado'].includes(pedidoDetalle.estado_pago) && 
-                                    pedidoDetalle.codigo_entrega &&
-                                    !['entregado','cancelado','expirado'].includes(pedidoDetalle.estado) && (
-                                        <div className="cp-codigo-entrega">
-                                            <h4>Tu código de entrega</h4>
-                                            <p className="cp-codigo-entrega-desc">Muestra este código al trabajador al momento de recibir tu pedido</p>
-                                            <div className="cp-codigo-valor">{pedidoDetalle.codigo_entrega}</div>
-                                        </div>
-                                    )}
-
 
                                     {pedidoDetalle.estado === 'entregado' && (
                                         <button className="cp-btn-recibo" onClick={() => descargarRecibo(pedidoDetalle)}>Ver / Descargar recibo</button>
@@ -668,7 +673,8 @@ const ClientePedidosScreen: React.FC = () => {
                             )}
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </main>
     );
