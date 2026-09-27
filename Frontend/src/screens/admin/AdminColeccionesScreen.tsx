@@ -6,6 +6,7 @@ import {
 } from 'react-icons/ai';
 import { coleccionesAPI, productsAPI, uploadAPI } from '../../services/api';
 import './AdminColeccionesScreen.css';
+import AdminHero from '../../components/AdminHero';
 
 interface Producto {
   id: number;
@@ -243,15 +244,10 @@ const AdminColeccionesScreen: React.FC = () => {
 
   return (
     <div className="ac2-container">
-      <div className="ac2-header">
-        <div>
-          <h1><AiOutlineFolder size={22} /> Colecciones</h1>
-          <p>Agrupa productos en colecciones temáticas para el catálogo</p>
-        </div>
-        <button className="ac2-btn-nuevo" onClick={abrirCrear}>
-          <AiOutlinePlus size={18} /> Nueva Colección
-        </button>
-      </div>
+      <AdminHero icono={<AiOutlineFolder size={26} />} seccion="Gestión de catálogo" titulo="Tus" resaltado="colecciones"
+        descripcion="Agrupa piezas por temática (Primavera, Novias, Edición limitada) para destacarlas en el catálogo.">
+        <button className="av-btn" onClick={abrirCrear}><AiOutlinePlus size={17} /> Nueva colección</button>
+      </AdminHero>
 
       {error && <div className="ac2-error-global">{error}</div>}
 

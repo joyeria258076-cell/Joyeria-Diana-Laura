@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Loader from '../../../components/Loader';
 import './styles/AdminBackupsScreen.css';
 import { backupsService, Backup, SchedulerConfig, SchedulerStatus } from '../../../services/backupsService';
+import AdminHero from '../../../components/AdminHero';
 import {
   AiOutlineDatabase, AiOutlineCloudDownload, AiOutlineTable, AiOutlineSafetyCertificate,
   AiOutlineReload, AiOutlineEye, AiOutlineCloudUpload, AiOutlineDelete, AiOutlineCheckCircle,
@@ -334,24 +335,19 @@ const AdminBackupsScreen: React.FC = () => {
         <div className={`bk2-container ${isRestoring ? 'app-locked' : ''}`}>
 
             {/* Header */}
-            <div className="bk2-header">
-                <div>
-                    <h1><AiOutlineDatabase size={22} /> Gestión de Base de Datos</h1>
-                    <p>Respaldos, automatización y auditoría de datos de <strong>Joyería Diana Laura</strong></p>
-                </div>
-                <div className="bk2-header-actions">
+            <AdminHero icono={<AiOutlineDatabase size={26} />} seccion="Gestión BD" titulo="Respaldos y" resaltado="datos"
+                descripcion="Copias de seguridad, respaldos automáticos y la bitácora de todo lo que se hace con la base de datos.">
                     <button
-                        className={`bk2-btn-outline ${isCheckingHealth ? 'pulse' : ''}`}
+                        className={`av-btn av-btn--sec ${isCheckingHealth ? 'pulse' : ''}`}
                         onClick={handleHealthCheck}
                         disabled={isCheckingHealth}
                     >
                         <AiOutlineSafetyCertificate size={16} /> {isCheckingHealth ? 'Verificando...' : 'Verificar salud'}
                     </button>
-                    <button className="bk2-btn-icon-refresh" onClick={fetchHistory} title="Actualizar bitácora">
-                        <AiOutlineReload size={16} />
+                    <button className="av-btn av-btn--sec av-btn--icono" onClick={fetchHistory} title="Actualizar bitácora">
+                        <AiOutlineReload size={17} />
                     </button>
-                </div>
-            </div>
+            </AdminHero>
 
             {/* Consola con pestañas: rail izquierdo + panel de contenido */}
             <div className="bk2-console">

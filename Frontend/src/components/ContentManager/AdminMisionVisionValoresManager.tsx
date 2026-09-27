@@ -5,6 +5,9 @@ const CLAVE_MVV = 'sitio_mision_vision_valores';
 
 import '../../styles/SitioSecciones.css';
 import '../../styles/AdminContenido.css';
+import './AdminMVV.css';
+import AdminHero from '../AdminHero';
+import { AiOutlineFlag, AiOutlineAim, AiOutlineEye, AiOutlineHeart, AiOutlinePlus, AiOutlineClose, AiOutlineArrowUp, AiOutlineSave } from 'react-icons/ai';
 interface MisionVisionValores {
     mision: string;
     vision: string;
@@ -62,6 +65,13 @@ const AdminMisionVisionValoresManager: React.FC = () => {
         });
     };
 
+    const moverValor = (i: number) => {
+        if (i === 0) return;
+        const v = [...content.valores];
+        [v[i - 1], v[i]] = [v[i], v[i - 1]];
+        setContent({ ...content, valores: v });
+    };
+
     const saveChanges = async () => {
         setGuardando(true); setAviso(null);
         try {
@@ -73,129 +83,66 @@ const AdminMisionVisionValoresManager: React.FC = () => {
         } finally { setGuardando(false); }
     };
 
+    const partes = (v: string) => { const i = v.indexOf(':'); return i > 0 && i < 40 ? [v.slice(0, i).trim(), v.slice(i + 1).trim()] : [v, '']; };
+
     return (
-        <div className="content-page acf">
-            <header className="sx-head">
-                <div className="sx-eyebrow">Contenido</div>
-                <h1 className="sx-title">Misión, visión y <span>valores</span></h1>
-                <p className="sx-subtitle">Define la identidad y el propósito de la joyería. Se muestra en "Sobre nosotros".</p>
-            </header>
+        <div className="av-page mvv3">
+            <AdminHero icono={<AiOutlineFlag size={26} />} seccion="Contenido" titulo="Misión, visión y" resaltado="valores"
+                descripcion='La identidad de la joyería. Se muestra en la página "Sobre nosotros" tal como la ves a la derecha.'>
+                <button className="av-btn" onClick={saveChanges} disabled={guardando}><AiOutlineSave size={17} /> {guardando ? 'Guardando…' : 'Guardar cambios'}</button>
+            </AdminHero>
 
-            {/* SECCIÓN DE MISIÓN */}
-            <div className="manager-subsection">
-                <h3 className="subsection-title">Nuestra Misión</h3>
-                <p className="subsection-description">¿Cuál es el propósito principal de tu empresa?</p>
+            {aviso && <div className={`mvv3-aviso mvv3-aviso--${aviso.tipo}`} role="status">{aviso.texto}</div>}
 
-                <div className="mvv-form">
-                    <div className="form-group">
-                        <label>Declaración de Misión:</label>
-                        <textarea
-                            placeholder="Escribe la misión de tu empresa..."
-                            rows={4}
-                            value={content.mision}
-                            onChange={(e) => handleMisionChange(e.target.value)}
-                        />
-                    </div>
-                </div>
+            <div className="mvv3-layout">
+                <div className="mvv3-editor">
+                    <section className="av-panel">
+                        <h2 className="av-panel-titulo"><AiOutlineAim size={20} /> Misión <small>¿Para qué existe la joyería?</small></h2>
+                        <textarea className="mvv3-texto" rows={4} value={content.mision} onChange={e => handleMisionChange(e.target.value)} placeholder="Escribe la misión..." maxLength={500} />
+                        <span className="mvv3-contador">{content.mision.length}/500</span>
+                    </section>
 
-                <div className="mvv-preview">
-                    <h5>Vista Previa:</h5>
-                    <div className="preview-box">
-                        {content.mision}
-                    </div>
-                </div>
-            </div>
+                    <section className="av-panel">
+                        <h2 className="av-panel-titulo"><AiOutlineEye size={20} /> Visión <small>¿A dónde quiere llegar?</small></h2>
+                        <textarea className="mvv3-texto" rows={4} value={content.vision} onChange={e => handleVisionChange(e.target.value)} placeholder="Escribe la visión..." maxLength={500} />
+                        <span className="mvv3-contador">{content.vision.length}/500</span>
+                    </section>
 
-            {/* SECCIÓN DE VISIÓN */}
-            <div className="manager-subsection">
-                <h3 className="subsection-title">Nuestra Visión</h3>
-                <p className="subsection-description">¿Qué aspiras a lograr en el futuro?</p>
-
-                <div className="mvv-form">
-                    <div className="form-group">
-                        <label>Declaración de Visión:</label>
-                        <textarea
-                            placeholder="Escribe la visión de tu empresa..."
-                            rows={4}
-                            value={content.vision}
-                            onChange={(e) => handleVisionChange(e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                <div className="mvv-preview">
-                    <h5>Vista Previa:</h5>
-                    <div className="preview-box">
-                        {content.vision}
-                    </div>
-                </div>
-            </div>
-
-            {/* SECCIÓN DE VALORES */}
-            <div className="manager-subsection">
-                <h3 className="subsection-title">Nuestros Valores</h3>
-                <p className="subsection-description">Principios fundamentales que guían tu empresa</p>
-
-                <div className="valores-form">
-                    <div className="form-group">
-                        <label>Agregar Valor:</label>
-                        <div className="valor-input-group">
-                            <input
-                                type="text"
-                                placeholder="Ej: Calidad - Comprometidos con la excelencia"
-                                value={newValor}
-                                onChange={(e) => setNewValor(e.target.value)}
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                        addValor();
-                                    }
-                                }}
-                            />
-                            <button className="btn-add-valor" onClick={addValor}>
-                                + Agregar
-                            </button>
+                    <section className="av-panel">
+                        <h2 className="av-panel-titulo"><AiOutlineHeart size={20} /> Valores <small>Escribe "Nombre: descripción"</small></h2>
+                        <div className="mvv3-agregar">
+                            <input value={newValor} onChange={e => setNewValor(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addValor(); }}
+                                placeholder="Ej: Calidad: cuidamos cada detalle de la pieza" />
+                            <button className="av-btn" onClick={addValor} disabled={!newValor.trim()}><AiOutlinePlus size={16} /> Agregar</button>
                         </div>
+                        {content.valores.length === 0 ? (
+                            <p className="mvv3-vacio">Aún no hay valores. Agrega el primero.</p>
+                        ) : (
+                            <ul className="mvv3-valores">
+                                {content.valores.map((v, i) => {
+                                    const [t, desc] = partes(v);
+                                    return (
+                                        <li key={i}>
+                                            <span className="mvv3-num">{i + 1}</span>
+                                            <span className="mvv3-valor"><b>{t}</b>{desc && <small>{desc}</small>}</span>
+                                            <button className="av-accion" onClick={() => moverValor(i)} disabled={i === 0} title="Subir"><AiOutlineArrowUp size={15} /></button>
+                                            <button className="av-accion av-accion--peligro" onClick={() => removeValor(i)} title="Quitar"><AiOutlineClose size={15} /></button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </section>
+                </div>
+
+                <aside className="mvv3-preview" aria-label="Vista previa">
+                    <span className="av-eyebrow">Así se verá</span>
+                    <div className="mvv3-tarjeta mvv3-tarjeta--mision"><span><AiOutlineAim size={18} /> Misión</span><p>{content.mision || '—'}</p></div>
+                    <div className="mvv3-tarjeta"><span><AiOutlineEye size={18} /> Visión</span><p>{content.vision || '—'}</p></div>
+                    <div className="mvv3-chips">
+                        {content.valores.map((v, i) => <span key={i}>{partes(v)[0]}</span>)}
                     </div>
-                </div>
-
-                <div className="valores-list">
-                    {content.valores.length === 0 ? (
-                        <p className="empty-state">No hay valores. ¡Agrega el primero!</p>
-                    ) : (
-                        content.valores.map((valor, index) => (
-                            <div key={index} className="valor-item">
-                                <div className="valor-content">
-                                    <span className="valor-number">{index + 1}</span>
-                                    <div className="valor-text">{valor}</div>
-                                </div>
-                                <button
-                                    className="btn-delete"
-                                    onClick={() => removeValor(index)}
-                                >
-                                    🗑️
-                                </button>
-                            </div>
-                        ))
-                    )}
-                </div>
-
-                <div className="mvv-preview">
-                    <h5>Vista Previa de Valores:</h5>
-                    <div className="preview-box valores-preview">
-                        {content.valores.map((valor, index) => (
-                            <div key={index} className="preview-valor">
-                                <strong>{index + 1}.</strong> {valor}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            <div className="save-section">
-                {aviso && <p className={`acf-aviso acf-aviso--${aviso.tipo}`} role="status">{aviso.texto}</p>}
-                <button className="btn-primary btn-save" onClick={saveChanges} disabled={guardando}>
-                    {guardando ? 'Guardando…' : 'Guardar cambios'}
-                </button>
+                </aside>
             </div>
         </div>
     );

@@ -12,7 +12,7 @@ import {
     AiOutlineEdit, AiOutlineInbox, AiOutlineShoppingCart, AiOutlineTeam,
     AiOutlineLineChart, AiOutlineBulb, AiOutlineUsergroupAdd,
     AiOutlineWarning, AiOutlineCheckCircle, AiOutlineCrown, AiOutlineStar,
-    AiOutlinePieChart, AiOutlinePlusCircle, AiOutlineTag, AiOutlineFileText, AiOutlineBgColors, AiOutlineRise,
+    AiOutlinePieChart, AiOutlinePlusCircle, AiOutlineTag, AiOutlineFileText, AiOutlineBgColors,
 } from 'react-icons/ai';
 import './AdminDashboardScreen.css';
 import './DashboardAdminApp.css';
@@ -102,7 +102,6 @@ const AdminDashboardScreen: React.FC = () => {
     const HERRAMIENTAS = [
         { label: 'Precio sugerido', desc: 'Calcula el precio ideal de una pieza', icon: AiOutlineDollarCircle, ruta: '/admin-nuevo-producto' },
         { label: 'Segmentos de clientes', desc: 'Grupos y promociones dirigidas', icon: AiOutlineUsergroupAdd, ruta: '/admin-segmentos' },
-        { label: 'Predicción de inventario', desc: 'Qué reabastecer y cuándo', icon: AiOutlineRise, ruta: '/admin-prediccion' },
     ];
 
     const nombre = (user?.nombre || 'Admin').split(' ')[0];

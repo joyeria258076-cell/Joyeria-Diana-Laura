@@ -11,6 +11,7 @@ import {
 } from 'react-icons/ai';
 import { reportesAPI, visitaSitioAPI } from '../../services/api';
 import './AdminReportesScreen.css';
+import AdminHero from '../../components/AdminHero';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
 
@@ -105,23 +106,20 @@ const AdminReportesScreen: React.FC = () => {
 
   return (
     <div className="rp-wrap animate-in">
-      <div className="rp-header">
-        <div>
-          <h1 className="rp-titulo"><AiOutlineBarChart size={22} /> Reportes y Análisis</h1>
-          <p className="rp-subtitulo">Desempeño real de ventas, productos y equipo</p>
-        </div>
-        <div className="rp-periodos">
+      <AdminHero icono={<AiOutlineBarChart size={26} />} seccion="Reportes" titulo="¿Cómo va la" resaltado="tienda?"
+        descripcion="Ventas, productos más vendidos, inventario y desempeño del equipo en el periodo que elijas.">
+        <div className="av-segmento rp-periodos">
           {PERIODOS.map(p => (
             <button
               key={p.valor}
-              className={`rp-periodo-btn${dias === p.valor ? ' sel' : ''}`}
+              className={dias === p.valor ? 'activo' : ''}
               onClick={() => setDias(p.valor)}
             >
               {p.label}
             </button>
           ))}
         </div>
-      </div>
+      </AdminHero>
 
       {error && <div className="rp-error">{error}</div>}
 

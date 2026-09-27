@@ -9,6 +9,7 @@ import {
 } from 'react-icons/ai';
 import { configAPI, apartadoAPI } from '../../../services/api';
 import './AdminVariablesConfigScreen.css';
+import AdminHero from '../../../components/AdminHero';
 
 const ICONOS_CATEGORIA: Record<string, React.ComponentType<{size?:number}>> = {
   fiscal: AiOutlineDollarCircle,
@@ -309,15 +310,15 @@ const AdminVariablesConfigScreen: React.FC = () => {
   return (
     <div className="variables-container">
       {/* Header */}
-      <div className="variables-header">
-        <h1><AiOutlineSetting size={22} /> Variables de configuración</h1>
+      <AdminHero icono={<AiOutlineSetting size={26} />} seccion="Configuración" titulo="Ajustes de la" resaltado="tienda"
+        descripcion="Planes de abono, tiempos y reglas que usa el sistema. Los cambios aplican de inmediato.">
         {Object.keys(editValues).length > 0 && (
-          <button className="btn-save-all" onClick={handleSaveAll} disabled={saving}>
+          <button className="av-btn" onClick={handleSaveAll} disabled={saving}>
             <AiOutlineSave size={18} />
             {saving ? 'Guardando...' : `Guardar ${Object.keys(editValues).length} cambio(s)`}
           </button>
         )}
-      </div>
+      </AdminHero>
 
       {/* Mensajes */}
       {error && (

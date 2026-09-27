@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import './AdminCategoriasScreen.css';
 import { productsAPI } from '../../services/api';
 import CategoriaModal from './CategoriaModal';
+import AdminHero from '../../components/AdminHero';
 import {
   AiOutlineReload, AiOutlinePlus, AiOutlineEdit, AiOutlineEye, AiOutlineEyeInvisible,
-  AiOutlineDelete, AiOutlineSearch, AiOutlineAppstore, AiOutlineTags, AiOutlineFolder,
+  AiOutlineDelete, AiOutlineSearch, AiOutlineAppstore, AiOutlineTags, AiOutlineInbox, AiOutlineFolder,
   AiOutlineHolder,
 } from 'react-icons/ai';
 
@@ -211,48 +212,41 @@ const AdminCategoriasScreen: React.FC = () => {
     );
   };
 
+  // Foto y número de piezas por categoría (tomado de los productos)
+  const [fotos, setFotos] = useState<Record<number, { img?: string; n: number }>>({});
+  useEffect(() => {
+    productsAPI.getAll().then((r: any) => {
+      const m: Record<number, { img?: string; n: number }> = {};
+      (Array.isArray(r?.data) ? r.data : []).forEach((pr: any) => {
+        if (!pr.categoria_id) return;
+        const f = m[pr.categoria_id] || (m[pr.categoria_id] = { n: 0 });
+        f.n += 1;
+        if (!f.img && pr.imagen_principal) f.img = pr.imagen_principal;
+      });
+      setFotos(m);
+    }).catch(() => {});
+  }, []);
+
   return (
-    <div className="cat2-container">
-      <div className="cat2-header">
-        <h1><AiOutlineTags size={24} /> Gestión de Categorías</h1>
-        <button className="cat2-btn-nuevo" onClick={() => handleAbrirModal()}>
-          <AiOutlinePlus size={18} /> Nueva Categoría
-        </button>
+    <div className="av-page cat2-container">
+      <AdminHero icono={<AiOutlineTags size={26} />} seccion="Gestión de catálogo" titulo="Tus" resaltado="categorías"
+        descripcion="Ordena cómo se agrupan las piezas en la tienda. Arrastra para cambiar el orden en que aparecen.">
+        <button className="av-btn" onClick={() => handleAbrirModal()}><AiOutlinePlus size={17} /> Nueva categoría</button>
+      </AdminHero>
+
+      <div className="av-kpis">
+        <div className="av-kpi"><span className="av-kpi-icono"><AiOutlineTags size={20} /></span><span><strong>{categorias.length}</strong><small>Categorías</small></span></div>
+        <div className="av-kpi av-tono--info"><span className="av-kpi-icono"><AiOutlineAppstore size={20} /></span><span><strong>{principales.length}</strong><small>Principales · {totalSub} sub</small></span></div>
+        <div className="av-kpi av-tono--ok"><span className="av-kpi-icono"><AiOutlineFolder size={20} /></span><span><strong>{totalActivas}</strong><small>Visibles en tienda</small></span></div>
+        <div className="av-kpi av-tono--acento"><span className="av-kpi-icono"><AiOutlineInbox size={20} /></span><span><strong>{Object.values(fotos).reduce((n, f) => n + f.n, 0)}</strong><small>Piezas clasificadas</small></span></div>
       </div>
 
-      <div className="cat2-stats">
-        <div className="cat2-stat">
-          <span className="cat2-stat-num">{categorias.length}</span>
-          <span className="cat2-stat-label">Total</span>
-        </div>
-        <div className="cat2-stat">
-          <span className="cat2-stat-num">{principales.length}</span>
-          <span className="cat2-stat-label">Principales</span>
-        </div>
-        <div className="cat2-stat">
-          <span className="cat2-stat-num">{totalSub}</span>
-          <span className="cat2-stat-label">Subcategorías</span>
-        </div>
-        <div className="cat2-stat cat2-stat-ok">
-          <span className="cat2-stat-num">{totalActivas}</span>
-          <span className="cat2-stat-label">Activas</span>
-        </div>
-      </div>
-
-      <div className="cat2-toolbar">
-        <div className="cat2-search">
-          <AiOutlineSearch />
-          <input
-            type="text"
-            placeholder="Buscar categoría o subcategoría..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <button className="cat2-btn-refrescar" onClick={cargarCategorias} disabled={loading}>
-          <AiOutlineReload size={15} />
-          {loading ? 'Cargando...' : 'Refrescar'}
-        </button>
+      <div className="av-barra">
+        <label className="av-buscar">
+          <AiOutlineSearch size={18} />
+          <input type="text" placeholder="Buscar categoría o subcategoría" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+        </label>
+        <button className="av-btn av-btn--sec av-btn--icono" onClick={cargarCategorias} disabled={loading} aria-label="Actualizar"><AiOutlineReload size={18} /></button>
       </div>
 
       {/* Árbol de categorías */}
@@ -283,7 +277,7 @@ const AdminCategoriasScreen: React.FC = () => {
                   >
                     <AiOutlineHolder size={16} />
                   </span>
-                  <div className="cat2-group-icon"><AiOutlineAppstore size={18} /></div>
+                  <div className="cat2-group-icon">{fotos[padre.id]?.img ? <img src={fotos[padre.id].img} alt="" /> : <AiOutlineAppstore size={18} />}</div>
                   <div className="cat2-group-info">
                     <div className="cat2-group-nombre">
                       {padre.nombre}
@@ -291,6 +285,7 @@ const AdminCategoriasScreen: React.FC = () => {
                     </div>
                     {padre.descripcion && <p className="cat2-group-desc">{padre.descripcion}</p>}
                   </div>
+                  <span className="cat2-piezas">{fotos[padre.id]?.n || 0} piezas</span>
                   <span className={`cat2-dot ${isActivo ? 'on' : 'off'}`}>{isActivo ? 'Activa' : 'Inactiva'}</span>
                   {renderAcciones(padre)}
                 </div>

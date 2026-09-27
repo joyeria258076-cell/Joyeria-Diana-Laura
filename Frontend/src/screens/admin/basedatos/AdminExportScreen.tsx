@@ -4,6 +4,7 @@ import { exportAPI } from '../../../services/api';
 import Loader from '../../../components/Loader';
 import FilterBuilder from './components/FilterBuilder';
 import './styles/AdminExportScreen.css';
+import AdminHero from '../../../components/AdminHero';
 import {
   FiDownload, FiFilter, FiDatabase,
   FiXCircle, FiRefreshCw, FiInfo, FiCheckCircle,
@@ -95,10 +96,8 @@ const AdminExportScreen: React.FC = () => {
 
   return (
     <div className="ex3-container">
-      <div className="ex3-header">
-        <h1><FiDownload size={22} /> Exportación de datos</h1>
-        <p>Exporta datos para análisis o actualización masiva</p>
-      </div>
+      <AdminHero icono={<FiDownload size={24} />} seccion="Gestión BD" titulo="Exportar" resaltado="datos"
+        descripcion="Descarga en Excel productos, clientes, proveedores y más, para revisarlos o editarlos y volver a subirlos." />
 
       {message && (
         <div className={`export-message ${message.type}`}>

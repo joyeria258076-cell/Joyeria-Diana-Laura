@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { bulkUpdateAPI } from '../../../services/api';
 import './styles/AdminBulkUpdateScreen.css';
+import AdminHero from '../../../components/AdminHero';
 import {
   FiUpload, FiRefreshCw, FiCheckCircle, FiXCircle, FiInfo,
   FiAlertTriangle, FiDatabase, FiEye, FiEdit3, FiSave, FiDownload,
@@ -130,12 +131,8 @@ const AdminBulkUpdateScreen: React.FC = () => {
 
   return (
     <div className="bu2-container">
-      <div className="bu2-header">
-        <div>
-          <h1><FiEdit3 size={22} /> Actualización masiva</h1>
-          <p>Actualiza múltiples registros a la vez usando un archivo Excel</p>
-        </div>
-      </div>
+      <AdminHero icono={<FiEdit3 size={24} />} seccion="Gestión BD" titulo="Actualización" resaltado="masiva"
+        descripcion="Cambia precios, existencias u otros datos de muchos registros a la vez con un archivo de Excel." />
 
       {message && (
         <div className={`bulk-message ${message.type}`}>

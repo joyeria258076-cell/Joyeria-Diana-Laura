@@ -1,13 +1,14 @@
 // Frontend/src/screens/admin/proveedores/AdminProveedoresScreen.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Loader from '../../../components/Loader';
 import {
-  AiOutlinePlus, AiOutlineSearch, AiOutlineReload, AiOutlineEdit, AiOutlineDelete, AiOutlineInfo,
+  AiOutlinePlus, AiOutlineSearch, AiOutlineReload, AiOutlineEdit, AiOutlineDelete, AiOutlineEye,
   AiOutlineMail, AiOutlinePhone, AiOutlineShop, AiOutlineIdcard, AiOutlineCheckCircle, AiOutlineStop,
-  AiOutlineLeft, AiOutlineRight,
+  AiOutlineLeft, AiOutlineRight, AiOutlineUser, AiOutlineWarning,
 } from 'react-icons/ai';
 import { proveedoresAPI } from '../../../services/api';
+import '../../../styles/AdminV2.css';
 import './AdminProveedoresScreen.css';
 
 interface Proveedor {
@@ -18,10 +19,14 @@ interface Proveedor {
   telefono: string;
   email: string;
   persona_contacto: string;
+  notas?: string;
   activo: boolean;
   fecha_creacion: string;
   imagen_url?: string;
 }
+
+type Filtro = 'todos' | 'activos' | 'inactivos';
+const POR_PAGINA = 9;
 
 const iniciales = (nombre: string) =>
   nombre.trim().split(/\s+/).slice(0, 2).map(p => p[0]?.toUpperCase()).join('') || '?';
@@ -29,37 +34,22 @@ const iniciales = (nombre: string) =>
 const AdminProveedoresScreen: React.FC = () => {
   const navigate = useNavigate();
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
-  const [proveedoresFiltrados, setProveedoresFiltrados] = useState<Proveedor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [busqueda, setBusqueda] = useState('');
   const [error, setError] = useState('');
-  const [filtroActivo, setFiltroActivo] = useState<'todos' | 'activos' | 'inactivos'>('todos');
-  const [paginaActual, setPaginaActual] = useState(1);
-  const PROVEEDORES_POR_PAGINA = 9;
+  const [filtro, setFiltro] = useState<Filtro>('todos');
+  const [pagina, setPagina] = useState(1);
 
-  useEffect(() => {
-    cargarProveedores();
-  }, []);
-
-  useEffect(() => {
-    filtrarProveedores();
-  }, [searchTerm, filtroActivo, proveedores]);
-
-  useEffect(() => {
-    setPaginaActual(1);
-  }, [searchTerm, filtroActivo]);
+  useEffect(() => { cargarProveedores(); }, []);
+  useEffect(() => { setPagina(1); }, [busqueda, filtro]);
 
   const cargarProveedores = async () => {
     try {
       setLoading(true);
+      setError('');
       const response = await proveedoresAPI.getAll();
-      if (response.success) {
-        const data = Array.isArray(response.data) ? response.data : [];
-        setProveedores(data);
-        setProveedoresFiltrados(data);
-      } else {
-        setError('Error al cargar los proveedores');
-      }
+      if (response.success) setProveedores(Array.isArray(response.data) ? response.data : []);
+      else setError('Error al cargar los proveedores');
     } catch (err: any) {
       console.error('Error loading proveedores:', err);
       setError(err.message || 'Error al cargar los proveedores');
@@ -68,40 +58,12 @@ const AdminProveedoresScreen: React.FC = () => {
     }
   };
 
-  const filtrarProveedores = () => {
-    let filtrados = [...proveedores];
-
-    if (filtroActivo === 'activos') {
-      filtrados = filtrados.filter(p => p.activo);
-    } else if (filtroActivo === 'inactivos') {
-      filtrados = filtrados.filter(p => !p.activo);
-    }
-
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      filtrados = filtrados.filter(p =>
-        p.nombre.toLowerCase().includes(term) ||
-        p.razon_social?.toLowerCase().includes(term) ||
-        p.rfc?.toLowerCase().includes(term) ||
-        p.email?.toLowerCase().includes(term) ||
-        p.persona_contacto?.toLowerCase().includes(term)
-      );
-    }
-
-    setProveedoresFiltrados(filtrados);
-  };
-
   const handleDelete = async (id: number, nombre: string) => {
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar al proveedor "${nombre}"?`)) {
-      return;
-    }
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar al proveedor "${nombre}"?`)) return;
     try {
       const response = await proveedoresAPI.delete(id);
-      if (response.success) {
-        cargarProveedores();
-      } else {
-        alert(response.message || 'Error al eliminar el proveedor');
-      }
+      if (response.success) cargarProveedores();
+      else alert(response.message || 'Error al eliminar el proveedor');
     } catch (err: any) {
       alert(`Error al eliminar: ${err.message}`);
     }
@@ -110,195 +72,126 @@ const AdminProveedoresScreen: React.FC = () => {
   const handleToggleStatus = async (id: number, activo: boolean) => {
     try {
       const response = await proveedoresAPI.toggleStatus(id, !activo);
-      if (response.success) {
-        cargarProveedores();
-      } else {
-        alert(response.message || 'Error al cambiar el estado');
-      }
+      if (response.success) cargarProveedores();
+      else alert(response.message || 'Error al cambiar el estado');
     } catch (err: any) {
       alert(`Error al cambiar estado: ${err.message}`);
     }
   };
 
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('es-MX', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  const visibles = useMemo(() => {
+    const q = busqueda.trim().toLowerCase();
+    return proveedores.filter(p =>
+      (filtro === 'todos' || (filtro === 'activos' ? p.activo : !p.activo)) &&
+      (!q || [p.nombre, p.razon_social, p.rfc, p.email, p.persona_contacto].some(v => v?.toLowerCase().includes(q))));
+  }, [proveedores, busqueda, filtro]);
 
-  const totalActivos = proveedores.filter(p => p.activo).length;
-  const totalInactivos = proveedores.length - totalActivos;
-
-  const totalPaginas = Math.max(1, Math.ceil(proveedoresFiltrados.length / PROVEEDORES_POR_PAGINA));
-  const proveedoresPagina = proveedoresFiltrados.slice(
-    (paginaActual - 1) * PROVEEDORES_POR_PAGINA,
-    paginaActual * PROVEEDORES_POR_PAGINA
-  );
+  const activos = proveedores.filter(p => p.activo).length;
+  const sinContacto = proveedores.filter(p => !p.email && !p.telefono).length;
+  const totalPaginas = Math.max(1, Math.ceil(visibles.length / POR_PAGINA));
+  const pag = visibles.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
   return (
-    <div className="pv-container">
-      {/* Header */}
-      <div className="pv-header">
-        <h1><AiOutlineShop size={24} /> Proveedores</h1>
-        <button className="pv-btn-nuevo" onClick={() => navigate('/admin/proveedor/nuevo')}>
-          <AiOutlinePlus size={20} />
-          Nuevo Proveedor
+    <div className="av-page">
+      <header className="av-hero">
+        <div>
+          <span className="av-hero-icono"><AiOutlineShop size={26} /></span>
+          <span className="av-eyebrow">Compras</span>
+          <h1 className="av-titulo">Tus <em>proveedores</em></h1>
+          <p className="av-sub">Quién te surte cada pieza y cómo contactarlo. Los inactivos no aparecen al dar de alta productos.</p>
+        </div>
+        <div className="av-hero-acciones">
+          <button className="av-btn" onClick={() => navigate('/admin/proveedor/nuevo')}><AiOutlinePlus size={17} /> Nuevo proveedor</button>
+        </div>
+      </header>
+
+      <div className="av-kpis">
+        <button className={`av-kpi ${filtro === 'todos' ? '' : ''}`} onClick={() => setFiltro('todos')}>
+          <span className="av-kpi-icono"><AiOutlineShop size={20} /></span>
+          <span><strong>{proveedores.length}</strong><small>Proveedores</small></span>
         </button>
-      </div>
-
-      {/* Estadísticas */}
-      <div className="pv-stats">
-        <div className="pv-stat">
-          <span className="pv-stat-num">{proveedores.length}</span>
-          <span className="pv-stat-label">Total</span>
-        </div>
-        <div className="pv-stat pv-stat-ok">
-          <span className="pv-stat-num">{totalActivos}</span>
-          <span className="pv-stat-label">Activos</span>
-        </div>
-        <div className="pv-stat pv-stat-off">
-          <span className="pv-stat-num">{totalInactivos}</span>
-          <span className="pv-stat-label">Inactivos</span>
+        <button className={`av-kpi av-tono--ok ${filtro === 'activos' ? 'activo' : ''}`} onClick={() => setFiltro(filtro === 'activos' ? 'todos' : 'activos')}>
+          <span className="av-kpi-icono"><AiOutlineCheckCircle size={20} /></span>
+          <span><strong>{activos}</strong><small>Activos</small></span>
+        </button>
+        <button className={`av-kpi av-tono--apagado ${filtro === 'inactivos' ? 'activo' : ''}`} onClick={() => setFiltro(filtro === 'inactivos' ? 'todos' : 'inactivos')}>
+          <span className="av-kpi-icono"><AiOutlineStop size={20} /></span>
+          <span><strong>{proveedores.length - activos}</strong><small>Inactivos</small></span>
+        </button>
+        <div className="av-kpi av-tono--aviso">
+          <span className="av-kpi-icono"><AiOutlineWarning size={20} /></span>
+          <span><strong>{sinContacto}</strong><small>Sin datos de contacto</small></span>
         </div>
       </div>
 
-      {error && <div className="pv-alert">{error}</div>}
+      {error && <div className="av-alerta"><AiOutlineWarning size={18} /> {error}</div>}
 
-      {/* Toolbar */}
-      <div className="pv-toolbar">
-        <div className="pv-search">
-          <AiOutlineSearch />
-          <input
-            type="text"
-            placeholder="Buscar por nombre, RFC, email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <div className="pv-filtros">
+      <div className="av-barra">
+        <label className="av-buscar">
+          <AiOutlineSearch size={18} />
+          <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar por nombre, RFC, correo o contacto" />
+        </label>
+        <div className="av-segmento" role="group" aria-label="Filtrar">
           {(['todos', 'activos', 'inactivos'] as const).map(f => (
-            <button
-              key={f}
-              className={`pv-filtro-btn ${filtroActivo === f ? 'active' : ''}`}
-              onClick={() => setFiltroActivo(f)}
-            >
+            <button key={f} className={filtro === f ? 'activo' : ''} onClick={() => setFiltro(f)}>
               {f === 'todos' ? 'Todos' : f === 'activos' ? 'Activos' : 'Inactivos'}
             </button>
           ))}
         </div>
-
-        <button className="pv-btn-refrescar" onClick={cargarProveedores} disabled={loading}>
-          <AiOutlineReload size={17} />
-          {loading ? 'Cargando...' : 'Refrescar'}
-        </button>
+        <button className="av-btn av-btn--sec av-btn--icono" onClick={cargarProveedores} disabled={loading} aria-label="Actualizar"><AiOutlineReload size={18} /></button>
       </div>
 
-      {/* Cuadrícula de tarjetas */}
       {loading ? (
         <Loader texto="Cargando proveedores..." />
-      ) : proveedoresFiltrados.length === 0 ? (
-        <div className="pv-empty">
-          <AiOutlineShop size={36} />
-          <p>{searchTerm ? 'No se encontraron proveedores' : 'No hay proveedores registrados'}</p>
-          {!searchTerm && (
-            <button className="pv-btn-nuevo" onClick={() => navigate('/admin/proveedor/nuevo')}>
-              <AiOutlinePlus size={18} />
-              Agregar primer proveedor
-            </button>
+      ) : pag.length === 0 ? (
+        <div className="av-vacio">
+          <AiOutlineShop size={40} />
+          <strong>{busqueda || filtro !== 'todos' ? 'Nada coincide con la búsqueda' : 'Aún no hay proveedores'}</strong>
+          {!busqueda && filtro === 'todos' && (
+            <button className="av-btn" onClick={() => navigate('/admin/proveedor/nuevo')}><AiOutlinePlus size={17} /> Agregar el primero</button>
           )}
         </div>
       ) : (
-        <div className="pv-grid">
-          {proveedoresPagina.map(proveedor => (
-            <div key={proveedor.id} className={`pv-card ${!proveedor.activo ? 'pv-card-inactivo' : ''}`}>
-              <div className="pv-card-top">
-                <div className="pv-card-avatar">
-                  {proveedor.imagen_url ? <img src={proveedor.imagen_url} alt="" /> : iniciales(proveedor.nombre)}
+        <div className="pv3-grid">
+          {pag.map(p => (
+            <article key={p.id} className={`pv3-card ${!p.activo ? 'inactivo' : ''}`}>
+              <div className="pv3-top">
+                <div className="pv3-avatar">{p.imagen_url ? <img src={p.imagen_url} alt="" /> : iniciales(p.nombre)}</div>
+                <div className="pv3-titulo">
+                  <h3>{p.nombre}</h3>
+                  <small>{p.razon_social && p.razon_social !== p.nombre ? p.razon_social : `Desde ${new Date(p.fecha_creacion).toLocaleDateString('es-MX', { month: 'short', year: 'numeric' })}`}</small>
                 </div>
-                <button
-                  className={`pv-status ${proveedor.activo ? 'on' : 'off'}`}
-                  onClick={() => handleToggleStatus(proveedor.id, proveedor.activo)}
-                  title={proveedor.activo ? 'Hacer inactivo' : 'Activar'}
-                >
-                  {proveedor.activo ? <AiOutlineCheckCircle size={13} /> : <AiOutlineStop size={13} />}
-                  {proveedor.activo ? 'Activo' : 'Inactivo'}
-                </button>
+                <button className={`pv3-switch ${p.activo ? 'on' : ''}`} onClick={() => handleToggleStatus(p.id, p.activo)}
+                  role="switch" aria-checked={p.activo} title={p.activo ? 'Desactivar' : 'Activar'}><i /></button>
               </div>
 
-              <h3 className="pv-card-nombre">{proveedor.nombre}</h3>
-              {proveedor.razon_social && <p className="pv-card-razon">{proveedor.razon_social}</p>}
+              {p.notas && <p className="pv3-notas">{p.notas}</p>}
 
-              <div className="pv-card-id">#{proveedor.id} · {formatDate(proveedor.fecha_creacion)}</div>
+              <ul className="pv3-datos">
+                <li><AiOutlineUser size={15} /> {p.persona_contacto || <em>Sin persona de contacto</em>}</li>
+                <li><AiOutlineMail size={15} /> {p.email ? <a href={`mailto:${p.email}`}>{p.email}</a> : <em>Sin correo</em>}</li>
+                <li><AiOutlinePhone size={15} /> {p.telefono ? <a href={`tel:${p.telefono.replace(/\s/g, '')}`}>{p.telefono}</a> : <em>Sin teléfono</em>}</li>
+                <li><AiOutlineIdcard size={15} /> {p.rfc || <em>Sin RFC</em>}</li>
+              </ul>
 
-              <div className="pv-card-divider" />
-
-              <div className="pv-card-info">
-                <div className="pv-card-row">
-                  <AiOutlineIdcard size={14} />
-                  <span>{proveedor.rfc || 'RFC no especificado'}</span>
+              <div className="pv3-pie">
+                <span className={`av-pill av-pill--punto ${p.activo ? 'av-tono--ok' : 'av-tono--apagado'}`}>{p.activo ? 'Activo' : 'Inactivo'}</span>
+                <div className="av-acciones">
+                  <button className="av-accion" onClick={() => navigate(`/admin/proveedor/${p.id}`)} title="Ver detalle"><AiOutlineEye size={16} /></button>
+                  <button className="av-accion" onClick={() => navigate(`/admin/editar-proveedor/${p.id}`)} title="Editar"><AiOutlineEdit size={16} /></button>
+                  <button className="av-accion av-accion--peligro" onClick={() => handleDelete(p.id, p.nombre)} title="Eliminar"><AiOutlineDelete size={16} /></button>
                 </div>
-                {proveedor.persona_contacto && (
-                  <div className="pv-card-row">
-                    <span className="pv-card-dot" />
-                    <span>{proveedor.persona_contacto}</span>
-                  </div>
-                )}
-                {proveedor.email && (
-                  <div className="pv-card-row">
-                    <AiOutlineMail size={14} />
-                    <span>{proveedor.email}</span>
-                  </div>
-                )}
-                {proveedor.telefono && (
-                  <div className="pv-card-row">
-                    <AiOutlinePhone size={14} />
-                    <span>{proveedor.telefono}</span>
-                  </div>
-                )}
               </div>
-
-              <div className="pv-card-actions">
-                <button onClick={() => navigate(`/admin/proveedor/${proveedor.id}`)} title="Ver detalles">
-                  <AiOutlineInfo size={16} />
-                </button>
-                <button onClick={() => navigate(`/admin/editar-proveedor/${proveedor.id}`)} title="Editar">
-                  <AiOutlineEdit size={16} />
-                </button>
-                <button className="danger" onClick={() => handleDelete(proveedor.id, proveedor.nombre)} title="Eliminar">
-                  <AiOutlineDelete size={16} />
-                </button>
-              </div>
-            </div>
+            </article>
           ))}
         </div>
       )}
 
-      {/* Paginación */}
-      {!loading && proveedoresFiltrados.length > PROVEEDORES_POR_PAGINA && (
-        <div className="pv-pagination">
-          <button
-            className="pv-page-btn"
-            onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
-            disabled={paginaActual === 1}
-          >
-            <AiOutlineLeft size={14} />
-          </button>
-
-          <span className="pv-page-info">
-            Página {paginaActual} de {totalPaginas}
-            <small> · {proveedoresFiltrados.length} proveedores</small>
-          </span>
-
-          <button
-            className="pv-page-btn"
-            onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
-            disabled={paginaActual === totalPaginas}
-          >
-            <AiOutlineRight size={14} />
-          </button>
+      {!loading && visibles.length > POR_PAGINA && (
+        <div className="av-paginas">
+          <button className="av-accion" onClick={() => setPagina(p => Math.max(1, p - 1))} disabled={pagina === 1} aria-label="Anterior"><AiOutlineLeft size={15} /></button>
+          <span>Página <b>{pagina}</b> de <b>{totalPaginas}</b> · {visibles.length} proveedores</span>
+          <button className="av-accion" onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas} aria-label="Siguiente"><AiOutlineRight size={15} /></button>
         </div>
       )}
     </div>

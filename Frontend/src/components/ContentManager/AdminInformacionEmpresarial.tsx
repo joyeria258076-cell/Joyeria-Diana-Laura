@@ -1,3 +1,7 @@
+import AdminHero from '../AdminHero';
+import '../../styles/AdminV2.css';
+import './AdminInfoEmpresa.css';
+import { AiOutlineShop, AiOutlinePhone, AiOutlineHeart, AiOutlineGlobal, AiOutlineSave } from 'react-icons/ai';
 import React, { useState, useEffect } from 'react';
 import { contentAPI, uploadAPI } from '../../services/api';
 
@@ -111,12 +115,11 @@ const AdminInformacionEmpresarial: React.FC = () => {
     }
 
     return (
-        <div className="content-page acf">
-            <header className="sx-head">
-                <div className="sx-eyebrow">Contenido</div>
-                <h1 className="sx-title">Información <span>empresarial</span></h1>
-                <p className="sx-subtitle">Datos de contacto, horario, redes y textos del negocio. Se usan en Contacto, Ubicación, el pie de página, el asistente y "Sobre nosotros".</p>
-            </header>
+        <div className="av-page content-page acf ie3">
+            <AdminHero icono={<AiOutlineShop size={26} />} seccion="Contenido" titulo="Información" resaltado="empresarial"
+                descripcion='Datos de contacto, horario, redes y textos del negocio. Se usan en Contacto, Ubicación, el pie de página, el asistente y "Sobre nosotros".'>
+                <button className="av-btn" onClick={saveChanges} disabled={saving}><AiOutlineSave size={17} /> {saving ? 'Guardando...' : 'Guardar cambios'}</button>
+            </AdminHero>
 
             {mensaje && (
                 <div className={mensaje.tipo === 'ok' ? 'message success-message' : 'message error-message'}>
@@ -125,7 +128,7 @@ const AdminInformacionEmpresarial: React.FC = () => {
             )}
 
             <div className="manager-subsection">
-                <h3 className="subsection-title">Datos de la Empresa</h3>
+                <h3 className="subsection-title"><span className="ie3-icono"><AiOutlinePhone size={18} /></span> Datos de contacto</h3>
                 <p className="subsection-description">Información de contacto y detalles generales de tu negocio</p>
 
                 <div className="info-form">
@@ -158,7 +161,7 @@ const AdminInformacionEmpresarial: React.FC = () => {
             </div>
 
             <div className="manager-subsection">
-                <h3 className="subsection-title">Sobre Nosotros</h3>
+                <h3 className="subsection-title"><span className="ie3-icono"><AiOutlineHeart size={18} /></span> Sobre nosotros</h3>
                 <p className="subsection-description">Contenido que aparece en la página pública "Sobre Nosotros"</p>
 
                 <div className="info-form">
@@ -188,7 +191,7 @@ const AdminInformacionEmpresarial: React.FC = () => {
             </div>
 
             <div className="manager-subsection">
-                <h3 className="subsection-title">Redes Sociales</h3>
+                <h3 className="subsection-title"><span className="ie3-icono"><AiOutlineGlobal size={18} /></span> Redes sociales</h3>
                 <p className="subsection-description">Vincula tus perfiles en redes sociales</p>
 
                 <div className="social-form">
@@ -214,7 +217,7 @@ const AdminInformacionEmpresarial: React.FC = () => {
 
             <div className="save-section">
                 <button className="btn-primary btn-save" onClick={saveChanges} disabled={saving}>
-                    {saving ? 'Guardando...' : '💾 Guardar Todos los Cambios'}
+                    {saving ? 'Guardando...' : 'Guardar todos los cambios'}
                 </button>
             </div>
         </div>

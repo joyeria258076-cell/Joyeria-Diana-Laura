@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { contentAPI } from '../../services/api';
+import AdminHero from '../AdminHero';
+import { AiOutlineQuestionCircle, AiOutlinePlus, AiOutlineSearch, AiOutlineEdit, AiOutlineDelete, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineDown, AiOutlineCheckCircle } from 'react-icons/ai';
 import '../../styles/SitioSecciones.css';
 import './AdminFAQManager.css';
 
@@ -22,6 +24,8 @@ const AdminFAQManager: React.FC = () => {
   const [form, setForm]           = useState(EMPTY_FORM);
   const [toast, setToast]         = useState<{ msg: string; tipo: 'ok' | 'err' } | null>(null);
   const toastTimer                = useRef<ReturnType<typeof setTimeout>>();
+  const [busqueda, setBusqueda]   = useState('');
+  const [abierta, setAbierta]     = useState<number | null>(null);
 
   useEffect(() => { cargar(); }, []);
 
@@ -100,62 +104,64 @@ const AdminFAQManager: React.FC = () => {
   };
 
   return (
-    <div className="faq-admin-container">
+    <div className="av-page faq-admin-container">
 
       {toast && (
         <div className={`faq-toast faq-toast--${toast.tipo}`}>{toast.msg}</div>
       )}
 
-      <div className="faq-admin-header">
-        <div className="adm-head">
-          <div className="sx-eyebrow">Contenido</div>
-          <h1 className="sx-title">Preguntas <span>frecuentes</span></h1>
-          <p className="sx-subtitle">Se muestran en el Centro de ayuda y el asistente las usa para responder a los clientes.</p>
-        </div>
-        <button className="sx-btn" onClick={abrirCrear}>+ Nueva pregunta</button>
+      <AdminHero icono={<AiOutlineQuestionCircle size={26} />} seccion="Contenido" titulo="Preguntas" resaltado="frecuentes"
+        descripcion="Se muestran en el Centro de ayuda y el asistente las usa para responder a los clientes.">
+        <button className="av-btn" onClick={abrirCrear}><AiOutlinePlus size={17} /> Nueva pregunta</button>
+      </AdminHero>
+
+      <div className="av-kpis">
+        <div className="av-kpi"><span className="av-kpi-icono"><AiOutlineQuestionCircle size={20} /></span><span><strong>{faqs.length}</strong><small>Preguntas</small></span></div>
+        <div className="av-kpi av-tono--ok"><span className="av-kpi-icono"><AiOutlineCheckCircle size={20} /></span><span><strong>{faqs.filter(f => f.activa).length}</strong><small>Visibles para clientes</small></span></div>
+        <div className="av-kpi av-tono--apagado"><span className="av-kpi-icono"><AiOutlineEyeInvisible size={20} /></span><span><strong>{faqs.filter(f => !f.activa).length}</strong><small>Ocultas</small></span></div>
       </div>
 
-      <div className="faq-admin-stats">
-        <div className="faq-stat"><strong>{faqs.length}</strong><span>Total</span></div>
-        <div className="faq-stat"><strong>{faqs.filter(f => f.activa).length}</strong><span>Visibles</span></div>
-        <div className="faq-stat"><strong>{faqs.filter(f => !f.activa).length}</strong><span>Ocultas</span></div>
-      </div>
+      {faqs.length > 3 && (
+        <div className="av-barra">
+          <label className="av-buscar"><AiOutlineSearch size={18} />
+            <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar en preguntas y respuestas" />
+          </label>
+        </div>
+      )}
 
       {loading ? (
-        <div className="faq-admin-loading">Cargando preguntas frecuentes...</div>
+        <div className="av-vacio">Cargando preguntas frecuentes...</div>
       ) : faqs.length === 0 ? (
-        <div className="faq-admin-empty">
-          <p>No hay preguntas frecuentes aún.</p>
-          <button className="faq-btn-nueva" onClick={abrirCrear}>Crear primera pregunta</button>
+        <div className="av-vacio">
+          <AiOutlineQuestionCircle size={40} />
+          <strong>Aún no hay preguntas</strong>
+          <span>Agrega las dudas que más te hacen tus clientas: envíos, tallas, pagos, garantías.</span>
+          <button className="av-btn" onClick={abrirCrear}><AiOutlinePlus size={17} /> Crear la primera</button>
         </div>
       ) : (
-        <div className="faq-admin-list">
-          {faqs.map((f, i) => (
-            <div key={f.id} className={`faq-admin-card${f.activa ? '' : ' faq-admin-card--oculta'}`}>
-              <div className="faq-admin-num">{i + 1}</div>
-              <div className="faq-admin-body">
-                <div className="faq-admin-meta">
-                  <span className={`faq-badge${f.activa ? ' faq-badge--activa' : ' faq-badge--oculta'}`}>
-                    {f.activa ? 'Visible' : 'Oculta'}
-                  </span>
-                  <span className="faq-orden">Orden: {f.orden}</span>
+        <div className="fq3-lista">
+          {faqs.filter(f => !busqueda.trim() || `${f.pregunta} ${f.respuesta}`.toLowerCase().includes(busqueda.trim().toLowerCase())).map((f, i) => (
+            <article key={f.id} className={`fq3-item${f.activa ? '' : ' oculta'}${abierta === f.id ? ' abierta' : ''}`}>
+              <button className="fq3-cabeza" onClick={() => setAbierta(abierta === f.id ? null : f.id)} aria-expanded={abierta === f.id}>
+                <span className="fq3-num">{i + 1}</span>
+                <span className="fq3-pregunta">{f.pregunta}</span>
+                <span className={`av-pill av-pill--punto ${f.activa ? 'av-tono--ok' : 'av-tono--apagado'}`}>{f.activa ? 'Visible' : 'Oculta'}</span>
+                <AiOutlineDown size={16} className="fq3-flecha" />
+              </button>
+              {abierta === f.id && (
+                <div className="fq3-cuerpo">
+                  <p>{f.respuesta}</p>
+                  <div className="fq3-acciones">
+                    <small>Posición {f.orden}</small>
+                    <button className="av-btn av-btn--sec" onClick={() => handleToggle(f)}>
+                      {f.activa ? <><AiOutlineEyeInvisible size={16} /> Ocultar</> : <><AiOutlineEye size={16} /> Publicar</>}
+                    </button>
+                    <button className="av-btn av-btn--sec" onClick={() => abrirEditar(f)}><AiOutlineEdit size={16} /> Editar</button>
+                    <button className="av-accion av-accion--peligro" onClick={() => handleEliminar(f.id)} title="Eliminar"><AiOutlineDelete size={16} /></button>
+                  </div>
                 </div>
-                <h3 className="faq-admin-pregunta">{f.pregunta}</h3>
-                <p className="faq-admin-respuesta">
-                  {f.respuesta.length > 200 ? f.respuesta.slice(0, 200) + '...' : f.respuesta}
-                </p>
-              </div>
-              <div className="faq-admin-actions">
-                <button className="faq-btn-action faq-btn-edit" onClick={() => abrirEditar(f)}>Editar</button>
-                <button
-                  className={`faq-btn-action ${f.activa ? 'faq-btn-hide' : 'faq-btn-show'}`}
-                  onClick={() => handleToggle(f)}
-                >
-                  {f.activa ? 'Ocultar' : 'Publicar'}
-                </button>
-                <button className="faq-btn-action faq-btn-delete" onClick={() => handleEliminar(f.id)}>Eliminar</button>
-              </div>
-            </div>
+              )}
+            </article>
           ))}
         </div>
       )}

@@ -1,0 +1,49 @@
+/* AdminMVV.css — editor de misión, visión y valores con vista previa */
+.mvv3-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.mvv3-editor { display: flex; flex-direction: column; gap: 14px; }
+.mvv3 .av-panel { position: relative; }
+.mvv3 .av-panel-titulo small { margin-left: auto; font-size: 12.5px; font-weight: 500; color: var(--color-text-muted); letter-spacing: 0; }
+.mvv3-texto {
+  width: 100%; box-sizing: border-box; resize: vertical; min-height: 110px; padding: 14px 16px; border-radius: 18px;
+  border: 1px solid var(--color-border); background: var(--color-surface-2); color: var(--color-text);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.6;
+}
+.mvv3-texto:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
+.mvv3-contador { display: block; text-align: right; margin-top: 6px; font-size: 12px; color: var(--color-text-muted); }
+.mvv3-agregar { display: flex; gap: 8px; margin-bottom: 14px; }
+.mvv3-agregar input {
+  flex: 1; min-width: 0; min-height: 48px; padding: 0 16px; border-radius: 16px; border: 1px solid var(--color-border);
+  background: var(--color-surface-2); color: var(--color-text); font-family: var(--font-body); font-size: 14.5px;
+}
+.mvv3-agregar input:focus { outline: none; border-color: var(--color-primary); }
+.mvv3-vacio { margin: 0; padding: 18px; text-align: center; border-radius: 16px; border: 1px dashed var(--color-border); color: var(--color-text-muted); font-size: 14px; }
+.mvv3-valores { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.mvv3-valores li { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; border-radius: 18px; background: var(--color-surface-2); border: 1px solid var(--color-border); }
+.mvv3-num { width: 32px; height: 32px; flex-shrink: 0; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; background: var(--gradient-primary); color: var(--color-on-primary); }
+.mvv3-valor { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.mvv3-valor b { font-size: 14.5px; font-weight: 600; }
+.mvv3-valor small { font-size: 12.5px; color: var(--color-text-muted); line-height: 1.4; }
+.mvv3-valores .av-accion { width: 34px; height: 34px; }
+.mvv3-valores .av-accion:disabled { opacity: 0.35; cursor: default; }
+
+.mvv3-preview {
+  position: sticky; top: 90px; display: flex; flex-direction: column; gap: 12px; padding: 22px; border-radius: 28px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--color-primary) 12%, var(--color-surface)), var(--color-surface));
+  border: 1px solid var(--color-border); box-shadow: var(--shadow-soft);
+}
+.mvv3-tarjeta { padding: 16px 18px; border-radius: 20px; background: var(--color-surface); border: 1px solid var(--color-border); }
+.mvv3-tarjeta span { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--color-primary); }
+.mvv3-tarjeta p { margin: 8px 0 0; font-family: var(--font-accent); font-style: italic; font-size: 16px; line-height: 1.5; color: var(--color-text); }
+.mvv3-tarjeta--mision { background: var(--gradient-primary); border-color: transparent; }
+.mvv3-tarjeta--mision span, .mvv3-tarjeta--mision p { color: var(--color-on-primary); }
+.mvv3-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.mvv3-chips span { padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text); }
+
+.mvv3-aviso { padding: 12px 16px; margin-bottom: 14px; border-radius: 16px; font-size: 14px; }
+.mvv3-aviso--ok { background: color-mix(in srgb, var(--color-success, #2e9d6a) 14%, var(--color-surface)); color: var(--color-text); }
+.mvv3-aviso--error { background: color-mix(in srgb, var(--color-danger, #d64b5f) 14%, var(--color-surface)); color: var(--color-text); }
+
+@media (max-width: 960px) {
+  .mvv3-layout { grid-template-columns: 1fr; }
+  .mvv3-preview { position: static; }
+}

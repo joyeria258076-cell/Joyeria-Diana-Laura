@@ -4,6 +4,7 @@ import { workersAPI } from '../../services/api';
 import Loader from '../../components/Loader';
 import { useAuth } from '../../contexts/AuthContext';
 import './AdminTrabajadoresScreen.css';
+import AdminHero from '../../components/AdminHero';
 
 interface Trabajador {
   id: number;
@@ -96,30 +97,23 @@ const AdminTrabajadoresScreen: React.FC = () => {
     <div className="at-wrap animate-in">
 
       {/* ── HEADER ── */}
-      <div className="at-header">
-        <div className="at-header-left">
-          <h1 className="at-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="22" height="22">
+      <AdminHero icono={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="26" height="26">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
               <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            Panel de Personal
-          </h1>
-          <p className="at-sub">Administra cuentas, roles y accesos del equipo</p>
-        </div>
-        <div className="at-header-right">
+            </svg>} seccion="Personal" titulo="Tu" resaltado="equipo"
+        descripcion="Cuentas de trabajadores, sus permisos y quién está activo."><div className="at-header-right">
           {toast && (
             <div className={`at-toast ${toast.ok ? 'at-toast--ok' : 'at-toast--err'}`}>
               <span className="at-toast-icon">{toast.ok ? '✓' : '✕'}</span>
               {toast.msg}
             </div>
           )}
-          <button className="at-btn-primary" onClick={() => navigate('/admin-trabajadores/nuevo')}>
+          <button className="av-btn" onClick={() => navigate('/admin-trabajadores/nuevo')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg>
-            Registrar Trabajador
+            Registrar trabajador
           </button>
         </div>
-      </div>
+      </AdminHero>
 
       <div className="at-layout">
 

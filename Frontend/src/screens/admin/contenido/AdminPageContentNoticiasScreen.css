@@ -365,3 +365,22 @@
 .adm-head .sx-eyebrow::before { display: none; }
 .adm-head .sx-title { font-size: clamp(1.9rem, 3.5vw, 2.6rem); margin-bottom: 0.4rem; }
 .adm-head .sx-subtitle { margin: 0; max-width: 640px; }
+
+/* ── Tarjetas del blog (v3) ── */
+.bl3-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.bl3-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 26px; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-soft); transition: transform 0.2s ease; }
+.bl3-card:hover { transform: translateY(-3px); }
+.bl3-card.oculta .bl3-img img { filter: grayscale(0.7); opacity: 0.6; }
+.bl3-img { position: relative; aspect-ratio: 16 / 10; background: var(--color-surface-2); overflow: hidden; }
+.bl3-img img { width: 100%; height: 100%; object-fit: cover; }
+.bl3-sinimg { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; color: var(--color-text-muted); }
+.bl3-estado { position: absolute; left: 12px; top: 12px; background: var(--color-surface) !important; box-shadow: var(--shadow-soft); }
+.bl3-cuerpo { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px 18px; flex: 1; font-family: var(--font-body); }
+.bl3-fecha { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--color-text-muted); }
+.bl3-cuerpo h3 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.3; color: var(--color-text); }
+.bl3-cuerpo p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--color-text-muted); }
+.bl3-acciones { display: flex; gap: 6px; margin-top: auto; padding-top: 12px; }
+.bl3-acciones .inv3-editar {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; border-radius: 12px; cursor: pointer;
+  border: 0; background: color-mix(in srgb, var(--color-primary) 14%, transparent); color: var(--color-primary); font-family: var(--font-body); font-size: 13.5px; font-weight: 600;
+}

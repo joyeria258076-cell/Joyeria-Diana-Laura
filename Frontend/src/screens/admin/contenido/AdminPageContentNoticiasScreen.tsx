@@ -4,6 +4,8 @@ import { contentAPI } from '../../../services/api';
 const API_BASE = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
 import '../../../styles/SitioSecciones.css';
 import './AdminPageContentNoticiasScreen.css';
+import AdminHero from '../../../components/AdminHero';
+import { AiOutlineRead, AiOutlinePlus, AiOutlineEdit, AiOutlineDelete, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineCheckCircle, AiOutlineCalendar, AiOutlinePicture } from 'react-icons/ai';
 
 interface Noticia {
   id: number;
@@ -29,6 +31,7 @@ const AdminPageContentNoticiasScreen: React.FC = () => {
   const [toast, setToast]             = useState<{ msg: string; tipo: 'ok' | 'err' } | null>(null);
   const toastTimer                    = useRef<ReturnType<typeof setTimeout>>();
   const dropRef                       = useRef<HTMLDivElement>(null);
+  const [filtro, setFiltro]           = useState<'todas' | 'publicadas' | 'ocultas'>('todas');
 
   useEffect(() => { cargar(); }, []);
 
@@ -88,14 +91,10 @@ const AdminPageContentNoticiasScreen: React.FC = () => {
         if (u) jwtToken = JSON.parse(u).token || null;
       } catch { /**/ }
 
-      console.log('🔑 [Upload] jwtToken:', jwtToken ? jwtToken.substring(0, 30) + '...' : 'NULL');
-      console.log('🔑 [Upload] sessionToken:', sessionToken ? sessionToken.substring(0, 30) + '...' : 'NULL');
-      console.log('🔑 [Upload] todas las keys de localStorage:', Object.keys(localStorage));
 
       const headers: Record<string, string> = {};
       if (jwtToken)     headers['Authorization']   = `Bearer ${jwtToken}`;
       if (sessionToken) headers['x-session-token'] = sessionToken;
-      console.log('📤 [Upload] headers enviados:', headers);
 
       const fd = new FormData();
       fd.append('imagen', file);
@@ -173,86 +172,62 @@ const AdminPageContentNoticiasScreen: React.FC = () => {
   };
 
   return (
-    <div className="an-container">
+    <div className="av-page an-container">
 
-      {/* Toast */}
       {toast && (
         <div className={`an-toast an-toast--${toast.tipo}`}>{toast.msg}</div>
       )}
 
-      {/* Header */}
-      <div className="an-header">
-        <div className="adm-head">
-          <div className="sx-eyebrow">Contenido</div>
-          <h1 className="sx-title">Blog y <span>novedades</span></h1>
-          <p className="sx-subtitle">Publica artículos para el blog y la sección de novedades del inicio. Los clientes pueden comentarlos.</p>
-        </div>
-        <button className="sx-btn" onClick={abrirCrear}>
-          + Nuevo artículo
-        </button>
+      <AdminHero icono={<AiOutlineRead size={26} />} seccion="Contenido" titulo="Blog y" resaltado="novedades"
+        descripcion="Publica artículos para el blog y la sección de novedades del inicio. Los clientes pueden comentarlos.">
+        <button className="av-btn" onClick={abrirCrear}><AiOutlinePlus size={17} /> Nuevo artículo</button>
+      </AdminHero>
+
+      <div className="av-kpis">
+        {([
+          { id: 'todas', n: noticias.length, label: 'Artículos', icono: <AiOutlineRead size={20} />, tono: '' },
+          { id: 'publicadas', n: noticias.filter(n => n.activa).length, label: 'Publicados', icono: <AiOutlineCheckCircle size={20} />, tono: 'ok' },
+          { id: 'ocultas', n: noticias.filter(n => !n.activa).length, label: 'Ocultos', icono: <AiOutlineEyeInvisible size={20} />, tono: 'apagado' },
+        ] as const).map(k => (
+          <button key={k.id} className={`av-kpi ${k.tono ? `av-tono--${k.tono}` : ''} ${filtro === k.id && k.id !== 'todas' ? 'activo' : ''}`} onClick={() => setFiltro(filtro === k.id ? 'todas' : k.id)}>
+            <span className="av-kpi-icono">{k.icono}</span>
+            <span><strong>{k.n}</strong><small>{k.label}</small></span>
+          </button>
+        ))}
       </div>
 
-      {/* Stats rápidas */}
-      <div className="an-stats">
-        <div className="an-stat">
-          <strong>{noticias.length}</strong>
-          <span>Total</span>
-        </div>
-        <div className="an-stat">
-          <strong>{noticias.filter(n => n.activa).length}</strong>
-          <span>Publicadas</span>
-        </div>
-        <div className="an-stat">
-          <strong>{noticias.filter(n => !n.activa).length}</strong>
-          <span>Ocultas</span>
-        </div>
-      </div>
-
-      {/* Lista */}
       {loading ? (
-        <div className="an-loading">Cargando novedades...</div>
+        <div className="av-vacio">Cargando novedades...</div>
       ) : noticias.length === 0 ? (
-        <div className="an-empty">
-          <p>No hay novedades publicadas aún.</p>
-          <button className="an-btn-nueva" onClick={abrirCrear}>Crear primera novedad</button>
+        <div className="av-vacio">
+          <AiOutlineRead size={40} />
+          <strong>Aún no hay artículos</strong>
+          <span>Cuenta novedades: piezas nuevas, promociones, cuidados de joyería o eventos de la tienda.</span>
+          <button className="av-btn" onClick={abrirCrear}><AiOutlinePlus size={17} /> Escribir el primero</button>
         </div>
       ) : (
-        <div className="an-list">
-          {noticias.map(n => (
-            <div key={n.id} className={`an-card${n.activa ? '' : ' an-card--oculta'}`}>
-              {n.imagen && (
-                <div className="an-card-img">
-                  <img src={n.imagen} alt={n.titulo}
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                </div>
-              )}
-              <div className="an-card-body">
-                <div className="an-card-meta">
-                  <span className="an-card-fecha">{formatFecha(n.fecha)}</span>
-                  <span className={`an-badge${n.activa ? ' an-badge--activa' : ' an-badge--oculta'}`}>
-                    {n.activa ? 'Publicada' : 'Oculta'}
-                  </span>
-                </div>
-                <h3 className="an-card-titulo">{n.titulo}</h3>
-                <p className="an-card-contenido">
-                  {n.contenido.length > 160 ? n.contenido.slice(0, 160) + '...' : n.contenido}
-                </p>
+        <div className="bl3-grid">
+          {noticias.filter(n => filtro === 'todas' || (filtro === 'publicadas' ? n.activa : !n.activa)).map(n => (
+            <article key={n.id} className={`bl3-card${n.activa ? '' : ' oculta'}`}>
+              <div className="bl3-img">
+                {n.imagen
+                  ? <img src={n.imagen} alt="" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  : <span className="bl3-sinimg"><AiOutlinePicture size={30} /></span>}
+                <span className={`av-pill av-pill--punto ${n.activa ? 'av-tono--ok' : 'av-tono--apagado'} bl3-estado`}>{n.activa ? 'Publicado' : 'Oculto'}</span>
               </div>
-              <div className="an-card-actions">
-                <button className="an-btn-action an-btn-edit" onClick={() => abrirEditar(n)}>
-                  Editar
-                </button>
-                <button
-                  className={`an-btn-action ${n.activa ? 'an-btn-hide' : 'an-btn-show'}`}
-                  onClick={() => handleToggle(n)}
-                >
-                  {n.activa ? 'Ocultar' : 'Publicar'}
-                </button>
-                <button className="an-btn-action an-btn-delete" onClick={() => handleEliminar(n.id)}>
-                  Eliminar
-                </button>
+              <div className="bl3-cuerpo">
+                <span className="bl3-fecha"><AiOutlineCalendar size={13} /> {formatFecha(n.fecha)}</span>
+                <h3>{n.titulo}</h3>
+                <p>{n.contenido.length > 140 ? n.contenido.slice(0, 140) + '…' : n.contenido}</p>
+                <div className="bl3-acciones">
+                  <button className="inv3-editar" onClick={() => abrirEditar(n)}><AiOutlineEdit size={16} /> Editar</button>
+                  <button className="av-accion" onClick={() => handleToggle(n)} title={n.activa ? 'Ocultar' : 'Publicar'}>
+                    {n.activa ? <AiOutlineEyeInvisible size={16} /> : <AiOutlineEye size={16} />}
+                  </button>
+                  <button className="av-accion av-accion--peligro" onClick={() => handleEliminar(n.id)} title="Eliminar"><AiOutlineDelete size={16} /></button>
+                </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       )}

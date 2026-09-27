@@ -300,3 +300,20 @@
 .adm-head .sx-eyebrow::before { display: none; }
 .adm-head .sx-title { font-size: clamp(1.9rem, 3.5vw, 2.6rem); margin-bottom: 0.4rem; }
 .adm-head .sx-subtitle { margin: 0; max-width: 640px; }
+
+/* ── Lista tipo acordeón (v3) ── */
+.fq3-lista { display: flex; flex-direction: column; gap: 10px; }
+.fq3-item { border-radius: 22px; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-soft); overflow: hidden; transition: border-color 0.2s ease; }
+.fq3-item.abierta { border-color: color-mix(in srgb, var(--color-primary) 50%, transparent); }
+.fq3-item.oculta .fq3-pregunta { color: var(--color-text-muted); }
+.fq3-cabeza { width: 100%; display: flex; align-items: center; gap: 14px; padding: 16px 18px; border: 0; background: none; cursor: pointer; text-align: left; font-family: var(--font-body); color: var(--color-text); }
+.fq3-num { width: 34px; height: 34px; flex-shrink: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; background: color-mix(in srgb, var(--color-primary) 14%, transparent); color: var(--color-primary); }
+.fq3-pregunta { flex: 1; font-size: 15.5px; font-weight: 600; line-height: 1.35; }
+.fq3-flecha { flex-shrink: 0; color: var(--color-text-muted); transition: transform 0.2s ease; }
+.fq3-item.abierta .fq3-flecha { transform: rotate(180deg); }
+.fq3-cuerpo { padding: 0 18px 18px 66px; }
+.fq3-cuerpo p { margin: 0 0 14px; font-size: 14.5px; line-height: 1.6; color: var(--color-text-muted); white-space: pre-line; }
+.fq3-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.fq3-acciones small { margin-right: auto; font-size: 12.5px; color: var(--color-text-muted); }
+.fq3-acciones .av-btn { min-height: 40px; padding: 0 14px; font-size: 13.5px; }
+@media (max-width: 640px) { .fq3-cuerpo { padding-left: 18px; } .fq3-cabeza .av-pill { display: none; } }

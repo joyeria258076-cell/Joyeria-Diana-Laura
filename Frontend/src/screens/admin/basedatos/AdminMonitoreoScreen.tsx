@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { metricsAPI } from '../../../services/metricsAPI';
 import Loader from '../../../components/Loader';
 import './styles/AdminMonitoreoScreen.css';
+import AdminHero from '../../../components/AdminHero';
 import {
   AiOutlineDesktop, AiOutlineReload, AiOutlineWarning, AiOutlineBarChart,
   AiOutlineDashboard, AiOutlineExclamationCircle, AiOutlineTeam, AiOutlineDatabase,
@@ -212,16 +213,13 @@ const AdminMonitoreoScreen: React.FC = () => {
 
   return (
     <div className="monitoreo-screen">
-      <div className="monitoreo-header">
-        <div>
-          <div className="monitoreo-titulo"><h1><AiOutlineDesktop size={20} /> Monitor del sistema</h1></div>
-          <p>Última actualización: {ultimaAct.toLocaleTimeString('es-MX', { timeZone: 'America/Mexico_City' })}</p>
-        </div>
-        <button className="mon-btn-refresh" onClick={cargarTodo} disabled={cargando}>
+      <AdminHero icono={<AiOutlineDesktop size={26} />} seccion="Gestión BD" titulo="Monitor del" resaltado="sistema"
+        descripcion={`Rendimiento, errores y actividad del servidor. Última actualización: ${ultimaAct.toLocaleTimeString('es-MX', { timeZone: 'America/Mexico_City' })}`}>
+        <button className="av-btn av-btn--sec" onClick={cargarTodo} disabled={cargando}>
           <span className="mon-btn-refresh-icon">{cargando ? <span className="spinner"/> : <AiOutlineReload size={14} />}</span>
           {cargando ? 'Cargando…' : 'Actualizar'}
         </button>
-      </div>
+      </AdminHero>
 
       {error && <div className="estado-error"><AiOutlineWarning size={14} /> {error}</div>}
 

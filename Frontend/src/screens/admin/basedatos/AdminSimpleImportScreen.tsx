@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { importAPI, templateAPI } from '../../../services/api';
 import './AdminSimpleImportScreen.css';
+import AdminHero from '../../../components/AdminHero';
 import {
   AiOutlineCloudUpload, AiOutlineDownload, AiOutlineEye, AiOutlineFileExcel,
   AiOutlineCheckCircle, AiOutlineWarning, AiOutlineDatabase, AiOutlineInbox,
@@ -199,12 +200,8 @@ const AdminSimpleImportScreen: React.FC = () => {
 
   return (
     <div className="si2-container">
-      <div className="si2-header">
-        <div>
-          <h1><AiOutlineCloudUpload size={22} /> Importación de datos desde Excel</h1>
-          <p>Usa las plantillas oficiales para importar datos maestros</p>
-        </div>
-      </div>
+      <AdminHero icono={<AiOutlineCloudUpload size={26} />} seccion="Gestión BD" titulo="Importar desde" resaltado="Excel"
+        descripcion="Sigue los 4 pasos: elige la tabla, descarga la plantilla, llénala y súbela para revisarla antes de guardar." />
 
       {message && (
         <div className={`message ${message.type}`}>
