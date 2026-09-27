@@ -91,3 +91,58 @@ body .hero-carousel-section .carousel-desc { color: rgba(255, 255, 255, 0.85) !i
 body .hero-carousel-section .carousel-tag { background: rgba(255, 255, 255, 0.18) !important; color: #fff !important; }
 body .hero-carousel-section .carousel-actions .btn-secondary { background: rgba(255, 255, 255, 0.14) !important; color: #fff !important; border-color: rgba(255, 255, 255, 0.35) !important; }
 body .hero-carousel-section .carousel-btn { background: rgba(255, 255, 255, 0.16) !important; color: #fff !important; border-color: rgba(255, 255, 255, 0.3) !important; }
+
+/* ══ Secciones del inicio público con el estilo de la app ══ */
+body .inicio-public-container :is(.showcase-section, .showcase-section--alt, .features-section, .news-section, .cta-section) { background: transparent !important; border: 0 !important; }
+/* Encabezados a la izquierda, sin rayitas */
+body .inicio-public-container .section-header { text-align: left !important; }
+body .inicio-public-container .eyebrow-row { justify-content: flex-start !important; }
+body .inicio-public-container .eyebrow-line { display: none !important; }
+body .inicio-public-container .eyebrow-txt { font-family: var(--font-body) !important; font-size: 11px !important; font-weight: 600 !important; letter-spacing: 2px !important; color: var(--color-primary) !important; }
+body .inicio-public-container .section-title { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -1px !important; font-size: clamp(28px, 3.4vw, 40px) !important; text-align: left !important; }
+body .inicio-public-container .section-subtitle { text-align: left !important; margin-left: 0 !important; color: var(--color-text-muted) !important; }
+
+/* Tarjetas de producto y colecciones como las del catálogo */
+body .inicio-public-container :is(.product-card, .editorial-card, .showcase-card) {
+  border-radius: 26px !important; border: 1px solid var(--color-border) !important; background: var(--color-surface) !important;
+  box-shadow: var(--shadow-soft) !important; padding: 8px !important; overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+body .inicio-public-container :is(.product-card, .editorial-card, .showcase-card):hover { transform: translateY(-4px); box-shadow: var(--shadow-lift) !important; }
+body .inicio-public-container :is(.product-card-img, .editorial-card-img, .showcase-card-img) { border-radius: 20px !important; overflow: hidden; }
+body .inicio-public-container .product-card-overlay { display: none !important; }
+body .inicio-public-container :is(.product-card-body, .editorial-card-body, .showcase-card-body) { padding: 12px 8px 8px !important; }
+body .inicio-public-container .prod-badge { border-radius: 999px !important; text-transform: none !important; letter-spacing: 0.2px !important; font-weight: 600 !important; }
+body .inicio-public-container :is(.product-card-precio, .precio-final) { color: var(--color-primary) !important; font-weight: 700 !important; }
+
+/* Por qué elegirnos */
+body .inicio-public-container .features-grid { gap: 14px !important; }
+body .inicio-public-container .feature-card {
+  border-radius: 26px !important; border: 1px solid var(--color-border) !important; background: var(--color-surface) !important;
+  box-shadow: var(--shadow-soft) !important; text-align: left !important; padding: 22px !important;
+}
+body .inicio-public-container .feature-icon {
+  width: 48px !important; height: 48px !important; border-radius: 16px !important; margin: 0 0 12px !important;
+  display: inline-flex !important; align-items: center; justify-content: center;
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important;
+}
+body .inicio-public-container .feature-card h3 { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.3px !important; }
+
+/* Noticias */
+body .inicio-public-container .news-card { border-radius: 26px !important; border: 1px solid var(--color-border) !important; background: var(--color-surface) !important; overflow: hidden; box-shadow: var(--shadow-soft); padding: 8px !important; }
+body .inicio-public-container .news-image { border-radius: 20px !important; overflow: hidden; }
+body .inicio-public-container .news-title { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.3px !important; }
+
+/* Promociones */
+body .inicio-public-container .promo-ribbon { border-radius: 999px !important; }
+
+/* Botones y enlaces */
+body .inicio-public-container .ver-todos-link { color: var(--color-primary) !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; }
+body .inicio-public-container .cta-section .cta-content {
+  border-radius: 34px; padding: 44px 28px !important; margin: 0 16px;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface)) !important; border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+body .inicio-public-container :is(.cta-section, .showcase-section, .features-section, .news-section) .btn {
+  min-height: 52px; padding: 0 26px !important; border-radius: 18px !important; text-transform: none !important; letter-spacing: 0 !important; font-weight: 600 !important;
+}
+body .inicio-public-container :is(.cta-section, .showcase-section, .features-section, .news-section) .btn-primary { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important; box-shadow: var(--shadow-primary) !important; }

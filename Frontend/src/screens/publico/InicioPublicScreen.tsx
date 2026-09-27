@@ -528,7 +528,7 @@ const InicioPublicScreen: React.FC = () => {
 
       {/* ═══════════ POR QUÉ ELEGIRNOS ═══════════ */}
       <Seccion id="inicio.porque" nombre="Por qué elegirnos">
-      <section className="features-section" style={{ borderTop: '1px solid var(--rose-soft)' }}>
+      <section className="features-section">
         <div className="container-lg">
           <div className="section-header text-center mb-5">
             <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Por qué elegirnos</span><span className="eyebrow-line" /></div>
