@@ -311,10 +311,10 @@ export const authAPI = {
   },
 
   // 🎯 LOGIN CON BACKEND
-  login: async (email: string, password: string, deviceInfo?: string, captchaToken?: string) => {
+  login: async (email: string, password: string, deviceInfo?: string, captchaToken?: string, idToken?: string) => {
     return apiRequest('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password, deviceInfo, captchaToken }),
+      body: JSON.stringify({ email, password, deviceInfo, captchaToken, idToken }),
     });
   },
 

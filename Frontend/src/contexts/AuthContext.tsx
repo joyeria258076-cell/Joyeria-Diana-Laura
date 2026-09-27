@@ -425,7 +425,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
-      const backendResponse = await authAPI.login(email, password, undefined, captchaToken);
+      const idToken = await firebaseUser.getIdToken();
+      const backendResponse = await authAPI.login(email, password, undefined, captchaToken, idToken);
 
       if (backendResponse.mfaRequired || backendResponse.requiresMFA) {
         const mfaError = new Error('Se requiere código MFA');

@@ -38,20 +38,37 @@ export const login = async (req: Request, res: Response) => {
   const userAgent = getUserAgent(req);
   
   try {
-    const { email, password, captchaToken } = req.body;
+    const { email, password, captchaToken, idToken } = req.body;
 
     if (!email) {
       return res.status(400).json({ success: false, message: 'Email es requerido' });
     }
 
+    // Solo loginMovil lo establece, después de verificar el ID token de Firebase.
+    const verificadoPorMovil = res.locals.firebaseEmailVerificado === email;
+
     // Las llamadas internas de registro de intento fallido (tras un fallo ya
     // verificado por Firebase) no traen captcha propio: solo se exige en el
     // intento real de login.
-    if (password !== 'wrong_password_to_trigger_failure') {
+    if (password !== 'wrong_password_to_trigger_failure' && !verificadoPorMovil) {
       console.log('🧩 captchaToken recibido:', typeof captchaToken, captchaToken ? `len=${captchaToken.length} inicio=${captchaToken.slice(0, 12)}...` : captchaToken);
       const captchaValido = await verifyRecaptcha(captchaToken);
       if (!captchaValido) {
         return res.status(400).json({ success: false, message: 'Verificación de seguridad fallida. Intenta de nuevo.' });
+      }
+
+      // La contraseña la valida Firebase en el cliente; el ID token prueba que
+      // ese inicio de sesión ocurrió y que pertenece a este mismo correo.
+      if (!idToken) {
+        return res.status(401).json({ success: false, message: 'Credenciales inválidas o error de autenticación.' });
+      }
+      try {
+        const decoded = await admin.auth().verifyIdToken(idToken);
+        if ((decoded.email || '').toLowerCase() !== String(email).toLowerCase()) {
+          return res.status(401).json({ success: false, message: 'Credenciales inválidas o error de autenticación.' });
+        }
+      } catch {
+        return res.status(401).json({ success: false, message: 'Credenciales inválidas o error de autenticación.' });
       }
     }
 
@@ -61,7 +78,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: emailSecurityCheck.message });
     }
 
-    const passwordSecurityCheck = validatePasswordSecurity(password || '');
+    const passwordSecurityCheck: { valid: boolean; message?: string } = verificadoPorMovil ? { valid: true } : validatePasswordSecurity(password || '');
     if (!passwordSecurityCheck.valid) {
       console.log(`🚫 Intento de inyección detectado en contraseña: ${passwordSecurityCheck.message}`);
       return res.status(400).json({ success: false, message: passwordSecurityCheck.message });
@@ -217,6 +234,33 @@ export const login = async (req: Request, res: Response) => {
     console.error('Error en login:', error);
     res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
+};
+
+// ==========================================
+// 📱 LOGIN DE LA APP MÓVIL
+// ==========================================
+// La app valida la contraseña con Firebase y envía el ID token resultante.
+// Sustituye al reCAPTCHA de la web, que no se puede generar en Android.
+export const loginMovil = async (req: Request, res: Response) => {
+  const { idToken } = req.body;
+  if (!idToken) {
+    return res.status(400).json({ success: false, message: 'Token de Firebase requerido' });
+  }
+
+  let email: string | undefined;
+  try {
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    email = decoded.email;
+  } catch {
+    return res.status(401).json({ success: false, message: 'Credenciales inválidas o error de autenticación.' });
+  }
+  if (!email) {
+    return res.status(401).json({ success: false, message: 'Credenciales inválidas o error de autenticación.' });
+  }
+
+  res.locals.firebaseEmailVerificado = email;
+  req.body = { email, password: '', idToken };
+  return login(req, res);
 };
 
 // ==========================================

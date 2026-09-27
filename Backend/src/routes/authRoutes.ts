@@ -4,7 +4,8 @@ import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
 // 📂 1. IMPORTACIONES DE AUTH (Carpeta: controllers/auth)
 import { 
-    login, 
+    login,
+    loginMovil,
     logout,
     syncUserToPostgreSQL,
     updateUserActivity,
@@ -69,6 +70,7 @@ const router = express.Router();
 // 🔐 RUTAS DE AUTENTICACIÓN
 // ==========================================
 router.post('/login', login);
+router.post('/login/movil', loginMovil);
 router.post('/sync-user', syncUserToPostgreSQL);
 router.post('/update-activity', updateUserActivity);
 
