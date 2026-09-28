@@ -73,20 +73,21 @@ export default function AdminLegalScreen() {
       {/* ── HEADER ── */}
       <div className="alegal-header">
         <AdminHero icono={<AiOutlineFileText size={26} />} seccion="Contenido" titulo="Documentos" resaltado="legales"
-          descripcion="Edita los términos y condiciones y el aviso de privacidad que se muestran en la página pública." />
+          descripcion="Edita los términos y condiciones y el aviso de privacidad que se muestran en la página pública.">
         <div className="alegal-header-actions">
           {toast && (
             <div className={`alegal-toast ${toast.ok ? 'alegal-toast--ok' : 'alegal-toast--err'}`}>
               {toast.ok ? '✓' : '✕'} {toast.msg}
             </div>
           )}
-          <button className="sx-btn sx-btn--ghost" onClick={() => setPreview(p => !p)}>
+          <button className="av-btn av-btn--sec" onClick={() => setPreview(p => !p)}>
             {preview ? 'Editar' : 'Vista previa'}
           </button>
-          <button className="sx-btn" onClick={handleGuardar} disabled={saving}>
+          <button className="av-btn" onClick={handleGuardar} disabled={saving}>
             {saving ? 'Guardando…' : 'Guardar cambios'}
           </button>
         </div>
+        </AdminHero>
       </div>
 
       {/* ── TABS ── */}

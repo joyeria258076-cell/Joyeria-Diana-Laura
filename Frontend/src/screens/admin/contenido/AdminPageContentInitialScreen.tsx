@@ -183,13 +183,8 @@ const AdminPageContentInitialScreen: React.FC = () => {
 
   return (
     <main className="apci-page">
-      <AdminHero icono={<AiOutlinePicture size={26} />} seccion="Contenido de inicio" titulo="Carrusel" resaltado="principal" />
-      <header style={{ marginBottom: '1.25rem' }}>
-        <p className="sx-subtitle">
-          Las imágenes grandes con las que abre la página de inicio. Edita una diapositiva y verás
-          el resultado aquí mismo antes de guardar.
-        </p>
-      </header>
+      <AdminHero icono={<AiOutlinePicture size={26} />} seccion="Contenido de inicio" titulo="Carrusel" resaltado="principal"
+        descripcion="Las imágenes grandes con las que abre la página de inicio. Edita una diapositiva y verás el resultado aquí mismo antes de guardar." />
 
       {/* ── Vista previa (misma composición que el carrusel público) ── */}
       <section className="apci-preview" aria-label="Vista previa de la diapositiva">

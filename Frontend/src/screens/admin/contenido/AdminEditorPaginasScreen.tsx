@@ -163,14 +163,8 @@ const AdminEditorPaginasScreen: React.FC = () => {
 
   return (
     <main className="aep-page">
-      <AdminHero icono={<AiOutlineLayout size={26} />} seccion="Contenido" titulo="Gestión de" resaltado="páginas" />
-      <header style={{ marginBottom: '1.25rem' }}>
-        <p className="sx-subtitle">
-          Así se ven las páginas ahora mismo. Haz clic en un bloque de la vista previa para
-          ocultarlo o mostrarlo; en Inicio también puedes cambiar el orden con las flechas.
-          Nada cambia en el sitio hasta que guardas.
-        </p>
-      </header>
+      <AdminHero icono={<AiOutlineLayout size={26} />} seccion="Contenido" titulo="Gestión de" resaltado="páginas"
+        descripcion="Así se ven las páginas ahora mismo. Haz clic en un bloque de la vista previa para ocultarlo o mostrarlo; en Inicio también puedes cambiar el orden con las flechas. Nada cambia en el sitio hasta que guardas." />
 
       <div className="aep-toolbar">
         <div className="aep-tabs" role="tablist">

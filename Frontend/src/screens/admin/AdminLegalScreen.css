@@ -282,3 +282,4 @@
 .alegal-header { flex-direction: column; align-items: stretch; }
 .alegal-header > .av-hero { width: 100%; margin-bottom: 0; }
 .alegal-header-actions { align-self: flex-end; }
+.alegal-header-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; align-self: auto !important; }

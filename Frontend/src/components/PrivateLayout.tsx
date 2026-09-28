@@ -6,6 +6,7 @@ import FooterPrivado from "./FooterPrivado";
 import "../styles/PrivateLayout.css"; 
 import Breadcrumbs from "./Breadcrumbs";
 import { useAuth } from "../contexts/AuthContext";
+import "../styles/AdminV2.css";
 import "../styles/AdminSkin.css";
 
 export const PrivateLayout: React.FC = () => {

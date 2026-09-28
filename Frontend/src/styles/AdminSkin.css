@@ -327,3 +327,69 @@
   .admin-skin :is(.np3-card-body, .ep3-card-body, .np2-card-body, .ep2-card-body) { padding: 0 16px 18px; }
   .admin-skin :is(.np3-card-body, .ep3-card-body, .np2-card-body, .ep2-card-body) > h3 { margin: 0 -16px 16px !important; padding: 14px 56px 14px 16px !important; }
 }
+
+/* ════════ Detalle de producto (v4) ════════ */
+.admin-skin .pd3-container { max-width: 1320px; margin: 0 auto; }
+.admin-skin .pd3-hero {
+  display: grid !important; grid-template-columns: 260px minmax(0, 1fr) auto; gap: 26px; align-items: center;
+  padding: 22px !important; margin-bottom: 18px; border-radius: 32px !important; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 16%, var(--color-surface)) 0%, var(--color-surface) 65%) !important;
+  border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft) !important; color: var(--color-text) !important;
+}
+.admin-skin .pd3-hero::after { content: ''; position: absolute; width: 300px; height: 300px; right: -100px; top: -150px; border-radius: 50%; background: color-mix(in srgb, var(--color-primary) 12%, transparent); pointer-events: none; }
+.admin-skin .pd3-hero-media { width: 260px !important; height: 260px !important; border-radius: 26px !important; overflow: hidden; box-shadow: var(--shadow-lift); border: 0 !important; }
+.admin-skin .pd3-hero-media img { width: 100%; height: 100%; object-fit: cover; }
+.admin-skin .pd3-hero-info { position: relative; z-index: 1; min-width: 0; }
+.admin-skin .pd3-hero-info h1 { margin: 10px 0 6px !important; font-family: var(--font-body) !important; font-size: clamp(26px, 3vw, 38px) !important; font-weight: 700 !important; letter-spacing: -1.2px !important; line-height: 1.1 !important; color: var(--color-text) !important; }
+.admin-skin .pd3-hero-codigo { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 8px; background: var(--color-surface-2); font-family: ui-monospace, monospace; font-size: 12.5px; color: var(--color-text-muted) !important; }
+.admin-skin .pd3-hero-desc { margin: 12px 0 !important; font-size: 14.5px !important; line-height: 1.6; color: var(--color-text-muted) !important; max-width: 620px; }
+.admin-skin .pd3-hero-precio { font-family: var(--font-body) !important; font-size: 34px !important; font-weight: 700 !important; letter-spacing: -1px; color: var(--color-primary) !important; }
+.admin-skin .pd3-hero-precio-oferta { display: block; font-size: 14px; font-weight: 600; color: var(--color-text-muted); letter-spacing: 0; }
+.admin-skin .pd3-badge { padding: 5px 12px !important; border-radius: 999px !important; font-size: 12px !important; font-weight: 700 !important; }
+.admin-skin .pd3-hero-actions { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 8px; align-self: flex-start; }
+.admin-skin .pd3-btn-edit { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 22px !important; border-radius: 16px !important; border: 0 !important; background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; box-shadow: var(--shadow-primary); font-weight: 600 !important; }
+.admin-skin .pd3-btn-delete { min-height: 48px; border-radius: 16px !important; background: color-mix(in srgb, var(--color-danger, #d64b5f) 12%, transparent) !important; color: var(--color-danger, #d64b5f) !important; border: 0 !important; }
+.admin-skin .pd3-layout { gap: 18px !important; }
+.admin-skin :is(.pd3-stock-card, .pd3-meta-card, .pd3-panel) { padding: 20px !important; border-radius: 24px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft) !important; }
+.admin-skin .pd3-stock-num { font-size: 40px !important; font-weight: 700 !important; letter-spacing: -1.5px; }
+.admin-skin .pd3-stock-bar { height: 10px !important; border-radius: 999px !important; }
+.admin-skin .pd3-panel h3 { display: flex; align-items: center; gap: 10px; font-family: var(--font-body) !important; font-size: 17px !important; font-weight: 700 !important; text-transform: none !important; letter-spacing: -0.3px !important; }
+.admin-skin .pd3-panel h3 svg { width: 32px; height: 32px; padding: 7px; box-sizing: border-box; border-radius: 10px; background: var(--gradient-primary); color: var(--color-on-primary); }
+.admin-skin .pd3-precio-item { padding: 16px !important; border-radius: 18px !important; background: var(--color-surface-2) !important; border: 1px solid var(--color-border) !important; }
+.admin-skin .pd3-precio-item strong { font-size: 22px !important; }
+.admin-skin .pd3-precio-item.destacado { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important; }
+.admin-skin .pd3-precio-item.destacado :is(span, strong) { color: var(--color-on-primary) !important; }
+.admin-skin .pd3-info-row { padding: 11px 0 !important; border-bottom: 1px dashed var(--color-border) !important; }
+.admin-skin .pd3-info-row:last-child { border-bottom: 0 !important; }
+@media (max-width: 900px) {
+  .admin-skin .pd3-hero { grid-template-columns: 1fr; }
+  .admin-skin .pd3-hero-media { width: 100% !important; height: auto !important; aspect-ratio: 1; }
+  .admin-skin .pd3-hero-actions { flex-direction: row; }
+}
+
+/* ════════ Detalle de proveedor (v4) ════════ */
+.admin-skin .pd2-container { max-width: 1320px; margin: 0 auto; }
+.admin-skin .pd2-hero {
+  display: flex !important; align-items: center; gap: 22px; flex-wrap: wrap; padding: 28px !important; margin-bottom: 18px; border-radius: 32px !important; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 16%, var(--color-surface)) 0%, var(--color-surface) 65%) !important;
+  border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft) !important;
+}
+.admin-skin .pd2-hero::after { content: ''; position: absolute; width: 280px; height: 280px; right: -90px; top: -140px; border-radius: 50%; background: color-mix(in srgb, var(--color-primary) 12%, transparent); pointer-events: none; }
+.admin-skin .pd2-hero-avatar { width: 96px !important; height: 96px !important; flex-shrink: 0; border-radius: 30px !important; font-size: 32px !important; font-weight: 700 !important; background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; box-shadow: var(--shadow-primary); border: 0 !important; overflow: hidden; }
+.admin-skin .pd2-hero-info { flex: 1; min-width: 260px; position: relative; z-index: 1; }
+.admin-skin .pd2-hero-info h1 { margin: 0 !important; font-family: var(--font-body) !important; font-size: clamp(26px, 3vw, 36px) !important; font-weight: 700 !important; letter-spacing: -1px !important; }
+.admin-skin .pd2-hero-razon { margin: 4px 0 14px !important; font-size: 14.5px; color: var(--color-text-muted) !important; }
+.admin-skin .pd2-hero-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-skin .pd2-chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px !important; border-radius: 999px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; font-size: 13.5px !important; color: var(--color-text) !important; text-decoration: none; }
+.admin-skin .pd2-chip:hover { border-color: var(--color-primary) !important; color: var(--color-primary) !important; }
+.admin-skin .pd2-hero-actions { position: relative; z-index: 1; display: flex; gap: 8px; }
+.admin-skin .pd2-btn-edit { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 22px !important; border-radius: 16px !important; border: 0 !important; background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; box-shadow: var(--shadow-primary); font-weight: 600 !important; }
+.admin-skin .pd2-btn-delete { min-width: 48px; min-height: 48px; border-radius: 16px !important; background: color-mix(in srgb, var(--color-danger, #d64b5f) 12%, transparent) !important; color: var(--color-danger, #d64b5f) !important; border: 0 !important; }
+.admin-skin .pd2-layout { gap: 18px !important; }
+.admin-skin :is(.pd2-meta-card, .pd2-panel) { padding: 20px !important; border-radius: 24px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft) !important; margin-bottom: 12px; }
+.admin-skin .pd2-meta-label { display: flex; align-items: center; gap: 6px; font-size: 12px !important; font-weight: 700 !important; letter-spacing: 1px !important; color: var(--color-primary) !important; }
+.admin-skin .pd2-meta-value { display: block; margin-top: 6px; font-size: 16px !important; font-weight: 600 !important; }
+.admin-skin .pd2-panel h3 { display: flex; align-items: center; gap: 10px; font-family: var(--font-body) !important; font-size: 17px !important; font-weight: 700 !important; text-transform: none !important; letter-spacing: -0.3px !important; color: var(--color-text) !important; }
+.admin-skin .pd2-panel h3 svg { width: 32px; height: 32px; padding: 7px; box-sizing: border-box; border-radius: 10px; background: var(--gradient-primary); color: var(--color-on-primary); }
+.admin-skin .pd2-panel-text { font-size: 15px !important; line-height: 1.6; }
+.admin-skin .pd3-hero .pd3-hero-actions .pd3-btn-edit { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important; }
