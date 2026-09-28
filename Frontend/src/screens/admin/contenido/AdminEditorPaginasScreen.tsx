@@ -11,6 +11,8 @@ import {
 import { productsAPI, carritoAPI } from '../../../services/api';
 import '../../../styles/SitioSecciones.css';
 import './AdminEditorPaginasScreen.css';
+import { AiOutlineLayout } from 'react-icons/ai';
+import AdminHero from '../../../components/AdminHero';
 
 // clave = prefijo de los ids de sus bloques; ordenable = sus bloques se pueden reacomodar
 const PAGINAS = [
@@ -161,9 +163,8 @@ const AdminEditorPaginasScreen: React.FC = () => {
 
   return (
     <main className="aep-page">
-      <header className="sx-head" style={{ marginBottom: '1.75rem' }}>
-        <div className="sx-eyebrow">Contenido</div>
-        <h1 className="sx-title">Gestión de <span>páginas</span></h1>
+      <AdminHero icono={<AiOutlineLayout size={26} />} seccion="Contenido" titulo="Gestión de" resaltado="páginas" />
+      <header style={{ marginBottom: '1.25rem' }}>
         <p className="sx-subtitle">
           Así se ven las páginas ahora mismo. Haz clic en un bloque de la vista previa para
           ocultarlo o mostrarlo; en Inicio también puedes cambiar el orden con las flechas.

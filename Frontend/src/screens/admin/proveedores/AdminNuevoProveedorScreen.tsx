@@ -8,6 +8,7 @@ import {
 } from 'react-icons/ai';
 import { proveedoresAPI, uploadAPI } from '../../../services/api';
 import './AdminNuevoProveedorScreen.css';
+import AdminHero from '../../../components/AdminHero';
 
 interface FormData {
   nombre: string;
@@ -120,10 +121,8 @@ const AdminNuevoProveedorScreen: React.FC = () => {
 
   return (
     <div className="np2-container">
-      <div className="np2-header">
-        <h1><AiOutlinePlus size={22} /> Nuevo Proveedor</h1>
-        <p>Registra un nuevo proveedor para tu catálogo de joyería</p>
-      </div>
+      <AdminHero icono={<AiOutlinePlus size={26} />} seccion="Proveedores" titulo="Nuevo" resaltado="proveedor"
+        descripcion="Registra quién te surte las piezas y cómo contactarlo. A la derecha ves cómo quedará su tarjeta." />
 
       {error && (
         <div className="np2-alert np2-alert-error">

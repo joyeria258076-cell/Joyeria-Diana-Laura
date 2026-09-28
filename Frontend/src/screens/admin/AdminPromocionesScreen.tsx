@@ -6,6 +6,7 @@ import {
   AiOutlinePercentage, AiOutlineGift, AiOutlineCar, AiOutlineDollarCircle, AiOutlineFire,
 } from 'react-icons/ai';
 import './AdminPromocionesScreen.css';
+import AdminHero from '../../components/AdminHero';
 
 interface Promocion {
   id: number;
@@ -202,12 +203,10 @@ const AdminPromocionesScreen: React.FC = () => {
 
   return (
     <div className="ap3-container">
-      <div className="ap3-header">
-        <h1><AiOutlineTag size={22} /> Promociones</h1>
-        <button className="ap3-btn-nuevo" onClick={abrirCrear}>
-          <AiOutlinePlus size={18} /> Nueva Promoción
-        </button>
-      </div>
+      <AdminHero icono={<AiOutlineTag size={26} />} seccion="Gestión de catálogo" titulo="Tus" resaltado="promociones"
+        descripcion="Descuentos, cupones y envíos gratis. Las vigentes se muestran en la tienda y en el inicio.">
+        <button className="av-btn" onClick={abrirCrear}><AiOutlinePlus size={17} /> Nueva promoción</button>
+      </AdminHero>
 
       <div className="ap3-stats">
         <div className="ap3-stat">

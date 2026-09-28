@@ -9,6 +9,7 @@ import {
 import { opcionesPersonalizacionAPI, productsAPI, type GrupoPers, type OpcionPers } from '../../services/api';
 import '../../styles/SelectorOpciones.css';
 import './AdminOpcionesPersonalizacionScreen.css';
+import AdminHero from '../../components/AdminHero';
 
 type Destino = { tipo: 'categoria' | 'producto'; id: number; nombre: string; categoria_id?: number };
 type Borrador = { id?: number; nombre: string; requerido: boolean; opciones: OpcionPers[] };
@@ -122,11 +123,8 @@ const AdminOpcionesPersonalizacionScreen: React.FC = () => {
 
   return (
     <div className="aop-page">
-      <header className="aop-head">
-        <span className="aop-eyebrow">Catálogo</span>
-        <h1 className="aop-titulo">Opciones de <em>personalización</em></h1>
-        <p className="aop-sub">Lo que el cliente elige con botones al comprar: talla, largo, metal, grabado… Dalas de alta por categoría y todos sus productos las heredan.</p>
-      </header>
+      <AdminHero icono={<AiOutlineEdit size={26} />} seccion="Gestión de catálogo" titulo="Opciones de" resaltado="personalización"
+        descripcion="Lo que el cliente elige con botones al comprar: talla, largo, metal, grabado… Dalas de alta por categoría y todos sus productos las heredan." />
 
       {aviso && <div className={`aop-aviso aop-aviso--${aviso.tipo}`} role="status">{aviso.texto}</div>}
 

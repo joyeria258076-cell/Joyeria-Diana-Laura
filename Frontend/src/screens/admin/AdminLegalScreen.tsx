@@ -3,6 +3,8 @@ import { contentAPI } from '../../services/api';
 import Loader from '../../components/Loader';
 import '../../styles/SitioSecciones.css';
 import './AdminLegalScreen.css';
+import { AiOutlineFileText } from 'react-icons/ai';
+import AdminHero from '../../components/AdminHero';
 
 type Doc = 'terminos' | 'privacidad';
 
@@ -70,11 +72,8 @@ export default function AdminLegalScreen() {
 
       {/* ── HEADER ── */}
       <div className="alegal-header">
-        <div className="adm-head">
-          <div className="sx-eyebrow">Contenido</div>
-          <h1 className="sx-title">Documentos <span>legales</span></h1>
-          <p className="sx-subtitle">Edita los términos y condiciones y el aviso de privacidad que se muestran en la página pública.</p>
-        </div>
+        <AdminHero icono={<AiOutlineFileText size={26} />} seccion="Contenido" titulo="Documentos" resaltado="legales"
+          descripcion="Edita los términos y condiciones y el aviso de privacidad que se muestran en la página pública." />
         <div className="alegal-header-actions">
           {toast && (
             <div className={`alegal-toast ${toast.ok ? 'alegal-toast--ok' : 'alegal-toast--err'}`}>

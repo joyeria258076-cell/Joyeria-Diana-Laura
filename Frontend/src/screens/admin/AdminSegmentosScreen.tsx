@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { segmentacionAPI, type ClienteSegmentado, type Segmento } from '../../services/api';
 import { AiOutlineUsergroupAdd, AiOutlineDotChart, AiOutlineMail, AiOutlineCheckCircle } from 'react-icons/ai';
 import './AdminSegmentosScreen.css';
+import AdminHero from '../../components/AdminHero';
 
 /* Colores fijos por nombre de segmento (el modelo K-Means siempre produce estos 3) */
 const COLORES_SEGMENTO: Record<string, string> = {
@@ -154,10 +155,8 @@ const AdminSegmentosScreen: React.FC = () => {
 
   return (
     <div className="sg-wrap animate-in">
-      <div className="sg-header">
-        <h1 className="sg-titulo"><AiOutlineUsergroupAdd size={22} /> Segmentos de Clientes</h1>
-        <p className="sg-subtitulo">Clasificación automática con K-Means · {clientes.length} clientes analizados</p>
-      </div>
+      <AdminHero icono={<AiOutlineUsergroupAdd size={26} />} seccion="Operación" titulo="Segmentos de" resaltado="clientes"
+        descripcion={`Grupos de clientes según cómo compran, para mandarles promociones a la medida. ${clientes.length} clientes analizados.`} />
 
       {/* ── Tarjetas de segmento ── */}
       <div className="sg-segmentos-grid">

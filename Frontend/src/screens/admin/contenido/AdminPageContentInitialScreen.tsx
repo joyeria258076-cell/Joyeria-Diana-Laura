@@ -12,6 +12,7 @@ import { paginasAPI, seccionesAPI, contenidosAPI, uploadAPI } from '../../../ser
 import Loader from '../../../components/Loader';
 import '../../../styles/SitioSecciones.css';
 import './AdminPageContentInitialScreen.css';
+import AdminHero from '../../../components/AdminHero';
 
 interface Slide {
   id?: number;
@@ -182,9 +183,8 @@ const AdminPageContentInitialScreen: React.FC = () => {
 
   return (
     <main className="apci-page">
-      <header className="sx-head" style={{ marginBottom: '1.75rem' }}>
-        <div className="sx-eyebrow">Contenido de inicio</div>
-        <h1 className="sx-title">Carrusel <span>principal</span></h1>
+      <AdminHero icono={<AiOutlinePicture size={26} />} seccion="Contenido de inicio" titulo="Carrusel" resaltado="principal" />
+      <header style={{ marginBottom: '1.25rem' }}>
         <p className="sx-subtitle">
           Las imágenes grandes con las que abre la página de inicio. Edita una diapositiva y verás
           el resultado aquí mismo antes de guardar.

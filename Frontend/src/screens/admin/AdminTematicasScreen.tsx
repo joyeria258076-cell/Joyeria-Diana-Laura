@@ -11,6 +11,8 @@ import { temasTemporadaAPI, type TemaTemporada } from '../../services/api';
 import { previsualizarTemporada, actualizarTemporada } from '../../components/ThemeConfigLoader';
 import { ICONO_DECORACION } from '../../components/SelectorTema';
 import './AdminTematicasScreen.css';
+import { AiOutlineGift } from 'react-icons/ai';
+import AdminHero from '../../components/AdminHero';
 
 type Form = Omit<TemaTemporada, 'id' | 'clave'> & { id?: number; clave?: string };
 
@@ -176,10 +178,11 @@ const AdminTematicasScreen: React.FC = () => {
 
   return (
     <div className="tm-page">
-      <header className="tm-head">
+      <header className="av-hero">
         <div>
-          <span className="tm-eyebrow">Apariencia</span>
-          <h1 className="tm-titulo">Temáticas de <em>temporada</em></h1>
+          <span className="av-hero-icono"><AiOutlineGift size={26} /></span>
+          <span className="av-eyebrow">Apariencia</span>
+          <h1 className="av-titulo">Temáticas de <em>temporada</em></h1>
           <p className="tm-sub">
             Crea estilos para fechas especiales. Al activarlas aparecen en el selector de tema de todos los usuarios
             y cada quien decide si la usa. {activas > 0 ? `${activas} activa${activas === 1 ? '' : 's'} ahora.` : 'Ninguna activa ahora.'}

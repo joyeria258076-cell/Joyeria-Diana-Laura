@@ -10,6 +10,7 @@ import {
 import { productsAPI, uploadAPI } from '../../services/api';
 import { UBICACIONES_SUGERIDAS, colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import './AdminEditarProductoScreen.css';
+import AdminHero from '../../components/AdminHero';
 
 interface Category { id: number; nombre: string; }
 interface Proveedor { id: number; nombre: string; }
@@ -353,10 +354,8 @@ const AdminEditarProductoScreen: React.FC = () => {
 
   return (
     <div className="ep3-container">
-      <div className="ep3-header">
-        <h1><AiOutlineEdit size={22} /> Editar Producto</h1>
-        <p>Actualiza la información del producto #{id}</p>
-      </div>
+      <AdminHero icono={<AiOutlineEdit size={26} />} seccion="Gestión de catálogo" titulo="Editar" resaltado="pieza"
+        descripcion={`Actualiza la información del producto #${id}. Los cambios se ven en la tienda en cuanto guardas.`} />
 
       {error && (
         <div className="ep3-alert ep3-alert-error">

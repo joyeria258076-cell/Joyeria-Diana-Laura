@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { productsAPI, uploadAPI, precioSugeridoAPI } from '../../services/api';
 import { UBICACIONES_SUGERIDAS, colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import './AdminNuevoProductoScreen.css';
+import AdminHero from '../../components/AdminHero';
 
 interface Category { id: number; nombre: string; }
 interface Proveedor { id: number; nombre: string; }
@@ -308,10 +309,8 @@ const AdminNuevoProductoScreen: React.FC = () => {
 
   return (
     <div className="np3-container">
-      <div className="np3-header">
-        <h1><AiOutlinePlus size={22} /> Agregar Nuevo Producto</h1>
-        <p>Registra una nueva pieza para tu catálogo de joyería</p>
-      </div>
+      <AdminHero icono={<AiOutlinePlus size={26} />} seccion="Gestión de catálogo" titulo="Nueva" resaltado="pieza"
+        descripcion="Sube la foto, llena los datos y revisa a la derecha cómo se verá en la tienda. Con categoría, material y peso te sugerimos un precio." />
 
       {error && (
         <div className="np3-alert np3-alert-error">

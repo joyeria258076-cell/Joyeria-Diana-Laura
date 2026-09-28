@@ -9,6 +9,7 @@ import {
 } from 'react-icons/ai';
 import { proveedoresAPI, uploadAPI } from '../../../services/api';
 import './AdminEditarProveedorScreen.css';
+import AdminHero from '../../../components/AdminHero';
 
 interface FormData {
   nombre: string;
@@ -161,10 +162,8 @@ const AdminEditarProveedorScreen: React.FC = () => {
 
   return (
     <div className="ep2-container">
-      <div className="ep2-header">
-        <h1><AiOutlineEdit size={22} /> Editar Proveedor</h1>
-        <p>Actualiza la información del proveedor #{id}</p>
-      </div>
+      <AdminHero icono={<AiOutlineEdit size={26} />} seccion="Proveedores" titulo="Editar" resaltado="proveedor"
+        descripcion={`Actualiza los datos de contacto del proveedor #${id}.`} />
 
       {error && (
         <div className="ep2-alert ep2-alert-error">

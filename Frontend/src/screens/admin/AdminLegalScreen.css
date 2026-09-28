@@ -277,3 +277,8 @@
 .adm-head .sx-eyebrow::before { display: none; }
 .adm-head .sx-title { font-size: clamp(1.9rem, 3.5vw, 2.6rem); margin-bottom: 0.4rem; }
 .adm-head .sx-subtitle { margin: 0; max-width: 640px; }
+
+/* Encabezado nuevo a todo lo ancho; los botones van debajo, alineados a la derecha */
+.alegal-header { flex-direction: column; align-items: stretch; }
+.alegal-header > .av-hero { width: 100%; margin-bottom: 0; }
+.alegal-header-actions { align-self: flex-end; }

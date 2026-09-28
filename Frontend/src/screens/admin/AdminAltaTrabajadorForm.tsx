@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { workersAPI } from '../../services/api';
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineUserAdd, AiOutlineCheckCircle, AiOutlineCopy } from 'react-icons/ai';
 import './AdminAltaTrabajadorForm.css';
+import AdminHero from '../../components/AdminHero';
 
 // ─── FUNCIONES DE VALIDACIÓN PARA PREVENIR INYECCIONES ───
 const validateNoSQLInjection = (value: string) => {
@@ -238,8 +239,8 @@ const AdminAltaTrabajadorForm: React.FC = () => {
 
         {/* ── Formulario en filas ── */}
         <div className="ae2-panel">
-          <h1 className="ae2-titulo"><AiOutlineUserAdd size={22} /> Nuevo trabajador</h1>
-          <p className="ae2-subtitulo">Da de alta una cuenta para el equipo</p>
+          <AdminHero icono={<AiOutlineUserAdd size={26} />} seccion="Personal" titulo="Nuevo" resaltado="trabajador"
+            descripcion="Da de alta una cuenta para el equipo. Le llegará un correo para activar su acceso." />
 
           {globalError && <div className="ae2-error">{globalError}</div>}
 

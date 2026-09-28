@@ -4,6 +4,7 @@ import { workersAPI } from '../../services/api';
 import Loader from '../../components/Loader';
 import { AiOutlineEdit } from 'react-icons/ai';
 import './AdminEditarTrabajadorScreen.css';
+import AdminHero from '../../components/AdminHero';
 
 const initials = (nombre: string) => {
     const partes = nombre.trim().split(/\s+/);
@@ -112,8 +113,8 @@ const AdminEditarTrabajadorScreen = () => {
 
                 {/* ── Formulario en filas ── */}
                 <div className="ae-panel">
-                    <h1 className="ae-titulo"><AiOutlineEdit size={22} /> Editar perfil</h1>
-                    <p className="ae-subtitulo">Modifica los accesos y datos del personal</p>
+                    <AdminHero icono={<AiOutlineEdit size={26} />} seccion="Personal" titulo="Editar" resaltado="perfil"
+                        descripcion="Modifica los accesos y datos del personal." />
 
                     {error && <div className="ae-error">{error}</div>}
 

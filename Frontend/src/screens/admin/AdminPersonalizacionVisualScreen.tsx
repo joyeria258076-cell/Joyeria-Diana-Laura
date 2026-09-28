@@ -6,6 +6,8 @@ import { PALETAS, NOMBRES_TEMA, aplicarTema, restaurarTema, normalizarBase as no
 import Loader from '../../components/Loader';
 import '../../styles/SitioSecciones.css';
 import './AdminPersonalizacionVisualScreen.css';
+import { AiOutlineBgColors } from 'react-icons/ai';
+import AdminHero from '../../components/AdminHero';
 
 const NOMBRES_PALETA: Record<string, string> = NOMBRES_TEMA;
 
@@ -113,13 +115,9 @@ const AdminPersonalizacionVisualScreen: React.FC = () => {
 
     return (
         <main className="apv-page">
-            <header className="sx-head">
-                <div className="sx-eyebrow">Apariencia</div>
-                <h1 className="sx-title">Personalización <span>visual</span></h1>
-                <p className="sx-subtitle">
-                    Cambia el fondo y los colores de todo el sistema. Al elegir una paleta la ves aplicada
-                    al instante; se guarda para todos hasta que presiones "Guardar".
-                </p>
+            <AdminHero icono={<AiOutlineBgColors size={26} />} seccion="Apariencia" titulo="Personalización" resaltado="visual"
+                descripcion='Cambia el fondo y los colores de todo el sistema. Al elegir una paleta la ves aplicada al instante; se guarda para todos hasta que presiones "Guardar".' />
+            <header style={{ display: 'none' }}>
             </header>
 
             <section className="sx-card sx-card--static apv-card">
