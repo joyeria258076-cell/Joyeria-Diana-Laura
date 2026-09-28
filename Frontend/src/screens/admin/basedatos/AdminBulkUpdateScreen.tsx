@@ -130,7 +130,7 @@ const AdminBulkUpdateScreen: React.FC = () => {
   };
 
   return (
-    <div className="bu2-container">
+    <div className="av-page bu2-container">
       <AdminHero icono={<FiEdit3 size={24} />} seccion="Gestión BD" titulo="Actualización" resaltado="masiva"
         descripcion="Cambia precios, existencias u otros datos de muchos registros a la vez con un archivo de Excel." />
 
@@ -144,52 +144,53 @@ const AdminBulkUpdateScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Barra compacta: tabla + plantilla + archivo, todo en una franja */}
-      <div className="bu2-toolbar">
-        <div className="bu2-toolbar-field">
-          <label><FiDatabase size={13} /> Tabla</label>
-          <select value={selectedTable} onChange={handleTableChange}>
-            {tables.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </select>
-        </div>
+      <div className="bu4-pasos">
+        {/* Paso 1: qué tabla */}
+        <section className="bu4-paso">
+          <header><span className="bu4-num">1</span><div><h2>¿Qué quieres actualizar?</h2><p>Elige la tabla que vas a cambiar.</p></div></header>
+          <div className="bu4-tablas">
+            {tables.map(t => (
+              <button key={t.value} className={`bu4-tabla ${selectedTable === t.value ? 'activa' : ''}`}
+                onClick={() => handleTableChange({ target: { value: t.value } } as React.ChangeEvent<HTMLSelectElement>)}>
+                <FiDatabase size={18} /><span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
 
-        <button className="bu2-btn-template" onClick={handleDownloadTemplate} disabled={downloadingTemplate}>
-          {downloadingTemplate ? <><span className="spinner-small"></span> Descargando...</> : <><FiDownload size={14} /> Descargar plantilla</>}
-        </button>
+        {/* Paso 2: plantilla */}
+        <section className="bu4-paso">
+          <header><span className="bu4-num">2</span><div><h2>Descarga y llena la plantilla</h2><p>Trae los datos actuales; cambia solo lo que necesites.</p></div></header>
+          <ul className="bu4-reglas">
+            <li>Abre la hoja <b>ACTUALIZACION</b> del archivo.</li>
+            <li>La columna <b>id</b> es obligatoria; no la cambies.</li>
+            <li>Las celdas vacías se ignoran: el dato actual se queda igual.</li>
+          </ul>
+          <button className="av-btn av-btn--sec bu4-descargar" onClick={handleDownloadTemplate} disabled={downloadingTemplate}>
+            {downloadingTemplate ? <><span className="spinner-small"></span> Descargando...</> : <><FiDownload size={16} /> Descargar plantilla de {tables.find(t => t.value === selectedTable)?.label.toLowerCase()}</>}
+          </button>
+        </section>
 
-        <button className="bu2-btn-info" onClick={() => setShowInstrucciones(v => !v)}>
-          <FiInfo size={14} /> Instrucciones
-        </button>
-
-        <div
-          className={`bu2-dropzone-inline ${dragActive ? 'drag-active' : ''} ${file ? 'has-file' : ''}`}
-          onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
-          onClick={() => document.getElementById('file-upload')?.click()}
-        >
-          <input type="file" id="file-upload" accept=".xlsx" onChange={handleFileChange} disabled={loading || executing} hidden />
-          {file ? (
-            <><FiCheckCircle size={15} color="#4CAF50" /> <span>{file.name}</span></>
-          ) : (
-            <><FiUpload size={15} /> <span>Arrastra o elige tu archivo .xlsx</span></>
-          )}
-        </div>
-
-        <button className="btn-preview bu2-btn-preview" onClick={handlePreview} disabled={!file || loading || executing}>
-          {loading ? <><span className="spinner-small"></span> Procesando...</> : <><FiEye /> Vista previa</>}
-        </button>
+        {/* Paso 3: subir */}
+        <section className="bu4-paso">
+          <header><span className="bu4-num">3</span><div><h2>Sube el archivo y revisa</h2><p>Antes de guardar verás exactamente qué va a cambiar.</p></div></header>
+          <div
+            className={`bu4-drop ${dragActive ? 'arrastrando' : ''} ${file ? 'con-archivo' : ''}`}
+            onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
+            onClick={() => document.getElementById('file-upload')?.click()}
+          >
+            <input type="file" id="file-upload" accept=".xlsx" onChange={handleFileChange} disabled={loading || executing} hidden />
+            {file ? (
+              <><FiCheckCircle size={30} /><strong>{file.name}</strong><small>Toca para cambiar el archivo</small></>
+            ) : (
+              <><FiUpload size={30} /><strong>Arrastra tu archivo aquí</strong><small>o toca para elegirlo · solo .xlsx</small></>
+            )}
+          </div>
+          <button className="av-btn bu4-revisar" onClick={handlePreview} disabled={!file || loading || executing}>
+            {loading ? <><span className="spinner-small"></span> Revisando...</> : <><FiEye size={17} /> Revisar cambios</>}
+          </button>
+        </section>
       </div>
-
-      {showInstrucciones && (
-        <div className="bu2-instrucciones">
-          <ol>
-            <li>Descarga la plantilla con el botón "Descargar plantilla".</li>
-            <li>Abre el archivo Excel y ve a la hoja "ACTUALIZACION".</li>
-            <li>La columna <strong>"id"</strong> es obligatoria.</li>
-            <li>Completa solo las columnas que quieras actualizar; las celdas vacías se ignoran.</li>
-            <li>Guarda el archivo y súbelo en la franja de arriba.</li>
-          </ol>
-        </div>
-      )}
 
       {/* Revisor de cambios tipo "diff" */}
       {preview && (

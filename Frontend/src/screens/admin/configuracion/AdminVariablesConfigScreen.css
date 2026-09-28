@@ -771,3 +771,46 @@
 @media (max-width: 800px) { .variable-valor { min-width: 0; width: 100%; } }
 .variable-valor .valor-actual { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-body) !important; }
 .variable-valor .edit-hint { display: inline-flex !important; align-items: center; gap: 4px; flex-shrink: 0; padding: 5px 10px; border-radius: 10px; font-style: normal !important; font-size: 12.5px !important; font-weight: 600; color: var(--color-primary) !important; background: color-mix(in srgb, var(--color-primary) 12%, transparent); }
+
+/* ════════ v4: ajustes en tarjetas con edición directa ════════ */
+.cf4-cuenta { margin-left: auto; font-size: 13px; font-weight: 500; color: var(--color-text-muted); letter-spacing: 0; }
+.cf4-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.cf4-card {
+  display: flex; flex-direction: column; gap: 10px; padding: 20px; border-radius: 24px; font-family: var(--font-body);
+  background: var(--color-surface-2); border: 1px solid var(--color-border); transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.cf4-card:focus-within, .cf4-card.cambiado { border-color: color-mix(in srgb, var(--color-primary) 55%, transparent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 10%, transparent); }
+.cf4-card--enlace { background: linear-gradient(160deg, color-mix(in srgb, var(--color-primary) 9%, var(--color-surface-2)), var(--color-surface-2)); }
+.cf4-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cf4-cabeza strong { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; color: var(--color-text); }
+.cf4-desc { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--color-text-muted); flex: 1; }
+.cf4-control { margin-top: 4px; }
+.cf4-campo {
+  display: flex; align-items: center; gap: 8px; min-height: 58px; padding: 0 16px; box-sizing: border-box; border-radius: 18px; cursor: text;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+}
+.cf4-campo:focus-within { border-color: var(--color-primary); }
+.cf4-campo input {
+  flex: 1; min-width: 0; min-height: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; outline: none;
+  font-family: var(--font-body) !important; font-size: 24px !important; font-weight: 700 !important; letter-spacing: -0.6px; color: var(--color-text) !important;
+}
+.cf4-campo span { font-size: 15px; font-weight: 600; color: var(--color-text-muted); }
+.cf4-campo span:first-child { font-size: 22px; color: var(--color-primary); }
+.cf4-segmento { width: 100%; }
+.cf4-segmento button { flex: 1; justify-content: center; text-transform: capitalize; }
+.cf4-switch { width: 56px; height: 32px; border-radius: 999px; border: 0; padding: 4px; cursor: pointer; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-border); }
+.cf4-switch i { display: block; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25); transition: transform .2s ease; }
+.cf4-switch.on { background: var(--gradient-primary); box-shadow: none; }
+.cf4-switch.on i { transform: translateX(24px); }
+.cf4-pie { display: flex; justify-content: flex-end; align-items: center; gap: 8px; min-height: 40px; }
+.cf4-pie small { margin-right: auto; font-size: 12px; color: var(--color-text-muted); }
+.cf4-pie .av-btn { min-height: 40px; padding: 0 16px; font-size: 13.5px; }
+.cf4-miniatura { width: 100%; height: 110px; object-fit: cover; border-radius: 16px; }
+.cf4-chip { align-self: flex-start; padding: 6px 14px; border-radius: 999px; background: var(--color-surface); border: 1px solid var(--color-border); font-size: 13px; font-weight: 600; text-transform: capitalize; }
+.cf4-ir {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border-radius: 14px; cursor: pointer;
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 45%, transparent); background: var(--color-surface); color: var(--color-primary);
+  font-family: var(--font-body); font-size: 14px; font-weight: 600;
+}
+.cf4-ir:hover { background: var(--gradient-primary); color: var(--color-on-primary); border-color: transparent; }
+.cf4-segmento { box-sizing: border-box; max-width: 100%; }

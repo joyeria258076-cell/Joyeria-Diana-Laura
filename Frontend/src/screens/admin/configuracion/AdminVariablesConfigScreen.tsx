@@ -5,7 +5,7 @@ import Loader from '../../../components/Loader';
 import {
   AiOutlineSave, AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineSetting,
   AiOutlineDollarCircle, AiOutlineShoppingCart, AiOutlineInbox, AiOutlineBarChart,
-  AiOutlineTag, AiOutlinePlus, AiOutlineEdit, AiOutlineCheckCircle, AiOutlineStop, AiOutlineBgColors, AiOutlineShopping, AiOutlineFileText } from 'react-icons/ai';
+  AiOutlineTag, AiOutlinePlus, AiOutlineEdit, AiOutlineCheckCircle, AiOutlineStop, AiOutlineBgColors, AiOutlineShopping, AiOutlineFileText, AiOutlineArrowRight } from 'react-icons/ai';
 import { configAPI, apartadoAPI } from '../../../services/api';
 import './AdminVariablesConfigScreen.css';
 import AdminHero from '../../../components/AdminHero';
@@ -32,6 +32,29 @@ const NOMBRES_VARIABLE: Record<string, string> = {
   secciones_ocultas: 'Secciones ocultas', secciones_orden: 'Orden de secciones',
   sitio_fondo_url: 'Imagen de fondo del sitio', sitio_paleta: 'Paleta de colores',
   sitio_mision_vision_valores: 'Misión, visión y valores',
+};
+
+// Ajustes que se editan en otra pantalla (se muestra un acceso directo)
+const ENLACE_VARIABLE: Record<string, { ruta: string; texto: string }> = {
+  secciones_ocultas: { ruta: '/admin-contenido/paginas', texto: 'Abrir Gestión de páginas' },
+  secciones_orden: { ruta: '/admin-contenido/paginas', texto: 'Abrir Gestión de páginas' },
+  sitio_fondo_url: { ruta: '/admin/personalizacion-visual', texto: 'Cambiar en Personalización visual' },
+  sitio_paleta: { ruta: '/admin/personalizacion-visual', texto: 'Cambiar en Personalización visual' },
+  sitio_mision_vision_valores: { ruta: '/admin-contenido/mision', texto: 'Editar misión, visión y valores' },
+};
+
+// Unidad que acompaña al valor de cada ajuste
+const unidadDe = (clave: string, todas: { clave: string; valor: string }[]): { antes?: string; despues?: string } => {
+  if (['costo_envio_default', 'envio_gratis_desde'].includes(clave)) return { antes: '$', despues: 'MXN' };
+  if (['iva_porcentaje', 'margen_ganancia_default'].includes(clave)) return { despues: '%' };
+  if (clave === 'dias_cancelacion') return { despues: 'horas' };
+  if (clave === 'stock_minimo_default') return { despues: 'piezas' };
+  if (clave === 'dias_expiracion_pago') {
+    const u = todas.find(v => v.clave === 'unidad_expiracion_pago')?.valor || 'dias';
+    return { despues: u === 'dias' ? 'días' : u };
+  }
+  if (clave.startsWith('dias_')) return { despues: 'días' };
+  return {};
 };
 
 interface VariableConfig {
@@ -374,80 +397,81 @@ const AdminVariablesConfigScreen: React.FC = () => {
           {categoriasOrdenadas.length === 0 && seccionReal !== 'planes' ? (
             <div className="empty-state"><p>No hay variables de configuración disponibles</p></div>
           ) : seccionReal !== 'planes' ? (
-            <section className="vc-settings-list">
+            <section className="cf4">
               <h2 className="vc-panel-title">
                 {React.createElement(ICONOS_CATEGORIA[seccionReal] || AiOutlineTag, { size: 18 })}
                 {nombreCategoria(seccionReal)}
+                <small className="cf4-cuenta">{(grupos[seccionReal] || []).length} ajuste{(grupos[seccionReal] || []).length === 1 ? '' : 's'}</small>
               </h2>
-              {(grupos[seccionReal] || []).map(variable => (
-                <div key={variable.id} className="vc-setting-row">
-                  <div className="vc-setting-info">
-                    <div className="vc-setting-name-row">
-                      <strong>{NOMBRES_VARIABLE[variable.clave] || (variable.clave.charAt(0).toUpperCase() + variable.clave.slice(1).replace(/_/g, ' '))}</strong>
-                      <span className="variable-tipo">{formatTipoDato(variable.tipo_dato)}</span>
+              <div className="cf4-grid">
+              {(grupos[seccionReal] || []).map(variable => {
+                const clave = variable.clave;
+                const nombre = NOMBRES_VARIABLE[clave] || (clave.charAt(0).toUpperCase() + clave.slice(1).replace(/_/g, ' '));
+                const enlace = ENLACE_VARIABLE[clave];
+                const actual = editValues[clave] ?? variable.valor;
+                const cambiado = editValues[clave] !== undefined && editValues[clave] !== variable.valor;
+                const esNumero = variable.tipo_dato === 'decimal' || variable.tipo_dato === 'integer' || variable.tipo_dato === 'numero';
+                const unidad = unidadDe(clave, variables);
+                const actualizado = formatFecha(variable.fecha_actualizacion);
+                if (enlace) {
+                  return (
+                    <article key={variable.id} className="cf4-card cf4-card--enlace">
+                      <div className="cf4-cabeza"><strong>{nombre}</strong></div>
+                      <p className="cf4-desc">{variable.descripcion}</p>
+                      {clave === 'sitio_fondo_url' && variable.valor && <img className="cf4-miniatura" src={variable.valor} alt="" />}
+                      {clave === 'sitio_paleta' && <span className="cf4-chip">{variable.valor}</span>}
+                      <button className="cf4-ir" onClick={() => navigate(enlace.ruta)}>{enlace.texto} <AiOutlineArrowRight size={15} /></button>
+                    </article>
+                  );
+                }
+                return (
+                  <article key={variable.id} className={`cf4-card${cambiado ? ' cambiado' : ''}`}>
+                    <div className="cf4-cabeza">
+                      <strong>{nombre}</strong>
                       {variable.es_sensible && (
-                        <button className="btn-toggle-sensitive" onClick={() => toggleShowSensitive(variable.clave)}>
-                          {showSensitive[variable.clave] ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                        <button className="av-accion" onClick={() => toggleShowSensitive(clave)} title="Mostrar u ocultar">
+                          {showSensitive[clave] ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                         </button>
                       )}
                     </div>
-                    <p className="variable-descripcion">{variable.descripcion}</p>
-                    <span className="fecha-actualizacion">Actualizado: {formatFecha(variable.fecha_actualizacion)}</span>
-                  </div>
-
-                  <div className="vc-setting-control">
-                    {editMode[variable.clave] ? (
-                      <div className="variable-edit">
-                        {variable.clave === 'unidad_expiracion_pago' ? (
-                          <select value={editValues[variable.clave] || variable.valor}
-                            onChange={(e) => handleChange(variable.clave, e.target.value)}
-                            className="variable-input">
-                            <option value="minutos">Minutos</option>
-                            <option value="horas">Horas</option>
-                            <option value="dias">Días</option>
-                          </select>
-                        ) : variable.tipo_dato === 'boolean' ? (
-                          <select value={editValues[variable.clave] || variable.valor}
-                            onChange={(e) => handleChange(variable.clave, e.target.value)}
-                            className="variable-input">
-                            <option value="true">✓ Verdadero</option>
-                            <option value="false">✗ Falso</option>
-                          </select>
-                        ) : (
-                          <input
-                            type={variable.es_sensible && !showSensitive[variable.clave] ? 'password' :
-                              variable.tipo_dato === 'decimal' || variable.tipo_dato === 'integer' ? 'number' : 'text'}
-                            step={variable.tipo_dato === 'decimal' ? '0.01' : '1'}
-                            value={editValues[variable.clave] || variable.valor}
-                            onChange={(e) => handleChange(variable.clave, e.target.value)}
-                            className="variable-input" />
-                        )}
-                        <div className="edit-actions">
-                          <button className="btn-save-small" onClick={() => handleSave(variable.clave)} disabled={saving}>
-                            <AiOutlineSave size={15} /> {saving ? 'Guardando...' : 'Guardar'}
-                          </button>
-                          <button className="btn-cancel-small" onClick={() => handleCancel(variable.clave)}>
-                            <AiOutlineClose size={15} /> Cancelar
-                          </button>
+                    <p className="cf4-desc">{variable.descripcion}</p>
+                    <div className="cf4-control">
+                      {clave === 'unidad_expiracion_pago' ? (
+                        <div className="av-segmento cf4-segmento">
+                          {['minutos', 'horas', 'dias'].map(u => (
+                            <button key={u} className={actual === u ? 'activo' : ''} onClick={() => handleChange(clave, u)}>{u === 'dias' ? 'días' : u}</button>
+                          ))}
                         </div>
-                      </div>
-                    ) : (
-                      <div className="variable-valor" onClick={() => handleEdit(variable.clave, variable.valor)}>
-                        {variable.es_sensible && !showSensitive[variable.clave] ? (
-                          <span className="valor-oculto">••••••••</span>
-                        ) : (
-                          <span className={`valor-actual ${variable.tipo_dato === 'decimal' || variable.tipo_dato === 'integer' ? 'valor-numerico' : ''}`}>
-                            {variable.tipo_dato === 'boolean'
-                              ? (variable.valor === 'true' ? '✓ Verdadero' : '✗ Falso')
-                              : variable.valor}
-                          </span>
-                        )}
-                        <span className="edit-hint"><AiOutlineEdit size={15} /> Editar</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+                      ) : variable.tipo_dato === 'boolean' ? (
+                        <button className={`cf4-switch${actual === 'true' ? ' on' : ''}`} role="switch" aria-checked={actual === 'true'}
+                          onClick={() => handleChange(clave, actual === 'true' ? 'false' : 'true')}><i /></button>
+                      ) : (
+                        <label className="cf4-campo">
+                          {unidad.antes && <span>{unidad.antes}</span>}
+                          <input
+                            type={variable.es_sensible && !showSensitive[clave] ? 'password' : esNumero ? 'number' : 'text'}
+                            step={variable.tipo_dato === 'decimal' ? '0.01' : '1'}
+                            value={actual}
+                            onChange={e => handleChange(clave, e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter' && cambiado) handleSave(clave); if (e.key === 'Escape') handleCancel(clave); }} />
+                          {unidad.despues && <span>{unidad.despues}</span>}
+                        </label>
+                      )}
+                    </div>
+                    <div className="cf4-pie">
+                      {cambiado ? (
+                        <>
+                          <button className="av-btn av-btn--sec" onClick={() => handleCancel(clave)}>Deshacer</button>
+                          <button className="av-btn" onClick={() => handleSave(clave)} disabled={saving}><AiOutlineSave size={16} /> {saving ? 'Guardando…' : 'Guardar'}</button>
+                        </>
+                      ) : (
+                        <small>Actualizado {actualizado}</small>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+              </div>
             </section>
           ) : (
         /* ── SECCIÓN PLANES DE ABONO ─────────────────────── */
