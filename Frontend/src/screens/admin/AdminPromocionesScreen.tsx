@@ -3,7 +3,7 @@ import { promocionesAPI } from '../../services/api';
 import Loader from '../../components/Loader';
 import {
   AiOutlinePlus, AiOutlineEdit, AiOutlineDelete, AiOutlineTag, AiOutlineClose, AiOutlineCheck,
-  AiOutlinePercentage, AiOutlineGift, AiOutlineCar, AiOutlineDollarCircle, AiOutlineFire, AiOutlineCalendar } from 'react-icons/ai';
+  AiOutlinePercentage, AiOutlineGift, AiOutlineCar, AiOutlineDollarCircle, AiOutlineFire, AiOutlineCalendar, AiOutlineSearch } from 'react-icons/ai';
 import './AdminPromocionesScreen.css';
 import AdminHero from '../../components/AdminHero';
 
@@ -64,6 +64,8 @@ const AdminPromocionesScreen: React.FC = () => {
   const [error, setError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<Promocion | null>(null);
   const [filtro, setFiltro] = useState<'todas' | 'vigentes' | 'proximas' | 'expiradas'>('todas');
+  const [busqueda, setBusqueda] = useState('');
+  const [tipoFiltro, setTipoFiltro] = useState('todos');
 
   const cargar = async () => {
     setLoading(true);
@@ -194,6 +196,9 @@ const AdminPromocionesScreen: React.FC = () => {
   const IconoForm = iconoTipo(form.tipo);
 
   const promosFiltradas = promociones.filter(p => {
+    if (tipoFiltro !== 'todos' && p.tipo !== tipoFiltro) return false;
+    const q = busqueda.trim().toLowerCase();
+    if (q && !`${p.nombre} ${p.codigo_cupon || ''}`.toLowerCase().includes(q)) return false;
     if (filtro === 'vigentes') return esVigente(p);
     if (filtro === 'proximas') return esProxima(p);
     if (filtro === 'expiradas') return esExpirada(p);
@@ -218,6 +223,20 @@ const AdminPromocionesScreen: React.FC = () => {
             onClick={() => setFiltro(filtro === k.id ? 'todas' : k.id)}>
             <span className="av-kpi-icono">{k.icono}</span>
             <span><strong>{k.n}</strong><small>{k.label}</small></span>
+          </button>
+        ))}
+      </div>
+
+      <div className="av-barra">
+        <label className="av-buscar"><AiOutlineSearch size={18} />
+          <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar por nombre o código de cupón" />
+        </label>
+      </div>
+      <div className="av-chips">
+        <button className={`av-chip ${tipoFiltro === 'todos' ? 'activo' : ''}`} onClick={() => setTipoFiltro('todos')}>Todos los tipos</button>
+        {TIPOS.map(t => (
+          <button key={t.value} className={`av-chip ${tipoFiltro === t.value ? 'activo' : ''}`} onClick={() => setTipoFiltro(tipoFiltro === t.value ? 'todos' : t.value)}>
+            {t.label} <b>{promociones.filter(p => p.tipo === t.value).length}</b>
           </button>
         ))}
       </div>

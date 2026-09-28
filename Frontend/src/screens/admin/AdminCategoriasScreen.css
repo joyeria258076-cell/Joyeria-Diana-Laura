@@ -488,3 +488,28 @@
 .cat2-container.av-page .cat2-orden { display: none; }
 .cat2-piezas { padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; white-space: nowrap; background: var(--color-surface-2); color: var(--color-text-muted); }
 @media (max-width: 640px) { .cat2-piezas { display: none; } }
+
+/* ════════ v4: categorías como tarjetas con foto ════════ */
+.cat4-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
+.cat4-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 28px; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-soft); font-family: var(--font-body); transition: transform 0.2s ease, border-color 0.2s ease; }
+.cat4-card:hover { transform: translateY(-3px); }
+.cat4-card.cat2-drag-over { border-color: var(--color-primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 18%, transparent); }
+.cat4-card.cat2-dragging { opacity: 0.5; }
+.cat4-card.cat2-group-inactivo .cat4-foto img { filter: grayscale(0.8); opacity: 0.6; }
+.cat4-foto { position: relative; aspect-ratio: 4 / 3; background: var(--color-surface-2); overflow: hidden; }
+.cat4-foto img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.cat4-card:hover .cat4-foto img { transform: scale(1.05); }
+.cat4-sinfoto { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; color: var(--color-text-muted); }
+.cat4-mover { position: absolute; left: 12px; top: 12px; width: 34px; height: 34px; border-radius: 11px; display: inline-flex !important; align-items: center; justify-content: center; cursor: grab; background: rgba(20, 14, 18, 0.6); color: #fff !important; backdrop-filter: blur(6px); }
+.cat4-estado { position: absolute; right: 12px; top: 12px; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; backdrop-filter: blur(6px); }
+.cat4-estado.on { background: rgba(255, 255, 255, 0.9); color: #1f8a5b; }
+.cat4-estado.off { background: rgba(20, 14, 18, 0.7); color: #fff; }
+.cat4-velo { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 18px 14px; background: linear-gradient(to top, rgba(13, 8, 12, 0.85), transparent); color: #fff; }
+.cat4-velo h3 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.5px; text-transform: capitalize; color: #fff; }
+.cat4-velo span { font-size: 13px; opacity: 0.9; }
+.cat4-cuerpo { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px 16px; flex: 1; }
+.cat4-desc { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--color-text-muted); flex: 1; }
+.cat4-acciones { display: flex; gap: 6px; }
+.cat4-acciones .pr4-editar { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; border-radius: 12px; cursor: pointer; border: 0; background: color-mix(in srgb, var(--color-primary) 14%, transparent); color: var(--color-primary); font-family: var(--font-body); font-size: 13.5px; font-weight: 600; }
+.cat4-acciones .pr4-editar:hover { background: var(--gradient-primary); color: var(--color-on-primary); }
+.cat4-card .cat2-children { margin: 0 16px 16px; padding: 8px; border-radius: 18px; background: var(--color-surface-2); }

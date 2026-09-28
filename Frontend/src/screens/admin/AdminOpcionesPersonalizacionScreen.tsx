@@ -121,10 +121,18 @@ const AdminOpcionesPersonalizacionScreen: React.FC = () => {
   const editarOpcion = (i: number, cambios: Partial<OpcionPers>) =>
     setBorrador(b => b && ({ ...b, opciones: b.opciones.map((o, k) => k === i ? { ...o, ...cambios } : o) }));
 
+  const fotoCategoria = (id: number) => productos.find(p => p.categoria_id === id && p.imagen_principal)?.imagen_principal;
+
   return (
     <div className="aop-page">
       <AdminHero icono={<AiOutlineEdit size={26} />} seccion="Gestión de catálogo" titulo="Opciones de" resaltado="personalización"
         descripcion="Lo que el cliente elige con botones al comprar: talla, largo, metal, grabado… Dalas de alta por categoría y todos sus productos las heredan." />
+
+      <ol className="aop4-pasos">
+        <li><b>1</b><span><strong>Elige dónde</strong> una categoría (todas sus piezas la heredan) o un producto en particular.</span></li>
+        <li><b>2</b><span><strong>Crea un grupo</strong> como Talla, Largo o Grabado, con sus opciones y costo extra.</span></li>
+        <li><b>3</b><span><strong>El cliente elige</strong> con botones al comprar; lo ves en su pedido.</span></li>
+      </ol>
 
       {aviso && <div className={`aop-aviso aop-aviso--${aviso.tipo}`} role="status">{aviso.texto}</div>}
 
@@ -141,7 +149,11 @@ const AdminOpcionesPersonalizacionScreen: React.FC = () => {
                 <li key={c.id}>
                   <button className={destino?.tipo === 'categoria' && destino.id === c.id ? 'activo' : ''}
                     onClick={() => { setDestino({ tipo: 'categoria', id: c.id, nombre: c.nombre }); setBorrador(null); }}>
-                    <span>{c.nombre}</span>{cuentaCategoria(c.id) > 0 && <small>{cuentaCategoria(c.id)}</small>}
+                    <span className="aop4-cat">
+                      {fotoCategoria(c.id) ? <img src={fotoCategoria(c.id)} alt="" /> : <i><AiOutlineAppstore size={16} /></i>}
+                      <span>{c.nombre}</span>
+                    </span>
+                    {cuentaCategoria(c.id) > 0 ? <small>{cuentaCategoria(c.id)} grupo{cuentaCategoria(c.id) === 1 ? '' : 's'}</small> : <small className="aop4-sin">sin opciones</small>}
                   </button>
                 </li>
               ))}
@@ -177,10 +189,17 @@ const AdminOpcionesPersonalizacionScreen: React.FC = () => {
               </div>
 
               {!borrador && gruposDestino.length === 0 && heredados.length === 0 && (
-                <div className="aop-vacio">
-                  <p>Aún no hay opciones aquí. Empieza con una plantilla:</p>
-                  <div className="aop-plantillas">
-                    {PLANTILLAS.map(p => <button key={p.nombre} onClick={() => setBorrador(JSON.parse(JSON.stringify(p.grupo)))}>{p.nombre}</button>)}
+                <div className="aop-vacio aop4-vacio">
+                  <strong>Aún no hay opciones para {destino.nombre}</strong>
+                  <p>Empieza con una plantilla y ajústala, o crea un grupo desde cero.</p>
+                  <div className="aop4-plantillas">
+                    {PLANTILLAS.map(p => (
+                      <button key={p.nombre} className="aop4-plantilla" onClick={() => setBorrador(JSON.parse(JSON.stringify(p.grupo)))}>
+                        <span className="aop4-plantilla-titulo"><AiOutlinePlus size={14} /> {p.nombre}</span>
+                        <span className="aop4-muestra">{p.grupo.opciones.slice(0, 4).map(o => <i key={o.etiqueta}>{o.etiqueta}</i>)}</span>
+                        <small>{p.grupo.requerido ? 'Obligatorio' : 'Opcional'} · {p.grupo.opciones.length} opciones</small>
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}

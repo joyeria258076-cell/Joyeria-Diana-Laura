@@ -256,38 +256,43 @@ const AdminCategoriasScreen: React.FC = () => {
           <p>{searchTerm ? 'No se encontraron categorías' : 'No hay categorías registradas'}</p>
         </div>
       ) : (
-        <div className="cat2-tree">
+        <div className="cat4-grid">
           {grupos.map(({ padre, hijos }) => {
             const isActivo = padre.activo !== false;
             return (
               <div
                 key={padre.id}
-                className={`cat2-group ${!isActivo ? 'cat2-group-inactivo' : ''} ${dragOverId === padre.id ? 'cat2-drag-over' : ''} ${draggedId === padre.id ? 'cat2-dragging' : ''}`}
+                className={`cat4-card ${!isActivo ? 'cat2-group-inactivo' : ''} ${dragOverId === padre.id ? 'cat2-drag-over' : ''} ${draggedId === padre.id ? 'cat2-dragging' : ''}`}
                 onDragOver={e => { e.preventDefault(); setDragOverId(padre.id); }}
                 onDragLeave={() => setDragOverId(prev => prev === padre.id ? null : prev)}
                 onDrop={e => { e.preventDefault(); handleDrop(principales, padre.id); }}
               >
-                <div className="cat2-group-header">
+                <div className="cat4-foto">
+                  {fotos[padre.id]?.img ? <img src={fotos[padre.id].img} alt="" loading="lazy" /> : <span className="cat4-sinfoto"><AiOutlineAppstore size={34} /></span>}
                   <span
-                    className="cat2-drag-handle"
+                    className="cat2-drag-handle cat4-mover"
                     draggable
                     onDragStart={() => setDraggedId(padre.id)}
                     onDragEnd={() => { setDraggedId(null); setDragOverId(null); }}
-                    title="Arrastrar para reordenar"
+                    title="Arrastra para cambiar el orden"
                   >
                     <AiOutlineHolder size={16} />
                   </span>
-                  <div className="cat2-group-icon">{fotos[padre.id]?.img ? <img src={fotos[padre.id].img} alt="" /> : <AiOutlineAppstore size={18} />}</div>
-                  <div className="cat2-group-info">
-                    <div className="cat2-group-nombre">
-                      {padre.nombre}
-                      <span className="cat2-orden">#{padre.orden || 0}</span>
-                    </div>
-                    {padre.descripcion && <p className="cat2-group-desc">{padre.descripcion}</p>}
+                  <span className={`cat4-estado ${isActivo ? 'on' : 'off'}`}>{isActivo ? 'Visible' : 'Oculta'}</span>
+                  <div className="cat4-velo">
+                    <h3>{padre.nombre}</h3>
+                    <span>{fotos[padre.id]?.n || 0} pieza{(fotos[padre.id]?.n || 0) === 1 ? '' : 's'}{hijos.length ? ` · ${hijos.length} sub` : ''}</span>
                   </div>
-                  <span className="cat2-piezas">{fotos[padre.id]?.n || 0} piezas</span>
-                  <span className={`cat2-dot ${isActivo ? 'on' : 'off'}`}>{isActivo ? 'Activa' : 'Inactiva'}</span>
-                  {renderAcciones(padre)}
+                </div>
+                <div className="cat4-cuerpo">
+                  <p className="cat4-desc">{padre.descripcion || 'Sin descripción'}</p>
+                  <div className="cat4-acciones">
+                    <button className="pr4-editar" onClick={() => handleAbrirModal(padre)}><AiOutlineEdit size={15} /> Editar</button>
+                    <button className="av-accion" onClick={() => handleToggleEstado(padre.id, isActivo)} title={isActivo ? 'Ocultar de la tienda' : 'Mostrar en la tienda'}>
+                      {isActivo ? <AiOutlineEye size={16} /> : <AiOutlineEyeInvisible size={16} />}
+                    </button>
+                    <button className="av-accion av-accion--peligro" onClick={() => handleEliminarCategoria(padre.id)} title="Eliminar"><AiOutlineDelete size={16} /></button>
+                  </div>
                 </div>
 
                 {hijos.length > 0 && (
