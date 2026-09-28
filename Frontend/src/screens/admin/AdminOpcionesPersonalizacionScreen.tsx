@@ -17,6 +17,7 @@ type Borrador = { id?: number; nombre: string; requerido: boolean; opciones: Opc
 const PLANTILLAS: { nombre: string; grupo: Borrador }[] = [
   { nombre: 'Tallas de anillo', grupo: { nombre: 'Talla', requerido: true, opciones: ['5', '6', '7', '8', '9', '10'].map(t => ({ etiqueta: t, costo_extra: 0, pide_texto: false })) } },
   { nombre: 'Largo de cadena', grupo: { nombre: 'Largo', requerido: true, opciones: ['40 cm', '45 cm', '50 cm'].map(t => ({ etiqueta: t, costo_extra: 0, pide_texto: false })) } },
+  { nombre: 'Largo de pulsera', grupo: { nombre: 'Largo', requerido: true, opciones: ['16 cm', '18 cm', '20 cm'].map(t => ({ etiqueta: t, costo_extra: 0, pide_texto: false })) } },
   { nombre: 'Color del metal', grupo: { nombre: 'Metal', requerido: false, opciones: ['Dorado', 'Plateado', 'Oro rosa'].map(t => ({ etiqueta: t, costo_extra: 0, pide_texto: false })) } },
   { nombre: 'Grabado', grupo: { nombre: 'Grabado', requerido: false, opciones: [
     { etiqueta: 'Nombre', costo_extra: 0, pide_texto: true, texto_ayuda: 'El nombre a grabar' },
@@ -24,6 +25,17 @@ const PLANTILLAS: { nombre: string; grupo: Borrador }[] = [
     { etiqueta: 'Iniciales', costo_extra: 0, pide_texto: true, texto_ayuda: 'Las iniciales' },
   ] } },
 ];
+
+// Qué plantillas tienen sentido según el nombre de la categoría
+const plantillasPara = (nombre?: string) => {
+  const n = (nombre || '').toLowerCase();
+  const usar = (lista: string[]) => PLANTILLAS.filter(p => lista.includes(p.nombre));
+  if (n.includes('anillo')) return usar(['Tallas de anillo', 'Color del metal', 'Grabado']);
+  if (n.includes('cadena') || n.includes('collar')) return usar(['Largo de cadena', 'Color del metal', 'Grabado']);
+  if (n.includes('pulsera') || n.includes('esclava')) return usar(['Largo de pulsera', 'Color del metal', 'Grabado']);
+  if (n.includes('arete')) return usar(['Color del metal']);
+  return usar(['Color del metal', 'Grabado']);
+};
 
 const dinero = (n: number) => `$${Number(n || 0).toLocaleString('es-MX', { maximumFractionDigits: 2 })}`;
 
@@ -121,6 +133,9 @@ const AdminOpcionesPersonalizacionScreen: React.FC = () => {
   const editarOpcion = (i: number, cambios: Partial<OpcionPers>) =>
     setBorrador(b => b && ({ ...b, opciones: b.opciones.map((o, k) => k === i ? { ...o, ...cambios } : o) }));
 
+  // Para un producto se usan las plantillas de su categoría
+  const nombreCategoriaDestino = destino?.tipo === 'categoria' ? destino.nombre
+    : categorias.find(c => c.id === (destino as any)?.categoria_id)?.nombre;
   const fotoCategoria = (id: number) => productos.find(p => p.categoria_id === id && p.imagen_principal)?.imagen_principal;
 
   return (
@@ -193,7 +208,7 @@ const AdminOpcionesPersonalizacionScreen: React.FC = () => {
                   <strong>Aún no hay opciones para {destino.nombre}</strong>
                   <p>Empieza con una plantilla y ajústala, o crea un grupo desde cero.</p>
                   <div className="aop4-plantillas">
-                    {PLANTILLAS.map(p => (
+                    {plantillasPara(nombreCategoriaDestino).map(p => (
                       <button key={p.nombre} className="aop4-plantilla" onClick={() => setBorrador(JSON.parse(JSON.stringify(p.grupo)))}>
                         <span className="aop4-plantilla-titulo"><AiOutlinePlus size={14} /> {p.nombre}</span>
                         <span className="aop4-muestra">{p.grupo.opciones.slice(0, 4).map(o => <i key={o.etiqueta}>{o.etiqueta}</i>)}</span>
@@ -234,7 +249,7 @@ const AdminOpcionesPersonalizacionScreen: React.FC = () => {
               {!borrador && gruposDestino.length > 0 && (
                 <div className="aop-plantillas aop-plantillas--pie">
                   <span>Agregar desde plantilla:</span>
-                  {PLANTILLAS.filter(p => !gruposDestino.some(g => g.nombre.toLowerCase() === p.grupo.nombre.toLowerCase()))
+                  {plantillasPara(nombreCategoriaDestino).filter(p => !gruposDestino.some(g => g.nombre.toLowerCase() === p.grupo.nombre.toLowerCase()))
                     .map(p => <button key={p.nombre} onClick={() => setBorrador(JSON.parse(JSON.stringify(p.grupo)))}>{p.nombre}</button>)}
                 </div>
               )}
