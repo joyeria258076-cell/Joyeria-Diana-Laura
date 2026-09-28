@@ -396,3 +396,8 @@
 .login-input { padding-left: 18px !important; padding-right: 18px !important; }
 .password-input-container .login-input, .password-input { padding-right: 48px !important; }
 .password-toggle { right: 16px !important; }
+
+/* Sin fondo sólido propio: así el degradado de las fotos se funde con el fondo de la página */
+.login-container { background: transparent !important; }
+/* El login ya tiene sus propias fotos; sin la imagen global detrás no aparece una segunda franja más clara */
+.login-page-wrapper { background-image: none !important; background-color: var(--color-bg) !important; }

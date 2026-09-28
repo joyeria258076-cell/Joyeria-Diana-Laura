@@ -515,3 +515,5 @@ select.register-input option { background: var(--color-surface); color: var(--co
     background: transparent; border: none; color: color-mix(in srgb, var(--color-text) 40%, transparent);
     font-size: 0.78rem; cursor: pointer; text-decoration: underline;
 }
+.register-container { background: transparent !important; }
+.register-page-wrapper { background-image: none !important; background-color: var(--color-bg) !important; }
