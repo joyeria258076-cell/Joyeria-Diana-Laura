@@ -11,6 +11,7 @@ import { productsAPI, uploadAPI } from '../../services/api';
 import { UBICACIONES_SUGERIDAS, colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import './AdminEditarProductoScreen.css';
 import AdminHero from '../../components/AdminHero';
+import IndiceFormulario from '../../components/IndiceFormulario';
 
 interface Category { id: number; nombre: string; }
 interface Proveedor { id: number; nombre: string; }
@@ -720,6 +721,7 @@ const AdminEditarProductoScreen: React.FC = () => {
         {/* Vista previa en vivo */}
         <aside className="ep3-preview">
           <div className="ep3-preview-sticky">
+            <IndiceFormulario formulario=".ep3-form" tarjeta=".ep3-card" />
             <span className="ep3-preview-eyebrow">Vista previa</span>
             <div className="ep3-preview-card">
               <div className="ep3-preview-media">

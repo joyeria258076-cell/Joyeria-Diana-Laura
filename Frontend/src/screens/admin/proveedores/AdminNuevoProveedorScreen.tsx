@@ -9,6 +9,7 @@ import {
 import { proveedoresAPI, uploadAPI } from '../../../services/api';
 import './AdminNuevoProveedorScreen.css';
 import AdminHero from '../../../components/AdminHero';
+import IndiceFormulario from '../../../components/IndiceFormulario';
 
 interface FormData {
   nombre: string;
@@ -315,6 +316,7 @@ const AdminNuevoProveedorScreen: React.FC = () => {
         {/* Vista previa en vivo */}
         <aside className="np2-preview">
           <div className="np2-preview-sticky">
+            <IndiceFormulario formulario=".np2-form" tarjeta=".np2-card" />
             <span className="np2-preview-eyebrow">Vista previa</span>
             <div className="np2-preview-card">
               <div className="np2-preview-top">

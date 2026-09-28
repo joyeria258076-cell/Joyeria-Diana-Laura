@@ -285,3 +285,45 @@
 .admin-skin .bu2-diff-card { border-radius: 20px !important; }
 .admin-skin .bu2-diff-new { color: var(--color-success, #2e9d6a) !important; font-weight: 700; }
 .admin-skin .bu2-diff-old { text-decoration: line-through; color: var(--color-text-muted) !important; }
+
+/* ════════ Formularios v4: franja de título por sección + índice lateral ════════ */
+.admin-skin :is(.np3-layout, .ep3-layout, .np2-layout, .ep2-layout) {
+  display: grid !important; grid-template-columns: minmax(0, 1fr) 340px !important; gap: 22px !important; align-items: start;
+}
+.admin-skin :is(.np3-sidebar-sticky, .ep3-preview-sticky, .np2-preview-sticky, .ep2-preview-sticky) { position: sticky; top: 88px; }
+.admin-skin :is(.np3-card, .ep3-card, .np2-card, .ep2-card) {
+  flex-direction: column; gap: 0 !important; padding: 0 !important; overflow: hidden !important; scroll-margin-top: 90px;
+}
+.admin-skin :is(.np3-card-num, .ep3-card-num, .np2-card-num, .ep2-card-num) {
+  position: absolute; top: 18px; right: 20px; width: 30px !important; height: 30px !important; border-radius: 10px !important;
+  font-size: 13px !important; box-shadow: none !important; z-index: 1;
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent) !important; color: var(--color-primary) !important;
+}
+.admin-skin :is(.np3-card-body, .ep3-card-body, .np2-card-body, .ep2-card-body) { padding: 0 26px 24px; }
+.admin-skin :is(.np3-card-body, .ep3-card-body, .np2-card-body, .ep2-card-body) > h3 {
+  margin: 0 -26px 20px !important; padding: 16px 70px 16px 26px !important;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--color-primary) 11%, var(--color-surface-2)), var(--color-surface-2)) !important;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 17px !important;
+}
+.admin-skin :is(.np3-card-body, .ep3-card-body, .np2-card-body, .ep2-card-body) > h3 svg {
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; width: 34px !important; height: 34px !important;
+}
+.admin-skin :is(.np3-row, .ep3-row, .np2-row, .ep2-row) { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.admin-skin :is(.np3-field, .ep3-field, .np2-field, .ep2-field) { margin-bottom: 14px; }
+.admin-skin :is(.np3-field, .ep3-field, .np2-field, .ep2-field) label { display: block; margin-bottom: 7px; }
+
+/* Vista previa más protagonista */
+.admin-skin :is(.np3-preview-card, .ep3-preview-card, .np2-preview-card, .ep2-preview-card) { border-radius: 30px !important; }
+.admin-skin :is(.np2-preview-card, .ep2-preview-card) { padding: 22px !important; background: linear-gradient(160deg, color-mix(in srgb, var(--color-primary) 10%, var(--color-surface)), var(--color-surface)) !important; }
+.admin-skin :is(.np2-preview-avatar, .ep2-preview-avatar) { width: 64px !important; height: 64px !important; border-radius: 20px !important; font-size: 22px !important; background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; }
+.admin-skin :is(.np2-preview-nombre, .ep2-preview-nombre) { font-size: 20px !important; font-weight: 700 !important; letter-spacing: -0.4px; }
+
+@media (max-width: 1100px) {
+  .admin-skin :is(.np3-layout, .ep3-layout, .np2-layout, .ep2-layout) { grid-template-columns: 1fr !important; }
+  .admin-skin :is(.np3-sidebar-sticky, .ep3-preview-sticky, .np2-preview-sticky, .ep2-preview-sticky) { position: static; }
+}
+@media (max-width: 640px) {
+  .admin-skin :is(.np3-card-body, .ep3-card-body, .np2-card-body, .ep2-card-body) { padding: 0 16px 18px; }
+  .admin-skin :is(.np3-card-body, .ep3-card-body, .np2-card-body, .ep2-card-body) > h3 { margin: 0 -16px 16px !important; padding: 14px 56px 14px 16px !important; }
+}

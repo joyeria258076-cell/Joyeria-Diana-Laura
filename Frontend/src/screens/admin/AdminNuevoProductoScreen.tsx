@@ -10,6 +10,7 @@ import { productsAPI, uploadAPI, precioSugeridoAPI } from '../../services/api';
 import { UBICACIONES_SUGERIDAS, colorDeUbicacion } from '../../utils/ubicacionesEntrega';
 import './AdminNuevoProductoScreen.css';
 import AdminHero from '../../components/AdminHero';
+import IndiceFormulario from '../../components/IndiceFormulario';
 
 interface Category { id: number; nombre: string; }
 interface Proveedor { id: number; nombre: string; }
@@ -660,6 +661,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
         {/* Sidebar: precio sugerido + vista previa */}
         <aside className="np3-sidebar">
           <div className="np3-sidebar-sticky">
+            <IndiceFormulario formulario=".np3-form" tarjeta=".np3-card" />
 
             <span className="np3-preview-eyebrow">Precio sugerido</span>
             {!loadingSugerido && !precioSugerido && (
