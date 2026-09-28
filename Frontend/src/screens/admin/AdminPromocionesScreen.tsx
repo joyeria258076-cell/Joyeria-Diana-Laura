@@ -3,8 +3,7 @@ import { promocionesAPI } from '../../services/api';
 import Loader from '../../components/Loader';
 import {
   AiOutlinePlus, AiOutlineEdit, AiOutlineDelete, AiOutlineTag, AiOutlineClose, AiOutlineCheck,
-  AiOutlinePercentage, AiOutlineGift, AiOutlineCar, AiOutlineDollarCircle, AiOutlineFire,
-} from 'react-icons/ai';
+  AiOutlinePercentage, AiOutlineGift, AiOutlineCar, AiOutlineDollarCircle, AiOutlineFire, AiOutlineCalendar } from 'react-icons/ai';
 import './AdminPromocionesScreen.css';
 import AdminHero from '../../components/AdminHero';
 
@@ -202,35 +201,23 @@ const AdminPromocionesScreen: React.FC = () => {
   });
 
   return (
-    <div className="ap3-container">
+    <div className="av-page ap3-container">
       <AdminHero icono={<AiOutlineTag size={26} />} seccion="Gestión de catálogo" titulo="Tus" resaltado="promociones"
         descripcion="Descuentos, cupones y envíos gratis. Las vigentes se muestran en la tienda y en el inicio.">
         <button className="av-btn" onClick={abrirCrear}><AiOutlinePlus size={17} /> Nueva promoción</button>
       </AdminHero>
 
-      <div className="ap3-stats">
-        <div className="ap3-stat">
-          <span className="ap3-stat-num">{promociones.length}</span>
-          <span className="ap3-stat-label">Total</span>
-        </div>
-        <div className="ap3-stat ap3-stat-ok">
-          <span className="ap3-stat-num">{totalVigentes}</span>
-          <span className="ap3-stat-label">Vigentes</span>
-        </div>
-        <div className="ap3-stat">
-          <span className="ap3-stat-num">{totalProximas}</span>
-          <span className="ap3-stat-label">Próximas</span>
-        </div>
-        <div className="ap3-stat ap3-stat-off">
-          <span className="ap3-stat-num">{totalExpiradas}</span>
-          <span className="ap3-stat-label">Expiradas</span>
-        </div>
-      </div>
-
-      <div className="ap3-toolbar">
-        {(['todas', 'vigentes', 'proximas', 'expiradas'] as const).map(f => (
-          <button key={f} className={`ap3-filtro-btn ${filtro === f ? 'active' : ''}`} onClick={() => setFiltro(f)}>
-            {f === 'todas' ? 'Todas' : f === 'vigentes' ? 'Vigentes' : f === 'proximas' ? 'Próximas' : 'Expiradas'}
+      <div className="av-kpis">
+        {([
+          { id: 'todas', n: promociones.length, label: 'Promociones', icono: <AiOutlineTag size={20} />, tono: '' },
+          { id: 'vigentes', n: totalVigentes, label: 'Vigentes ahora', icono: <AiOutlineCheck size={20} />, tono: 'ok' },
+          { id: 'proximas', n: totalProximas, label: 'Por empezar', icono: <AiOutlineCalendar size={20} />, tono: 'info' },
+          { id: 'expiradas', n: totalExpiradas, label: 'Terminadas', icono: <AiOutlineClose size={20} />, tono: 'apagado' },
+        ] as const).map(k => (
+          <button key={k.id} className={`av-kpi ${k.tono ? `av-tono--${k.tono}` : ''} ${filtro === k.id && k.id !== 'todas' ? 'activo' : ''}`}
+            onClick={() => setFiltro(filtro === k.id ? 'todas' : k.id)}>
+            <span className="av-kpi-icono">{k.icono}</span>
+            <span><strong>{k.n}</strong><small>{k.label}</small></span>
           </button>
         ))}
       </div>
@@ -238,63 +225,50 @@ const AdminPromocionesScreen: React.FC = () => {
       {loading ? (
         <Loader texto="Cargando promociones..." />
       ) : promosFiltradas.length === 0 ? (
-        <div className="ap3-empty">
-          <AiOutlineTag size={36} />
-          <p>No hay promociones{filtro !== 'todas' ? ' en este filtro' : ''}. ¡Crea la primera!</p>
+        <div className="av-vacio">
+          <AiOutlineTag size={40} />
+          <strong>{filtro !== 'todas' ? 'No hay promociones en este filtro' : 'Aún no hay promociones'}</strong>
+          <span>Crea un descuento, un cupón o envío gratis para atraer más ventas.</span>
+          <button className="av-btn" onClick={abrirCrear}><AiOutlinePlus size={17} /> Nueva promoción</button>
         </div>
       ) : (
-        <div className="ap3-grid">
-          {promosFiltradas.map(p => {
+        <div className="pr4-grid">
+          {promosFiltradas.map((p, i) => {
             const Icono = iconoTipo(p.tipo);
             const vigente = esVigente(p);
             const proxima = esProxima(p);
             const usoPct = p.limite_usos_total ? Math.min(100, Math.round((p.usos_actuales / p.limite_usos_total) * 100)) : null;
+            const estado = vigente ? 'Vigente' : proxima ? 'Próxima' : p.activo ? 'Terminada' : 'Desactivada';
+            const fecha = (f?: string) => f ? new Date(f).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) : '—';
             return (
-              <div key={p.id} className={`ap3-card ${!p.activo ? 'ap3-card-inactiva' : ''}`}>
-                <div className="ap3-card-ticket">
-                  <div className="ap3-card-icono"><Icono size={18} /></div>
-                  <div className="ap3-card-valor">{valorGrande(p)}</div>
-                  <span className={`ap3-card-estado ${vigente ? 'on' : proxima ? 'soon' : 'off'}`}>
-                    {vigente ? 'Vigente' : proxima ? 'Próxima' : p.activo ? 'Expirada' : 'Desactivada'}
-                  </span>
+              <article key={p.id} className={`pr4-card ${vigente ? 'vigente' : proxima ? 'proxima' : 'apagada'}`}>
+                <div className={`pr4-ticket pr4-ticket--${i % 3}`}>
+                  <span className="pr4-estado">{estado}</span>
+                  <span className="pr4-icono"><Icono size={20} /></span>
+                  <strong className="pr4-valor">{valorGrande(p)}</strong>
+                  <small>{tipoLabel(p.tipo)}</small>
                 </div>
-
-                <div className="ap3-card-body">
+                <div className="pr4-cuerpo">
                   <h3>{p.nombre}</h3>
-                  <p className="ap3-card-tipo">{tipoLabel(p.tipo)}</p>
-                  {p.codigo_cupon && <div className="ap3-card-cupon">{p.codigo_cupon}</div>}
-
-                  <div className="ap3-card-fechas">
-                    {p.fecha_inicio?.slice(0, 10)} → {p.fecha_fin?.slice(0, 10)}
-                  </div>
-
+                  {p.codigo_cupon && <span className="pr4-cupon">{p.codigo_cupon}</span>}
+                  <span className="pr4-fechas"><AiOutlineCalendar size={14} /> {fecha(p.fecha_inicio)} – {fecha(p.fecha_fin)}</span>
                   {p.limite_usos_total ? (
-                    <div className="ap3-card-usos">
-                      <div className="ap3-card-usos-top">
-                        <span>Usos</span>
-                        <span>{p.usos_actuales} / {p.limite_usos_total}</span>
-                      </div>
-                      <div className="ap3-card-usos-bar">
-                        <div className="ap3-card-usos-fill" style={{ width: `${usoPct}%` }} />
-                      </div>
+                    <div className="pr4-usos">
+                      <div><span>Usos</span><b>{p.usos_actuales} / {p.limite_usos_total}</b></div>
+                      <div className="pr4-barra"><i style={{ width: `${usoPct}%` }} /></div>
                     </div>
                   ) : (
-                    <div className="ap3-card-usos-simple">{p.usos_actuales ?? 0} usos · sin límite</div>
+                    <span className="pr4-usos-simple">{p.usos_actuales ?? 0} usos · sin límite</span>
                   )}
-
-                  <div className="ap3-card-actions">
-                    <button onClick={() => abrirEditar(p)} title="Editar">
-                      <AiOutlineEdit size={15} />
-                    </button>
-                    <button onClick={() => handleToggle(p)} title={p.activo ? 'Desactivar' : 'Activar'}>
+                  <div className="pr4-acciones">
+                    <button className="pr4-editar" onClick={() => abrirEditar(p)}><AiOutlineEdit size={15} /> Editar</button>
+                    <button className="av-accion" onClick={() => handleToggle(p)} title={p.activo ? 'Desactivar' : 'Activar'}>
                       {p.activo ? <AiOutlineClose size={15} /> : <AiOutlineCheck size={15} />}
                     </button>
-                    <button className="danger" onClick={() => setConfirmDelete(p)} title="Eliminar">
-                      <AiOutlineDelete size={15} />
-                    </button>
+                    <button className="av-accion av-accion--peligro" onClick={() => setConfirmDelete(p)} title="Eliminar"><AiOutlineDelete size={15} /></button>
                   </div>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>

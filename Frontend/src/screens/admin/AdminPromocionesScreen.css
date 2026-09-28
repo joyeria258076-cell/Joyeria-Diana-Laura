@@ -772,3 +772,29 @@
   .ap3-modal-split .ap3-modal-body { border-right: none; border-bottom: 1px solid var(--color-border); }
   .ap3-preview-ticket { position: static; }
 }
+
+/* ── Tarjetas de promoción (v4) ── */
+.pr4-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.pr4-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 28px; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-soft); font-family: var(--font-body); transition: transform 0.2s ease; }
+.pr4-card:hover { transform: translateY(-3px); }
+.pr4-ticket { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 4px; padding: 22px 22px 20px; color: var(--color-on-primary); background: var(--gradient-primary); }
+.pr4-ticket--1 { background: linear-gradient(135deg, var(--color-accent), var(--color-primary-strong)); }
+.pr4-ticket--2 { background: linear-gradient(135deg, var(--color-primary-strong), var(--color-primary)); }
+.pr4-ticket::after { content: ''; position: absolute; width: 170px; height: 170px; right: -60px; top: -70px; border-radius: 50%; background: rgba(255, 255, 255, 0.16); }
+.pr4-ticket > * { position: relative; z-index: 1; }
+.pr4-card.apagada .pr4-ticket { filter: grayscale(0.85); opacity: 0.75; }
+.pr4-estado { position: absolute !important; right: 16px; top: 16px; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(255, 255, 255, 0.25); }
+.pr4-icono { width: 38px; height: 38px; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.22); margin-bottom: 6px; }
+.pr4-valor { font-size: 40px; font-weight: 700; letter-spacing: -1.5px; line-height: 1; }
+.pr4-ticket small { font-size: 13px; opacity: 0.9; }
+.pr4-cuerpo { display: flex; flex-direction: column; gap: 8px; padding: 18px 20px 20px; flex: 1; }
+.pr4-cuerpo h3 { margin: 0; font-size: 16.5px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.3; color: var(--color-text); }
+.pr4-cupon { align-self: flex-start; padding: 6px 12px; border-radius: 10px; border: 1.5px dashed color-mix(in srgb, var(--color-primary) 60%, transparent); color: var(--color-primary); font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+.pr4-fechas, .pr4-usos-simple { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--color-text-muted); }
+.pr4-usos > div:first-child { display: flex; justify-content: space-between; font-size: 13px; color: var(--color-text-muted); margin-bottom: 5px; }
+.pr4-usos b { color: var(--color-text); }
+.pr4-barra { height: 8px; border-radius: 999px; background: var(--color-surface-2); overflow: hidden; }
+.pr4-barra i { display: block; height: 100%; border-radius: inherit; background: var(--gradient-primary); }
+.pr4-acciones { display: flex; gap: 6px; margin-top: auto; padding-top: 12px; border-top: 1px dashed var(--color-border); }
+.pr4-editar { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; border-radius: 12px; cursor: pointer; border: 0; background: color-mix(in srgb, var(--color-primary) 14%, transparent); color: var(--color-primary); font-family: var(--font-body); font-size: 13.5px; font-weight: 600; }
+.pr4-editar:hover { background: var(--gradient-primary); color: var(--color-on-primary); }

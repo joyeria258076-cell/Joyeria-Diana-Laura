@@ -442,7 +442,7 @@ const AdminVariablesConfigScreen: React.FC = () => {
                               : variable.valor}
                           </span>
                         )}
-                        <span className="edit-hint">(clic para editar)</span>
+                        <span className="edit-hint"><AiOutlineEdit size={15} /> Editar</span>
                       </div>
                     )}
                   </div>
