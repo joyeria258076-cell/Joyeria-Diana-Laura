@@ -1,0 +1,252 @@
+/* AdminSkin.css — capa de estilo común para TODAS las pantallas del admin.
+   Se activa con la clase .admin-skin en <main> (PrivateLayout) y unifica
+   tarjetas, campos, botones, tablas, pestañas y etiquetas sin tocar cada pantalla.
+   Todo sale de las variables del tema, así funciona con claro/oscuro y temáticas. */
+
+.admin-skin .page-container { --as-radio: 24px; --as-radio-campo: 16px; }
+
+/* ── Contenedores de pantalla: ancho cómodo y aire ── */
+.admin-skin .page-container > div,
+.admin-skin .page-container > main { max-width: 1320px; margin-left: auto; margin-right: auto; }
+
+/* ── Tarjetas, secciones y paneles ── */
+.admin-skin .page-container :is(
+  [class$="-card"], [class*="-card "], [class$="-section"], [class*="-section "],
+  [class$="-panel"], [class*="-panel "], [class$="-box"], [class*="-box "],
+  [class$="-step"], [class*="-step "], [class$="-bloque"], [class$="-seccion"],
+  .manager-subsection, .categoria-section
+):not(.av-hero):not(.av-kpi):not([class*="modal"]):not([class*="overlay"]):not(button):not(svg *) {
+  border-radius: var(--as-radio);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+}
+/* Tarjetas dentro de tarjetas: más planas para que no se vea "caja sobre caja" */
+.admin-skin .page-container :is([class$="-card"], [class$="-panel"], [class$="-section"], [class$="-box"])
+  :is([class$="-card"], [class*="-card "], [class$="-box"], [class*="-box "]):not(button) {
+  background: var(--color-surface-2);
+  box-shadow: none;
+  border-radius: 18px;
+}
+
+/* ── Títulos de sección dentro de tarjetas ── */
+.admin-skin .page-container :is(h2, h3):not(.av-titulo):not([class*="modal"]) {
+  font-family: var(--font-body);
+  letter-spacing: -0.3px;
+}
+.admin-skin .page-container :is([class*="section-title"], [class*="-titulo"]:not(.av-titulo), [class*="step-title"], .subsection-title, .categoria-titulo) {
+  font-family: var(--font-body) !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  letter-spacing: -0.2px !important;
+}
+
+/* ── Etiquetas de campos: sin mayúsculas gritonas ── */
+.admin-skin .page-container label:not([class*="switch"]):not([class*="toggle"]):not([class*="chip"]):not([class*="check"]) {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: none;
+  color: var(--color-text-muted);
+}
+
+/* ── Campos de texto, selects y áreas ── */
+.admin-skin .page-container :is(
+  input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="number"],
+  input[type="password"], input[type="search"], input[type="date"], input[type="datetime-local"], input[type="time"],
+  input:not([type]), select, textarea
+):not(.av-buscar input):not([class*="chip"]) {
+  min-height: 48px;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  border-radius: var(--as-radio-campo);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-2);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.admin-skin .page-container textarea { line-height: 1.55; min-height: 96px; }
+.admin-skin .page-container :is(input, select, textarea):focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+}
+.admin-skin .page-container :is(input, textarea)::placeholder { color: color-mix(in srgb, var(--color-text-muted) 75%, transparent); }
+
+/* ── Botones ── */
+.admin-skin .page-container button:is([class*="btn"], [class*="boton"]):not(.av-btn):not(.av-accion) {
+  border-radius: 14px;
+  min-height: 42px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  text-transform: none;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.admin-skin .page-container button:is([class*="btn"], [class*="boton"]):not(:disabled):hover { transform: translateY(-1px); }
+/* Botones principales (guardar, crear, nuevo, confirmar) con el degradado del tema */
+.admin-skin .page-container button:is(
+  [class*="btn-primary"], [class*="btn-save"], [class*="btn-guardar"], [class*="btn-nuevo"], [class*="btn-crear"],
+  [class*="btn-submit"], [class*="btn-confirm"], [type="submit"]
+):not(.av-btn):not(:disabled) {
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  border: 0;
+  box-shadow: var(--shadow-primary);
+  padding-left: 22px;
+  padding-right: 22px;
+}
+/* Botones secundarios (cancelar, volver) */
+.admin-skin .page-container button:is([class*="btn-cancel"], [class*="btn-cancelar"], [class*="btn-volver"], [class*="btn-back"], [class*="btn-secondary"]) {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  box-shadow: none;
+}
+
+/* ── Tablas ── */
+.admin-skin .page-container table { border-collapse: collapse; width: 100%; font-family: var(--font-body); }
+.admin-skin .page-container table th {
+  padding: 13px 16px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: var(--color-surface-2);
+  border: 0;
+  text-align: left;
+}
+.admin-skin .page-container table td { padding: 12px 16px; border: 0; border-top: 1px solid var(--color-border); vertical-align: middle; }
+.admin-skin .page-container table tbody tr { transition: background 0.15s ease; }
+.admin-skin .page-container table tbody tr:hover { background: color-mix(in srgb, var(--color-primary) 5%, transparent); }
+.admin-skin .page-container :is([class*="tabla-wrap"], [class*="table-wrap"], [class*="tabla-container"], [class*="table-container"]) {
+  border-radius: var(--as-radio);
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+/* ── Etiquetas / estados ── */
+.admin-skin .page-container :is([class*="badge"], [class*="-tag"], [class*="-chip"], [class*="estado-"]):not(button):not(div:has(> *)) {
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: none;
+}
+
+/* ── Pestañas y menús laterales de sección ── */
+.admin-skin .page-container :is([class*="-tabs"], [class*="-rail"]):not(.av-segmento) {
+  border-radius: 20px;
+  padding: 6px;
+  gap: 4px;
+}
+.admin-skin .page-container button:is([class*="-tab"], [class*="rail-item"], [class*="rail-tab"]):not([class*="-tabs"]) {
+  border-radius: 14px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── Números grandes de estadísticas ── */
+.admin-skin .page-container :is([class*="stat-num"], [class*="stat-valor"], [class*="kpi-valor"], [class*="-stat"] > strong) {
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: -0.8px;
+}
+
+/* ── Mensajes ── */
+.admin-skin .page-container :is([class*="alert"], [class*="-error"], [class*="-mensaje"], [class*="message"]):not(input):not(label):not(small):not(span) {
+  border-radius: 16px;
+}
+
+/* ── Modales del admin ── */
+.admin-skin :is([class*="modal"]):not([class*="overlay"]):not([class*="modal-"]) {
+  border-radius: 28px;
+}
+
+/* ════════ Formularios por pasos (producto y proveedor: nuevo / editar) ════════ */
+.admin-skin :is(.np3-card, .np2-card, .ep3-card, .ep2-card) {
+  display: flex; gap: 18px; padding: 24px 26px !important; margin-bottom: 16px;
+  border-radius: 28px !important; background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important; border-left: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-soft) !important; position: relative; overflow: visible;
+}
+.admin-skin :is(.np3-card, .np2-card, .ep3-card, .ep2-card):focus-within {
+  border-color: color-mix(in srgb, var(--color-primary) 55%, transparent) !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 10%, transparent), var(--shadow-soft) !important;
+}
+.admin-skin :is(.np3-card-num, .np2-card-num, .ep3-card-num, .ep2-card-num) {
+  width: 44px !important; height: 44px !important; flex-shrink: 0; border-radius: 15px !important;
+  display: inline-flex !important; align-items: center; justify-content: center;
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important;
+  font-family: var(--font-body); font-size: 17px !important; font-weight: 700 !important; box-shadow: var(--shadow-primary);
+}
+.admin-skin :is(.np3-card-body, .np2-card-body, .ep3-card-body, .ep2-card-body) { flex: 1; min-width: 0; }
+.admin-skin :is(.np3-card-body, .np2-card-body, .ep3-card-body, .ep2-card-body) > h3 {
+  display: flex; align-items: center; gap: 10px; margin: 8px 0 18px !important;
+  font-family: var(--font-body) !important; font-size: 18px !important; font-weight: 700 !important;
+  letter-spacing: -0.3px !important; text-transform: none !important; color: var(--color-text) !important;
+}
+.admin-skin :is(.np3-card-body, .np2-card-body, .ep3-card-body, .ep2-card-body) > h3 svg {
+  width: 32px !important; height: 32px !important; padding: 7px; box-sizing: border-box; border-radius: 11px;
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent); color: var(--color-primary);
+}
+.admin-skin :is(.np3-row, .np2-row, .ep3-row, .ep2-row) { gap: 14px 16px !important; }
+.admin-skin :is(.np3-field, .np2-field, .ep3-field, .ep2-field) small { font-size: 12px; color: var(--color-text-muted); }
+.admin-skin :is(.np3-req, .np2-req) { color: var(--color-primary); }
+
+/* Foto: zona grande para subir */
+.admin-skin :is(.np3-photo-row, .np2-photo-row, .ep3-photo-row, .ep2-photo-row) { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.admin-skin :is(.np3-photo-preview, .ep3-photo-preview) {
+  width: 132px !important; height: 132px !important; border-radius: 24px !important; overflow: hidden;
+  border: 2px dashed color-mix(in srgb, var(--color-primary) 45%, transparent) !important;
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface-2)) !important; color: var(--color-primary);
+  display: flex; align-items: center; justify-content: center;
+}
+.admin-skin :is(.np2-photo-preview, .ep2-photo-preview) { width: 96px !important; height: 96px !important; font-size: 28px; }
+.admin-skin :is(.np3-photo-preview, .ep3-photo-preview) img { width: 100%; height: 100%; object-fit: cover; }
+.admin-skin :is(.np3-photo-upload, .np2-photo-upload, .ep3-photo-upload, .ep2-photo-upload) {
+  display: inline-flex !important; align-items: center; gap: 8px; min-height: 46px; padding: 0 20px !important; cursor: pointer;
+  border-radius: 14px !important; border: 0 !important; background: var(--gradient-primary) !important; color: var(--color-on-primary) !important;
+  font-family: var(--font-body); font-size: 14px !important; font-weight: 600 !important; box-shadow: var(--shadow-primary);
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+
+/* Interruptores */
+.admin-skin :is(.np3-toggle-row, .np2-toggle-row, .ep3-toggle-row, .ep2-toggle-row) {
+  padding: 12px 16px; border-radius: 16px; background: var(--color-surface-2); border: 1px solid var(--color-border);
+}
+
+/* Columna derecha (vista previa / precio sugerido) */
+.admin-skin :is(.np3-preview-card, .np2-preview-card, .ep3-preview-card) {
+  border-radius: 28px !important; overflow: hidden; border: 1px solid color-mix(in srgb, var(--color-primary) 30%, var(--color-border)) !important;
+  background: var(--color-surface) !important; box-shadow: var(--shadow-lift) !important;
+}
+.admin-skin :is(.np3-preview-eyebrow, .np2-preview-eyebrow) { color: var(--color-primary) !important; font-weight: 700 !important; letter-spacing: 2px !important; }
+.admin-skin :is(.np3-preview-media) { width: 100% !important; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface-2)) !important; }
+.admin-skin :is(.np3-preview-precio) { font-size: 22px !important; font-weight: 700 !important; color: var(--color-primary) !important; }
+.admin-skin .np3-ia-widget { border-radius: 24px !important; border: 1px dashed color-mix(in srgb, var(--color-primary) 45%, transparent) !important; background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface)) !important; }
+
+/* Barra de acciones fija abajo */
+.admin-skin :is(.np3-actions, .np2-actions, .ep3-actions, .ep2-actions) {
+  position: sticky; bottom: 14px; z-index: 5; display: flex; justify-content: flex-end; gap: 10px; padding: 12px !important; margin-top: 8px;
+  border-radius: 22px; background: color-mix(in srgb, var(--color-surface) 90%, transparent); backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border); box-shadow: var(--shadow-lift);
+}
+.admin-skin :is(.np3-btn-save, .np2-btn-save, .ep3-btn-save, .ep2-btn-save) {
+  min-height: 48px !important; padding: 0 26px !important; border: 0 !important; border-radius: 16px !important;
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; box-shadow: var(--shadow-primary) !important;
+}
+.admin-skin :is(.np3-btn-cancel, .np2-btn-cancel, .ep3-btn-cancel, .ep2-btn-cancel) {
+  min-height: 48px !important; padding: 0 22px !important; border-radius: 16px !important;
+  background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;
+}
+@media (max-width: 640px) {
+  .admin-skin :is(.np3-card, .np2-card, .ep3-card, .ep2-card) { flex-direction: column; padding: 18px !important; gap: 10px; }
+}
