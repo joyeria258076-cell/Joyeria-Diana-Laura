@@ -742,3 +742,13 @@
 }
 .ac-image-remove svg { width: 14px; height: 14px; flex-shrink: 0; }
 .ac-image-remove:hover { background: rgba(239, 68, 68, 0.1); }
+
+/* ════════ v3 ════════ */
+.ac2-container { max-width: 1320px; margin: 0 auto; padding: 8px 16px 48px; }
+.ac2-lista > * { border-radius: 20px !important; }
+.ac2-lista-thumb { border-radius: 16px !important; overflow: hidden; }
+.ac2-lista-nombre { font-family: var(--font-body) !important; font-weight: 700 !important; }
+.ac2-detalle { border-radius: 28px !important; overflow: hidden; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft) !important; }
+.ac2-detalle-hero { min-height: 200px; }
+.ac2-productos-grid > * { border-radius: 18px !important; overflow: hidden; }
+.ac2-empty { border-radius: 28px !important; }

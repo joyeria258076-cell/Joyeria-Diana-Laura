@@ -181,3 +181,13 @@
   .sg-layout { grid-template-columns: 1fr; }
   .sg-side { position: static; }
 }
+
+/* ════════ v3 ════════ */
+.sg-wrap { max-width: 1320px; margin: 0 auto; padding: 8px 16px 48px; }
+.sg-card { border-radius: 24px !important; padding: 20px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft) !important; transition: transform 0.2s ease; }
+.sg-card:hover { transform: translateY(-3px); }
+.sg-seg-nombre { font-family: var(--font-body) !important; font-size: 17px !important; font-weight: 700 !important; letter-spacing: -0.3px; }
+.sg-seg-count { font-size: 30px !important; font-weight: 700 !important; letter-spacing: -1px !important; }
+.sg-side, .sg-main > * { border-radius: 26px !important; }
+.sg-tabla-wrap { border-radius: 22px !important; overflow: auto; border: 1px solid var(--color-border) !important; }
+.sg-badge { border-radius: 999px !important; padding: 4px 12px !important; font-weight: 600 !important; }

@@ -83,3 +83,20 @@ body .content-area .aop-titulo { margin: 0 0 6px !important; font-size: clamp(30
   .aop-editor-cuerpo { grid-template-columns: 1fr; }
   .aop-grupo { flex-direction: column; align-items: stretch; }
 }
+
+/* ════════ v3 ════════ */
+.aop-page { max-width: 1320px; margin: 0 auto; padding: 8px 16px 48px; }
+.aop-layout { gap: 18px !important; }
+.aop-lateral, .aop-principal { padding: 18px !important; border-radius: 26px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft) !important; }
+.aop-modos { padding: 4px !important; border-radius: 16px !important; background: var(--color-surface-2) !important; }
+.aop-lista button {
+  display: flex !important; align-items: center; justify-content: space-between; width: 100%; min-height: 46px; padding: 0 14px !important; border-radius: 14px !important;
+  border: 0 !important; background: transparent !important; color: var(--color-text-muted) !important; font-family: var(--font-body) !important; font-size: 14.5px !important; font-weight: 600 !important; text-transform: capitalize;
+}
+.aop-lista button:hover { background: var(--color-surface-2) !important; color: var(--color-text) !important; }
+.aop-lista button:is(.activo, .active, [aria-current="true"]) { background: color-mix(in srgb, var(--color-primary) 13%, transparent) !important; color: var(--color-primary) !important; }
+.aop-principal-head h2 { font-family: var(--font-body) !important; font-size: 22px !important; font-weight: 700 !important; letter-spacing: -0.5px; text-transform: capitalize; }
+.aop-grupo { padding: 18px !important; border-radius: 22px !important; background: var(--color-surface-2) !important; border: 1px solid var(--color-border) !important; }
+.aop-opcion { border-radius: 999px !important; }
+.aop-vacio { padding: 28px !important; border-radius: 22px !important; border: 1px dashed var(--color-border) !important; text-align: center; }
+.aop-plantillas button { min-height: 40px; padding: 0 16px !important; border-radius: 999px !important; border: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent) !important; background: color-mix(in srgb, var(--color-primary) 8%, transparent) !important; color: var(--color-primary) !important; font-weight: 600 !important; }

@@ -250,3 +250,38 @@
 @media (max-width: 640px) {
   .admin-skin :is(.np3-card, .np2-card, .ep3-card, .ep2-card) { flex-direction: column; padding: 18px !important; gap: 10px; }
 }
+
+/* ════════ Gestión BD: importar / exportar / actualización masiva ════════ */
+.admin-skin .si2-card { display: flex; gap: 18px; padding: 22px 24px !important; margin-bottom: 14px; border-radius: 26px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft) !important; }
+.admin-skin .si2-card-num {
+  width: 44px !important; height: 44px !important; flex-shrink: 0; border-radius: 15px !important; display: inline-flex !important; align-items: center; justify-content: center;
+  background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important; font-size: 17px !important; font-weight: 700 !important; box-shadow: var(--shadow-primary);
+}
+.admin-skin .si2-card-body { flex: 1; min-width: 0; }
+.admin-skin .si2-card-title { font-family: var(--font-body) !important; font-size: 17px !important; font-weight: 700 !important; letter-spacing: -0.3px; margin-top: 10px !important; }
+.admin-skin .si2-card-hint { font-size: 13.5px !important; color: var(--color-text-muted) !important; }
+.admin-skin .si2-sidebar { border-radius: 26px !important; padding: 20px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft); }
+.admin-skin :is(.si2-sidebar-label, .ex3-lista-label) { color: var(--color-primary) !important; font-weight: 700 !important; letter-spacing: 1.5px !important; }
+
+.admin-skin .ex3-layout { gap: 18px !important; }
+.admin-skin .ex3-lista { padding: 10px !important; border-radius: 24px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft); }
+.admin-skin .ex3-lista button, .admin-skin .ex3-lista li {
+  display: flex !important; align-items: center; width: 100%; min-height: 44px; padding: 0 14px !important; border-radius: 14px !important; border: 0 !important;
+  background: transparent !important; color: var(--color-text-muted) !important; font-family: var(--font-body) !important; font-size: 14px !important; font-weight: 600 !important; text-align: left; cursor: pointer;
+}
+.admin-skin .ex3-lista :is(button, li):hover { background: var(--color-surface-2) !important; color: var(--color-text) !important; }
+.admin-skin .ex3-lista :is(button, li):is(.active, .activo, .selected, [aria-selected="true"]) { background: color-mix(in srgb, var(--color-primary) 13%, transparent) !important; color: var(--color-primary) !important; }
+.admin-skin .ex3-sheet { border-radius: 28px !important; overflow: hidden; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft); }
+.admin-skin .ex3-sheet-toolbar { padding: 16px 20px !important; background: var(--color-surface-2) !important; border-bottom: 1px solid var(--color-border) !important; }
+.admin-skin .ex3-sheet-title { font-family: var(--font-body) !important; font-size: 17px !important; font-weight: 700 !important; }
+.admin-skin .ex3-sheet-empty { padding: 60px 20px !important; color: var(--color-text-muted); }
+.admin-skin .ex3-sheet-footer { padding: 14px 20px !important; border-top: 1px solid var(--color-border) !important; }
+
+.admin-skin .bu2-toolbar {
+  display: flex !important; flex-wrap: wrap; align-items: center; gap: 12px !important; padding: 18px !important;
+  border-radius: 26px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft);
+}
+.admin-skin :is(.bu2-btn-template, .bu2-btn-info) { min-height: 46px !important; padding: 0 18px !important; border-radius: 14px !important; background: var(--color-surface-2) !important; border: 1px solid var(--color-border) !important; color: var(--color-text) !important; }
+.admin-skin .bu2-diff-card { border-radius: 20px !important; }
+.admin-skin .bu2-diff-new { color: var(--color-success, #2e9d6a) !important; font-weight: 700; }
+.admin-skin .bu2-diff-old { text-decoration: line-through; color: var(--color-text-muted) !important; }

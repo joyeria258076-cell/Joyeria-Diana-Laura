@@ -534,3 +534,27 @@ tbody tr:hover td { background: color-mix(in srgb, var(--color-text) 3%, transpa
   .tb-col-size { width: auto; text-align: left; margin-left: auto; }
   .tb-col-rows { width: auto; text-align: right; }
 }
+/* ════════ v3: indicadores grandes, pestañas tipo píldora y tarjetas ════════ */
+.monitoreo-screen { max-width: 1320px; margin: 0 auto; padding: 8px 16px 48px; }
+.mon-ticker { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px !important; padding: 0 !important; margin-bottom: 18px !important; background: none !important; border: 0 !important; box-shadow: none !important; }
+.mon-ticker-item {
+  display: flex !important; align-items: center; gap: 12px; padding: 16px !important; border-radius: 22px !important;
+  background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft);
+}
+.mon-ticker-item > svg { width: 42px; height: 42px; padding: 10px; box-sizing: border-box; flex-shrink: 0; border-radius: 14px; background: color-mix(in srgb, var(--color-primary) 14%, transparent); color: var(--color-primary); }
+.mon-ticker-item.alerta > svg { background: color-mix(in srgb, var(--color-danger, #d64b5f) 14%, transparent); color: var(--color-danger, #d64b5f); }
+.mon-ticker-valor { font-family: var(--font-body) !important; font-size: 22px !important; font-weight: 700 !important; letter-spacing: -0.6px; line-height: 1.1; }
+.mon-ticker-label { font-size: 12.5px !important; color: var(--color-text-muted) !important; }
+.mon-segmented { display: inline-flex !important; flex-wrap: wrap; gap: 4px !important; padding: 5px !important; margin-bottom: 18px !important; border-radius: 18px !important; background: var(--color-surface-2) !important; border: 1px solid var(--color-border) !important; }
+.mon-segment { min-height: 42px; padding: 0 16px !important; border-radius: 14px !important; border: 0 !important; background: transparent !important; color: var(--color-text-muted) !important; font-family: var(--font-body) !important; font-weight: 600 !important; font-size: 14px !important; display: inline-flex; align-items: center; gap: 6px; }
+.mon-segment.activo { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; box-shadow: var(--shadow-primary); }
+.grafica-wrapper, .mon-stats-panel, .db-salud-card, .db-mantenimiento-card {
+  padding: 22px !important; border-radius: 26px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft) !important;
+}
+.seccion-titulo, .db-salud-card-titulo, .db-mant-titulo { font-family: var(--font-body) !important; font-size: 17px !important; font-weight: 700 !important; letter-spacing: -0.3px !important; text-transform: none !important; }
+.mon-stats-panel-label { color: var(--color-primary) !important; letter-spacing: 1.5px !important; font-weight: 700 !important; }
+.tabla-wrapper { border-radius: 22px !important; overflow: auto; border: 1px solid var(--color-border) !important; background: var(--color-surface) !important; }
+.badge { border-radius: 999px !important; padding: 4px 10px !important; font-weight: 600 !important; }
+.pag-btn { min-height: 38px; padding: 0 14px !important; border-radius: 12px !important; }
+.mon-toggle-tabla { border-radius: 16px !important; min-height: 44px; }
+.mon-ticker-text { display: flex; flex-direction: column; min-width: 0; }

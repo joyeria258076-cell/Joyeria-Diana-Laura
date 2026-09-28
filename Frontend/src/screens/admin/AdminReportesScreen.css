@@ -183,3 +183,33 @@
   .rp-rail { position: static; flex-direction: row; overflow-x: auto; }
   .rp-cols { grid-template-columns: 1fr; }
 }
+
+/* ════════ v3: reportes con menú lateral, indicadores grandes y tarjetas ════════ */
+.rp-wrap { max-width: 1320px; margin: 0 auto; padding: 8px 16px 48px; }
+.rp-layout { gap: 18px !important; }
+.rp-rail { padding: 8px !important; border-radius: 24px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft); }
+.rp-rail-item {
+  display: flex !important; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 12px !important; border-radius: 14px !important;
+  border: 0 !important; background: transparent !important; color: var(--color-text-muted) !important;
+  font-family: var(--font-body) !important; font-size: 14px !important; font-weight: 600 !important; text-align: left; line-height: 1.2;
+}
+.rp-rail-item svg { flex-shrink: 0; width: 32px; height: 32px; padding: 7px; box-sizing: border-box; border-radius: 10px; background: var(--color-surface-2); }
+.rp-rail-item:hover { background: var(--color-surface-2) !important; color: var(--color-text) !important; }
+.rp-rail-item.sel { background: color-mix(in srgb, var(--color-primary) 12%, transparent) !important; color: var(--color-primary) !important; }
+.rp-rail-item.sel svg { background: var(--gradient-primary); color: var(--color-on-primary); }
+.rp-panel { padding: 22px !important; border-radius: 28px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-soft); }
+.rp-stats-row { gap: 12px !important; }
+.rp-stat {
+  position: relative; overflow: hidden; padding: 18px 20px !important; border-radius: 22px !important;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-primary) 12%, var(--color-surface-2)), var(--color-surface-2)) !important;
+  border: 1px solid var(--color-border) !important; box-shadow: none !important;
+}
+.rp-stat::after { content: ''; position: absolute; width: 90px; height: 90px; right: -30px; top: -40px; border-radius: 50%; background: color-mix(in srgb, var(--color-primary) 16%, transparent); }
+.rp-stat-label { font-size: 13px !important; color: var(--color-text-muted) !important; text-transform: none !important; letter-spacing: 0 !important; }
+.rp-stat-val { display: block; margin-top: 6px; font-family: var(--font-body) !important; font-size: 28px !important; font-weight: 700 !important; letter-spacing: -1px !important; color: var(--color-text) !important; }
+.rp-chart-card, .rp-team-card { padding: 20px !important; border-radius: 24px !important; background: var(--color-surface-2) !important; border: 1px solid var(--color-border) !important; box-shadow: none !important; }
+.rp-chart-title { font-family: var(--font-body) !important; font-size: 16.5px !important; font-weight: 700 !important; letter-spacing: -0.3px; }
+.rp-bar-track { height: 10px !important; border-radius: 999px !important; background: var(--color-surface) !important; }
+.rp-bar-fill { border-radius: 999px !important; background: var(--gradient-primary) !important; }
+.rp-team-avatar { border-radius: 16px !important; background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important; }
+.rp-lb-rank, .rp-cliente-rank { border-radius: 10px !important; background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; border: 0 !important; }
