@@ -511,9 +511,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('✅ Email de verificación enviado por Firebase');
 
       try {
-        await authAPI.syncUser(email, firebaseUser.uid, nombre, captchaToken);
+        const idToken = await firebaseUser.getIdToken();
+        await authAPI.syncUser(email, firebaseUser.uid, nombre, captchaToken, idToken);
         console.log('✅ Usuario sincronizado con PostgreSQL');
-        const questionResponse = await securityQuestionAPI.setSecurityQuestion(email, questionType, customQuestion, securityAnswer);
+        const questionResponse = await securityQuestionAPI.setSecurityQuestion(email, questionType, customQuestion, securityAnswer, idToken);
         if (questionResponse.success) console.log('✅ Pregunta secreta configurada correctamente');
         else console.log('⚠️ Pregunta secreta no configurada:', questionResponse.message);
       } catch (syncError: any) { console.log('⚠️ Error en PostgreSQL/pregunta secreta:', syncError.message); }

@@ -335,10 +335,10 @@ export const authAPI = {
   },
 
   // 🎯 SINCRONIZAR A POSTGRESQL
-  syncUser: async (email: string, firebaseUID: string, nombre?: string, captchaToken?: string) => {
+  syncUser: async (email: string, firebaseUID: string, nombre?: string, captchaToken?: string, idToken?: string) => {
     return apiRequest('/auth/sync-user', {
       method: 'POST',
-      body: JSON.stringify({ email, firebaseUID, nombre, captchaToken }),
+      body: JSON.stringify({ email, firebaseUID, nombre, captchaToken, idToken }),
     });
   },
 

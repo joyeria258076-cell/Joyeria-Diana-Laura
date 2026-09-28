@@ -16,13 +16,27 @@ const SECURE_QUESTIONS = [
 
 export const setSecurityQuestion = async (req: Request, res: Response) => {
   try {
-    const { email, questionType, customQuestion, answer } = req.body;
+    const { email, questionType, customQuestion, answer, idToken } = req.body;
 
     if (!email || !questionType || !answer) {
       return res.status(400).json({
         success: false,
         message: 'Email, tipo de pregunta y respuesta son requeridos'
       });
+    }
+
+    // Sin esto, cualquiera podía reemplazar la pregunta de otra cuenta y luego
+    // restablecer su contraseña con /reset-password-with-question.
+    if (!idToken) {
+      return res.status(401).json({ success: false, message: 'Token de Firebase requerido' });
+    }
+    try {
+      const decoded = await admin.auth().verifyIdToken(idToken);
+      if ((decoded.email || '').toLowerCase() !== String(email).toLowerCase()) {
+        return res.status(403).json({ success: false, message: 'No puedes modificar la pregunta secreta de otra cuenta' });
+      }
+    } catch {
+      return res.status(401).json({ success: false, message: 'Token de Firebase inválido' });
     }
 
     // Determinar el texto de la pregunta

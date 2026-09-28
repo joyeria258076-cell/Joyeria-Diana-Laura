@@ -8,6 +8,7 @@ import {
     loginMovil,
     logout,
     syncUserToPostgreSQL,
+    syncUserMovil,
     updateUserActivity,
     getActiveSessions,
     revokeSession,
@@ -72,6 +73,7 @@ const router = express.Router();
 router.post('/login', login);
 router.post('/login/movil', loginMovil);
 router.post('/sync-user', syncUserToPostgreSQL);
+router.post('/sync-user/movil', syncUserMovil);
 router.post('/update-activity', updateUserActivity);
 
 // ==========================================

@@ -9,17 +9,18 @@ export const securityQuestionAPI = {
   },
 
   // Configurar pregunta secreta
-  setSecurityQuestion: async (email: string, questionType: string, customQuestion: string, answer: string) => {
+  setSecurityQuestion: async (email: string, questionType: string, customQuestion: string, answer: string, idToken?: string) => {
     const response = await fetch(`${API_BASE_URL}/security/set-security-question`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        email, 
-        questionType, 
-        customQuestion, 
-        answer 
+      body: JSON.stringify({
+        email,
+        questionType,
+        customQuestion,
+        answer,
+        idToken
       }),
     });
     return await response.json();

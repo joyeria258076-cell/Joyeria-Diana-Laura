@@ -268,11 +268,22 @@ export const loginMovil = async (req: Request, res: Response) => {
 // ==========================================
 export const syncUserToPostgreSQL = async (req: Request, res: Response) => {
   try {
-    const { email, password, nombre, firebaseUID, captchaToken } = req.body;
+    const { email, password, nombre, firebaseUID, captchaToken, idToken } = req.body;
     if (!email || !firebaseUID) return res.status(400).json({ success: false, message: 'Datos requeridos faltantes' });
 
+    // El ID token prueba que quien sincroniza es el dueño de esa cuenta de Firebase.
+    if (!idToken) return res.status(401).json({ success: false, message: 'Token de Firebase requerido' });
+    try {
+      const decoded = await admin.auth().verifyIdToken(idToken);
+      if (decoded.uid !== firebaseUID || (decoded.email || '').toLowerCase() !== String(email).toLowerCase()) {
+        return res.status(401).json({ success: false, message: 'El token no corresponde a esta cuenta' });
+      }
+    } catch {
+      return res.status(401).json({ success: false, message: 'Token de Firebase inválido' });
+    }
+
     const exists = await userModel.emailExists(email);
-    if (!exists) {
+    if (!exists && !res.locals.registroMovil) {
       const captchaValido = await verifyRecaptcha(captchaToken);
       if (!captchaValido) {
         return res.status(400).json({ success: false, message: 'Verificación de seguridad fallida. Intenta de nuevo.' });
@@ -287,6 +298,22 @@ export const syncUserToPostgreSQL = async (req: Request, res: Response) => {
   } catch (error) {
     res.json({ success: true, message: 'Error no crítico en sincronización', data: { email: req.body.email } });
   }
+};
+
+// La app no puede generar el reCAPTCHA de la web; el ID token de Firebase del
+// usuario recién creado cumple esa función.
+export const syncUserMovil = async (req: Request, res: Response) => {
+  const { idToken, nombre } = req.body;
+  if (!idToken) return res.status(400).json({ success: false, message: 'Token de Firebase requerido' });
+  try {
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    if (!decoded.email) return res.status(401).json({ success: false, message: 'Token de Firebase inválido' });
+    res.locals.registroMovil = true;
+    req.body = { email: decoded.email, firebaseUID: decoded.uid, nombre, idToken };
+  } catch {
+    return res.status(401).json({ success: false, message: 'Token de Firebase inválido' });
+  }
+  return syncUserToPostgreSQL(req, res);
 };
 
 export const updateUserActivity = async (req: Request, res: Response) => {
