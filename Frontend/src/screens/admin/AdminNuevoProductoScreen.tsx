@@ -500,7 +500,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
                       {temporadas.map(temp => <option key={temp.id} value={temp.id}>{temp.nombre}</option>)}
                     </select>
                     <button type="button" className="np3-btn-nuevo-tipo" onClick={() => setMostrarNuevaTemporada(v => !v)}>
-                      <AiOutlinePlus size={14} /> Nueva temporada
+                      <AiOutlinePlus size={14} /> Nueva
                     </button>
                   </div>
                   {mostrarNuevaTemporada && (
