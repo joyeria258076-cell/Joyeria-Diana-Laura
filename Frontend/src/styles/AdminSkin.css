@@ -423,3 +423,4 @@
 }
 .admin-skin .page-container button:is(.np3-btn-nuevo-tipo, .ep3-btn-nuevo-tipo):not(:disabled):hover { background: var(--gradient-primary) !important; color: var(--color-on-primary) !important; }
 .admin-skin :is(.np3-nota, .ep3-nota) { width: fit-content; max-width: 100%; }
+.admin-skin :is(.np3-nota, .ep3-nota) { display: block !important; border-radius: 14px !important; line-height: 1.5; padding: 8px 12px !important; }

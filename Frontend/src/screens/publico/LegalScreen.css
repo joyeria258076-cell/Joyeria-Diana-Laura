@@ -19,7 +19,7 @@
 .legal-page {
   background-color: var(--color-bg);
   background-image:
-    linear-gradient(color-mix(in srgb, var(--color-bg) 90%, transparent), color-mix(in srgb, var(--color-bg) 90%, transparent)),
+    linear-gradient(color-mix(in srgb, var(--color-bg) var(--velo-fondo), transparent), color-mix(in srgb, var(--color-bg) var(--velo-fondo), transparent)),
     var(--global-bg-url);
   background-size: cover;
   background-position: center;
