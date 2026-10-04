@@ -8,7 +8,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import PublicHeader from '../../components/PublicHeader';
 import PublicFooter from '../../components/PublicFooter';
 import { authAPI } from '../../services/api';
-import AuthBackground from '../../components/AuthBackground';
+import AuthTapa from "../../components/AuthTapa";
 import { AiOutlineMail, AiOutlineLock } from 'react-icons/ai';
 import './OlvideContraseniaScreen.css';
 import './AuthExtraApp.css';
@@ -218,10 +218,10 @@ const OlvideContraseniaScreen: React.FC = () => {
         <div className="olvide-page-wrapper">
             <PublicHeader />
             <div className="olvide-contrasenia-container">
-                <AuthBackground />
+                <AuthTapa titulo={<>Nada se <em>pierde</em> en el joyero.</>} texto="Te ayudamos a entrar de nuevo en un par de minutos." />
                 <div className="olvide-contrasenia-card">
                     <div className="olvide-contrasenia-header">
-                        <h2>Recuperar Contraseña</h2>
+                        <h2>Recupera tu <span>contraseña</span></h2>
                         <p>Ingresa tu email registrado y te enviaremos un enlace para restablecer tu contraseña.</p>
                         
                         {/* Información sobre el sistema de seguridad */}
@@ -261,7 +261,7 @@ const OlvideContraseniaScreen: React.FC = () => {
                             >
                                 {loading ? 'Enviando...' :
                                 isBlocked ? `Bloqueado (${countdown}m)` :
-                                <><AiOutlineMail size={16} /> Enviar Enlace de Recuperación</>}
+                                <><AiOutlineMail size={16} /> Enviar enlace de recuperación</>}
                             </button>
                         </form>
                     ) : (
@@ -302,13 +302,13 @@ const OlvideContraseniaScreen: React.FC = () => {
                             className="security-question-button"
                             disabled={!emailValue || isBlocked}
                         >
-                            <AiOutlineLock size={14} /> Usar Pregunta Secreta
+                            <AiOutlineLock size={14} /> Usar mi pregunta secreta
                         </button>
                     </div>
                     
                     <div className="back-to-login">
                         <button onClick={() => navigate('/login')} className="back-button">
-                            Volver al Login
+                            Volver a iniciar sesión
                         </button>
                         
                         <button onClick={() => navigate('/registro')} className="register-button">

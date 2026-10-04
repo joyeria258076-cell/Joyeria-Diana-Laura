@@ -10,7 +10,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineMail, AiOutlineLock, AiOutlineArrowRight } from "react-icons/ai";
-import AuthBackground from "../../components/AuthBackground";
+import AuthTapa from "../../components/AuthTapa";
 import "./LoginScreen.css";
 import "./AuthTema.css";
 
@@ -311,21 +311,11 @@ const onSubmit = async (data: FormData) => {
         <div className="login-page-wrapper">
             <PublicHeader />
             <div className="login-container">
-            <AuthBackground />
-            <div className="login-image-section">
-                <div className="login-image-content">
-                    <div className="auth-logo" aria-hidden="true"><img src="/pwa-192.png" alt="" width={72} height={72} /></div>
-                    <span className="login-image-eyebrow">Joyería Diana Laura</span>
-                    <h1>Tu <em>brillo</em>,<br />en tu bolsillo.</h1>
-                    <span className="login-image-divider" aria-hidden="true" />
-                    <p>Descubre nuestra exclusiva colección de joyas elaboradas especialmente para ti</p>
-                </div>
-            </div>
+            <AuthTapa titulo={<>Tu <em>brillo</em>,<br />en tu bolsillo.</>} texto="Tus favoritos, apartados y pedidos te esperan donde los dejaste." />
 
             <div className="login-form-section">
                 <div className="login-card">
                     <div className="login-header">
-                        <span className="auth-eyebrow">Bienvenida de vuelta</span>
                         <h2>Inicia <span>sesión</span></h2>
                         <p>Ingresa a tu cuenta de Joyería Diana Laura</p>
                     </div>

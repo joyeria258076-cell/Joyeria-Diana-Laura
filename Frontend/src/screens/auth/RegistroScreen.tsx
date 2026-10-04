@@ -10,7 +10,7 @@ import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { securityQuestionAPI } from "../../services/securityQuestionAPI";
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineLock, AiOutlineArrowLeft, AiOutlineArrowRight, AiOutlineCamera, AiOutlineUser, AiOutlineMail } from "react-icons/ai";
-import AuthBackground from "../../components/AuthBackground";
+import AuthTapa from "../../components/AuthTapa";
 import "./RegistroScreen.css";
 import "./AuthTema.css";
 
@@ -252,7 +252,7 @@ export default function RegistroScreen() {
         <div className="register-page-wrapper">
             <PublicHeader />
             <div className="register-container">
-            <AuthBackground />
+            <AuthTapa titulo={<>Tu primera <em>pieza</em> empieza aquí.</>} texto="Guarda favoritos, aparta en abonos y sigue cada pedido hasta tu puerta." />
             <div className="register-card">
                 <div className="register-header">
                     <span className="auth-paso">Paso {step} de 2</span>
@@ -400,7 +400,7 @@ export default function RegistroScreen() {
                             </div>
 
                             <button type="button" className="register-button" onClick={nextStep}>
-                                Siguiente Paso <AiOutlineArrowRight size={16} />
+                                Siguiente paso <AiOutlineArrowRight size={16} />
                             </button>
                         </div>
                     )}

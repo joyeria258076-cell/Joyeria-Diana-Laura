@@ -261,7 +261,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
             <AuthBackground />
             <div className="recuperar-pregunta-card">
                 <div className="recuperar-pregunta-header">
-                    <h2>Recuperar Contraseña con Pregunta Secreta</h2>
+                    <h2>Recuperar contraseña con pregunta secreta</h2>
                     <p>Para: <strong>{email}</strong></p>
                 </div>
 

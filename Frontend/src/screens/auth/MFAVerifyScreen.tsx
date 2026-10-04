@@ -167,7 +167,7 @@ export default function MFAVerifyScreen() {
           className="back-button"
           disabled={loading}
         >
-          <AiOutlineArrowLeft size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} />Volver al Login
+          <AiOutlineArrowLeft size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} />Volver a iniciar sesión
         </button>
       </div>
     </div>

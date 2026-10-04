@@ -267,7 +267,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   onClick={() => navigate('/login')} 
                   className="secondary-button"
                 >
-                  Volver al Login
+                  Volver a iniciar sesión
                 </button>
               </div>
             </div>
@@ -378,7 +378,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             onClick={() => navigate('/login')} 
             className="reset-password-link"
           >
-            <AiOutlineArrowLeft size={14} /> Volver al Login
+            <AiOutlineArrowLeft size={14} /> Volver a iniciar sesión
           </button>
         </div>
       </div>
