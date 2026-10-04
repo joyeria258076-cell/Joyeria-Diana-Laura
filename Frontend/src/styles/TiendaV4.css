@@ -1,0 +1,104 @@
+/* TiendaV4.css — catálogo y detalle de pieza (público y cliente) en el mundo del "joyero".
+   Foto primero, tipografía grande, sin cajas sobre cajas. Todo con variables del tema. */
+
+/* ════════ CATÁLOGO ════════ */
+body :is(.catalogo-encabezado, .catalogo-public-container .sx-head) h1,
+body .page-title {
+  font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.04em !important; line-height: 0.98 !important;
+  font-size: clamp(2.4rem, 5.4vw, 4.8rem) !important; color: var(--color-text) !important;
+}
+body :is(.catalogo-encabezado, .catalogo-public-container) h1 :is(em, span) { font-family: var(--font-accent); font-style: italic; font-weight: 500; color: var(--color-primary-strong) !important; -webkit-text-fill-color: currentColor; background: none !important; }
+body .catalogo-eyebrow, body .catalogo-public-container .sx-eyebrow { display: none !important; }
+body .catalogo-subtitulo { font-size: 16px !important; color: var(--color-text-muted) !important; max-width: 52ch; }
+
+/* Categorías: compartimentos del joyero en fila */
+body .cat-burbujas { display: flex !important; gap: 10px !important; overflow-x: auto; padding: 6px 2px 14px !important; scrollbar-width: none; }
+body .cat-burbujas::-webkit-scrollbar { display: none; }
+body .cat-burbujas > * {
+  flex: 0 0 auto; display: flex !important; flex-direction: column; align-items: stretch !important; gap: 8px !important;
+  width: 132px; padding: 6px 6px 10px !important; border-radius: 22px !important; cursor: pointer;
+  background: var(--color-surface) !important; border: 1px solid var(--color-border) !important;
+  box-shadow: 0 12px 24px -18px rgba(0,0,0,.45) !important; transition: transform .25s cubic-bezier(.2,.8,.2,1), border-color .2s ease;
+}
+body .cat-burbujas > *:hover { transform: translateY(-3px); border-color: var(--color-primary) !important; }
+body .cat-burbuja-img { width: 100% !important; height: auto !important; aspect-ratio: 1; border-radius: 17px !important; overflow: hidden; border: 0 !important; box-shadow: inset 0 8px 14px -8px rgba(0,0,0,.4); }
+body .cat-burbuja-img img { width: 100%; height: 100%; object-fit: cover; }
+body .cat-burbuja-nombre { font-size: 14px !important; font-weight: 700 !important; text-transform: capitalize; color: var(--color-text) !important; text-align: center; }
+body .cat-burbujas > :is(.activo, .active, .seleccionada, [aria-pressed="true"]) { background: var(--color-primary-strong) !important; border-color: transparent !important; }
+body .cat-burbujas > :is(.activo, .active, .seleccionada, [aria-pressed="true"]) .cat-burbuja-nombre { color: var(--color-on-primary) !important; }
+
+/* Panel de filtros: más ligero */
+body .catalogo-filtros-panel, body .catalogo-public-container aside {
+  border-radius: 26px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important;
+  box-shadow: 0 18px 40px -30px rgba(0,0,0,.5) !important;
+}
+body :is(.catalogo-filtros-panel, .catalogo-public-container aside) label { font-size: 12.5px !important; font-weight: 700 !important; letter-spacing: 0.02em !important; text-transform: none !important; color: var(--color-text-muted) !important; }
+body :is(.catalogo-filtros-panel, .catalogo-public-container aside) :is(input, select) { border-radius: 14px !important; min-height: 44px; }
+
+/* Títulos de cada categoría */
+body .categoria-title, body .resultados-title, body .favoritos-titulo {
+  font-family: var(--font-body) !important; font-size: clamp(1.6rem, 2.6vw, 2.4rem) !important; font-weight: 700 !important;
+  letter-spacing: -0.03em !important; text-transform: capitalize; color: var(--color-text) !important;
+}
+body .categoria-count, body .favoritos-count { border-radius: 999px !important; font-weight: 600 !important; }
+
+/* Tarjeta de producto: foto protagonista, sin caja alrededor */
+body .productos-grid { gap: clamp(14px, 1.8vw, 24px) !important; }
+body .producto-card {
+  background: transparent !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; padding: 0 !important;
+  display: flex; flex-direction: column; gap: 10px; overflow: visible !important;
+}
+body .producto-card:hover { transform: none !important; }
+body .producto-imagen {
+  position: relative; aspect-ratio: 1 !important; height: auto !important; border-radius: 24px !important; overflow: hidden;
+  background: var(--color-surface-2) !important; box-shadow: 0 18px 36px -24px rgba(0,0,0,.55) !important;
+}
+body .producto-imagen img { width: 100%; height: 100%; object-fit: cover; transition: transform .7s cubic-bezier(.2,.8,.2,1) !important; }
+body .producto-card:hover .producto-imagen img { transform: scale(1.06) !important; }
+body .producto-overlay { background: linear-gradient(to top, rgba(13,8,12,.55), transparent 55%) !important; }
+body .producto-info { padding: 0 4px !important; background: none !important; border: 0 !important; }
+body .producto-info h3 { font-family: var(--font-body) !important; font-size: 15px !important; font-weight: 600 !important; line-height: 1.3 !important; letter-spacing: -0.01em; color: var(--color-text) !important; }
+body .producto-info .precio, body .precio-section .precio { font-size: 18px !important; font-weight: 700 !important; letter-spacing: -0.02em; color: var(--color-primary-strong) !important; font-variant-numeric: tabular-nums; }
+body .producto-info :is(.tipo, .categoria) { font-size: 12px !important; font-weight: 600 !important; text-transform: capitalize !important; letter-spacing: 0 !important; color: var(--color-text-muted) !important; background: none !important; border: 0 !important; padding: 0 !important; }
+body .producto-stock { font-size: 12.5px !important; }
+body :is(.badge-nuevo, .badge-oferta, .badge-personalizable, .badge-agotado, .badge-poco-stock) {
+  border-radius: 999px !important; padding: 5px 11px !important; font-size: 11.5px !important; font-weight: 700 !important; letter-spacing: 0 !important; text-transform: none !important;
+  background: var(--color-surface) !important; color: var(--color-text) !important; box-shadow: 0 4px 12px rgba(0,0,0,.15) !important; border: 0 !important;
+}
+body .badge-oferta { background: var(--color-primary-strong) !important; color: var(--color-on-primary) !important; }
+body .badge-agotado { background: rgba(20,14,18,.82) !important; color: #fff !important; }
+
+/* Paginación */
+body .paginacion-btn { border-radius: 999px !important; min-width: 42px; min-height: 42px; font-weight: 600 !important; }
+body .paginacion-btn:is(.activo, .active) { background: var(--color-primary-strong) !important; color: var(--color-on-primary) !important; border-color: transparent !important; }
+
+/* ════════ DETALLE DE PIEZA ════════ */
+body :is(.pdp-image-frame, .pd-image-frame) {
+  border-radius: 34px !important; overflow: hidden; background: var(--color-surface-2) !important; border: 0 !important;
+  box-shadow: 0 34px 60px -34px rgba(0,0,0,.6) !important;
+}
+body :is(.pdp-thumbs, .pd-thumbs) img, body :is(.pdp-thumbs, .pd-thumbs) button { border-radius: 16px !important; }
+body :is(.pdp-info, .pd-info) {
+  border-radius: 32px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important;
+  box-shadow: 0 24px 50px -36px rgba(0,0,0,.55) !important;
+}
+body :is(.pdp-nombre, .pd-nombre) {
+  font-family: var(--font-body) !important; font-size: clamp(1.9rem, 3vw, 2.8rem) !important; font-weight: 700 !important;
+  letter-spacing: -0.035em !important; line-height: 1.05 !important; color: var(--color-text) !important; text-wrap: balance;
+}
+body :is(.pdp-precio-final, .pd-precio-final) { font-size: clamp(2rem, 3.2vw, 2.8rem) !important; font-weight: 700 !important; letter-spacing: -0.03em !important; color: var(--color-primary-strong) !important; -webkit-text-fill-color: currentColor; background: none !important; }
+body :is(.pdp-categoria, .pd-categoria, .pdp-tipo) { border-radius: 999px !important; font-size: 12px !important; font-weight: 700 !important; text-transform: capitalize !important; letter-spacing: 0 !important; }
+body :is(.pdp-barra-compra, .pd-barra-compra) {
+  border-radius: 24px !important; border: 0 !important;
+  background: linear-gradient(140deg, color-mix(in srgb, var(--color-primary) 16%, var(--color-surface-2)), var(--color-surface-2)) !important;
+}
+body :is(.pdp-barra-compra, .pd-barra-compra) button:not(:disabled) { border-radius: 999px !important; background: var(--color-primary-strong) !important; color: var(--color-on-primary) !important; box-shadow: 0 14px 30px -16px var(--color-primary-strong) !important; }
+body :is(.pdp-chip, .pd-chip, .pdp-ubicacion-boton) { border-radius: 999px !important; font-weight: 600 !important; }
+body :is(.pdp-spec-item, .pd-spec-item) { border-radius: 18px !important; background: var(--color-surface-2) !important; border: 0 !important; }
+body :is(.pdp-tabs-section, .pd-tabs-section, .pdp-resenas-section, .pd-resenas-section) { border-radius: 30px !important; }
+body :is(.pdp-tabs-nav, .pd-tabs-nav) button { border-radius: 999px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; }
+body :is(.pdp-descripcion-texto, .pd-descripcion-texto) { font-size: 15.5px !important; line-height: 1.7 !important; max-width: 70ch; color: var(--color-text) !important; }
+body :is(.rel-card, .pd-rel-card) { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+body .rel-imagen { border-radius: 22px !important; overflow: hidden; aspect-ratio: 1; box-shadow: 0 18px 36px -24px rgba(0,0,0,.55); }
+body .rel-nombre { font-weight: 600 !important; }
+body .rel-final { color: var(--color-primary-strong) !important; font-weight: 700 !important; }
