@@ -37,7 +37,28 @@
     <script>
       if (location.pathname === '/') {
         window.__carruselInicio = fetch('https://joyeria-diana-laura-nqnq.onrender.com/api/content/carrusel-inicio')
-          .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (j) {
+            // Precarga la foto de la primera diapositiva en cuanto se conoce,
+            // con las mismas URLs que usa el <img> del carrusel (mismo srcset).
+            try {
+              var l = Array.isArray(j) ? j : (j && j.data) || [];
+              l = l.filter(function (c) { return c.activo !== false; })
+                   .sort(function (a, b) { return (a.orden || 0) - (b.orden || 0); });
+              var u = l[0] && l[0].imagen_url;
+              if (u && u.indexOf('res.cloudinary.com') > -1 && u.indexOf('/upload/') > -1 && !/\/upload\/[^/]*w_\d/.test(u)) {
+                var p = document.createElement('link');
+                p.rel = 'preload'; p.as = 'image'; p.setAttribute('fetchpriority', 'high');
+                p.setAttribute('imagesrcset', [480, 768, 1080, 1400, 1920].map(function (w) {
+                  return u.replace('/upload/', '/upload/f_auto,q_auto,w_' + w + '/') + ' ' + w + 'w';
+                }).join(', '));
+                p.setAttribute('imagesizes', '(max-width: 900px) 100vw, 50vw');
+                document.head.appendChild(p);
+              }
+            } catch (e) {}
+            return j;
+          })
+          .catch(function () { return null; });
       }
     </script>
     <!-- Carga la hoja de fuentes sin bloquear el primer render: se pide
@@ -62,7 +83,8 @@
     <noscript>Necesitas habilitar JavaScript para ejecutar esta aplicación.</noscript>
     
     <!-- Este es el elemento donde React montará la aplicación -->
-    <div id="root"></div>
+    <!-- Primer pintado mientras carga el JS (React lo reemplaza al arrancar) -->
+    <div id="root"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font:italic 500 28px/1.2 Georgia,serif;letter-spacing:.02em;color:#a08a5c">Joyería Diana Laura</div></div>
     
     <script type="module" src="/src/index.tsx"></script>
   </body>
