@@ -17,6 +17,8 @@ import UbicacionPublicScreen from "../screens/publico/UbicacionPublicScreen";
 import AyudaPublicScreen from "../screens/publico/AyudaPublicScreen";
 import ProductoDetallePublicScreen from "../screens/publico/ProductoDetallePublicScreen";
 import LegalScreen from "../screens/publico/LegalScreen";
+import PublicHeader from "../components/PublicHeader";
+import PublicFooter from "../components/PublicFooter";
 
 // PANTALLAS DE AUTENTICACIÓN — carga diferida (lazy): nadie las necesita
 // mientras navega el home público, pero antes se importaban de forma
@@ -200,6 +202,7 @@ export default function AppRoutes() {
         <Route path="/contacto-publico" element={<ContactoPublicScreen />} />
         <Route path="/ubicacion-publica" element={<UbicacionPublicScreen />} />
         <Route path="/ayuda-publica" element={<AyudaPublicScreen />} />
+        <Route path="/nosotros" element={<><PublicHeader /><Suspense fallback={null}><SobreNosotros /></Suspense><PublicFooter /></>} />
         <Route path="/legal/:tipo" element={<LegalScreen />} />
 
         {/* 2. RUTAS DE AUTENTICACIÓN */}

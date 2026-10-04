@@ -13,6 +13,7 @@ import { NotificacionesProvider } from './contexts/NotificacionesContext';
 import ThemeConfigLoader from './components/ThemeConfigLoader';
 import DecoracionTemporada from './components/DecoracionTemporada';
 import OfflineBanner from './components/OfflineBanner';
+import ConexionSync from './components/ConexionSync';
 import BotonAccesibilidad from './components/BotonAccesibilidad';
 
 function App(): React.JSX.Element {
@@ -23,6 +24,7 @@ function App(): React.JSX.Element {
         <ThemeConfigLoader />
         <DecoracionTemporada />
         <OfflineBanner />
+        <ConexionSync />
         <BotonAccesibilidad />
 
         {/* Sistema de rutas */}

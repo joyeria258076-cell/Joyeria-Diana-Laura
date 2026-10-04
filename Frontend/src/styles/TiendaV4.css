@@ -151,6 +151,11 @@ body .cv5-buscar { flex: 1; display: flex; align-items: center; gap: 10px; paddi
 body .cv5-buscar:focus-within { border-color: var(--color-primary); box-shadow: var(--focus-ring); }
 body .cv5-buscar input { flex: 1; min-width: 0; min-height: 46px !important; border: 0 !important; background: none !important; box-shadow: none !important; outline: none; padding: 0 !important; color: var(--color-text); font-family: var(--font-body); font-size: 15px; }
 body .cv5-buscar button { min-height: 46px; padding: 0 22px; border: 0; border-radius: 999px; cursor: pointer; background: var(--color-primary-strong); color: var(--color-on-primary); font-family: var(--font-body); font-size: 14.5px; font-weight: 600; }
+body .cv5-buscar button.cv5-voz { padding: 0; width: 46px; background: transparent; color: var(--color-text); border: 1px solid var(--color-border); font-size: 18px; }
+body .cv5-buscar button.cv5-voz.escuchando { color: #e0464a; border-color: #e0464a; animation: cv5-voz-pulso 1s ease-in-out infinite; }
+@keyframes cv5-voz-pulso { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { body .cv5-buscar button.cv5-voz.escuchando { animation: none; } }
+body .catalogo-sin-conexion { max-width: 640px; margin: 0 auto; padding: 120px 16px 80px; text-align: center; line-height: 1.6; color: var(--color-text); }
 body .cv5-filtros-btn { min-height: 58px; padding: 0 22px; border-radius: 999px; cursor: pointer; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font-family: var(--font-body); font-size: 14.5px; font-weight: 600; }
 body .cv5-filtros-btn.activo { background: var(--color-text); color: var(--color-bg); border-color: transparent; }
 

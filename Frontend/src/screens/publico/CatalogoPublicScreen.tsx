@@ -68,6 +68,12 @@ const CatalogoPublicScreen: React.FC = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [tiposProducto, setTiposProducto] = useState<TipoProducto[]>([]);
   const [loading, setLoading] = useState(true);
+  // El catálogo es dinámico: no se guarda para verse sin conexión
+  const [sinConexion, setSinConexion] = useState(false);
+  // Búsqueda por voz (micrófono, Web Speech API)
+  const [escuchando, setEscuchando] = useState(false);
+  const [buscarPorVoz, setBuscarPorVoz] = useState(false);
+  const vozDisponible = typeof window !== 'undefined' && !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
   const [searchMode, setSearchMode] = useState(false);
   const [verFiltros, setVerFiltros] = useState(false);
 
@@ -149,6 +155,7 @@ const CatalogoPublicScreen: React.FC = () => {
 
       } catch (error) {
         console.error('Error cargando datos iniciales:', error);
+        if (!navigator.onLine) setSinConexion(true);
       } finally {
         setLoading(false);
       }
@@ -176,6 +183,29 @@ const CatalogoPublicScreen: React.FC = () => {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  // --- BÚSQUEDA POR VOZ ---
+  const iniciarVoz = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR || escuchando) return;
+    const rec = new SR();
+    rec.lang = 'es-MX';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (e: any) => {
+      const texto = String(e.results[0][0].transcript || '').replace(/[.。]$/, '').trim();
+      if (texto) { setFiltros(f => ({ ...f, nombre: texto })); setBuscarPorVoz(true); }
+    };
+    rec.onerror = () => setEscuchando(false);
+    rec.onend = () => setEscuchando(false);
+    setEscuchando(true);
+    rec.start();
+  };
+
+  useEffect(() => {
+    if (buscarPorVoz) { setBuscarPorVoz(false); handleBuscar(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buscarPorVoz]);
 
   // --- BÚSQUEDA ---
   const handleBuscar = async () => {
@@ -439,7 +469,14 @@ const CatalogoPublicScreen: React.FC = () => {
         </div>
       )}
 
-      {loading ? (
+      {sinConexion ? (
+        <main className="catalogo-body catalogo-sin-conexion">
+          <h1 className="page-title">Catálogo no disponible <span>sin conexión</span></h1>
+          <p>El catálogo cambia constantemente (precios y existencias), por eso solo se muestra con internet.
+            Mientras tanto puedes consultar las páginas informativas: Inicio, Nosotros, Preguntas frecuentes y Políticas.</p>
+          <p>Al volver la conexión, esta página se actualiza sola.</p>
+        </main>
+      ) : loading ? (
         <Loader texto="Cargando joyas exclusivas..." />
       ) : (
       <main className="catalogo-body" style={promociones.length > 0 && !tickerCerrado ? { paddingTop: '36px' } : {}}>
@@ -450,6 +487,12 @@ const CatalogoPublicScreen: React.FC = () => {
               <AiOutlineSearch size={19} aria-hidden="true" />
               <input type="text" placeholder="Busca por nombre: anillo corazón, esclava, perla…" aria-label="Buscar joyas"
                 value={filtros.nombre} onChange={(e) => setFiltros({ ...filtros, nombre: e.target.value })} />
+              {vozDisponible && (
+                <button type="button" className={`cv5-voz${escuchando ? ' escuchando' : ''}`} onClick={iniciarVoz}
+                  aria-label={escuchando ? 'Escuchando…' : 'Buscar por voz'} title="Buscar por voz">
+                  {escuchando ? '●' : '🎤'}
+                </button>
+              )}
               <button type="submit">Buscar</button>
             </form>
             <button type="button" className={`cv5-filtros-btn${verFiltros ? ' activo' : ''}`} onClick={() => setVerFiltros(v => !v)} aria-expanded={verFiltros}>

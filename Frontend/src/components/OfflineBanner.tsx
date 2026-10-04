@@ -6,6 +6,7 @@ import '../styles/OfflineBanner.css';
 function OfflineBanner(): React.JSX.Element | null {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [cerrado, setCerrado] = useState(false);
+  const [, setPermiso] = useState<string>("default");
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -26,6 +27,11 @@ function OfflineBanner(): React.JSX.Element | null {
       <span className="offline-banner-text">
         Sin conexión a internet. Puedes seguir navegando lo ya cargado, pero los datos podrían no estar actualizados.
       </span>
+      {'Notification' in window && Notification.permission === 'default' && (
+        <button className="offline-banner-retry" onClick={() => Notification.requestPermission().then(p => setPermiso(p))}>
+          Avisarme al volver
+        </button>
+      )}
       <button className="offline-banner-retry" onClick={() => window.location.reload()}>
         Reintentar
       </button>

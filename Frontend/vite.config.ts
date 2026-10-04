@@ -3,6 +3,11 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Endpoints de la API que alimentan las páginas estáticas (se guardan
+// para verse sin conexión). El catálogo NO está aquí: es dinámico.
+// La misma lista se precarga en src/components/ConexionSync.tsx.
+const RUTAS_ESTATICAS = /\/api\/(content\/(info-empresa|faqs|pages\/(terminos|privacidad)|carrusel-inicio|promociones\/activas|colecciones\/publicas)|products\/configuracion\/clave\/sitio_mision_vision_valores|zonas-entrega)$/
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -45,23 +50,24 @@ export default defineConfig({
         // Estrategias de caché en tiempo de ejecución (además del precache,
         // que funciona como Cache Only para los archivos del build):
         runtimeCaching: [
-          // Network First: catálogo y contenido público (GET). Si hay
-          // internet se pide fresco; si no, se muestra lo último guardado.
+          // Network First: SOLO el contenido de las páginas estáticas
+          // (inicio, nosotros: misión/visión/valores, preguntas frecuentes,
+          // políticas, contacto y ubicación). Con internet se pide fresco;
+          // sin internet se muestra lo último guardado.
           {
             urlPattern: ({ url, request }) =>
-              request.method === 'GET' &&
-              /\/api\/(products|content)(\/|$|\?)/.test(url.pathname) &&
-              !url.pathname.includes('/resenas'),
+              request.method === 'GET' && RUTAS_ESTATICAS.test(url.pathname),
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'api-publica',
+              cacheName: 'paginas-estaticas',
               networkTimeoutSeconds: 6,
-              expiration: { maxEntries: 150, maxAgeSeconds: 60 * 60 * 24 * 3 },
+              expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 7 },
               cacheableResponse: { statuses: [200] },
             },
           },
-          // Network Only: el resto de la API (login, carrito, pedidos,
-          // apartados, admin). Nunca se guarda en caché.
+          // Network Only: el resto de la API, incluido el catálogo de
+          // productos (dinámico: precios y stock), login, carrito, pedidos,
+          // apartados y admin. Nunca se guarda en caché.
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
             handler: 'NetworkOnly',

@@ -25,6 +25,7 @@ const PublicHeader: React.FC = () => {
 
   const links = [
     { to: "/",                label: "Inicio" },
+    { to: "/nosotros",         label: "Nosotros" },
     { to: "/catalogo-publico", label: "Catálogo" },
     { to: "/noticias",         label: "Blog" },
     { to: "/contacto-publico", label: "Contacto" },
