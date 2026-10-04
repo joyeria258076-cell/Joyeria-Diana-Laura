@@ -15,7 +15,9 @@ html body :is(.login-container, .register-container, .olvide-contrasenia-contain
 .av5-tapa {
   position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; gap: 40px;
   padding: clamp(32px, 5vw, 72px); color: #fff;
-  background: var(--color-primary-strong);
+  background:
+    radial-gradient(120% 70% at 85% 0%, color-mix(in srgb, var(--color-accent) 45%, transparent), transparent 60%),
+    linear-gradient(160deg, var(--color-primary-strong), color-mix(in srgb, var(--color-primary-strong) 60%, #12060c));
 }
 .av5-tapa::before, .av5-tapa::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; }
 .av5-tapa::before { width: 520px; height: 520px; right: -220px; bottom: -200px; border: 1.5px solid rgba(255,255,255,.22); box-shadow: 0 0 0 56px rgba(255,255,255,.05), 0 0 0 130px rgba(255,255,255,.03); }
@@ -66,10 +68,13 @@ html body .back-to-login :is(.back-button, .register-button) {
 }
 
 /* Tema oscuro: la tapa en un tono profundo del color principal para no deslumbrar */
-:root[data-theme="negro_rosa"] .av5-tapa, :root[data-theme="negro_dorado"] .av5-tapa,
 [data-theme="negro_rosa"] .av5-tapa, [data-theme="negro_dorado"] .av5-tapa {
-  background: color-mix(in srgb, var(--color-primary) 30%, var(--color-surface));
+  background:
+    radial-gradient(110% 70% at 85% 0%, color-mix(in srgb, var(--color-primary) 38%, transparent), transparent 62%),
+    linear-gradient(160deg, color-mix(in srgb, var(--color-primary) 22%, #120a0f), #0d080b);
+  border-right: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
+[data-theme="negro_rosa"] .av5-tapa h1 em, [data-theme="negro_dorado"] .av5-tapa h1 em { color: var(--color-primary) !important; }
 
 /* ── Celular: la tapa se vuelve una franja arriba ── */
 @media (max-width: 860px) {
@@ -98,3 +103,32 @@ html body :is(.login-page-wrapper, .register-page-wrapper, .olvide-page-wrapper,
 html body .wauth-icon { background: var(--color-surface-2) !important; color: var(--color-primary-strong) !important; border: 0 !important; box-shadow: none !important; }
 html body :is(.wauth-wrapper, .mfa-verify-container, .recuperar-pregunta-container, .reset-password-container) { padding: 0 !important; }
 html body .recuperar-pregunta-container { min-height: 100vh !important; }
+
+/* ── Piezas colgando de su hilo ── */
+.av5-piezas { position: absolute; top: 0; right: clamp(24px, 5vw, 72px); display: flex; gap: clamp(14px, 1.8vw, 26px); align-items: flex-start; z-index: 1; pointer-events: none; }
+.av5-pieza { position: relative; margin: 0; width: clamp(96px, 9vw, 136px); padding: 8px 8px 10px; background: #fff; border-radius: 18px;
+  box-shadow: 0 26px 40px -22px rgba(0,0,0,.65); transform-origin: 50% -60px; }
+.av5-pieza::before { content: ''; position: absolute; left: 50%; bottom: 100%; width: 1.5px; height: var(--hilo, 90px); background: rgba(255,255,255,.55); }
+.av5-pieza::after { content: ''; position: absolute; left: 50%; top: 7px; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 1.5px rgba(0,0,0,.25); }
+.av5-pieza img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; }
+.av5-pieza figcaption { margin-top: 7px; text-align: center; font-size: 13px; font-weight: 700; letter-spacing: -0.01em; color: #2a1520; }
+.av5-pieza--1 { --hilo: 70px; margin-top: 70px; transform: rotate(-4deg); }
+.av5-pieza--2 { --hilo: 150px; margin-top: 150px; transform: rotate(3deg); }
+.av5-pieza--3 { --hilo: 40px; margin-top: 40px; transform: rotate(-2deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .av5-pieza { animation: av5-mece 5.5s ease-in-out infinite alternate; }
+  .av5-pieza--2 { animation-duration: 6.5s; animation-delay: -2s; }
+  .av5-pieza--3 { animation-duration: 4.8s; animation-delay: -1s; }
+}
+@keyframes av5-mece { from { rotate: -2.5deg; } to { rotate: 2.5deg; } }
+.av5-tapa::after { display: none; }
+@media (max-width: 1100px) { .av5-pieza--3 { display: none; } }
+@media (max-width: 860px) { .av5-piezas { display: none; } }
+.av5-tapa { justify-content: flex-end !important; }
+.av5-pie { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; }
+.av5-pie .av5-logo { width: 48px; height: 48px; border-radius: 14px; }
+@media (max-width: 860px) {
+  .av5-tapa { flex-direction: row !important; align-items: center !important; justify-content: flex-start !important; }
+  .av5-pie { order: -1; }
+  .av5-pie .av5-firma { display: none; }
+}
