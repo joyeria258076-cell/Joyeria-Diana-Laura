@@ -5,6 +5,7 @@
 // cámara o se niega el permiso, ofrece elegir una imagen de los archivos.
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import '../styles/CamaraCaptura.css';
 
 interface Props {
@@ -67,7 +68,9 @@ function CamaraCaptura({ abierta, frontal = true, titulo = 'Tomar foto', onFoto,
 
   const cerrar = () => { detener(); onCerrar(); };
 
-  return (
+  // Portal al <body>: si se queda dentro de una tarjeta con overflow/transform
+  // (como la del perfil), el modal sale recortado.
+  return createPortal(
     <div className="cam-fondo" role="dialog" aria-modal="true" aria-label={titulo} onClick={cerrar}>
       <div className="cam-caja" onClick={e => e.stopPropagation()}>
         <div className="cam-cabeza">
@@ -88,7 +91,8 @@ function CamaraCaptura({ abierta, frontal = true, titulo = 'Tomar foto', onFoto,
           if (f) { detener(); onFoto(f); onCerrar(); }
         }} />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
