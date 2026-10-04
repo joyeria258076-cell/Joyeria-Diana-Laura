@@ -71,7 +71,6 @@ const GestionPersonalizacionScreen: React.FC = () => {
     return (
         <main className="gper-page">
             <div className="gs-head">
-                    <div className="sx-eyebrow">Operación</div>
                     <h1 className="sx-title">Solicitudes de <span>personalización</span></h1>
                     <p className="sx-subtitle">Revisa el detalle y la imagen de referencia antes de aprobar cada pieza.</p>
                 </div>

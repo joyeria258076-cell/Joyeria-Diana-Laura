@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { carritoAPI } from "../../services/api";
 import {
-    AiOutlineCheckSquare, AiOutlineShoppingCart, AiOutlineCheckCircle, AiOutlineEdit,
+    AiOutlineShoppingCart, AiOutlineCheckCircle, AiOutlineEdit,
     AiOutlineSync, AiOutlineInbox, AiOutlineUser, AiOutlineLoading3Quarters, AiOutlineInfoCircle,
     AiOutlineArrowRight, AiOutlineHistory, AiOutlineLock, AiOutlineExclamationCircle,
 } from "react-icons/ai";
@@ -34,13 +34,13 @@ export default function ActividadesTrabajadorScreen() {
 
     return (
         <div className="actividades-container">
-            <h2 className="actividades-titulo">
-                <AiOutlineCheckSquare size={20} /> Actividades Habilitadas
-            </h2>
+            <h1 className="actividades-titulo">
+                Mis <span>actividades</span>
+            </h1>
 
             <div className="activity-card">
                 <h3>
-                    <AiOutlineShoppingCart size={18} /> Modificación de Pedidos
+                    <AiOutlineShoppingCart size={18} /> Modificación de pedidos
                     <span className="activity-badge">
                         <AiOutlineCheckCircle size={13} /> Habilitada
                     </span>
@@ -52,7 +52,7 @@ export default function ActividadesTrabajadorScreen() {
                 </p>
 
                 <div className="activity-details-box">
-                    <p>Permisos Asignados</p>
+                    <p>Permisos asignados</p>
                     <div className="permissions-grid">
                         <div className="permission-tag"><AiOutlineEdit size={14} /> Editar detalles</div>
                         <div className="permission-tag"><AiOutlineSync size={14} /> Cambiar estado</div>
@@ -77,19 +77,19 @@ export default function ActividadesTrabajadorScreen() {
 
                 <div className="activity-actions">
                     <Link to="/pedidos-admin" className="btn-primary-worker">
-                        <AiOutlineArrowRight size={14} /> Ir a Pedidos
+                        <AiOutlineArrowRight size={14} /> Ir a pedidos
                         {pendientes !== null && pendientes > 0 && (
                             <span className="actividades-badge-count">{pendientes}</span>
                         )}
                     </Link>
                     <Link to="/pedidos-admin" className="btn-secondary-worker">
-                        <AiOutlineHistory size={14} /> Ver Historial
+                        <AiOutlineHistory size={14} /> Ver historial
                     </Link>
                 </div>
             </div>
 
             <h3 className="inactive-section-title">
-                <AiOutlineLock size={16} /> Actividades No Habilitadas
+                <AiOutlineLock size={16} /> Actividades no habilitadas
             </h3>
             <div className="empty-activities-placeholder">
                 <AiOutlineExclamationCircle size={24} />

@@ -710,7 +710,6 @@ const GestionApartadosScreen: React.FC = () => {
         <main className="gapt-body">
             <div className="gapt-top-bar">
                 <div className="gs-head">
-                    <div className="sx-eyebrow">Operación</div>
                     <h1 className="sx-title">Gestión de <span>apartados</span></h1>
                     <p className="sx-subtitle">Confirma anticipos, registra abonos y da seguimiento a las fechas límite.</p>
                 </div>
@@ -856,7 +855,7 @@ const GestionApartadosScreen: React.FC = () => {
                                     <div className="gapt-datos-rapidos">
                                         <div className="gapt-dato">
                                             <span className="gapt-dato-label">Saldo pendiente</span>
-                                            <span className="gapt-dato-val" style={{ color: '#ecb2c3' }}>
+                                            <span className="gapt-dato-val gapt-dato-val--saldo">
                                                 {fmtMoneda(a.saldo_pendiente)}
                                             </span>
                                         </div>
@@ -879,7 +878,7 @@ const GestionApartadosScreen: React.FC = () => {
                                         </div>
                                         <div className="gapt-dato">
                                             <span className="gapt-dato-label">Productos</span>
-                                            <span className="gapt-dato-val" style={{ fontSize: '0.75rem', color: '#aaa' }}>
+                                            <span className="gapt-dato-val" style={{ fontSize: '0.8rem' }}>
                                                 {a.productos?.join(', ').substring(0, 30) || '—'}
                                                 {(a.productos?.join(', ').length || 0) > 30 ? '...' : ''}
                                             </span>

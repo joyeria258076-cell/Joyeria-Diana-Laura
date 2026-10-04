@@ -780,7 +780,6 @@ const GestionPedidosScreen: React.FC = () => {
             )}
             <div className="gp-header">
                 <div className="gs-head">
-                    <div className="sx-eyebrow">Operación</div>
                     <h1 className="sx-title">Gestión de <span>pedidos</span></h1>
                     <p className="sx-subtitle">Toma pedidos, verifica pagos y lleva cada compra hasta la entrega.</p>
                 </div>

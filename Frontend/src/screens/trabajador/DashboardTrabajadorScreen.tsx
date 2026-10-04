@@ -118,11 +118,10 @@ export default function DashboardTrabajadorScreen() {
     return (
         <div className="tr2-wrap">
             <header className="tr2-head">
-                <span className="tr2-avatar" aria-hidden="true">{nombre.charAt(0).toUpperCase()}</span>
                 <div className="tr2-head-textos">
-                    <div className="sx-eyebrow tr2-eyebrow">{hoy}</div>
-                    <h1 className="sx-title tr2-title">Hola, <span>{nombre}</span></h1>
-                    <p className="sx-subtitle tr2-sub">
+                    <p className="tr2-fecha">{hoy}</p>
+                    <h1 className="tr2-title">Hola, <span>{nombre}</span></h1>
+                    <p className="tr2-sub">
                         {loading ? 'Revisando pendientes…'
                             : totalPendiente === 0 ? 'Todo al día: no hay nada pendiente por ahora.'
                             : `Tienes ${totalPendiente} ${totalPendiente === 1 ? 'asunto' : 'asuntos'} por atender.`}
@@ -144,9 +143,8 @@ export default function DashboardTrabajadorScreen() {
             <section className="tr2-tarjetas">
                 {tarjetas.map(t => (
                     <button key={t.titulo} className={`tr2-tarjeta tr2-tarjeta--${t.tono}${t.n > 0 ? ' tr2-tarjeta--alerta' : ''}`} onClick={() => navigate(t.ruta)}>
-                        <span className="tr2-tarjeta-icon">{t.icon}</span>
                         <span className="tr2-tarjeta-n">{loading ? '—' : t.n}</span>
-                        <span className="tr2-tarjeta-titulo">{t.titulo}</span>
+                        <span className="tr2-tarjeta-titulo"><span className="tr2-tarjeta-icon">{t.icon}</span>{t.titulo}</span>
                         <span className="tr2-tarjeta-desc">{t.desc}</span>
                     </button>
                 ))}

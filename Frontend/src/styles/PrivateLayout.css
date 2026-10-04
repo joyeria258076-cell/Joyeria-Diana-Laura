@@ -15,7 +15,7 @@
    de fondo vive solo en .content-area, donde vive también el footer. */
 .app-private-wrapper {
     display: grid;
-    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
     grid-template-rows: var(--header-height) 1fr;
     height: 100vh;
     width: 100vw;
@@ -28,6 +28,7 @@
    en el header/sidebar). Las pantallas hijas quedan transparentes para
    dejarla ver. */
 .content-area {
+    min-width: 0;
     grid-column: 2;
     grid-row: 2;
     padding: 40px;
@@ -65,7 +66,8 @@
 
     .app-private-wrapper {
         /* Sidebar flota encima — no ocupa columna */
-        grid-template-columns: 1fr;
+        /* minmax(0,…) evita que un hijo ancho estire la columna más allá de la pantalla */
+        grid-template-columns: minmax(0, 1fr);
         grid-template-rows: var(--header-height) 1fr;
         height: 100dvh;
     }
