@@ -197,3 +197,62 @@ body .categoria-header-row .categoria-title, body h3.categoria-title { font-size
 body .categoria-header-row { justify-content: flex-start !important; }
 @media (max-width: 900px) { body .cv5-buscar-fila { flex-wrap: wrap; } body .cv5-buscar { flex-basis: 100%; } body .cv5-filtros-btn { width: 100%; } }
 body .cv5-filtros-btn { display: inline-flex; align-items: center; justify-content: center; }
+
+/* ════════ DETALLE v5: foto fija + información abierta + precio en etiqueta colgante ════════ */
+body :is(.pdp-main, .pd-main) {
+  display: grid !important; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) !important; gap: clamp(24px, 4vw, 64px) !important;
+  align-items: start !important; max-width: 1360px; margin: 0 auto; padding: clamp(16px, 3vw, 40px) clamp(16px, 3vw, 40px) 0 !important; box-sizing: border-box;
+}
+body :is(.pdp-gallery, .pd-gallery) { position: sticky !important; top: 90px; display: flex !important; flex-direction: column; gap: 12px; }
+body :is(.pdp-image-frame, .pd-image-frame) { aspect-ratio: 4 / 5 !important; height: auto !important; max-height: 78vh; }
+body :is(.pdp-image-main, .pd-image-main) { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+body :is(.pdp-thumbs, .pd-thumbs) { position: static !important; display: flex !important; flex-direction: row !important; gap: 10px !important; }
+body :is(.pdp-thumbs, .pd-thumbs) button { width: 76px !important; height: 76px !important; padding: 0 !important; overflow: hidden; border: 2px solid transparent !important; background: var(--color-surface-2) !important; }
+body :is(.pdp-thumbs, .pd-thumbs) button.active { border-color: var(--color-primary-strong) !important; }
+body :is(.pdp-thumbs, .pd-thumbs) img { width: 100%; height: 100%; object-fit: cover; }
+body :is(.pdp-gallery-tag, .pd-gallery-tag) { border-radius: 999px !important; font-weight: 600 !important; }
+
+/* Información sin caja: se lee como ficha de la pieza */
+body :is(.pdp-info, .pd-info) { background: none !important; border: 0 !important; box-shadow: none !important; padding: 8px 0 0 !important; display: flex; flex-direction: column; gap: 18px; }
+body :is(.pdp-info, .pd-info) > * { margin-top: 0 !important; margin-bottom: 0 !important; }
+body :is(.pdp-nombre, .pd-nombre) { font-size: clamp(2.2rem, 4vw, 3.6rem) !important; letter-spacing: -0.04em !important; }
+
+/* Precio como etiqueta de cartón colgando de su hilo */
+body :is(.pdp-precios, .pd-precios) {
+  position: relative; align-self: flex-start; display: flex !important; flex-direction: column; align-items: flex-start; gap: 2px;
+  margin-top: 26px !important; padding: 18px 26px 16px 34px !important; border-radius: 8px 18px 18px 8px;
+  background: var(--color-surface) !important; border: 1px solid var(--color-border) !important;
+  box-shadow: 0 16px 30px -18px rgba(0,0,0,.45);
+  transform-origin: 14px -26px; transform: rotate(-2.5deg);
+}
+body :is(.pdp-precios, .pd-precios)::before { content: ''; position: absolute; left: 12px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: var(--color-bg); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-text-muted) 60%, transparent); }
+body :is(.pdp-precios, .pd-precios)::after { content: ''; position: absolute; left: 16px; top: -26px; width: 1.5px; height: 30px; background: color-mix(in srgb, var(--color-text-muted) 70%, transparent); transform: rotate(-14deg); transform-origin: bottom; }
+@media (prefers-reduced-motion: no-preference) {
+  body :is(.pdp-precios, .pd-precios) { animation: dv5-cuelga 1.6s cubic-bezier(.16,1,.3,1) both .2s; }
+  body :is(.pdp-precios, .pd-precios):hover { animation: dv5-mece 1.3s cubic-bezier(.3,1,.4,1); }
+}
+@keyframes dv5-cuelga { from { opacity: 0; transform: translateY(-20px) rotate(-10deg); } to { opacity: 1; transform: rotate(-2.5deg); } }
+@keyframes dv5-mece { 0%,100% { transform: rotate(-2.5deg); } 25% { transform: rotate(3deg); } 55% { transform: rotate(-4deg); } 80% { transform: rotate(-1.5deg); } }
+body :is(.pdp-ahorro, .pd-ahorro) { border-radius: 999px !important; font-size: 12.5px !important; }
+
+body :is(.pdp-stock-row, .pd-stock-row) { background: none !important; padding: 0 !important; border: 0 !important; }
+body :is(.pdp-compra-section, .pd-compra-section) { display: flex; flex-direction: column; gap: 12px; padding-top: 18px !important; border-top: 1px solid var(--color-border) !important; }
+body :is(.pdp-cantidad-ctrl, .pd-cantidad-ctrl) { border-radius: 999px !important; }
+body :is(.pdp-barra-compra, .pd-barra-compra) { padding: 10px 10px 10px 22px !important; border-radius: 999px !important; }
+body :is(.pdp-btn-favorito, .pd-btn-favorito) { border-radius: 999px !important; min-height: 50px; }
+body :is(.pdp-registro-banner) { border-radius: 999px !important; }
+body :is(.pdp-specs-quick, .pd-specs-quick) { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px !important; }
+body :is(.pdp-ubicaciones-titulo, .pd-ubicaciones-titulo) { font-size: 13px !important; font-weight: 700 !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--color-text) !important; }
+body .pdp-ubicacion-boton { background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important; box-shadow: none !important; }
+
+body :is(.pdp-tabs-section, .pd-tabs-section, .pdp-resenas-section, .pd-resenas-section, .rel-seccion) { max-width: 1360px; margin-left: auto !important; margin-right: auto !important; box-sizing: border-box; }
+
+@media (max-width: 900px) {
+  body :is(.pdp-main, .pd-main) { grid-template-columns: 1fr !important; padding-top: 8px !important; }
+  body :is(.pdp-gallery, .pd-gallery) { position: static !important; }
+  body :is(.pdp-image-frame, .pd-image-frame) { aspect-ratio: 1 !important; border-radius: 26px !important; }
+  body :is(.pdp-barra-compra, .pd-barra-compra) { border-radius: 24px !important; }
+}
+body :is(.pdp-gallery, .pd-gallery, .pdp-info, .pd-info) { min-width: 0 !important; width: auto !important; max-width: 100% !important; }
+body :is(.pdp-image-frame, .pd-image-frame) { width: 100% !important; box-sizing: border-box; }
+@media (max-width: 900px) { body :is(.pdp-cantidad-wrap, .pd-cantidad-wrap) { display: flex !important; justify-content: space-between; align-items: center; } }
