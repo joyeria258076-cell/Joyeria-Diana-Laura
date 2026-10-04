@@ -14,7 +14,7 @@ export const getFavoritos = async (req: Request, res: Response) => {
             SELECT
                 f.id, f.fecha_agregado,
                 p.id AS producto_id, p.nombre, p.precio_venta, p.precio_oferta,
-                p.imagen_principal, p.stock_actual, p.es_nuevo,
+                p.imagen_principal, p.stock_actual, p.es_nuevo, p.permite_personalizacion,
                 cat.nombre AS categoria_nombre,
                 (
                     SELECT CASE
