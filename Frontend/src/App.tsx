@@ -3,6 +3,7 @@
 import React from 'react';
 import './App.css';
 import './styles/TiendaV4.css';
+import './styles/CuentaV5.css';
 import AppRoutes from './navigation/AppRoutes';
 import ErrorPantalla from './components/ErrorPantalla';
 import { AuthProvider } from './contexts/AuthContext';

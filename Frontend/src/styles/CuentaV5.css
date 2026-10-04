@@ -1,0 +1,79 @@
+/* CuentaV5.css — carrito, mis apartados, mis favoritos y perfil en el mundo del joyero */
+
+/* ════════ CARRITO: bandeja de piezas + ticket de compra ════════ */
+html body .carrito-layout { gap: clamp(20px, 3vw, 44px) !important; align-items: start !important; }
+html body .carrito-items { display: flex !important; flex-direction: column; gap: 0 !important; border-top: 1px solid var(--color-border); }
+html body .carrito-item { display: grid !important; grid-template-columns: 128px minmax(0, 1fr) auto !important; gap: 20px !important; align-items: center !important; padding: 22px 0 !important; background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; }
+html body .carrito-item-imagen { width: 128px !important; height: 128px !important; border-radius: 22px !important; overflow: hidden; box-shadow: 0 16px 30px -20px rgba(0,0,0,.55); background: var(--color-surface-2) !important; }
+html body .carrito-item-imagen img { width: 100%; height: 100%; object-fit: cover; }
+html body .carrito-item-nombre { font-size: clamp(16px, 1.4vw, 19px) !important; font-weight: 700 !important; letter-spacing: -0.02em; line-height: 1.25 !important; }
+html body .carrito-item-categoria { font-size: 12.5px !important; font-weight: 600 !important; text-transform: capitalize !important; letter-spacing: 0 !important; color: var(--color-text-muted) !important; }
+html body .carrito-item-subtotal { font-size: 20px !important; font-weight: 700 !important; letter-spacing: -0.02em; color: var(--color-text) !important; }
+html body .carrito-cantidad-ctrl { border-radius: 999px !important; }
+/* El resumen es un ticket: borde perforado abajo y línea punteada antes del total */
+html body .carrito-resumen { position: sticky !important; top: 96px; }
+html body .carrito-resumen-card {
+  position: relative; border-radius: 28px 28px 6px 6px !important; padding: 28px 26px 36px !important; border: 0 !important;
+  background: var(--color-surface) !important; box-shadow: 0 30px 60px -34px rgba(0,0,0,.5) !important;
+  -webkit-mask: radial-gradient(circle 9px at 50% 100%, transparent 98%, #000) 0 0 / 24px 100% repeat-x;
+          mask: radial-gradient(circle 9px at 50% 100%, transparent 98%, #000) 0 0 / 24px 100% repeat-x;
+}
+html body .carrito-resumen-titulo { font-family: var(--font-body) !important; font-size: 22px !important; font-weight: 700 !important; letter-spacing: -0.02em !important; color: var(--color-text) !important; }
+html body .carrito-resumen-divider { border: 0 !important; height: 0 !important; border-top: 2px dashed var(--color-border) !important; background: none !important; }
+html body .carrito-resumen-total { font-size: clamp(26px, 2.4vw, 32px) !important; font-weight: 700 !important; letter-spacing: -0.03em !important; color: var(--color-primary-strong) !important; }
+html body :is(.carrito-btn-checkout, .carrito-btn-primario) { border-radius: 999px !important; min-height: 54px; background: var(--color-primary-strong) !important; box-shadow: 0 14px 30px -16px var(--color-primary-strong) !important; }
+html body .carrito-btn-apartado { border-radius: 999px !important; min-height: 48px; }
+html body .carrito-stepper-paso { border-radius: 999px !important; }
+@media (max-width: 700px) {
+  body .carrito-item { grid-template-columns: 88px minmax(0, 1fr) !important; }
+  body .carrito-item-imagen { width: 88px !important; height: 88px !important; }
+  body .carrito-item > :last-child { grid-column: 2; }
+  body .carrito-resumen { position: static !important; }
+}
+
+/* ════════ MIS APARTADOS: el avance de pago manda ════════ */
+html body .mapt-card { border-radius: 30px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: 0 24px 50px -36px rgba(0,0,0,.5) !important; overflow: hidden; }
+html body .mapt-card-header { padding: 22px 24px !important; gap: 18px; }
+html body .mapt-folio { font-size: 18px !important; font-weight: 700 !important; letter-spacing: -0.02em; }
+html body .mapt-anillo { width: 84px !important; height: 84px !important; }
+html body .mapt-progreso-bar { height: 12px !important; border-radius: 999px !important; background: var(--color-surface-2) !important; }
+html body .mapt-progreso-fill { border-radius: 999px !important; background: linear-gradient(90deg, var(--color-primary), var(--color-primary-strong)) !important; }
+html body .mapt-dato { border-radius: 18px !important; background: var(--color-surface-2) !important; border: 0 !important; }
+html body .mapt-dato-valor--destacado { color: var(--color-primary-strong) !important; font-size: 20px !important; font-weight: 700 !important; }
+html body .mapt-filtro-btn { border-radius: 999px !important; }
+html body :is(.mapt-btn-pagar, .mapt-btn-primario) { border-radius: 999px !important; background: var(--color-primary-strong) !important; }
+html body .mapt-abonos-tabla { border-radius: 18px; overflow: hidden; }
+
+/* ════════ MIS FAVORITOS: cada pieza cuelga de su hilo ════════ */
+html body .mf-grid { gap: clamp(28px, 2.6vw, 36px) clamp(18px, 2vw, 28px) !important; padding-top: 26px; }
+html body .mf-grid > * { position: relative; overflow: visible !important; background: var(--color-surface) !important; border-radius: 26px !important; border: 1px solid var(--color-border) !important; box-shadow: 0 22px 40px -28px rgba(0,0,0,.5) !important; transform-origin: 50% -24px; }
+html body .mf-grid > *::before { content: ''; position: absolute; top: -24px; left: 50%; width: 1.5px; height: 28px; background: color-mix(in srgb, var(--color-text-muted) 70%, transparent); }
+html body .mf-grid > *::after { content: ''; position: absolute; top: 2px; left: 50%; width: 9px; height: 9px; margin-left: -4px; border-radius: 50%; background: var(--color-bg); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-text-muted) 60%, transparent); z-index: 3; }
+@media (prefers-reduced-motion: no-preference) { body .mf-grid > *:hover { animation: cv5-mece 1.4s cubic-bezier(.3,1,.4,1); } }
+@keyframes cv5-mece { 0%,100% { transform: rotate(0); } 20% { transform: rotate(3deg); } 45% { transform: rotate(-2deg); } 70% { transform: rotate(1deg); } }
+html body .mf-card-imagen { border-radius: 20px !important; margin: 10px 10px 0 !important; overflow: hidden; }
+html body .mf-card-nombre { font-weight: 600 !important; }
+html body .mf-precio-final { font-size: 19px !important; font-weight: 700 !important; color: var(--color-primary-strong) !important; }
+html body .mf-card-categoria { text-transform: capitalize !important; letter-spacing: 0 !important; font-size: 12px !important; color: var(--color-text-muted) !important; }
+
+/* ════════ PERFIL: tarjeta de clienta ════════ */
+html body .pf-hero {
+  position: relative; overflow: hidden; max-width: 560px; aspect-ratio: 1.586; box-sizing: border-box; margin: 0 0 28px !important;
+  display: flex !important; flex-direction: column !important; justify-content: space-between !important; align-items: flex-start !important;
+  padding: clamp(22px, 3vw, 32px) !important; border-radius: 26px !important; border: 0 !important;
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--color-accent) 55%, transparent), transparent 60%),
+    linear-gradient(140deg, var(--color-primary-strong), color-mix(in srgb, var(--color-primary-strong) 55%, #1a0b14)) !important;
+  color: #fff !important; box-shadow: 0 34px 60px -30px var(--color-primary-strong) !important;
+}
+html body .pf-hero::before { content: "Joyería Diana Laura"; position: absolute; top: clamp(22px, 3vw, 32px); right: clamp(22px, 3vw, 32px); font-family: var(--font-accent); font-style: italic; font-size: 18px; opacity: .9; }
+html body .pf-hero::after { content: ""; position: absolute; width: 300px; height: 300px; right: -110px; bottom: -150px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.22); box-shadow: 0 0 0 40px rgba(255,255,255,.04); pointer-events: none; }
+html body :is(.pf-hero-avatar-wrap, .pf-hero-avatar) { width: 64px !important; height: 64px !important; border-radius: 18px !important; }
+html body .pf-hero-info { position: relative; z-index: 1; }
+html body .pf-hero-name { font-size: clamp(24px, 3vw, 32px) !important; font-weight: 700 !important; letter-spacing: -0.03em !important; color: #fff !important; }
+html body .pf-hero-email { color: rgba(255,255,255,.85) !important; letter-spacing: .02em; }
+html body .pf-hero-role { background: rgba(255,255,255,.2) !important; color: #fff !important; border: 0 !important; border-radius: 999px !important; }
+html body .pf-tabs { border-radius: 999px !important; }
+html body .pf-section { border-radius: 28px !important; }
+html body .pf-section-title { font-family: var(--font-body) !important; font-size: 22px !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
+html body .pf-btn-save { border-radius: 999px !important; background: var(--color-primary-strong) !important; }
