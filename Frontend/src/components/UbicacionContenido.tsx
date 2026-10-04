@@ -43,7 +43,7 @@ const UbicacionContenido: React.FC<{ privado?: boolean }> = ({ privado = false }
         </p>
       </header>
 
-      <div className="sx-layout-aside">
+      <div className="sx-layout-aside ub5">
         <Seccion id="ubicacion.mapa" nombre="Mapa">
         <div className="sx-card sx-card--static" style={{ padding: 0, minHeight: 380 }}>
           {mapaSrc ? (

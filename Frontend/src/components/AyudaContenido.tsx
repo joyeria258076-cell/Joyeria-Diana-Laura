@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { AiOutlineDown, AiOutlineWhatsApp, AiOutlineMail } from "react-icons/ai";
+import { AiOutlineDown, AiOutlineWhatsApp, AiOutlineMail, AiOutlineSearch } from "react-icons/ai";
 import ChatBotAyuda from "./ChatBotAyuda";
 import Loader from "./Loader";
 import { contentAPI } from "../services/api";
@@ -13,6 +13,7 @@ interface Info { horario?: string | null; direccion?: string | null; email?: str
 // administra el negocio + asistente con salida a WhatsApp.
 const AyudaContenido: React.FC<{ privado?: boolean }> = ({ privado = false }) => {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [busquedaFaq, setBusquedaFaq] = useState("");
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<number | null>(null);
   const [whatsapp, setWhatsapp] = useState<string | null>(null);
@@ -47,17 +48,23 @@ const AyudaContenido: React.FC<{ privado?: boolean }> = ({ privado = false }) =>
         </p>
       </header>
 
-      <div className="sx-layout-aside">
+      <div className="sx-layout-aside ay5">
         <Seccion id="ayuda.faq" nombre="Preguntas frecuentes">
         <section>
           <h2 className="sx-section-title">Preguntas frecuentes</h2>
+          {faqs.length > 3 && (
+            <label className="ay5-buscar">
+              <AiOutlineSearch size={18} aria-hidden="true" />
+              <input value={busquedaFaq} onChange={e => setBusquedaFaq(e.target.value)} placeholder="Busca tu duda: envío, talla, apartado…" aria-label="Buscar en preguntas" />
+            </label>
+          )}
           {loading ? (
             <Loader tamano="sm" texto="Cargando preguntas..." />
           ) : faqs.length === 0 ? (
             <p className="sx-muted">No hay preguntas frecuentes disponibles por el momento.</p>
           ) : (
             <div className="sx-accordion">
-              {faqs.map(f => {
+              {faqs.filter(f => !busquedaFaq.trim() || `${f.pregunta} ${f.respuesta}`.toLowerCase().includes(busquedaFaq.trim().toLowerCase())).map(f => {
                 const abierta = open === f.id;
                 return (
                   <div key={f.id} className={`sx-acc-item${abierta ? " sx-acc-item--open" : ""}`}>

@@ -284,16 +284,16 @@ body .ct5-siguenos { font-size: 14px; font-weight: 700; color: var(--color-text-
 @media (max-width: 900px) { body .ct5 { grid-template-columns: 1fr; } }
 
 /* ════════ UBICACIÓN v5: mapa grande + ficha de la sucursal sin cajas sueltas ════════ */
-body .sx-layout-aside { display: grid !important; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) !important; gap: clamp(16px, 2.4vw, 28px) !important; max-width: 1200px; margin: 0 auto; align-items: stretch !important; }
-body .sx-layout-aside > :first-child { min-height: clamp(360px, 55vh, 560px); border-radius: 34px !important; overflow: hidden; box-shadow: 0 30px 60px -34px rgba(0,0,0,.5) !important; }
-body .sx-layout-aside > :first-child iframe { width: 100%; height: 100%; min-height: inherit; border: 0; display: block; }
-body .sx-layout-aside > :last-child { display: flex; flex-direction: column; gap: 0 !important; border-radius: 34px; background: var(--color-surface); border: 1px solid var(--color-border); padding: 8px 24px; }
-body .sx-layout-aside > :last-child .sx-card { background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; padding: 20px 0 !important; text-align: left !important; }
-body .sx-layout-aside > :last-child .sx-card:last-child { border-bottom: 0 !important; }
-body .sx-layout-aside .sx-icon { width: 42px !important; height: 42px !important; border-radius: 14px !important; margin-bottom: 10px !important; }
-body .sx-layout-aside .sx-card-title { font-size: 17px !important; font-weight: 700 !important; letter-spacing: -0.02em; }
-body .sx-layout-aside .sx-btn { margin-top: 12px; }
-@media (max-width: 900px) { body .sx-layout-aside { grid-template-columns: 1fr !important; } }
+body .sx-layout-aside.ub5 { display: grid !important; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) !important; gap: clamp(16px, 2.4vw, 28px) !important; max-width: 1200px; margin: 0 auto; align-items: stretch !important; }
+body .ub5 > :first-child { min-height: clamp(360px, 55vh, 560px); border-radius: 34px !important; overflow: hidden; box-shadow: 0 30px 60px -34px rgba(0,0,0,.5) !important; }
+body .ub5 > :first-child iframe { width: 100%; height: 100%; min-height: inherit; border: 0; display: block; }
+body .ub5 > :last-child { display: flex; flex-direction: column; gap: 0 !important; border-radius: 34px; background: var(--color-surface); border: 1px solid var(--color-border); padding: 8px 24px; }
+body .ub5 > :last-child .sx-card { background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; padding: 20px 0 !important; text-align: left !important; }
+body .ub5 > :last-child .sx-card:last-child { border-bottom: 0 !important; }
+body .ub5 .sx-icon { width: 42px !important; height: 42px !important; border-radius: 14px !important; margin-bottom: 10px !important; }
+body .ub5 .sx-card-title { font-size: 17px !important; font-weight: 700 !important; letter-spacing: -0.02em; }
+body .ub5 .sx-btn { margin-top: 12px; }
+@media (max-width: 900px) { body .ub5 { grid-template-columns: 1fr !important; } }
 
 /* Blog: la nota principal ocupa todo el ancho cuando no hay más notas a un lado */
 body .noticias-top-row:has(> .noticia-item--featured:only-child) { grid-template-columns: 1fr !important; }
@@ -301,3 +301,35 @@ html[data-theme] body .ct5 .ct5-wa, html body .ct5 .ct5-wa { background: linear-
 html body .ct5 .ct5-wa :is(h2, p, span) { color: var(--color-on-primary) !important; }
 body .ct5-dato a { color: var(--color-text) !important; text-decoration: none; }
 body .ct5-dato a:hover { color: var(--color-primary-strong) !important; }
+
+/* ════════ AYUDA v5: preguntas como lista grande + asistente fijo ════════ */
+body .ay5 { display: grid !important; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) !important; gap: clamp(20px, 3vw, 40px) !important; max-width: 1200px; margin: 0 auto; align-items: start; }
+body .ay5 > * { min-width: 0; }
+body .ay5 .sx-section-title { font-family: var(--font-body) !important; font-size: clamp(1.6rem, 2.6vw, 2.2rem) !important; font-weight: 700 !important; letter-spacing: -0.03em !important; margin: 0 0 16px !important; text-transform: none !important; }
+body .ay5-buscar { display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 0 18px; margin-bottom: 14px; border-radius: 999px; background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text-muted); }
+body .ay5-buscar:focus-within { border-color: var(--color-primary); box-shadow: var(--focus-ring); }
+body .ay5-buscar input { flex: 1; min-width: 0; border: 0 !important; background: none !important; box-shadow: none !important; outline: none; padding: 0 !important; min-height: 0 !important; color: var(--color-text); font-family: var(--font-body); font-size: 15px; }
+body .ay5 .sx-accordion { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--color-border); }
+body .ay5 .sx-acc-item { background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; }
+body .ay5 .sx-acc-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 22px 4px !important; background: none !important; border: 0 !important; cursor: pointer; text-align: left; font-family: var(--font-body) !important; font-size: clamp(16px, 1.4vw, 19px) !important; font-weight: 600 !important; color: var(--color-text) !important; }
+body .ay5 .sx-acc-icon { flex-shrink: 0; width: 34px; height: 34px; padding: 10px; box-sizing: border-box; border-radius: 50%; background: var(--color-surface); border: 1px solid var(--color-border); transition: transform .3s cubic-bezier(.2,.8,.2,1), background .2s ease; }
+body .ay5 .sx-acc-item--open .sx-acc-icon { transform: rotate(180deg); background: var(--color-primary-strong); color: var(--color-on-primary); border-color: transparent; }
+body .ay5 .sx-acc-body { padding: 0 4px 22px !important; font-size: 15.5px; line-height: 1.7; color: var(--color-text-muted); max-width: 64ch; white-space: pre-line; animation: cv5-abre .3s cubic-bezier(.16,1,.3,1); }
+body .ay5 .sx-sticky { position: sticky; top: 96px; border-radius: 30px !important; }
+@media (max-width: 900px) { body .ay5 { grid-template-columns: 1fr !important; } body .ay5 .sx-sticky { position: static; } }
+
+/* ════════ Sin etiquetas pequeñas en mayúsculas arriba de los títulos (regla del sitio) ════════ */
+body :is(.sa-eyebrow, .tl-eyebrow-row, .tl-cta-eyebrow, .ph-eyebrow, .mf2-hero-eyebrow, .hc-eyebrow, .eyebrow-row, .sp-eyebrow, .notif-page-eyebrow, .carrito-eyebrow, .cp-modal-eyebrow) { display: none !important; }
+
+/* ════════ MIS PEDIDOS: contadores como filtros compactos, no tarjetas de métricas ════════ */
+body .cp-stats { display: flex !important; flex-wrap: wrap; gap: 8px !important; grid-template-columns: none !important; }
+body .cp-stat-card { display: inline-flex !important; flex-direction: row-reverse !important; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px !important; border-radius: 999px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: none !important; }
+body .cp-stat-valor { font-size: 15px !important; font-weight: 700 !important; line-height: 1 !important; }
+body .cp-stat-label { font-size: 14px !important; font-weight: 600 !important; color: var(--color-text-muted) !important; text-transform: none !important; letter-spacing: 0 !important; margin: 0 !important; }
+
+/* ════════ SOBRE NOSOTROS: cifras como frase corrida, no tarjetas de métricas ════════ */
+body .sa-cifras { display: flex !important; flex-wrap: wrap; justify-content: center; gap: 0 !important; padding: 26px 0 !important; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+body .sa-cifra { background: none !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; padding: 4px clamp(18px, 3vw, 44px) !important; display: flex !important; align-items: baseline; gap: 10px; }
+body .sa-cifra + .sa-cifra { border-left: 1px solid var(--color-border) !important; }
+body .sa-cifra :is(strong, b, span:first-child) { font-family: var(--font-accent) !important; font-style: italic; font-weight: 500 !important; font-size: clamp(2rem, 3.6vw, 3rem) !important; color: var(--color-primary-strong) !important; background: none !important; -webkit-text-fill-color: currentColor; }
+body .sa-hero-titulo :is(span, em) { font-family: var(--font-accent); font-style: italic; font-weight: 500; -webkit-text-fill-color: currentColor; background: none !important; }
