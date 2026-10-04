@@ -92,7 +92,13 @@ const InicioPublicScreen: React.FC = () => {
   // llamada resuelve, en vez de bloquear toda la página hasta que las 5
   // llamadas terminen — eso además causaba que <PublicFooter/> se montara
   // dos veces, disparando su fetch de zonas de entrega por duplicado.)
-  const [slides, setSlides] = useState<any[]>(defaultSlides);
+  // Arranca con el último carrusel guardado (visitas repetidas) o vacío:
+  // antes se pintaba primero el respaldo y luego se reemplazaba por el de la
+  // BD, y ese cambio de imagen era lo que retrasaba el LCP en celular.
+  const [slides, setSlides] = useState<any[]>(() => {
+    try { const c = JSON.parse(localStorage.getItem('dl_carrusel') || 'null'); return Array.isArray(c) && c.length ? c : []; }
+    catch { return []; }
+  });
   const [promociones, setPromociones] = useState<any[]>([]);
   const [productosDestacados, setProductosDestacados] = useState<any[]>([]);
   const [noticiasHome, setNoticiasHome] = useState<any[]>([]);
@@ -113,7 +119,13 @@ const InicioPublicScreen: React.FC = () => {
     // del lado del servidor.
     (async () => {
       try {
-        const contenidos = await contentAPI.getCarruselInicio();
+        // Si el respaldo tarda (servidor dormido), mostrar el de respaldo
+        const respaldo = setTimeout(() => setSlides(s => (s.length ? s : defaultSlides)), 3000);
+        // index.html ya pidió el carrusel en paralelo a la descarga del JS
+        const temprano = (window as any).__carruselInicio;
+        (window as any).__carruselInicio = null;
+        const contenidos = (temprano && await temprano) || await contentAPI.getCarruselInicio();
+        clearTimeout(respaldo);
         const contenidosArray = Array.isArray(contenidos) ? contenidos : contenidos.data || [];
 
         const slidesFromDB = contenidosArray
@@ -132,6 +144,7 @@ const InicioPublicScreen: React.FC = () => {
           }));
 
         setSlides(slidesFromDB.length > 0 ? slidesFromDB : defaultSlides);
+        try { localStorage.setItem('dl_carrusel', JSON.stringify(slidesFromDB)); } catch { /* sin storage */ }
       } catch (e) {
         console.error("Error obteniendo carrusel de BD:", e);
         setSlides(defaultSlides);
@@ -228,7 +241,7 @@ const InicioPublicScreen: React.FC = () => {
       {/* ═══════════ BARRA TICKER PROMOCIONES ═══════════ */}
       <Seccion id="inicio.ticker" nombre="Barra de ofertas">
       {promociones.length > 0 && !tickerCerrado && (
-        <div className="promo-ticker-fixed">
+        <div className="promo-ticker-fixed promo-ticker-fixed--abajo">
           <span className="promo-ticker-badge"><AiOutlineTag size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />OFERTA</span>
           <div className="promo-ticker-scroll-wrap">
             <div className="promo-ticker-scroll-track">
@@ -246,7 +259,6 @@ const InicioPublicScreen: React.FC = () => {
           <button className="promo-ticker-close" onClick={() => setTickerCerrado(true)} aria-label="Cerrar"><AiOutlineClose size={12} /></button>
         </div>
       )}
-      {promociones.length > 0 && !tickerCerrado && <div className="promo-ticker-spacer" />}
       </Seccion>
 
       <PublicHeader />
@@ -291,7 +303,7 @@ const InicioPublicScreen: React.FC = () => {
 
           {categoriasFoto.slice(0, 4).map(c => (
             <Link key={c.id} to={`/catalogo-publico?categoria=${c.id}`} className="jy-hueco">
-              <img src={optimizarImagen(c.imagen, 600)} alt="" loading="lazy" />
+              <img src={optimizarImagen(c.imagen, 600)} srcSet={`${optimizarImagen(c.imagen, 300)} 300w, ${optimizarImagen(c.imagen, 600)} 600w`} sizes="(max-width: 900px) 50vw, 25vw" alt="" loading="lazy" />
               <span className="jy-hueco-texto">
                 <strong>{c.nombre}</strong>
                 <small>{c.cuantos} pieza{c.cuantos === 1 ? '' : 's'}</small>
@@ -396,7 +408,7 @@ const InicioPublicScreen: React.FC = () => {
               return (
                 <Link to={`/producto-publico/${prod.id}`} className={`rl-pieza${i === 0 ? ' rl-pieza--grande' : ''}`} key={prod.id}>
                   <span className="rl-foto">
-                    <img src={optimizarImagen(prod.imagen_principal, i === 0 ? 900 : 500)} alt={prod.nombre} loading="lazy" />
+                    <img src={optimizarImagen(prod.imagen_principal, i === 0 ? 900 : 500)} srcSet={i === 0 ? `${optimizarImagen(prod.imagen_principal, 450)} 450w, ${optimizarImagen(prod.imagen_principal, 900)} 900w` : `${optimizarImagen(prod.imagen_principal, 300)} 300w, ${optimizarImagen(prod.imagen_principal, 500)} 500w`} sizes={i === 0 ? "(max-width: 900px) 100vw, 40vw" : "(max-width: 900px) 50vw, 20vw"} alt={prod.nombre} loading="lazy" />
                     {prod.permite_personalizacion && <span className="rl-sello">Personalizable</span>}
                     {conDesc && <span className="rl-sello rl-sello--oferta">Oferta</span>}
                   </span>

@@ -322,6 +322,10 @@
   100% { transform: translateX(-50%); }
 }
 
+/* En el Inicio la barra va abajo: arriba empujaba toda la página al llegar
+   las promociones (salto de diseño / CLS en Lighthouse) */
+.promo-ticker-fixed--abajo { top: auto; bottom: 0; box-shadow: 0 -2px 8px rgba(0,0,0,0.25); }
+
 /* Espacio para que el header no quede tapado por el ticker */
 .promo-ticker-spacer {
   height: 36px;

@@ -40,7 +40,9 @@ const notificar = async (titulo: string, cuerpo: string) => {
 function ConexionSync(): null {
   useEffect(() => {
     // Esperar a que el service worker controle la página para que lo guarde
-    const iniciar = () => { if (navigator.onLine) precargar(); };
+    // Se deja para después de cargar la página, para no competir con las
+    // imágenes y datos del primer pintado (afectaba el LCP en Lighthouse).
+    const iniciar = () => { setTimeout(() => { if (navigator.onLine) precargar(); }, 5000); };
     if (navigator.serviceWorker?.controller) iniciar();
     else navigator.serviceWorker?.addEventListener('controllerchange', iniciar, { once: true });
 
