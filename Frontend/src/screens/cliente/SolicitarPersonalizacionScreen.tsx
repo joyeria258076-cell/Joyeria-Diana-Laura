@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AiOutlineUpload, AiOutlineClockCircle, AiOutlineCheckCircle, AiOutlinePicture } from 'react-icons/ai';
 import { productsAPI, personalizacionAPI, uploadAPI } from '../../services/api';
 import Loader from '../../components/Loader';
+import CamaraCaptura from '../../components/CamaraCaptura';
 import './SolicitarPersonalizacionScreen.css';
 
 interface Producto {
@@ -19,6 +20,7 @@ const SolicitarPersonalizacionScreen: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [camaraAbierta, setCamaraAbierta] = useState(false);
 
     const [producto, setProducto] = useState<Producto | null>(null);
     const [cargando, setCargando] = useState(true);
@@ -149,13 +151,13 @@ const SolicitarPersonalizacionScreen: React.FC = () => {
                     <span className="sp-contador">{detalle.length}/600</span>
 
                     <label className="sp-label">Imagen de referencia (opcional)</label>
-                    <div className="sp-imagen-upload" onClick={() => fileInputRef.current?.click()}>
+                    <div className="sp-imagen-upload" onClick={() => setCamaraAbierta(true)}>
                         {imagenPreview ? (
                             <img src={imagenPreview} alt="Referencia" className="sp-imagen-preview" />
                         ) : (
                             <div className="sp-imagen-placeholder">
                                 <AiOutlinePicture size={28} />
-                                <span>Arrastra o selecciona una imagen de referencia</span>
+                                <span>Toma una foto o elige una imagen de referencia</span>
                             </div>
                         )}
                     </div>
@@ -167,6 +169,9 @@ const SolicitarPersonalizacionScreen: React.FC = () => {
                         onChange={handleImagenChange}
                         style={{ display: 'none' }}
                     />
+                    <CamaraCaptura abierta={camaraAbierta} frontal={false} titulo="Foto de referencia de la joya"
+                        onFoto={f => { setImagenFile(f); setImagenPreview(URL.createObjectURL(f)); }}
+                        onCerrar={() => setCamaraAbierta(false)} />
 
                     <div className="sp-aviso">
                         <AiOutlineClockCircle size={16} />

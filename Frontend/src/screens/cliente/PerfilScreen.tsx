@@ -7,6 +7,7 @@ import SelectorTema from "../../components/SelectorTema";
 import "./PerfilScreen.css";
 import "./PerfilApp.css";
 import Loader from '../../components/Loader';
+import CamaraCaptura from '../../components/CamaraCaptura';
 
 interface SesionActiva {
   id: number;
@@ -32,6 +33,7 @@ export default function PerfilScreen() {
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const fotoInputRef = useRef<HTMLInputElement>(null);
+  const [camaraAbierta, setCamaraAbierta] = useState(false);
 
   const userRole = user?.rol?.toLowerCase().trim() || 'cliente';
   const isCliente = userRole === 'cliente';
@@ -90,7 +92,10 @@ export default function PerfilScreen() {
   const handleSubirFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
-    if (!file) return;
+    if (file) subirFoto(file);
+  };
+
+  const subirFoto = async (file: File) => {
     if (!file.type.startsWith('image/')) { mostrarToast('El archivo debe ser una imagen', 'err'); return; }
     setSubiendoFoto(true);
     try {
@@ -313,11 +318,12 @@ export default function PerfilScreen() {
 
       {/* Header tarjeta usuario */}
       <div className="pf-hero">
-        <div className="pf-hero-avatar-wrap" onClick={() => !subiendoFoto && fotoInputRef.current?.click()} title="Cambiar foto de perfil">
+        <div className="pf-hero-avatar-wrap" onClick={() => !subiendoFoto && setCamaraAbierta(true)} title="Cambiar foto de perfil">
           {fotoUrl ? <img src={fotoUrl} alt="Foto de perfil" className="pf-hero-avatar-img" /> : <div className="pf-hero-avatar">{inicial}</div>}
           <div className="pf-hero-avatar-overlay">{subiendoFoto ? '...' : 'Cambiar'}</div>
           <input ref={fotoInputRef} type="file" accept="image/*" capture="user" hidden onChange={handleSubirFoto} />
         </div>
+        <CamaraCaptura abierta={camaraAbierta} frontal titulo="Foto de perfil" onFoto={subirFoto} onCerrar={() => setCamaraAbierta(false)} />
         <div className="pf-hero-info">
           <h1 className="pf-hero-name">{user?.nombre}</h1>
           <p className="pf-hero-email">{user?.email}</p>
