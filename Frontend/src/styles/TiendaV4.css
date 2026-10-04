@@ -118,3 +118,26 @@ body :is(.sx-card, .sx-feature) {
 body :is(.sx-btn, .btn-primary):not(:disabled) { border-radius: 999px !important; }
 body .sx-btn:not(.sx-btn--ghost):not(:disabled) { background: var(--color-primary-strong) !important; color: var(--color-on-primary) !important; box-shadow: 0 14px 30px -16px var(--color-primary-strong) !important; }
 body ::selection { background: color-mix(in srgb, var(--color-primary) 32%, transparent); }
+
+/* ════════ INICIO DEL CLIENTE: categorías como joyero ════════ */
+body .ap-cats .ph-cats-fila {
+  display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; grid-auto-rows: 170px; gap: 10px !important; padding: 10px;
+  border-radius: 32px; background: color-mix(in srgb, var(--color-primary) 22%, var(--color-surface-2));
+  box-shadow: 0 30px 60px -32px color-mix(in srgb, var(--color-primary-strong) 55%, transparent);
+}
+body .ap-cats .ph-cat {
+  position: relative; overflow: hidden; padding: 0 !important; border: 0 !important; border-radius: 22px !important; background: var(--color-bg) !important; box-shadow: none !important;
+  display: block !important;
+}
+body .ap-cats .ph-cat:first-child { grid-column: span 2; grid-row: span 2; }
+body .ap-cats .ph-cat-foto { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; aspect-ratio: auto !important; margin: 0 !important; border-radius: 0 !important; }
+body .ap-cats .ph-cat::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 14px 22px -12px rgba(0,0,0,.55), inset 0 -70px 60px -30px rgba(10,5,8,.72); border-radius: inherit; }
+body .ap-cats .ph-cat strong, body .ap-cats .ph-cat small { position: absolute; left: 16px; z-index: 2; color: #fff !important; text-shadow: 0 1px 10px rgba(0,0,0,.45); text-align: left; }
+body .ap-cats .ph-cat strong { bottom: 34px; font-size: clamp(17px, 1.6vw, 24px) !important; }
+body .ap-cats .ph-cat small { bottom: 14px; opacity: .9; }
+@media (max-width: 900px) {
+  body .ap-cats .ph-cats-fila { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; grid-auto-rows: 140px; border-radius: 24px; padding: 8px; gap: 8px !important; }
+}
+body .ap-cats .ph-cat:nth-child(6):last-child { grid-column: span 4; }
+body .ap-cats .ph-cat:nth-child(7):last-child { grid-column: span 2; }
+@media (max-width: 900px) { body .ap-cats .ph-cat:nth-child(6):last-child { grid-column: span 2; } }
