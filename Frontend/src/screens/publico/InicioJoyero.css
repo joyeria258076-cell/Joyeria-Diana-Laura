@@ -1,0 +1,192 @@
+/* InicioJoyero.css — portada como joyero abierto + piezas colgando de su etiqueta.
+   Todo sale de las variables del tema: funciona en claro, oscuros y temáticas. */
+
+/* ── Joyero ─────────────────────────────────────────────── */
+.jy {
+  --jy-marco: color-mix(in srgb, var(--color-primary) 22%, var(--color-surface-2));
+  --jy-terciopelo: color-mix(in srgb, var(--color-bg) 70%, var(--color-surface));
+  max-width: 1360px; margin: 0 auto; box-sizing: border-box; width: 100%;
+  padding: clamp(20px, 3vw, 40px) clamp(16px, 3vw, 40px) 24px;
+  font-family: var(--font-body); color: var(--color-text);
+}
+
+.jy-cabeza {
+  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 64px);
+  align-items: end; margin-bottom: clamp(20px, 3vw, 36px);
+}
+.jy-lema {
+  margin: 0; font-family: var(--font-body); font-weight: 700; color: var(--color-text);
+  font-size: clamp(2.6rem, 6.4vw, 6rem); line-height: 0.95; letter-spacing: -0.04em; text-wrap: balance;
+}
+.jy-lema em { font-family: var(--font-accent); font-style: italic; font-weight: 500; letter-spacing: -0.02em; color: var(--color-primary); }
+.jy-cabeza-lado { display: flex; flex-direction: column; gap: 16px; padding-bottom: 6px; }
+.jy-cabeza-lado p { margin: 0; max-width: 46ch; font-size: clamp(15px, 1.15vw, 17px); line-height: 1.6; color: var(--color-text-muted); }
+.jy-buscar {
+  display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 18px; border-radius: 999px;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  box-shadow: 0 10px 30px -18px color-mix(in srgb, var(--color-primary-strong) 60%, transparent);
+  color: var(--color-text-muted); transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.jy-buscar:focus-within { border-color: var(--color-primary); box-shadow: var(--focus-ring); }
+.jy-buscar input {
+  flex: 1; min-width: 0; min-height: 46px; border: 0 !important; background: none !important; box-shadow: none !important; outline: none;
+  padding: 0 !important; color: var(--color-text); font-family: var(--font-body); font-size: 15px;
+}
+.jy-buscar input::placeholder { color: var(--color-text-muted); }
+.jy-buscar button {
+  min-height: 46px; padding: 0 24px; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--color-primary-strong); color: var(--color-on-primary);
+  font-family: var(--font-body); font-size: 14.5px; font-weight: 600; transition: transform 0.2s cubic-bezier(.2,.8,.2,1);
+}
+.jy-buscar button:active { transform: scale(0.97); }
+
+/* La caja: un marco con divisiones; cada hueco es un compartimento hundido */
+.jy-caja {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: repeat(4, clamp(96px, 13.5vh, 150px));
+  gap: 10px; padding: 10px; border-radius: 34px;
+  background:
+    radial-gradient(120% 90% at 20% 0%, color-mix(in srgb, var(--color-highlight) 18%, transparent), transparent 60%),
+    var(--jy-marco);
+  box-shadow:
+    0 30px 60px -30px color-mix(in srgb, var(--color-primary-strong) 55%, transparent),
+    0 2px 0 color-mix(in srgb, #fff 18%, transparent) inset;
+}
+.jy-hueco {
+  position: relative; overflow: hidden; display: block; border-radius: 24px; text-decoration: none; color: #fff;
+  background: var(--jy-terciopelo); grid-column: span 3; grid-row: span 2;
+  isolation: isolate;
+}
+.jy-hueco--estrella { grid-column: span 6; grid-row: span 4; }
+/* Profundidad del terciopelo: sombra interior que hunde la foto */
+.jy-hueco::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+  box-shadow: inset 0 14px 22px -12px rgba(0,0,0,.55), inset 0 -60px 60px -30px rgba(10,5,8,.7), inset 0 0 0 1px rgba(255,255,255,.06);
+  transition: box-shadow 0.45s cubic-bezier(.2,.8,.2,1);
+}
+.jy-hueco img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;
+  transition: transform 0.7s cubic-bezier(.2,.8,.2,1), opacity 0.9s ease;
+}
+.jy-hueco--estrella img { opacity: 0; }
+.jy-hueco--estrella img.activa { opacity: 1; }
+.jy-hueco:hover img, .jy-hueco:focus-visible img { transform: scale(1.06) translateY(-4px); }
+.jy-hueco:hover::after, .jy-hueco:focus-visible::after {
+  box-shadow: inset 0 14px 22px -12px rgba(0,0,0,.4), inset 0 -60px 60px -30px rgba(10,5,8,.65),
+              inset 0 0 0 2px color-mix(in srgb, var(--color-primary) 85%, transparent);
+}
+.jy-hueco:focus-visible { outline: none; }
+.jy-hueco-texto {
+  position: absolute; left: 18px; right: 18px; bottom: 16px; z-index: 3; display: flex; flex-direction: column; gap: 2px;
+  text-shadow: 0 1px 12px rgba(0,0,0,.45);
+}
+.jy-hueco-texto strong { font-size: clamp(17px, 1.5vw, 22px); font-weight: 700; letter-spacing: -0.02em; text-transform: capitalize; line-height: 1.1; }
+.jy-hueco-texto small { font-size: 13px; opacity: 0.88; }
+.jy-hueco--estrella .jy-hueco-texto { left: 26px; right: 26px; bottom: 26px; }
+.jy-hueco--estrella .jy-hueco-texto strong { font-family: var(--font-accent); font-style: italic; font-weight: 500; font-size: clamp(28px, 3.2vw, 46px); letter-spacing: -0.02em; }
+.jy-hueco--estrella .jy-hueco-texto small { font-size: 14.5px; max-width: 42ch; line-height: 1.5; }
+.jy-pasos { position: absolute; top: 18px; left: 22px; z-index: 3; display: flex; gap: 6px; }
+.jy-pasos i { width: 30px; height: 3px; border-radius: 3px; background: rgba(255,255,255,.4); transform: scaleX(.6); transform-origin: left; transition: background 0.4s ease, transform 0.5s cubic-bezier(.16,1,.3,1); }
+.jy-pasos i.activo { transform: none; background: #fff; }
+
+.jy-mas { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
+.jy-mas a {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; border-radius: 999px; text-decoration: none;
+  background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text);
+  font-size: 14px; font-weight: 600; text-transform: capitalize; transition: border-color 0.2s ease, color 0.2s ease;
+}
+.jy-mas a small { font-weight: 500; color: var(--color-text-muted); }
+.jy-mas a:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.jy-mas .jy-mas-todo { margin-left: auto; background: transparent; border-color: transparent; color: var(--color-primary); text-transform: none; }
+
+/* Entrada: la tapa se abre una vez, los compartimentos aparecen en orden */
+@media (prefers-reduced-motion: no-preference) {
+  .jy-hueco { animation: jy-abre 0.9s cubic-bezier(.16,1,.3,1) both; }
+  .jy-hueco:nth-child(2) { animation-delay: 80ms; }
+  .jy-hueco:nth-child(3) { animation-delay: 140ms; }
+  .jy-hueco:nth-child(4) { animation-delay: 200ms; }
+  .jy-hueco:nth-child(5) { animation-delay: 260ms; }
+}
+@keyframes jy-abre { from { opacity: 0.001; transform: translateY(14px) scale(0.985); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+
+/* ── Etiquetas colgantes ─────────────────────────────────── */
+.et {
+  max-width: 1360px; margin: 0 auto; box-sizing: border-box; width: 100%;
+  padding: clamp(48px, 7vw, 96px) clamp(16px, 3vw, 40px) clamp(40px, 6vw, 80px);
+  font-family: var(--font-body);
+}
+.et-cabeza { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 40px; margin-bottom: 8px; }
+.et-cabeza h2 { margin: 0; font-size: clamp(2rem, 4.2vw, 3.6rem); font-weight: 700; letter-spacing: -0.035em; line-height: 1; color: var(--color-text); }
+.et-cabeza h2 em { font-family: var(--font-accent); font-style: italic; font-weight: 500; color: var(--color-primary); letter-spacing: -0.02em; }
+.et-cabeza p { margin: 0; max-width: 40ch; font-size: 15px; line-height: 1.6; color: var(--color-text-muted); }
+
+/* El "riel" del que cuelgan: una línea fina con brillo */
+.et-hilo {
+  list-style: none; margin: 0; padding: 0 0 20px; position: relative;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(12px, 2vw, 28px); align-items: start;
+}
+.et-hilo::before {
+  content: ''; position: absolute; left: -8px; right: -8px; top: 0; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-primary) 70%, transparent) 12%, color-mix(in srgb, var(--color-highlight) 90%, transparent) 50%, color-mix(in srgb, var(--color-primary) 70%, transparent) 88%, transparent);
+}
+.et-pieza { position: relative; padding-top: calc(28px + var(--caida, 0px)); }
+/* El hilo de cada pieza */
+.et-pieza::before {
+  content: ''; position: absolute; top: 0; left: 50%; width: 1.5px; height: calc(30px + var(--caida, 0px)); transform: translateX(-50%);
+  background: color-mix(in srgb, var(--color-text-muted) 70%, transparent);
+}
+.et-colgante {
+  display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--color-text);
+  transform-origin: 50% calc(-28px - var(--caida, 0px));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .et-colgante { animation: et-cuelga 1.4s cubic-bezier(.16,1,.3,1) both; animation-delay: var(--retraso, 0ms); }
+  .et-colgante:hover, .et-colgante:focus-visible { animation: et-mece 1.4s cubic-bezier(.3,1,.4,1); }
+}
+@keyframes et-cuelga { from { opacity: 0.001; transform: translateY(-30px) rotate(-6deg); } to { opacity: 1; transform: none; } }
+@keyframes et-mece { 0% { transform: rotate(0); } 18% { transform: rotate(5deg); } 40% { transform: rotate(-3.2deg); } 62% { transform: rotate(1.8deg); } 82% { transform: rotate(-0.8deg); } 100% { transform: rotate(0); } }
+
+.et-foto {
+  position: relative; display: block; width: 100%; aspect-ratio: 4 / 5; border-radius: 22px; overflow: hidden;
+  background: var(--color-surface-2);
+  box-shadow: 0 22px 40px -22px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.12);
+}
+.et-foto img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s cubic-bezier(.2,.8,.2,1); }
+.et-colgante:hover .et-foto img { transform: scale(1.05); }
+/* La etiqueta: cartón con ojal y cordón que la une a la foto */
+.et-etiqueta {
+  position: relative; display: flex; flex-direction: column; gap: 4px; width: 88%; margin-top: 18px; padding: 16px 14px 14px;
+  border-radius: 10px 10px 14px 14px; text-align: center;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  box-shadow: 0 12px 24px -16px rgba(0,0,0,.45);
+}
+.et-etiqueta::before { /* ojal */
+  content: ''; position: absolute; top: 7px; left: 50%; width: 8px; height: 8px; border-radius: 50%; transform: translateX(-50%);
+  background: var(--color-bg); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-text-muted) 60%, transparent);
+}
+.et-etiqueta::after { /* cordón */
+  content: ''; position: absolute; top: -18px; left: 50%; width: 1.5px; height: 25px; transform: translateX(-50%);
+  background: color-mix(in srgb, var(--color-text-muted) 70%, transparent);
+}
+.et-nombre { margin-top: 6px; font-size: 13.5px; font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.et-precio { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--color-primary-strong); font-variant-numeric: tabular-nums; }
+.et-precio s { margin-right: 6px; font-size: 13px; font-weight: 500; color: var(--color-text-muted); }
+.et-forma { align-self: center; margin-top: 2px; padding: 4px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: var(--color-primary-strong); background: color-mix(in srgb, var(--color-primary) 14%, transparent); }
+
+/* Selección de texto y enfoque con el color del tema */
+.jy ::selection, .et ::selection { background: color-mix(in srgb, var(--color-primary) 35%, transparent); color: var(--color-text); }
+.jy a:focus-visible, .et a:focus-visible, .jy button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+
+/* ── Celular ─────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .jy-cabeza { grid-template-columns: 1fr; gap: 16px; }
+  .jy-caja { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: 150px; gap: 8px; padding: 8px; border-radius: 26px; }
+  .jy-hueco { grid-column: span 1; grid-row: span 1; border-radius: 19px; }
+  .jy-hueco--estrella { grid-column: span 2; grid-row: span 2; }
+  .jy-hueco:nth-child(2) { grid-row: span 2; }
+  .jy-hueco:nth-child(5) { grid-column: span 2; }
+  .jy-mas .jy-mas-todo { margin-left: 0; }
+  .et-hilo { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 24px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; scrollbar-width: none; }
+  .et-hilo::-webkit-scrollbar { display: none; }
+  .et-hilo::before { left: 0; right: 0; }
+  .et-pieza { flex: 0 0 62%; scroll-snap-align: center; }
+}

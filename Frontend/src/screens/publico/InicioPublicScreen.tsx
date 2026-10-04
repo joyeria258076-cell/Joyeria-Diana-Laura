@@ -12,6 +12,7 @@ import {
 import "./InicioPublicScreen.css";
 import "./InicioPublicApp.css";
 import "./InicioPortada.css";
+import "./InicioJoyero.css";
 
 const JDL_CLOUD = 'https://res.cloudinary.com/dltvkwwq4/image/upload';
 
@@ -189,13 +190,10 @@ const InicioPublicScreen: React.FC = () => {
     return () => clearInterval(interval);
   }, [slides.length]);
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
   // Solo piezas reales disponibles y con foto para lo que se muestra en portada
   const visibles = productosDestacados.filter((p: any) => p.imagen_principal && p.stock_actual > 0 && !String(p.nombre).startsWith('[DEMO]'));
   const baseVitrina = visibles.length >= 6 ? visibles : productosDestacados;
-  const piezaFlotante: any = visibles[0] || null;
   // Categorías con la foto de una de sus piezas y cuántas hay
   const categoriasFoto = Object.values(productosDestacados.reduce((acc: Record<string, any>, p: any) => {
     if (!p.categoria_id || !p.categoria_nombre) return acc;
@@ -206,8 +204,8 @@ const InicioPublicScreen: React.FC = () => {
   }, {})).map((c: any) => ({ ...c, imagen: c.imagen || productosDestacados.find((p: any) => p.categoria_id === c.id && p.imagen_principal)?.imagen_principal }))
     .filter((c: any) => c.imagen) as { id: number; nombre: string; cuantos: number; imagen: string }[];
 
-  const productosDestacadosEd   = baseVitrina.slice(0, 3);
-  const productosDestacadosGrid = baseVitrina.slice(3, 11);
+  const colgantes = baseVitrina.slice(0, 5);
+  const productosDestacadosGrid = baseVitrina.slice(5, 13);
 
   useEffect(() => {
     if (promociones.length <= 1) return;
@@ -254,92 +252,64 @@ const InicioPublicScreen: React.FC = () => {
 
       <main className="dl-orden">
       <Seccion id="inicio.carrusel" nombre="Carrusel principal">
-      <section className="ph-hero">
-        {/* Texto y buscador */}
-        <div className="ph-hero-texto">
-          <span className="ph-eyebrow"><AiOutlineEnvironment size={13} /> Joyería Diana Laura · Huejutla</span>
-          <h1 className="ph-titulo">Tu brillo,<br /><em>en tu bolsillo.</em></h1>
-          <p className="ph-sub">Joyería y bisutería con esencia femenina. Piezas únicas, personalizables y listas para regalar.</p>
-          <form className="ph-buscador" role="search" onSubmit={e => { e.preventDefault(); navigate(`/catalogo-publico${busqueda.trim() ? `?q=${encodeURIComponent(busqueda.trim())}` : ''}`); }}>
-            <AiOutlineSearch size={20} />
-            <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Busca anillos, cadenas, aretes…" aria-label="Buscar joyas" />
-            <button type="submit">Buscar</button>
-          </form>
-          <div className="ph-acciones">
-            <Link to="/catalogo-publico" className="ph-btn">Ver catálogo <AiOutlineArrowRight size={16} /></Link>
-            <Link to="/registro" className="ph-btn ph-btn--borde">Crear mi cuenta</Link>
+      <section className="jy" aria-label="Joyería Diana Laura">
+        <div className="jy-cabeza">
+          <h1 className="jy-lema">Tu brillo,<br /><em>en tu bolsillo.</em></h1>
+          <div className="jy-cabeza-lado">
+            <p>Joyería y bisutería con esencia femenina, hecha en Huejutla. Personalízala, apártala en abonos o recógela en tienda.</p>
+            <form className="jy-buscar" role="search" onSubmit={e => { e.preventDefault(); navigate(`/catalogo-publico${busqueda.trim() ? `?q=${encodeURIComponent(busqueda.trim())}` : ''}`); }}>
+              <AiOutlineSearch size={19} aria-hidden="true" />
+              <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Busca un anillo, una cadena, un nombre…" aria-label="Buscar joyas" />
+              <button type="submit">Buscar</button>
+            </form>
           </div>
-          <ul className="ph-puntos">
-            <li><AiOutlineHeart size={15} /> Hecho con amor</li>
-            <li><AiOutlineEdit size={15} /> Personalizable</li>
-            <li><AiOutlineCar size={15} /> Envíos en Huejutla y alrededores</li>
-          </ul>
         </div>
 
-        {/* Imagen del carrusel en tarjeta alta */}
-        <div className="ph-visual">
-          <div className="ph-foto">
+        <div className="jy-caja">
+          {/* Compartimento grande: lo que la tienda está presumiendo (carrusel administrable) */}
+          <Link to={slides[currentSlide]?.enlace || '/catalogo-publico'} className="jy-hueco jy-hueco--estrella">
             {slides.map((slide, index) => {
               const siguiente = (currentSlide + 1) % slides.length;
-              const debeCargar = index === currentSlide || index === siguiente;
+              if (index !== currentSlide && index !== siguiente) return null;
               return (
-                <div key={slide.id} className={`ph-slide${index === currentSlide ? ' activa' : ''}`}>
-                  {debeCargar && (
-                    <img src={slide.imagen || slide.image} srcSet={construirSrcSetHero(slide.imagenBase || slide.imagen || slide.image)}
-                      sizes="(max-width: 900px) 100vw, 50vw" alt="" fetchPriority={index === 0 ? 'high' : 'low'} loading={index === 0 ? 'eager' : 'lazy'} />
-                  )}
-                </div>
+                <img key={slide.id} className={index === currentSlide ? 'activa' : ''} src={slide.imagen || slide.image}
+                  srcSet={construirSrcSetHero(slide.imagenBase || slide.imagen || slide.image)} sizes="(max-width: 900px) 100vw, 50vw"
+                  alt="" fetchPriority={index === 0 ? 'high' : 'low'} loading={index === 0 ? 'eager' : 'lazy'} />
               );
             })}
-            <div className="ph-foto-velo" />
-            <Link to={slides[currentSlide]?.enlace || '/catalogo-publico'} className="ph-slide-info">
-              <span>{slides[currentSlide]?.tag || 'Exclusivo'}</span>
-              <strong>{slides[currentSlide]?.titulo || slides[currentSlide]?.title}</strong>
-              <small>{slides[currentSlide]?.descripcion || slides[currentSlide]?.description}</small>
-            </Link>
+            <span className="jy-hueco-texto">
+              <strong>{slides[currentSlide]?.titulo || 'Lo nuevo'}</strong>
+              <small>{slides[currentSlide]?.descripcion}</small>
+            </span>
             {slides.length > 1 && (
-              <div className="ph-controles">
-                <button onClick={prevSlide} aria-label="Anterior"><AiOutlineLeft /></button>
-                <div className="ph-dots">
-                  {slides.map((s, i) => <button key={s.id} className={i === currentSlide ? 'activo' : ''} onClick={() => setCurrentSlide(i)} aria-label={`Diapositiva ${i + 1}`} />)}
-                </div>
-                <button onClick={nextSlide} aria-label="Siguiente"><AiOutlineRight /></button>
-              </div>
+              <span className="jy-pasos" aria-hidden="true">
+                {slides.map((s, i) => <i key={s.id} className={i === currentSlide ? 'activo' : ''} />)}
+              </span>
             )}
-          </div>
-          {piezaFlotante && (
-            <Link to={`/producto-publico/${piezaFlotante.id}`} className="ph-flotante">
-              <img src={optimizarImagen(piezaFlotante.imagen_principal, 200)} alt="" />
-              <span>
-                <small>Nuevo en tienda</small>
-                <strong>{piezaFlotante.nombre}</strong>
-                <b>${Number(piezaFlotante.precio_oferta ?? piezaFlotante.precio_venta).toLocaleString('es-MX')}</b>
+          </Link>
+
+          {categoriasFoto.slice(0, 4).map(c => (
+            <Link key={c.id} to={`/catalogo-publico?categoria=${c.id}`} className="jy-hueco">
+              <img src={optimizarImagen(c.imagen, 600)} alt="" loading="lazy" />
+              <span className="jy-hueco-texto">
+                <strong>{c.nombre}</strong>
+                <small>{c.cuantos} pieza{c.cuantos === 1 ? '' : 's'}</small>
               </span>
             </Link>
-          )}
+          ))}
         </div>
+
+        <nav className="jy-mas" aria-label="Más categorías">
+          {categoriasFoto.slice(4).map(c => (
+            <Link key={c.id} to={`/catalogo-publico?categoria=${c.id}`}>{c.nombre} <small>{c.cuantos}</small></Link>
+          ))}
+          <Link to="/catalogo-publico" className="jy-mas-todo">Ver todo el catálogo <AiOutlineArrowRight size={15} /></Link>
+        </nav>
       </section>
       </Seccion>
 
-      {/* ═══════════ CATEGORÍAS CON FOTO ═══════════ */}
       <Seccion id="inicio.categorias" nombre="Categorías">
-      {categoriasFoto.length > 0 && (
-        <section className="ph-cats">
-          <div className="ph-seccion-cabeza">
-            <div><span className="ph-eyebrow">Explora</span><h2 className="ph-h2">¿Qué estás <em>buscando</em>?</h2></div>
-            <Link to="/catalogo-publico" className="ph-ver">Ver todo <AiOutlineArrowRight size={14} /></Link>
-          </div>
-          <div className="ph-cats-fila">
-            {categoriasFoto.map(c => (
-              <Link key={c.id} to={`/catalogo-publico?categoria=${c.id}`} className="ph-cat">
-                <span className="ph-cat-foto"><img src={optimizarImagen(c.imagen, 300)} alt="" loading="lazy" /></span>
-                <strong>{c.nombre}</strong>
-                <small>{c.cuantos} pieza{c.cuantos === 1 ? '' : 's'}</small>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+        {null}
       </Seccion>
 
       {/* ═══════════ COLECCIONES ═══════════ */}
@@ -377,48 +347,35 @@ const InicioPublicScreen: React.FC = () => {
       )}
       </Seccion>
 
-      {/* ═══════════ PIEZAS DESTACADAS (editorial) ═══════════ */}
+      {/* ═══════════ PIEZAS DESTACADAS: etiquetas colgantes ═══════════ */}
       <Seccion id="inicio.destacadas" nombre="Piezas destacadas">
-      {productosDestacadosEd.length > 0 && (
-        <section className="showcase-section showcase-section--alt">
-          <div className="container-lg">
-            <div className="section-header mb-5">
-              <div className="eyebrow-row"><span className="eyebrow-line" /><span className="eyebrow-txt">Piezas destacadas</span></div>
-              <h2 className="section-title">Lo que más <span>enamora</span></h2>
-            </div>
-
-            <div className="editorial-grid">
-              {productosDestacadosEd.map(prod => {
-                const precioFinal = prod.precio_promocion ?? prod.precio_oferta;
-                const conDesc = precioFinal && precioFinal < prod.precio_venta;
-                return (
-                  <Link to={`/producto-publico/${prod.id}`} className="editorial-card" key={prod.id}>
-                    <div className="editorial-card-img">
-                      <img
-                        src={optimizarImagen(prod.imagen_principal, 500) || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"}
-                        alt={prod.nombre}
-                        loading="lazy"
-                      />
-                      {prod.es_nuevo && <span className="prod-badge prod-badge--nuevo">Nuevo</span>}
-                      {(prod as any).permite_personalizacion && <span className="prod-badge prod-badge--nuevo">Personalizable</span>}
-                      {conDesc && <span className="prod-badge prod-badge--oferta">Oferta</span>}
-                    </div>
-                    <div className="editorial-card-body">
-                      {prod.categoria_nombre && <span className="prod-categoria">{prod.categoria_nombre}</span>}
-                      <h3>{prod.nombre}</h3>
-                      <div className="product-card-precio">
-                        {conDesc && (
-                          <span className="precio-tachado">${Number(prod.precio_venta).toLocaleString('es-MX')}</span>
-                        )}
-                        <span className="precio-final">${Number(precioFinal ?? prod.precio_venta).toLocaleString('es-MX')}</span>
-                      </div>
-                      <span className="product-card-link">Ver pieza →</span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+      {colgantes.length > 0 && (
+        <section className="et">
+          <div className="et-cabeza">
+            <h2>Lo que más <em>enamora</em></h2>
+            <p>Cada etiqueta dice cómo llevártela: de contado, en abonos o con tu nombre grabado.</p>
           </div>
+          <ul className="et-hilo">
+            {colgantes.map((prod: any, i: number) => {
+              const precioFinal = Number(prod.precio_promocion ?? prod.precio_oferta ?? prod.precio_venta);
+              const conDesc = precioFinal < Number(prod.precio_venta);
+              return (
+                <li key={prod.id} className="et-pieza" style={{ ['--caida' as any]: `${[0, 56, 18, 74, 30][i % 5]}px`, ['--retraso' as any]: `${i * 90}ms` }}>
+                  <Link to={`/producto-publico/${prod.id}`} className="et-colgante">
+                    <span className="et-foto"><img src={optimizarImagen(prod.imagen_principal, 420)} alt={prod.nombre} loading="lazy" /></span>
+                    <span className="et-etiqueta">
+                      <span className="et-nombre">{prod.nombre}</span>
+                      <span className="et-precio">
+                        {conDesc && <s>${Number(prod.precio_venta).toLocaleString('es-MX')}</s>}
+                        ${precioFinal.toLocaleString('es-MX')}
+                      </span>
+                      <span className="et-forma">{prod.permite_personalizacion ? 'Personalizable' : precioFinal >= 300 ? 'Apártala en abonos' : 'Lista para regalar'}</span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </section>
       )}
       </Seccion>
