@@ -1,5 +1,5 @@
 // Frontend/src/navigation/AppRoutes.tsx
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import VisitorTracker from "../components/VisitorTracker";
@@ -163,31 +163,10 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 export default function AppRoutes() {
-  const { loading } = useAuth();
-  const [forcedLoad, setForcedLoad] = useState(false);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.warn('⚠️ AuthContext tardó demasiado, forzando carga.');
-        setForcedLoad(true);
-      }
-    }, 5000);
-    return () => clearTimeout(timeout);
-  }, [loading]);
-
-  if (loading && !forcedLoad) {
-    return (
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: '100vh', fontSize: '1.5rem', fontWeight: 'bold',
-        backgroundColor: '#0f0f12', color: '#ecb2c3'
-      }}>
-        ⏳ Cargando Diana Laura...
-      </div>
-    );
-  }
-
+  // Ya no se espera a que Firebase confirme la sesión para pintar la app:
+  // las páginas públicas se muestran de inmediato y solo las rutas que lo
+  // necesitan (ProtectedRoute / PublicRoute) esperan a `loading`. Antes toda
+  // la app quedaba en blanco ~2 s en cada visita (FCP/LCP en Lighthouse).
   return (
     <BrowserRouter>
       <VisitorTracker />
