@@ -303,6 +303,9 @@ const HeaderPrivado: React.FC = () => {
                             <button className={`nav-item ${isActive("/trabajador/actividades")}`} onClick={() => goTo("/trabajador/actividades")}>
                                 <span className="nav-icon"><AiOutlineCheckSquare size={16} /></span> Mis Actividades
                             </button>
+                            <button className={`nav-item ${isActive("/trabajador/perfil")}`} onClick={() => goTo("/trabajador/perfil")}>
+                                <span className="nav-icon"><AiOutlineUser size={16} /></span> Mi Perfil
+                            </button>
                         </>
                     ) : (
                         <>
@@ -382,10 +385,10 @@ const HeaderPrivado: React.FC = () => {
                     )}
                     <div
                         className="user-profile-info"
-                        // "Mi perfil" solo aplica al cliente — admin y trabajador no lo tienen
-                        // disponible (no es parte de su flujo de trabajo).
-                        onClick={userRole === 'cliente' ? () => navigate("/perfil") : undefined}
-                        style={{ cursor: userRole === 'cliente' ? 'pointer' : 'default' }}
+                        // Al tocar el nombre/avatar se abre el perfil de cada rol
+                        onClick={() => navigate(userRole === 'admin' ? '/admin-perfil' : userRole === 'trabajador' ? '/trabajador/perfil' : '/perfil')}
+                        style={{ cursor: 'pointer' }}
+                        title="Mi perfil"
                     >
                         <div className="user-avatar" style={{ position: 'relative', overflow: 'hidden' }}>
                             {user?.fotoPerfilUrl ? (
