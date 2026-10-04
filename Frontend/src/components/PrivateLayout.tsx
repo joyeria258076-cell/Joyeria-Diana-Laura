@@ -9,6 +9,7 @@ import { useAuth } from "../contexts/AuthContext";
 import "../styles/AdminV2.css";
 import "../styles/AdminSkin.css";
 import "../styles/TrabajadorV5.css";
+import "../styles/AdminV5.css";
 
 export const PrivateLayout: React.FC = () => {
   const { user } = useAuth();

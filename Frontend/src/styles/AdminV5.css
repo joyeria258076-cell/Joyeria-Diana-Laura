@@ -1,0 +1,87 @@
+/* AdminV5.css — admin con el mismo lenguaje del trabajador: encabezado limpio sobre
+   fondo sólido (sin caja ni degradado), conteos en una tira dividida, sin etiquetas
+   en mayúsculas sobre los títulos. Se aplica con .admin-skin (PrivateLayout). */
+
+/* ════════ Encabezado común (AdminHero) ════════ */
+html body .admin-skin .av-hero {
+  background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important;
+  padding: 6px 0 24px !important; margin-bottom: 26px !important; align-items: flex-end !important; overflow: visible !important;
+}
+html body .admin-skin .av-hero::before, html body .admin-skin .av-hero::after { display: none !important; }
+html body .admin-skin :is(.av-hero-icono, .av-eyebrow) { display: none !important; }
+html body .admin-skin .av-titulo { font-family: var(--font-body) !important; font-size: clamp(34px, 4.2vw, 52px) !important; letter-spacing: -0.045em !important; line-height: 1.02 !important; margin: 0 0 8px !important; }
+html body .admin-skin .av-titulo em { color: var(--color-primary-strong) !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
+html body .admin-skin .av-sub { color: var(--color-text-muted) !important; font-size: 15.5px !important; max-width: 620px; }
+
+/* ════════ Conteos: una tira dividida ════════ */
+html body .admin-skin .av-kpis {
+  display: grid !important; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important; gap: 0 !important;
+  background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 24px !important; overflow: hidden !important; margin-bottom: 24px !important;
+}
+html body .admin-skin .av-kpi {
+  background: none !important; border: 0 !important; border-left: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; transform: none !important;
+  padding: 18px 20px !important; display: flex !important; flex-direction: column-reverse !important; align-items: flex-start !important; gap: 2px !important; position: relative;
+}
+html body .admin-skin .av-kpi:first-child { border-left: 0 !important; }
+html body .admin-skin .av-kpi-icono { display: none !important; }
+html body .admin-skin .av-kpi strong { font-size: 30px !important; letter-spacing: -0.04em !important; color: var(--color-text) !important; }
+html body .admin-skin .av-kpi small { font-size: 13px !important; }
+html body .admin-skin .av-kpi.activo { background: var(--color-surface-2) !important; }
+html body .admin-skin .av-kpi.activo::before { content: ''; position: absolute; left: 20px; right: 20px; top: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--color-primary-strong); }
+html body .admin-skin .av-kpi.activo strong { color: var(--color-primary-strong) !important; }
+
+/* ════════ Inicio del admin ════════ */
+html body .admin-skin .da-hero {
+  background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important;
+  color: var(--color-text) !important; padding: 6px 0 28px !important; margin-bottom: 28px !important; gap: 40px !important; align-items: end !important;
+}
+html body .admin-skin .da-hero::before, html body .admin-skin .da-hero::after { display: none !important; }
+html body .admin-skin .da-hero-fecha { text-transform: none !important; letter-spacing: 0 !important; font-size: 15px !important; font-weight: 500 !important; color: var(--color-text-muted) !important; opacity: 1 !important; display: block; }
+html body .admin-skin .da-hero-fecha::first-letter { text-transform: uppercase; }
+html body .admin-skin .da-hero-titulo { font-family: var(--font-body) !important; font-size: clamp(34px, 4.2vw, 52px) !important; letter-spacing: -0.045em !important; color: var(--color-text) !important; }
+html body .admin-skin .da-hero-titulo em { font-family: var(--font-accent) !important; color: var(--color-primary-strong) !important; }
+html body .admin-skin .da-hero-sub { color: var(--color-text-muted) !important; opacity: 1 !important; }
+html body .admin-skin .da-hero-ingresos span { text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; color: var(--color-text-muted) !important; opacity: 1 !important; }
+html body .admin-skin .da-hero-ingresos strong { font-size: clamp(56px, 7vw, 96px) !important; letter-spacing: -0.06em !important; line-height: .95 !important; color: var(--color-primary-strong) !important; }
+html body .admin-skin .da-hero-chips span { background: var(--color-surface-2) !important; color: var(--color-text) !important; border: 0 !important; }
+html body .admin-skin .da-hero-grafica { background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 24px !important; box-shadow: none !important; color: var(--color-text-muted) !important; backdrop-filter: none !important; }
+html body .admin-skin .da-kpis { gap: 0 !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 24px !important; overflow: hidden !important; }
+html body .admin-skin .da-kpi { background: none !important; border: 0 !important; border-left: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; transform: none !important; }
+html body .admin-skin .da-kpi:first-child { border-left: 0 !important; }
+html body .admin-skin .da-kpi-icono { display: none !important; }
+html body .admin-skin .da-kpi-val { font-size: 34px !important; letter-spacing: -0.04em !important; }
+html body .admin-skin :is(.da-eyebrow, .da-persona-label) { text-transform: none !important; letter-spacing: 0 !important; font-size: 15px !important; font-weight: 700 !important; color: var(--color-text) !important; }
+html body .admin-skin .da-persona-label { font-size: 13px !important; font-weight: 500 !important; color: var(--color-text-muted) !important; }
+html body .admin-skin .da-panel { background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; padding: 0 !important; }
+html body .admin-skin .da-panel-head { border-bottom: 2px solid var(--color-text) !important; padding-bottom: 12px !important; }
+html body .admin-skin .da-vacio { background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-border) !important; border-radius: 0 !important; }
+html body .admin-skin :is(.da-persona, .da-acceso) { box-shadow: none !important; border-radius: 22px !important; }
+html body .admin-skin .da-persona-avatar { background: var(--color-surface-2) !important; color: var(--color-primary-strong) !important; }
+
+/* ════════ Base de datos ════════ */
+html body .admin-skin .database-screen-container { background: none !important; }
+html body .admin-skin .database-header { background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; padding: 6px 0 24px !important; }
+html body .admin-skin .database-header .page-title { font-family: var(--font-body) !important; font-size: clamp(34px, 4.2vw, 52px) !important; letter-spacing: -0.045em !important; color: var(--color-text) !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
+html body .admin-skin .database-header .page-title em { font-family: var(--font-accent) !important; font-style: italic !important; font-weight: 600 !important; color: var(--color-primary-strong) !important; }
+html body .admin-skin .stats-grid { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important; gap: 0 !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 24px !important; overflow: hidden !important; }
+html body .admin-skin .stat-card { background: none !important; border: 0 !important; border-left: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; transform: none !important; padding: 18px 20px !important; }
+html body .admin-skin .stat-card:first-child { border-left: 0 !important; }
+html body .admin-skin :is(.stat-icon, .action-icon, .module-icon) { display: none !important; }
+html body .admin-skin .stat-value { font-size: 26px !important; letter-spacing: -0.03em !important; color: var(--color-text) !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
+html body .admin-skin .stat-label { text-transform: none !important; letter-spacing: 0 !important; color: var(--color-text-muted) !important; }
+html body .admin-skin :is(.quick-actions-section, .recent-activity-section) { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+html body .admin-skin .section-title { font-family: var(--font-body) !important; font-size: 20px !important; letter-spacing: -0.03em !important; color: var(--color-text) !important; border-bottom: 2px solid var(--color-text) !important; padding-bottom: 12px !important; }
+html body .admin-skin :is(.quick-action-card, .module-card) { background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 22px !important; box-shadow: none !important; text-align: left !important; }
+html body .admin-skin :is(.quick-action-card, .module-card):hover { border-color: var(--color-primary-strong) !important; transform: none !important; }
+html body .admin-skin :is(.action-title, .module-title) { color: var(--color-text) !important; font-weight: 700 !important; }
+html body .admin-skin :is(.action-desc, .module-description) { color: var(--color-text-muted) !important; }
+
+@media (max-width: 760px) {
+  html body .admin-skin :is(.av-kpis, .da-kpis, .stats-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  html body .admin-skin :is(.av-kpi, .da-kpi, .stat-card) { border-left: 1px solid var(--color-border) !important; border-top: 1px solid var(--color-border) !important; }
+  html body .admin-skin :is(.av-kpi, .da-kpi, .stat-card):nth-child(odd) { border-left: 0 !important; }
+  html body .admin-skin :is(.av-kpi, .da-kpi, .stat-card):nth-child(-n+2) { border-top: 0 !important; }
+  html body .admin-skin .da-hero { grid-template-columns: minmax(0, 1fr) !important; }
+}
+html body .admin-skin .da-hero { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) !important; }
+@media (max-width: 760px) { html body .admin-skin .da-hero { grid-template-columns: minmax(0, 1fr) !important; } }

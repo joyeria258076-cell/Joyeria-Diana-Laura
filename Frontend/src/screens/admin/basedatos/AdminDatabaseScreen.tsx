@@ -125,7 +125,7 @@ const AdminDatabaseScreen: React.FC = () => {
       {/* Header */}
       <div className="database-header">
         <div className="header-left">
-          <h1 className="page-title">Gestión de Base de Datos</h1>
+          <h1 className="page-title">Base de <em>datos</em></h1>
           <p className="page-description">
             Administra copias de seguridad, importaciones, exportaciones y monitoreo de la base de datos
           </p>

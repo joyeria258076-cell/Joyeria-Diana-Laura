@@ -11,11 +11,10 @@ interface Props {
     children?: React.ReactNode;
 }
 
-const AdminHero: React.FC<Props> = ({ icono, seccion, titulo, resaltado, descripcion, children }) => (
+// icono y seccion se conservan en la firma para no tocar las pantallas, pero ya no se pintan
+const AdminHero: React.FC<Props> = ({ titulo, resaltado, descripcion, children }) => (
     <header className="av-hero">
         <div>
-            <span className="av-hero-icono">{icono}</span>
-            <span className="av-eyebrow">{seccion}</span>
             <h1 className="av-titulo">{titulo}{resaltado && <> <em>{resaltado}</em></>}</h1>
             {descripcion && <p className="av-sub">{descripcion}</p>}
         </div>
