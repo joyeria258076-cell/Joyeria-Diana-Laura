@@ -5,7 +5,7 @@ import PublicHeader from '../../components/PublicHeader';
 import PublicFooter from '../../components/PublicFooter';
 import { authAPI } from '../../services/api';
 import { getAuth, verifyPasswordResetCode, confirmPasswordReset } from 'firebase/auth';
-import AuthBackground from '../../components/AuthBackground';
+import AuthTapa from '../../components/AuthTapa';
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineArrowLeft } from 'react-icons/ai';
 import './ReiniciarContraseniaScreen.css';
 import './AuthExtraApp.css';
@@ -235,7 +235,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       <div className="reiniciar-page-wrapper">
         <PublicHeader />
         <div className="reset-password-container">
-          <AuthBackground />
+          <AuthTapa titulo={<>Una llave <em>nueva</em> para tu joyero.</>} texto="Elige una contraseña que recuerdes y que nadie más adivine." />
           <div className="reset-password-card">
             <div className="verifying-message">
               <p>Verificando enlace de recuperación...</p>
@@ -252,7 +252,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       <div className="reiniciar-page-wrapper">
         <PublicHeader />
         <div className="reset-password-container">
-          <AuthBackground />
+          <AuthTapa titulo={<>Una llave <em>nueva</em> para tu joyero.</>} texto="Elige una contraseña que recuerdes y que nadie más adivine." />
           <div className="reset-password-card">
             <div className="error-message">
               <p>{error}</p>
@@ -282,10 +282,10 @@ const handleSubmit = async (e: React.FormEvent) => {
     <div className="reiniciar-page-wrapper">
       <PublicHeader />
       <div className="reset-password-container">
-          <AuthBackground />
+          <AuthTapa titulo={<>Una llave <em>nueva</em> para tu joyero.</>} texto="Elige una contraseña que recuerdes y que nadie más adivine." />
         <div className="reset-password-card">
           <div className="reset-password-header">
-            <h2>Establecer Nueva Contraseña</h2>
+            <h2>Crea tu nueva <span>contraseña</span></h2>
             <p>Creando nueva contraseña para: <strong>{email}</strong></p>
             <div className="security-notice">
               <small>Solo puedes cambiar la contraseña de esta cuenta</small>

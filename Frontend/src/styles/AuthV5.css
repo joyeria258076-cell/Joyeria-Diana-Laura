@@ -2,10 +2,10 @@
    (AuthTapa) y el formulario directo sobre el fondo, sin tarjeta flotante.
    Fondo sólido en todos los temas: sin foto ni velo translúcido. */
 
-html[data-theme] body :is(.login-page-wrapper, .register-page-wrapper, .olvide-page-wrapper), html body :is(.login-page-wrapper, .register-page-wrapper, .olvide-page-wrapper) {
+html[data-theme] body :is(.login-page-wrapper, .register-page-wrapper, .olvide-page-wrapper, .reiniciar-page-wrapper, .recuperar-pregunta-container, .mfa-verify-container, .wauth-wrapper), html body :is(.login-page-wrapper, .register-page-wrapper, .olvide-page-wrapper, .reiniciar-page-wrapper, .recuperar-pregunta-container, .mfa-verify-container, .wauth-wrapper) {
   background: var(--color-bg) !important; background-image: none !important;
 }
-html body :is(.login-container, .register-container, .olvide-contrasenia-container) {
+html body :is(.login-container, .register-container, .olvide-contrasenia-container, .recuperar-pregunta-container, .reset-password-container, .mfa-verify-container, .wauth-wrapper) {
   display: grid !important; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr) !important; align-items: stretch !important;
   gap: 0 !important; padding: 0 !important; margin: 0 !important; max-width: none !important; width: 100% !important;
   min-height: calc(100vh - 76px) !important; background: var(--color-bg) !important; overflow: visible !important;
@@ -32,29 +32,29 @@ html body .av5-tapa h1 em { font-family: var(--font-accent); font-style: italic;
 
 /* ── El formulario, sin tarjeta ── */
 html body :is(.login-form-section) { display: flex !important; align-items: center !important; justify-content: center !important; padding: clamp(32px, 5vw, 72px) clamp(20px, 5vw, 72px) !important; background: none !important; width: auto !important; }
-html body :is(.login-card, .register-card, .olvide-contrasenia-card) {
+html body :is(.login-card, .register-card, .olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card) {
   width: 100% !important; max-width: 440px !important; margin: auto !important; align-self: center !important;
   background: none !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; backdrop-filter: none !important;
   padding: clamp(32px, 5vw, 64px) 0 !important;
 }
 html body :is(.register-card, .olvide-contrasenia-card) { padding-inline: clamp(20px, 4vw, 0px) !important; }
-html body :is(.login-card, .register-card, .olvide-contrasenia-card)::before,
-html body :is(.login-card, .register-card, .olvide-contrasenia-card)::after { display: none !important; }
-html body :is(.login-header, .register-header, .olvide-contrasenia-header) h2 {
+html body :is(.login-card, .register-card, .olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card)::before,
+html body :is(.login-card, .register-card, .olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card)::after { display: none !important; }
+html body :is(.login-header, .register-header, .olvide-contrasenia-header) h2, html body :is(.recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card) :is(h1, h2) {
   font-family: var(--font-body) !important; font-size: clamp(32px, 3.4vw, 42px) !important; font-weight: 700 !important; letter-spacing: -0.04em !important; line-height: 1.05 !important; color: var(--color-text) !important; text-transform: none !important;
 }
-html body :is(.login-header, .register-header, .olvide-contrasenia-header) h2 span:not(.auth-destello) { font-family: var(--font-accent) !important; font-style: italic !important; font-weight: 600 !important; color: var(--color-primary-strong) !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
+html body :is(.login-header, .register-header, .olvide-contrasenia-header) h2 span:not(.auth-destello), html body :is(.recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card) :is(h1, h2) span { font-family: var(--font-accent) !important; font-style: italic !important; font-weight: 600 !important; color: var(--color-primary-strong) !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
 html body :is(.login-header, .register-header, .olvide-contrasenia-header) p { color: var(--color-text-muted) !important; font-size: 15.5px !important; }
 html body .auth-destello { display: none !important; }
 html body .auth-paso { background: none !important; padding: 0 !important; border: 0 !important; color: var(--color-text-muted) !important; font-size: 14px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; }
 
 /* Campos y botones */
-html body :is(.login-card, .register-card, .olvide-contrasenia-card) :is(input[type="email"], input[type="text"], input[type="password"]) {
+html body :is(.login-card, .register-card, .olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card) :is(input[type="email"], input[type="text"], input[type="password"]) {
   min-height: 54px !important; border-radius: 16px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; color: var(--color-text) !important; font-size: 15.5px !important;
 }
-html body :is(.login-card, .register-card, .olvide-contrasenia-card) input:focus { border-color: var(--color-primary-strong) !important; box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 18%, transparent) !important; }
-html body :is(.login-card, .register-card, .olvide-contrasenia-card) label { text-transform: none !important; letter-spacing: 0 !important; color: var(--color-text) !important; }
-html body :is(.login-card, .register-card, .olvide-contrasenia-card) button[type="submit"] {
+html body :is(.login-card, .register-card, .olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card) input:focus { border-color: var(--color-primary-strong) !important; box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 18%, transparent) !important; }
+html body :is(.login-card, .register-card, .olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card) label { text-transform: none !important; letter-spacing: 0 !important; color: var(--color-text) !important; }
+html body :is(.login-card, .register-card, .olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card) button[type="submit"] {
   min-height: 56px !important; border-radius: 999px !important; background: var(--color-primary-strong) !important; color: #fff !important; border: 0 !important; box-shadow: 0 16px 30px -18px var(--color-primary-strong) !important; text-transform: none !important; letter-spacing: 0 !important;
 }
 html body .security-info { border-radius: 16px !important; background: var(--color-surface-2) !important; border: 0 !important; color: var(--color-text) !important; }
@@ -73,7 +73,7 @@ html body .back-to-login :is(.back-button, .register-button) {
 
 /* ── Celular: la tapa se vuelve una franja arriba ── */
 @media (max-width: 860px) {
-  html body :is(.login-container, .register-container, .olvide-contrasenia-container) { grid-template-columns: minmax(0, 1fr) !important; min-height: 0 !important; }
+  html body :is(.login-container, .register-container, .olvide-contrasenia-container, .recuperar-pregunta-container, .reset-password-container, .mfa-verify-container, .wauth-wrapper) { grid-template-columns: minmax(0, 1fr) !important; min-height: 0 !important; }
   .av5-tapa { padding: 28px 20px 30px; gap: 18px; flex-direction: row; align-items: center; justify-content: flex-start; }
   .av5-logo { width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0; }
   html body .av5-tapa h1 { font-size: 26px; }
@@ -81,16 +81,20 @@ html body .back-to-login :is(.back-button, .register-button) {
   .av5-tapa::before { width: 260px; height: 260px; right: -120px; bottom: -150px; }
   .av5-tapa::after { display: none; }
   html body .login-form-section { padding: 0 20px !important; }
-  html body :is(.login-card, .register-card, .olvide-contrasenia-card) { padding: 28px 0 40px !important; }
+  html body :is(.login-card, .register-card, .olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card) { padding: 28px 0 40px !important; }
   html body :is(.register-card, .olvide-contrasenia-card) { padding-inline: 20px !important; }
 }
 
 /* La tarjeta ya no se eleva sobre las manchas decorativas del fondo (se veía como recuadro claro) */
-html body :is(.login-card, .register-card, .olvide-contrasenia-card) { z-index: auto !important; position: static !important; }
+html body :is(.login-card, .register-card, .olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card) { z-index: auto !important; position: static !important; }
 html body :is(.login-form-section) { z-index: auto !important; position: static !important; }
-html body :is(.login-card, .register-card, .olvide-contrasenia-card) :is(button[type="submit"], .login-button) { background-image: none !important; background-color: var(--color-primary-strong) !important; }
+html body :is(.login-card, .register-card, .olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card) :is(button[type="submit"], .login-button) { background-image: none !important; background-color: var(--color-primary-strong) !important; }
 html body .register-card .register-button { background-image: none !important; background-color: var(--color-primary-strong) !important; }
-html[data-theme] body :is(.login-card, .register-card, .olvide-contrasenia-card) { background: transparent !important; box-shadow: none !important; border: 0 !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+html[data-theme] body :is(.login-card, .register-card, .olvide-contrasenia-card, .recuperar-pregunta-card, .reset-password-card, .mfa-verify-card, .wauth-card) { background: transparent !important; box-shadow: none !important; border: 0 !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 
 /* La tapa llega hasta el pie: sin el margen superior del pie en estas pantallas */
-html body :is(.login-page-wrapper, .register-page-wrapper, .olvide-page-wrapper) .public-footer { margin-top: 0 !important; }
+html body :is(.login-page-wrapper, .register-page-wrapper, .olvide-page-wrapper, .reiniciar-page-wrapper, .recuperar-pregunta-container, .mfa-verify-container, .wauth-wrapper) .public-footer { margin-top: 0 !important; }
+
+html body .wauth-icon { background: var(--color-surface-2) !important; color: var(--color-primary-strong) !important; border: 0 !important; box-shadow: none !important; }
+html body :is(.wauth-wrapper, .mfa-verify-container, .recuperar-pregunta-container, .reset-password-container) { padding: 0 !important; }
+html body .recuperar-pregunta-container { min-height: 100vh !important; }

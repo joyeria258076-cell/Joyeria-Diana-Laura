@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { securityQuestionAPI } from '../../services/securityQuestionAPI';
-import AuthBackground from '../../components/AuthBackground';
+import AuthTapa from '../../components/AuthTapa';
 import { AiOutlineLock, AiOutlineCheckCircle, AiOutlineReload, AiOutlineArrowLeft, AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import './RecuperarConPreguntaScreen.css';
 import './AuthExtraApp.css';
@@ -228,7 +228,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     if (loading && !securityQuestion) {
         return (
             <div className="recuperar-pregunta-container">
-                <AuthBackground />
+                <AuthTapa titulo={<>Solo tú sabes la <em>respuesta</em>.</>} texto="Contesta tu pregunta secreta y elige una contraseña nueva." />
                 <div className="recuperar-pregunta-card">
                     <div className="loading-message">
                         <p>Cargando pregunta secreta...</p>
@@ -241,7 +241,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
     if (!securityQuestion && !loading) {
         return (
             <div className="recuperar-pregunta-container">
-                <AuthBackground />
+                <AuthTapa titulo={<>Solo tú sabes la <em>respuesta</em>.</>} texto="Contesta tu pregunta secreta y elige una contraseña nueva." />
                 <div className="recuperar-pregunta-card">
                     <div className="message error">
                         <p>{message || 'No se pudo cargar la pregunta secreta'}</p>
@@ -258,10 +258,10 @@ const RecuperarConPreguntaScreen: React.FC = () => {
 
     return (
         <div className="recuperar-pregunta-container">
-            <AuthBackground />
+            <AuthTapa titulo={<>Solo tú sabes la <em>respuesta</em>.</>} texto="Contesta tu pregunta secreta y elige una contraseña nueva." />
             <div className="recuperar-pregunta-card">
                 <div className="recuperar-pregunta-header">
-                    <h2>Recuperar contraseña con pregunta secreta</h2>
+                    <h2>Responde tu <span>pregunta</span></h2>
                     <p>Para: <strong>{email}</strong></p>
                 </div>
 

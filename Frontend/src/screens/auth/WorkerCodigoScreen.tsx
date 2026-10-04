@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import AuthTapa from '../../components/AuthTapa';
+import { AiOutlineKey } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { workerAuthAPI, solicitudesAPI } from '../../services/api';
@@ -59,6 +61,7 @@ export default function WorkerCodigoScreen() {
   if (vista === 'recuperar-ok') {
     return (
       <div className="wauth-wrapper">
+        <AuthTapa titulo={<>Tu acceso, en <em>camino</em>.</>} texto="Pide tu código para entrar al panel de trabajo." />
         <div className="wauth-card">
           <div className="wauth-icon wauth-icon--ok">✓</div>
           <h1 className="wauth-title">Solicitud enviada</h1>
@@ -92,8 +95,9 @@ export default function WorkerCodigoScreen() {
   if (vista === 'recuperar') {
     return (
       <div className="wauth-wrapper">
+        <AuthTapa titulo={<>Tu acceso, en <em>camino</em>.</>} texto="Pide tu código para entrar al panel de trabajo." />
         <div className="wauth-card">
-          <div className="wauth-icon">🔑</div>
+          <div className="wauth-icon"><AiOutlineKey size={26} /></div>
           <h1 className="wauth-title">Recuperar código</h1>
           <p className="wauth-sub">
             Se enviará una solicitud al administrador para que regenere tu código de acceso.
@@ -114,6 +118,7 @@ export default function WorkerCodigoScreen() {
   // ── VISTA: INGRESAR CÓDIGO ──
   return (
     <div className="wauth-wrapper">
+      <AuthTapa titulo={<>Tu acceso, en <em>camino</em>.</>} texto="Pide tu código para entrar al panel de trabajo." />
       <div className="wauth-card">
         <div className="wauth-icon">🛡️</div>
         <h1 className="wauth-title">Verificación de acceso</h1>

@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authAPI } from '../../services/api';
-import AuthBackground from '../../components/AuthBackground';
-import { AiOutlineSafety, AiOutlineArrowLeft } from 'react-icons/ai';
+import AuthTapa from '../../components/AuthTapa';
+import { AiOutlineArrowLeft } from 'react-icons/ai';
 import "./MFAVerifyScreen.css";
 import './AuthExtraApp.css';
 
@@ -100,7 +100,7 @@ export default function MFAVerifyScreen() {
   if (!userId) {
     return (
       <div className="mfa-verify-container">
-        <AuthBackground />
+        <AuthTapa titulo={<>Un paso más y <em>entras</em>.</>} texto="Escribe el código de tu aplicación de autenticación." />
         <div className="mfa-verify-card">
           <h2>Cargando...</h2>
         </div>
@@ -110,10 +110,10 @@ export default function MFAVerifyScreen() {
 
   return (
     <div className="mfa-verify-container">
-      <AuthBackground />
+      <AuthTapa titulo={<>Un paso más y <em>entras</em>.</>} texto="Escribe el código de tu aplicación de autenticación." />
       <div className="mfa-verify-card">
         <div className="mfa-header">
-          <h1><AiOutlineSafety size={26} style={{ verticalAlign: 'middle', marginRight: 10, color: 'var(--color-rose-gold)' }} />Verificación en Dos Pasos</h1>
+          <h1>Verificación en dos <span>pasos</span></h1>
           <p>Para continuar, ingresa el código de tu aplicación authenticator</p>
           <p className="user-email">Usuario: <strong>{email}</strong></p>
         </div>

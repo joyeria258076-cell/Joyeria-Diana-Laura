@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import AuthTapa from '../../components/AuthTapa';
+import { AiOutlineKey } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { workerAuthAPI } from '../../services/api';
@@ -55,6 +57,7 @@ export default function WorkerActivacionScreen() {
   if (codigoTrabajador) {
     return (
       <div className="wauth-wrapper">
+        <AuthTapa titulo={<>Bienvenida al <em>equipo</em>.</>} texto="Activa tu cuenta para empezar a atender pedidos y apartados." />
         <div className="wauth-card">
           <div className="wauth-icon wauth-icon--ok">✓</div>
           <h1 className="wauth-title">¡Cuenta activada!</h1>
@@ -87,8 +90,9 @@ export default function WorkerActivacionScreen() {
   // ── PANTALLA: ingresar código de activación ──
   return (
     <div className="wauth-wrapper">
+      <AuthTapa titulo={<>Bienvenida al <em>equipo</em>.</>} texto="Activa tu cuenta para empezar a atender pedidos y apartados." />
       <div className="wauth-card">
-        <div className="wauth-icon">🔑</div>
+        <div className="wauth-icon"><AiOutlineKey size={26} /></div>
         <h1 className="wauth-title">Activar cuenta</h1>
         <p className="wauth-sub">
           El administrador te proporcionó un código de activación de 8 caracteres al crear tu cuenta. Ingrésalo aquí para activarla.

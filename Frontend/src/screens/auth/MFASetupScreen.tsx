@@ -109,7 +109,7 @@ export default function MFASetupScreen() {
       case 'intro':
         return (
           <div className="step-intro">
-            <h2><AiOutlineSafety size={22} style={{ verticalAlign: 'middle', marginRight: 8, color: 'var(--color-rose-gold)' }} />Configurar Autenticación en Dos Pasos</h2>
+            <h2><AiOutlineSafety size={22} style={{ verticalAlign: 'middle', marginRight: 8, color: 'var(--color-rose-gold)' }} />Configura la verificación en dos pasos</h2>
             <p>
               La autenticación en dos pasos añade una capa adicional de seguridad a tu cuenta. 
               Además de tu contraseña, necesitarás un código de verificación de tu aplicación móvil.
@@ -146,7 +146,7 @@ export default function MFASetupScreen() {
       case 'qr':
         return (
           <div className="step-qr">
-            <h2><AiOutlineQrcode size={22} style={{ verticalAlign: 'middle', marginRight: 8, color: 'var(--color-rose-gold)' }} />Escanear Código QR</h2>
+            <h2><AiOutlineQrcode size={22} style={{ verticalAlign: 'middle', marginRight: 8, color: 'var(--color-rose-gold)' }} />Escanea el código QR</h2>
             <p>Usa tu aplicación authenticator para escanear este código:</p>
             
             {mfaData?.qrCodeUrl && (
@@ -170,7 +170,7 @@ export default function MFASetupScreen() {
                 onClick={() => setStep('verify')}
                 className="primary-button"
               >
-                Siguiente: Verificar Código
+                Siguiente: Verifica el código
               </button>
               <button 
                 onClick={() => setStep('intro')}
@@ -185,7 +185,7 @@ export default function MFASetupScreen() {
       case 'verify':
         return (
           <div className="step-verify">
-            <h2><AiOutlineNumber size={22} style={{ verticalAlign: 'middle', marginRight: 8, color: 'var(--color-rose-gold)' }} />Verificar Código</h2>
+            <h2><AiOutlineNumber size={22} style={{ verticalAlign: 'middle', marginRight: 8, color: 'var(--color-rose-gold)' }} />Verifica el código</h2>
             <p>Ingresa el código de 6 dígitos que muestra tu aplicación authenticator:</p>
             
             <form onSubmit={(e) => { e.preventDefault(); verifyAndEnableMFA(); }}>
