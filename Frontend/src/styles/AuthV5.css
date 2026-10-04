@@ -125,3 +125,6 @@ html body .av5-tapa:has(.av5-foto) h1 em { color: #fff !important; }
   .av5-pie { order: -1; }
   .av5-pie .av5-firma { display: none; }
 }
+
+/* En temas oscuros el fondo con resplandores viene de layout.css; aquí no se aplana */
+[data-theme]:not([data-theme="blanco_rosa"]) body :is(.login-container, .register-container, .olvide-contrasenia-container, .recuperar-pregunta-container, .reset-password-container, .mfa-verify-container, .wauth-wrapper) { background: transparent !important; }

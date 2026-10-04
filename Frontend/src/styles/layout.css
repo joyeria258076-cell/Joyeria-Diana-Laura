@@ -240,11 +240,15 @@ body .sidebar-logo .logo-text { font-size: 1.12rem !important; line-height: 1.15
 
 
 /* ── Temas oscuros: fondo sólido como el tema claro (sin foto translúcida detrás) ── */
+[data-theme]:not([data-theme="blanco_rosa"]) body,
 [data-theme]:not([data-theme="blanco_rosa"]) body :is(.content-area, .sx-page, .inicio-public-container, .catalogo-public-container,
-  .legal-page, .noticias-container, .pdp-wrapper) {
+  .legal-page, .noticias-container, .pdp-wrapper, .login-page-wrapper, .register-page-wrapper, .olvide-page-wrapper,
+  .reiniciar-page-wrapper, .recuperar-pregunta-container, .mfa-verify-container, .wauth-wrapper) {
   background-color: var(--color-bg) !important;
+  /* Resplandores suaves como en el inicio: uno arriba a la derecha, otro a la izquierda y uno abajo */
   background-image:
-    radial-gradient(900px 620px at 100% 0%, color-mix(in srgb, var(--blob-1) 16%, transparent), transparent 70%),
-    radial-gradient(820px 620px at 0% 100%, color-mix(in srgb, var(--blob-2) 13%, transparent), transparent 70%) !important;
+    radial-gradient(900px 640px at 100% 0%, color-mix(in srgb, var(--blob-1) 26%, transparent), transparent 70%),
+    radial-gradient(760px 620px at 0% 55%, color-mix(in srgb, var(--blob-2) 22%, transparent), transparent 70%),
+    radial-gradient(900px 600px at 70% 100%, color-mix(in srgb, var(--blob-1) 14%, transparent), transparent 70%) !important;
   background-attachment: fixed !important;
 }

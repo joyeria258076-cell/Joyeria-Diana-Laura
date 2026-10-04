@@ -98,10 +98,9 @@ export default function AdminLegalScreen() {
             className={`alegal-tab ${tab === d ? 'active' : ''}`}
             onClick={() => { setTab(d); setPreview(false); }}
           >
-            <span>{LABELS[d].emoji}</span>
             {LABELS[d].name}
             <span className="alegal-tab-fecha">
-              {docs[d].fecha ? new Date(docs[d].fecha).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Sin fecha'}
+              {docs[d].fecha ? 'Actualizado ' + new Date(docs[d].fecha).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Sin fecha'}
             </span>
           </button>
         ))}

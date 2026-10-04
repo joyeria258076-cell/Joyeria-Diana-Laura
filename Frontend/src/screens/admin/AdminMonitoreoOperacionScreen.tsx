@@ -31,6 +31,9 @@ const PAGO: Record<string, { t: string; tono: string }> = {
 };
 const ORDEN_PEDIDO = ['pendiente', 'confirmado', 'en_preparacion', 'enviado', 'entregado'];
 const ORDEN_APARTADO = ['pendiente_pago', 'activo', 'liquidado', 'vencido', 'cancelado'];
+// Lo que sigue en curso (lo que se muestra al entrar) y cuántos se pintan por tanda
+const CERRADOS = ['entregado', 'cancelado', 'expirado', 'liquidado', 'vencido'];
+const POR_TANDA = 12;
 
 const dinero = (v: any) => `$${Number(v || 0).toLocaleString('es-MX')}`;
 const hace = (f?: string) => {
@@ -52,7 +55,8 @@ const AdminMonitoreoOperacionScreen: React.FC = () => {
     const [pedidos, setPedidos] = useState<any[]>([]);
     const [apartados, setApartados] = useState<any[]>([]);
     const [cargando, setCargando] = useState(true);
-    const [filtro, setFiltro] = useState<string>('todos');
+    const [filtro, setFiltro] = useState<string>('en_curso');
+    const [mostrar, setMostrar] = useState(POR_TANDA);
     const [busqueda, setBusqueda] = useState('');
     const [recarga, setRecarga] = useState(0);
 
@@ -74,7 +78,8 @@ const AdminMonitoreoOperacionScreen: React.FC = () => {
         cargar();
     }, [tab, recarga]);
 
-    useEffect(() => { setFiltro('todos'); setBusqueda(''); }, [tab]);
+    useEffect(() => { setFiltro('en_curso'); setBusqueda(''); }, [tab]);
+    useEffect(() => { setMostrar(POR_TANDA); }, [tab, filtro, busqueda]);
 
     const lista = tab === 'pedidos' ? pedidos : apartados;
     const orden = tab === 'pedidos' ? [...ORDEN_PEDIDO, 'cancelado'] : ORDEN_APARTADO;
@@ -87,9 +92,11 @@ const AdminMonitoreoOperacionScreen: React.FC = () => {
     const visibles = useMemo(() => {
         const q = busqueda.trim().toLowerCase();
         return lista.filter(x =>
-            (filtro === 'todos' || x.estado === filtro) &&
+            (filtro === 'todos' || (filtro === 'en_curso' ? !CERRADOS.includes(x.estado) : x.estado === filtro)) &&
             (!q || `${x.folio} ${x.cliente_nombre_completo || ''} ${x.cliente_nombre || ''}`.toLowerCase().includes(q)));
     }, [lista, filtro, busqueda]);
+    const enCurso = useMemo(() => lista.filter(x => !CERRADOS.includes(x.estado)).length, [lista]);
+    const pagina = visibles.slice(0, mostrar);
 
     // Resumen rápido de lo que requiere atención
     const atencion = tab === 'pedidos'
@@ -99,7 +106,6 @@ const AdminMonitoreoOperacionScreen: React.FC = () => {
     return (
         <main className="mop-page">
             <div className="gs-head">
-                <div className="sx-eyebrow">Operación de la tienda</div>
                 <h1 className="sx-title">Monitoreo de <span>pedidos y apartados</span></h1>
                 <p className="sx-subtitle">Mira en qué paso va cada pedido y cuánto llevan pagado los apartados. Los cambios los hace el personal trabajador.</p>
             </div>
@@ -122,11 +128,14 @@ const AdminMonitoreoOperacionScreen: React.FC = () => {
 
             {/* Conteo por estado (también filtra) */}
             <div className="mop-estados">
+                <button className={`mop-estado ${filtro === 'en_curso' ? 'activo' : ''}`} onClick={() => setFiltro('en_curso')}>
+                    <strong>{enCurso}</strong><span>En curso</span>
+                </button>
                 <button className={`mop-estado ${filtro === 'todos' ? 'activo' : ''}`} onClick={() => setFiltro('todos')}>
                     <strong>{lista.length}</strong><span>Todos</span>
                 </button>
                 {orden.map(e => (
-                    <button key={e} className={`mop-estado mop-tono--${TONO[e]} ${filtro === e ? 'activo' : ''}`} onClick={() => setFiltro(filtro === e ? 'todos' : e)}>
+                    <button key={e} className={`mop-estado mop-tono--${TONO[e]} ${filtro === e ? 'activo' : ''}`} onClick={() => setFiltro(filtro === e ? 'en_curso' : e)}>
                         <strong>{conteo[e] || 0}</strong><span>{ETIQUETA[e]}</span>
                     </button>
                 ))}
@@ -144,10 +153,10 @@ const AdminMonitoreoOperacionScreen: React.FC = () => {
             {cargando ? (
                 <Loader texto={`Cargando ${tab}...`} />
             ) : visibles.length === 0 ? (
-                <div className="mop-vacio">No hay {tab} {filtro !== 'todos' ? `en "${ETIQUETA[filtro]}"` : ''}{busqueda ? ' que coincidan con la búsqueda' : ''}.</div>
+                <div className="mop-vacio">No hay {tab} {filtro === 'en_curso' ? 'en curso' : filtro !== 'todos' ? `en "${ETIQUETA[filtro]}"` : ''}{busqueda ? ' que coincidan con la búsqueda' : ''}.</div>
             ) : tab === 'pedidos' ? (
                 <div className="mop-grid">
-                    {visibles.map(p => {
+                    {pagina.map(p => {
                         const pasos = pasosDe(p);
                         const idx = pasos.indexOf(p.estado);
                         const terminado = ['cancelado', 'expirado'].includes(p.estado);
@@ -198,7 +207,7 @@ const AdminMonitoreoOperacionScreen: React.FC = () => {
                 </div>
             ) : (
                 <div className="mop-grid">
-                    {visibles.map(a => {
+                    {pagina.map(a => {
                         const total = Number(a.monto_total) || (Number(a.monto_pagado) + Number(a.saldo_pendiente));
                         const pct = total > 0 ? Math.min(100, Math.round((Number(a.monto_pagado) / total) * 100)) : 0;
                         const dias = diasPara(a.fecha_limite_liquidacion);
@@ -235,6 +244,12 @@ const AdminMonitoreoOperacionScreen: React.FC = () => {
                         );
                     })}
                 </div>
+            )}
+
+            {!cargando && visibles.length > mostrar && (
+                <button className="mop-mas" onClick={() => setMostrar(m => m + POR_TANDA)}>
+                    Ver {Math.min(POR_TANDA, visibles.length - mostrar)} más <span>· quedan {visibles.length - mostrar}</span>
+                </button>
             )}
 
             <p className="mop-nota"><AiOutlineEye size={14} /> Esta pantalla es solo informativa. Para mover un pedido o registrar un abono, lo hace un trabajador.</p>
