@@ -12,7 +12,7 @@
   color: var(--rose, #d4607e); margin: 0 0 6px;
 }
 .sp-header h1 {
-  font-family: 'Playfair Display', serif; font-size: 1.9rem; margin: 0 0 8px;
+  font-family: var(--font-body); font-size: 1.9rem; margin: 0 0 8px;
 }
 .sp-sub { color: var(--text-muted, color-mix(in srgb, var(--color-text) 60%, transparent)); margin: 0; max-width: 620px; }
 
@@ -37,7 +37,7 @@
 .sp-producto-img {
   width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; margin-bottom: 12px;
 }
-.sp-producto-card h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin: 0 0 6px; }
+.sp-producto-card h3 { font-family: var(--font-body); font-size: 1.1rem; margin: 0 0 6px; }
 .sp-producto-precio { color: var(--rose, #d4607e); font-weight: 700; margin: 0; }
 .sp-cargo { display: block; color: color-mix(in srgb, var(--color-text) 50%, transparent); font-size: 0.78rem; font-weight: 400; margin-top: 4px; }
 
@@ -102,7 +102,7 @@
   border-radius: 16px; padding: 40px 32px;
 }
 .sp-exito-icon { color: #4a8c7a; margin-bottom: 12px; }
-.sp-exito h2 { font-family: 'Playfair Display', serif; margin: 0 0 12px; }
+.sp-exito h2 { font-family: var(--font-body); margin: 0 0 12px; }
 .sp-exito p { color: color-mix(in srgb, var(--color-text) 70%, transparent); line-height: 1.6; margin: 0 0 24px; }
 .sp-exito-acciones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 

@@ -5,7 +5,7 @@
     background: linear-gradient(90deg, color-mix(in srgb, var(--color-bg) 90%, transparent), color-mix(in srgb, var(--color-surface) 80%, transparent));
     border-bottom: 1px solid color-mix(in srgb, var(--color-rose-gold) 15%, transparent);
     backdrop-filter: blur(10px);
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-body);
     transition: all 0.3s ease;
 }
 
@@ -47,5 +47,5 @@
     color: var(--color-text);
     font-weight: 700;
     text-transform: capitalize;
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-body);
 }

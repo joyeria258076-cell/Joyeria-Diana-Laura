@@ -60,6 +60,7 @@ const CatalogoScreen: React.FC = () => {
     const [tiposProducto, setTiposProducto] = useState<TipoProducto[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchMode, setSearchMode] = useState(false);
+    const [verFiltros, setVerFiltros] = useState(false);
 
     // --- PAGINACIÓN (solo modo búsqueda) ---
     const [paginaBusqueda, setPaginaBusqueda] = useState(0);
@@ -436,10 +437,19 @@ const CatalogoScreen: React.FC = () => {
             </div>
         )}
         <main className="catalogo-body" style={promociones.length > 0 && !tickerCerrado ? { paddingTop: '36px' } : {}}>
-            <div className="catalogo-encabezado">
-                <span className="catalogo-eyebrow">Catálogo</span>
-                <h2 className="page-title">Encuentra tu <span>pieza</span></h2>
-                <p className="catalogo-subtitulo">Cada pieza, seleccionada con la misma atención al detalle con la que la harías tú.</p>
+            <div className="catalogo-encabezado cv5-cabeza">
+              <h1 className="page-title">Encuentra tu <span>pieza</span></h1>
+              <div className="cv5-buscar-fila">
+                <form className="cv5-buscar" role="search" onSubmit={(e) => { e.preventDefault(); handleBuscar(); }}>
+                  <AiOutlineSearch size={19} aria-hidden="true" />
+                  <input type="text" placeholder="Busca por nombre: anillo corazón, esclava, perla…" aria-label="Buscar joyas"
+                    value={filtros.nombre} onChange={(e) => setFiltros({ ...filtros, nombre: e.target.value })} />
+                  <button type="submit">Buscar</button>
+                </form>
+                <button type="button" className={`cv5-filtros-btn${verFiltros ? ' activo' : ''}`} onClick={() => setVerFiltros(v => !v)} aria-expanded={verFiltros}>
+                  Filtros
+                </button>
+              </div>
             </div>
 
             {categorias.length > 0 && (
@@ -467,17 +477,7 @@ const CatalogoScreen: React.FC = () => {
 
             <div className="catalogo-shell">
                 {/* --- PANEL DE FILTROS (lateral, fijo) --- */}
-                <aside className="catalogo-filtros-panel">
-                    <div className="filtro-buscador">
-                        <AiOutlineSearch size={16} className="filtro-buscador-icon" />
-                        <input
-                            type="text"
-                            placeholder="Buscar producto..."
-                            value={filtros.nombre}
-                            onChange={(e) => setFiltros({ ...filtros, nombre: e.target.value })}
-                            onKeyDown={(e) => e.key === 'Enter' && handleBuscar()}
-                        />
-                    </div>
+                <aside className={`catalogo-filtros-panel${verFiltros ? ' abierto' : ''}`}>
 
                     <div className="form-group">
                         <label>Categoría</label>
@@ -565,7 +565,7 @@ const CatalogoScreen: React.FC = () => {
                 Object.entries(productosPorCategoria).length > 0 ? (
                     <div className="categorias-sections">
                         {Object.entries(productosPorCategoria).map(([nombreCategoria, productos]) => {
-                            const productosPreview = productos.slice(0, PAGE_SIZE);
+                            const productosPreview = [...productos].sort((a: any, b: any) => (Number(String(a.nombre).startsWith('[DEMO]') || a.stock_actual === 0) - Number(String(b.nombre).startsWith('[DEMO]') || b.stock_actual === 0))).slice(0, PAGE_SIZE);
                             const hayMas = productos.length > PAGE_SIZE;
                             // Obtenemos categoria_id del primer producto para el API call
                             const categoria_id = productos[0]?.categoria_id || 0;

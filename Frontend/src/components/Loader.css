@@ -40,7 +40,7 @@
 }
 
 .dl-loader-texto {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-body);
   font-size: 1.05rem;
   color: var(--text-muted, color-mix(in srgb, var(--color-text) 60%, transparent));
   margin: 0;

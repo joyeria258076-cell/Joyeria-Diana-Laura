@@ -2,7 +2,7 @@
 
 .gper-page { max-width: 980px; margin: 0 auto; padding: 28px 20px 60px; }
 
-.gper-header h1 { font-family: 'Playfair Display', serif; font-size: 1.7rem; margin: 0 0 6px; }
+.gper-header h1 { font-family: var(--font-body); font-size: 1.7rem; margin: 0 0 6px; }
 .gper-sub { color: color-mix(in srgb, var(--color-text) 55%, transparent); margin: 0 0 20px; }
 
 .gper-filtros { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -24,7 +24,7 @@
 .gper-producto-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
 .gper-card-body { flex: 1; min-width: 0; }
 .gper-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.gper-card-top h3 { font-family: 'Playfair Display', serif; font-size: 1.05rem; margin: 0; }
+.gper-card-top h3 { font-family: var(--font-body); font-size: 1.05rem; margin: 0; }
 
 .gper-estado {
   display: inline-flex; align-items: center; gap: 5px; text-transform: capitalize;
@@ -63,7 +63,7 @@
   background: #14100f; border: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent); border-radius: 16px;
   padding: 28px; max-width: 440px; width: 100%;
 }
-.gper-modal h3 { font-family: 'Playfair Display', serif; margin: 0 0 6px; }
+.gper-modal h3 { font-family: var(--font-body); margin: 0 0 6px; }
 .gper-modal-producto { color: color-mix(in srgb, var(--color-text) 50%, transparent); font-size: 0.85rem; margin: 0 0 16px; }
 .gper-label { font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 6px; }
 .gper-textarea {
