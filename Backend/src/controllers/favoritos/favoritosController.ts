@@ -16,6 +16,8 @@ export const getFavoritos = async (req: Request, res: Response) => {
                 p.id AS producto_id, p.nombre, p.precio_venta, p.precio_oferta,
                 p.imagen_principal, p.stock_actual, p.es_nuevo, p.permite_personalizacion,
                 cat.nombre AS categoria_nombre,
+                (SELECT COALESCE(ROUND(AVG(r.calificacion)::numeric, 1), 0) FROM resenas_producto r WHERE r.producto_id = p.id) AS promedio_resenas,
+                (SELECT COUNT(*)::int FROM resenas_producto r WHERE r.producto_id = p.id) AS total_resenas,
                 (
                     SELECT CASE
                         WHEN pr.tipo = 'porcentaje' THEN ROUND((p.precio_venta * (1 - pr.valor_descuento / 100.0))::numeric, 2)

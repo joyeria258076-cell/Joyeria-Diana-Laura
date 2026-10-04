@@ -573,6 +573,8 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
                 p.tipo_producto_id, p.material_principal,
                 p.precio_venta, p.precio_oferta, p.imagen_principal,
                 p.stock_actual, p.es_nuevo, p.es_destacado, p.permite_personalizacion,
+                (SELECT COALESCE(ROUND(AVG(r.calificacion)::numeric, 1), 0) FROM resenas_producto r WHERE r.producto_id = p.id) AS promedio_resenas,
+                (SELECT COUNT(*)::int FROM resenas_producto r WHERE r.producto_id = p.id) AS total_resenas,
                 ${PROMO_SUBQUERY}
             FROM productos p
             WHERE p.activo = true
