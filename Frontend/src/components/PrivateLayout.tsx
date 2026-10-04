@@ -10,6 +10,7 @@ import "../styles/AdminV2.css";
 import "../styles/AdminSkin.css";
 import "../styles/TrabajadorV5.css";
 import "../styles/AdminV5.css";
+import "../styles/AdminPantallas.css";
 
 export const PrivateLayout: React.FC = () => {
   const { user } = useAuth();
