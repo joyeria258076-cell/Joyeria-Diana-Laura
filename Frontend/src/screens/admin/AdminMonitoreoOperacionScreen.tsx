@@ -93,7 +93,9 @@ const AdminMonitoreoOperacionScreen: React.FC = () => {
         const q = busqueda.trim().toLowerCase();
         return lista.filter(x =>
             (filtro === 'todos' || (filtro === 'en_curso' ? !CERRADOS.includes(x.estado) : x.estado === filtro)) &&
-            (!q || `${x.folio} ${x.cliente_nombre_completo || ''} ${x.cliente_nombre || ''}`.toLowerCase().includes(q)));
+            (!q || `${x.folio} ${x.cliente_nombre_completo || ''} ${x.cliente_nombre || ''}`.toLowerCase().includes(q)))
+            // Siempre del más reciente al más antiguo
+            .sort((a, b) => new Date(b.fecha_creacion || 0).getTime() - new Date(a.fecha_creacion || 0).getTime());
     }, [lista, filtro, busqueda]);
     const enCurso = useMemo(() => lista.filter(x => !CERRADOS.includes(x.estado)).length, [lista]);
     const pagina = visibles.slice(0, mostrar);
