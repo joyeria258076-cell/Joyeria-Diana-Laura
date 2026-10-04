@@ -13,6 +13,7 @@ import "./InicioPublicScreen.css";
 import "./InicioPublicApp.css";
 import "./InicioPortada.css";
 import "./InicioJoyero.css";
+import "./InicioSecciones.css";
 
 const JDL_CLOUD = 'https://res.cloudinary.com/dltvkwwq4/image/upload';
 
@@ -205,7 +206,7 @@ const InicioPublicScreen: React.FC = () => {
     .filter((c: any) => c.imagen) as { id: number; nombre: string; cuantos: number; imagen: string }[];
 
   const colgantes = baseVitrina.slice(0, 5);
-  const productosDestacadosGrid = baseVitrina.slice(5, 13);
+  const productosDestacadosGrid = baseVitrina.slice(5, 14);
 
   useEffect(() => {
     if (promociones.length <= 1) return;
@@ -383,50 +384,30 @@ const InicioPublicScreen: React.FC = () => {
       {/* ═══════════ SELECCIÓN (bento) ═══════════ */}
       <Seccion id="inicio.seleccion" nombre="Productos recientes">
       {productosDestacadosGrid.length > 0 && (
-        <section className="showcase-section">
-          <div className="container-lg">
-            <div className="section-header-row mb-5">
-              <div className="eyebrow-row"><span className="eyebrow-line" /><span className="eyebrow-txt">Selección</span></div>
-              <Link to="/catalogo-publico" className="ver-todos-link">Ver todos →</Link>
-            </div>
-            <h2 className="section-title" style={{ marginTop: '-1rem', marginBottom: '2rem' }}>Productos <span>Recientes</span></h2>
-
-            <div className="product-grid">
-              {productosDestacadosGrid.map(prod => {
-                const precioFinal = prod.precio_promocion ?? prod.precio_oferta;
-                const conDesc = precioFinal && precioFinal < prod.precio_venta;
-                return (
-                  <Link to={`/producto-publico/${prod.id}`} className="product-card" key={prod.id}>
-                    <div className="product-card-img">
-                      <img
-                        src={optimizarImagen(prod.imagen_principal, 500) || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80"}
-                        alt={prod.nombre}
-                        loading="lazy"
-                      />
-                      {prod.es_nuevo && <span className="prod-badge prod-badge--nuevo">Nuevo</span>}
-                      {(prod as any).permite_personalizacion && <span className="prod-badge prod-badge--nuevo">Personalizable</span>}
-                      {conDesc && <span className="prod-badge prod-badge--oferta">Oferta</span>}
-                      {prod.stock_actual === 0 && <span className="prod-badge prod-badge--agotado">Agotado</span>}
-                      <div className="product-card-overlay"><span>Ver pieza →</span></div>
-                    </div>
-                    <div className="product-card-body">
-                      {prod.categoria_nombre && <span className="prod-categoria">{prod.categoria_nombre}</span>}
-                      <h3>{prod.nombre}</h3>
-                      <div className="product-card-precio">
-                        {conDesc && (
-                          <span className="precio-tachado">${Number(prod.precio_venta).toLocaleString('es-MX')}</span>
-                        )}
-                        <span className="precio-final">${Number(precioFinal ?? prod.precio_venta).toLocaleString('es-MX')}</span>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-
-            <div className="text-center mt-5">
-              <Link to="/catalogo-publico" className="btn btn-primary">Ver todo el catálogo</Link>
-            </div>
+        <section className="rl">
+          <div className="rl-cabeza">
+            <h2>Recién <em>llegadas</em></h2>
+            <Link to="/catalogo-publico" className="rl-ver">Ver las {productosDestacados.length} piezas <AiOutlineArrowRight size={15} /></Link>
+          </div>
+          <div className="rl-mosaico">
+            {productosDestacadosGrid.map((prod, i) => {
+              const precioFinal = Number(prod.precio_promocion ?? prod.precio_oferta ?? prod.precio_venta);
+              const conDesc = precioFinal < Number(prod.precio_venta);
+              return (
+                <Link to={`/producto-publico/${prod.id}`} className={`rl-pieza${i === 0 ? ' rl-pieza--grande' : ''}`} key={prod.id}>
+                  <span className="rl-foto">
+                    <img src={optimizarImagen(prod.imagen_principal, i === 0 ? 900 : 500)} alt={prod.nombre} loading="lazy" />
+                    {prod.permite_personalizacion && <span className="rl-sello">Personalizable</span>}
+                    {conDesc && <span className="rl-sello rl-sello--oferta">Oferta</span>}
+                  </span>
+                  <span className="rl-datos">
+                    <small>{prod.categoria_nombre}</small>
+                    <strong>{prod.nombre}</strong>
+                    <b>{conDesc && <s>${Number(prod.precio_venta).toLocaleString('es-MX')}</s>}${precioFinal.toLocaleString('es-MX')}</b>
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}
@@ -457,94 +438,56 @@ const InicioPublicScreen: React.FC = () => {
       )}
       </Seccion>
 
-      {/* ═══════════ POR QUÉ ELEGIRNOS ═══════════ */}
+      {/* ═══════════ CÓMO TE LA LLEVAS ═══════════ */}
       <Seccion id="inicio.porque" nombre="Por qué elegirnos">
-      <section className="features-section">
-        <div className="container-lg">
-          <div className="section-header text-center mb-5">
-            <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Por qué elegirnos</span><span className="eyebrow-line" /></div>
-            <h2 className="section-title">Lo que nos hace <span>especiales</span></h2>
-            <p className="section-subtitle">Cada detalle importa, cada pieza cuenta una historia</p>
-          </div>
-
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon"><AiOutlineStar size={22} /></div>
-              <h3>Diseño Premium</h3>
-              <p>Cada pieza es cuidadosamente diseñada con materiales de alta calidad y atención al detalle.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon"><AiOutlineHeart size={22} /></div>
-              <h3>Hecho con Amor</h3>
-              <p>Creado con pasión artesanal y dedicación en cada proceso de fabricación.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon"><AiOutlinePhone size={22} /></div>
-              <h3>Soporte 24/7</h3>
-              <p>Nuestro equipo está disponible para ayudarte en cualquier momento que lo necesites.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon"><AiOutlineCar size={22} /></div>
-              <h3>Envío Rápido</h3>
-              <p>Entrega segura y rápida a cualquier lugar, con seguimiento en tiempo real.</p>
-            </div>
-          </div>
+      <section className="pm">
+        <div className="pm-banda">
+          <h2>Cuatro formas de <em>llevártela</em></h2>
+          <ol className="pm-lista">
+            <li><AiOutlineEdit size={22} /><strong>Con tu nombre</strong><span>Elige talla, largo, metal o grabado al comprar; la hacemos para ti.</span></li>
+            <li><AiOutlineGift size={22} /><strong>En abonos</strong><span>Apártala con el 50% y paga el resto semanal, quincenal o mensual.</span></li>
+            <li><AiOutlineCar size={22} /><strong>A tu puerta</strong><span>Entregamos en Huejutla, San Felipe, Jaltocan, Tehuetlán y Tampico.</span></li>
+            <li><AiOutlineSafetyCertificate size={22} /><strong>En la tienda</strong><span>Recógela en el local de Huejutla y pruébatela antes de llevártela.</span></li>
+          </ol>
         </div>
       </section>
       </Seccion>
 
-      {/* ═══════════ NOTICIAS DINÁMICAS ═══════════ */}
+      {/* ═══════════ NOTICIAS ═══════════ */}
       <Seccion id="inicio.noticias" nombre="Noticias y novedades">
-      <section className="news-section">
-        <div className="container-lg">
-          <div className="section-header text-center mb-5">
-            <div className="eyebrow-row eyebrow-row--center"><span className="eyebrow-line" /><span className="eyebrow-txt">Últimas novedades</span><span className="eyebrow-line" /></div>
-            <h2 className="section-title">Noticias &amp; <span>Novedades</span></h2>
-            <p className="section-subtitle">Mantente al día con nuestras últimas colecciones y promociones</p>
+      {noticiasHome.length > 0 && (
+        <section className="nv">
+          <div className="rl-cabeza">
+            <h2>Del <em>blog</em></h2>
+            <Link to="/noticias" className="rl-ver">Ver todas <AiOutlineArrowRight size={15} /></Link>
           </div>
-
-          <div className="news-grid">
+          <div className="nv-fila">
             {noticiasHome.map((noticia) => (
-              <div className="news-card" key={noticia.id}>
-                <div className="news-image">
-                  <img
-                    src={optimizarImagen(noticia.imagen, 500) || "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=600&q=80"}
-                    alt={noticia.titulo}
-                    loading="lazy"
-                  />
-                </div>
-                <div className="news-content">
-                  <h3 className="news-title">{noticia.titulo}</h3>
-                  <p className="news-description">
-                    {noticia.contenido && noticia.contenido.length > 100
-                      ? `${noticia.contenido.substring(0, 100)}...`
-                      : noticia.contenido}
-                  </p>
-                  <div className="news-divider" />
-                  <Link to={`/noticias`} className="news-link">
-                    Leer más <span className="news-link-arrow">→</span>
-                  </Link>
-                </div>
-              </div>
+              <Link to="/noticias" className="nv-nota" key={noticia.id}>
+                <span className="nv-foto"><img src={optimizarImagen(noticia.imagen, 600) || "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=600&q=80"} alt="" loading="lazy" /></span>
+                <strong>{noticia.titulo}</strong>
+                <span>{noticia.contenido && noticia.contenido.length > 110 ? `${noticia.contenido.substring(0, 110)}…` : noticia.contenido}</span>
+              </Link>
             ))}
           </div>
-
-          <div className="text-center mt-5">
-            <Link to="/noticias" className="btn btn-primary">Ver todas las noticias</Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
       </Seccion>
 
-      {/* ═══════════ CTA ═══════════ */}
+      {/* ═══════════ CIERRE ═══════════ */}
       <Seccion id="inicio.cta" nombre="Invitación al catálogo">
-      <section className="cta-section">
-        <div className="container-lg">
-          <div className="cta-content">
-            <p className="cta-label">Tu joyería exclusiva</p>
-            <h2>¿Lista para encontrar tu <span>joya perfecta</span>?</h2>
-            <p>Explora nuestro catálogo completo y encuentra las piezas que mejor se adapten a tu estilo único.</p>
-            <Link to="/catalogo-publico" className="btn btn-primary btn-lg">Explorar Catálogo</Link>
+      <section className="ci">
+        <div className="ci-tira" aria-hidden="true">
+          {[...visibles, ...visibles].slice(0, 14).map((p: any, i: number) => (
+            <img key={i} src={optimizarImagen(p.imagen_principal, 260)} alt="" loading="lazy" />
+          ))}
+        </div>
+        <div className="ci-texto">
+          <h2>¿Ya encontraste <em>tu brillo</em>?</h2>
+          <p>Más de {productosDestacados.length || 90} piezas entre anillos, cadenas, aretes, pulseras y esclavas.</p>
+          <div className="ci-acciones">
+            <Link to="/catalogo-publico" className="ci-btn">Ver el catálogo <AiOutlineArrowRight size={16} /></Link>
+            <Link to="/registro" className="ci-btn ci-btn--sec">Crear mi cuenta</Link>
           </div>
         </div>
       </section>

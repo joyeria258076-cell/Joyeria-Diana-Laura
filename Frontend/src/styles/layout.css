@@ -239,14 +239,12 @@ body .sidebar-logo .logo-text { font-size: 1.12rem !important; line-height: 1.15
 }
 
 
-/* ── Temas oscuros: el fondo lleva las mismas manchas de color suaves que el tema claro
-   más la foto detrás, para que las tarjetas no se vean flotando sobre negro ── */
-[data-theme]:not([data-theme="blanco_rosa"]) body :is(.content-area, .sx-page) {
+/* ── Temas oscuros: fondo sólido como el tema claro (sin foto translúcida detrás) ── */
+[data-theme]:not([data-theme="blanco_rosa"]) body :is(.content-area, .sx-page, .inicio-public-container, .catalogo-public-container,
+  .legal-page, .noticias-container, .pdp-wrapper) {
+  background-color: var(--color-bg) !important;
   background-image:
-    radial-gradient(900px 620px at 100% 0%, color-mix(in srgb, var(--blob-1) 22%, transparent), transparent 70%),
-    radial-gradient(820px 620px at 0% 100%, color-mix(in srgb, var(--blob-2) 18%, transparent), transparent 70%),
-    linear-gradient(color-mix(in srgb, var(--color-bg) var(--velo-fondo), transparent), color-mix(in srgb, var(--color-bg) var(--velo-fondo), transparent)),
-    var(--global-bg-url) !important;
-  background-size: auto, auto, auto, cover !important;
+    radial-gradient(900px 620px at 100% 0%, color-mix(in srgb, var(--blob-1) 16%, transparent), transparent 70%),
+    radial-gradient(820px 620px at 0% 100%, color-mix(in srgb, var(--blob-2) 13%, transparent), transparent 70%) !important;
   background-attachment: fixed !important;
 }
