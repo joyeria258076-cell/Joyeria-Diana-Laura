@@ -49,7 +49,6 @@ export default function MFASetupScreen() {
       if (response.success) {
         setMfaData(response.data);
         setStep('qr');
-        setSuccess('MFA configurado. Escanea el QR code con tu app.');
       } else {
         setError(response.message || 'Error iniciando configuración MFA');
       }
@@ -83,7 +82,6 @@ export default function MFASetupScreen() {
       if (response.success) {
         setBackupCodes(mfaData?.backupCodes || []);
         setStep('complete');
-        setSuccess('¡MFA activado correctamente!');
       } else {
         setError(response.message || 'Código de verificación inválido');
       }
@@ -95,13 +93,15 @@ export default function MFASetupScreen() {
     }
   };
 
-  const handleCancel = () => {
-    navigate('/perfil');
-  };
+  // Regresa al perfil de cada rol (el trabajador tiene su propia ruta)
+  const rol = user?.rol?.toLowerCase().trim();
+  const rutaPerfil = rol === 'admin' ? '/admin-perfil' : rol === 'trabajador' ? '/trabajador/perfil' : '/perfil';
+  const handleCancel = () => navigate(rutaPerfil);
+  const handleComplete = () => navigate(rutaPerfil);
 
-  const handleComplete = () => {
-    navigate('/perfil');
-  };
+  // Al cambiar de paso se limpian los avisos del paso anterior
+  const irA = (p: typeof step) => { setError(''); setSuccess(''); setStep(p); };
+  const PASOS = { intro: 0, qr: 1, verify: 2, complete: 3 } as const;
 
   // Render por pasos
   const renderStep = () => {
@@ -124,6 +124,8 @@ export default function MFASetupScreen() {
                 <li>Compatible con Google Authenticator, Authy, etc.</li>
               </ul>
             </div>
+
+            {error && <div className="error-message">{error}</div>}
 
             <div className="action-buttons">
               <button 
@@ -167,13 +169,13 @@ export default function MFASetupScreen() {
 
             <div className="action-buttons">
               <button 
-                onClick={() => setStep('verify')}
+                onClick={() => irA('verify')}
                 className="primary-button"
               >
                 Siguiente: Verifica el código
               </button>
               <button 
-                onClick={() => setStep('intro')}
+                onClick={() => irA('intro')}
                 className="secondary-button"
               >
                 Atrás
@@ -217,7 +219,8 @@ export default function MFASetupScreen() {
                   {loading ? 'Verificando...' : 'Activar MFA'}
                 </button>
                 <button 
-                  onClick={() => setStep('qr')}
+                  type="button"
+                  onClick={() => irA('qr')}
                   className="secondary-button"
                   disabled={loading}
                 >
@@ -268,6 +271,15 @@ export default function MFASetupScreen() {
   return (
     <div className="mfa-setup-container">
       <div className="mfa-setup-card">
+        {step !== 'complete' && (
+          <ol className="mfa-pasos" aria-label="Progreso">
+            {['Inicio', 'Escanear QR', 'Verificar'].map((n, i) => (
+              <li key={n} className={i < PASOS[step] ? 'hecho' : i === PASOS[step] ? 'actual' : ''} aria-current={i === PASOS[step] ? 'step' : undefined}>
+                <span>{i + 1}</span>{n}
+              </li>
+            ))}
+          </ol>
+        )}
         {renderStep()}
         
         {success && (

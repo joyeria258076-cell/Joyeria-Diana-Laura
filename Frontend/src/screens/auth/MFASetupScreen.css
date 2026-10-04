@@ -191,3 +191,18 @@
     padding: 0.5rem;
     text-align: center;
 }
+
+/* ── Ajustes de acomodo (todos los roles) ── */
+body .mfa-setup-card .benefits { padding: 16px 18px 16px 20px !important; margin: 1rem 0 0; }
+body .mfa-setup-card .benefits h3 { margin: 0 0 8px; }
+body .mfa-setup-card .manual-setup { padding: 16px 18px 16px 20px !important; margin-top: 1rem; overflow-wrap: anywhere; }
+body .mfa-setup-card .action-buttons { flex-direction: column; gap: 10px; }
+body .mfa-setup-card .action-buttons > button { width: 100%; }
+body .mfa-setup-card .error-message { margin-top: 1rem; padding: 12px 16px; }
+.mfa-pasos { list-style: none; display: flex; gap: 8px; margin: 0 0 1.25rem; padding: 0; flex-wrap: wrap; }
+.mfa-pasos li { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--color-text-muted); }
+.mfa-pasos li + li::before { content: ''; width: 18px; height: 1px; background: var(--color-border); margin-right: 2px; }
+.mfa-pasos span { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 600; border: 1px solid var(--color-border); }
+.mfa-pasos li.actual { color: var(--color-text); font-weight: 600; }
+.mfa-pasos li.actual span { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); }
+.mfa-pasos li.hecho span { border-color: var(--color-primary); color: var(--color-primary); }
