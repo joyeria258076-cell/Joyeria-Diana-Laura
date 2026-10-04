@@ -121,3 +121,58 @@ html body .admin-skin .at-profile-btn { border-radius: 999px !important; }
   html body .admin-skin .at-profile-body { grid-template-columns: minmax(0, 1fr) !important; }
   html body .admin-skin .at-profile-tags { grid-column: 1 !important; grid-row: auto !important; justify-content: flex-start !important; }
 }
+
+/* ════════ Sin etiquetas en mayúsculas en todo el admin ════════ */
+html body .admin-skin :is(span, small, p, label, div, h4, h5, h6, th, a):not(code):not(.pr4-cupon) { text-transform: none !important; }
+html body .admin-skin :is([class*="eyebrow"], [class*="kicker"], [class*="overline"], [class*="-label"], [class*="-badge"], .ifo-cabeza, th) { letter-spacing: 0 !important; }
+html body .admin-skin :is(.cm-eyebrow, .np3-preview-eyebrow) { display: none !important; }
+
+/* ════════ FORMULARIOS (producto y proveedor): ficha de registro ════════ */
+html body .admin-skin :is(.np3-card, .np2-card, .ep3-card, .ep2-card) {
+  display: grid !important; grid-template-columns: 64px minmax(0, 1fr) !important; gap: 0 18px !important;
+  padding: 30px 0 !important; margin: 0 !important; overflow: visible !important;
+  background: none !important; border: 0 !important; border-top: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important;
+}
+html body .admin-skin :is(.np3-card, .np2-card, .ep3-card, .ep2-card):first-child { border-top: 2px solid var(--color-text) !important; }
+html body .admin-skin :is(.np3-card, .np2-card, .ep3-card, .ep2-card):focus-within { box-shadow: none !important; border-color: var(--color-border) !important; }
+html body .admin-skin :is(.np3-card-num, .np2-card-num, .ep3-card-num, .ep2-card-num) {
+  position: static !important; width: auto !important; height: auto !important; background: none !important; box-shadow: none !important; border: 0 !important; border-radius: 0 !important;
+  font-size: 46px !important; font-weight: 700 !important; letter-spacing: -0.06em !important; line-height: .9 !important; justify-content: flex-start !important; align-items: flex-start !important;
+  color: transparent !important; -webkit-text-stroke: 1.5px var(--color-primary-strong); transition: color .3s ease;
+}
+html body .admin-skin :is(.np3-card, .np2-card, .ep3-card, .ep2-card):focus-within :is(.np3-card-num, .np2-card-num, .ep3-card-num, .ep2-card-num) { color: var(--color-primary-strong) !important; }
+html body .admin-skin :is(.np3-card-body, .np2-card-body, .ep3-card-body, .ep2-card-body) { padding: 0 !important; }
+html body .admin-skin :is(.np3-card-body, .np2-card-body, .ep3-card-body, .ep2-card-body) > h3 {
+  margin: 4px 0 18px !important; padding: 0 !important; background: none !important; border: 0 !important;
+  font-size: 21px !important; letter-spacing: -0.03em !important;
+}
+html body .admin-skin :is(.np3-card-body, .np2-card-body, .ep3-card-body, .ep2-card-body) > h3 svg { display: none !important; }
+html body .admin-skin :is(.np3-card-body, .np2-card-body, .ep3-card-body, .ep2-card-body) :is(input, select, textarea) { border-radius: 14px !important; min-height: 48px; background: var(--color-surface) !important; }
+html body .admin-skin :is(.np3-card-body, .np2-card-body, .ep3-card-body, .ep2-card-body) textarea { min-height: 96px; }
+@media (max-width: 760px) {
+  html body .admin-skin :is(.np3-card, .np2-card, .ep3-card, .ep2-card) { grid-template-columns: minmax(0, 1fr) !important; gap: 6px !important; }
+  html body .admin-skin :is(.np3-card-num, .np2-card-num, .ep3-card-num, .ep2-card-num) { font-size: 34px !important; }
+}
+
+/* ════════ CONTENIDO: franja del editor y lista de secciones ════════ */
+html body .admin-skin .content-manager-title { font-family: var(--font-body) !important; font-size: clamp(34px, 4.2vw, 52px) !important; letter-spacing: -0.045em !important; background: none !important; -webkit-text-fill-color: currentColor !important; color: var(--color-text) !important; }
+html body .admin-skin .cm-destacado {
+  background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important; border-left: 4px solid var(--color-primary-strong) !important;
+  border-radius: 20px !important; box-shadow: none !important; overflow: hidden !important;
+}
+html body .admin-skin .cm-destacado::before, html body .admin-skin .cm-destacado::after { display: none !important; }
+html body .admin-skin .cm-destacado :is(h2, h3, strong, p, span) { color: var(--color-text) !important; }
+html body .admin-skin .cm-destacado p { color: var(--color-text-muted) !important; }
+html body .admin-skin .cm-destacado-icon { background: var(--color-surface-2) !important; color: var(--color-primary-strong) !important; }
+html body .admin-skin .cm-destacado-flecha { background: var(--color-primary-strong) !important; color: #fff !important; }
+html body .admin-skin .content-options-grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0 40px !important; border-top: 2px solid var(--color-text) !important; }
+html body .admin-skin .content-option-card {
+  display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; grid-template-areas: "titulo boton" "desc boton" !important; gap: 2px 16px !important; align-items: center !important;
+  padding: 18px 4px !important; background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; transform: none !important; text-align: left !important; min-height: 0 !important;
+}
+html body .admin-skin .content-option-card:hover { background: var(--color-surface-2) !important; }
+html body .admin-skin .content-option-card .option-icon { display: none !important; }
+html body .admin-skin .content-option-card .option-title { grid-area: titulo !important; margin: 0 !important; font-size: 16px !important; }
+html body .admin-skin .content-option-card .option-description { grid-area: desc !important; margin: 0 !important; font-size: 13.5px !important; color: var(--color-text-muted) !important; }
+html body .admin-skin .content-option-card .option-button { grid-area: boton !important; background: none !important; border: 0 !important; color: var(--color-primary-strong) !important; padding: 0 !important; box-shadow: none !important; }
+@media (max-width: 760px) { html body .admin-skin .content-options-grid { grid-template-columns: minmax(0, 1fr) !important; } }
