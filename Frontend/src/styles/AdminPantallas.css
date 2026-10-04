@@ -176,3 +176,48 @@ html body .admin-skin .content-option-card .option-title { grid-area: titulo !im
 html body .admin-skin .content-option-card .option-description { grid-area: desc !important; margin: 0 !important; font-size: 13.5px !important; color: var(--color-text-muted) !important; }
 html body .admin-skin .content-option-card .option-button { grid-area: boton !important; background: none !important; border: 0 !important; color: var(--color-primary-strong) !important; padding: 0 !important; box-shadow: none !important; }
 @media (max-width: 760px) { html body .admin-skin .content-options-grid { grid-template-columns: minmax(0, 1fr) !important; } }
+
+/* ════════ AUTOMATIZACIÓN: tareas como lista de filas ════════ */
+html body .admin-skin .automation-screen-container { background: none !important; }
+html body .admin-skin .automation-header { background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; padding: 6px 0 24px !important; }
+html body .admin-skin .automation-header .page-title { font-family: var(--font-body) !important; font-size: clamp(34px, 4.2vw, 52px) !important; letter-spacing: -0.045em !important; color: var(--color-text) !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
+html body .admin-skin .automation-header .page-title em { font-family: var(--font-accent) !important; font-style: italic !important; font-weight: 600 !important; color: var(--color-primary-strong) !important; }
+html body .admin-skin .automation-header :is(button, a) { border-radius: 999px !important; }
+html body .admin-skin .automation-stats-grid { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important; gap: 0 !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 24px !important; overflow: hidden !important; }
+html body .admin-skin .automation-stats-grid .stat-card { background: none !important; border: 0 !important; border-left: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; }
+html body .admin-skin .automation-stats-grid .stat-card:first-child { border-left: 0 !important; }
+html body .admin-skin :is(.filter-select, .form-select) { border-radius: 999px !important; }
+html body .admin-skin .tasks-grid { display: flex !important; flex-direction: column !important; gap: 0 !important; border-top: 2px solid var(--color-text) !important; }
+html body .admin-skin .task-card {
+  display: grid !important; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.4fr) auto !important; grid-template-areas: "cabeza cuerpo pie" !important; gap: 24px !important; align-items: center !important;
+  padding: 18px 6px !important; background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; transform: none !important;
+}
+html body .admin-skin .task-card:hover { background: var(--color-surface-2) !important; }
+html body .admin-skin .task-card.paused { opacity: .55 !important; }
+html body .admin-skin .task-header { grid-area: cabeza !important; margin: 0 !important; padding: 0 !important; border: 0 !important; }
+html body .admin-skin .task-body { grid-area: cuerpo !important; display: flex !important; flex-wrap: wrap !important; gap: 4px 18px !important; padding: 0 !important; margin: 0 !important; }
+html body .admin-skin .task-footer { grid-area: pie !important; border: 0 !important; padding: 0 !important; margin: 0 !important; gap: 6px !important; }
+html body .admin-skin :is(.task-icon, .schedule-icon, .task-config) { display: none !important; }
+html body .admin-skin .task-title :is(h3, h4) { margin: 0 !important; font-size: 16px !important; }
+html body .admin-skin .task-title p { margin: 2px 0 0 !important; font-size: 13px !important; color: var(--color-text-muted) !important; }
+html body .admin-skin .task-schedule { background: none !important; border: 0 !important; padding: 0 !important; margin: 0 !important; }
+html body .admin-skin .task-schedule .frequency { color: var(--color-primary-strong) !important; font-weight: 700 !important; }
+html body .admin-skin .task-meta { display: flex !important; flex-wrap: wrap !important; gap: 2px 16px !important; margin: 0 !important; }
+html body .admin-skin .meta-item { font-size: 12.5px !important; }
+html body .admin-skin .task-status .badge { border-radius: 999px !important; background: var(--color-surface-2) !important; color: var(--color-text) !important; border: 0 !important; }
+html body .admin-skin .task-footer button { border-radius: 999px !important; background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important; box-shadow: none !important; }
+html body .admin-skin .task-footer .btn-run { background: var(--color-primary-strong) !important; color: #fff !important; border-color: var(--color-primary-strong) !important; }
+@media (max-width: 900px) {
+  html body .admin-skin .task-card { grid-template-columns: minmax(0, 1fr) !important; grid-template-areas: "cabeza" "cuerpo" "pie" !important; gap: 10px !important; }
+}
+
+/* ════════ RESPALDOS: acciones sin fondo de color ════════ */
+html body .admin-skin :is(.bk2-action-card, .bk3-setting-tile) { background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 22px !important; box-shadow: none !important; }
+html body .admin-skin :is(.bk2-action-card, .bk3-setting-tile)::before, html body .admin-skin :is(.bk2-action-card, .bk3-setting-tile)::after { display: none !important; }
+html body .admin-skin :is(.bk2-action-icon, .bk3-setting-icon) { background: var(--color-surface-2) !important; color: var(--color-primary-strong) !important; box-shadow: none !important; }
+html body .admin-skin :is(.bk2-btn-primary, .bk3-spec-btn-primary) { background: var(--color-primary-strong) !important; background-image: none !important; border-radius: 999px !important; box-shadow: none !important; }
+html body .admin-skin .bk2-panel { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+html body .admin-skin .bk2-rail { background: var(--color-surface) !important; box-shadow: none !important; border: 1px solid var(--color-border) !important; }
+html body .admin-skin .task-status { position: static !important; margin-top: 6px !important; }
+html body .admin-skin .task-header { display: flex !important; flex-direction: column !important; align-items: flex-start !important; }
+html body .admin-skin .task-footer button { white-space: nowrap !important; }

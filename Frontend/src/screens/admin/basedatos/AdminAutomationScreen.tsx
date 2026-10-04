@@ -343,17 +343,17 @@ const AdminAutomationScreen: React.FC = () => {
       {/* Header */}
       <div className="automation-header">
         <div className="header-left">
-          <h1 className="page-title">Automatización de Tareas</h1>
+          <h1 className="page-title">Tareas <em>automáticas</em></h1>
           <p className="page-description">
             Programa y automatiza tareas de mantenimiento, respaldos y optimización de la base de datos
           </p>
         </div>
         <div className="header-actions">
           <button className="btn-primary" onClick={() => setShowNewTaskModal(true)}>
-            ➕ Nueva Tarea
+            ➕ Nueva tarea
           </button>
           <button className="btn-secondary" onClick={() => setShowLogsModal(true)}>
-            📋 Ver Logs
+            📋 Ver bitácora
           </button>
         </div>
       </div>
@@ -518,7 +518,7 @@ const AdminAutomationScreen: React.FC = () => {
         }}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{selectedTask ? 'Editar Tarea' : 'Nueva Tarea Automatizada'}</h2>
+              <h2>{selectedTask ? 'Editar Tarea' : 'Nueva tarea Automatizada'}</h2>
               <button 
                 className="btn-close" 
                 onClick={() => {
