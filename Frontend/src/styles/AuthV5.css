@@ -128,3 +128,24 @@ html body .av5-tapa:has(.av5-foto) h1 em { color: #fff !important; }
 
 /* En temas oscuros el fondo con resplandores viene de layout.css; aquí no se aplana */
 [data-theme]:not([data-theme="blanco_rosa"]) body :is(.login-container, .register-container, .olvide-contrasenia-container, .recuperar-pregunta-container, .reset-password-container, .mfa-verify-container, .wauth-wrapper) { background: transparent !important; }
+
+/* La foto se funde con el fondo hacia abajo y hacia el formulario (sin corte recto) */
+.av5-tapa:has(.av5-foto) {
+  -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%), linear-gradient(to right, #000 80%, transparent 100%);
+  -webkit-mask-composite: source-in;
+          mask-image: linear-gradient(to bottom, #000 72%, transparent 100%), linear-gradient(to right, #000 80%, transparent 100%);
+          mask-composite: intersect;
+  border-right: 0 !important;
+}
+.av5-tapa:has(.av5-foto) .av5-tapa-textos { margin-bottom: 8vh; }
+@media (max-width: 860px) {
+  .av5-tapa:has(.av5-foto) {
+    -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent 100%);
+            mask-image: linear-gradient(to bottom, #000 60%, transparent 100%);
+  }
+}
+.av5-tapa:has(.av5-foto) { justify-content: space-between !important; }
+.av5-tapa:has(.av5-foto) .av5-pie { order: -1; }
+.av5-tapa:has(.av5-foto) .av5-tapa-textos { margin-bottom: 26vh; }
+@media (max-width: 860px) { .av5-tapa:has(.av5-foto) .av5-tapa-textos { margin-bottom: 0; } }
+@media (max-width: 860px) { .av5-tapa:has(.av5-foto) { justify-content: flex-start !important; } }
