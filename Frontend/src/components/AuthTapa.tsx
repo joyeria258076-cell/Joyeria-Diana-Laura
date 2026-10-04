@@ -1,7 +1,7 @@
 // Ruta: src/components/AuthTapa.tsx
 // Panel de color sólido de las pantallas de acceso (la "tapa" del estuche):
-// logo, una frase con su palabra destacada y tres piezas reales del catálogo
-// colgando de su hilo, como las etiquetas del inicio.
+// logo, una frase con su palabra destacada y una vitrina circular que muestra
+// piezas reales del catálogo, una a la vez.
 import React, { useEffect, useState } from "react";
 import { productsAPI } from "../services/api";
 import "../styles/AuthV5.css";
@@ -17,6 +17,13 @@ let cache: Pieza[] | null = null;
 
 const AuthTapa: React.FC<Props> = ({ titulo, texto }) => {
   const [piezas, setPiezas] = useState<Pieza[]>(cache || []);
+  const [actual, setActual] = useState(0);
+
+  useEffect(() => {
+    if (piezas.length < 2) return;
+    const t = setInterval(() => setActual(a => (a + 1) % piezas.length), 4500);
+    return () => clearInterval(t);
+  }, [piezas.length]);
 
   useEffect(() => {
     if (cache) return;
@@ -26,7 +33,7 @@ const AuthTapa: React.FC<Props> = ({ titulo, texto }) => {
         const lista: any[] = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
         const con = lista
           .filter(p => p.imagen_principal && !String(p.nombre || '').includes('[DEMO]') && Number(p.stock_actual) > 0)
-          .slice(0, 3)
+          .slice(0, 5)
           .map(p => ({ id: p.id, nombre: p.nombre, imagen: p.imagen_principal, precio: Number(p.precio_oferta || p.precio_venta) }));
         cache = con;
         setPiezas(con);
@@ -37,13 +44,17 @@ const AuthTapa: React.FC<Props> = ({ titulo, texto }) => {
   return (
     <aside className="av5-tapa">
       {piezas.length > 0 && (
-        <div className="av5-piezas" aria-hidden="true">
-          {piezas.map((p, i) => (
-            <figure key={p.id} className={`av5-pieza av5-pieza--${i + 1}`}>
-              <img src={p.imagen} alt="" loading="lazy" />
-              <figcaption>${p.precio.toLocaleString('es-MX', { maximumFractionDigits: 0 })}</figcaption>
-            </figure>
-          ))}
+        <div className="av5-vitrina" aria-hidden="true">
+          <span className="av5-orbita" />
+          <div className="av5-cristal">
+            {piezas.map((p, i) => (
+              <img key={p.id} src={p.imagen} alt="" className={i === actual ? 'activa' : ''} />
+            ))}
+          </div>
+          <p className="av5-vitrina-dato">
+            <span>{piezas[actual].nombre}</span>
+            <strong>${piezas[actual].precio.toLocaleString('es-MX', { maximumFractionDigits: 0 })}</strong>
+          </p>
         </div>
       )}
 
