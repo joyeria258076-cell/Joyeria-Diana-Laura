@@ -105,6 +105,12 @@ const InicioPublicScreen: React.FC = () => {
   const [colecciones, setColecciones] = useState<any[]>([]);
   const [tickerIdx, setTickerIdx] = useState(0);
   const [tickerCerrado, setTickerCerrado] = useState(false);
+  // Las secciones debajo del carrusel esperan a que lleguen sus datos y se
+  // pintan juntas: si aparecían una por una iban empujando a las de abajo
+  // (salto de diseño / CLS en celular).
+  const [pendientes, setPendientes] = useState(4);
+  const listo = () => setPendientes(n => n - 1);
+  const datosListos = pendientes <= 0;
 
   // ── OBTENER DATOS DEL BACKEND ──
   // Las 5 llamadas son independientes entre sí, así que se disparan todas
@@ -157,7 +163,7 @@ const InicioPublicScreen: React.FC = () => {
         const promoRes = await promocionesAPI.getActivas();
         const lista = Array.isArray(promoRes) ? promoRes : (promoRes.data || []);
         setPromociones(lista);
-      } catch (e) { console.log("Sin promociones"); }
+      } catch (e) { console.log("Sin promociones"); } finally { listo(); }
     })();
 
     // 3. Productos Destacados (Últimos 4)
@@ -169,7 +175,7 @@ const InicioPublicScreen: React.FC = () => {
         else if (prodRes && Array.isArray(prodRes.data)) prods = prodRes.data;
 
         if (prods.length > 0) setProductosDestacados(prods);
-      } catch (e) { console.log("Error cargando productos"); }
+      } catch (e) { console.log("Error cargando productos"); } finally { listo(); }
     })();
 
     // 4. Colecciones
@@ -178,7 +184,7 @@ const InicioPublicScreen: React.FC = () => {
         const resCol = await coleccionesAPI.getPublicas();
         const cols = Array.isArray(resCol) ? resCol : (resCol.data || []);
         setColecciones(cols.filter((c: any) => c.productos?.length > 0));
-      } catch { /* sin colecciones */ }
+      } catch { /* sin colecciones */ } finally { listo(); }
     })();
 
     // 5. Noticias
@@ -191,8 +197,11 @@ const InicioPublicScreen: React.FC = () => {
         } else {
           setNoticiasHome(defaultNews);
         }
-      } catch (e) { setNoticiasHome(defaultNews); }
+      } catch (e) { setNoticiasHome(defaultNews); } finally { listo(); }
     })();
+    // Por si el servidor tarda demasiado, no dejar la página a medias
+    const t = setTimeout(() => setPendientes(0), 6000);
+    return () => clearTimeout(t);
   }, []);
 
   // ── INTERVALO DEL CARRUSEL ──
@@ -325,6 +334,8 @@ const InicioPublicScreen: React.FC = () => {
         {null}
       </Seccion>
 
+      {!datosListos && <div className="inicio-reserva" aria-hidden="true" style={{ minHeight: '100vh', order: 999 }} />}
+      {datosListos && (<>
       {/* ═══════════ COLECCIONES ═══════════ */}
       <Seccion id="inicio.colecciones" nombre="Colecciones">
       {colecciones.length > 0 && (
@@ -504,6 +515,7 @@ const InicioPublicScreen: React.FC = () => {
         </div>
       </section>
       </Seccion>
+      </>)}
       </main>
 
       <PublicFooter />
