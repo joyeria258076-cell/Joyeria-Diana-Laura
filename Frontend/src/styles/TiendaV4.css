@@ -256,3 +256,48 @@ body :is(.pdp-tabs-section, .pd-tabs-section, .pdp-resenas-section, .pd-resenas-
 body :is(.pdp-gallery, .pd-gallery, .pdp-info, .pd-info) { min-width: 0 !important; width: auto !important; max-width: 100% !important; }
 body :is(.pdp-image-frame, .pd-image-frame) { width: 100% !important; box-sizing: border-box; }
 @media (max-width: 900px) { body :is(.pdp-cantidad-wrap, .pd-cantidad-wrap) { display: flex !important; justify-content: space-between; align-items: center; } }
+
+/* ════════ CONTACTO v5: invitación a WhatsApp en color + ficha de datos ════════ */
+body .ct5 { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: clamp(16px, 2.4vw, 28px); align-items: stretch; max-width: 1200px; margin: 0 auto; }
+body .ct5 > * { min-width: 0; }
+body .ct5-wa {
+  display: flex !important; flex-direction: column !important; justify-content: space-between; gap: 28px; height: 100%; box-sizing: border-box;
+  padding: clamp(28px, 4vw, 52px) !important; border-radius: 34px !important; border: 0 !important; position: relative; overflow: hidden;
+  background: linear-gradient(140deg, var(--color-primary-strong), color-mix(in srgb, var(--color-primary-strong) 70%, var(--color-accent))) !important;
+  color: var(--color-on-primary) !important; box-shadow: 0 30px 60px -34px var(--color-primary-strong) !important;
+}
+body .ct5-wa::after { content: ''; position: absolute; width: 360px; height: 360px; right: -130px; bottom: -170px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--color-on-primary) 25%, transparent); pointer-events: none; }
+body .ct5-wa-titulo { margin: 0 0 14px; font-size: clamp(2rem, 4vw, 3.4rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1; color: inherit; }
+body .ct5-wa-titulo span { font-family: var(--font-accent); font-style: italic; font-weight: 500; }
+body .ct5-wa .sx-card-text { color: inherit !important; opacity: .9; font-size: 15.5px; max-width: 44ch; }
+body .ct5-wa .sx-feature-actions { display: flex; flex-wrap: wrap; gap: 10px; position: relative; z-index: 1; }
+body .ct5-wa .sx-btn:not(.sx-btn--ghost) { background: var(--color-on-primary) !important; color: var(--color-primary-strong) !important; box-shadow: none !important; }
+body .ct5-wa .sx-btn--ghost { background: transparent !important; color: inherit !important; border: 1.5px solid color-mix(in srgb, var(--color-on-primary) 50%, transparent) !important; }
+body .ct5-ficha { list-style: none; margin: 0; padding: 8px 24px; height: 100%; box-sizing: border-box; border-radius: 34px; background: var(--color-surface); border: 1px solid var(--color-border); display: flex; flex-direction: column; justify-content: center; }
+body .ct5-ficha li { display: flex; align-items: flex-start; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--color-border); }
+body .ct5-ficha li:last-child { border-bottom: 0; }
+body .ct5-icono { width: 42px; height: 42px; flex-shrink: 0; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--color-primary) 14%, transparent); color: var(--color-primary-strong); }
+body .ct5-dato { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+body .ct5-dato small { font-size: 12.5px; font-weight: 700; color: var(--color-text-muted); }
+body .ct5-dato span { font-size: 15.5px; font-weight: 600; color: var(--color-text); overflow-wrap: anywhere; }
+body .ct5-siguenos { font-size: 14px; font-weight: 700; color: var(--color-text-muted); margin: 0 0 10px; }
+@media (max-width: 900px) { body .ct5 { grid-template-columns: 1fr; } }
+
+/* ════════ UBICACIÓN v5: mapa grande + ficha de la sucursal sin cajas sueltas ════════ */
+body .sx-layout-aside { display: grid !important; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) !important; gap: clamp(16px, 2.4vw, 28px) !important; max-width: 1200px; margin: 0 auto; align-items: stretch !important; }
+body .sx-layout-aside > :first-child { min-height: clamp(360px, 55vh, 560px); border-radius: 34px !important; overflow: hidden; box-shadow: 0 30px 60px -34px rgba(0,0,0,.5) !important; }
+body .sx-layout-aside > :first-child iframe { width: 100%; height: 100%; min-height: inherit; border: 0; display: block; }
+body .sx-layout-aside > :last-child { display: flex; flex-direction: column; gap: 0 !important; border-radius: 34px; background: var(--color-surface); border: 1px solid var(--color-border); padding: 8px 24px; }
+body .sx-layout-aside > :last-child .sx-card { background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-border) !important; border-radius: 0 !important; box-shadow: none !important; padding: 20px 0 !important; text-align: left !important; }
+body .sx-layout-aside > :last-child .sx-card:last-child { border-bottom: 0 !important; }
+body .sx-layout-aside .sx-icon { width: 42px !important; height: 42px !important; border-radius: 14px !important; margin-bottom: 10px !important; }
+body .sx-layout-aside .sx-card-title { font-size: 17px !important; font-weight: 700 !important; letter-spacing: -0.02em; }
+body .sx-layout-aside .sx-btn { margin-top: 12px; }
+@media (max-width: 900px) { body .sx-layout-aside { grid-template-columns: 1fr !important; } }
+
+/* Blog: la nota principal ocupa todo el ancho cuando no hay más notas a un lado */
+body .noticias-top-row:has(> .noticia-item--featured:only-child) { grid-template-columns: 1fr !important; }
+html[data-theme] body .ct5 .ct5-wa, html body .ct5 .ct5-wa { background: linear-gradient(140deg, var(--color-primary-strong), color-mix(in srgb, var(--color-primary-strong) 70%, var(--color-accent))) !important; color: var(--color-on-primary) !important; }
+html body .ct5 .ct5-wa :is(h2, p, span) { color: var(--color-on-primary) !important; }
+body .ct5-dato a { color: var(--color-text) !important; text-decoration: none; }
+body .ct5-dato a:hover { color: var(--color-primary-strong) !important; }

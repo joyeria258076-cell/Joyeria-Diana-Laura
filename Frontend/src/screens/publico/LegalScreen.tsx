@@ -181,7 +181,7 @@ const LegalScreen: React.FC<{ privado?: boolean }> = ({ privado = false }) => {
           <div className="legal-hero-deco" />
           <div className="legal-hero-inner">
             <span className="legal-hero-eyebrow">
-              {pageName === 'terminos' ? '📋 Marco Legal' : '🔒 Privacidad'}
+              {pageName === 'terminos' ? 'Marco Legal' : 'Privacidad'}
             </span>
             <h1 className="legal-hero-title">{titulo}</h1>
             <p className="legal-hero-sub">Joyería Diana Laura · Joyería y Bisutería</p>
@@ -194,11 +194,11 @@ const LegalScreen: React.FC<{ privado?: boolean }> = ({ privado = false }) => {
             <button
               className={`legal-tab ${pageName === 'terminos' ? 'active' : ''}`}
               onClick={() => navigate(`${base}/terminos`)}
-            >📋 Términos y Condiciones</button>
+            >Términos y Condiciones</button>
             <button
               className={`legal-tab ${pageName === 'privacidad' ? 'active' : ''}`}
               onClick={() => navigate(`${base}/privacidad`)}
-            >🔒 Aviso de Privacidad</button>
+            >Aviso de Privacidad</button>
           </div>
         </div>
 
@@ -209,7 +209,7 @@ const LegalScreen: React.FC<{ privado?: boolean }> = ({ privado = false }) => {
           ) : sinContenido ? (
             <article className="legal-article legal-article--empty">
               <div className="legal-empty">
-                <span className="legal-empty-icon">📄</span>
+                <span className="legal-empty-icon"></span>
                 <h3 className="legal-empty-title">Sin información disponible</h3>
                 <p className="legal-empty-sub">Este documento aún no ha sido publicado. Vuelve pronto.</p>
               </div>
@@ -223,25 +223,25 @@ const LegalScreen: React.FC<{ privado?: boolean }> = ({ privado = false }) => {
           {/* Info de contacto */}
           <aside className="legal-aside">
             <div className="legal-aside-card">
-              <div className="legal-aside-icon">💬</div>
+              <div className="legal-aside-icon"></div>
               <h4>¿Tienes preguntas?</h4>
               <p>Contáctanos por cualquiera de nuestros canales oficiales.</p>
               <div className="legal-aside-links">
                 <a href="https://wa.me/527713321421" className="legal-aside-link">
-                  📱 WhatsApp: 7713321421
+                  WhatsApp: 7713321421
                 </a>
                 <a href="mailto:dianalaura5861@gmail.com" className="legal-aside-link">
-                  ✉️ dianalaura5861@gmail.com
+                  dianalaura5861@gmail.com
                 </a>
               </div>
             </div>
             <div className="legal-aside-card legal-aside-card--nav">
               <h4>Documentos legales</h4>
               <button className={`legal-aside-nav ${pageName === 'terminos' ? 'active' : ''}`} onClick={() => navigate(`${base}/terminos`)}>
-                📋 Términos y Condiciones
+                Términos y Condiciones
               </button>
               <button className={`legal-aside-nav ${pageName === 'privacidad' ? 'active' : ''}`} onClick={() => navigate(`${base}/privacidad`)}>
-                🔒 Aviso de Privacidad
+                Aviso de Privacidad
               </button>
             </div>
           </aside>

@@ -60,11 +60,11 @@ const ContactoContenido: React.FC<{ privado?: boolean }> = ({ privado = false })
         </p>
       </header>
 
+      <div className="ct5">
       <Seccion id="contacto.whatsapp" nombre="Bloque de WhatsApp">
-      <section className="sx-feature">
+      <section className="sx-feature ct5-wa">
         <div>
-          <div className="sx-eyebrow" style={{ justifyContent: "flex-start" }}>Atención directa</div>
-          <h2 className="sx-title" style={{ fontSize: "clamp(1.7rem, 3vw, 2.3rem)" }}>
+          <h2 className="ct5-wa-titulo">
             Te atendemos por <span>WhatsApp</span>
           </h2>
           <p className="sx-card-text">
@@ -89,22 +89,23 @@ const ContactoContenido: React.FC<{ privado?: boolean }> = ({ privado = false })
 
       <Seccion id="contacto.datos" nombre="Tarjetas de contacto">
       {tarjetas.length > 0 && (
-        <div className="sx-grid">
+        <ul className="ct5-ficha">
           {tarjetas.map(t => (
-            <div className="sx-card sx-card--center" key={t.titulo}>
-              <div className="sx-icon">{t.icon}</div>
-              <h3 className="sx-card-title">{t.titulo}</h3>
-              <p className="sx-card-text">{t.texto}</p>
-            </div>
+            <li key={t.titulo}>
+              <span className="ct5-icono">{t.icon}</span>
+              <span className="ct5-dato"><small>{t.titulo}</small><span>{t.texto}</span></span>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
       </Seccion>
+
+      </div>
 
       <Seccion id="contacto.redes" nombre="Redes sociales">
       {redes.length > 0 && (
         <div style={{ marginTop: "3rem", textAlign: "center" }}>
-          <div className="sx-eyebrow">Síguenos</div>
+          <p className="ct5-siguenos">Síguenos</p>
           <div className="sx-socials">
             {redes.map(r => (
               <a key={r.label} className="sx-social" href={r.url!} target="_blank" rel="noopener noreferrer" aria-label={r.label}>
