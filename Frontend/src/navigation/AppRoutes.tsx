@@ -126,15 +126,9 @@ const NotificacionesScreen = lazy(() => import("../screens/cliente/Notificacione
 const MisFavoritosScreen = lazy(() => import("../screens/cliente/MisFavoritosScreen"));
 const ProductoDetalleScreen = lazy(() => import("../screens/cliente/ProductoDetalleScreen"));
 
-const PantallaCargando = () => (
-  <div style={{
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    height: '100vh', fontSize: '1.5rem', fontWeight: 'bold',
-    backgroundColor: '#0f0f12', color: '#ecb2c3'
-  }}>
-    ⏳ Cargando...
-  </div>
-);
+// Mientras llega el código de una pantalla: solo una barrita fina arriba
+// (aparece tras un instante; si la carga es rápida no se ve nada).
+const PantallaCargando = () => <div className="dl-barra-carga" role="progressbar" aria-label="Cargando" />;
 
 // --- COMPONENTES DE PROTECCIÓN ---
 

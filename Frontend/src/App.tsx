@@ -2,6 +2,7 @@
 
 import React from 'react';
 import './App.css';
+import './components/Loader.css';
 import './styles/TiendaV4.css';
 import './styles/CuentaV5.css';
 import AppRoutes from './navigation/AppRoutes';

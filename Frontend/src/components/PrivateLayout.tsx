@@ -1,5 +1,5 @@
 // Ruta: src/components/PrivateLayout.tsx
-import React from "react";
+import React, { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import HeaderPrivado from "./HeaderPrivado";
 import FooterPrivado from "./FooterPrivado"; 
@@ -24,7 +24,10 @@ export const PrivateLayout: React.FC = () => {
       {/* 2. Este va a la Columna 2, Fila 2 (Contenido) */}
       <main className={`content-area${esAdmin ? " admin-skin" : ""}${esTrabajador ? " trabajador-skin" : ""}`}>
         <div className="page-container">
-            <Outlet /> 
+            {/* El menú y el encabezado se quedan; solo el contenido espera su código */}
+            <Suspense fallback={<div className="dl-barra-carga" role="progressbar" aria-label="Cargando" />}>
+              <Outlet />
+            </Suspense>
         </div>
         <FooterPrivado /> 
       </main>
