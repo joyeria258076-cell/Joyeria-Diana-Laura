@@ -102,3 +102,19 @@ body :is(.rel-card, .pd-rel-card) { background: transparent !important; border: 
 body .rel-imagen { border-radius: 22px !important; overflow: hidden; aspect-ratio: 1; box-shadow: 0 18px 36px -24px rgba(0,0,0,.55); }
 body .rel-nombre { font-weight: 600 !important; }
 body .rel-final { color: var(--color-primary-strong) !important; font-weight: 700 !important; }
+
+/* ════════ PÁGINAS DE CONTENIDO Y CUENTA (blog, contacto, ubicación, ayuda, legal, sobre nosotros, carrito, pedidos…) ════════ */
+body .sx-eyebrow { display: none !important; }
+body .sx-title {
+  font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: -0.04em !important; line-height: 0.98 !important;
+  font-size: clamp(2.4rem, 5.4vw, 4.6rem) !important; color: var(--color-text) !important; text-wrap: balance;
+}
+body .sx-title :is(span, em) { font-family: var(--font-accent); font-style: italic; font-weight: 500; letter-spacing: -0.02em; color: var(--color-primary-strong) !important; -webkit-text-fill-color: currentColor; background: none !important; }
+body .sx-subtitle { font-size: clamp(15px, 1.2vw, 17px) !important; line-height: 1.6 !important; color: var(--color-text-muted) !important; max-width: 56ch; }
+body :is(.sx-card, .sx-feature) {
+  border-radius: 28px !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important;
+  box-shadow: 0 20px 44px -32px rgba(0,0,0,.5) !important;
+}
+body :is(.sx-btn, .btn-primary):not(:disabled) { border-radius: 999px !important; }
+body .sx-btn:not(.sx-btn--ghost):not(:disabled) { background: var(--color-primary-strong) !important; color: var(--color-on-primary) !important; box-shadow: 0 14px 30px -16px var(--color-primary-strong) !important; }
+body ::selection { background: color-mix(in srgb, var(--color-primary) 32%, transparent); }
