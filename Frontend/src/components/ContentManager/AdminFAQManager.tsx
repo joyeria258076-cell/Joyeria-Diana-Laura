@@ -4,6 +4,7 @@ import AdminHero from '../AdminHero';
 import { AiOutlineQuestionCircle, AiOutlinePlus, AiOutlineSearch, AiOutlineEdit, AiOutlineDelete, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineDown, AiOutlineCheckCircle } from 'react-icons/ai';
 import '../../styles/SitioSecciones.css';
 import './AdminFAQManager.css';
+import Loader from '../Loader';
 
 interface FAQ {
   id: number;
@@ -130,7 +131,7 @@ const AdminFAQManager: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="av-vacio">Cargando preguntas frecuentes...</div>
+        <Loader texto="Cargando preguntas frecuentes..." />
       ) : faqs.length === 0 ? (
         <div className="av-vacio">
           <AiOutlineQuestionCircle size={40} />

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { importAPI, templateAPI } from '../../../services/api';
 import './AdminSimpleImportScreen.css';
 import AdminHero from '../../../components/AdminHero';
+import Loader from '../../../components/Loader';
 import {
   AiOutlineCloudUpload, AiOutlineDownload, AiOutlineEye, AiOutlineFileExcel,
   AiOutlineCheckCircle, AiOutlineWarning, AiOutlineDatabase, AiOutlineInbox,
@@ -224,7 +225,7 @@ const AdminSimpleImportScreen: React.FC = () => {
             <div className="si2-card-body">
               <span className="si2-card-title">Selecciona la tabla destino</span>
               {loadingTables ? (
-                <div className="loading-tables">Cargando tablas...</div>
+                <Loader texto="Cargando tablas..." />
               ) : (
                 <select value={selectedTable} onChange={handleTableChange} disabled={loading || importing}>
                   <option value="">Seleccionar tabla</option>

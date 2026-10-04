@@ -670,7 +670,7 @@ const AdminMonitoreoScreen: React.FC = () => {
       {/* ═══ TAB 5: BASE DE DATOS ═══ */}
       {tab==='database' && (
         <>
-          {!dbStats ? <div className="estado-carga"><span className="spinner"/> Cargando estadísticas…</div> : (
+          {!dbStats ? <Loader texto="Cargando estadísticas…" /> : (
             <>
               <div className="db-salud-grid">
                 <div className="db-salud-card">

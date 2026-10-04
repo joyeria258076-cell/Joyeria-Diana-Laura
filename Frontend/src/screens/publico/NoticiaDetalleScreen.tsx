@@ -6,6 +6,7 @@ import { contentAPI, comentarioNoticiaAPI } from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
 import "./NoticiasScreen.css";
 import "./NoticiaDetalleScreen.css";
+import Loader from '../../components/Loader';
 
 interface Comentario {
   id: number;
@@ -93,7 +94,7 @@ const NoticiaDetalleScreen: React.FC<{ privado?: boolean }> = ({ privado = false
         {!privado && <PublicHeader />}
         <div className="noticias-loading">
           <div className="dl-loader-bars"><span /><span /><span /><span /></div>
-          <p className="loading-text">Cargando artículo...</p>
+          <Loader texto="Cargando artículo..." />
         </div>
         {!privado && <PublicFooter />}
       </div>

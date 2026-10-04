@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { paginasAPI } from '../../../services/api';
 import './AdminPageManagementScreen.css';
+import Loader from '../../../components/Loader';
 
 interface Pagina {
   id: number;
@@ -293,7 +294,7 @@ const AdminPageManagementScreen: React.FC = () => {
           <h3 className="pages-list-title">Páginas Disponibles</h3>
 
           {loading ? (
-            <div className="loading-message">Cargando páginas...</div>
+            <Loader texto="Cargando páginas..." />
           ) : paginas.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">📭</div>

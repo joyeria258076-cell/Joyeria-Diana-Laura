@@ -6,6 +6,7 @@ import './CatalogoScreen.css';
 import './CatalogoApp.css';
 import { productsAPI, promocionesAPI, favoritosAPI } from '../../services/api';
 import DetalleProductoModal from '../publico/DetalleProductoModal';
+import Loader from '../../components/Loader';
 
 interface Producto {
     id: number;
@@ -412,7 +413,7 @@ const CatalogoScreen: React.FC = () => {
 
     // --- RENDERIZADO ---
     if (loading) {
-        return <div className="loading-screen">Cargando joyas exclusivas...</div>;
+        return <Loader texto="Cargando joyas exclusivas..." />;
     }
 
     return (

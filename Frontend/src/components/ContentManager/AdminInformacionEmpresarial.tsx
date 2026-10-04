@@ -7,6 +7,7 @@ import { contentAPI, uploadAPI } from '../../services/api';
 
 import '../../styles/SitioSecciones.css';
 import '../../styles/AdminContenido.css';
+import Loader from '../Loader';
 interface InfoEmpresa {
     nombre: string;
     descripcion: string;
@@ -111,7 +112,7 @@ const AdminInformacionEmpresarial: React.FC = () => {
     };
 
     if (loading) {
-        return <div className="content-page acf"><p>Cargando información empresarial...</p></div>;
+        return <div className="content-page acf"><Loader texto="Cargando información empresarial..." /></div>;
     }
 
     return (

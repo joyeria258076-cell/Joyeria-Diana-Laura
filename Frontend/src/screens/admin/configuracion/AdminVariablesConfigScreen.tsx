@@ -488,7 +488,7 @@ const AdminVariablesConfigScreen: React.FC = () => {
           </p>
 
           {loadingPlanes ? (
-            <div className="planes-loading">Cargando planes...</div>
+            <Loader texto="Cargando planes..." />
           ) : planes.length === 0 ? (
             <div className="planes-vacio">
               No hay planes de abono. Crea el primero con el botón de arriba.

@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { profileAPI, solicitudesAPI, workerAuthAPI, workersAPI, uploadAPI } from '../../services/api';
 import './AdminPerfilScreen.css';
 import './AdminPerfilApp.css';
+import Loader from '../../components/Loader';
 
 export default function AdminPerfilScreen() {
   const { user, refreshUserName, refreshUserFoto } = useAuth();
@@ -204,7 +205,7 @@ export default function AdminPerfilScreen() {
         <div className="apf-card">
           <h2 className="apf-card-title">Datos personales</h2>
           <p className="apf-card-sub">El email no se puede cambiar.</p>
-          {loadingP ? <p className="apf-loading">Cargando...</p> : (
+          {loadingP ? <Loader texto="Cargando..." /> : (
             <div className="apf-form">
               <div className="apf-field">
                 <label>Nombre completo</label>
@@ -369,7 +370,7 @@ export default function AdminPerfilScreen() {
         </div>
 
         {loadingS ? (
-          <p className="apf-loading">Cargando solicitudes...</p>
+          <Loader texto="Cargando solicitudes..." />
         ) : solicitudes.length === 0 ? (
           <p className="apf-empty">No hay solicitudes registradas.</p>
         ) : solicitudesFiltradas.length === 0 ? (

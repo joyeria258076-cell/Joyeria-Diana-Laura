@@ -6,6 +6,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineDesktop, AiOutlineReload 
 import SelectorTema from "../../components/SelectorTema";
 import "./PerfilScreen.css";
 import "./PerfilApp.css";
+import Loader from '../../components/Loader';
 
 interface SesionActiva {
   id: number;
@@ -348,7 +349,7 @@ export default function PerfilScreen() {
               <p className="pf-section-sub">Puedes editar tu nombre y teléfono. El email no se puede cambiar.</p>
 
               {loadingPerfil ? (
-                <p className="pf-loading">Cargando datos...</p>
+                <Loader texto="Cargando datos..." />
               ) : (
                 <div className="pf-form">
                   <div className="pf-field">
@@ -582,7 +583,7 @@ export default function PerfilScreen() {
           </div>
 
           {cargandoSes ? (
-            <p className="pf-loading">Cargando sesiones...</p>
+            <Loader texto="Cargando sesiones..." />
           ) : sesiones.length === 0 ? (
             <p className="pf-empty">No hay sesiones activas.</p>
           ) : (

@@ -16,6 +16,7 @@ import {
 } from 'react-icons/ai';
 import './AdminDashboardScreen.css';
 import './DashboardAdminApp.css';
+import Loader from '../../components/Loader';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
 
@@ -173,7 +174,7 @@ const AdminDashboardScreen: React.FC = () => {
                         <h3><AiOutlineTrophy size={17} /> Lo más vendido</h3>
                         <button onClick={() => navigate('/admin-reportes')}>Ver reportes</button>
                     </div>
-                    {loadingR ? <p className="da-vacio">Cargando…</p> : productos?.top?.length ? (
+                    {loadingR ? <Loader texto="Cargando…" /> : productos?.top?.length ? (
                         <ol className="da-ranking">
                             {productos.top.map((p: any, i: number) => (
                                 <li key={p.producto_id}>
@@ -190,7 +191,7 @@ const AdminDashboardScreen: React.FC = () => {
                         <h3><AiOutlinePieChart size={17} /> Pedidos por estado</h3>
                         <button onClick={() => navigate('/admin/monitoreo-operacion')}>Monitorear</button>
                     </div>
-                    {loadingR ? <p className="da-vacio">Cargando…</p> : porEstado.length ? (
+                    {loadingR ? <Loader texto="Cargando…" /> : porEstado.length ? (
                         <div className="da-estados">
                             {porEstado.map((e: any) => (
                                 <div key={e.estado} className="da-estado">

@@ -7,6 +7,7 @@ import AuthTapa from '../../components/AuthTapa';
 import { AiOutlineLock, AiOutlineCheckCircle, AiOutlineReload, AiOutlineArrowLeft, AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import './RecuperarConPreguntaScreen.css';
 import './AuthExtraApp.css';
+import Loader from '../../components/Loader';
 
 const RecuperarConPreguntaScreen: React.FC = () => {
     const navigate = useNavigate();
@@ -231,7 +232,7 @@ const RecuperarConPreguntaScreen: React.FC = () => {
                 <AuthTapa titulo={<>Solo tú sabes la <em>respuesta</em>.</>} texto="Contesta tu pregunta secreta y elige una contraseña nueva." />
                 <div className="recuperar-pregunta-card">
                     <div className="loading-message">
-                        <p>Cargando pregunta secreta...</p>
+                        <Loader texto="Cargando pregunta secreta..." />
                     </div>
                 </div>
             </div>

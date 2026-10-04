@@ -287,7 +287,7 @@ const AdminColeccionesScreen: React.FC = () => {
           {/* Panel de detalle */}
           <div className="ac2-detalle">
             {loadingDetalle ? (
-              <div className="ac2-detalle-loading">Cargando colección...</div>
+              <Loader texto="Cargando colección..." />
             ) : detalleSeleccionada ? (
               <>
                 <div className="ac2-detalle-hero">

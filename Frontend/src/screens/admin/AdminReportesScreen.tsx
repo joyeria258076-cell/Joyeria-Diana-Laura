@@ -12,6 +12,7 @@ import {
 import { reportesAPI, visitaSitioAPI } from '../../services/api';
 import './AdminReportesScreen.css';
 import AdminHero from '../../components/AdminHero';
+import Loader from '../../components/Loader';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
 
@@ -148,7 +149,7 @@ const AdminReportesScreen: React.FC = () => {
         </nav>
 
         <div className="rp-panel">
-          {loading && <div className="rp-loading">Cargando reporte...</div>}
+          {loading && <Loader texto="Cargando reporte..." />}
 
           {!loading && tab === 'ventas' && ventas && (
             <div className="rp-tabpage">

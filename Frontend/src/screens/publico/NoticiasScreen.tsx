@@ -5,6 +5,7 @@ import PublicFooter from "../../components/PublicFooter";
 import { contentAPI } from "../../services/api";
 import "./NoticiasScreen.css";
 import "../../styles/SitioSecciones.css";
+import Loader from '../../components/Loader';
 
 // privado = versión dentro del layout con sesión (ruta /blog), sin header/footer públicos
 const NoticiasScreen: React.FC<{ privado?: boolean }> = ({ privado = false }) => {
@@ -69,7 +70,7 @@ const NoticiasScreen: React.FC<{ privado?: boolean }> = ({ privado = false }) =>
           {loading && (
             <div className="noticias-loading">
               <div className="dl-loader-bars"><span /><span /><span /><span /></div>
-              <p className="loading-text">Cargando novedades...</p>
+              <Loader texto="Cargando novedades..." />
             </div>
           )}
 

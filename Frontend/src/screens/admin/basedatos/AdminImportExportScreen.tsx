@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { importAPI, templateAPI } from '../../../services/api';
 import './styles/AdminImportExportScreen.css';
+import Loader from '../../../components/Loader';
 
 interface TableInfo {
   name: string;
@@ -235,7 +236,7 @@ const AdminImportExportScreen: React.FC = () => {
                   </option>
                 ))}
               </select>
-              {loading && <p className="loading-text">Cargando tablas...</p>}
+              {loading && <Loader texto="Cargando tablas..." />}
               {!loading && availableTables.length === 0 && (
                 <p className="error-text">No se encontraron tablas disponibles</p>
               )}
@@ -345,7 +346,7 @@ const AdminImportExportScreen: React.FC = () => {
                   </option>
                 ))}
               </select>
-              {loading && <p className="loading-text">Cargando tablas...</p>}
+              {loading && <Loader texto="Cargando tablas..." />}
             </div>
 
             {exportTable && (

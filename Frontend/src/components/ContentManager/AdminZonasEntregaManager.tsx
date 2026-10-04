@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { zonaEntregaAPI } from '../../services/api';
 import './AdminFAQManager.css';
+import Loader from '../Loader';
 
 interface ZonaEntrega {
   id: number;
@@ -90,7 +91,7 @@ const AdminZonasEntregaManager: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="faq-admin-loading">Cargando zonas de entrega...</div>
+        <Loader texto="Cargando zonas de entrega..." />
       ) : zonas.length === 0 ? (
         <div className="faq-admin-empty">
           <p>No hay zonas de entrega registradas aún.</p>

@@ -3,6 +3,7 @@ import { paginasAPI, seccionesAPI } from '../../../services/api';
 import { AiOutlineEdit, AiOutlineDelete, AiOutlineLayout, AiOutlinePicture, AiOutlineEye } from 'react-icons/ai';
 import './AdminSectionManagementScreen.css';
 import './GestionSeccionesApp.css';
+import Loader from '../../../components/Loader';
 
 interface Pagina {
   id: number;
@@ -266,7 +267,7 @@ const AdminSectionManagementScreen: React.FC = () => {
             <div className="gsec-card">
               <h3 className="gsec-card-titulo">Secciones de {paginaActual?.nombre} <span className="gsec-contador">{secciones.length}</span></h3>
               {loading ? (
-                <p className="gsec-nota">Cargando secciones…</p>
+                <Loader texto="Cargando secciones…" />
               ) : secciones.length === 0 ? (
                 <p className="gsec-nota">Aún no hay secciones. Crea la primera con el formulario.</p>
               ) : (

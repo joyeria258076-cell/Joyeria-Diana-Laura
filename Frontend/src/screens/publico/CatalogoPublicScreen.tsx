@@ -8,6 +8,7 @@ import DetalleProductoModal from "./DetalleProductoModal";
 import { productsAPI, promocionesAPI, favoritosAPI } from "../../services/api";
 import "./CatalogoPublicScreen.css";
 import "../cliente/CatalogoApp.css";
+import Loader from '../../components/Loader';
 
 const estaLogueado = (): boolean => {
   try {
@@ -439,7 +440,7 @@ const CatalogoPublicScreen: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="loading-screen">Cargando joyas exclusivas...</div>
+        <Loader texto="Cargando joyas exclusivas..." />
       ) : (
       <main className="catalogo-body" style={promociones.length > 0 && !tickerCerrado ? { paddingTop: '36px' } : {}}>
         <div className="catalogo-encabezado cv5-cabeza">

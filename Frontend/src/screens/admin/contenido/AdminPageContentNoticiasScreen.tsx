@@ -6,6 +6,7 @@ import '../../../styles/SitioSecciones.css';
 import './AdminPageContentNoticiasScreen.css';
 import AdminHero from '../../../components/AdminHero';
 import { AiOutlineRead, AiOutlinePlus, AiOutlineEdit, AiOutlineDelete, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineCheckCircle, AiOutlineCalendar, AiOutlinePicture } from 'react-icons/ai';
+import Loader from '../../../components/Loader';
 
 interface Noticia {
   id: number;
@@ -197,7 +198,7 @@ const AdminPageContentNoticiasScreen: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="av-vacio">Cargando novedades...</div>
+        <Loader texto="Cargando novedades..." />
       ) : noticias.length === 0 ? (
         <div className="av-vacio">
           <AiOutlineRead size={40} />

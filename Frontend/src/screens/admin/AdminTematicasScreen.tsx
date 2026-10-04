@@ -13,6 +13,7 @@ import { ICONO_DECORACION } from '../../components/SelectorTema';
 import './AdminTematicasScreen.css';
 import { AiOutlineGift } from 'react-icons/ai';
 import AdminHero from '../../components/AdminHero';
+import Loader from '../../components/Loader';
 
 type Form = Omit<TemaTemporada, 'id' | 'clave'> & { id?: number; clave?: string };
 
@@ -194,7 +195,7 @@ const AdminTematicasScreen: React.FC = () => {
       {aviso && <div className={`tm-aviso tm-aviso--${aviso.tipo}`} role="status">{aviso.texto}</div>}
 
       {cargando ? (
-        <p className="tm-nota">Cargando temáticas…</p>
+        <Loader texto="Cargando temáticas…" />
       ) : temas.length === 0 ? (
         <div className="tm-vacio"><p>Aún no hay temáticas. Crea la primera con “Nueva temática”.</p></div>
       ) : (

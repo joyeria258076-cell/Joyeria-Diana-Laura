@@ -9,6 +9,7 @@ import {
     AiOutlineArrowRight, AiOutlineHistory, AiOutlineLock, AiOutlineExclamationCircle,
 } from "react-icons/ai";
 import "./ActividadesTrabajadorScreen.css";
+import Loader from '../../components/Loader';
 
 export default function ActividadesTrabajadorScreen() {
     const { user } = useAuth();
@@ -63,7 +64,7 @@ export default function ActividadesTrabajadorScreen() {
 
                 <div className="activity-details-box">
                     {pendientes === null ? (
-                        <p><AiOutlineLoading3Quarters size={14} className="actividades-spin" /> Cargando pedidos...</p>
+                        <Loader texto="Cargando pedidos..." />
                     ) : pendientes === 0 ? (
                         <p><AiOutlineCheckCircle size={14} className="actividades-icon-ok" /> <strong>¡Al día!</strong> No hay pedidos pendientes en este momento.</p>
                     ) : (

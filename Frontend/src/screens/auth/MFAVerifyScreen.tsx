@@ -6,6 +6,7 @@ import AuthTapa from '../../components/AuthTapa';
 import { AiOutlineArrowLeft } from 'react-icons/ai';
 import "./MFAVerifyScreen.css";
 import './AuthExtraApp.css';
+import Loader from '../../components/Loader';
 
 export default function MFAVerifyScreen() {
   const navigate = useNavigate();
@@ -102,7 +103,7 @@ export default function MFAVerifyScreen() {
       <div className="mfa-verify-container">
         <AuthTapa titulo={<>Un paso más y <em>entras</em>.</>} texto="Escribe el código de tu aplicación de autenticación." />
         <div className="mfa-verify-card">
-          <h2>Cargando...</h2>
+          <Loader texto="Cargando..." />
         </div>
       </div>
     );

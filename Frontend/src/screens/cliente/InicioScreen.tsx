@@ -8,6 +8,7 @@ import "./InicioScreen.css";
 import "./InicioApp.css";
 import "../publico/InicioPortada.css";
 import "./InicioClienteV2.css";
+import Loader from '../../components/Loader';
 
 interface Producto {
     id: number;
@@ -358,7 +359,7 @@ const InicioScreen: React.FC = () => {
                 </div>
 
                 {loading ? (
-                    <div className="tl-loading">Cargando joyas...</div>
+                    <Loader texto="Cargando joyas..." />
                 ) : gridProds.length === 0 ? (
                     <div className="tl-empty">No hay productos disponibles</div>
                 ) : (
