@@ -1,0 +1,27 @@
+/* CalificarPieza.css — estrellas para calificar una pieza entregada (Mis pedidos) */
+.cpz { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--color-border); display: flex; flex-direction: column; gap: 6px; }
+.cpz--hecha { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cpz-etq { font-size: 12.5px; font-weight: 600; color: var(--color-text-muted); }
+.cpz-estrellas { display: flex; align-items: center; gap: 2px; }
+.cpz-estrellas button {
+  width: 36px; height: 36px; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 24px; color: var(--color-border);
+  transition: transform .15s ease, color .15s ease;
+}
+.cpz-estrellas button.on { color: #F2B640; }
+.cpz-estrellas button:hover { transform: scale(1.12); }
+.cpz-estrellas button:focus-visible { outline: 2px solid var(--color-primary-strong); outline-offset: 1px; }
+.cpz-texto { margin-left: 8px; font-size: 13px; font-weight: 600; color: var(--color-text); }
+.cpz-fijas { display: inline-flex; gap: 1px; color: #F2B640; font-size: 17px; }
+.cpz-cambiar { border: 0; background: none; padding: 2px 4px; cursor: pointer; color: var(--color-primary-strong); font-weight: 600; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+.cpz-form textarea {
+  width: 100%; box-sizing: border-box; resize: vertical; padding: 10px 12px; border-radius: 12px; font: inherit; font-size: 14px;
+  background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border);
+}
+.cpz-form textarea:focus { outline: none; border-color: var(--color-primary-strong); }
+.cpz-acciones { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+.cpz-enviar { border: 0; border-radius: 999px; padding: 9px 18px; cursor: pointer; font-weight: 600; font-size: 13.5px; background: var(--color-primary-strong); color: #fff; }
+.cpz-enviar:disabled { opacity: .6; cursor: default; }
+.cpz-cancelar { border: 1px solid var(--color-border); border-radius: 999px; padding: 9px 16px; background: none; color: var(--color-text); cursor: pointer; font-size: 13.5px; }
+.cpz-aviso { font-size: 13px; font-weight: 600; color: var(--color-success, #2e9d6a); }
+@media (prefers-reduced-motion: reduce) { .cpz-estrellas button { transition: none; } }

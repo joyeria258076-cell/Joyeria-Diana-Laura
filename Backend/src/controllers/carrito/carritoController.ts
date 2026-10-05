@@ -102,7 +102,7 @@ function construirHtmlNotificacionEstado(venta: any, estado: string, nota?: stri
         contenido: (nota ? tarjeta(`
             <p style="margin:0 0 6px; font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:12px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:${C.info};">Mensaje de la tienda</p>
             <p style="margin:0; font-family:'Poppins','Segoe UI',Arial,sans-serif; font-size:14.5px; line-height:1.55; color:${C.texto}; white-space:pre-wrap;">${escapar(nota)}</p>`, { acento: C.info }) : '') + seguimiento + resumen + envio,
-        botonTexto: 'Ver mi pedido',
+        botonTexto: estado === 'entregado' ? 'Calificar mis piezas' : 'Ver mi pedido',
         botonUrl: `${SITIO_URL}/pedidos`,
         notaPie: 'Te avisaremos por correo cada vez que tu pedido avance.',
     });

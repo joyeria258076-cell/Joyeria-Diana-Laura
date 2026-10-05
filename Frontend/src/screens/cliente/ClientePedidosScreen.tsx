@@ -14,6 +14,7 @@ import './PedidosApartadosApp.css';
 import './DetallePedidoClienteApp.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/GestionSitio.css';
+import CalificarPieza from '../../components/CalificarPieza';
 
 interface ItemPedido {
     id: number;
@@ -458,7 +459,7 @@ const ClientePedidosScreen: React.FC = () => {
                 </div>
                 <div className="cp-card-total-col">
                     <span className="cp-total">${Number.parseFloat(String(pedido.total)).toLocaleString('es-MX')}</span>
-                    <button className="cp-btn-ver" onClick={e => { e.stopPropagation(); abrirDetalle(pedido); }}>Ver detalle →</button>
+                    <button className="cp-btn-ver" onClick={e => { e.stopPropagation(); abrirDetalle(pedido); }}>{pedido.estado === 'entregado' ? '★ Calificar mis piezas →' : 'Ver detalle →'}</button>
                 </div>
             </div>
         </div>
@@ -658,6 +659,9 @@ const ClientePedidosScreen: React.FC = () => {
                                                             </p>
                                                         ) : (
                                                             <p className="cp-modal-item-sub">{item.cantidad} × ${Number.parseFloat(String(item.precio_unitario)).toLocaleString('es-MX')}</p>
+                                                        )}
+                                                        {pedidoDetalle.estado === 'entregado' && (item as any).producto_id && (
+                                                            <CalificarPieza productoId={(item as any).producto_id} />
                                                         )}
                                                     </div>
                                                     <p className="cp-modal-item-subtotal">${Number.parseFloat(String(item.subtotal)).toLocaleString('es-MX')}</p>

@@ -371,3 +371,8 @@ html body .detalle-rec-card-precio { font-size: 16px !important; font-weight: 70
 html body .dm-barra-precio .dm-agregar, html body button.dm-agregar { background: var(--color-primary-strong) !important; background-image: none !important; color: #fff !important; box-shadow: 0 14px 28px -16px var(--color-primary-strong) !important; border: 0 !important; }
 html body .dm-fav { background: var(--color-surface-2) !important; color: var(--color-primary-strong) !important; border: 1px solid var(--color-border) !important; box-shadow: none !important; }
 html body .detalle-rec-img-fallback { display: flex !important; align-items: center !important; justify-content: center !important; box-shadow: none !important; color: var(--color-text-muted) !important; }
+
+/* Estrellas promedio en la tarjeta del catálogo (solo si la pieza ya tiene calificaciones) */
+html body .card-estrellas { margin: 2px 0 0; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: var(--color-text); }
+html body .card-estrellas span { color: #F2B640; font-size: 14px; }
+html body .card-estrellas small { font-weight: 500; color: var(--color-text-muted); font-size: 12px; }

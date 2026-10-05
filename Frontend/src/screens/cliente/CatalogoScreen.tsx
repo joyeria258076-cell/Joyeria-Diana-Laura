@@ -379,6 +379,11 @@ const CatalogoScreen: React.FC = () => {
             <div className="producto-info">
                 <h4>{producto.nombre}</h4>
                 <p className="tipo">{producto.tipo_producto_nombre || producto.categoria_nombre}</p>
+                {Number((producto as any).total_resenas) > 0 && (
+                  <p className="card-estrellas" aria-label={`Calificación ${Number((producto as any).promedio_resenas).toFixed(1)} de 5`}>
+                    <span aria-hidden="true">★</span> {Number((producto as any).promedio_resenas).toFixed(1)} <small>({(producto as any).total_resenas})</small>
+                  </p>
+                )}
                 <div className="precio-section">
                     {(() => {
                         const precioFinal = producto.precio_promocion ?? producto.precio_oferta;
