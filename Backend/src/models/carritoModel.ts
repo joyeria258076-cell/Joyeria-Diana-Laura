@@ -344,6 +344,16 @@ export const VentaModel = {
                     ))
                     FROM detalle_ventas dv WHERE dv.venta_id = v.id
                 ) AS items,
+                -- Cambios de estado con su fecha, para el seguimiento del pedido (app móvil HU-11).
+                -- El comentario solo se envía si el trabajador lo marcó para avisar al cliente.
+                (
+                    SELECT json_agg(json_build_object(
+                        'estado',     h.estado_nuevo,
+                        'fecha',      h.fecha_cambio,
+                        'comentario', CASE WHEN h.notificar_cliente THEN h.comentario END
+                    ) ORDER BY h.fecha_cambio ASC)
+                    FROM historial_estado_venta h WHERE h.venta_id = v.id
+                ) AS historial,
                 ap.id IS NOT NULL AS es_apartado,
                 ap.folio AS apartado_folio,
                 EXISTS (
