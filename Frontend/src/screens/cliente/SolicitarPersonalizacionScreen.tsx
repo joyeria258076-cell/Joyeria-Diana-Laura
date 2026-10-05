@@ -6,6 +6,7 @@ import { productsAPI, personalizacionAPI, uploadAPI } from '../../services/api';
 import Loader from '../../components/Loader';
 import CamaraCaptura from '../../components/CamaraCaptura';
 import './SolicitarPersonalizacionScreen.css';
+import JoyaSinFoto from '../../components/JoyaSinFoto';
 
 interface Producto {
     id: number;
@@ -122,11 +123,9 @@ const SolicitarPersonalizacionScreen: React.FC = () => {
 
             <div className="sp-layout">
                 <div className="sp-producto-card">
-                    <img
-                        src={producto.imagen_principal || 'https://placehold.co/300x300?text=Sin+imagen'}
-                        alt={producto.nombre}
-                        className="sp-producto-img"
-                    />
+                    {producto.imagen_principal
+                        ? <img src={producto.imagen_principal} alt={producto.nombre} className="sp-producto-img" />
+                        : <div className="sp-producto-img"><JoyaSinFoto /></div>}
                     <div>
                         <h3>{producto.nombre}</h3>
                         <p className="sp-producto-precio">

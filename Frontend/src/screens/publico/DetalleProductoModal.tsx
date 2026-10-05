@@ -6,6 +6,7 @@ import { favoritosAPI, recomendacionAPI, type Recomendacion } from '../../servic
 import './DetalleProductoModal.css';
 import './DetalleModalApp.css';
 import SelectorOpciones, { type EstadoOpciones } from '../../components/SelectorOpciones';
+import JoyaSinFoto from '../../components/JoyaSinFoto';
 
 const estaLogueado = (): boolean => {
   try {
@@ -75,8 +76,6 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
 
   if (!isOpen || !producto) return null;
 
-  const placeholderImage = 'https://placehold.co/400x400/1a1a1a/ecb2c3?text=Joya';
-  const imagenUrl        = producto.imagen_principal || placeholderImage;
   const precioFinal      = producto.precio_promocion ?? producto.precio_oferta ?? producto.precio_venta;
   const hayDescuento     = precioFinal < producto.precio_venta;
   const esPromocion      = !!producto.precio_promocion;
@@ -181,7 +180,7 @@ const DetalleProductoModal: React.FC<DetalleProductoModalProps> = ({ isOpen, pro
           {/* Imagen */}
           <div className="detalle-imagen-section dm-foto-col">
             <div className="detalle-imagen-container dm-foto">
-              <img src={imagenUrl} alt={producto.nombre} />
+              {producto.imagen_principal ? <img src={producto.imagen_principal} alt={producto.nombre} /> : <JoyaSinFoto />}
               {producto.es_nuevo && <span className="badge badge-nuevo">Nuevo</span>}
               {hayDescuento && <span className="badge badge-descuento">En oferta</span>}
               {producto.permite_personalizacion && (

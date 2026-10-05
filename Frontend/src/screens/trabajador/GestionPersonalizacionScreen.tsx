@@ -9,6 +9,7 @@ import './GestionPersonalizacionScreen.css';
 import './OperacionApp.css';
 import '../../styles/SitioSecciones.css';
 import '../../styles/GestionSitio.css';
+import JoyaSinFoto from '../../components/JoyaSinFoto';
 
 const FILTROS = [
     { key: 'pendiente', label: 'Pendientes' },
@@ -95,11 +96,9 @@ const GestionPersonalizacionScreen: React.FC = () => {
                 <div className="gper-lista">
                     {solicitudes.map(s => (
                         <div key={s.id} className="gper-card">
-                            <img
-                                src={s.producto_imagen || 'https://placehold.co/100x100?text=Producto'}
-                                alt={s.producto_nombre}
-                                className="gper-producto-img"
-                            />
+                            {s.producto_imagen
+                                ? <img src={s.producto_imagen} alt={s.producto_nombre} className="gper-producto-img" />
+                                : <div className="gper-producto-img"><JoyaSinFoto /></div>}
                             <div className="gper-card-body">
                                 <div className="gper-card-top">
                                     <h3>{s.producto_nombre}</h3>

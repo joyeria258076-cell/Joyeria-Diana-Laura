@@ -9,6 +9,7 @@ import Loader from '../../components/Loader';
 import '../../styles/SitioSecciones.css';
 import './MisPersonalizacionesScreen.css';
 import '../../styles/GestionSitio.css';
+import JoyaSinFoto from '../../components/JoyaSinFoto';
 
 const ESTADO_META: Record<string, { label: string; icon: React.ReactNode }> = {
     pendiente:  { label: 'En verificación', icon: <AiOutlineClockCircle size={13} /> },
@@ -81,11 +82,9 @@ const MisPersonalizacionesScreen: React.FC = () => {
                         const meta = ESTADO_META[s.estado] || { label: s.estado, icon: null };
                         return (
                             <div key={s.id} className="mp-card">
-                                <img
-                                    src={s.producto_imagen || 'https://placehold.co/200x200/141414/c9956c?text=DL'}
-                                    alt={s.producto_nombre}
-                                    className="mp-card-img"
-                                />
+                                {s.producto_imagen
+                                    ? <img src={s.producto_imagen} alt={s.producto_nombre} className="mp-card-img" />
+                                    : <div className="mp-card-img"><JoyaSinFoto /></div>}
                                 <div className="mp-card-info">
                                     <div className="mp-card-top">
                                         <h3>{s.producto_nombre}</h3>
