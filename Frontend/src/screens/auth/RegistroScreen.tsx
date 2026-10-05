@@ -120,7 +120,8 @@ export default function RegistroScreen() {
         formState: { errors }, 
         setError, 
         watch,
-        trigger
+        trigger,
+        getValues
     } = useForm<FormData>({ 
         resolver: zodResolver(schema) 
     });
@@ -203,7 +204,15 @@ export default function RegistroScreen() {
 
     const nextStep = async () => {
         const isStep1Valid = await trigger(['nombre', 'email', 'password', 'confirmPassword']);
-        if (isStep1Valid) setStep(2);
+        if (!isStep1Valid) return;
+        // La regla de "contraseñas iguales" vive sobre todo el formulario y zod no la evalúa
+        // mientras el paso 2 esté incompleto; aquí se compara a mano antes de avanzar.
+        const { password, confirmPassword } = getValues();
+        if (password !== confirmPassword) {
+            setError('confirmPassword', { type: 'manual', message: 'Las contraseñas no coinciden' });
+            return;
+        }
+        setStep(2);
     };
 
     const prevStep = () => {
