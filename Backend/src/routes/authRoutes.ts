@@ -17,6 +17,8 @@ import {
     validateSession
 } from '../controllers/auth/authController';
 
+import { enviarVerificacionCorreo } from '../controllers/auth/verificacionCorreoController';
+
 // 📂 2. IMPORTACIONES DE RECUPERACIÓN (Carpeta: controllers/recuperacion)
 import { 
     forgotPassword, 
@@ -74,6 +76,7 @@ router.post('/login', login);
 router.post('/login/movil', loginMovil);
 router.post('/sync-user', syncUserToPostgreSQL);
 router.post('/sync-user/movil', syncUserMovil);
+router.post('/enviar-verificacion', enviarVerificacionCorreo);
 router.post('/update-activity', updateUserActivity);
 
 // ==========================================

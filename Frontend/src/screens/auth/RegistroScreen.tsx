@@ -9,6 +9,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import { securityQuestionAPI } from "../../services/securityQuestionAPI";
+import { contentAPI } from "../../services/api";
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineLock, AiOutlineArrowLeft, AiOutlineArrowRight, AiOutlineCamera, AiOutlineUser, AiOutlineMail } from "react-icons/ai";
 import AuthTapa from "../../components/AuthTapa";
 import "./RegistroScreen.css";
@@ -128,6 +129,18 @@ export default function RegistroScreen() {
     
     // ESTADOS
     const [step, setStep] = useState(1);
+    // Términos reales de la tienda (los que edita el admin en Documentos legales)
+    const [terminos, setTerminos] = useState<string>('');
+    // Correo al que se envió el enlace; mientras tenga valor se muestra la confirmación
+    const [registrado, setRegistrado] = useState<string | null>(null);
+    useEffect(() => {
+        contentAPI.getPageConfig('terminos')
+            .then((res: any) => {
+                const t = res?.contenido?.trim();
+                if (t && t.toLowerCase() !== 'contenido inicial') setTerminos(t);
+            })
+            .catch(() => { /* se queda el resumen de respaldo */ });
+    }, []);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [predefinedQuestions, setPredefinedQuestions] = useState<string[]>([]);
@@ -241,8 +254,8 @@ export default function RegistroScreen() {
                 // automáticamente en el primer inicio de sesión exitoso.
                 localStorage.setItem(`dl_pending_photo_${data.email.toLowerCase()}`, fotoPreview);
             }
-            alert("Usuario registrado correctamente. Revisa tu email para verificar tu cuenta antes de iniciar sesión.");
-            navigate("/login");
+            setRegistrado(data.email);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (error: any) {
             setError('root', { type: 'manual', message: error.message });
         } finally {
@@ -263,6 +276,22 @@ export default function RegistroScreen() {
             <div className="register-container">
             <AuthTapa titulo={<>Tu primera <em>pieza</em> empieza aquí.</>} texto="Guarda favoritos, aparta en abonos y sigue cada pedido hasta tu puerta." />
             <div className="register-card">
+                {registrado ? (
+                <div className="reg-listo" role="status">
+                    <span className="reg-listo-icono" aria-hidden="true"><AiOutlineMail size={30} /></span>
+                    <h2>Revisa tu <span>correo</span></h2>
+                    <p>Tu cuenta ya está creada. Te enviamos un enlace para confirmar que este correo es tuyo:</p>
+                    <p className="reg-listo-correo">{registrado}</p>
+                    <ol className="reg-listo-pasos">
+                        <li><strong>Abre el correo</strong> de Joyería Diana Laura. Si no aparece, revisa la carpeta de spam o promociones.</li>
+                        <li><strong>Toca “Confirmar mi correo”.</strong></li>
+                        <li><strong>Inicia sesión</strong> con tu correo y tu contraseña.</li>
+                    </ol>
+                    <button type="button" className="register-button" onClick={() => navigate(`/login?email=${encodeURIComponent(registrado)}`)}>
+                        Ir a iniciar sesión <AiOutlineArrowRight size={16} />
+                    </button>
+                </div>
+                ) : (<>
                 <div className="register-header">
                     <span className="auth-paso">Paso {step} de 2</span>
                     <h2>Crea tu <span>cuenta</span> <span className="auth-destello" aria-hidden="true">✦</span></h2>
@@ -513,19 +542,32 @@ export default function RegistroScreen() {
                             <div className="terms-container">
                                 <h4 className="terms-titulo">Términos y Condiciones</h4>
                                 <div className="terms-scroll">
-                                    <p>Al registrarte en Joyería Diana Laura, aceptas:</p>
-                                    <ul>
-                                        <li>Nuestros términos de servicio y políticas de privacidad.</li>
-                                        <li>El tratamiento de tus datos personales según la ley aplicable.</li>
-                                        <li>Recibir comunicaciones relacionadas con tu cuenta.</li>
-                                        <li>Responsabilizarte por la seguridad de tu cuenta y contraseña.</li>
-                                    </ul>
+                                    {terminos ? terminos.split('\n').map(l => l.trim()).filter(Boolean).map((linea, i) =>
+                                        /^\d+\./.test(linea) && linea.length < 70
+                                            ? <p key={i} className="terms-seccion"><strong>{linea}</strong></p>
+                                            : /^[•\-]/.test(linea)
+                                                ? <p key={i} className="terms-punto">• {linea.replace(/^[•\-]\s*/, '')}</p>
+                                                : <p key={i}>{linea}</p>
+                                    ) : (
+                                        <>
+                                            <p>Al registrarte en Joyería Diana Laura, aceptas:</p>
+                                            <ul>
+                                                <li>Nuestros términos de servicio y políticas de privacidad.</li>
+                                                <li>El tratamiento de tus datos personales según la ley aplicable.</li>
+                                                <li>Recibir comunicaciones relacionadas con tu cuenta.</li>
+                                                <li>Responsabilizarte por la seguridad de tu cuenta y contraseña.</li>
+                                            </ul>
+                                        </>
+                                    )}
                                 </div>
+                                <p className="terms-enlaces">
+                                    Léelos completos: <Link to="/legal/terminos" target="_blank" rel="noopener">Términos y condiciones</Link> · <Link to="/legal/privacidad" target="_blank" rel="noopener">Aviso de privacidad</Link>
+                                </p>
 
                                 <label className="terms-checkbox">
                                     <input type="checkbox" {...formRegister("acceptTerms")} />
                                     <span className="checkmark"></span>
-                                    Acepto los términos y condiciones
+                                    Acepto los términos y condiciones y el aviso de privacidad
                                 </label>
                                 {errors.acceptTerms && <span className="register-error">{errors.acceptTerms.message}</span>}
                             </div>
@@ -561,6 +603,7 @@ export default function RegistroScreen() {
                         ¿Ya tienes cuenta? Inicia sesión aquí
                     </Link>
                 </div>
+                </>)}
             </div>
             </div>
             <PublicFooter />

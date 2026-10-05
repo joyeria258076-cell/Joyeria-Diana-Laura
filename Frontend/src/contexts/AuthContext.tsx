@@ -507,8 +507,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         url: `${window.location.origin}/login?verified=true&email=${encodeURIComponent(email)}`,
         handleCodeInApp: false
       };
-      await sendEmailVerification(firebaseUser, verificationActionCodeSettings);
-      console.log('✅ Email de verificación enviado por Firebase');
+      // Correo de bienvenida con el diseño de la tienda (lo arma el backend con el enlace de Firebase).
+      // Si el backend no responde, se usa el correo simple de Firebase para que nadie se quede sin enlace.
+      try {
+        const tokenVerif = await firebaseUser.getIdToken();
+        const base = import.meta.env.VITE_API_URL || 'https://joyeria-diana-laura-nqnq.onrender.com/api';
+        const r = await fetch(`${base}/auth/enviar-verificacion`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken: tokenVerif })
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.success) throw new Error(j.message || 'sin envío');
+        console.log('✅ Correo de verificación con diseño enviado');
+      } catch (e: any) {
+        console.log('⚠️ Correo con diseño no enviado, se usa el de Firebase:', e?.message);
+        await sendEmailVerification(firebaseUser, verificationActionCodeSettings);
+      }
 
       try {
         const idToken = await firebaseUser.getIdToken();
