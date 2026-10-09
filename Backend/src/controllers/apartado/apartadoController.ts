@@ -4,6 +4,7 @@ import { pool } from '../../config/database';
 import { AuthRequest } from '../../middleware/authMiddleware';
 import axios from 'axios';
 import { C, SITIO_URL, dinero, escapar, fila, tablaFilas, tarjeta, barraProgreso, layoutCorreo } from '../../utils/plantillaCorreo';
+import { verificarYCapturarPayPal } from '../../utils/paypalVerificacion';
 
 // ─── Notificación por email de estado de apartado (reemplaza el banner in-app) ──
 const BREVO_ENDPOINT = 'https://api.brevo.com/v3/smtp/email';
@@ -434,10 +435,15 @@ export const confirmarPagoInicial = async (req: AuthRequest, res: Response) => {
             [apartado.venta_id]
         );
         for (const item of detallesRes.rows) {
-            await client.query(
-                'UPDATE productos SET stock_actual = stock_actual - $1 WHERE id = $2',
+            // Si otra venta ya se llevó la pieza, no se deja el stock en negativo
+            const desc = await client.query(
+                'UPDATE productos SET stock_actual = stock_actual - $1 WHERE id = $2 AND stock_actual >= $1',
                 [item.cantidad, item.producto_id]
             );
+            if (!desc.rowCount) {
+                await client.query('ROLLBACK');
+                return res.status(409).json({ success: false, message: 'Ya no hay existencias suficientes de una de las piezas de este apartado.' });
+            }
             await client.query(
                 `INSERT INTO movimientos_inventario
                     (producto_id, tipo_movimiento, cantidad, stock_anterior, stock_nuevo, venta_id, motivo, realizado_por)
@@ -1076,27 +1082,20 @@ export const crearOrdenPayPal_Apartado = async (req: AuthRequest, res: Response)
 export const capturarPayPal_Apartado = async (req: AuthRequest, res: Response) => {
     try {
         const { order_id, apartado_id } = req.body;
-        const ppClientId = process.env.PAYPAL_CLIENT_ID;
-        const ppSecret   = process.env.PAYPAL_CLIENT_SECRET;
-        const ppBase     = process.env.PAYPAL_MODE === 'production' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+        const userId = req.user?.id || req.user?.userId;
+        // Solo el dueño del apartado, y solo mientras espera su pago inicial
+        const apt = await pool.query(
+            `SELECT a.id, a.monto_pagado FROM apartados a JOIN clientes c ON c.id = a.cliente_id
+             WHERE a.id = $1 AND a.estado = 'pendiente_pago' AND c.user_id = $2`,
+            [apartado_id, userId]
+        );
+        if (!apt.rows.length) return res.status(404).json({ success: false, message: 'Apartado no encontrado o ya pagado.' });
 
-        const tokenRes = await fetch(`${ppBase}/v1/oauth2/token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': `Basic ${Buffer.from(`${ppClientId}:${ppSecret}`).toString('base64')}` },
-            body: 'grant_type=client_credentials'
-        });
-        const { access_token } = await tokenRes.json();
-        const captureRes  = await fetch(`${ppBase}/v2/checkout/orders/${order_id}/capture`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` }
-        });
-        const captureData = await captureRes.json();
+        const v = await verificarYCapturarPayPal(order_id, `APT-${apt.rows[0].id}`, parseFloat(apt.rows[0].monto_pagado));
+        if (!v.ok) return res.status(400).json({ success: false, message: v.mensaje });
 
-        if (captureData.status === 'COMPLETED') {
-            await confirmarApartadoPorPago(parseInt(apartado_id), order_id, 'paypal');
-            res.json({ success: true, message: 'Pago PayPal capturado correctamente.' });
-        } else {
-            res.status(400).json({ success: false, message: 'El pago no fue completado.' });
-        }
+        await confirmarApartadoPorPago(apt.rows[0].id, order_id, 'paypal');
+        res.json({ success: true, message: 'Pago PayPal capturado correctamente.' });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -1429,27 +1428,20 @@ export const crearOrdenPayPal_AbonoSig = async (req: AuthRequest, res: Response)
 export const capturarPayPal_AbonoSig = async (req: AuthRequest, res: Response) => {
     try {
         const { order_id, abono_id } = req.body;
-        const ppClientId = process.env.PAYPAL_CLIENT_ID;
-        const ppSecret   = process.env.PAYPAL_CLIENT_SECRET;
-        const ppBase     = process.env.PAYPAL_MODE === 'production' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+        const userId = req.user?.id || req.user?.userId;
+        const ab = await pool.query(
+            `SELECT ab.id, ab.monto FROM abonos ab
+             JOIN apartados a ON a.id = ab.apartado_id JOIN clientes c ON c.id = a.cliente_id
+             WHERE ab.id = $1 AND ab.estado = 'pendiente' AND c.user_id = $2`,
+            [abono_id, userId]
+        );
+        if (!ab.rows.length) return res.status(404).json({ success: false, message: 'Abono no encontrado o ya pagado.' });
 
-        const tokenRes = await fetch(`${ppBase}/v1/oauth2/token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': `Basic ${Buffer.from(`${ppClientId}:${ppSecret}`).toString('base64')}` },
-            body: 'grant_type=client_credentials'
-        });
-        const { access_token } = await tokenRes.json();
-        const captureRes = await fetch(`${ppBase}/v2/checkout/orders/${order_id}/capture`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` }
-        });
-        const captureData = await captureRes.json();
+        const v = await verificarYCapturarPayPal(order_id, `SABONO-${ab.rows[0].id}`, parseFloat(ab.rows[0].monto));
+        if (!v.ok) return res.status(400).json({ success: false, message: v.mensaje });
 
-        if (captureData.status === 'COMPLETED') {
-            await confirmarAbonoPorPago(parseInt(abono_id), order_id, 'paypal');
-            res.json({ success: true, message: 'Pago PayPal del abono confirmado.' });
-        } else {
-            res.status(400).json({ success: false, message: 'El pago no fue completado.' });
-        }
+        await confirmarAbonoPorPago(ab.rows[0].id, order_id, 'paypal');
+        res.json({ success: true, message: 'Pago PayPal del abono confirmado.' });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -1588,7 +1580,8 @@ const confirmarApartadoPorPago = async (apartado_id: number, transaction_id: str
 
         const detallesRes = await client.query('SELECT producto_id, cantidad FROM detalle_ventas WHERE venta_id = $1', [apartado.venta_id]);
         for (const item of detallesRes.rows) {
-            await client.query('UPDATE productos SET stock_actual = stock_actual - $1 WHERE id = $2', [item.cantidad, item.producto_id]);
+            // El pago ya se cobró: se registra igual, pero sin dejar el stock en negativo
+            await client.query('UPDATE productos SET stock_actual = GREATEST(0, stock_actual - $1) WHERE id = $2', [item.cantidad, item.producto_id]);
             await client.query(
                 `INSERT INTO movimientos_inventario (producto_id, tipo_movimiento, cantidad, stock_anterior, stock_nuevo, venta_id, motivo, realizado_por)
                  SELECT $1, 'salida_venta', $2, stock_actual + $2, stock_actual, $3, 'Apartado pago ' || $4, 1 FROM productos WHERE id = $1`,

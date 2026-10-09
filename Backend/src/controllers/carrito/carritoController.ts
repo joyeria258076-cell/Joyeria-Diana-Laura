@@ -5,6 +5,7 @@ import { pool } from '../../config/database';
 import crypto from 'crypto';
 import axios from 'axios';
 import { C, SITIO_URL, dinero, escapar, fila, tablaFilas, tarjeta, lineaTiempo, layoutCorreo } from '../../utils/plantillaCorreo';
+import { verificarYCapturarPayPal } from '../../utils/paypalVerificacion';
 
 import { expirarSiToca } from '../../services/expiracionPedidosService';
 import { validarEleccion, resumenDe } from '../../services/opcionesPersonalizacionService';
@@ -750,6 +751,14 @@ export const crearPreferenciaMercadoPago = async (req: Request, res: Response) =
         // ✅ Corregido: estados válidos para pagar
         if (!['confirmado','en_preparacion','enviado'].includes(venta.estado))
             return res.status(400).json({ success: false, message: 'El pedido aún no está confirmado por el trabajador' });
+        // No se puede pagar un pedido cuyo plazo ya venció
+        const plazo = await pool.query(
+            `SELECT fecha_limite_pago < (NOW() AT TIME ZONE 'America/Mexico_City') AS vencido FROM ventas WHERE id = $1`, [venta.id]
+        );
+        if (plazo.rows[0]?.vencido)
+            return res.status(400).json({ success: false, message: 'El plazo para pagar este pedido ya venció. Haz un pedido nuevo.' });
+        if (venta.estado_pago === 'aprobado')
+            return res.status(400).json({ success: false, message: 'Este pedido ya está pagado.' });
 
         const mpToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
         if (!mpToken) return res.status(503).json({ success: false, message: 'MercadoPago no configurado' });
@@ -847,6 +856,14 @@ export const crearOrdenPayPal = async (req: Request, res: Response) => {
         // ✅ Corregido: estados válidos para pagar
         if (!['confirmado','en_preparacion','enviado'].includes(venta.estado))
             return res.status(400).json({ success: false, message: 'El pedido aún no está confirmado' });
+        // No se puede pagar un pedido cuyo plazo ya venció
+        const plazo = await pool.query(
+            `SELECT fecha_limite_pago < (NOW() AT TIME ZONE 'America/Mexico_City') AS vencido FROM ventas WHERE id = $1`, [venta.id]
+        );
+        if (plazo.rows[0]?.vencido)
+            return res.status(400).json({ success: false, message: 'El plazo para pagar este pedido ya venció. Haz un pedido nuevo.' });
+        if (venta.estado_pago === 'aprobado')
+            return res.status(400).json({ success: false, message: 'Este pedido ya está pagado.' });
 
         const ppClientId = process.env.PAYPAL_CLIENT_ID;
         const ppSecret   = process.env.PAYPAL_CLIENT_SECRET;
@@ -922,60 +939,39 @@ export const crearOrdenPayPal = async (req: Request, res: Response) => {
 
 export const capturarPagoPayPal = async (req: Request, res: Response) => {
     try {
-        const { order_id, venta_id } = req.body;
+        const usuario = getUsuario(req);
+        const { order_id } = req.body;
+        const venta_id = Number.parseInt(String(req.body.venta_id));
+        if (!usuario.id || !venta_id) return res.status(400).json({ success: false, message: 'Datos incompletos' });
 
-        const ppClientId = process.env.PAYPAL_CLIENT_ID;
-        const ppSecret   = process.env.PAYPAL_CLIENT_SECRET;
-        const ppBase     = process.env.PAYPAL_MODE === 'production'
-            ? 'https://api-m.paypal.com'
-            : 'https://api-m.sandbox.paypal.com';
+        // Solo el dueño del pedido, y solo si aún no está pagado
+        const venta = await VentaModel.getById(venta_id);
+        if (!venta || venta.creado_por !== usuario.id)
+            return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
+        if (venta.estado_pago === 'aprobado')
+            return res.json({ success: true, message: 'Este pedido ya estaba pagado' });
 
-        const tokenRes = await fetch(`${ppBase}/v1/oauth2/token`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Basic ${Buffer.from(`${ppClientId}:${ppSecret}`).toString('base64')}`
-            },
-            body: 'grant_type=client_credentials'
-        });
-        const { access_token } = await tokenRes.json();
+        const v = await verificarYCapturarPayPal(order_id, String(venta.id), Number.parseFloat(String(venta.total)));
+        if (!v.ok) return res.status(400).json({ success: false, message: v.mensaje });
 
-        const captureRes = await fetch(`${ppBase}/v2/checkout/orders/${order_id}/capture`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${access_token}`
-            }
-        });
-        const captureData = await captureRes.json();
+        // Si esta orden ya se había procesado (doble clic, recarga), no se vuelve a descontar stock
+        const yaProcesada = await pool.query(`SELECT 1 FROM transacciones_pago WHERE transaction_id = $1`, [order_id]);
+        await VentaModel.confirmarPagoPayPal(order_id, venta_id);
 
-        if (captureData.status === 'COMPLETED') {
-            await VentaModel.confirmarPagoPayPal(order_id, venta_id);
-
+        if (!yaProcesada.rows.length) {
             try {
                 await descontarStock(venta_id);
-
-                // ✅ Generar código de entrega
                 const codigoEntrega = await generarCodigoEntrega();
-                await pool.query(`
-                    UPDATE ventas SET codigo_entrega = $1 WHERE id = $2 AND codigo_entrega IS NULL
-                `, [codigoEntrega, venta_id]);
-
-                // ✅ Calcular fecha estimada al pagar con PayPal
+                await pool.query(`UPDATE ventas SET codigo_entrega = $1 WHERE id = $2 AND codigo_entrega IS NULL`, [codigoEntrega, venta_id]);
                 const fechaEntrega = await calcularFechaEntrega();
-                await pool.query(`
-                    UPDATE ventas SET fecha_estimada_entrega = $1 WHERE id = $2 AND fecha_estimada_entrega IS NULL
-                `, [fechaEntrega, Number.parseInt(String(venta_id))]);
-
+                await pool.query(`UPDATE ventas SET fecha_estimada_entrega = $1 WHERE id = $2 AND fecha_estimada_entrega IS NULL`, [fechaEntrega, venta_id]);
                 console.log(`📦 Stock descontado por pago PayPal: venta_id=${venta_id}`);
             } catch (stockErr) {
                 console.error('⚠️ Error descontando stock PayPal:', stockErr);
             }
-            console.log(`✅ Pago PayPal capturado: orden ${order_id}`);
-            res.json({ success: true, message: 'Pago capturado correctamente' });
-        } else {
-            res.status(400).json({ success: false, message: 'El pago no fue completado' });
         }
+        console.log(`✅ Pago PayPal capturado: orden ${order_id}`);
+        res.json({ success: true, message: 'Pago capturado correctamente' });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -1150,6 +1146,14 @@ export const webhookMercadoPago = async (req: Request, res: Response) => {
 
             if (pago.status === 'approved' && pago.external_reference) {
                 const venta_id = Number.parseInt(pago.external_reference);
+                // MercadoPago reenvía el mismo aviso varias veces: si ya se procesó, no se repite
+                const yaProcesado = await pool.query(`SELECT 1 FROM transacciones_pago WHERE transaction_id = $1`, [String(pago.id)]);
+                if (yaProcesado.rows.length) return res.sendStatus(200);
+                const vTotal = await pool.query(`SELECT total FROM ventas WHERE id = $1`, [venta_id]);
+                if (!vTotal.rows.length || Math.abs(Number(pago.transaction_amount) - Number.parseFloat(vTotal.rows[0].total)) > 0.01) {
+                    console.error(`⚠️ Pago MP ${pago.id}: el monto no coincide con la venta ${venta_id}`);
+                    return res.sendStatus(200);
+                }
                 await VentaModel.confirmarPago(String(pago.id), venta_id);
                 // ✅ Stock se descuenta al pagar, no al confirmar manualmente
                 try {

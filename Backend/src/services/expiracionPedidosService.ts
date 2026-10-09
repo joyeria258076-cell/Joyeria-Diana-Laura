@@ -34,7 +34,39 @@ export const expirarPedidosAbandonados = async (): Promise<number> => {
     [dias]
   );
   if (r.rowCount) console.log(`⏳ ${r.rowCount} pedido(s) pasaron a "expirado" (sin movimiento en ${dias} días)`);
-  return r.rowCount ?? 0;
+
+  // Pedidos confirmados cuyo plazo para pagar ya venció. fecha_limite_pago se
+  // guarda en hora de la Ciudad de México, por eso se compara con esa hora.
+  const r2 = await pool.query(
+    `UPDATE ventas v
+        SET estado = 'expirado',
+            fecha_cancelacion = NOW(),
+            motivo_cancelacion = COALESCE(v.motivo_cancelacion, 'Expirado: venció el plazo para pagar'),
+            fecha_actualizacion = NOW()
+      WHERE v.estado = 'confirmado'
+        AND v.fecha_limite_pago IS NOT NULL
+        AND v.fecha_limite_pago < (NOW() AT TIME ZONE 'America/Mexico_City')
+        AND NOT EXISTS (SELECT 1 FROM apartados a WHERE a.venta_id = v.id)
+        AND NOT EXISTS (SELECT 1 FROM transacciones_pago tp
+                         WHERE tp.venta_id = v.id AND tp.estado = 'aprobado')
+      RETURNING v.id`
+  );
+  if (r2.rowCount) console.log(`⏳ ${r2.rowCount} pedido(s) expiraron por vencer su plazo de pago`);
+  // Apartados que nunca recibieron su pago inicial: se cancelan tras el mismo
+  // plazo. No se toca stock porque solo se descuenta al confirmar el pago.
+  const r3 = await pool.query(
+    `UPDATE apartados
+        SET estado = 'cancelado',
+            fecha_cancelacion = NOW(),
+            motivo_cancelacion = COALESCE(motivo_cancelacion, 'Cancelado automáticamente: no se recibió el pago inicial en ' || $1::int || ' días'),
+            fecha_actualizacion = NOW()
+      WHERE estado = 'pendiente_pago'
+        AND COALESCE(fecha_actualizacion, fecha_creacion) < NOW() - make_interval(days => $1::int)
+      RETURNING id`,
+    [dias]
+  );
+  if (r3.rowCount) console.log(`⏳ ${r3.rowCount} apartado(s) sin pago inicial se cancelaron`);
+  return (r.rowCount ?? 0) + (r2.rowCount ?? 0) + (r3.rowCount ?? 0);
 };
 
 /** Ejecuta la expiración como mucho una vez cada 30 min (seguro llamarla en cada listado). */
