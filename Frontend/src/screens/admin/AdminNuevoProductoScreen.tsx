@@ -1,4 +1,5 @@
 // Frontend/src/screens/admin/AdminNuevoProductoScreen.tsx
+import CamaraCaptura from '../../components/CamaraCaptura';
 import React, { useState, useEffect } from 'react';
 import {
   AiOutlinePlus, AiOutlineCheck, AiOutlineClose, AiOutlineUpload, AiOutlineDelete,
@@ -155,14 +156,18 @@ const AdminNuevoProductoScreen: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: !prev[name] } as FormData));
   };
 
+  // La imagen puede venir de los archivos o de la cámara (CamaraCaptura)
+  const [camara, setCamara] = useState<null | 'principal' | 'galeria'>(null);
+
+  const usarImagen = (file: File) => {
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
+    if (e.target.files && e.target.files[0]) usarImagen(e.target.files[0]);
   };
 
   const handleUploadImage = async () => {
@@ -328,6 +333,10 @@ const AdminNuevoProductoScreen: React.FC = () => {
 
       <div className="np3-layout">
         <form onSubmit={handleSubmit} className="np3-form">
+        <CamaraCaptura abierta={camara !== null} frontal={false}
+          titulo={camara === 'galeria' ? 'Foto adicional del producto' : 'Foto del producto'}
+          onFoto={f => (usarImagen(f))}
+          onCerrar={() => setCamara(null)} />
 
           {/* Imagen */}
           <div className="np3-card">
@@ -344,6 +353,9 @@ const AdminNuevoProductoScreen: React.FC = () => {
                     <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleImageChange} disabled={uploadingImage} hidden />
                     <AiOutlineUpload size={15} /> {imagePreview ? 'Cambiar imagen' : 'Subir imagen'}
                   </label>
+                  <button type="button" className="np3-photo-upload" onClick={() => setCamara('principal')} disabled={uploadingImage}>
+                    📷 Tomar foto
+                  </button>
                   {selectedFile && !formData.imagen_principal && (
                     <button type="button" className="np3-photo-confirm" onClick={handleUploadImage} disabled={uploadingImage}>
                       <AiOutlineCheck size={14} /> {uploadingImage ? 'Subiendo...' : 'Confirmar subida'}

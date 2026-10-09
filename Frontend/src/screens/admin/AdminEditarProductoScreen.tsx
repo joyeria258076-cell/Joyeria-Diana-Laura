@@ -1,4 +1,5 @@
 // Frontend/src/screens/admin/AdminEditarProductoScreen.tsx
+import CamaraCaptura from '../../components/CamaraCaptura';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Loader from '../../components/Loader';
@@ -192,14 +193,18 @@ const AdminEditarProductoScreen: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: !prev[name] } as FormData));
   };
 
+  // La imagen puede venir de los archivos o de la cámara (CamaraCaptura)
+  const [camara, setCamara] = useState<null | 'principal' | 'galeria'>(null);
+
+  const usarImagen = (file: File) => {
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
+    if (e.target.files && e.target.files[0]) usarImagen(e.target.files[0]);
   };
 
   const handleUploadImage = async () => {
@@ -239,7 +244,11 @@ const AdminEditarProductoScreen: React.FC = () => {
   const handleAgregarImagenGaleria = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
-    if (!file || !id) return;
+    if (file) subirGaleria(file);
+  };
+
+  const subirGaleria = async (file: File) => {
+    if (!id) return;
     setSubiendoGaleria(true);
     try {
       const res = await uploadAPI.uploadProductImage(file, id, false);
@@ -373,6 +382,10 @@ const AdminEditarProductoScreen: React.FC = () => {
 
       <div className="ep3-layout">
         <form onSubmit={handleSubmit} className="ep3-form">
+        <CamaraCaptura abierta={camara !== null} frontal={false}
+          titulo={camara === 'galeria' ? 'Foto adicional del producto' : 'Foto del producto'}
+          onFoto={f => (camara === 'galeria' ? subirGaleria(f) : usarImagen(f))}
+          onCerrar={() => setCamara(null)} />
 
           {/* Foto */}
           <div className="ep3-card">
@@ -389,6 +402,9 @@ const AdminEditarProductoScreen: React.FC = () => {
                     <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleImageChange} disabled={uploadingImage} hidden />
                     <AiOutlineUpload size={15} /> {imagePreview ? 'Cambiar imagen' : 'Subir imagen'}
                   </label>
+                  <button type="button" className="ep3-photo-upload" onClick={() => setCamara('principal')} disabled={uploadingImage}>
+                    📷 Tomar foto
+                  </button>
                   {selectedFile && (
                     <button type="button" className="ep3-photo-confirm" onClick={handleUploadImage} disabled={uploadingImage}>
                       <AiOutlineCheck size={14} /> {uploadingImage ? 'Subiendo...' : 'Confirmar subida'}
@@ -409,6 +425,9 @@ const AdminEditarProductoScreen: React.FC = () => {
                     <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleAgregarImagenGaleria} disabled={subiendoGaleria} hidden />
                     <AiOutlineUpload size={13} /> {subiendoGaleria ? 'Subiendo...' : 'Añadir foto'}
                   </label>
+                  <button type="button" className="ep3-galeria-add" onClick={() => setCamara('galeria')} disabled={subiendoGaleria}>
+                    📷 Tomar foto
+                  </button>
                 </div>
                 {galeria.length > 0 && (
                   <div className="ep3-galeria-grid">

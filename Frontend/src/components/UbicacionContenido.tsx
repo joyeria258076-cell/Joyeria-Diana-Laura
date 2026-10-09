@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { AiOutlineEnvironment, AiOutlineClockCircle, AiOutlineCar, AiOutlineWhatsApp } from "react-icons/ai";
 import { contentAPI, zonaEntregaAPI } from "../services/api";
 import Seccion from "./Seccion";
-import UbicacionGPS from "./UbicacionGPS";
 import "../styles/SitioSecciones.css";
 
 interface Info { direccion?: string | null; horario?: string | null; whatsapp?: string | null; }
@@ -95,7 +94,6 @@ const UbicacionContenido: React.FC<{ privado?: boolean }> = ({ privado = false }
               {zonas.length ? `Entregamos en: ${zonas.join(", ")}.\n` : ""}
               El envío se realiza a través de terceros (transportistas locales, combis y similares).
             </p>
-            <UbicacionGPS zonas={zonas} />
             {wa && (
               <a className="sx-btn sx-btn--ghost" style={{ marginTop: "1.25rem", width: "100%", boxSizing: "border-box" }}
                 href={`https://wa.me/${wa}?text=${encodeURIComponent("Hola, ¿hacen entregas en mi zona?")}`}
