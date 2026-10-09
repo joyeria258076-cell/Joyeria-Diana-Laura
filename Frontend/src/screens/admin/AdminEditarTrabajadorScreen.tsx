@@ -70,6 +70,16 @@ const AdminEditarTrabajadorScreen = () => {
             setError('Debes seleccionar un rol válido.');
             return;
         }
+        // Mismas reglas que en el alta
+        const nombre = formData.nombre.trim();
+        if (nombre.length < 3 || nombre.length > 50 || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
+            setError('El nombre debe tener entre 3 y 50 letras (sin números ni símbolos).');
+            return;
+        }
+        if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email.trim())) {
+            setError('El correo electrónico no es válido.');
+            return;
+        }
 
         setGuardando(true);
         try {
@@ -79,9 +89,9 @@ const AdminEditarTrabajadorScreen = () => {
                 email: formData.email
             });
             navigate('/admin-trabajadores');
-        } catch (err) {
+        } catch (err: any) {
             console.error("Error al actualizar:", err);
-            setError('Error al actualizar: verifica si el correo ya existe.');
+            setError(err?.message || 'Error al actualizar el trabajador.');
         } finally {
             setGuardando(false);
         }

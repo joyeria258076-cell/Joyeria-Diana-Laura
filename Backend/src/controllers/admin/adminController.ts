@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import admin from '../../config/firebase'; 
 import * as userModel from '../../models/userModel';
+import { pool } from '../../config/database';
 import bcrypt from 'bcryptjs';
 import { SessionService } from '../../services/SessionService'; 
 import { AuthRequest } from '../../middleware/authMiddleware';
@@ -40,9 +41,17 @@ export const createWorkerAccount = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
     }
 
-    const ROLES_PERMITIDOS = ['admin', 'trabajador', 'cliente'];
+    // Desde el panel solo se dan de alta cuentas de operación (no clientes)
+    const ROLES_PERMITIDOS = ['admin', 'trabajador'];
     if (!ROLES_PERMITIDOS.includes(rol.toLowerCase())) {
       return res.status(400).json({ success: false, message: 'Rol no válido' });
+    }
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email) || String(nombre).trim().length < 3 || String(password).length < 8) {
+      return res.status(400).json({ success: false, message: 'Revisa el nombre, el correo y la contraseña (mínimo 8 caracteres)' });
+    }
+    // Correo ya registrado en la base de datos: se responde antes de tocar Firebase
+    if (await userModel.getUserByEmail(email)) {
+      return res.status(409).json({ success: false, message: 'Este correo electrónico ya está registrado.' });
     }
 
     console.log(`[Admin] Iniciando proceso de alta para: ${email}`);
@@ -64,6 +73,7 @@ export const createWorkerAccount = async (req: AuthRequest, res: Response) => {
     for (let i = 0; i < 8; i++) codigoActivacion += chars[Math.floor(Math.random() * chars.length)];
     const codigoActivacionHash = await bcrypt.hash(codigoActivacion, 10);
 
+    // Si falla la base de datos, se borra la cuenta de Firebase para no dejarla huérfana
     const result = await userModel.createWorker({
       nombre,
       email,
@@ -72,6 +82,9 @@ export const createWorkerAccount = async (req: AuthRequest, res: Response) => {
       rol: rol,
       activado: false,
       codigo_activacion_hash: codigoActivacionHash,
+    }).catch(async (e: any) => {
+      await admin.auth().deleteUser(firebaseUser.uid).catch(() => {});
+      throw e;
     });
 
     if (result) {
@@ -93,13 +106,15 @@ export const createWorkerAccount = async (req: AuthRequest, res: Response) => {
     console.error('❌ Error en adminController (createWorkerAccount):', error);
     
     let errorMsg = 'Error interno del servidor al crear el usuario';
-    if (error.code === 'auth/email-already-exists') {
-      errorMsg = 'Este correo electrónico ya está registrado en Firebase.';
+    let status = 500;
+    if (error.code === 'auth/email-already-exists' || error.code === '23505') {
+      errorMsg = 'Este correo electrónico ya está registrado.';
+      status = 409;
     } else if (error.code === 'auth/invalid-password') {
       errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
     }
 
-    res.status(500).json({ 
+    res.status(status).json({ 
       success: false, 
       message: errorMsg,
       details: error.message 
@@ -132,7 +147,7 @@ export const getRoles = async (req: AuthRequest, res: Response) => {
 /**
  * Activa o Desactiva a un trabajador en BD, Firebase y sesiones activas.
  */
-export const toggleWorkerAccountStatus = async (req: Request, res: Response) => {
+export const toggleWorkerAccountStatus = async (req: AuthRequest, res: Response) => {
   try {
     const workerId = Number.parseInt(req.params.id);
     const { activo } = req.body;
@@ -141,6 +156,14 @@ export const toggleWorkerAccountStatus = async (req: Request, res: Response) => 
     const worker = await userModel.getWorkerById(workerId);
     if (!worker) {
       return res.status(404).json({ success: false, message: 'Trabajador no encontrado' });
+    }
+    // Nadie puede desactivarse a sí mismo ni al administrador principal, y
+    // solo el principal puede activar o desactivar a otros administradores
+    if (!activo && (worker.email === SUPERADMIN_EMAIL || worker.id === req.user?.userId)) {
+      return res.status(403).json({ success: false, message: 'Esta cuenta no se puede desactivar.' });
+    }
+    if (worker.rol === 'admin' && req.user?.email !== SUPERADMIN_EMAIL) {
+      return res.status(403).json({ success: false, message: 'Solo el administrador principal puede activar o desactivar administradores.' });
     }
 
     // 2. Bloquear o desbloquear en Firebase
@@ -177,7 +200,7 @@ export const toggleWorkerAccountStatus = async (req: Request, res: Response) => 
   }
 };
 
-export const updateWorker = async (req: Request, res: Response) => {
+export const updateWorker = async (req: AuthRequest, res: Response) => {
   try {
     const workerId = Number.parseInt(req.params.id);
     const { nombre, rol, email } = req.body;
@@ -192,14 +215,42 @@ export const updateWorker = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Datos inválidos en la solicitud' });
     }
 
-    const ROLES_PERMITIDOS = ['admin', 'trabajador', 'cliente'];
+    const ROLES_PERMITIDOS = ['admin', 'trabajador'];
     if (!ROLES_PERMITIDOS.includes(rol.toLowerCase())) {
       return res.status(400).json({ success: false, message: 'Rol no válido' });
     }
-    
-    const updatedUser = await userModel.updateWorkerInfo(workerId, nombre, rol.toLowerCase(), email);
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email) || String(nombre).trim().length < 3) {
+      return res.status(400).json({ success: false, message: 'Revisa el nombre y el correo' });
+    }
+
+    const actual = (await pool.query('SELECT id, email, rol, firebase_uid FROM usuarios WHERE id = $1', [workerId])).rows[0];
+    if (!actual) return res.status(404).json({ success: false, message: 'Trabajador no encontrado' });
+
+    // Igual que en el alta: solo el administrador principal puede crear,
+    // modificar o quitar administradores (antes cualquiera podía promoverse)
+    const esSuper = req.user?.email === SUPERADMIN_EMAIL;
+    if ((rol.toLowerCase() === 'admin' || actual.rol === 'admin') && !esSuper) {
+      return res.status(403).json({ success: false, message: 'Solo el administrador principal puede modificar cuentas de administrador.' });
+    }
+
+    const nuevoEmail = String(email).trim().toLowerCase();
+    if (nuevoEmail !== String(actual.email).toLowerCase()) {
+      const otro = await userModel.getUserByEmail(nuevoEmail);
+      if (otro && otro.id !== workerId) {
+        return res.status(409).json({ success: false, message: 'Ese correo ya pertenece a otra cuenta.' });
+      }
+    }
+    // El inicio de sesión es con Firebase: si cambia el correo o el nombre
+    // también se actualiza ahí; si no, la persona ya no podría entrar.
+    if (actual.firebase_uid) {
+      await admin.auth().updateUser(actual.firebase_uid, { email: nuevoEmail, displayName: nombre });
+    }
+
+    const updatedUser = await userModel.updateWorkerInfo(workerId, nombre.trim(), rol.toLowerCase(), nuevoEmail);
     res.status(200).json({ success: true, data: updatedUser });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error interno' });
+    console.error('❌ Error en adminController (updateWorker):', error);
+    const yaExiste = (error as any)?.code === 'auth/email-already-exists' || (error as any)?.code === '23505';
+    res.status(yaExiste ? 409 : 500).json({ success: false, message: yaExiste ? 'Ese correo ya pertenece a otra cuenta.' : 'Error interno' });
   }
 };
