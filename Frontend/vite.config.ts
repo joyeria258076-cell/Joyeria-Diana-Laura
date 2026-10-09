@@ -39,6 +39,10 @@ export default defineConfig({
         // imágenes, íconos) — ya vienen con hash de Vite, así que cada
         // deploy invalida solo lo que cambió.
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Toma el control de la página desde la primera visita (sin esperar a
+        // recargar), para que la precarga de páginas estáticas se guarde ya.
+        clientsClaim: true,
+        skipWaiting: true,
         // Nunca cachear llamadas a la API: precios, stock, carrito, login
         // y pedidos siempre se piden frescos al servidor, sin excepción.
         // También se excluye cualquier URL con extensión de archivo
