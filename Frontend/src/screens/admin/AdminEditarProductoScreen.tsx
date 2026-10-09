@@ -320,7 +320,10 @@ const AdminEditarProductoScreen: React.FC = () => {
     if (!formData.nombre.trim()) { setError('El nombre del producto es requerido'); return false; }
     if (!formData.categoria_id) { setError('Debe seleccionar una categoría'); return false; }
     if (!formData.material_principal.trim()) { setError('Selecciona el material principal (o "Otro" y escríbelo)'); return false; }
-    if (!formData.peso_gramos || formData.peso_gramos <= 0) { setError('El peso en gramos es obligatorio y debe ser mayor a 0'); return false; }
+    // El peso solo es obligatorio en metales: en bisutería u "Otro" no define el precio
+    const esMetal = ['Plata', 'Plata ley .925', 'Chapa de oro', 'Laminado de oro', 'Baño en rodio'].includes(formData.material_principal);
+    if (esMetal && (!formData.peso_gramos || formData.peso_gramos <= 0)) { setError('En piezas de metal el peso en gramos es obligatorio'); return false; }
+    if (formData.peso_gramos !== null && formData.peso_gramos !== undefined && formData.peso_gramos < 0) { setError('El peso no puede ser negativo'); return false; }
     if (!formData.precio_compra || formData.precio_compra <= 0) { setError('El precio de compra debe ser mayor a 0'); return false; }
     if (formData.precio_oferta && formData.precio_oferta >= calcularPrecioVenta(formData.precio_compra)) { setError('El precio en oferta debe ser menor que el precio de venta'); return false; }
     if (!selectedFile && !formData.imagen_principal) { setError('La imagen del producto es obligatoria: súbela o tómala con la cámara'); return false; }

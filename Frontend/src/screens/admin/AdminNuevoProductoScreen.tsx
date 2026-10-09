@@ -246,7 +246,10 @@ const AdminNuevoProductoScreen: React.FC = () => {
     if (formData.nombre.length > 200) { setError('El nombre no puede exceder 200 caracteres'); return false; }
     if (!formData.categoria_id) { setError('Debe seleccionar una categoría'); return false; }
     if (!formData.material_principal.trim()) { setError('Selecciona el material principal (o "Otro" y escríbelo)'); return false; }
-    if (!formData.peso_gramos || formData.peso_gramos <= 0) { setError('El peso en gramos es obligatorio y debe ser mayor a 0'); return false; }
+    // El peso solo es obligatorio en metales: en bisutería u "Otro" no define el precio
+    const esMetal = ['Plata', 'Plata ley .925', 'Chapa de oro', 'Laminado de oro', 'Baño en rodio'].includes(formData.material_principal);
+    if (esMetal && (!formData.peso_gramos || formData.peso_gramos <= 0)) { setError('En piezas de metal el peso en gramos es obligatorio'); return false; }
+    if (formData.peso_gramos !== null && formData.peso_gramos !== undefined && formData.peso_gramos < 0) { setError('El peso no puede ser negativo'); return false; }
     if (!formData.precio_compra || formData.precio_compra <= 0) { setError('El precio de compra debe ser mayor a 0'); return false; }
     if (formData.precio_oferta && formData.precio_oferta >= calcularPrecioVenta(formData.precio_compra)) { setError('El precio en oferta debe ser menor que el precio de venta'); return false; }
     if (!selectedFile && !formData.imagen_principal) { setError('La imagen del producto es obligatoria: súbela o tómala con la cámara'); return false; }
@@ -400,7 +403,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
             <div className="np3-card-body">
               <h3><AiOutlineBulb size={16} /> Datos para Sugerencia de Precio</h3>
               <p className="np3-nota">
-                Categoría, Material y Peso son obligatorios para calcular el precio sugerido. Personalización también ajusta la sugerencia si la activas.
+                Categoría y Material son obligatorios; el Peso también en piezas de metal. Con ellos calculamos el precio sugerido. Personalización también ajusta la sugerencia si la activas.
               </p>
 
               <div className="np3-row">
@@ -449,7 +452,7 @@ const AdminNuevoProductoScreen: React.FC = () => {
                 </div>
                 <div className="np3-field">
                   <label htmlFor="peso_gramos">Peso (gramos)</label>
-                  <input type="number" id="peso_gramos" name="peso_gramos" step="0.01" min="0" value={formData.peso_gramos || ''} onChange={handleInputChange} placeholder="Ej: 3.5" required />
+                  <input type="number" id="peso_gramos" name="peso_gramos" step="0.01" min="0" value={formData.peso_gramos || ''} onChange={handleInputChange} placeholder="Ej: 3.5 (opcional en bisutería)" />
                 </div>
               </div>
 
