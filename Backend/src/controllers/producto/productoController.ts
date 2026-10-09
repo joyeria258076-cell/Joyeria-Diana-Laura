@@ -170,6 +170,11 @@ export const deleteCategory = async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, message: 'Categoría no encontrada' });
         }
         
+        // No se borra una categoría con productos: quedarían sin categoría
+        const enUso = await pool.query('SELECT COUNT(*)::int AS n FROM productos WHERE categoria_id = $1', [Number.parseInt(id)]);
+        if (enUso.rows[0].n > 0) {
+            return res.status(409).json({ success: false, message: `No se puede eliminar: la categoría tiene ${enUso.rows[0].n} producto(s). Muévelos a otra categoría o desactívala.` });
+        }
         await CategoryModel.delete(Number.parseInt(id));
         res.status(200).json({ success: true, message: 'Categoría eliminada exitosamente' });
     } catch (error: any) {

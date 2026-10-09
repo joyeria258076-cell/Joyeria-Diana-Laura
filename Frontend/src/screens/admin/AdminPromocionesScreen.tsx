@@ -117,6 +117,10 @@ const AdminPromocionesScreen: React.FC = () => {
     if (['porcentaje', 'monto_fijo', 'cupon'].includes(form.tipo) && !form.valor_descuento) {
       setError('Indica el valor de descuento'); return;
     }
+    const valor = parseFloat(form.valor_descuento || '0');
+    if (['porcentaje', 'monto_fijo', 'cupon'].includes(form.tipo) && valor <= 0) { setError('El descuento debe ser mayor a 0'); return; }
+    if (['porcentaje', 'cupon'].includes(form.tipo) && valor > 90) { setError('El porcentaje de descuento no puede ser mayor a 90%'); return; }
+    if (form.tipo === 'cupon' && !form.codigo_cupon.trim()) { setError('El cupón necesita un código para que el cliente lo escriba'); return; }
 
     const payload: any = {
       nombre: form.nombre.trim(),
