@@ -24,8 +24,20 @@ const ENDPOINTS_ESTATICOS = [
   '/zonas-entrega',
 ];
 
-const precargar = () =>
-  Promise.allSettled(ENDPOINTS_ESTATICOS.map(e => fetch(`${API}${e}`)));
+// Misma caché que usa la regla Network First del service worker (vite.config.ts)
+const CACHE_ESTATICAS = 'paginas-estaticas';
+
+// Pide cada endpoint y guarda la respuesta directamente en la caché. Así no
+// depende de que el service worker ya controle la página (en la primera
+// visita todavía se está instalando y no alcanzaría a guardarla).
+const precargar = async () => {
+  if (!('caches' in window)) return;
+  const cache = await caches.open(CACHE_ESTATICAS);
+  await Promise.allSettled(ENDPOINTS_ESTATICOS.map(async e => {
+    const res = await fetch(`${API}${e}`, { cache: 'no-store' });
+    if (res.ok) await cache.put(`${API}${e}`, res.clone());
+  }));
+};
 
 const notificar = async (titulo: string, cuerpo: string) => {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
@@ -39,12 +51,9 @@ const notificar = async (titulo: string, cuerpo: string) => {
 
 function ConexionSync(): null {
   useEffect(() => {
-    // Esperar a que el service worker controle la página para que lo guarde
     // Se deja para después de cargar la página, para no competir con las
     // imágenes y datos del primer pintado (afectaba el LCP en Lighthouse).
-    const iniciar = () => { setTimeout(() => { if (navigator.onLine) precargar(); }, 5000); };
-    if (navigator.serviceWorker?.controller) iniciar();
-    else navigator.serviceWorker?.addEventListener('controllerchange', iniciar, { once: true });
+    const t = setTimeout(() => { if (navigator.onLine) precargar().catch(() => {}); }, 5000);
 
     const alVolver = async () => {
       await precargar();
@@ -59,6 +68,7 @@ function ConexionSync(): null {
     return () => {
       window.removeEventListener('online', alVolver);
       window.removeEventListener('offline', alPerder);
+      clearTimeout(t);
     };
   }, []);
 
