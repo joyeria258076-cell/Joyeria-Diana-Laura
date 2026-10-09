@@ -51,14 +51,14 @@ function UbicacionGPS({ zonas, compacto = false }: Props): React.JSX.Element {
       let localidad = '';
       let partes: string[] = [];
       try {
-        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=12&accept-language=es`);
+        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=14&accept-language=es`);
         const j = await r.json();
         const a = j?.address || {};
         const lugar = a.city || a.town || a.village || a.municipality || '';
         const municipio = a.county || '';
         // p. ej. "Orizaltlán, San Felipe Orizatlán" o solo "Huejutla de Reyes"
         localidad = lugar && municipio && norm(lugar) !== norm(municipio) ? `${lugar}, ${municipio}` : (lugar || municipio);
-        partes = [a.city, a.town, a.village, a.municipality, a.county, a.suburb, a.state];
+        partes = [a.city, a.town, a.village, a.hamlet, a.municipality, a.county, a.suburb, a.state];
       } catch { /* sin nombre de localidad: se usa solo la distancia */ }
       // Si no se pudo saber la localidad, se toma como dentro si está cerca (≤ 5 km)
       const dentro = partes.length ? enZona(partes) : (km <= 5 ? true : null);
