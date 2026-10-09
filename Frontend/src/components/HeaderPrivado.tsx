@@ -10,7 +10,7 @@ import {
     AiOutlineImport, AiOutlineExport, AiOutlineSync, AiOutlineDesktop, AiOutlineSetting, AiOutlineTool,
     AiOutlineEdit, AiOutlineFileText, AiOutlineBgColors, AiOutlineStar, AiOutlineRead,
     AiOutlineInfoCircle, AiOutlineQuestionCircle, AiOutlineAim, AiOutlineAudit, AiOutlineShoppingCart,
-    AiOutlineFlag, AiOutlineTeam, AiOutlineUser, AiOutlineBarChart,
+    AiOutlineFlag, AiOutlineTeam, AiOutlineBarChart,
     AiOutlineUsergroupAdd, AiOutlineCheckSquare, AiOutlineHome, AiOutlineShop, AiOutlineHeart,
     AiOutlineBook, AiOutlineEnvironment, AiOutlineLogout, AiOutlineBell, AiOutlineDown, AiOutlineEye,
 } from "react-icons/ai";
@@ -302,9 +302,6 @@ const HeaderPrivado: React.FC = () => {
                             <div className="sidebar-divider"></div>
                             <button className={`nav-item ${isActive("/trabajador/actividades")}`} onClick={() => goTo("/trabajador/actividades")}>
                                 <span className="nav-icon"><AiOutlineCheckSquare size={16} /></span> Mis Actividades
-                            </button>
-                            <button className={`nav-item ${isActive("/trabajador/perfil")}`} onClick={() => goTo("/trabajador/perfil")}>
-                                <span className="nav-icon"><AiOutlineUser size={16} /></span> Mi Perfil
                             </button>
                         </>
                     ) : (
