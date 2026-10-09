@@ -210,7 +210,7 @@ const AdminEditarProductoScreen: React.FC = () => {
   const handleUploadImage = async () => {
     if (!selectedFile) {
       setError('Selecciona una imagen primero');
-      return false;
+      return null;
     }
     setUploadingImage(true);
     setError('');
@@ -222,14 +222,15 @@ const AdminEditarProductoScreen: React.FC = () => {
       if (response.success) {
         setFormData(prev => ({ ...prev, imagen_principal: response.data.url, imagen_public_id: response.data.publicId }));
         setCurrentImagePublicId(response.data.publicId);
-        return true;
+        setSelectedFile(null); // ya subida: no volver a subirla al guardar
+        return { imagen_principal: response.data.url as string, imagen_public_id: response.data.publicId as string };
       }
       setError(response.message || 'Error al subir la imagen');
-      return false;
+      return null;
     } catch (err: any) {
       console.error('Error uploading image:', err);
       setError(err.message || 'Error al subir la imagen');
-      return false;
+      return null;
     } finally {
       setUploadingImage(false);
     }
@@ -328,15 +329,20 @@ const AdminEditarProductoScreen: React.FC = () => {
     setError('');
     if (!validateForm()) return;
 
-    if (selectedFile && !formData.imagen_principal) {
-      const uploaded = await handleUploadImage();
-      if (!uploaded) return;
+    // Si hay una foto elegida o tomada que aún no se subió, se sube aquí y su
+    // URL se usa directamente: el estado (formData) todavía no se actualiza en
+    // este mismo render, y antes el producto se guardaba sin imagen.
+    let imagenSubida = {};
+    if (selectedFile) {
+      const subida = await handleUploadImage();
+      if (!subida) return;
+      imagenSubida = subida;
     }
 
     setLoading(true);
     try {
       const precioVenta = calcularPrecioVenta(formData.precio_compra);
-      const dataToSend = { ...formData, precio_venta: precioVenta, margen_ganancia: margenConfig, stock_minimo: stockMinimoDefault, stock_maximo: stockMaximoDefault };
+      const dataToSend = { ...formData, ...imagenSubida, precio_venta: precioVenta, margen_ganancia: margenConfig, stock_minimo: stockMinimoDefault, stock_maximo: stockMaximoDefault };
       const response = await productsAPI.update(Number.parseInt(id!), dataToSend);
 
       if (response.success) {
