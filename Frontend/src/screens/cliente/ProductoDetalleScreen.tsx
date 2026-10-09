@@ -1,5 +1,4 @@
 // Ruta: src/screens/cliente/ProductoDetalleScreen.tsx
-import UbicacionGPS from '../../components/UbicacionGPS';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AiOutlineMinus, AiOutlinePlus, AiOutlineShoppingCart, AiOutlineEdit } from 'react-icons/ai';
@@ -491,8 +490,6 @@ const ProductoDetalleScreen: React.FC = () => {
                                     </button>
                                 ))}
                             </div>
-                            {/* Sensor de ubicación: ¿llega este producto a donde estoy? */}
-                            <UbicacionGPS zonas={producto.ubicaciones_entrega} compacto />
                         </div>
                     )}
                 </div>

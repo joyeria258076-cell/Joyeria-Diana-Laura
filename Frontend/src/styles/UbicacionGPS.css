@@ -1,6 +1,6 @@
 /* Ruta: Frontend/src/styles/UbicacionGPS.css */
 .gps { display: flex; flex-direction: column; gap: 10px; margin-top: 1rem; }
-.gps--compacto { margin: 12px 0; }
+.gps--compacto { margin: 0 0 12px; }
 .gps-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; box-sizing: border-box;
   min-height: 46px; padding: 0 16px; border-radius: 999px; border: 0; cursor: pointer; text-decoration: none;
