@@ -1,6 +1,7 @@
 // Ruta: Joyeria-Diana-Laura/Frontend/src/components/OfflineBanner.tsx
 
 import { useEffect, useState } from 'react';
+import { MdWifiOff } from 'react-icons/md';
 import '../styles/OfflineBanner.css';
 
 function OfflineBanner(): React.JSX.Element | null {
@@ -23,7 +24,7 @@ function OfflineBanner(): React.JSX.Element | null {
 
   return (
     <div className="offline-banner" role="alert">
-      <span className="offline-banner-icon">📶</span>
+      <span className="offline-banner-icon" aria-hidden="true"><MdWifiOff size={20} /></span>
       <span className="offline-banner-text">
         Sin conexión a internet. Puedes seguir navegando lo ya cargado, pero los datos podrían no estar actualizados.
       </span>
