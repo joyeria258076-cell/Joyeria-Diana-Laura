@@ -1,0 +1,19 @@
+/* Ruta: Frontend/src/styles/UbicacionGPS.css */
+.gps { display: flex; flex-direction: column; gap: 10px; margin-top: 1rem; }
+.gps--compacto { margin: 0 0 12px; }
+.gps-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; box-sizing: border-box;
+  min-height: 46px; padding: 0 16px; border-radius: 999px; border: 0; cursor: pointer; text-decoration: none;
+  font: inherit; font-size: 14px; font-weight: 600;
+  background: var(--color-primary-strong, #c9a84c); color: var(--color-on-primary, #111);
+}
+.gps-btn:disabled { opacity: 0.7; cursor: progress; }
+.gps-btn--sec { background: transparent; color: var(--color-text, inherit); border: 1px solid var(--color-border, #555); }
+.gps-res { display: flex; flex-direction: column; gap: 8px; }
+.gps-donde { margin: 0; line-height: 1.5; color: var(--color-text, inherit); }
+.gps-msg { margin: 0; padding: 10px 12px; border-radius: 12px; font-size: 14px; line-height: 1.45; }
+.gps-msg--ok { background: color-mix(in srgb, #2e9e5b 14%, transparent); color: var(--color-text, inherit); }
+.gps-msg--aviso { background: color-mix(in srgb, #d99a2b 14%, transparent); color: var(--color-text, inherit); }
+.gps-nota { margin: 0; font-size: 12.5px; color: var(--color-text-muted, #999); }
+.gps-acciones { display: flex; gap: 8px; }
+.gps-acciones > * { flex: 1; }

@@ -9,6 +9,7 @@ import {
     AiOutlineClose, AiOutlineCheck, AiOutlineCheckCircle, AiOutlineInfoCircle, AiOutlineCalendar,
 } from 'react-icons/ai';
 import { useCart, cargoPersonalizacion as cargoDe, resumenOpciones } from '../../contexts/CartContext';
+import UbicacionGPS from '../../components/UbicacionGPS';
 import { carritoAPI, apartadoAPI, recomendacionAPI, zonaEntregaAPI, type Recomendacion } from '../../services/api';
 import './CarritoScreen.css';
 import './CarritoApp.css';
@@ -624,6 +625,7 @@ const CarritoScreen: React.FC = () => {
                                     </div>
                                     {tipoEntrega === 'domicilio' ? (
                                         <div className="hc-bloque">
+                                            <UbicacionGPS zonas={zonas} compacto />
                                             <p className="hc-etiqueta">Dirección de envío</p>
                                             <SelectorDireccion onChange={setDireccion} />
                                             {(() => {
