@@ -4,7 +4,12 @@ import { generateDirectBackup, getBackupsHistory, getBackupLogContent, downloadB
     getSchedulerStatus,updateSchedulerConfig, runSchedulerNow,
     getDatabaseHealth, performMaintenance, deleteBackup,
     getTablesList, downloadCollectionBackup, downloadCollectionCSV } from '../controllers/backup/backupController';    
+import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 const router = Router();
+
+// Respaldos, salud y mantenimiento de la BD: solo administradores
+router.use(authenticateToken);
+router.use(requireAdmin);
 
 // Esta ruta será: http://localhost:5000/api/backups/direct-download
 router.get('/direct-download', generateDirectBackup);

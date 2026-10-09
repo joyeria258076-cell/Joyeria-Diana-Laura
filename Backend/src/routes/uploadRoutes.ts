@@ -1,7 +1,7 @@
 // Backend/src/routes/uploadRoutes.ts
 import { Router } from 'express';
 import { uploadController } from '../controllers/general/uploadController'; // ✅ Ruta actualizada
-import { authenticateToken } from '../middleware/authMiddleware';
+import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 import { uploadSingleImage, handleUploadError } from '../middleware/uploadMiddleware';
 
 const router = Router();
@@ -24,16 +24,17 @@ router.post(
 // Actualizar imagen (eliminar anterior y subir nueva)
 router.put(
   '/image',
+  requireAdmin,
   uploadSingleImage,
   handleUploadError,
   uploadController.updateImage
 );
 
 // Eliminar imagen por publicId
-router.delete('/image/:publicId', uploadController.deleteImage);
+router.delete('/image/:publicId', requireAdmin, uploadController.deleteImage);
 
 // Obtener información de imagen
-router.get('/image/:publicId/info', uploadController.getImageInfo);
+router.get('/image/:publicId/info', requireAdmin, uploadController.getImageInfo);
 
 // ==========================================
 // RUTAS ESPECÍFICAS POR MÓDULO
@@ -42,6 +43,7 @@ router.get('/image/:publicId/info', uploadController.getImageInfo);
 // Productos
 router.post(
   '/productos/:productoId/imagen',
+  requireAdmin,
   uploadSingleImage,
   handleUploadError,
   uploadController.uploadProductImage
@@ -49,6 +51,7 @@ router.post(
 
 router.post(
   '/productos/imagen', // Para producto nuevo (sin ID)
+  requireAdmin,
   uploadSingleImage,
   handleUploadError,
   uploadController.uploadProductImage
@@ -57,6 +60,7 @@ router.post(
 // Categorías
 router.post(
   '/categorias/:categoriaId/imagen',
+  requireAdmin,
   uploadSingleImage,
   handleUploadError,
   uploadController.uploadCategoryImage
@@ -64,6 +68,7 @@ router.post(
 
 router.post(
   '/categorias/imagen', // Para categoría nueva
+  requireAdmin,
   uploadSingleImage,
   handleUploadError,
   uploadController.uploadCategoryImage

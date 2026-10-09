@@ -12,7 +12,7 @@ import {
     subirComprobante, getEstadosPedidosCliente, validarCodigoEntrega,
     confirmarEntregaCodigo
 } from '../controllers/carrito/carritoController';
-import { authenticateToken, requireTrabajador } from '../middleware/authMiddleware';
+import { authenticateToken, requireTrabajador, requireStaff } from '../middleware/authMiddleware';
 import { uploadSingleImage, handleUploadError } from '../middleware/uploadMiddleware';
 import { pool } from '../config/database';
 import { VentaModel } from '../models/carritoModel';
@@ -66,7 +66,7 @@ router.get('/pedidos/mis-estados',        getEstadosPedidosCliente);
 router.post('/pedidos/validar-codigo',    requireTrabajador, validarCodigoEntrega);
 router.post('/pedidos/confirmar-entrega', requireTrabajador, confirmarEntregaCodigo);
 // Consulta/monitoreo: accesible a trabajador y admin (getAllPedidos ya filtra por rol internamente)
-router.get('/pedidos',                    getAllPedidos);
+router.get('/pedidos',                    requireStaff, getAllPedidos);
 router.get('/pedidos/:id',                getPedidoById);
 
 // ── Pagos ─────────────────────────────────────────────────────
@@ -79,7 +79,7 @@ router.patch('/pedidos/:id/tomar',                      requireTrabajador, tomar
 router.patch('/pedidos/:id/detalles',                   requireTrabajador, editarDetallesVenta);
 router.patch('/pedidos/:id/items/:item_id/cantidad',    requireTrabajador, editarCantidadItem);
 router.delete('/pedidos/:id/items/:item_id',            requireTrabajador, eliminarItemVenta);
-router.get('/pedidos/:id/cliente',                      getClienteVenta);
+router.get('/pedidos/:id/cliente',                      requireStaff, getClienteVenta);
 router.patch('/pedidos/:id/estado',                     requireTrabajador, actualizarEstadoPedido);
 router.post('/pedidos/:id/confirmar-pago-efectivo',     requireTrabajador, confirmarPagoEfectivo);
 // subirComprobante: el CLIENTE sube su propio comprobante, no se restringe a trabajador.

@@ -29,13 +29,43 @@ export interface SchedulerStatus {
   lastRun: string | null;
 }
 
+// Todas las rutas de respaldos exigen sesión de administrador
+const authHeaders = (): Record<string, string> => {
+  const headers: Record<string, string> = {};
+  try {
+    const user = localStorage.getItem('diana_laura_user');
+    const jwt = user ? JSON.parse(user).token : null;
+    if (jwt) headers['Authorization'] = `Bearer ${jwt}`;
+    const session = localStorage.getItem('diana_laura_session_token');
+    if (session) headers['X-Session-Token'] = session;
+  } catch { /* sin sesión */ }
+  return headers;
+};
+
+const fetchAuth = (url: string, init: RequestInit = {}) =>
+  fetch(url, { ...init, headers: { ...authHeaders(), ...(init.headers as Record<string, string> || {}) } });
+
+// Descarga con token (un <a href> no puede mandar el encabezado Authorization)
+const descargarConToken = async (url: string, nombre: string) => {
+  const response = await fetchAuth(url);
+  if (!response.ok) throw new Error('No se pudo descargar el archivo');
+  const blobUrl = window.URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.setAttribute('download', nombre);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(blobUrl);
+};
+
 export const backupsService = {
   /**
    * OBTIENE EL HISTORIAL REAL DESDE LA BASE DE DATOS
    */
   async getHistory(): Promise<Backup[]> {
     try {
-      const response = await fetch(`${API_URL}/history`);
+      const response = await fetchAuth(`${API_URL}/history`);
       if (!response.ok) throw new Error('Error al obtener el historial del servidor');
       return await response.json();
     } catch (error) {
@@ -49,7 +79,7 @@ export const backupsService = {
    */
   async downloadLogFile(id: string | number, fileName: string): Promise<void> {
     try {
-      const response = await fetch(`${API_URL}/log/${id}`);
+      const response = await fetchAuth(`${API_URL}/log/${id}`);
       if (!response.ok) throw new Error('No se pudo obtener el log');
 
       const blob = await response.blob();
@@ -89,7 +119,7 @@ export const backupsService = {
           }],
         });
 
-        const response = await fetch(downloadUrl);
+        const response = await fetchAuth(downloadUrl);
         if (!response.ok) throw new Error('Error al conectar con el servidor');
 
         const writable = await handle.createWritable();
@@ -104,11 +134,11 @@ export const backupsService = {
           console.log('Descarga cancelada por el usuario.');
         } else {
           console.error('Error usando FileSystem API:', err);
-          this.fallbackDownload(downloadUrl);
+          await this.fallbackDownload(downloadUrl);
         }
       }
     } else {
-      this.fallbackDownload(downloadUrl);
+      await this.fallbackDownload(downloadUrl);
     }
   },
 
@@ -165,22 +195,15 @@ export const backupsService = {
   /**
    * Método de respaldo para navegadores que no soportan FileSystem API
    */
-  fallbackDownload(url: string): void {
-    const ahora = new Date();
-    const marcaReferencia = ahora.getTime();
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `respaldo_joyeria_manual_${marcaReferencia}.dump`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+  fallbackDownload(url: string): Promise<void> {
+    return descargarConToken(url, `respaldo_joyeria_manual_${Date.now()}.dump`);
   },
 
   // ─── MÉTODOS DEL SCHEDULER ────────────────────────────────────────────────
 
   async getSchedulerStatus(): Promise<SchedulerStatus | null> {
     try {
-      const response = await fetch(`${API_URL}/scheduler/status`);
+      const response = await fetchAuth(`${API_URL}/scheduler/status`);
       if (!response.ok) throw new Error('Error al obtener estado del scheduler');
       const data = await response.json();
       return data.data;
@@ -192,7 +215,7 @@ export const backupsService = {
 
   async updateSchedulerConfig(config: SchedulerConfig): Promise<{ success: boolean; message: string }> {
     try {
-      const response = await fetch(`${API_URL}/scheduler/config`, {
+      const response = await fetchAuth(`${API_URL}/scheduler/config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
@@ -207,7 +230,7 @@ export const backupsService = {
 
   async runSchedulerNow(): Promise<{ success: boolean; message: string }> {
     try {
-      const response = await fetch(`${API_URL}/scheduler/run-now`, {
+      const response = await fetchAuth(`${API_URL}/scheduler/run-now`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -221,7 +244,7 @@ export const backupsService = {
 
   async getDatabaseHealth(): Promise<any> {
     try {
-      const response = await fetch(`${API_URL}/health`);
+      const response = await fetchAuth(`${API_URL}/health`);
       if (!response.ok) throw new Error('Error al obtener salud de BD');
       return await response.json();
     } catch (error) {
@@ -232,7 +255,7 @@ export const backupsService = {
 
   async runMaintenance(): Promise<{ success: boolean; message: string }> {
     try {
-      const response = await fetch(`${API_URL}/maintenance`, { method: 'POST' });
+      const response = await fetchAuth(`${API_URL}/maintenance`, { method: 'POST' });
       const data = await response.json();
       return { success: response.ok, message: data.message || data.error };
     } catch (error) {
@@ -242,11 +265,9 @@ export const backupsService = {
 
   deleteBackup: async (id: string): Promise<{ success: boolean; message: string }> => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/${id}`, {
+      const response = await fetchAuth(`${API_URL}/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -263,7 +284,7 @@ export const backupsService = {
    */
   async getTablesList(): Promise<{ tabla: string; filas: number }[]> {
     try {
-      const response = await fetch(`${API_URL}/tables`);
+      const response = await fetchAuth(`${API_URL}/tables`);
       if (!response.ok) throw new Error('Error al obtener tablas');
       const data = await response.json();
       return data.tables || [];
@@ -296,7 +317,7 @@ export const backupsService = {
             accept: { 'application/octet-stream': ['.dump'] },
           }],
         });
-        const response = await fetch(downloadUrl);
+        const response = await fetchAuth(downloadUrl);
         if (!response.ok) throw new Error('Error al conectar con el servidor');
         const writable = await handle.createWritable();
         if (response.body) {
@@ -310,21 +331,11 @@ export const backupsService = {
           console.log('Descarga cancelada por el usuario.');
         } else {
           console.error('Error FileSystem API:', err);
-          const link = document.createElement('a');
-          link.href = downloadUrl;
-          link.setAttribute('download', nombreSugerido);
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
+          await descargarConToken(downloadUrl, nombreSugerido);
         }
       }
     } else {
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.setAttribute('download', nombreSugerido);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      await descargarConToken(downloadUrl, nombreSugerido);
     }
   },
 
@@ -348,7 +359,7 @@ export const backupsService = {
           suggestedName: nombreSugerido,
           types: [{ description: 'CSV File', accept: { 'text/csv': ['.csv'] } }],
         });
-        const response = await fetch(downloadUrl);
+        const response = await fetchAuth(downloadUrl);
         if (!response.ok) throw new Error('Error al conectar con el servidor');
         const writable = await handle.createWritable();
         if (response.body) {
@@ -362,21 +373,11 @@ export const backupsService = {
           console.log('Descarga cancelada por el usuario.');
         } else {
           console.error('Error FileSystem API:', err);
-          const link = document.createElement('a');
-          link.href = downloadUrl;
-          link.setAttribute('download', nombreSugerido);
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
+          await descargarConToken(downloadUrl, nombreSugerido);
         }
       }
     } else {
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.setAttribute('download', nombreSugerido);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      await descargarConToken(downloadUrl, nombreSugerido);
     }
   },
 };

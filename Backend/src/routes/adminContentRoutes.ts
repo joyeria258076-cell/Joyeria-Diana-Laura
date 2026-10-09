@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { adminContentController } from '../controllers/admin/adminContentController';
-import { authenticateToken } from '../middleware/authMiddleware';
+import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
 const router = Router();
 
-// Aplicar autenticación solo a rutas de escritura
+// Lectura pública; escritura solo para administradores
 router.use((req, res, next) => {
   if (req.method === 'GET') return next();
-  return authenticateToken(req, res, next);
+  return authenticateToken(req, res, () => requireAdmin(req, res, next));
 });
 
 // ==========================================

@@ -9,7 +9,11 @@ import {
   getProyeccion,
 } from '../controllers/admin/predictiveController';
 
+import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 const router = express.Router();
+
+router.use(authenticateToken);
+router.use(requireAdmin);
 
 // GET /api/prediccion/anios
 router.get('/anios', getAnios);

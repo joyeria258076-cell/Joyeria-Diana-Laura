@@ -11,7 +11,7 @@ import {
     solicitarAbono, confirmarAbonoPendiente,
     crearPreferenciaMP_AbonoSig, crearOrdenPayPal_AbonoSig, capturarPayPal_AbonoSig
 } from '../controllers/apartado/apartadoController';
-import { authenticateToken, requireTrabajador } from '../middleware/authMiddleware';
+import { authenticateToken, requireTrabajador, requireAdmin, requireStaff } from '../middleware/authMiddleware';
 import { uploadSingleImage, handleUploadError } from '../middleware/uploadMiddleware';
 
 const router = Router();
@@ -23,9 +23,9 @@ router.use(authenticateToken);
 
 // ── Planes de abono ───────────────────────────────────────────
 router.get('/planes',          getPlanes);
-router.post('/planes',         crearPlan);
-router.put('/planes/:id',      actualizarPlan);
-router.delete('/planes/:id',   eliminarPlan);
+router.post('/planes',         requireAdmin, crearPlan);
+router.put('/planes/:id',      requireAdmin, actualizarPlan);
+router.delete('/planes/:id',   requireAdmin, eliminarPlan);
 
 // ── Cliente ───────────────────────────────────────────────────
 router.post('/',               crearApartado);
@@ -35,7 +35,7 @@ router.get('/mis-apartados',   getMisApartados);
 router.get('/:id',             getApartadoById);
 
 // ── Monitoreo (trabajador y admin pueden CONSULTAR) ────────────
-router.get('/',                        getTodosApartados);
+router.get('/',                        requireStaff, getTodosApartados);
 
 // ── Acciones EXCLUSIVAS del trabajador (el admin solo monitorea) ──
 router.post('/:id/confirmar-pago',     requireTrabajador, confirmarPagoInicial);

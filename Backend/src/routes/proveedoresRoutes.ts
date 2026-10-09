@@ -1,12 +1,13 @@
 // Backend/src/routes/proveedoresRoutes.ts
 import { Router } from 'express';
 import { proveedoresController } from '../controllers/admin/proveedoresController';
-import { authenticateToken } from '../middleware/authMiddleware';
+import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
 const router = Router();
 
 // Todas las rutas requieren autenticación
 router.use(authenticateToken);
+router.use(requireAdmin);
 
 // Obtener todos los proveedores
 router.get('/', proveedoresController.getAll);

@@ -1,7 +1,7 @@
 // Backend/src/routes/importRoutes.ts
 import { Router } from 'express';
 import { importController } from '../controllers/admin/importController';
-import { authenticateToken } from '../middleware/authMiddleware';
+import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
 const router = Router();
 
@@ -10,6 +10,7 @@ console.log('📦 Registrando rutas de importación...');
 
 // Todas las rutas requieren autenticación
 router.use(authenticateToken);
+router.use(requireAdmin);
 
 // Rutas
 router.get('/tables', importController.getTables);
