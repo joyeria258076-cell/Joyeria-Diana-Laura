@@ -16,12 +16,16 @@ import { authenticateToken, requireTrabajador, requireStaff } from '../middlewar
 import { uploadSingleImage, handleUploadError } from '../middleware/uploadMiddleware';
 import { pool } from '../config/database';
 import { VentaModel } from '../models/carritoModel';
+import { paginaVolverApp } from '../utils/pagoApp';
 
 const router = Router();
 
 // ── Webhook MercadoPago (público) ─────────────────────────────
 router.post('/webhook/mercadopago', webhookMercadoPago);
 router.get('/webhook/mercadopago', (req, res) => res.sendStatus(200));
+
+// ── Regreso de Mercado Pago a la app móvil (público, HU-12) ──
+router.get('/pago/volver-app', paginaVolverApp);
 
 // ── Recibo PDF — público con token en query string ────────────
 router.get('/pedidos/:id/recibo', generarReciboPDF);

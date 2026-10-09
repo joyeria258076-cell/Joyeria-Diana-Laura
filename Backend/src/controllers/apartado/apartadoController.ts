@@ -6,6 +6,7 @@ import axios from 'axios';
 import { C, SITIO_URL, dinero, escapar, fila, tablaFilas, tarjeta, barraProgreso, layoutCorreo } from '../../utils/plantillaCorreo';
 import { verificarYCapturarPayPal } from '../../utils/paypalVerificacion';
 
+import { urlsRegresoApp } from '../../utils/pagoApp';
 // ─── Notificación por email de estado de apartado (reemplaza el banner in-app) ──
 const BREVO_ENDPOINT = 'https://api.brevo.com/v3/smtp/email';
 const REMITENTE_EMAIL = process.env.BREVO_SENDER_EMAIL || '';
@@ -970,7 +971,8 @@ export const crearPreferenciaMP_Apartado = async (req: AuthRequest, res: Respons
             items: [{ id: String(apartado.id), title: `Apartado ${apartado.folio}`, quantity: 1, unit_price: monto, currency_id: 'MXN' }],
             payer: { email: usuario?.email || '' },
             external_reference: `APT-${apartado.id}`,
-            back_urls: {
+            // Si el pago lo inicia la app móvil, Mercado Pago regresa a la app (HU-12).
+            back_urls: req.body.origen === 'app' ? urlsRegresoApp('apartado', apartado.id) : {
                 success: `${backUrl}/mis-apartados?pago=exitoso&apartado=${apartado.id}`,
                 failure: `${backUrl}/mis-apartados?pago=fallido&apartado=${apartado.id}`,
                 pending: `${backUrl}/mis-apartados?pago=pendiente&apartado=${apartado.id}`,

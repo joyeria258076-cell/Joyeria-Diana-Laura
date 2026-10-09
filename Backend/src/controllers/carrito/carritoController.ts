@@ -10,6 +10,7 @@ import { verificarYCapturarPayPal } from '../../utils/paypalVerificacion';
 import { expirarSiToca } from '../../services/expiracionPedidosService';
 import { validarEleccion, resumenDe } from '../../services/opcionesPersonalizacionService';
 
+import { urlsRegresoApp } from '../../utils/pagoApp';
 const getUsuario = (req: Request) => {
     const user = (req as any).user;
     const id = user?.userId || user?.dbId || user?.id || null;
@@ -781,7 +782,8 @@ export const crearPreferenciaMercadoPago = async (req: Request, res: Response) =
             items,
             payer:              { email: usuario.email },
             external_reference: String(venta.id),
-            back_urls: {
+            // Si el pago lo inicia la app móvil, Mercado Pago regresa a la app (HU-12).
+            back_urls: req.body.origen === 'app' ? urlsRegresoApp('pedido', venta.id) : {
                 success: `${backUrl}/pedidos?pago=exitoso&pedido=${venta.id}`,
                 failure: `${backUrl}/pedidos?pago=fallido&pedido=${venta.id}`,
                 pending: `${backUrl}/pedidos?pago=pendiente&pedido=${venta.id}`
