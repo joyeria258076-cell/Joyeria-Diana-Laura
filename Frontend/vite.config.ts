@@ -3,10 +3,10 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Endpoints de la API que alimentan las páginas estáticas (se guardan
-// para verse sin conexión). El catálogo NO está aquí: es dinámico.
-// La misma lista se precarga en src/components/ConexionSync.tsx.
-const RUTAS_ESTATICAS = /\/api\/(content\/(info-empresa|faqs|pages\/(terminos|privacidad)|carrusel-inicio|promociones\/activas|colecciones\/publicas)|products\/configuracion\/clave\/sitio_mision_vision_valores|zonas-entrega)$/
+// Rutas de la API de las páginas estáticas (se guardan para verse sin
+// conexión): están escritas dentro de la regla de runtimeCaching. El
+// catálogo NO está ahí: es dinámico. La misma lista se precarga en
+// src/components/ConexionSync.tsx.
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -60,7 +60,10 @@ export default defineConfig({
           // sin internet se muestra lo último guardado.
           {
             urlPattern: ({ url, request }) =>
-              request.method === 'GET' && RUTAS_ESTATICAS.test(url.pathname),
+              request.method === 'GET' &&
+              // La expresión va escrita aquí dentro: esta función se copia tal cual
+              // al sw.js generado y ahí no existen las variables de este archivo.
+              /\/api\/(content\/(info-empresa|faqs|pages\/(terminos|privacidad)|carrusel-inicio|promociones\/activas|colecciones\/publicas)|products\/configuracion\/clave\/sitio_mision_vision_valores|zonas-entrega)$/.test(url.pathname),
             handler: 'NetworkFirst',
             options: {
               cacheName: 'paginas-estaticas',
