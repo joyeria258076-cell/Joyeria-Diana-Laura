@@ -178,7 +178,8 @@
 
 /* ── Celular ─────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .jy-cabeza { grid-template-columns: 1fr; gap: 16px; }
+  .jy-cabeza { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .jy-buscar input { min-width: 0; width: 0; flex: 1; }
   .jy-caja { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: 150px; gap: 8px; padding: 8px; border-radius: 26px; }
   .jy-hueco { grid-column: span 1; grid-row: span 1; border-radius: 19px; }
   .jy-hueco--estrella { grid-column: span 2; grid-row: span 2; }

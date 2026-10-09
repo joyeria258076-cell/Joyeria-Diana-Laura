@@ -376,3 +376,11 @@ html body .detalle-rec-img-fallback { display: flex !important; align-items: cen
 html body .card-estrellas { margin: 2px 0 0; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: var(--color-text); }
 html body .card-estrellas span { color: #F2B640; font-size: 14px; }
 html body .card-estrellas small { font-weight: 500; color: var(--color-text-muted); font-size: 12px; }
+
+/* Celular: el buscador (texto + micrófono + Buscar) no debe salirse de la pantalla */
+@media (max-width: 600px) {
+  body .cv5-buscar { gap: 6px; padding-left: 14px; }
+  body .cv5-buscar input { width: 0; min-width: 0 !important; }
+  body .cv5-buscar button[type="submit"] { padding: 0 14px; }
+  body .catalogo-body, body .cv5-cabeza { min-width: 0; max-width: 100%; }
+}
