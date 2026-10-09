@@ -90,13 +90,30 @@ const AdminNuevoProveedorScreen: React.FC = () => {
       setError('El email no es válido');
       return false;
     }
+    const tel = (formData.telefono || '').replace(/\D/g, '');
+    if (formData.telefono && tel.length !== 10) { setError('El teléfono debe tener 10 dígitos'); return false; }
+    if (!tel && !(formData.email || '').trim()) { setError('Agrega al menos un teléfono o un email para poder contactar al proveedor'); return false; }
+    // RFC: 12 caracteres persona moral (empresa) o 13 persona física
+    if (formData.rfc && !/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i.test(formData.rfc.trim())) { setError('El RFC no tiene un formato válido (12 caracteres para empresa o 13 para persona física)'); return false; }
     return true;
+  };
+
+  // Mismo nombre o RFC ya registrado
+  const proveedorRepetido = async (idActual?: string) => {
+    try {
+      const r: any = await proveedoresAPI.getAll();
+      const lista: any[] = Array.isArray(r) ? r : (r?.data || []);
+      const n = (t: string) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+      return lista.find(p => String(p.id) !== String(idActual) && (n(p.nombre) === n(formData.nombre) || (formData.rfc && n(p.rfc) === n(formData.rfc))));
+    } catch { return undefined; }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!validateForm()) return;
+    const repetido = await proveedorRepetido();
+    if (repetido) { setError(`Ya existe un proveedor con ese ${repetido.rfc && formData.rfc && repetido.rfc.toLowerCase() === formData.rfc.toLowerCase() ? 'RFC' : 'nombre'}`); return; }
 
     setLoading(true);
     try {

@@ -319,7 +319,11 @@ const AdminEditarProductoScreen: React.FC = () => {
   const validateForm = (): boolean => {
     if (!formData.nombre.trim()) { setError('El nombre del producto es requerido'); return false; }
     if (!formData.categoria_id) { setError('Debe seleccionar una categoría'); return false; }
+    if (!formData.material_principal.trim()) { setError('Selecciona el material principal (o "Otro" y escríbelo)'); return false; }
+    if (!formData.peso_gramos || formData.peso_gramos <= 0) { setError('El peso en gramos es obligatorio y debe ser mayor a 0'); return false; }
     if (!formData.precio_compra || formData.precio_compra <= 0) { setError('El precio de compra debe ser mayor a 0'); return false; }
+    if (formData.precio_oferta && formData.precio_oferta >= calcularPrecioVenta(formData.precio_compra)) { setError('El precio en oferta debe ser menor que el precio de venta'); return false; }
+    if (!selectedFile && !formData.imagen_principal) { setError('La imagen del producto es obligatoria: súbela o tómala con la cámara'); return false; }
     if (formData.stock_actual < 0) { setError('El stock no puede ser negativo'); return false; }
     return true;
   };
@@ -328,6 +332,12 @@ const AdminEditarProductoScreen: React.FC = () => {
     e.preventDefault();
     setError('');
     if (!validateForm()) return;
+    try {
+      const r: any = await productsAPI.getAll();
+      const lista: any[] = Array.isArray(r) ? r : (r?.data || []);
+      const n = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+      if (lista.some(p => String(p.id) !== String(id) && n(String(p.nombre || '')) === n(formData.nombre))) { setError('Ya existe otro producto con ese nombre'); return; }
+    } catch { /* si no se puede revisar, se continúa */ }
 
     // Si hay una foto elegida o tomada que aún no se subió, se sube aquí y su
     // URL se usa directamente: el estado (formData) todavía no se actualiza en
@@ -572,7 +582,7 @@ const AdminEditarProductoScreen: React.FC = () => {
                       }
                     }}
                   >
-                    <option value="">No aplica / sin material específico</option>
+                    <option value="">Selecciona un material</option>
                     <option value="Plata">Plata</option>
                     <option value="Plata ley .925">Plata ley .925</option>
                     <option value="Chapa de oro">Chapa de oro</option>
