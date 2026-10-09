@@ -65,6 +65,10 @@ export default defineConfig({
             options: {
               cacheName: 'paginas-estaticas',
               networkTimeoutSeconds: 6,
+              // La API responde con "Vary: Origin"; sin esto, las copias que
+              // guarda la precarga (ConexionSync) no coinciden con las
+              // peticiones de la página y sin conexión no se encuentran.
+              matchOptions: { ignoreVary: true },
               expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 7 },
               cacheableResponse: { statuses: [200] },
             },
