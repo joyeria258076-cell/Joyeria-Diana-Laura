@@ -282,16 +282,23 @@ export const agregarAlCarrito = async (req: Request, res: Response) => {
         const { id, email, nombre } = getUsuario(req);
         if (!id) return res.status(401).json({ success: false, message: 'No autenticado' });
 
-        const { producto_id, cantidad = 1, talla_medida, nota, solicitud_personalizacion_id, opciones } = req.body;
+        const { producto_id, talla_medida, nota, solicitud_personalizacion_id, opciones } = req.body;
         if (!producto_id) return res.status(400).json({ success: false, message: 'producto_id requerido' });
+        const cantidad = Number(req.body.cantidad ?? 1);
+        if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 99)
+            return res.status(400).json({ success: false, message: 'Cantidad inválida' });
 
         const prod = await pool.query(
             `SELECT stock_actual, activo FROM productos WHERE id = $1`, [producto_id]
         );
         if (!prod.rows.length || !prod.rows[0].activo)
             return res.status(404).json({ success: false, message: 'Producto no disponible' });
-        if (prod.rows[0].stock_actual < cantidad)
-            return res.status(400).json({ success: false, message: 'Stock insuficiente' });
+        // Se cuenta también lo que ya tiene en el carrito de ese producto
+        const enCarrito = await pool.query(
+            `SELECT COALESCE(SUM(cantidad), 0)::int AS n FROM carrito WHERE usuario_id = $1 AND producto_id = $2`, [id, producto_id]
+        );
+        if (prod.rows[0].stock_actual < cantidad + enCarrito.rows[0].n)
+            return res.status(400).json({ success: false, message: `Stock insuficiente: solo hay ${prod.rows[0].stock_actual} disponible(s) y ya tienes ${enCarrito.rows[0].n} en el carrito` });
 
         // Producto personalizado ya aprobado por un trabajador: se agrega ligado
         // a esa solicitud especifica (1 pieza, no se combina con otros items).
@@ -335,9 +342,16 @@ export const actualizarCantidad = async (req: Request, res: Response) => {
         if (!usuario_id) return res.status(401).json({ success: false, message: 'No autenticado' });
 
         const { id } = req.params;
-        const { cantidad } = req.body;
-        if (!cantidad || cantidad < 1)
+        const cantidad = Number(req.body.cantidad);
+        if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 99)
             return res.status(400).json({ success: false, message: 'Cantidad inválida' });
+        // No permitir más piezas de las que hay en existencia
+        const st = await pool.query(
+            `SELECT p.stock_actual FROM carrito c JOIN productos p ON p.id = c.producto_id WHERE c.id = $1 AND c.usuario_id = $2`,
+            [Number.parseInt(id), usuario_id]
+        );
+        if (st.rows.length && st.rows[0].stock_actual < cantidad)
+            return res.status(400).json({ success: false, message: `Solo hay ${st.rows[0].stock_actual} disponible(s)` });
 
         const item = await CarritoModel.updateCantidad(Number.parseInt(id), usuario_id, cantidad);
         if (!item) return res.status(404).json({ success: false, message: 'Item no encontrado' });
@@ -391,7 +405,7 @@ export const crearPedido = async (req: Request, res: Response) => {
         const usuario = getUsuario(req);
         if (!usuario.id) return res.status(401).json({ success: false, message: 'No autenticado' });
 
-        const { direccion_envio, notas_cliente, metodo_pago_id, tipo_entrega, costo_envio, direccion_data } = req.body;
+        const { direccion_envio, notas_cliente, metodo_pago_id, tipo_entrega, direccion_data } = req.body;
         if (!direccion_envio)
             return res.status(400).json({ success: false, message: 'Dirección de envío requerida' });
 
@@ -489,6 +503,11 @@ export const crearPedido = async (req: Request, res: Response) => {
                 });
         }
 
+        const cfgEnvio = await pool.query(`SELECT valor FROM configuracion WHERE clave = 'costo_envio_default'`);
+        const costoEnvioServidor = cfgEnvio.rows.length ? Number.parseFloat(cfgEnvio.rows[0].valor) || 0 : 50;
+        if (tipo_entrega && !['tienda', 'domicilio'].includes(tipo_entrega))
+            return res.status(400).json({ success: false, message: 'Tipo de entrega inválido' });
+
         const venta = await VentaModel.create({
             cliente_id,
             usuario_id:     usuario.id,
@@ -498,7 +517,8 @@ export const crearPedido = async (req: Request, res: Response) => {
             direccion_envio,
             notas_cliente,
             tipo_entrega:   tipo_entrega || 'tienda',
-            costo_envio:    tipo_entrega === 'domicilio' ? (costo_envio || 0) : 0,
+            // El costo de envío sale de la configuración, no de lo que mande el navegador
+            costo_envio:    tipo_entrega === 'domicilio' ? costoEnvioServidor : 0,
             items: itemsPedido
         });
 
@@ -648,6 +668,13 @@ export const actualizarEstadoPedido = async (req: Request, res: Response) => {
                 success: false,
                 message: 'El estado "Enviado" no aplica para pedidos en tienda — solo para entregas a domicilio.'
             });
+        }
+
+        if (estado === 'cancelado' && ['entregado', 'cancelado'].includes(ventaActual.estado)) {
+            return res.status(400).json({ success: false, message: `El pedido ya está "${labelEstado(ventaActual.estado)}" y no se puede cancelar.` });
+        }
+        if (estado === ventaActual.estado) {
+            return res.status(400).json({ success: false, message: `El pedido ya está en "${labelEstado(estado)}".` });
         }
 
         const estadoAnterior = ventaActual.estado;
@@ -993,15 +1020,25 @@ export const editarCantidadItem = async (req: Request, res: Response) => {
     try {
         const usuario = getUsuario(req);
         const { id, item_id } = req.params;
-        const { cantidad } = req.body;
+        const cantidad = Number(req.body.cantidad);
 
-        if (!cantidad || cantidad < 1)
+        if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 99)
             return res.status(400).json({ success: false, message: 'Cantidad inválida' });
 
         const venta = await VentaModel.getById(Number.parseInt(id));
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
         if (venta.trabajador_id !== usuario.id && usuario.rol !== 'admin')
             return res.status(403).json({ success: false, message: 'Sin permiso para modificar este pedido' });
+        // Los productos de un pedido solo se cambian antes de que el cliente pague:
+        // después, el total ya cobrado dejaría de coincidir
+        if (venta.estado_pago === 'aprobado' || ['entregado', 'cancelado'].includes(venta.estado))
+            return res.status(400).json({ success: false, message: 'Este pedido ya fue pagado o cerrado; sus productos no se pueden modificar.' });
+        const st = await pool.query(
+            `SELECT p.stock_actual FROM detalle_ventas vi JOIN productos p ON p.id = vi.producto_id WHERE vi.id = $1 AND vi.venta_id = $2`,
+            [Number.parseInt(item_id), Number.parseInt(id)]
+        ).catch(() => ({ rows: [] as any[] }));
+        if (st.rows.length && st.rows[0].stock_actual < cantidad)
+            return res.status(400).json({ success: false, message: `Solo hay ${st.rows[0].stock_actual} disponible(s)` });
 
         const resultado = await VentaModel.editarCantidadItem(Number.parseInt(item_id), Number.parseInt(id), cantidad);
         res.json({ success: true, message: 'Cantidad actualizada', data: resultado });
@@ -1019,6 +1056,10 @@ export const eliminarItemVenta = async (req: Request, res: Response) => {
         if (!venta) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
         if (venta.trabajador_id !== usuario.id && usuario.rol !== 'admin')
             return res.status(403).json({ success: false, message: 'Sin permiso para modificar este pedido' });
+        // Los productos de un pedido solo se cambian antes de que el cliente pague:
+        // después, el total ya cobrado dejaría de coincidir
+        if (venta.estado_pago === 'aprobado' || ['entregado', 'cancelado'].includes(venta.estado))
+            return res.status(400).json({ success: false, message: 'Este pedido ya fue pagado o cerrado; sus productos no se pueden modificar.' });
 
         const resultado = await VentaModel.eliminarItem(Number.parseInt(item_id), Number.parseInt(id));
         res.json({ success: true, message: 'Producto eliminado del pedido', data: resultado });

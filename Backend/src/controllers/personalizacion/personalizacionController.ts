@@ -59,7 +59,10 @@ export const crearSolicitud = async (req: AuthRequest, res: Response) => {
 
     const { producto_id, detalle, imagen_referencia_url } = req.body;
     if (!producto_id) return res.status(400).json({ success: false, message: 'producto_id requerido' });
-    if (!detalle || !detalle.trim()) return res.status(400).json({ success: false, message: 'El detalle es obligatorio' });
+    if (!detalle || typeof detalle !== 'string' || detalle.trim().length < 10)
+      return res.status(400).json({ success: false, message: 'Describe la personalización con al menos 10 caracteres' });
+    if (detalle.trim().length > 1000)
+      return res.status(400).json({ success: false, message: 'El detalle no puede pasar de 1000 caracteres' });
 
     const prod = await pool.query(`SELECT id, permite_personalizacion, activo FROM productos WHERE id = $1`, [producto_id]);
     if (!prod.rows.length || !prod.rows[0].activo)

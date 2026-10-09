@@ -246,7 +246,9 @@ export const crearApartado = async (req: AuthRequest, res: Response) => {
         const monto_minimo = Math.ceil(monto_total * 0.5 * 100) / 100;
         const abono        = parseFloat(monto_abono_inicial);
 
-        // ✅ Validar monto: mínimo 50%, máximo total
+        // ✅ Validar monto: mínimo 50%, máximo total (un texto no numérico daba NaN y pasaba)
+        if (!Number.isFinite(abono))
+            return res.status(400).json({ success: false, message: 'Monto inválido.' });
         if (abono < monto_minimo)
             return res.status(400).json({
                 success: false,
@@ -718,7 +720,7 @@ export const registrarAbono = async (req: AuthRequest, res: Response) => {
 
         // ✅ Validaciones estrictas de monto
 
-        if (monto_abono <= 0)
+        if (!Number.isFinite(monto_abono) || monto_abono <= 0)
             return res.status(400).json({ success: false, message: 'El monto debe ser mayor a $0.' });
 
         if (monto_abono > monto_antes)
@@ -1168,7 +1170,7 @@ export const solicitarAbono = async (req: AuthRequest, res: Response) => {
 
         const monto_abono = parseFloat(monto);
         const monto_antes = parseFloat(apartado.saldo_pendiente);
-        if (monto_abono <= 0 || monto_abono > monto_antes)
+        if (!Number.isFinite(monto_abono) || monto_abono <= 0 || monto_abono > monto_antes)
             return res.status(400).json({ success: false, message: `Monto inválido. Máximo: $${monto_antes.toFixed(2)}` });
 
         const metodoRes = await client.query('SELECT * FROM metodos_pago WHERE id = $1', [metodo_pago_id]);
