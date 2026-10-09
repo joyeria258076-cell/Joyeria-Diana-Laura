@@ -1,4 +1,5 @@
 // Frontend/src/screens/publico/CatalogoPublicScreen.tsx
+import { MdMic } from 'react-icons/md';
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AiOutlineSearch, AiOutlineTag, AiOutlineAppstore } from "react-icons/ai";
@@ -495,7 +496,7 @@ const CatalogoPublicScreen: React.FC = () => {
               {vozDisponible && (
                 <button type="button" className={`cv5-voz${escuchando ? ' escuchando' : ''}`} onClick={iniciarVoz}
                   aria-label={escuchando ? 'Escuchando…' : 'Buscar por voz'} title="Buscar por voz">
-                  {escuchando ? '●' : '🎤'}
+                  {escuchando ? '●' : <MdMic size={20} aria-hidden="true" />}
                 </button>
               )}
               <button type="submit">Buscar</button>
