@@ -54,7 +54,7 @@ export default defineConfig({
         // Estrategias de caché en tiempo de ejecución (además del precache,
         // que funciona como Cache Only para los archivos del build):
         runtimeCaching: [
-          // Network First: SOLO el contenido de las páginas estáticas
+          // Network First: SOLO el contenido de las PÁGINAS ESTÁTICAS
           // (inicio, nosotros: misión/visión/valores, preguntas frecuentes,
           // políticas, contacto y ubicación). Con internet se pide fresco;
           // sin internet se muestra lo último guardado.
@@ -76,6 +76,23 @@ export default defineConfig({
               cacheableResponse: { statuses: [200] },
             },
           },
+          // Network First: contenido dinámico que se ve en el inicio y en el
+          // blog (productos destacados y noticias). Se guarda en la primera
+          // visita para que sin conexión se vea lo último que se cargó.
+          // El catálogo (/products/por-categorias, filtros, búsqueda) no entra.
+          {
+            urlPattern: ({ url, request }) =>
+              request.method === 'GET' &&
+              /\/api\/(products|content\/noticias)$/.test(url.pathname),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'contenido-inicio',
+              networkTimeoutSeconds: 6,
+              matchOptions: { ignoreVary: true },
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
           // Network Only: el resto de la API, incluido el catálogo de
           // productos (dinámico: precios y stock), login, carrito, pedidos,
           // apartados y admin. Nunca se guarda en caché.
@@ -90,6 +107,25 @@ export default defineConfig({
             options: {
               cacheName: 'imagenes-cloudinary',
               expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+              // La página pide la misma imagen en varios tamaños
+              // (/upload/f_auto,q_auto,w_600/...). Se guarda con la dirección
+              // sin el tamaño, así cualquier tamaño ya descargado (o el que
+              // precarga ConexionSync) sirve sin conexión.
+              plugins: [{
+                cacheKeyWillBeUsed: async ({ request }) =>
+                  request.url.replace(/\/upload\/(?:[a-z]{1,3}_[^/]+\/)+/, '/upload/'),
+              }],
+            },
+          },
+          // Cache First: imágenes de otros sitios (p. ej. la foto de respaldo
+          // de las noticias).
+          {
+            urlPattern: ({ request, url }) => request.destination === 'image' && url.hostname !== 'res.cloudinary.com',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'imagenes-externas',
+              expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

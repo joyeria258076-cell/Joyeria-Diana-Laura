@@ -30,12 +30,40 @@ const CACHE_ESTATICAS = 'paginas-estaticas';
 // Pide cada endpoint y guarda la respuesta directamente en la caché. Así no
 // depende de que el service worker ya controle la página (en la primera
 // visita todavía se está instalando y no alcanzaría a guardarla).
+// Contenido dinámico del inicio y del blog: se guarda en la primera visita
+// para mostrar lo último cargado cuando no hay conexión (regla
+// 'contenido-inicio' en vite.config.ts).
+const ENDPOINTS_INICIO = ['/products', '/content/noticias'];
+const CACHE_INICIO = 'contenido-inicio';
+const CACHE_IMAGENES = 'imagenes-cloudinary';
+
+// Igual que el cacheKeyWillBeUsed del service worker: sin el tamaño de Cloudinary
+const claveImagen = (url: string) => url.replace(/\/upload\/(?:[a-z]{1,3}_[^/]+\/)+/, '/upload/');
+
+const guardar = async (cache: Cache, endpoints: string[]) => {
+  const textos = await Promise.allSettled(endpoints.map(async e => {
+    const res = await fetch(`${API}${e}`, { cache: 'no-store' });
+    if (!res.ok) return '';
+    await cache.put(`${API}${e}`, res.clone());
+    return res.text();
+  }));
+  return textos.map(t => (t.status === 'fulfilled' ? t.value : '')).join(' ');
+};
+
 const precargar = async () => {
   if (!('caches' in window)) return;
-  const cache = await caches.open(CACHE_ESTATICAS);
-  await Promise.allSettled(ENDPOINTS_ESTATICOS.map(async e => {
-    const res = await fetch(`${API}${e}`, { cache: 'no-store' });
-    if (res.ok) await cache.put(`${API}${e}`, res.clone());
+  const [estaticas, inicio, imagenes] = await Promise.all([
+    caches.open(CACHE_ESTATICAS), caches.open(CACHE_INICIO), caches.open(CACHE_IMAGENES),
+  ]);
+  const texto = (await guardar(estaticas, ENDPOINTS_ESTATICOS)) + (await guardar(inicio, ENDPOINTS_INICIO));
+
+  // Imágenes que aparecen en esas respuestas (carrusel, productos, noticias,
+  // colecciones), para que el inicio y el blog se vean completos sin conexión.
+  const urls = [...new Set((texto.match(/https:\/\/res\.cloudinary\.com\/[^"\s\\]+/g) || []).map(claveImagen))].slice(0, 80);
+  await Promise.allSettled(urls.map(async u => {
+    if (await imagenes.match(u)) return;
+    const res = await fetch(u, { mode: 'no-cors' });
+    await imagenes.put(u, res);
   }));
 };
 
@@ -61,7 +89,7 @@ function ConexionSync(): null {
       window.location.reload();
     };
     const alPerder = () => {
-      notificar('Sin conexión', 'Puedes seguir viendo Inicio, Nosotros, Preguntas frecuentes y Políticas.');
+      notificar('Sin conexión', 'Puedes seguir viendo Inicio, Blog, Nosotros, Preguntas frecuentes y Políticas.');
     };
     window.addEventListener('online', alVolver);
     window.addEventListener('offline', alPerder);
