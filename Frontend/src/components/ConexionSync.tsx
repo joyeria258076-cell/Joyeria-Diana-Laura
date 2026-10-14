@@ -63,8 +63,11 @@ const precargar = async () => {
   await Promise.allSettled(urls.map(async u => {
     // Las que guardó el <img> quedan "opacas" (sin vista previa en DevTools);
     // se reemplazan por la respuesta completa, que Cloudinary permite con CORS.
+    // La copia opaca se borra antes: si no, el service worker (Cache First) la
+    // devuelve a esta petición CORS y el navegador la rechaza (ERR_FAILED).
     const previa = await imagenes.match(u);
     if (previa && previa.type !== 'opaque') return;
+    if (previa) await imagenes.delete(u);
     const res = await fetch(u, { mode: 'cors' });
     if (res.ok) await imagenes.put(u, res);
   }));
