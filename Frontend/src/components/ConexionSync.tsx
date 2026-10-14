@@ -61,9 +61,12 @@ const precargar = async () => {
   // colecciones), para que el inicio y el blog se vean completos sin conexión.
   const urls = [...new Set((texto.match(/https:\/\/res\.cloudinary\.com\/[^"\s\\]+/g) || []).map(claveImagen))].slice(0, 80);
   await Promise.allSettled(urls.map(async u => {
-    if (await imagenes.match(u)) return;
-    const res = await fetch(u, { mode: 'no-cors' });
-    await imagenes.put(u, res);
+    // Las que guardó el <img> quedan "opacas" (sin vista previa en DevTools);
+    // se reemplazan por la respuesta completa, que Cloudinary permite con CORS.
+    const previa = await imagenes.match(u);
+    if (previa && previa.type !== 'opaque') return;
+    const res = await fetch(u, { mode: 'cors' });
+    if (res.ok) await imagenes.put(u, res);
   }));
 };
 
