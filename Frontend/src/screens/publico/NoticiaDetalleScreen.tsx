@@ -134,7 +134,13 @@ const NoticiaDetalleScreen: React.FC<{ privado?: boolean }> = ({ privado = false
           </div>
 
           <div className="nd-contenido">
-            {(noticia.contenido || "").split("\n").map((p: string, i: number) => p.trim() && <p key={i}>{p}</p>)}
+            {(noticia.contenido || "").split("\n").map((p: string, i: number) => {
+              const t = p.trim();
+              if (!t) return null;
+              // "Paso 1." o "Método del hilo:" al inicio del párrafo se resaltan
+              const m = t.match(/^(Paso \d+\.|[^.:¿?]{3,40}:)\s+(.*)$/);
+              return m ? <p key={i}><strong>{m[1]}</strong> {m[2]}</p> : <p key={i}>{t}</p>;
+            })}
           </div>
         </div>
       </article>
