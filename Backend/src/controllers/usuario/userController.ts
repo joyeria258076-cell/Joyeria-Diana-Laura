@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as userModel from '../../models/userModel';
 import bcrypt from 'bcryptjs';
+import { validateName } from '../../utils/inputValidation';
 
 // Obtener perfil de usuario por ID
 export const getUserProfile = async (req: Request, res: Response) => {
@@ -102,7 +103,38 @@ export const updateOwnProfile = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Sin campos para actualizar' });
     }
 
-    const ok = await userModel.updateUser(Number(userId), { nombre, telefono, foto_perfil_url });
+    // Se valida aquí aunque el sitio web y la app ya revisen: una petición alterada no debe
+    // guardar datos que después ven otras pantallas (app móvil #220).
+    const cambios: { nombre?: string; telefono?: string | null; foto_perfil_url?: string | null } = {};
+
+    if (nombre !== undefined) {
+      const limpio = typeof nombre === 'string' ? nombre.trim() : '';
+      const valido = validateName(limpio);
+      if (!valido.valid) return res.status(400).json({ success: false, message: valido.message });
+      if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+$/.test(limpio)) {
+        return res.status(400).json({ success: false, message: 'El nombre solo puede tener letras y espacios' });
+      }
+      cambios.nombre = limpio;
+    }
+
+    if (telefono !== undefined) {
+      const digitos = telefono === null ? '' : String(telefono).replace(/[\s-]/g, '');
+      if (digitos !== '' && !/^\d{10}$/.test(digitos)) {
+        return res.status(400).json({ success: false, message: 'El teléfono debe tener 10 dígitos' });
+      }
+      cambios.telefono = digitos === '' ? null : digitos;
+    }
+
+    if (foto_perfil_url !== undefined) {
+      const url = foto_perfil_url === null ? '' : String(foto_perfil_url).trim();
+      // Solo imágenes subidas a la cuenta de Cloudinary de la tienda (POST /upload/image).
+      const nube = process.env.CLOUDINARY_CLOUD_NAME;
+      const permitida = url === '' || (nube !== undefined && url.startsWith(`https://res.cloudinary.com/${nube}/image/upload/`));
+      if (!permitida) return res.status(400).json({ success: false, message: 'La foto de perfil no es válida' });
+      cambios.foto_perfil_url = url === '' ? null : url;
+    }
+
+    const ok = await userModel.updateUser(Number(userId), cambios);
     if (ok) res.json({ success: true, message: 'Perfil actualizado correctamente' });
     else res.status(404).json({ success: false, message: 'Usuario no encontrado' });
   } catch (error) {

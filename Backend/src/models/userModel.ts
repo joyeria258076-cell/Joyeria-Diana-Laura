@@ -102,7 +102,7 @@ export const getAllUsers = async (): Promise<User[]> => {
 };
 
 // Actualizar usuario
-export const updateUser = async (id: number, updates: { nombre?: string; email?: string; telefono?: string; foto_perfil_url?: string }): Promise<boolean> => {
+export const updateUser = async (id: number, updates: { nombre?: string; email?: string; telefono?: string | null; foto_perfil_url?: string | null }): Promise<boolean> => {
   try {
     const fields = [];
     const values = [];
