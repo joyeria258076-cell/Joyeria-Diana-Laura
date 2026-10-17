@@ -498,7 +498,9 @@ export const getMisApartados = async (req: AuthRequest, res: Response) => {
                         'fecha_limite_siguiente', ab.fecha_limite_siguiente,
                         'estado', ab.estado,
                         'notas', ab.notas,
-                        'comprobante_url', ab.comprobante_url
+                        'comprobante_url', ab.comprobante_url,
+                        'metodo_nombre', (SELECT mp.nombre FROM metodos_pago mp WHERE mp.id = ab.metodo_pago_id),
+                        'metodo_codigo', (SELECT mp.codigo FROM metodos_pago mp WHERE mp.id = ab.metodo_pago_id)
                     ) ORDER BY ab.fecha_abono ASC
                 ) FROM abonos ab WHERE ab.apartado_id = a.id AND ab.estado = 'pagado') AS abonos,
                 (SELECT json_agg(
@@ -533,9 +535,12 @@ export const getMisApartados = async (req: AuthRequest, res: Response) => {
 export const getApartadoById = async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
+        const userId = req.user?.id || req.user?.userId;
+        const esPersonal = req.user?.rol === 'admin' || req.user?.rol === 'trabajador';
 
         const apartadoRes = await pool.query(
             `SELECT a.*,
+                c.user_id AS cliente_user_id,
                 v.folio AS venta_folio, v.total AS venta_total,
                 u.nombre AS trabajador_nombre,
                 pa.nombre AS plan_nombre,
@@ -549,6 +554,8 @@ export const getApartadoById = async (req: AuthRequest, res: Response) => {
                         'fecha_limite_siguiente', ab.fecha_limite_siguiente,
                         'estado', ab.estado,
                         'metodo_pago_id', ab.metodo_pago_id,
+                        'metodo_nombre', (SELECT mp.nombre FROM metodos_pago mp WHERE mp.id = ab.metodo_pago_id),
+                        'metodo_codigo', (SELECT mp.codigo FROM metodos_pago mp WHERE mp.id = ab.metodo_pago_id),
                         'comprobante_url', ab.comprobante_url,
                         'notas', ab.notas
                     ) ORDER BY ab.fecha_abono ASC
@@ -563,16 +570,21 @@ export const getApartadoById = async (req: AuthRequest, res: Response) => {
                  WHERE dv.venta_id = a.venta_id) AS productos
              FROM apartados a
              JOIN ventas v ON v.id = a.venta_id
+             JOIN clientes c ON c.id = a.cliente_id
              LEFT JOIN usuarios u ON u.id = a.trabajador_id
              LEFT JOIN planes_abono pa ON pa.id = a.plan_abono_id
              WHERE a.id = $1`,
             [id]
         );
 
-        if (apartadoRes.rows.length === 0)
+        // Un cliente solo ve sus propios apartados; el personal los ve todos (monitoreo).
+        // Si no es suyo se responde igual que si no existiera, para no revelar que el folio existe.
+        const apartado = apartadoRes.rows[0];
+        if (!apartado || (!esPersonal && Number(apartado.cliente_user_id) !== Number(userId)))
             return res.status(404).json({ success: false, message: 'Apartado no encontrado.' });
 
-        res.json({ success: true, data: apartadoRes.rows[0] });
+        delete apartado.cliente_user_id;
+        res.json({ success: true, data: apartado });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }
