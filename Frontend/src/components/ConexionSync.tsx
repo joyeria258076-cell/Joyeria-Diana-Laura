@@ -85,9 +85,15 @@ const notificar = async (titulo: string, cuerpo: string) => {
 
 function ConexionSync(): null {
   useEffect(() => {
-    // Se deja para después de cargar la página, para no competir con las
-    // imágenes y datos del primer pintado (afectaba el LCP en Lighthouse).
-    const t = setTimeout(() => { if (navigator.onLine) precargar().catch(() => {}); }, 5000);
+    // Se deja para después de cargar la página y de que el service worker
+    // termine de instalarse: así no compite con el primer pintado (LCP) ni con
+    // la descarga del precache, y la página queda lista sin conexión antes.
+    let cancelado = false;
+    const t = setTimeout(() => {
+      const iniciar = () => { if (!cancelado && navigator.onLine) precargar().catch(() => {}); };
+      if ('serviceWorker' in navigator) navigator.serviceWorker.ready.then(iniciar);
+      else iniciar();
+    }, 3000);
 
     const alVolver = async () => {
       await precargar();
@@ -102,6 +108,7 @@ function ConexionSync(): null {
     return () => {
       window.removeEventListener('online', alVolver);
       window.removeEventListener('offline', alPerder);
+      cancelado = true;
       clearTimeout(t);
     };
   }, []);
