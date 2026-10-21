@@ -39,6 +39,13 @@ export default defineConfig({
         // imágenes, íconos) — ya vienen con hash de Vite, así que cada
         // deploy invalida solo lo que cambió.
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Las pantallas de admin y trabajador no van en la instalación: un
+        // visitante nunca las usa y hacían que el service worker tardara
+        // ~30 s en quedar listo. Se guardan al abrirlas (regla 'pantallas').
+        globIgnores: [
+          '**/assets/Admin*', '**/assets/Gestion*', '**/assets/Worker*',
+          '**/assets/Actividades*', '**/assets/DashboardTrabajador*', '**/assets/OperacionApp*',
+        ],
         // Toma el control de la página desde la primera visita (sin esperar a
         // recargar), para que la precarga de páginas estáticas se guarde ya.
         clientsClaim: true,
@@ -127,6 +134,17 @@ export default defineConfig({
               cacheName: 'imagenes-externas',
               expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          // Cache First: pantallas que no van en el precache (admin y
+          // trabajador). Su nombre lleva hash, así que nunca cambian.
+          {
+            urlPattern: ({ url }) => url.origin === self.location.origin && /^\/assets\/.+\.(js|css)$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'pantallas',
+              expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [200] },
             },
           },
           // Stale-While-Revalidate: hojas de estilo de Google Fonts.
