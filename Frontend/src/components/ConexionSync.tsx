@@ -50,8 +50,28 @@ const guardar = async (cache: Cache, endpoints: string[]) => {
   return textos.map(t => (t.status === 'fulfilled' ? t.value : '')).join(' ');
 };
 
+// Si alguien borró las cachés pero el service worker sigue registrado, el
+// precache de Workbox (la app en sí) no se vuelve a llenar solo hasta el
+// siguiente deploy. Se rellena aquí con la misma lista y el mismo formato de
+// claves que usa Workbox (archivo?__WB_REVISION__=versión).
+const reponerPrecache = async () => {
+  const reg = await navigator.serviceWorker?.getRegistration();
+  if (!reg) return;
+  const nombre = `workbox-precache-v2-${reg.scope}`;
+  if ((await caches.keys()).includes(nombre)) return;
+  const sw = await (await fetch('/sw.js', { cache: 'no-store' })).text();
+  const entradas = [...sw.matchAll(/\{url:"([^"]+)",revision:(?:"([^"]+)"|null)\}/g)];
+  const cache = await caches.open(nombre);
+  await Promise.allSettled(entradas.map(async ([, url, revision]) => {
+    const abs = new URL(url, reg.scope).href;
+    const res = await fetch(abs, { cache: 'no-store' });
+    if (res.ok) await cache.put(revision ? `${abs}?__WB_REVISION__=${revision}` : abs, res);
+  }));
+};
+
 const precargar = async () => {
   if (!('caches' in window)) return;
+  await reponerPrecache().catch(() => {});
   const [estaticas, inicio, imagenes] = await Promise.all([
     caches.open(CACHE_ESTATICAS), caches.open(CACHE_INICIO), caches.open(CACHE_IMAGENES),
   ]);
