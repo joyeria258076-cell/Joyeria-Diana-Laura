@@ -11,6 +11,7 @@ import { expirarSiToca } from '../../services/expiracionPedidosService';
 import { validarEleccion, resumenDe } from '../../services/opcionesPersonalizacionService';
 
 import { urlsRegresoApp } from '../../utils/pagoApp';
+import { enviarPorCliente } from '../../services/notificacionesPushService';
 const getUsuario = (req: Request) => {
     const user = (req as any).user;
     const id = user?.userId || user?.dbId || user?.id || null;
@@ -110,7 +111,20 @@ function construirHtmlNotificacionEstado(venta: any, estado: string, nota?: stri
     });
 }
 
+// Aviso al teléfono del cliente (HU-15, app móvil #54) en los mismos momentos que el correo.
+// Al tocarlo, la app abre el seguimiento del pedido con pedido_id.
+const enviarPushEstadoPedido = (venta: any, estado: string): void => {
+    if (!venta.cliente_id) return;
+    const meta = ESTADO_NOTIFICACION_META[estado] || { titulo: 'Tu pedido se actualizó', mensaje: 'El estado de tu pedido cambió.' };
+    void enviarPorCliente(Number(venta.cliente_id), {
+        titulo: meta.titulo.replace(/\*/g, ''),
+        cuerpo: `${meta.mensaje} Folio ${venta.folio}.`,
+        datos: { tipo: 'pedido', pedido_id: String(venta.id), estado },
+    });
+};
+
 const enviarNotificacionEstadoPedido = async (venta: any, estado: string, asunto?: string, nota?: string): Promise<void> => {
+    enviarPushEstadoPedido(venta, estado);
     const destinatarioEmail = venta.cliente_email || venta.cliente_email_reg;
     if (!destinatarioEmail) return;
 
