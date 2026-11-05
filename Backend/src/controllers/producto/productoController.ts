@@ -580,7 +580,9 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
                 p.stock_actual, p.es_nuevo, p.es_destacado, p.permite_personalizacion,
                 (SELECT COALESCE(ROUND(AVG(r.calificacion)::numeric, 1), 0) FROM resenas_producto r WHERE r.producto_id = p.id) AS promedio_resenas,
                 (SELECT COUNT(*)::int FROM resenas_producto r WHERE r.producto_id = p.id) AS total_resenas,
-                ${PROMO_SUBQUERY}
+                ${PROMO_SUBQUERY},
+                -- Piezas que cumplen el filtro antes de LIMIT/OFFSET, para paginar por número (app #279).
+                COUNT(*) OVER()::int AS total_filtrado
             FROM productos p
             WHERE p.activo = true
         `;
@@ -642,7 +644,9 @@ export const searchAndFilterProducts = async (req: Request, res: Response) => {
         res.status(200).json({ 
             success: true, 
             data: result.rows,
-            total: result.rows.length
+            total: result.rows.length,
+            // Total de piezas del filtro (todas las páginas); 0 si la página quedó vacía.
+            total_filtrado: result.rows[0]?.total_filtrado ?? 0
         });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
