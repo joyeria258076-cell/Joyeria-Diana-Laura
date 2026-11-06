@@ -41,7 +41,12 @@ export const quitarDispositivo = async (usuarioId: number, token: string): Promi
 // detener el cambio de estado del pedido. Devuelve cuántos teléfonos lo recibieron.
 export const enviarAUsuario = async (usuarioId: number, notificacion: NotificacionPush): Promise<number> => {
     try {
-        const { rows } = await pool.query(`SELECT token FROM dispositivos_push WHERE usuario_id = $1`, [usuarioId]);
+        // #274: si la clienta se opuso a los avisos push, no se envía nada.
+        const { rows } = await pool.query(
+            `SELECT d.token FROM dispositivos_push d JOIN usuarios u ON u.id = d.usuario_id
+             WHERE d.usuario_id = $1 AND u.avisos_push IS NOT FALSE`,
+            [usuarioId],
+        );
         const tokens: string[] = rows.map((r: any) => r.token);
         if (tokens.length === 0) return 0;
 

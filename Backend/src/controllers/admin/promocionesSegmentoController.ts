@@ -210,13 +210,15 @@ export const enviarPromocionSegmento = async (req: AuthRequest, res: Response) =
     }
 
     const result = await pool.query(
-      `SELECT id, nombre, email FROM clientes WHERE id = ANY($1) AND activo = true`,
+      // #274 (app móvil): no se envían promociones a quien se opuso a recibirlas.
+      `SELECT c.id, c.nombre, c.email FROM clientes c LEFT JOIN usuarios u ON u.id = c.user_id
+       WHERE c.id = ANY($1) AND c.activo = true AND u.correos_promocion IS NOT FALSE`,
       [cliente_ids]
     );
     const clientes = result.rows;
 
     if (clientes.length === 0) {
-      return res.status(404).json({ success: false, message: 'No se encontraron clientes activos con esos IDs' });
+      return res.status(404).json({ success: false, message: 'No se encontraron clientes activos que acepten promociones con esos IDs' });
     }
 
     // Si se pidio descuento, se crea UNA promocion restringida a estos clientes
