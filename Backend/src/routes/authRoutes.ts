@@ -1,4 +1,5 @@
 // Ruta: Joyeria-Diana-Laura/Backend/src/routes/authRoutes.ts
+import { deleteOwnAccount } from '../controllers/usuario/eliminarCuentaController';
 import express from 'express';
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
@@ -132,6 +133,8 @@ router.post('/mfa/status', authenticateToken, mfaController.checkMFAStatus);
 // ==========================================
 router.get('/profile', authenticateToken, getOwnProfile);
 router.put('/profile', authenticateToken, updateOwnProfile);
+// Eliminar la propia cuenta (ARCO, app móvil #273): anonimiza los datos y borra el acceso de Firebase.
+router.delete('/profile', authenticateToken, deleteOwnAccount);
 router.put('/profile/password', authenticateToken, changeOwnPassword);
 router.put('/profile/email', authenticateToken, changeOwnEmail);
 
