@@ -27,7 +27,7 @@ const EliminarCuentaScreen: React.FC = () => (
         <article className="legal-article">
           <p className="legal-parrafo">
             Puedes eliminar tu cuenta de Joyería Diana Laura y tus datos personales en cualquier momento, desde la
-            app o por correo.
+            app, por correo o por WhatsApp.
           </p>
 
           <h3 className="legal-seccion-titulo">1. Desde la app</h3>
@@ -37,7 +37,7 @@ const EliminarCuentaScreen: React.FC = () => (
             <li>Toca Eliminar mi cuenta y confirma.</li>
           </ul>
 
-          <h3 className="legal-seccion-titulo">2. Por correo</h3>
+          <h3 className="legal-seccion-titulo">2. Por correo o WhatsApp</h3>
           <p className="legal-parrafo">
             Escribe a <a href={`mailto:${CORREO}?subject=Eliminar%20mi%20cuenta`}>{CORREO}</a> desde el correo con el
             que te registraste, con el asunto "Eliminar mi cuenta", o por WhatsApp al{' '}
