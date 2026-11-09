@@ -124,6 +124,8 @@ const PublicFooter: React.FC = () => {
             <Link to="/legal/privacidad">Política de Privacidad</Link>
             <span className="separator">•</span>
             <Link to="/legal/terminos">Términos de Servicio</Link>
+            <span className="separator">•</span>
+            <Link to="/eliminar-cuenta">Eliminar cuenta</Link>
           </div>
         </div>
       </div>
