@@ -7,7 +7,7 @@ import './LegalScreen.css';
 // Página pública que pide Google Play a las apps que permiten crear cuentas: explica cómo eliminar
 // la cuenta y qué datos se borran o se conservan. Coincide con lo que hace DELETE /auth/profile
 // (eliminarCuentaController.ts).
-const CORREO = 'joyeria258076@gmail.com';
+const CORREO = 'dianalaura5861@gmail.com';
 
 const EliminarCuentaScreen: React.FC = () => (
   <div className="legal-page">
@@ -40,7 +40,8 @@ const EliminarCuentaScreen: React.FC = () => (
           <h3 className="legal-seccion-titulo">2. Por correo</h3>
           <p className="legal-parrafo">
             Escribe a <a href={`mailto:${CORREO}?subject=Eliminar%20mi%20cuenta`}>{CORREO}</a> desde el correo con el
-            que te registraste, con el asunto "Eliminar mi cuenta". Respondemos en un máximo de 5 días hábiles.
+            que te registraste, con el asunto "Eliminar mi cuenta", o por WhatsApp al{' '}
+            <a href="https://wa.me/527712976220">7712976220</a>. Respondemos en un máximo de 5 días hábiles.
           </p>
 
           <h3 className="legal-seccion-titulo">3. Datos que se borran</h3>
