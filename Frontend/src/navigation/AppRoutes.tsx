@@ -17,6 +17,7 @@ import UbicacionPublicScreen from "../screens/publico/UbicacionPublicScreen";
 import AyudaPublicScreen from "../screens/publico/AyudaPublicScreen";
 import ProductoDetallePublicScreen from "../screens/publico/ProductoDetallePublicScreen";
 import LegalScreen from "../screens/publico/LegalScreen";
+import EliminarCuentaScreen from "../screens/publico/EliminarCuentaScreen";
 import PublicHeader from "../components/PublicHeader";
 import PublicFooter from "../components/PublicFooter";
 
@@ -183,6 +184,7 @@ export default function AppRoutes() {
         <Route path="/ayuda-publica" element={<AyudaPublicScreen />} />
         <Route path="/nosotros" element={<><PublicHeader /><Suspense fallback={null}><SobreNosotros /></Suspense><PublicFooter /></>} />
         <Route path="/legal/:tipo" element={<LegalScreen />} />
+        <Route path="/eliminar-cuenta" element={<EliminarCuentaScreen />} />
 
         {/* 2. RUTAS DE AUTENTICACIÓN */}
         <Route path="/login" element={<PublicRoute><LoginScreen /></PublicRoute>} />
