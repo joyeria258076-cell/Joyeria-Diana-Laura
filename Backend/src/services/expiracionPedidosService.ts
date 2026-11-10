@@ -3,6 +3,8 @@
 // se puedan tomar meses después:
 //   • pendiente (nadie lo tomó)          → sin movimiento en N días
 //   • confirmado pero sin pago aprobado  → sin movimiento en N días
+// Además, los apartados activos cuya fecha límite para liquidar ya pasó se marcan como
+// "vencido" y sus piezas regresan al inventario.
 // N = configuracion.dias_expiracion_pedido (7 por defecto). Los pedidos que
 // pertenecen a un apartado se excluyen: tienen su propio flujo de liquidación.
 // No se restaura stock porque en esos estados todavía no se había descontado
@@ -66,7 +68,76 @@ export const expirarPedidosAbandonados = async (): Promise<number> => {
     [dias]
   );
   if (r3.rowCount) console.log(`⏳ ${r3.rowCount} apartado(s) sin pago inicial se cancelaron`);
-  return (r.rowCount ?? 0) + (r2.rowCount ?? 0) + (r3.rowCount ?? 0);
+
+  const vencidos = await vencerApartadosActivos();
+  return (r.rowCount ?? 0) + (r2.rowCount ?? 0) + (r3.rowCount ?? 0) + vencidos;
+};
+
+// Apartados activos (ya pagaron el anticipo y su pieza se descontó del inventario) cuya fecha límite
+// para liquidar pasó hace más de un día. Antes se quedaban "activos" para siempre si nadie los
+// cancelaba y la pieza seguía apartada. Se marcan "vencido", la pieza regresa al inventario con su
+// movimiento de devolución y el pedido se cancela. El día de gracia evita vencerlos por la diferencia
+// de horario entre el servidor (UTC) y la hora de México.
+export const vencerApartadosActivos = async (): Promise<number> => {
+  const candidatos = await pool.query(
+    `SELECT id FROM apartados
+      WHERE estado = 'activo'
+        AND fecha_limite_liquidacion IS NOT NULL
+        AND fecha_limite_liquidacion < (NOW() AT TIME ZONE 'UTC') - INTERVAL '1 day'`
+  );
+  let vencidos = 0;
+  for (const { id } of candidatos.rows) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const apt = await client.query(
+        `UPDATE apartados
+            SET estado = 'vencido',
+                motivo_cancelacion = COALESCE(motivo_cancelacion, 'Vencido: pasó la fecha límite para liquidar'),
+                fecha_cancelacion = NOW(),
+                fecha_actualizacion = NOW()
+          WHERE id = $1 AND estado = 'activo'
+          RETURNING venta_id, folio`,
+        [id]
+      );
+      if (!apt.rows.length) { await client.query('ROLLBACK'); continue; }
+      const { venta_id, folio } = apt.rows[0];
+
+      const piezas = await client.query(
+        'SELECT producto_id, cantidad FROM detalle_ventas WHERE venta_id = $1 AND producto_id IS NOT NULL',
+        [venta_id]
+      );
+      for (const item of piezas.rows) {
+        const p = await client.query(
+          'UPDATE productos SET stock_actual = stock_actual + $1, fecha_actualizacion = NOW() WHERE id = $2 RETURNING stock_actual',
+          [item.cantidad, item.producto_id]
+        );
+        if (!p.rows.length) continue;
+        const nuevo = p.rows[0].stock_actual;
+        await client.query(
+          `INSERT INTO movimientos_inventario
+              (producto_id, tipo_movimiento, cantidad, stock_anterior, stock_nuevo, venta_id, motivo, realizado_por)
+           VALUES ($1, 'devolucion', $2, $3, $4, $5, $6, 1)`,
+          [item.producto_id, item.cantidad, nuevo - item.cantidad, nuevo, venta_id, `Apartado vencido ${folio}`]
+        );
+      }
+      await client.query(
+        `UPDATE ventas SET estado = 'cancelado', fecha_cancelacion = NOW(),
+                motivo_cancelacion = COALESCE(motivo_cancelacion, 'Apartado vencido'), fecha_actualizacion = NOW()
+          WHERE id = $1`,
+        [venta_id]
+      );
+      await client.query('COMMIT');
+      vencidos++;
+    } catch (err: any) {
+      await client.query('ROLLBACK').catch(() => {});
+      console.error(`⚠️ No se pudo vencer el apartado ${id}:`, err?.message);
+    } finally {
+      client.release();
+    }
+  }
+  if (vencidos) console.log(`⏳ ${vencidos} apartado(s) activo(s) vencieron y sus piezas regresaron al inventario`);
+  return vencidos;
 };
 
 /** Ejecuta la expiración como mucho una vez cada 30 min (seguro llamarla en cada listado). */
