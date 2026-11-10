@@ -1,5 +1,6 @@
 // Backend/src/controllers/apartado/apartadoController.ts
 import { Request, Response } from 'express';
+import { piezasSinExistencias, mensajeSinExistencias } from '../../utils/existencias';
 import { pool } from '../../config/database';
 import { AuthRequest } from '../../middleware/authMiddleware';
 import axios from 'axios';
@@ -972,6 +973,9 @@ export const crearPreferenciaMP_Apartado = async (req: AuthRequest, res: Respons
             return res.status(404).json({ success: false, message: 'Apartado no encontrado o ya procesado.' });
 
         const apartado = aptRes.rows[0];
+        const sinExistencias = await piezasSinExistencias(apartado.venta_id);
+        if (sinExistencias.length)
+            return res.status(409).json({ success: false, message: mensajeSinExistencias(sinExistencias) });
         const monto    = parseFloat(apartado.monto_pagado);
         const mpToken  = process.env.MERCADOPAGO_ACCESS_TOKEN;
         if (!mpToken) return res.status(503).json({ success: false, message: 'MercadoPago no configurado' });
@@ -1055,6 +1059,9 @@ export const crearOrdenPayPal_Apartado = async (req: AuthRequest, res: Response)
             return res.status(404).json({ success: false, message: 'Apartado no encontrado.' });
 
         const apartado   = aptRes.rows[0];
+        const sinExistencias = await piezasSinExistencias(apartado.venta_id);
+        if (sinExistencias.length)
+            return res.status(409).json({ success: false, message: mensajeSinExistencias(sinExistencias) });
         const monto      = parseFloat(apartado.monto_pagado).toFixed(2);
         const ppClientId = process.env.PAYPAL_CLIENT_ID;
         const ppSecret   = process.env.PAYPAL_CLIENT_SECRET;

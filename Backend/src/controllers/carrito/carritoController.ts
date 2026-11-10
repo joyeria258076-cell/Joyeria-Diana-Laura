@@ -8,6 +8,7 @@ import { C, SITIO_URL, dinero, escapar, fila, tablaFilas, tarjeta, lineaTiempo, 
 import { verificarYCapturarPayPal } from '../../utils/paypalVerificacion';
 
 import { expirarSiToca } from '../../services/expiracionPedidosService';
+import { piezasSinExistencias, mensajeSinExistencias } from '../../utils/existencias';
 import { validarEleccion, resumenDe } from '../../services/opcionesPersonalizacionService';
 
 import { urlsRegresoApp } from '../../utils/pagoApp';
@@ -151,13 +152,15 @@ const enviarNotificacionEstadoPedido = async (venta: any, estado: string, asunto
 };
 
 // ── Descontar stock al confirmar pedido ───────────────────────
+// Cada salida queda en movimientos_inventario (como en los apartados) para poder rastrear el stock.
+// Si no alcanza, se avisa en el registro: el pago ya se cobró, así que la pieza se debe resolver a mano.
 const descontarStock = async (venta_id: number): Promise<void> => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
 
         const items = await client.query(`
-            SELECT producto_id, cantidad FROM detalle_ventas WHERE venta_id = $1
+            SELECT producto_id, cantidad FROM detalle_ventas WHERE venta_id = $1 AND producto_id IS NOT NULL
         `, [venta_id]);
 
         for (const item of items.rows) {
@@ -168,12 +171,19 @@ const descontarStock = async (venta_id: number): Promise<void> => {
 
             const stockActual = prod.rows[0].stock_actual;
             const nuevoStock  = Math.max(0, stockActual - item.cantidad);
+            if (stockActual < item.cantidad)
+                console.warn(`⚠️ Venta ${venta_id}: el producto ${item.producto_id} tenía ${stockActual} y se pagaron ${item.cantidad}; revisar existencias.`);
 
             await client.query(`
                 UPDATE productos 
                 SET stock_actual = $1, fecha_actualizacion = CURRENT_TIMESTAMP
                 WHERE id = $2
             `, [nuevoStock, item.producto_id]);
+            await client.query(`
+                INSERT INTO movimientos_inventario
+                    (producto_id, tipo_movimiento, cantidad, stock_anterior, stock_nuevo, venta_id, motivo, realizado_por)
+                VALUES ($1, 'salida_venta', $2, $3, $4, $5, 'Pago del pedido', 1)
+            `, [item.producto_id, item.cantidad, stockActual, nuevoStock, venta_id]);
 
             console.log(`📦 Stock actualizado: producto ${item.producto_id} | ${stockActual} → ${nuevoStock}`);
         }
@@ -188,18 +198,37 @@ const descontarStock = async (venta_id: number): Promise<void> => {
 };
 
 // ── Restaurar stock al cancelar ───────────────────────────────
+// En una transacción y con su movimiento de devolución, igual que al cancelar un apartado.
 const restaurarStock = async (venta_id: number): Promise<void> => {
-    const items = await pool.query(`
-        SELECT producto_id, cantidad FROM detalle_ventas WHERE venta_id = $1
-    `, [venta_id]);
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const items = await client.query(`
+            SELECT producto_id, cantidad FROM detalle_ventas WHERE venta_id = $1 AND producto_id IS NOT NULL
+        `, [venta_id]);
 
-    for (const item of items.rows) {
-        await pool.query(`
-            UPDATE productos
-            SET stock_actual = stock_actual + $1, fecha_actualizacion = CURRENT_TIMESTAMP
-            WHERE id = $2
-        `, [item.cantidad, item.producto_id]);
-        console.log(`♻️ Stock restaurado: producto ${item.producto_id} +${item.cantidad}`);
+        for (const item of items.rows) {
+            const r = await client.query(`
+                UPDATE productos
+                SET stock_actual = stock_actual + $1, fecha_actualizacion = CURRENT_TIMESTAMP
+                WHERE id = $2
+                RETURNING stock_actual
+            `, [item.cantidad, item.producto_id]);
+            if (!r.rows.length) continue;
+            const nuevo = r.rows[0].stock_actual;
+            await client.query(`
+                INSERT INTO movimientos_inventario
+                    (producto_id, tipo_movimiento, cantidad, stock_anterior, stock_nuevo, venta_id, motivo, realizado_por)
+                VALUES ($1, 'devolucion', $2, $3, $4, $5, 'Cancelación del pedido', 1)
+            `, [item.producto_id, item.cantidad, nuevo - item.cantidad, nuevo, venta_id]);
+            console.log(`♻️ Stock restaurado: producto ${item.producto_id} +${item.cantidad}`);
+        }
+        await client.query('COMMIT');
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
     }
 };
 
@@ -774,6 +803,9 @@ export const crearPreferenciaMercadoPago = async (req: Request, res: Response) =
             return res.status(400).json({ success: false, message: 'El plazo para pagar este pedido ya venció. Haz un pedido nuevo.' });
         if (venta.estado_pago === 'aprobado')
             return res.status(400).json({ success: false, message: 'Este pedido ya está pagado.' });
+        const sinExistencias = await piezasSinExistencias(venta.id);
+        if (sinExistencias.length)
+            return res.status(409).json({ success: false, message: mensajeSinExistencias(sinExistencias) });
 
         const mpToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
         if (!mpToken) return res.status(503).json({ success: false, message: 'MercadoPago no configurado' });
@@ -880,6 +912,9 @@ export const crearOrdenPayPal = async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, message: 'El plazo para pagar este pedido ya venció. Haz un pedido nuevo.' });
         if (venta.estado_pago === 'aprobado')
             return res.status(400).json({ success: false, message: 'Este pedido ya está pagado.' });
+        const sinExistencias = await piezasSinExistencias(venta.id);
+        if (sinExistencias.length)
+            return res.status(409).json({ success: false, message: mensajeSinExistencias(sinExistencias) });
 
         const ppClientId = process.env.PAYPAL_CLIENT_ID;
         const ppSecret   = process.env.PAYPAL_CLIENT_SECRET;
