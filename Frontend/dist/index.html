@@ -3,7 +3,7 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="/assets/DL-DaLbVoCu.ico" />
+    <link rel="icon" href="/assets/favicon-fANlyB8T.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta
@@ -11,83 +11,14 @@
       content="Sistema de gestión para Joyería Diana Laura"
     />
     <title>Diana Laura Joyería</title>
-
-    <!-- Fuentes de Google (consolidadas: antes se importaban por separado y
-         de forma bloqueante en 8 archivos CSS distintos) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <!-- Adelanta la conexión (DNS+TLS) a donde viven las imágenes del hero
-         y de producto, para que cuando React sepa qué URL mostrar la
-         descarga empiece de inmediato en vez de abrir la conexión desde
-         cero (esto era buena parte del "resource load delay" del LCP). -->
-    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
-    <!-- Nota: Lighthouse también sugirió preconectar a www.googleapis.com y
-         apis.google.com (usados por el iframe de Firebase Auth), pero el
-         propio audit recomienda no pasar de ~4 preconnects a la vez —
-         demasiados compiten por el ancho de banda inicial y pueden
-         terminar perjudicando más de lo que ayudan. Se prioriza lo que
-         afecta directamente el LCP de esta página (fuentes + imágenes). -->
-
-    <!-- El carrusel del Inicio se pide aquí, en paralelo a la descarga del
-         JS, en vez de esperar a que React arranque. InicioPublicScreen lo
-         toma de window.__carruselInicio. (Antes se precargaba una imagen de
-         respaldo que luego se reemplazaba: eso retrasaba el LCP.) -->
-    <link rel="preconnect" href="https://joyeria-diana-laura-nqnq.onrender.com" crossorigin />
-    <script>
-      if (location.pathname === '/') {
-        window.__carruselInicio = fetch('https://joyeria-diana-laura-nqnq.onrender.com/api/content/carrusel-inicio')
-          .then(function (r) { return r.ok ? r.json() : null; })
-          .then(function (j) {
-            // Precarga la foto de la primera diapositiva en cuanto se conoce,
-            // con las mismas URLs que usa el <img> del carrusel (mismo srcset).
-            try {
-              var l = Array.isArray(j) ? j : (j && j.data) || [];
-              l = l.filter(function (c) { return c.activo !== false; })
-                   .sort(function (a, b) { return (a.orden || 0) - (b.orden || 0); });
-              var u = l[0] && l[0].imagen_url;
-              if (u && u.indexOf('res.cloudinary.com') > -1 && u.indexOf('/upload/') > -1 && !/\/upload\/[^/]*w_\d/.test(u)) {
-                var p = document.createElement('link');
-                p.rel = 'preload'; p.as = 'image'; p.setAttribute('fetchpriority', 'high');
-                p.setAttribute('imagesrcset', [480, 768, 1080, 1400, 1920].map(function (w) {
-                  return u.replace('/upload/', '/upload/f_auto,q_auto,w_' + w + '/') + ' ' + w + 'w';
-                }).join(', '));
-                p.setAttribute('imagesizes', '(max-width: 900px) 100vw, 50vw');
-                document.head.appendChild(p);
-              }
-            } catch (e) {}
-            return j;
-          })
-          .catch(function () { return null; });
-      }
-    </script>
-    <!-- Carga la hoja de fuentes sin bloquear el primer render: se pide
-         con prioridad baja (media="print") y se activa en cuanto llega
-         (onload). El <noscript> es el respaldo si JS está deshabilitado.
-         Antes esto era un <link rel="stylesheet"> normal, que retrasa el
-         pintado hasta que la hoja termina de descargar. -->
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600;700;800&display=swap"
-      media="print"
-      onload="this.media='all'"
-    />
-    <noscript>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600;700;800&display=swap"
-      />
-    </noscript>
-    <script type="module" crossorigin src="/assets/index-DLivk-Cd.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/firebase-7B8izZ4z.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-nF3OWPuT.css">
-  <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
+    <script type="module" crossorigin src="/assets/index-BNnCeKFL.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Ds3yhk42.css">
+  </head>
   <body>
     <noscript>Necesitas habilitar JavaScript para ejecutar esta aplicación.</noscript>
     
     <!-- Este es el elemento donde React montará la aplicación -->
-    <!-- Primer pintado mientras carga el JS (React lo reemplaza al arrancar) -->
-    <div id="root"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font:italic 500 28px/1.2 Georgia,serif;letter-spacing:.02em;color:#a08a5c">Joyería Diana Laura</div></div>
+    <div id="root"></div>
     
   </body>
 </html>
