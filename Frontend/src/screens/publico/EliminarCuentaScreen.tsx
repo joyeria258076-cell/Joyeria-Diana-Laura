@@ -18,7 +18,7 @@ const EliminarCuentaScreen: React.FC = () => (
         <div className="legal-hero-inner">
           <span className="legal-hero-eyebrow">Privacidad</span>
           <h1 className="legal-hero-title">Eliminar tu cuenta</h1>
-          <p className="legal-hero-sub">App Joyería Diana Laura · Desarrollador: Joyería Diana Laura</p>
+          <p className="legal-hero-sub">App Joyería Diana Laura · Desarrollador en Google Play: NUB Studio</p>
           <span className="legal-hero-fecha">Última actualización: 9 de noviembre de 2026</span>
         </div>
       </div>
