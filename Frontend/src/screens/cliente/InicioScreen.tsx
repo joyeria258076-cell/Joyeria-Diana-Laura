@@ -177,7 +177,7 @@ const InicioScreen: React.FC = () => {
                     <span className="ap-avatar" aria-hidden="true">{(nombre || 'D').charAt(0).toUpperCase()}</span>
                     <div>
                         <span className="ap-saludo-hora">{saludoHora}</span>
-                        <strong className="ap-saludo-nombre">{nombre ? String(nombre).split(' ')[0] : 'Bienvenida'}</strong>
+                        <strong className="ap-saludo-nombre">{nombre ? String(nombre).split(' ')[0] : 'Hola'}</strong>
                     </div>
                 </div>
 

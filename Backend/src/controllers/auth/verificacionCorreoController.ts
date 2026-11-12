@@ -22,7 +22,7 @@ const htmlBienvenida = (nombre: string, enlace: string) => {
     return layoutCorreo({
         preheader: 'Confirma tu correo para empezar a guardar favoritos, apartar y pedir.',
         etiqueta: { texto: 'Cuenta creada', color: C.exito },
-        titulo: 'Bienvenida a tu *joyero*',
+        titulo: 'Tu joyería favorita, *al alcance de tu mano*',
         nombre,
         mensaje: 'Tu cuenta en Joyería Diana Laura ya existe. Solo falta un paso: confirma que este correo es tuyo para poder iniciar sesión.',
         contenido: tarjeta(`

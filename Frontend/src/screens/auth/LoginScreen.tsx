@@ -412,7 +412,7 @@ const onSubmit = async (data: FormData) => {
                             ¿Olvidaste tu contraseña?
                         </Link>
                         <p className="auth-alt">
-                            ¿Nueva por aquí? <Link to="/registro" className="login-link">Crea tu cuenta</Link>
+                            ¿No tienes cuenta? <Link to="/registro" className="login-link">Crea tu cuenta</Link>
                         </p>
                         <Link to="/" className="auth-explorar">o explora sin cuenta</Link>
                     </div>
