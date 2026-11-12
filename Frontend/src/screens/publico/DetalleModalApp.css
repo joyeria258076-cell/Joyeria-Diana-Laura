@@ -279,3 +279,11 @@ body .dm-body ~ .detalle-acciones { display: none !important; }
 
 /* Con la vista rápida abierta, el botón de accesibilidad sube para no tapar "Agregar" */
 body:has(.detalle-modal-overlay) .global-accessibility-buttons { bottom: 104px !important; }
+
+/* Celular: en la vista rápida la etiqueta "Precio" y el monto ocupan su propia línea; favorito y Agregar van debajo */
+@media (max-width: 480px) {
+  .dm-barra { flex-wrap: wrap; row-gap: 10px; }
+  .dm-barra-precio { flex: 1 1 100%; }
+  .dm-barra-precio strong { white-space: normal; overflow-wrap: anywhere; }
+  .dm-agregar { flex: 1; justify-content: center; }
+}
