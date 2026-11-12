@@ -57,7 +57,7 @@ export default function WorkerActivacionScreen() {
   if (codigoTrabajador) {
     return (
       <div className="wauth-wrapper">
-        <AuthTapa titulo={<>Bienvenida al <em>equipo</em>.</>} texto="Activa tu cuenta para empezar a atender pedidos y apartados." />
+        <AuthTapa titulo={<>Te damos la bienvenida al <em>equipo</em>.</>} texto="Activa tu cuenta para empezar a atender pedidos y apartados." />
         <div className="wauth-card">
           <div className="wauth-icon wauth-icon--ok">✓</div>
           <h1 className="wauth-title">¡Cuenta activada!</h1>
@@ -90,7 +90,7 @@ export default function WorkerActivacionScreen() {
   // ── PANTALLA: ingresar código de activación ──
   return (
     <div className="wauth-wrapper">
-      <AuthTapa titulo={<>Bienvenida al <em>equipo</em>.</>} texto="Activa tu cuenta para empezar a atender pedidos y apartados." />
+      <AuthTapa titulo={<>Te damos la bienvenida al <em>equipo</em>.</>} texto="Activa tu cuenta para empezar a atender pedidos y apartados." />
       <div className="wauth-card">
         <div className="wauth-icon"><AiOutlineKey size={26} /></div>
         <h1 className="wauth-title">Activar cuenta</h1>

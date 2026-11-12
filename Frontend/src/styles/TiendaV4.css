@@ -384,3 +384,11 @@ html body .card-estrellas small { font-weight: 500; color: var(--color-text-mute
   body .cv5-buscar button[type="submit"] { padding: 0 14px; }
   body .catalogo-body, body .cv5-cabeza { min-width: 0; max-width: 100%; }
 }
+
+/* Celular: el precio arriba y el botón Agregar a todo lo ancho debajo, para que no se encimen (obs. de testers) */
+@media (max-width: 560px) {
+  body :is(.pdp-barra-compra, .pd-barra-compra) { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; padding: 14px !important; border-radius: 22px !important; }
+  body :is(.pdp-barra-precio, .pd-barra-precio) { flex: none !important; }
+  body :is(.pdp-barra-precio, .pd-barra-precio) strong { white-space: normal !important; overflow-wrap: anywhere; }
+  body :is(.pdp-barra-compra, .pd-barra-compra) :is(.pd-btn-carrito, .pdp-btn-carrito) { width: 100% !important; min-width: 0 !important; min-height: 48px; justify-content: center; }
+}
