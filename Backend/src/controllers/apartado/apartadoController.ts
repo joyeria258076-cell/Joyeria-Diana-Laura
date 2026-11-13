@@ -1365,7 +1365,8 @@ export const crearPreferenciaMP_AbonoSig = async (req: AuthRequest, res: Respons
             items: [{ id: String(abono.id), title: `Abono ${abono.folio}`, quantity: 1, unit_price: monto, currency_id: 'MXN' }],
             payer: { email: usuario?.email || '' },
             external_reference: `SABONO-${abono.id}`,
-            back_urls: {
+            // Desde la app móvil el pago regresa a la app (joyeriadl://pago) con el id del apartado.
+            back_urls: req.body.origen === 'app' ? urlsRegresoApp('apartado', abono.apartado_id) : {
                 success: `${backUrl}/mis-apartados?pago=exitoso&abono=${abono.id}`,
                 failure: `${backUrl}/mis-apartados?pago=fallido&abono=${abono.id}`,
                 pending: `${backUrl}/mis-apartados?pago=pendiente&abono=${abono.id}`,
