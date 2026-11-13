@@ -322,6 +322,16 @@ export const getCarrito = async (req: Request, res: Response) => {
     }
 };
 
+// Aviso para la clienta cuando pide más piezas de las que hay (cuenta todo lo que ya lleva de ese producto).
+export const avisoTope = (disponibles: number, enCarrito: number): string => {
+    const piezas = (n: number) => `${n} ${n === 1 ? 'pieza' : 'piezas'}`;
+    if (disponibles <= 0) return 'Esta pieza se agotó por ahora.';
+    const faltan = disponibles - enCarrito;
+    if (faltan <= 0) return `Ya tienes en tu carrito las ${piezas(disponibles)} disponibles.`;
+    if (enCarrito === 0) return `Solo quedan ${piezas(disponibles)} disponibles.`;
+    return `Solo quedan ${piezas(disponibles)} y ya tienes ${enCarrito} en tu carrito. Puedes agregar ${faltan} más.`;
+};
+
 export const agregarAlCarrito = async (req: Request, res: Response) => {
     try {
         const { id, email, nombre } = getUsuario(req);
@@ -343,7 +353,7 @@ export const agregarAlCarrito = async (req: Request, res: Response) => {
             `SELECT COALESCE(SUM(cantidad), 0)::int AS n FROM carrito WHERE usuario_id = $1 AND producto_id = $2`, [id, producto_id]
         );
         if (prod.rows[0].stock_actual < cantidad + enCarrito.rows[0].n)
-            return res.status(400).json({ success: false, message: `Stock insuficiente: solo hay ${prod.rows[0].stock_actual} disponible(s) y ya tienes ${enCarrito.rows[0].n} en el carrito` });
+            return res.status(400).json({ success: false, message: avisoTope(prod.rows[0].stock_actual, enCarrito.rows[0].n) });
 
         // Producto personalizado ya aprobado por un trabajador: se agrega ligado
         // a esa solicitud especifica (1 pieza, no se combina con otros items).
@@ -390,13 +400,16 @@ export const actualizarCantidad = async (req: Request, res: Response) => {
         const cantidad = Number(req.body.cantidad);
         if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 99)
             return res.status(400).json({ success: false, message: 'Cantidad inválida' });
-        // No permitir más piezas de las que hay en existencia
+        // No permitir más piezas de las que hay en existencia, contando las otras líneas del mismo producto
         const st = await pool.query(
-            `SELECT p.stock_actual FROM carrito c JOIN productos p ON p.id = c.producto_id WHERE c.id = $1 AND c.usuario_id = $2`,
+            `SELECT p.stock_actual,
+                    COALESCE((SELECT SUM(o.cantidad) FROM carrito o
+                               WHERE o.usuario_id = c.usuario_id AND o.producto_id = c.producto_id AND o.id <> c.id), 0)::int AS otras
+               FROM carrito c JOIN productos p ON p.id = c.producto_id WHERE c.id = $1 AND c.usuario_id = $2`,
             [Number.parseInt(id), usuario_id]
         );
-        if (st.rows.length && st.rows[0].stock_actual < cantidad)
-            return res.status(400).json({ success: false, message: `Solo hay ${st.rows[0].stock_actual} disponible(s)` });
+        if (st.rows.length && st.rows[0].stock_actual < cantidad + st.rows[0].otras)
+            return res.status(400).json({ success: false, message: avisoTope(st.rows[0].stock_actual, st.rows[0].otras) });
 
         const item = await CarritoModel.updateCantidad(Number.parseInt(id), usuario_id, cantidad);
         if (!item) return res.status(404).json({ success: false, message: 'Item no encontrado' });
