@@ -1,5 +1,6 @@
 // Ruta:Joyeria-Diana-Laura/Frontend/src/screens/LoginScreen.tsx
 
+import AvisoCorreoVerificado from './AvisoCorreoVerificado';
 import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -93,6 +94,10 @@ export default function LoginScreen() {
 
     const [showPassword, setShowPassword] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
+    // Se guarda en la sesión: la pantalla se vuelve a montar al limpiar la URL y el aviso no debe perderse.
+    const [correoVerificado, setCorreoVerificado] = useState(
+        () => searchParams.get('verified') === 'true' || sessionStorage.getItem('avisoCorreoVerificado') === '1'
+    );
     const [loading, setLoading] = useState(false); // 🆕 Estado para loading del login
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
     const [captchaError, setCaptchaError] = useState('');
@@ -123,7 +128,9 @@ export default function LoginScreen() {
         // 🎯 MOSTRAR MENSAJE DE VERIFICACIÓN EXITOSA
         if (verified === 'true' && !sessionStorage.getItem('verificationShown')) {
             sessionStorage.setItem('verificationShown', 'true');
-            alert('¡Email verificado correctamente! Ahora puedes iniciar sesión.');
+            // Aviso dentro de la tarjeta (antes era un alert). En Android trae el botón para volver a la app.
+            sessionStorage.setItem('avisoCorreoVerificado', '1');
+            setCorreoVerificado(true);
             window.history.replaceState({}, '', window.location.pathname);
         }
 
@@ -320,6 +327,15 @@ const onSubmit = async (data: FormData) => {
                         <p>Ingresa a tu cuenta de Joyería Diana Laura</p>
                     </div>
                     
+                    {correoVerificado && (
+                        <AvisoCorreoVerificado
+                            onCerrar={() => {
+                                sessionStorage.removeItem('avisoCorreoVerificado');
+                                setCorreoVerificado(false);
+                            }}
+                        />
+                    )}
+
                     {isVerifying && (
                         <div className="verification-message">
                             <p>Verificando tu email...</p>
