@@ -101,15 +101,23 @@ export const CarritoModel = {
         return r.rows[0];
     },
 
+    // Misma pieza sin opciones: se suma a la línea que ya existe. La restricción única
+    // (usuario, producto, talla) no detecta repetidos cuando la talla es NULL, por eso se busca antes.
     upsert: async (usuario_id: number, producto_id: number, cantidad: number, talla_medida?: string, nota?: string) => {
+        const existe = await pool.query(
+            `SELECT id FROM carrito WHERE usuario_id = $1 AND producto_id = $2
+               AND talla_medida IS NOT DISTINCT FROM $3 AND opciones_clave IS NULL
+               AND solicitud_personalizacion_id IS NULL ORDER BY id LIMIT 1`,
+            [usuario_id, producto_id, talla_medida || null]);
+        if (existe.rows.length) {
+            const r = await pool.query(
+                `UPDATE carrito SET cantidad = cantidad + $1, nota = COALESCE($2, nota), fecha_agregado = CURRENT_TIMESTAMP
+                  WHERE id = $3 RETURNING *`, [cantidad, nota || null, existe.rows[0].id]);
+            return r.rows[0];
+        }
         const result = await pool.query(`
             INSERT INTO carrito (usuario_id, producto_id, cantidad, talla_medida, nota)
             VALUES ($1, $2, $3, $4, $5)
-            ON CONFLICT (usuario_id, producto_id, talla_medida)
-            DO UPDATE SET
-                cantidad       = carrito.cantidad + EXCLUDED.cantidad,
-                nota           = COALESCE(EXCLUDED.nota, carrito.nota),
-                fecha_agregado = CURRENT_TIMESTAMP
             RETURNING *
         `, [usuario_id, producto_id, cantidad, talla_medida || null, nota || null]);
         return result.rows[0];
